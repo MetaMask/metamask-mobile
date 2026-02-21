@@ -4,7 +4,9 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import TextField from '../../../../../../component-library/components/Form/TextField';
+import TextField, {
+  TextFieldSize,
+} from '../../../../../../component-library/components/Form/TextField';
 import { TextFieldProps } from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import styleSheet from './text-field-with-label.styles';
 
@@ -25,7 +27,12 @@ export const TextFieldWithLabel = (props: TextFieldWithLabelProps) => {
           {label}
         </Text>
       )}
-      <TextField autoCapitalize="none" autoCorrect={false} {...restProps} />
+      <TextField
+        autoCapitalize="none"
+        autoCorrect={false}
+        size={TextFieldSize.Lg}
+        {...restProps}
+      />
       {error && (
         <Text
           color={theme.colors.error.default}

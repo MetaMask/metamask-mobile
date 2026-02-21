@@ -1,6 +1,6 @@
 # Component View Testing Rules (Mobile)
 
-This document defines the rules for writing component view tests in this project. It complements the framework docs at `app/util/test/view/README.md` and must be followed for new and existing component view tests.
+This document defines the rules for writin component-view tests in this project. It complements the framework docs at `app/util/test/view/README.md` and must be followed for new and existing component-view tests.
 
 These rules are written to align with Cursor Context Rules so the guidance is easy to consume inside Cursor. See the official guidance: [Cursor Context Rules](https://cursor.com/docs/context/rules).
 
@@ -27,7 +27,7 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
 
 1. Only mock the Engine (and allowed native modules)
 
-- Allowed mocks in component view tests:
+- Allowed mocks in component-view tests:
   - `../../../core/Engine`
   - `../../../core/Engine/Engine`
   - `react-native-device-info`
@@ -40,18 +40,14 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
 - Do not mock hooks or selectors.
 - Provide all required data through the Redux state using the state fixture.
 
-3. Reuse the component view test framework pieces
+3. Reuse the component-view test framework pieces
 
 - Presets:
   - `initialStateBridge` → `app/util/test/component-view/presets/bridge.ts`
   - `initialStateWallet` → `app/util/test/component-view/presets/wallet.ts`
-  - `initialStatePerps` → `app/util/test/component-view/presets/perpsStatePreset.ts`
 - Renderers:
   - `renderBridgeView` → `app/util/test/component-view/renderers/bridge.ts`
   - `renderWalletView` → `app/util/test/component-view/renderers/wallet.ts`
-  - `renderPerpsView` / `renderPerpsSelectModifyActionView` → `app/util/test/component-view/renderers/perpsViewRenderer.tsx`
-- Helpers (labels for view tests; use i18n for consistency):
-  - `getModifyActionLabels` → `app/util/test/component-view/helpers/perpsViewTestHelpers.ts`
 - Global Engine + native mocks:
   - `app/util/test/component-view/mocks.ts`
 - State fixture and helpers:
@@ -92,22 +88,29 @@ const { getByTestId } = renderBridgeView({
 });
 ```
 
-- Prefer the view renderer (e.g. `renderBridgeView`) whenever possible. When you need to assert on a different screen (e.g. a modal or stack push), use `renderScreenWithRoutes` with the **same** preset + overrides pattern: build state with the preset, then pass it as the 4th argument. Same mocks, same state-driven approach—no separate rules for navigation. Example:
+- Alternatively (navigation tests): build state via preset and pass into `renderScreenWithRoutes`:
 
 ```ts
+import { initialStateBridge } from '../../util/test/component-view/presets/bridge';
+import { renderScreenWithRoutes } from '../../util/test/component-view/render';
+import Routes from '../../../constants/navigation/Routes';
+import BridgeView from './index';
+
 const state = initialStateBridge()
-  .withOverrides({ bridge: { sourceToken: { ... } } })
+  .withOverrides({
+    bridge: {
+      /* minimal scenario state */
+    },
+  })
   .build();
 
-const { findByText } = renderScreenWithRoutes(
+renderScreenWithRoutes(
   BridgeView as unknown as React.ComponentType,
   { name: Routes.BRIDGE.ROOT },
-  [{ name: Routes.BRIDGE.TOKEN_SELECTOR, Component: TokenSelectorProbe }], // optional: add { name, Component? } for routes you need to assert on; omit Component for a default probe that renders the route name
+  [{ name: Routes.BRIDGE.MODALS.ROOT, Component: ModalProbe }],
   { state },
 );
 ```
-
-If you only need the main screen (no pushed route to assert on), pass `[]` for the 3rd argument. Route names: `app/constants/navigation/Routes.ts`. See `BridgeView.view.test.tsx` for a full navigation example.
 
 ### Deterministic Fiat
 
@@ -159,7 +162,7 @@ yarn jest -c jest.config.view.js <path/to/test> -t "<name>" --runInBand --silent
 - Don’t:
   - Mock hooks or selectors
   - Rebuild entire background state manually (use presets)
-  - Use arbitrary `jest.mock` in component view test files (blocked)
+  - Use arbitrary `jest.mock` in component-view files (blocked)
 
 ## Where to Find Things
 

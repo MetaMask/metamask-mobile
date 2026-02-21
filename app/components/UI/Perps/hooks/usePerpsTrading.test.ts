@@ -2,22 +2,22 @@ import { CaipAssetId } from '@metamask/utils';
 import { renderHook } from '@testing-library/react-native';
 import type { Hex } from 'viem';
 import Engine from '../../../../core/Engine';
-import {
-  type AccountState,
-  type CancelOrderParams,
-  type CancelOrderResult,
-  type ClosePositionParams,
-  type GetAccountStateParams,
-  type MarketInfo,
-  type OrderParams,
-  type OrderResult,
-  type Position,
-  type SubscribeOrderFillsParams,
-  type SubscribePositionsParams,
-  type SubscribePricesParams,
-  type WithdrawParams,
-  type WithdrawResult,
-} from '@metamask/perps-controller';
+import type {
+  AccountState,
+  CancelOrderParams,
+  CancelOrderResult,
+  ClosePositionParams,
+  GetAccountStateParams,
+  MarketInfo,
+  OrderParams,
+  OrderResult,
+  Position,
+  SubscribeOrderFillsParams,
+  SubscribePositionsParams,
+  SubscribePricesParams,
+  WithdrawParams,
+  WithdrawResult,
+} from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
 
 // Mock Engine

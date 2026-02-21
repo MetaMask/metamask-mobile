@@ -75,13 +75,12 @@ describe('Price Component', () => {
         },
       };
 
-      const { getByText } = render(<Price {...props} />);
+      const { getAllByText } = render(<Price {...props} />);
 
-      // Name and symbol are rendered together when ticker is not provided
-      // Format: "name (symbol)"
-      expect(
-        getByText(`${mockProps.asset.name} (${mockProps.asset.symbol})`),
-      ).toBeTruthy();
+      // Name and symbol are rendered separately
+      // When name and symbol are the same, we expect to find both text nodes
+      const elements = getAllByText(mockProps.asset.name);
+      expect(elements.length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders header correctly when name not provided and symbol is provided', () => {
@@ -102,11 +101,9 @@ describe('Price Component', () => {
     it('renders header correctly when name and ticker are provided', () => {
       const { getByText } = render(<Price {...mockProps} />);
 
-      // Name and ticker are rendered together
-      // Format: "name (ticker)"
-      expect(
-        getByText(`${mockProps.asset.name} (${mockProps.asset.ticker})`),
-      ).toBeTruthy();
+      // Name and ticker are rendered separately
+      expect(getByText(mockProps.asset.name)).toBeTruthy();
+      expect(getByText(mockProps.asset.ticker as string)).toBeTruthy();
     });
   });
 

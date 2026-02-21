@@ -1,0 +1,501 @@
+diff --git a/dist/constants.cjs b/dist/constants.cjs
+index f9883300d7c7d2351d0d0aae9ffd8de53412dc09..b7474f835e0ab5b5a5647df3d11a3bc481b5dd5d 100644
+--- a/dist/constants.cjs
++++ b/dist/constants.cjs
+@@ -1,12 +1,30 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.TransactionPayStrategy = exports.POLYGON_USDCE_ADDRESS = exports.ARBITRUM_USDC_ADDRESS = exports.NATIVE_TOKEN_ADDRESS = exports.CHAIN_ID_POLYGON = exports.CHAIN_ID_ARBITRUM = exports.CONTROLLER_NAME = void 0;
++exports.TransactionPayStrategy = exports.STABLECOINS = exports.POLYGON_USDCE_ADDRESS = exports.ARBITRUM_USDC_ADDRESS = exports.NATIVE_TOKEN_ADDRESS = exports.CHAIN_ID_HYPERCORE = exports.CHAIN_ID_POLYGON = exports.CHAIN_ID_ARBITRUM = exports.CONTROLLER_NAME = void 0;
+ exports.CONTROLLER_NAME = 'TransactionPayController';
+ exports.CHAIN_ID_ARBITRUM = '0xa4b1';
+ exports.CHAIN_ID_POLYGON = '0x89';
++exports.CHAIN_ID_HYPERCORE = '0x539';
+ exports.NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000';
+ exports.ARBITRUM_USDC_ADDRESS = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
+ exports.POLYGON_USDCE_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
++exports.STABLECOINS = {
++    // Mainnet
++    '0x1': [
++        '0xaca92e438df0b2401ff60da7e4337b687a2435da', // MUSD
++        '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
++        '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
++    ],
++    [exports.CHAIN_ID_ARBITRUM]: [exports.ARBITRUM_USDC_ADDRESS.toLowerCase()],
++    // Linea
++    '0xe708': [
++        '0xaca92e438df0b2401ff60da7e4337b687a2435da', // MUSD
++        '0x176211869ca2b568f2a7d4ee941e073a821ee1ff', // USDC
++        '0xa219439258ca9da29e9cc4ce5596924745e12b93', // USDT
++    ],
++    [exports.CHAIN_ID_POLYGON]: [exports.POLYGON_USDCE_ADDRESS.toLowerCase()],
++    [exports.CHAIN_ID_HYPERCORE]: ['0x00000000000000000000000000000000'], // USDC
++};
+ var TransactionPayStrategy;
+ (function (TransactionPayStrategy) {
+     TransactionPayStrategy["Bridge"] = "bridge";
+diff --git a/dist/constants.d.cts b/dist/constants.d.cts
+index 3853d36ab06061cfcebc72f2f98a79d479690e21..109bcc0ffe14da58b967ea46b79021acc8851b23 100644
+--- a/dist/constants.d.cts
++++ b/dist/constants.d.cts
+@@ -1,9 +1,12 @@
++import type { Hex } from "@metamask/utils";
+ export declare const CONTROLLER_NAME = "TransactionPayController";
+ export declare const CHAIN_ID_ARBITRUM: `0x${string}`;
+ export declare const CHAIN_ID_POLYGON: `0x${string}`;
++export declare const CHAIN_ID_HYPERCORE: `0x${string}`;
+ export declare const NATIVE_TOKEN_ADDRESS: `0x${string}`;
+ export declare const ARBITRUM_USDC_ADDRESS: `0x${string}`;
+ export declare const POLYGON_USDCE_ADDRESS: `0x${string}`;
++export declare const STABLECOINS: Record<Hex, Hex[]>;
+ export declare enum TransactionPayStrategy {
+     Bridge = "bridge",
+     Relay = "relay",
+diff --git a/dist/constants.d.mts b/dist/constants.d.mts
+index 425ef3a50a0613ebbf8a367e2ec4398296321884..71a3047486bdc30f17b623d4752e52e41d2bd200 100644
+--- a/dist/constants.d.mts
++++ b/dist/constants.d.mts
+@@ -1,9 +1,12 @@
++import type { Hex } from "@metamask/utils";
+ export declare const CONTROLLER_NAME = "TransactionPayController";
+ export declare const CHAIN_ID_ARBITRUM: `0x${string}`;
+ export declare const CHAIN_ID_POLYGON: `0x${string}`;
++export declare const CHAIN_ID_HYPERCORE: `0x${string}`;
+ export declare const NATIVE_TOKEN_ADDRESS: `0x${string}`;
+ export declare const ARBITRUM_USDC_ADDRESS: `0x${string}`;
+ export declare const POLYGON_USDCE_ADDRESS: `0x${string}`;
++export declare const STABLECOINS: Record<Hex, Hex[]>;
+ export declare enum TransactionPayStrategy {
+     Bridge = "bridge",
+     Relay = "relay",
+diff --git a/dist/constants.mjs b/dist/constants.mjs
+index 8434a23ce567a197d40ecb82383ff5e453621c57..7a65713900a86ff2388bd75d11b94d06fdb581e5 100644
+--- a/dist/constants.mjs
++++ b/dist/constants.mjs
+@@ -1,9 +1,27 @@
+ export const CONTROLLER_NAME = 'TransactionPayController';
+ export const CHAIN_ID_ARBITRUM = '0xa4b1';
+ export const CHAIN_ID_POLYGON = '0x89';
++export const CHAIN_ID_HYPERCORE = '0x539';
+ export const NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000';
+ export const ARBITRUM_USDC_ADDRESS = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
+ export const POLYGON_USDCE_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
++export const STABLECOINS = {
++    // Mainnet
++    '0x1': [
++        '0xaca92e438df0b2401ff60da7e4337b687a2435da', // MUSD
++        '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
++        '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
++    ],
++    [CHAIN_ID_ARBITRUM]: [ARBITRUM_USDC_ADDRESS.toLowerCase()],
++    // Linea
++    '0xe708': [
++        '0xaca92e438df0b2401ff60da7e4337b687a2435da', // MUSD
++        '0x176211869ca2b568f2a7d4ee941e073a821ee1ff', // USDC
++        '0xa219439258ca9da29e9cc4ce5596924745e12b93', // USDT
++    ],
++    [CHAIN_ID_POLYGON]: [POLYGON_USDCE_ADDRESS.toLowerCase()],
++    [CHAIN_ID_HYPERCORE]: ['0x00000000000000000000000000000000'], // USDC
++};
+ export var TransactionPayStrategy;
+ (function (TransactionPayStrategy) {
+     TransactionPayStrategy["Bridge"] = "bridge";
+diff --git a/dist/strategy/bridge/bridge-quotes.cjs b/dist/strategy/bridge/bridge-quotes.cjs
+index 578ce6222b4de1010ce14788a596726799b4d2b8..2f9fe793551d727473807af61777d659aa5b6587 100644
+--- a/dist/strategy/bridge/bridge-quotes.cjs
++++ b/dist/strategy/bridge/bridge-quotes.cjs
+@@ -319,7 +319,8 @@ function normalizeQuote(quote, request, messenger, transaction) {
+     }
+     const targetAmountMinimumFiat = calculateAmount(quote.quote.minDestTokenAmount, quote.quote.destAsset.decimals, targetFiatRate.fiatRate, targetFiatRate.usdRate);
+     const sourceAmount = calculateAmount(quote.quote.srcTokenAmount, quote.quote.srcAsset.decimals, sourceFiatRate.fiatRate, sourceFiatRate.usdRate);
+-    const targetAmount = calculateAmount(request.targetAmountMinimum, quote.quote.destAsset.decimals, targetFiatRate.fiatRate, targetFiatRate.usdRate);
++    const { fiat: targetAmountFiat, usd: targetAmountUsd } = calculateAmount(request.targetAmountMinimum, quote.quote.destAsset.decimals, targetFiatRate.fiatRate, targetFiatRate.usdRate);
++    const targetAmount = { fiat: targetAmountFiat, usd: targetAmountUsd };
+     const targetNetwork = (0, gas_1.calculateTransactionGasCost)(transaction, messenger);
+     const sourceNetwork = {
+         estimate: calculateSourceNetworkFee(quote, messenger),
+diff --git a/dist/strategy/bridge/bridge-quotes.mjs b/dist/strategy/bridge/bridge-quotes.mjs
+index 57105c783bfd73e1ae0783ce316ce491f2a30855..c516f94fe0bffab4f5765cf253124fe10a7bf07b 100644
+--- a/dist/strategy/bridge/bridge-quotes.mjs
++++ b/dist/strategy/bridge/bridge-quotes.mjs
+@@ -313,7 +313,8 @@ function normalizeQuote(quote, request, messenger, transaction) {
+     }
+     const targetAmountMinimumFiat = calculateAmount(quote.quote.minDestTokenAmount, quote.quote.destAsset.decimals, targetFiatRate.fiatRate, targetFiatRate.usdRate);
+     const sourceAmount = calculateAmount(quote.quote.srcTokenAmount, quote.quote.srcAsset.decimals, sourceFiatRate.fiatRate, sourceFiatRate.usdRate);
+-    const targetAmount = calculateAmount(request.targetAmountMinimum, quote.quote.destAsset.decimals, targetFiatRate.fiatRate, targetFiatRate.usdRate);
++    const { fiat: targetAmountFiat, usd: targetAmountUsd } = calculateAmount(request.targetAmountMinimum, quote.quote.destAsset.decimals, targetFiatRate.fiatRate, targetFiatRate.usdRate);
++    const targetAmount = { fiat: targetAmountFiat, usd: targetAmountUsd };
+     const targetNetwork = calculateTransactionGasCost(transaction, messenger);
+     const sourceNetwork = {
+         estimate: calculateSourceNetworkFee(quote, messenger),
+diff --git a/dist/strategy/relay/constants.cjs b/dist/strategy/relay/constants.cjs
+index 4eb488deb640fccaf7196a996c4bce31afdc55f4..e34da0e48db6e715a7278e48ea921b2e87252190 100644
+--- a/dist/strategy/relay/constants.cjs
++++ b/dist/strategy/relay/constants.cjs
+@@ -1,7 +1,6 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.TOKEN_TRANSFER_FOUR_BYTE = exports.RELAY_POLLING_INTERVAL = exports.RELAY_STATUS_URL = exports.RELAY_URL_BASE = exports.CHAIN_ID_HYPERCORE = void 0;
+-exports.CHAIN_ID_HYPERCORE = '0x539';
++exports.TOKEN_TRANSFER_FOUR_BYTE = exports.RELAY_POLLING_INTERVAL = exports.RELAY_STATUS_URL = exports.RELAY_URL_BASE = void 0;
+ exports.RELAY_URL_BASE = 'https://api.relay.link';
+ exports.RELAY_STATUS_URL = `${exports.RELAY_URL_BASE}/intents/status/v3`;
+ exports.RELAY_POLLING_INTERVAL = 1000; // 1 Second
+diff --git a/dist/strategy/relay/constants.d.cts b/dist/strategy/relay/constants.d.cts
+index d06d8a2270c73ccf8466a629b7c7c606ce98d842..1065336439979b1ff433dcbfbcad47a218db2927 100644
+--- a/dist/strategy/relay/constants.d.cts
++++ b/dist/strategy/relay/constants.d.cts
+@@ -1,4 +1,3 @@
+-export declare const CHAIN_ID_HYPERCORE = "0x539";
+ export declare const RELAY_URL_BASE = "https://api.relay.link";
+ export declare const RELAY_STATUS_URL = "https://api.relay.link/intents/status/v3";
+ export declare const RELAY_POLLING_INTERVAL = 1000;
+diff --git a/dist/strategy/relay/constants.d.mts b/dist/strategy/relay/constants.d.mts
+index e50926c22fde48b483986980a25b1fe877ea9601..60a30407aaffb066916182ebfda416883f9f4566 100644
+--- a/dist/strategy/relay/constants.d.mts
++++ b/dist/strategy/relay/constants.d.mts
+@@ -1,4 +1,3 @@
+-export declare const CHAIN_ID_HYPERCORE = "0x539";
+ export declare const RELAY_URL_BASE = "https://api.relay.link";
+ export declare const RELAY_STATUS_URL = "https://api.relay.link/intents/status/v3";
+ export declare const RELAY_POLLING_INTERVAL = 1000;
+diff --git a/dist/strategy/relay/constants.mjs b/dist/strategy/relay/constants.mjs
+index 3330cbce5d052d2cae3bebdb8775ba489904ea5d..f7502f7f1a965eeed81dda2f2e6a5bbbc1b6d608 100644
+--- a/dist/strategy/relay/constants.mjs
++++ b/dist/strategy/relay/constants.mjs
+@@ -1,4 +1,3 @@
+-export const CHAIN_ID_HYPERCORE = '0x539';
+ export const RELAY_URL_BASE = 'https://api.relay.link';
+ export const RELAY_STATUS_URL = `${RELAY_URL_BASE}/intents/status/v3`;
+ export const RELAY_POLLING_INTERVAL = 1000; // 1 Second
+diff --git a/dist/strategy/relay/relay-quotes.cjs b/dist/strategy/relay/relay-quotes.cjs
+index 3414da5be68f22c2740c0543d64b0540198e6f3f..e4724aff17300ccd4fc2c0243781e9363fd3dca9 100644
+--- a/dist/strategy/relay/relay-quotes.cjs
++++ b/dist/strategy/relay/relay-quotes.cjs
+@@ -92,7 +92,7 @@ async function processTransactions(transaction, request, requestBody, messenger)
+     const { isMaxAmount, targetChainId } = request;
+     const data = txParams?.data;
+     const singleData = nestedTransactions?.length === 1 ? nestedTransactions[0].data : data;
+-    const isHypercore = targetChainId === constants_1.CHAIN_ID_HYPERCORE;
++    const isHypercore = targetChainId === constants_2.CHAIN_ID_HYPERCORE;
+     const isTokenTransfer = !isHypercore && Boolean(singleData?.startsWith(constants_1.TOKEN_TRANSFER_FOUR_BYTE));
+     if (isTokenTransfer) {
+         requestBody.recipient = getTransferRecipient(singleData);
+@@ -157,7 +157,7 @@ function normalizeRequest(request) {
+         newRequest.sourceTokenAddress = constants_2.NATIVE_TOKEN_ADDRESS;
+     }
+     if (isHyperliquidDeposit) {
+-        newRequest.targetChainId = constants_1.CHAIN_ID_HYPERCORE;
++        newRequest.targetChainId = constants_2.CHAIN_ID_HYPERCORE;
+         newRequest.targetTokenAddress = '0x00000000000000000000000000000000';
+         newRequest.targetAmountMinimum = new bignumber_js_1.BigNumber(request.targetAmountMinimum)
+             .shiftedBy(2)
+@@ -183,7 +183,10 @@ async function normalizeQuote(quote, request, fullRequest) {
+     const { currencyIn, currencyOut } = details;
+     const { usdToFiatRate } = getFiatRates(messenger, request);
+     const dust = getFiatValueFromUsd(calculateDustUsd(quote, request), usdToFiatRate);
+-    const provider = getFiatValueFromUsd(calculateProviderFee(quote), usdToFiatRate);
++    const subsidizedFeeUsd = getSubsidizedFeeAmountUsd(quote);
++    const provider = subsidizedFeeUsd.gt(0)
++        ? { usd: '0', fiat: '0' }
++        : getFiatValueFromUsd(calculateProviderFee(quote), usdToFiatRate);
+     const { gasLimits, isGasFeeToken: isSourceGasFeeToken, ...sourceNetwork } = await calculateSourceNetworkCost(quote, messenger, request);
+     const targetNetwork = {
+         usd: '0',
+@@ -194,11 +197,18 @@ async function normalizeQuote(quote, request, fullRequest) {
+         raw: currencyIn.amount,
+         ...getFiatValueFromUsd(new bignumber_js_1.BigNumber(currencyIn.amountUsd), usdToFiatRate),
+     };
+-    const targetAmount = {
+-        human: currencyOut.amountFormatted,
+-        raw: currencyOut.amount,
+-        ...getFiatValueFromUsd(new bignumber_js_1.BigNumber(currencyOut.amountUsd), usdToFiatRate),
+-    };
++    const isTargetStablecoin = isStablecoin(request.targetChainId, request.targetTokenAddress);
++    const additionalTargetAmountUsd = quote.request.tradeType === 'EXACT_INPUT'
++        ? subsidizedFeeUsd
++        : new bignumber_js_1.BigNumber(0);
++    if (additionalTargetAmountUsd.gt(0)) {
++        log('Including subsidized fee in target amount', additionalTargetAmountUsd.toString(10));
++    }
++    const baseTargetAmountUsd = isTargetStablecoin
++        ? new bignumber_js_1.BigNumber(currencyOut.amountFormatted)
++        : new bignumber_js_1.BigNumber(currencyOut.amountUsd);
++    const targetAmountUsd = baseTargetAmountUsd.plus(additionalTargetAmountUsd);
++    const targetAmount = getFiatValueFromUsd(targetAmountUsd, usdToFiatRate);
+     const metamask = {
+         gasLimits,
+     };
+@@ -537,4 +547,17 @@ async function calculateSourceNetworkGasLimitBatch(params, messenger) {
+         gasLimits,
+     };
+ }
++function getSubsidizedFeeAmountUsd(quote) {
++    const subsidizedFee = quote.fees?.subsidized;
++    const amountUsd = new bignumber_js_1.BigNumber(subsidizedFee?.amountUsd ?? '0');
++    const amountFormatted = new bignumber_js_1.BigNumber(subsidizedFee?.amountFormatted ?? '0');
++    if (!subsidizedFee || amountUsd.isZero()) {
++        return new bignumber_js_1.BigNumber(0);
++    }
++    const isSubsidizedStablecoin = isStablecoin((0, controller_utils_1.toHex)(subsidizedFee.currency.chainId), subsidizedFee.currency.address);
++    return isSubsidizedStablecoin ? amountFormatted : amountUsd;
++}
++function isStablecoin(chainId, tokenAddress) {
++    return Boolean(constants_2.STABLECOINS[chainId]?.includes(tokenAddress.toLowerCase()));
++}
+ //# sourceMappingURL=relay-quotes.cjs.map
+\ No newline at end of file
+diff --git a/dist/strategy/relay/relay-quotes.mjs b/dist/strategy/relay/relay-quotes.mjs
+index e6275ec5124be63dedf5f360ddf7e2f105c422f8..c37293d86edf10def65e4fec82734d6bb11a2b67 100644
+--- a/dist/strategy/relay/relay-quotes.mjs
++++ b/dist/strategy/relay/relay-quotes.mjs
+@@ -3,9 +3,9 @@ import { Interface } from "@ethersproject/abi";
+ import { successfulFetch, toHex } from "@metamask/controller-utils";
+ import { createModuleLogger } from "@metamask/utils";
+ import { BigNumber } from "bignumber.js";
+-import { CHAIN_ID_HYPERCORE, TOKEN_TRANSFER_FOUR_BYTE } from "./constants.mjs";
++import { TOKEN_TRANSFER_FOUR_BYTE } from "./constants.mjs";
+ import { TransactionPayStrategy } from "../../index.mjs";
+-import { ARBITRUM_USDC_ADDRESS, CHAIN_ID_ARBITRUM, CHAIN_ID_POLYGON, NATIVE_TOKEN_ADDRESS } from "../../constants.mjs";
++import { ARBITRUM_USDC_ADDRESS, CHAIN_ID_ARBITRUM, CHAIN_ID_HYPERCORE, CHAIN_ID_POLYGON, NATIVE_TOKEN_ADDRESS, STABLECOINS } from "../../constants.mjs";
+ import { projectLogger } from "../../logger.mjs";
+ import { getEIP7702SupportedChains, getFeatureFlags, getGasBuffer, getSlippage } from "../../utils/feature-flags.mjs";
+ import { calculateGasCost, calculateGasFeeTokenCost } from "../../utils/gas.mjs";
+@@ -179,7 +179,10 @@ async function normalizeQuote(quote, request, fullRequest) {
+     const { currencyIn, currencyOut } = details;
+     const { usdToFiatRate } = getFiatRates(messenger, request);
+     const dust = getFiatValueFromUsd(calculateDustUsd(quote, request), usdToFiatRate);
+-    const provider = getFiatValueFromUsd(calculateProviderFee(quote), usdToFiatRate);
++    const subsidizedFeeUsd = getSubsidizedFeeAmountUsd(quote);
++    const provider = subsidizedFeeUsd.gt(0)
++        ? { usd: '0', fiat: '0' }
++        : getFiatValueFromUsd(calculateProviderFee(quote), usdToFiatRate);
+     const { gasLimits, isGasFeeToken: isSourceGasFeeToken, ...sourceNetwork } = await calculateSourceNetworkCost(quote, messenger, request);
+     const targetNetwork = {
+         usd: '0',
+@@ -190,11 +193,18 @@ async function normalizeQuote(quote, request, fullRequest) {
+         raw: currencyIn.amount,
+         ...getFiatValueFromUsd(new BigNumber(currencyIn.amountUsd), usdToFiatRate),
+     };
+-    const targetAmount = {
+-        human: currencyOut.amountFormatted,
+-        raw: currencyOut.amount,
+-        ...getFiatValueFromUsd(new BigNumber(currencyOut.amountUsd), usdToFiatRate),
+-    };
++    const isTargetStablecoin = isStablecoin(request.targetChainId, request.targetTokenAddress);
++    const additionalTargetAmountUsd = quote.request.tradeType === 'EXACT_INPUT'
++        ? subsidizedFeeUsd
++        : new BigNumber(0);
++    if (additionalTargetAmountUsd.gt(0)) {
++        log('Including subsidized fee in target amount', additionalTargetAmountUsd.toString(10));
++    }
++    const baseTargetAmountUsd = isTargetStablecoin
++        ? new BigNumber(currencyOut.amountFormatted)
++        : new BigNumber(currencyOut.amountUsd);
++    const targetAmountUsd = baseTargetAmountUsd.plus(additionalTargetAmountUsd);
++    const targetAmount = getFiatValueFromUsd(targetAmountUsd, usdToFiatRate);
+     const metamask = {
+         gasLimits,
+     };
+@@ -533,4 +543,17 @@ async function calculateSourceNetworkGasLimitBatch(params, messenger) {
+         gasLimits,
+     };
+ }
++function getSubsidizedFeeAmountUsd(quote) {
++    const subsidizedFee = quote.fees?.subsidized;
++    const amountUsd = new BigNumber(subsidizedFee?.amountUsd ?? '0');
++    const amountFormatted = new BigNumber(subsidizedFee?.amountFormatted ?? '0');
++    if (!subsidizedFee || amountUsd.isZero()) {
++        return new BigNumber(0);
++    }
++    const isSubsidizedStablecoin = isStablecoin(toHex(subsidizedFee.currency.chainId), subsidizedFee.currency.address);
++    return isSubsidizedStablecoin ? amountFormatted : amountUsd;
++}
++function isStablecoin(chainId, tokenAddress) {
++    return Boolean(STABLECOINS[chainId]?.includes(tokenAddress.toLowerCase()));
++}
+ //# sourceMappingURL=relay-quotes.mjs.map
+\ No newline at end of file
+diff --git a/dist/strategy/relay/types.d.cts b/dist/strategy/relay/types.d.cts
+index 0ecf9516e4449c596c8653065361b3e89403bf5e..4a7eae396e326b2ecba25ee244c17cdc3cb5b29d 100644
+--- a/dist/strategy/relay/types.d.cts
++++ b/dist/strategy/relay/types.d.cts
+@@ -54,6 +54,17 @@ export type RelayQuote = {
+         relayer: {
+             amountUsd: string;
+         };
++        subsidized?: {
++            amount: string;
++            amountFormatted: string;
++            amountUsd: string;
++            currency: {
++                address: Hex;
++                chainId: number;
++                decimals: number;
++            };
++            minimumAmount: string;
++        };
+     };
+     metamask: {
+         gasLimits: number[];
+diff --git a/dist/strategy/relay/types.d.mts b/dist/strategy/relay/types.d.mts
+index 745217115b94f3e1af044598fb1f3333cf4d196b..79fc7f047bbc1a4f2e3f6763a29a1653a48a9748 100644
+--- a/dist/strategy/relay/types.d.mts
++++ b/dist/strategy/relay/types.d.mts
+@@ -54,6 +54,17 @@ export type RelayQuote = {
+         relayer: {
+             amountUsd: string;
+         };
++        subsidized?: {
++            amount: string;
++            amountFormatted: string;
++            amountUsd: string;
++            currency: {
++                address: Hex;
++                chainId: number;
++                decimals: number;
++            };
++            minimumAmount: string;
++        };
+     };
+     metamask: {
+         gasLimits: number[];
+diff --git a/dist/strategy/test/TestStrategy.cjs b/dist/strategy/test/TestStrategy.cjs
+index 126ed4ac4f9ee8f4e24ec2fb8b2792f386544fb3..a8e0df31837f835cb344574b2196c482b4fc9d09 100644
+--- a/dist/strategy/test/TestStrategy.cjs
++++ b/dist/strategy/test/TestStrategy.cjs
+@@ -53,9 +53,7 @@ class TestStrategy {
+                     usd: '4.56',
+                 },
+                 targetAmount: {
+-                    human: '5.67',
+                     fiat: '5.67',
+-                    raw: '567000',
+                     usd: '5.67',
+                 },
+                 strategy: __1.TransactionPayStrategy.Test,
+diff --git a/dist/strategy/test/TestStrategy.mjs b/dist/strategy/test/TestStrategy.mjs
+index aafb33c3435d401a8f33b8cda8dc64e4919e4181..9cb410a408f5ba00275f588e06bb93095d2de806 100644
+--- a/dist/strategy/test/TestStrategy.mjs
++++ b/dist/strategy/test/TestStrategy.mjs
+@@ -50,9 +50,7 @@ export class TestStrategy {
+                     usd: '4.56',
+                 },
+                 targetAmount: {
+-                    human: '5.67',
+                     fiat: '5.67',
+-                    raw: '567000',
+                     usd: '5.67',
+                 },
+                 strategy: TransactionPayStrategy.Test,
+diff --git a/dist/types.d.cts b/dist/types.d.cts
+index f5dc2ae45930672af25764634b7d05186f955d53..289f3bb267754bbfd02a339fc98e062181b374cd 100644
+--- a/dist/types.d.cts
++++ b/dist/types.d.cts
+@@ -205,7 +205,7 @@ export type TransactionPayQuote<OriginalQuote> = {
+     /** Name of the strategy used to retrieve the quote. */
+     strategy: TransactionPayStrategy;
+     /** Amount of target token provided. */
+-    targetAmount: Amount;
++    targetAmount: FiatValue;
+ };
+ /** Request to get quotes for a transaction. */
+ export type PayStrategyGetQuotesRequest = {
+@@ -273,7 +273,7 @@ export type TransactionPayTotals = {
+     /** Total amount of source token required. */
+     sourceAmount: Amount;
+     /** Total amount of target token provided. */
+-    targetAmount: Amount;
++    targetAmount: FiatValue;
+     /** Overall total cost for the target transaction and all quotes. */
+     total: FiatValue;
+ };
+diff --git a/dist/types.d.mts b/dist/types.d.mts
+index 458f58d5e19d4c9cd5ae2a68baba0a052f429792..853b26d4c2701cd7222e6e143e214c8b6072ade5 100644
+--- a/dist/types.d.mts
++++ b/dist/types.d.mts
+@@ -205,7 +205,7 @@ export type TransactionPayQuote<OriginalQuote> = {
+     /** Name of the strategy used to retrieve the quote. */
+     strategy: TransactionPayStrategy;
+     /** Amount of target token provided. */
+-    targetAmount: Amount;
++    targetAmount: FiatValue;
+ };
+ /** Request to get quotes for a transaction. */
+ export type PayStrategyGetQuotesRequest = {
+@@ -273,7 +273,7 @@ export type TransactionPayTotals = {
+     /** Total amount of source token required. */
+     sourceAmount: Amount;
+     /** Total amount of target token provided. */
+-    targetAmount: Amount;
++    targetAmount: FiatValue;
+     /** Overall total cost for the target transaction and all quotes. */
+     total: FiatValue;
+ };
+diff --git a/dist/utils/token.cjs b/dist/utils/token.cjs
+index 68cd5af0e3857f970447eac8c6c3ad27366e0bfd..7ab5c21d879ecee00582533b68a227bb72686d96 100644
+--- a/dist/utils/token.cjs
++++ b/dist/utils/token.cjs
+@@ -5,10 +5,6 @@ const controller_utils_1 = require("@metamask/controller-utils");
+ const bignumber_js_1 = require("bignumber.js");
+ const lodash_1 = require("lodash");
+ const constants_1 = require("../constants.cjs");
+-const STABLECOINS = {
+-    [constants_1.CHAIN_ID_ARBITRUM]: [constants_1.ARBITRUM_USDC_ADDRESS.toLowerCase()],
+-    [constants_1.CHAIN_ID_POLYGON]: [constants_1.POLYGON_USDCE_ADDRESS.toLowerCase()],
+-};
+ /**
+  * Get the token balance for a specific account and token.
+  *
+@@ -121,7 +117,7 @@ function getTokenFiatRate(messenger, tokenAddress, chainId) {
+     if (nativeToFiatRate === null || nativeToUsdRate === null) {
+         return undefined;
+     }
+-    const isStablecoin = STABLECOINS[chainId]?.includes(tokenAddress.toLowerCase());
++    const isStablecoin = constants_1.STABLECOINS[chainId]?.includes(tokenAddress.toLowerCase());
+     const usdRate = isStablecoin
+         ? '1'
+         : new bignumber_js_1.BigNumber(tokenToNativeRate ?? 1)
+diff --git a/dist/utils/token.mjs b/dist/utils/token.mjs
+index bf1527b4248e4e1ef0aad431b01e50bceec4df3e..be7a0a75787e110e9790d4d84433a36d4eb50eb4 100644
+--- a/dist/utils/token.mjs
++++ b/dist/utils/token.mjs
+@@ -2,11 +2,7 @@ import { toChecksumHexAddress } from "@metamask/controller-utils";
+ import { BigNumber } from "bignumber.js";
+ import $lodash from "lodash";
+ const { uniq } = $lodash;
+-import { ARBITRUM_USDC_ADDRESS, CHAIN_ID_ARBITRUM, CHAIN_ID_POLYGON, NATIVE_TOKEN_ADDRESS, POLYGON_USDCE_ADDRESS } from "../constants.mjs";
+-const STABLECOINS = {
+-    [CHAIN_ID_ARBITRUM]: [ARBITRUM_USDC_ADDRESS.toLowerCase()],
+-    [CHAIN_ID_POLYGON]: [POLYGON_USDCE_ADDRESS.toLowerCase()],
+-};
++import { NATIVE_TOKEN_ADDRESS, STABLECOINS } from "../constants.mjs";
+ /**
+  * Get the token balance for a specific account and token.
+  *
+diff --git a/dist/utils/totals.cjs b/dist/utils/totals.cjs
+index db6f3a7667c104ea8115ec62cb3884f7cac1584d..2e0a72fcee60cb82fd9d695eb3a3c5b901965138 100644
+--- a/dist/utils/totals.cjs
++++ b/dist/utils/totals.cjs
+@@ -26,7 +26,7 @@ function calculateTotals({ isMaxAmount, quotes, messenger, tokens, transaction,
+         }
+         : transactionNetworkFee;
+     const sourceAmount = sumAmounts(quotes.map((quote) => quote.sourceAmount));
+-    const targetAmount = sumAmounts(quotes.map((quote) => quote.targetAmount));
++    const targetAmount = sumFiat(quotes.map((quote) => quote.targetAmount));
+     const quoteTokens = tokens.filter((singleToken) => !singleToken.skipIfBalance);
+     const amountFiat = sumProperty(quoteTokens, (token) => token.amountFiat);
+     const amountUsd = sumProperty(quoteTokens, (token) => token.amountUsd);
+diff --git a/dist/utils/totals.mjs b/dist/utils/totals.mjs
+index 9533074bb84e6cce209794dcea31a134e97639c4..d396a0c288dde5621d08c63af4d29a67eaf36532 100644
+--- a/dist/utils/totals.mjs
++++ b/dist/utils/totals.mjs
+@@ -23,7 +23,7 @@ export function calculateTotals({ isMaxAmount, quotes, messenger, tokens, transa
+         }
+         : transactionNetworkFee;
+     const sourceAmount = sumAmounts(quotes.map((quote) => quote.sourceAmount));
+-    const targetAmount = sumAmounts(quotes.map((quote) => quote.targetAmount));
++    const targetAmount = sumFiat(quotes.map((quote) => quote.targetAmount));
+     const quoteTokens = tokens.filter((singleToken) => !singleToken.skipIfBalance);
+     const amountFiat = sumProperty(quoteTokens, (token) => token.amountFiat);
+     const amountUsd = sumProperty(quoteTokens, (token) => token.amountUsd);

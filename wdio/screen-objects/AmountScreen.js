@@ -9,7 +9,7 @@ import {
   NEXT_BUTTON,
   TRANSACTION_AMOUNT_INPUT,
 } from './testIDs/Screens/AmountScreen.testIds';
-import { splitAmountIntoDigits } from '../../tests/framework/utils/Utils';
+import { splitAmountIntoDigits } from 'appwright/utils/Utils';
 
 class AmountScreen {
 

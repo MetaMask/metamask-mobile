@@ -1,7 +1,7 @@
 'use strict';
-import { SmokeWalletPlatform } from '../../../tags';
-import { importWalletWithRecoveryPhrase } from '../../../flows/wallet.flow';
-import TestHelpers from '../../../helpers';
+import { SmokeWalletPlatform } from '../../../../e2e/tags';
+import { importWalletWithRecoveryPhrase } from '../../../../e2e/viewHelper';
+import TestHelpers from '../../../../e2e/helpers';
 import Assertions from '../../../framework/Assertions';
 import {
   EventPayload,

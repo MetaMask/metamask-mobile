@@ -1,7 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box } from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSDK } from '../../sdk';
 import { useSelector } from 'react-redux';
@@ -11,23 +9,6 @@ import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { DepositNavigationParams } from '../../types';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import { useTheme } from '../../../../../../util/theme';
-import Logger from '../../../../../../util/Logger';
-
-export const TOKEN_CHECK_TIMEOUT_MS = 5000;
-
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  let timeoutId: ReturnType<typeof setTimeout>;
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(
-      () => reject(new Error(`Operation timed out after ${ms}ms`)),
-      ms,
-    );
-  });
-  return Promise.race([promise, timeoutPromise]).finally(() =>
-    clearTimeout(timeoutId),
-  );
-}
 
 const Root = () => {
   const navigation = useNavigation();
@@ -36,7 +17,6 @@ const Root = () => {
   const { checkExistingToken, setIntent } = useDepositSDK();
   const hasCheckedToken = useRef(false);
   const orders = useSelector(getAllDepositOrders);
-  const theme = useTheme();
 
   useEffect(() => {
     if (params) {
@@ -45,40 +25,10 @@ const Root = () => {
   }, [params, setIntent]);
 
   useEffect(() => {
-    const navigateToDefaultRoute = () => {
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: initialRoute,
-            params: {
-              animationEnabled: false,
-              ...(params?.shouldRouteImmediately && {
-                shouldRouteImmediately: true,
-              }),
-              ...(params?.amount !== undefined && { amount: params.amount }),
-            },
-          },
-        ],
-      });
-    };
-
     const initializeFlow = async () => {
       if (hasCheckedToken.current) return;
 
-      let isAuthenticatedFromToken = false;
-      try {
-        isAuthenticatedFromToken = await withTimeout(
-          checkExistingToken(),
-          TOKEN_CHECK_TIMEOUT_MS,
-        );
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'Deposit Root: checkExistingToken failed or timed out',
-        );
-      }
-
+      const isAuthenticatedFromToken = await checkExistingToken();
       hasCheckedToken.current = true;
 
       const createdOrder = orders.find(
@@ -87,7 +37,7 @@ const Root = () => {
 
       if (createdOrder) {
         if (!isAuthenticatedFromToken) {
-          const [routeName, navParams] = createEnterEmailNavDetails({
+          const [routeName, params] = createEnterEmailNavDetails({
             redirectToRootAfterAuth: true,
           });
           navigation.reset({
@@ -95,51 +45,34 @@ const Root = () => {
             routes: [
               {
                 name: routeName,
-                params: { ...navParams, animationEnabled: false },
+                params: { ...params, animationEnabled: false },
               },
             ],
           });
           return;
         }
 
-        const [routeName, navParams] = createBankDetailsNavDetails({
+        const [routeName, params] = createBankDetailsNavDetails({
           orderId: createdOrder.id,
         });
         navigation.reset({
           index: 0,
           routes: [
-            {
-              name: routeName,
-              params: { ...navParams, animationEnabled: false },
-            },
+            { name: routeName, params: { ...params, animationEnabled: false } },
           ],
         });
       } else {
-        navigateToDefaultRoute();
+        navigation.reset({
+          index: 0,
+          routes: [{ name: initialRoute, params: { animationEnabled: false } }],
+        });
       }
     };
 
-    initializeFlow().catch((error) => {
-      Logger.error(
-        error as Error,
-        'Deposit Root: initializeFlow failed unexpectedly',
-      );
-      navigateToDefaultRoute();
-    });
-  }, [
-    checkExistingToken,
-    orders,
-    navigation,
-    initialRoute,
-    params?.shouldRouteImmediately,
-    params?.amount,
-  ]);
+    initializeFlow();
+  }, [checkExistingToken, orders, navigation, initialRoute]);
 
-  return (
-    <Box twClassName="flex-1 items-center justify-center">
-      <ActivityIndicator size="large" color={theme.colors.primary.default} />
-    </Box>
-  );
+  return null;
 };
 
 export default Root;

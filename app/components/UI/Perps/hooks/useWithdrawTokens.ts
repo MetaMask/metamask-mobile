@@ -12,8 +12,8 @@ import {
   USDC_NAME,
   USDC_SYMBOL,
   ZERO_ADDRESS,
-  type PerpsToken,
-} from '@metamask/perps-controller';
+} from '../constants/hyperLiquidConfig';
+import type { PerpsToken } from '../types/perps-types';
 import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
 
 /**

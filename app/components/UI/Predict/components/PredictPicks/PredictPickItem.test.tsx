@@ -6,7 +6,6 @@ import { formatPrice } from '../../utils/format';
 
 import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
 
-import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 jest.mock('../../hooks/usePredictOptimisticPositionRefresh');
 jest.mock('../../utils/format');
 
@@ -20,7 +19,7 @@ const createMockPosition = (
   overrides: Partial<PredictPosition> = {},
 ): PredictPosition => ({
   id: 'position-1',
-  providerId: POLYMARKET_PROVIDER_ID,
+  providerId: 'polymarket',
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcomeTokenId: '0',

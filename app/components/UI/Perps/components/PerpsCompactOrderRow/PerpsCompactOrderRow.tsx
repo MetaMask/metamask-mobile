@@ -10,8 +10,9 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol, type Order } from '@metamask/perps-controller';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import styleSheet from './PerpsCompactOrderRow.styles';
+import type { Order } from '../../controllers/types';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 
 interface PerpsCompactOrderRowProps {

@@ -1,26 +1,26 @@
-import { loginToApp } from '../../flows/wallet.flow';
-import WalletView from '../../page-objects/wallet/WalletView';
-import FundActionMenu from '../../page-objects/UI/FundActionMenu';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { loginToApp } from '../../../e2e/viewHelper.ts';
+import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
+import FundActionMenu from '../../../e2e/pages/UI/FundActionMenu.ts';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import { RegressionTrade } from '../../tags';
-import Assertions from '../../framework/Assertions';
-import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
-import SelectCurrencyView from '../../page-objects/Ramps/SelectCurrencyView';
-import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
-import SelectRegionView from '../../page-objects/Ramps/SelectRegionView';
-import SelectPaymentMethodView from '../../page-objects/Ramps/SelectPaymentMethodView';
-import BuyGetStartedView from '../../page-objects/Ramps/BuyGetStartedView';
+import { RegressionTrade } from '../../../e2e/tags';
+import Assertions from '../../framework/Assertions.ts';
+import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView.ts';
+import SelectCurrencyView from '../../../e2e/pages/Ramps/SelectCurrencyView.ts';
+import TokenSelectBottomSheet from '../../../e2e/pages/Ramps/TokenSelectBottomSheet.ts';
+import SelectRegionView from '../../../e2e/pages/Ramps/SelectRegionView.ts';
+import SelectPaymentMethodView from '../../../e2e/pages/Ramps/SelectPaymentMethodView.ts';
+import BuyGetStartedView from '../../../e2e/pages/Ramps/BuyGetStartedView.ts';
 import {
   EventPayload,
   getEventsPayloads,
-} from '../../helpers/analytics/helpers';
-import SoftAssert from '../../framework/SoftAssert';
-import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
-import Matchers from '../../framework/Matchers';
+} from '../../helpers/analytics/helpers.ts';
+import SoftAssert from '../../framework/SoftAssert.ts';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants.ts';
+import Matchers from '../../framework/Matchers.ts';
 import { Mockttp } from 'mockttp';
-import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup.ts';
 
 const eventsToCheck: EventPayload[] = [];
 
@@ -70,7 +70,7 @@ describe.skip(RegressionTrade('On-Ramp Parameters'), () => {
   it('should select token and verify display', async () => {
     await setupOnRampTest(async () => {
       await BuildQuoteView.tapTokenDropdown('Ethereum');
-      await TokenSelectScreen.tapTokenByName('DAI');
+      await TokenSelectBottomSheet.tapTokenByName('DAI');
       await Assertions.expectTextDisplayed('Dai Stablecoin');
     });
   });

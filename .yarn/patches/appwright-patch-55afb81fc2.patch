@@ -1,0 +1,52 @@
+diff --git a/dist/providers/appium.js b/dist/providers/appium.js
+index 2d8e8924124b882d44ab0aa11fede4d4094b7a65..56f8e4e5d4b3863a903935512be14d224aa854a1 100644
+--- a/dist/providers/appium.js
++++ b/dist/providers/appium.js
+@@ -43,7 +43,7 @@ async function installDriver(driverName) {
+ async function startAppiumServer(provider) {
+     let emulatorStartRequested = false;
+     return new Promise((resolve, reject) => {
+-        const appiumProcess = (0, child_process_1.spawn)("npx", ["appium"], {
++        const appiumProcess = (0, child_process_1.spawn)("npx", ["appium", "--allow-insecure=chromedriver_autodownload"], {
+             stdio: "pipe",
+         });
+         appiumProcess.stderr.on("data", async (data) => {
+diff --git a/dist/providers/browserstack/index.js b/dist/providers/browserstack/index.js
+index 61ecd1508400f59302d6139a805e7a912e9a1036..09bf83155b64b4bcf86ce8684efe36e0f9923adb 100644
+--- a/dist/providers/browserstack/index.js
++++ b/dist/providers/browserstack/index.js
+@@ -275,6 +275,8 @@ class BrowserStackDeviceProvider {
+                 "appium:settings[actionAcknowledgmentTimeout]": 3000,
+                 "appium:settings[ignoreUnimportantViews]": true,
+                 "appium:settings[waitForSelectorTimeout]": 10000,
++                "appium:includeSafariInWebviews": true,
++                "appium:chromedriverAutodownload": true,
+             },
+         };
+     }
+diff --git a/dist/providers/emulator/index.js b/dist/providers/emulator/index.js
+index f3bc1502e7aa9d59b99a915adcbba5e13928e413..cd23dbfde74274fa90d664cadc4b60c8ceee8d74 100644
+--- a/dist/providers/emulator/index.js
++++ b/dist/providers/emulator/index.js
+@@ -77,6 +77,8 @@ Follow the steps mentioned in ${androidSimulatorConfigDocLink} to run test on An
+                 "appium:deviceOrientation": this.project.use.device?.orientation,
+                 "appium:settings[snapshotMaxDepth]": 62,
+                 "appium:wdaLaunchTimeout": 300_000,
++                "appium:includeSafariInWebviews": true,
++                "appium:chromedriverAutodownload": true,
+             },
+         };
+     }
+diff --git a/dist/providers/local/index.js b/dist/providers/local/index.js
+index dc394b0696dd67d259a03856c5b49dcb5820d0ad..38c9b1fcc7ec5b4256831be0bedca1bc712dc528 100644
+--- a/dist/providers/local/index.js
++++ b/dist/providers/local/index.js
+@@ -79,6 +79,8 @@ To specify a device, use the udid property. Run "adb devices" to get the UDID fo
+                 "appium:fullReset": true,
+                 "appium:deviceOrientation": this.project.use.device?.orientation,
+                 "appium:settings[snapshotMaxDepth]": 62,
++                "appium:includeSafariInWebviews": true,
++                "appium:chromedriverAutodownload": true,
+             },
+         };
+     }

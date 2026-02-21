@@ -562,27 +562,6 @@ describe('UrlAutocomplete', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays search footer as a default/web search option', async () => {
-      // Arrange
-      const ref = React.createRef<UrlAutocompleteRef>();
-      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
-        state: defaultState,
-      });
-
-      // Act
-      act(() => {
-        ref.current?.search('MetaMask Test Dapp');
-        jest.runAllTimers();
-      });
-
-      // Assert
-      expect(
-        await screen.findByTestId('trending-search-footer-google-link', {
-          includeHiddenElements: true,
-        }),
-      ).toHaveTextContent('Search for "MetaMask Test Dapp" on Google');
-    });
-
     it('transforms and displays token search results', async () => {
       // Arrange
       const ref = React.createRef<UrlAutocompleteRef>();

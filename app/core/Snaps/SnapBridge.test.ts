@@ -145,11 +145,15 @@ function createBridge(snapId = 'npm:@metamask/example-snap' as SnapId) {
         navigation: null,
         title: { current: 'Snap' },
         icon: { current: undefined },
+        isHomepage: () => false,
+        fromHomepage: { current: false },
+        toggleUrlModal: () => null,
         tabId: false,
         isWalletConnect: false,
         isMMSDK: false,
         url: { current: '' },
         analytics: {},
+        injectHomePageScripts: () => null,
       }),
   });
 

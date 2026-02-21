@@ -1,11 +1,7 @@
 import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import {
-  type OrderResult,
-  type Position,
-  type TrackingData,
-} from '@metamask/perps-controller';
+import type { OrderResult, Position, TrackingData } from '../controllers/types';
 import { handlePerpsError } from '../utils/translatePerpsError';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';

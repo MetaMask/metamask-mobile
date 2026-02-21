@@ -27,6 +27,15 @@ const createStyles = (params: {
       alignItems: 'center',
       justifyContent: 'center',
     },
+    searchPlaceholderText: {
+      color: theme.colors.text.muted,
+    },
+    searchTextField: {
+      backgroundColor: theme.colors.background.muted,
+      borderWidth: 0,
+      borderRadius: 9999,
+      padding: 0,
+    },
     listContainer: {
       flexGrow: 1,
       flexShrink: 1,

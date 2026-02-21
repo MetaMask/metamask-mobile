@@ -7,7 +7,6 @@ import Icon, {
 import Text from '../../../../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
-import { useEstimationFailed } from '../../../hooks/gas/useEstimationFailed';
 import { useSelectedGasFeeToken } from '../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../hooks/gas/useIsGaslessSupported';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -34,8 +33,6 @@ export function SelectedGasFeeToken() {
   const { isSupported: isGaslessSupported, isSmartTransaction } =
     useIsGaslessSupported();
 
-  const estimationFailed = useEstimationFailed();
-
   const hasInsufficientNative = useIsInsufficientBalance();
 
   const hasOnlyFutureNativeToken =
@@ -45,7 +42,6 @@ export function SelectedGasFeeToken() {
   const supportsFutureNative = hasInsufficientNative && isSmartTransaction;
 
   const supportsGasFeeTokens =
-    !estimationFailed &&
     isGaslessSupported &&
     hasGasFeeTokens &&
     (!hasOnlyFutureNativeToken || supportsFutureNative);

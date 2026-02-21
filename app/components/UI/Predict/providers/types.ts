@@ -26,6 +26,8 @@ export interface ConnectionStatus {
 }
 
 export interface GetMarketsParams {
+  providerId?: string;
+
   // Filters
   q?: string;
   status?: 'open' | 'closed' | 'resolved';
@@ -53,6 +55,7 @@ export interface Signer {
 }
 
 export interface PlaceOrderParams {
+  providerId: string;
   preview: OrderPreview;
   analyticsProperties?: {
     marketId?: string;
@@ -77,6 +80,7 @@ export interface PlaceOrderParams {
 }
 
 export interface PreviewOrderParams {
+  providerId: string;
   marketId: string;
   outcomeId: string;
   outcomeTokenId: string;
@@ -160,6 +164,7 @@ export interface ClaimOrderResponse {
 }
 
 export interface GetPositionsParams {
+  providerId?: string;
   address?: string;
   claimable?: boolean;
   marketId?: string;
@@ -168,11 +173,13 @@ export interface GetPositionsParams {
   offset?: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface PrepareDepositParams {}
+export interface PrepareDepositParams {
+  providerId: string;
+}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface GetAccountStateParams {}
+export interface GetAccountStateParams {
+  providerId: string;
+}
 
 export interface PrepareDepositResponse {
   chainId: Hex;
@@ -185,8 +192,9 @@ export interface PrepareDepositResponse {
   }[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface GetPredictWalletParams {}
+export interface GetPredictWalletParams {
+  providerId: string;
+}
 
 export interface AccountState {
   address: Hex;
@@ -196,10 +204,12 @@ export interface AccountState {
 
 export interface GetBalanceParams {
   address?: string;
+  providerId: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface PrepareWithdrawParams {}
+export interface PrepareWithdrawParams {
+  providerId: string;
+}
 
 export interface PrepareWithdrawResponse {
   chainId: Hex;
@@ -207,7 +217,6 @@ export interface PrepareWithdrawResponse {
     params: {
       to: Hex;
       data: Hex;
-      gas?: Hex;
     };
     type?: TransactionType;
   };
@@ -242,11 +251,13 @@ export interface PredictProvider {
   getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]>;
-  getPrices(params: GetPriceParams): Promise<GetPriceResponse>;
+  getPrices(
+    params: Omit<GetPriceParams, 'providerId'>,
+  ): Promise<GetPriceResponse>;
 
   // User information
   getPositions(
-    params: GetPositionsParams & { address: string },
+    params: Omit<GetPositionsParams, 'address'> & { address: string },
   ): Promise<PredictPosition[]>;
   getActivity(params: { address: string }): Promise<PredictActivity[]>;
   getUnrealizedPnL(params: {
@@ -255,13 +266,13 @@ export interface PredictProvider {
 
   // Order management
   previewOrder(
-    params: PreviewOrderParams & {
+    params: Omit<PreviewOrderParams, 'providerId'> & {
       signer: Signer;
       feeCollection?: PredictFeeCollection;
     },
   ): Promise<OrderPreview>;
   placeOrder(
-    params: PlaceOrderParams & { signer: Signer },
+    params: Omit<PlaceOrderParams, 'providerId'> & { signer: Signer },
   ): Promise<OrderResult>;
 
   // Claim management

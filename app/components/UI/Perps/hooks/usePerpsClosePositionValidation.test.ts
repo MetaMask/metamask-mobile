@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 import { usePerpsTrading } from './usePerpsTrading';
-import { VALIDATION_THRESHOLDS } from '@metamask/perps-controller';
+import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
 
 jest.mock('./usePerpsTrading');
 

@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
+import { useSelector } from 'react-redux';
 import {
   View,
   Pressable,
@@ -49,8 +50,6 @@ import {
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
-import { usePredictTabs, type FeedTab } from '../../hooks/usePredictTabs';
-import { usePredictSearch } from '../../hooks/usePredictSearch';
 import {
   PredictCategory,
   PredictMarket as PredictMarketType,
@@ -75,6 +74,12 @@ import {
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import { selectPredictHotTabFlag } from '../../selectors/featureFlags';
+
+interface FeedTab {
+  key: PredictCategory;
+  label: string;
+}
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
@@ -383,7 +388,6 @@ interface PredictFeedTabsProps {
   tabBarHeight: number;
   headerHidden: boolean;
   hotTabQueryParams?: string;
-  initialPage: number;
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
@@ -395,7 +399,6 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   tabBarHeight,
   headerHidden,
   hotTabQueryParams,
-  initialPage,
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
@@ -415,7 +418,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
     <PagerView
       ref={pagerRef}
       style={tw.style('flex-1')}
-      initialPage={initialPage}
+      initialPage={0}
       onPageSelected={handlePageSelected}
       testID="predict-feed-pager"
     >
@@ -445,8 +448,6 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
 
 interface PredictSearchOverlayProps {
   isVisible: boolean;
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
   onClose: () => void;
 }
 
@@ -454,13 +455,12 @@ const SEARCH_DEBOUNCE_MS = 200;
 
 const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   isVisible,
-  searchQuery,
-  onSearchChange,
   onClose,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebouncedValue(
     searchQuery,
     SEARCH_DEBOUNCE_MS,
@@ -474,6 +474,15 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   });
 
   const isSearchLoading = isDebouncing || isFetching;
+
+  const handleSearch = useCallback((text: string) => {
+    setSearchQuery(text);
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    setSearchQuery('');
+    onClose();
+  }, [onClose]);
 
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (
@@ -520,12 +529,12 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
             placeholder={strings('predict.search_placeholder')}
             placeholderTextColor={colors.text.muted}
             value={searchQuery}
-            onChangeText={onSearchChange}
+            onChangeText={handleSearch}
             style={tw.style('flex-1 text-base text-default')}
             autoFocus
           />
           {searchQuery.length > 0 && (
-            <Pressable testID="clear-button" onPress={() => onSearchChange('')}>
+            <Pressable testID="clear-button" onPress={() => handleSearch('')}>
               <Icon
                 name={IconName.CircleX}
                 size={IconSize.Md}
@@ -534,7 +543,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
             </Pressable>
           )}
         </Box>
-        <Pressable onPress={onClose}>
+        <Pressable onPress={handleCancel}>
           <Text variant={TextVariant.BodyMd} style={tw.style('font-medium')}>
             {strings('predict.search_cancel')}
           </Text>
@@ -574,13 +583,23 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 };
 
 const PredictFeed: React.FC = () => {
-  const {
-    tabs,
-    activeIndex,
-    setActiveIndex,
-    initialTabKey,
-    hotTabQueryParams,
-  } = usePredictTabs();
+  const hotTabFlag = useSelector(selectPredictHotTabFlag);
+
+  const tabs: FeedTab[] = useMemo(() => {
+    const baseTabs: FeedTab[] = [
+      { key: 'trending', label: strings('predict.category.trending') },
+      { key: 'new', label: strings('predict.category.new') },
+      { key: 'sports', label: strings('predict.category.sports') },
+      { key: 'crypto', label: strings('predict.category.crypto') },
+      { key: 'politics', label: strings('predict.category.politics') },
+    ];
+
+    if (hotTabFlag.enabled) {
+      baseTabs.unshift({ key: 'hot', label: strings('predict.category.hot') });
+    }
+
+    return baseTabs;
+  }, [hotTabFlag.enabled]);
 
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -592,13 +611,11 @@ const PredictFeed: React.FC = () => {
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
 
-  const {
-    isSearchVisible,
-    searchQuery,
-    setSearchQuery,
-    showSearch,
-    clearSearchAndClose,
-  } = usePredictSearch();
+  // Capture the initial tab key at mount to avoid re-triggering the analytics
+  // session when tabs array changes due to async feature flag loading
+  const initialTabKeyRef = useRef(tabs[0].key);
+
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -629,13 +646,16 @@ const PredictFeed: React.FC = () => {
 
   useEffect(() => {
     sessionManager.enableAppStateListener();
-    sessionManager.startSession(route.params?.entryPoint, initialTabKey);
+    sessionManager.startSession(
+      route.params?.entryPoint,
+      initialTabKeyRef.current,
+    );
 
     return () => {
       sessionManager.endSession();
       sessionManager.disableAppStateListener();
     };
-  }, [route.params?.entryPoint, sessionManager, initialTabKey]);
+  }, [route.params?.entryPoint, sessionManager]);
 
   useFocusEffect(
     useCallback(() => {
@@ -649,32 +669,29 @@ const PredictFeed: React.FC = () => {
     headerHeight,
     tabBarHeight,
     layoutReady,
-    onTabSwitch,
+    activeIndex,
+    setActiveIndex,
     scrollHandler,
     onHeaderLayout,
     onTabBarLayout,
-  } = useFeedScrollManager({
-    headerRef,
-    tabBarRef,
-    setActiveIndex,
-  });
+  } = useFeedScrollManager({ headerRef, tabBarRef });
 
   const handleTabPress = useCallback(
     (index: number) => {
-      onTabSwitch(index);
+      setActiveIndex(index);
     },
-    [onTabSwitch],
+    [setActiveIndex],
   );
 
   const handlePageChange = useCallback(
     (index: number) => {
-      onTabSwitch(index);
+      setActiveIndex(index);
       const category = tabs[index]?.key;
       if (category) {
         sessionManager.trackTabChange(category);
       }
     },
-    [onTabSwitch, sessionManager, tabs],
+    [setActiveIndex, sessionManager, tabs],
   );
 
   return (
@@ -698,7 +715,7 @@ const PredictFeed: React.FC = () => {
           endButtonIconProps={[
             {
               iconName: IconName.Search,
-              onPress: showSearch,
+              onPress: () => setIsSearchVisible(true),
               testID: 'predict-search-button',
             },
           ]}
@@ -727,17 +744,14 @@ const PredictFeed: React.FC = () => {
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight + 6}
             headerHidden={headerHidden}
-            hotTabQueryParams={hotTabQueryParams}
-            initialPage={activeIndex}
+            hotTabQueryParams={hotTabFlag.queryParams}
           />
         )}
       </Box>
 
       <PredictSearchOverlay
         isVisible={isSearchVisible}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onClose={clearSearchAndClose}
+        onClose={() => setIsSearchVisible(false)}
       />
     </Box>
   );

@@ -87,6 +87,7 @@ describe('usePredictPriceHistory', () => {
         marketId: 'market-1',
         interval: PredictPriceHistoryInterval.ONE_DAY,
         fidelity: undefined,
+        providerId: undefined,
       });
       expect(result.current.priceHistories).toEqual([mockPriceHistory]);
       expect(result.current.isFetching).toBe(false);
@@ -249,6 +250,7 @@ describe('usePredictPriceHistory', () => {
         marketId: 'market-1',
         interval: PredictPriceHistoryInterval.ONE_WEEK,
         fidelity: undefined,
+        providerId: undefined,
       });
     });
 
@@ -268,6 +270,27 @@ describe('usePredictPriceHistory', () => {
         marketId: 'market-1',
         interval: PredictPriceHistoryInterval.ONE_DAY,
         fidelity: 30,
+        providerId: undefined,
+      });
+    });
+
+    it('uses custom provider when provided', async () => {
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictPriceHistory({
+          marketIds: ['market-1'],
+          providerId: 'polymarket',
+        }),
+      );
+
+      await waitForNextUpdate();
+
+      expect(
+        Engine.context.PredictController.getPriceHistory,
+      ).toHaveBeenCalledWith({
+        marketId: 'market-1',
+        interval: PredictPriceHistoryInterval.ONE_DAY,
+        fidelity: undefined,
+        providerId: 'polymarket',
       });
     });
   });
@@ -298,6 +321,7 @@ describe('usePredictPriceHistory', () => {
         marketId: 'market-2',
         interval: PredictPriceHistoryInterval.ONE_DAY,
         fidelity: undefined,
+        providerId: undefined,
       });
     });
 
@@ -325,6 +349,7 @@ describe('usePredictPriceHistory', () => {
         marketId: 'market-1',
         interval: PredictPriceHistoryInterval.ONE_WEEK,
         fidelity: undefined,
+        providerId: undefined,
       });
     });
 
@@ -488,6 +513,7 @@ describe('usePredictPriceHistory', () => {
           marketId: 'market-1',
           interval,
           fidelity: undefined,
+          providerId: undefined,
         });
         expect(result.current.priceHistories).toEqual([mockPriceHistory]);
       });

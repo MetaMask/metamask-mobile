@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 
 // Mock navigation
@@ -220,7 +220,7 @@ jest.mock('../../../../../util/trace', () => ({
   },
 }));
 
-jest.mock('@metamask/perps-controller', () => ({
+jest.mock('../../constants/eventNames', () => ({
   PERPS_EVENT_PROPERTY: {
     SCREEN_TYPE: 'screen_type',
     SOURCE: 'source',
@@ -254,17 +254,6 @@ jest.mock('@metamask/perps-controller', () => ({
       BUTTON_CLICKED: 'button_clicked',
       CONTACT_SUPPORT: 'contact_support',
     },
-  },
-  DECIMAL_PRECISION_CONFIG: {
-    MaxPriceDecimals: 6,
-    MaxSignificantFigures: 5,
-    FallbackSizeDecimals: 6,
-  },
-  PERPS_CONSTANTS: {
-    FeatureFlagKey: 'perpsEnabled',
-    FeatureName: 'perps',
-    PerpsBalanceTokenDescription: 'perps-balance',
-    PerpsBalanceTokenSymbol: 'USD',
   },
 }));
 

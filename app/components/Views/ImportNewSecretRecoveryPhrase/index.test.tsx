@@ -61,6 +61,7 @@ const mockSetOptions = jest.fn();
 const mockImportNewSecretRecoveryPhrase = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCheckIsSeedlessPasswordOutdated = jest.fn();
+const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(true);
 const mockShowToast = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -99,6 +100,11 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
 jest.mock('../../hooks/useMetrics/useMetrics', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: () =>
+    mockIsMultichainAccountsState2Enabled(),
 }));
 
 jest.mock('react', () => ({
@@ -156,6 +162,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
     mockGetString.mockResolvedValue('');
 
     (useContext as jest.Mock).mockImplementation((context) => {
@@ -434,6 +441,48 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         })
         .build(),
     );
+  });
+
+  it('tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event when multichain state 2 is enabled', async () => {
+    mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+    mockGetString.mockResolvedValue(valid24WordMnemonic);
+
+    const { getByTestId, getByText } = renderScreen(
+      ImportNewSecretRecoveryPhrase,
+      { name: 'ImportNewSecretRecoveryPhrase' },
+      {
+        state: initialState,
+      },
+    );
+
+    const pasteButton = getByText(messages.import_from_seed.paste);
+
+    await act(async () => {
+      await fireEvent.press(pasteButton);
+    });
+
+    await waitFor(() => {
+      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+      expect(importButton.props.disabled).toBe(false);
+    });
+
+    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+
+    await act(async () => {
+      await fireEvent.press(importButton);
+    });
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
+        )
+          .addProperties({
+            number_of_solana_accounts_discovered: 3,
+          })
+          .build(),
+      );
+    });
   });
 
   it('displays success toast after successful SRP import', async () => {

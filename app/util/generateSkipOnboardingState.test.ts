@@ -3,7 +3,10 @@ import { seedphraseBackedUp } from '../actions/user';
 import { storePrivacyPolicyClickedOrClosed } from '../actions/legalNotices';
 import { Authentication } from '../core';
 import { importNewSecretRecoveryPhrase } from '../actions/multiSrp';
+import importAdditionalAccounts from './importAdditionalAccounts';
 import { store } from '../store';
+import Engine from '../core/Engine';
+import { isMultichainAccountsState2Enabled } from '../multichain-accounts/remote-feature-flag';
 import { setLockTime } from '../actions/settings';
 import AppConstants from '../core/AppConstants';
 
@@ -13,7 +16,10 @@ jest.mock('../actions/user');
 jest.mock('../actions/legalNotices');
 jest.mock('../core');
 jest.mock('../actions/multiSrp');
+jest.mock('./importAdditionalAccounts');
 jest.mock('../store');
+jest.mock('../core/Engine');
+jest.mock('../multichain-accounts/remote-feature-flag');
 jest.mock('../actions/settings', () => ({
   ...jest.requireActual('../actions/settings'),
   setLockTime: jest.fn((lockTime: number) => ({
@@ -42,9 +48,22 @@ const mockImportNewSecretRecoveryPhrase =
   importNewSecretRecoveryPhrase as jest.MockedFunction<
     typeof importNewSecretRecoveryPhrase
   >;
+const mockImportAdditionalAccounts =
+  importAdditionalAccounts as jest.MockedFunction<
+    typeof importAdditionalAccounts
+  >;
+const mockIsMultichainAccountsState2Enabled =
+  isMultichainAccountsState2Enabled as jest.MockedFunction<
+    typeof isMultichainAccountsState2Enabled
+  >;
 const mockStore = store as jest.Mocked<typeof store>;
+const mockEngine = Engine as jest.Mocked<typeof Engine>;
 
 describe('generateSkipOnboardingState', () => {
+  const mockKeyringController = {
+    getKeyringsByType: jest.fn(),
+  };
+
   beforeAll(() => {
     // Import the module after all mocks are set up
     const actualModule = jest.requireActual(
@@ -67,11 +86,26 @@ describe('generateSkipOnboardingState', () => {
       address: '0x123',
       discoveredAccountsCount: 1,
     });
+    mockImportAdditionalAccounts.mockResolvedValue();
+    mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
     mockSeedphraseBackedUp.mockReturnValue({ type: 'test' } as never);
     mockStorePrivacyPolicyClickedOrClosed.mockReturnValue({
       type: 'test',
     } as never);
     mockStore.dispatch.mockReturnValue({ type: 'test' } as never);
+
+    // Mock Engine context
+    Object.defineProperty(mockEngine, 'context', {
+      value: {
+        KeyringController: mockKeyringController,
+      },
+      writable: true,
+      configurable: true,
+    });
+    mockKeyringController.getKeyringsByType.mockReturnValue([
+      { type: 'HD Key Tree' },
+      { type: 'HD Key Tree' },
+    ]);
   });
 
   afterEach(() => {

@@ -1,89 +1,44 @@
-import React, { useState } from 'react';
+/* eslint-disable react/display-name */
+// External dependencies.
+import { TextFieldSize } from '../TextField/TextField.types';
 
-import TextFieldSearch from './TextFieldSearch';
-import { TextFieldSearchProps } from './TextFieldSearch.types';
-
-const noop = () => undefined;
+// Internal dependencies.
+import { default as TextFieldSearchComponent } from './TextFieldSearch';
+import { SAMPLE_TEXTFIELDSEARCH_PROPS } from './TextFieldSearch.constants';
 
 const TextFieldSearchMeta = {
-  title: 'Component Library / Form / TextFieldSearch',
-  component: TextFieldSearch,
+  title: 'Component Library / Form',
+  component: TextFieldSearchComponent,
   argTypes: {
+    size: {
+      options: TextFieldSize,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_TEXTFIELDSEARCH_PROPS.size,
+    },
     isError: {
-      control: 'boolean',
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_TEXTFIELDSEARCH_PROPS.isError,
     },
     isDisabled: {
-      control: 'boolean',
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_TEXTFIELDSEARCH_PROPS.isDisabled,
     },
     isReadonly: {
-      control: 'boolean',
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_TEXTFIELDSEARCH_PROPS.isReadonly,
     },
     placeholder: {
-      control: 'text',
+      control: { type: 'text' },
+      defaultValue: SAMPLE_TEXTFIELDSEARCH_PROPS.placeholder,
+    },
+    showClearButton: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_TEXTFIELDSEARCH_PROPS.showClearButton,
     },
   },
 };
-
 export default TextFieldSearchMeta;
 
-export const Default = {
-  args: {
-    placeholder: 'Search',
-    onPressClearButton: noop,
-  },
-};
-
-const InteractiveTextFieldSearch = (args: TextFieldSearchProps) => {
-  const [value, setValue] = useState('');
-  return (
-    <TextFieldSearch
-      {...args}
-      value={value}
-      onChangeText={setValue}
-      onPressClearButton={() => setValue('')}
-    />
-  );
-};
-
-export const Interactive = {
-  render: (args: TextFieldSearchProps) => (
-    <InteractiveTextFieldSearch {...args} />
-  ),
-  args: {
-    placeholder: 'Type to see clear button...',
-    onPressClearButton: noop,
-  },
-};
-
-export const WithValue = {
-  args: {
-    placeholder: 'Search...',
-    value: 'Search text',
-    onPressClearButton: noop,
-  },
-};
-
-export const ErrorState = {
-  args: {
-    placeholder: 'Search',
-    isError: true,
-    onPressClearButton: noop,
-  },
-};
-
-export const Disabled = {
-  args: {
-    placeholder: 'Search disabled',
-    isDisabled: true,
-    onPressClearButton: noop,
-  },
-};
-
-export const ReadonlyState = {
-  args: {
-    placeholder: 'Search readonly',
-    value: 'Search query',
-    isReadonly: true,
-    onPressClearButton: noop,
-  },
-};
+export const TextFieldSearch = {};

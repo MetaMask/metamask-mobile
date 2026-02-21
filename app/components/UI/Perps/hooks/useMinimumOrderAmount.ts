@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
-import { TRADING_DEFAULTS } from '@metamask/perps-controller';
+import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 
 interface UseMinimumOrderAmountParams {
   /** Asset symbol to get minimum order amount for */

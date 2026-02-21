@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
+import type { Position } from '../controllers/types';
 import { usePerpsLivePositions, usePerpsLiveFills } from './stream';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 interface UseHasExistingPositionParams {
   /** Asset symbol to check for existing position */

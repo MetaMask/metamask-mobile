@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketFiltersBar from './PerpsMarketFiltersBar';
-import { type MarketTypeFilter } from '@metamask/perps-controller';
+import type { MarketTypeFilter } from '../../../../controllers/types';
 
 jest.mock('../../../../components/PerpsMarketSortDropdowns', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');

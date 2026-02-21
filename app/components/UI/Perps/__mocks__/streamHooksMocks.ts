@@ -5,12 +5,12 @@
  */
 
 import React from 'react';
-import {
-  type AccountState,
-  type Position,
-  type Order,
-  type PriceUpdate,
-} from '@metamask/perps-controller';
+import type {
+  AccountState,
+  Position,
+  Order,
+  PriceUpdate,
+} from '../controllers/types';
 
 /**
  * Default mock account state for testing

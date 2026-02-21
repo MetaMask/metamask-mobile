@@ -1,13 +1,13 @@
-import { RegressionTrade } from '../../tags';
-import WalletView from '../../page-objects/wallet/WalletView';
-import TokenOverview from '../../page-objects/wallet/TokenOverview';
+import { RegressionTrade } from '../../../e2e/tags';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import TokenOverview from '../../../e2e/pages/wallet/TokenOverview';
 import {
   importWalletWithRecoveryPhrase,
   switchToSepoliaNetwork,
-} from '../../flows/wallet.flow';
+} from '../../../e2e/viewHelper';
 import Assertions from '../../framework/Assertions';
-import CommonView from '../../page-objects/CommonView';
-import TestHelpers from '../../helpers';
+import CommonView from '../../../e2e/pages/CommonView';
+import TestHelpers from '../../../e2e/helpers';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(RegressionTrade('Token Chart Tests'), () => {

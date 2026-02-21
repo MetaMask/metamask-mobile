@@ -7,15 +7,14 @@ import React, {
   useRef,
 } from 'react';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
 import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
 import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
-import {
-  PERPS_CONSTANTS,
-  type ReconnectOptions,
-} from '@metamask/perps-controller';
+import type { ReconnectOptions } from '../types/perps-types';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 export interface PerpsConnectionContextValue {
   isConnected: boolean;
@@ -38,11 +37,10 @@ interface PerpsConnectionProviderProps {
 }
 
 /**
- * Provider that manages WebSocket connections for Perps components.
- * Uses a singleton connection manager to share state between screen and modal stacks.
- * When the tab is explicitly hidden, unmount children so stream hooks stop
- * background retry/subscription work. isVisible === undefined (fullscreen/modal
- * contexts) always renders children.
+ * Provider that manages WebSocket connections for Perps components
+ * Uses a singleton connection manager to share state between screen and modal stacks
+ * Automatically connects when mounted and disconnects when unmounted
+ * Only disconnects when all providers have unmounted
  */
 export const PerpsConnectionProvider: React.FC<
   PerpsConnectionProviderProps
@@ -272,16 +270,10 @@ export const PerpsConnectionProvider: React.FC<
         setRetryAttempts(0);
       } catch (err) {
         // Keep retry attempts count for showing back button after failed attempts
-        Logger.error(
-          ensureError(err, 'PerpsConnectionProvider.initializePerps'),
-          {
-            tags: { feature: PERPS_CONSTANTS.FeatureName },
-            context: {
-              name: 'PerpsConnectionProvider.initializePerps',
-              data: { retryAttempts },
-            },
-          },
-        );
+        Logger.error(ensureError(err), {
+          feature: PERPS_CONSTANTS.FeatureName,
+          message: `Retry connection failed (attempt ${retryAttempts})`,
+        });
       }
 
       // Force update to get the latest error state
@@ -302,9 +294,19 @@ export const PerpsConnectionProvider: React.FC<
     );
   }
 
+  // Show skeleton loading UI while connection is initializing
+  // This prevents components from trying to load data before the connection is ready
+  if (connectionState.isConnecting || !connectionState.isInitialized) {
+    return (
+      <PerpsConnectionContext.Provider value={contextValue}>
+        <PerpsLoadingSkeleton />
+      </PerpsConnectionContext.Provider>
+    );
+  }
+
   return (
     <PerpsConnectionContext.Provider value={contextValue}>
-      {isVisible === false ? null : children}
+      {children}
     </PerpsConnectionContext.Provider>
   );
 };

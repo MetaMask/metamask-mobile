@@ -1,11 +1,11 @@
 import { ParamListBase } from '@react-navigation/native';
-import {
-  type Position,
-  type Order,
-  type OrderType,
-  type PerpsMarketData,
-  type TPSLTrackingData,
-} from '@metamask/perps-controller';
+import type {
+  Position,
+  Order,
+  OrderType,
+  PerpsMarketData,
+  TPSLTrackingData,
+} from '../controllers/types';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 
@@ -214,12 +214,6 @@ export interface PerpsNavigationParamList extends ParamListBase {
   /** Params for RedesignedConfirmations when shown in Perps stack (header options) */
   RedesignedConfirmations: {
     showPerpsHeader?: boolean;
-  };
-
-  /** Params for PerpsOrderRedirect - handles one-click trade from token details */
-  PerpsOrderRedirect: {
-    direction: 'long' | 'short';
-    asset: string;
   };
 }
 

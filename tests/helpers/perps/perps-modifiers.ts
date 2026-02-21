@@ -4,7 +4,7 @@ import { createLogger } from '../../framework/logger';
 import CommandQueueServer, {
   CommandQueueItem,
 } from '../../framework/fixtures/CommandQueueServer';
-import { E2ECommandTypes } from '../../framework/types';
+import { PerpsModifiersCommandTypes } from '../../framework/types';
 
 const logger = createLogger({
   name: 'PerpsE2EModifiers',
@@ -49,7 +49,7 @@ class PerpsE2EModifiers {
   ): Promise<void> {
     logger.debug('Updating market price for symbol', symbol, 'to price', price);
     const command: CommandQueueItem = {
-      type: E2ECommandTypes.pushPrice,
+      type: PerpsModifiersCommandTypes.pushPrice,
       args: { symbol, price },
     };
     await commandQueueServer.addToQueue(command);
@@ -67,7 +67,7 @@ class PerpsE2EModifiers {
   ): Promise<void> {
     logger.debug('Triggering liquidation for symbol', symbol);
     const command: CommandQueueItem = {
-      type: E2ECommandTypes.forceLiquidation,
+      type: PerpsModifiersCommandTypes.forceLiquidation,
       args: { symbol },
     };
     await commandQueueServer.addToQueue(command);
@@ -85,7 +85,7 @@ class PerpsE2EModifiers {
   ): Promise<void> {
     logger.debug('Applying deposit USD for amount', amount);
     const command: CommandQueueItem = {
-      type: E2ECommandTypes.mockDeposit,
+      type: PerpsModifiersCommandTypes.mockDeposit,
       args: { amount },
     };
     await commandQueueServer.addToQueue(command);

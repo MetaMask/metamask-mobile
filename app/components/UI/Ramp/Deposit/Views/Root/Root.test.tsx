@@ -123,7 +123,7 @@ describe('Root Component', () => {
     (
       getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
     ).mockReturnValue(mockOrders);
-    mockCheckExistingToken.mockResolvedValue(true);
+    mockCheckExistingToken.mockResolvedValue(true); // User is authenticated
     render(Root);
 
     await waitFor(() => {
@@ -154,7 +154,7 @@ describe('Root Component', () => {
     (
       getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
     ).mockReturnValue(mockOrders);
-    mockCheckExistingToken.mockResolvedValue(false);
+    mockCheckExistingToken.mockResolvedValue(false); // User is not authenticated
     render(Root);
 
     await waitFor(() => {
@@ -167,25 +167,6 @@ describe('Root Component', () => {
               redirectToRootAfterAuth: true,
               animationEnabled: false,
             },
-          },
-        ],
-      });
-    });
-  });
-
-  it('falls back to BUILD_QUOTE when checkExistingToken rejects', async () => {
-    mockCheckExistingToken.mockRejectedValue(
-      new Error('SecureKeychain unavailable'),
-    );
-    render(Root);
-
-    await waitFor(() => {
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [
-          {
-            name: Routes.DEPOSIT.BUILD_QUOTE,
-            params: { animationEnabled: false },
           },
         ],
       });

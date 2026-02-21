@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useStopLossPrompt } from './useStopLossPrompt';
-import { type Position } from '@metamask/perps-controller';
+import type { Position } from '../controllers/types';
 import { STOP_LOSS_PROMPT_CONFIG } from '../constants/perpsConfig';
 
 // Mock timers for debounce testing

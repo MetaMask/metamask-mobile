@@ -17,7 +17,9 @@ import {
 } from '@metamask/design-system-react-native';
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import step4Img from '../../../../../images/rewards/rewards-onboarding-step4.png';
-import TextField from '../../../../../component-library/components/Form/TextField';
+import TextField, {
+  TextFieldSize,
+} from '../../../../../component-library/components/Form/TextField';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
@@ -135,13 +137,18 @@ const OnboardingStep4: React.FC = () => {
                 autoCapitalize="characters"
                 onChangeText={handleReferralCodeChange}
                 isDisabled={optinLoading}
-                endAccessory={renderIcon()}
-                isError={
+                size={TextFieldSize.Lg}
+                style={tw.style(
+                  'bg-background-pressed',
                   referralCode.length >= 6 &&
-                  !referralCodeIsValid &&
-                  !isValidatingReferralCode &&
-                  !isUnknownErrorReferralCode
-                }
+                    !referralCodeIsValid &&
+                    !isValidatingReferralCode &&
+                    !isUnknownErrorReferralCode
+                    ? 'border-error-default'
+                    : 'border-muted',
+                )}
+                endAccessory={renderIcon()}
+                isError={!referralCodeIsValid}
               />
               {referralCode.length >= 6 &&
                 !referralCodeIsValid &&

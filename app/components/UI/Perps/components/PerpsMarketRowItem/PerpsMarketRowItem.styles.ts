@@ -1,12 +1,12 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = (params: { vars: { compact: boolean } }) =>
+const styleSheet = () =>
   StyleSheet.create({
     container: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: params.vars.compact ? 8 : 16,
+      paddingVertical: 16,
     },
     perpIcon: {
       marginRight: 16,

@@ -30,7 +30,7 @@ const Input = React.forwardRef<TextInput, InputProps>(
   ) => {
     const [isFocused, setIsFocused] = useState(autoFocus);
 
-    const { styles, theme } = useStyles(styleSheet, {
+    const { styles } = useStyles(styleSheet, {
       style,
       textVariant,
       isStateStylesDisabled,
@@ -65,7 +65,6 @@ const Input = React.forwardRef<TextInput, InputProps>(
     return (
       <TextInput
         testID={INPUT_TEST_ID}
-        placeholderTextColor={theme.colors.text.alternative}
         {...props}
         style={styles.base}
         editable={!isDisabled && !isReadonly}

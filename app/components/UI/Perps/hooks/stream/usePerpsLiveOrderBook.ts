@@ -1,13 +1,10 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { type OrderBookData } from '@metamask/perps-controller';
+import type { OrderBookData } from '../../controllers/types';
 
 // Re-export types from controllers/types for backwards compatibility
-export {
-  type OrderBookData,
-  type OrderBookLevel,
-} from '@metamask/perps-controller';
+export type { OrderBookData, OrderBookLevel } from '../../controllers/types';
 
 export interface UsePerpsLiveOrderBookOptions {
   /** Symbol to subscribe to (e.g., 'BTC', 'ETH') */

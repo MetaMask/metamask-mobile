@@ -2,7 +2,6 @@ import {
   TransactionStatus,
   TransactionType,
   TransactionMeta,
-  UserFeeLevel,
 } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useGasEstimateFailedAlert } from './useGasEstimateFailedAlert';
@@ -91,18 +90,5 @@ describe('useGasEstimateFailedAlert', () => {
     expect(result.current[0].message).toBe(
       "We're unable to provide an accurate fee and this estimate might be high. We suggest you to input a custom gas limit, but there's a risk the transaction will still fail.",
     );
-  });
-
-  it('returns no alerts if simulation fails but userFeeLevel is CUSTOM', () => {
-    mockUseTransactionMetadataRequest.mockReturnValue({
-      ...MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS,
-      userFeeLevel: UserFeeLevel.CUSTOM,
-    } as unknown as TransactionMeta);
-
-    const { result } = renderHookWithProvider(() =>
-      useGasEstimateFailedAlert(),
-    );
-
-    expect(result.current).toEqual([]);
   });
 });

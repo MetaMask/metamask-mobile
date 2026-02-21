@@ -17,7 +17,6 @@ import {
 import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { TokenListItem } from './TokenListItem/TokenListItem';
-import { TokenListItemV2 } from './TokenListItemV2/TokenListItemV2';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
@@ -29,8 +28,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useMusdCtaVisibility } from '../../Earn/hooks/useMusdCtaVisibility';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
-import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 
 export interface FlashListAssetKey {
   address: string;
@@ -69,9 +68,7 @@ const TokenListComponent = ({
     selectHomepageRedesignV1Enabled,
   );
 
-  // A/B test: Token list item layout (V1 vs V2)
-  const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
-  const ListItemComponent = isTokenListV2 ? TokenListItemV2 : TokenListItem;
+  const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
 
   const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 
@@ -147,19 +144,20 @@ const TokenListComponent = ({
 
   const renderTokenListItem = useCallback(
     ({ item }: { item: FlashListAssetKey }) => (
-      <ListItemComponent
+      <TokenListItem
         assetKey={item}
         showRemoveMenu={showRemoveMenu}
         setShowScamWarningModal={setShowScamWarningModal}
+        shouldShowTokenListItemCta={shouldShowTokenListItemCta}
         privacyMode={privacyMode}
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
       />
     ),
     [
-      ListItemComponent,
       showRemoveMenu,
       setShowScamWarningModal,
+      shouldShowTokenListItemCta,
       privacyMode,
       showPercentageChange,
       isFullView,
@@ -173,11 +171,12 @@ const TokenListComponent = ({
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       >
         {displayTokenKeys.map((item, index) => (
-          <ListItemComponent
+          <TokenListItem
             key={`${item.address}-${item.chainId}-${item.isStaked ? 'staked' : 'unstaked'}-${index}`}
             assetKey={item}
             showRemoveMenu={showRemoveMenu}
             setShowScamWarningModal={setShowScamWarningModal}
+            shouldShowTokenListItemCta={shouldShowTokenListItemCta}
             privacyMode={privacyMode}
             showPercentageChange={showPercentageChange}
             isFullView={isFullView}
@@ -211,6 +210,7 @@ const TokenListComponent = ({
             const staked = item.isStaked ? 'staked' : 'unstaked';
             return `${item.address}-${item.chainId}-${staked}-${idx}`;
           }}
+          decelerationRate="fast"
           refreshControl={
             <RefreshControl
               colors={[colors.primary.default]}

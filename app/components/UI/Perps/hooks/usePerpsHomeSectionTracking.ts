@@ -4,7 +4,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller';
+} from '../constants/eventNames';
 
 /**
  * Section identifiers for home screen tracking

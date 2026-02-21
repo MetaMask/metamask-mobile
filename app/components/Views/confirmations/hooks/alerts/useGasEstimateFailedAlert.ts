@@ -4,10 +4,12 @@ import { strings } from '../../../../../../locales/i18n';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
-import { useEstimationFailed } from '../gas/useEstimationFailed';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 export const useGasEstimateFailedAlert = (): Alert[] => {
-  const estimationFailed = useEstimationFailed();
+  const transactionMeta = useTransactionMetadataRequest();
+
+  const estimationFailed = Boolean(transactionMeta?.simulationFails);
 
   return useMemo(() => {
     if (!estimationFailed) {

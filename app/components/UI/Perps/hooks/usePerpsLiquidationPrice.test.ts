@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 import { usePerpsTrading } from './usePerpsTrading';
 

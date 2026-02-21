@@ -1,13 +1,13 @@
-import { SmokeNetworkAbstractions } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../../e2e/tags';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../framework/fixtures/FixtureBuilder';
-import { loginToApp } from '../../flows/wallet.flow';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
-import SettingsView from '../../page-objects/Settings/SettingsView';
-import NotificationSettingsView from '../../page-objects/Notifications/NotificationSettingsView';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import SettingsView from '../../../e2e/pages/Settings/SettingsView';
+import NotificationSettingsView from '../../../e2e/pages/Notifications/NotificationSettingsView';
 import { Gestures } from '../../framework';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {

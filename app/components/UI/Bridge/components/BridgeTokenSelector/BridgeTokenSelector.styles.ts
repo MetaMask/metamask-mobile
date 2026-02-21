@@ -20,6 +20,9 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     searchInput: {
       marginVertical: 12,
+      borderRadius: 12,
+      borderWidth: 0,
+      backgroundColor: theme.colors.background.section,
     },
     tokenItem: {
       paddingVertical: 8,

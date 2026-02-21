@@ -55,7 +55,6 @@ jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
 jest.mock('../../Earn/hooks/useMusdCtaVisibility', () => ({
   useMusdCtaVisibility: jest.fn(() => ({
     shouldShowGetMusdCta: false,
-    shouldShowTokenListItemCta: jest.fn(() => false),
     shouldShowConversionTokenListItemCta: jest.fn(() => false),
     shouldShowConversionAssetDetailCta: jest.fn(() => false),
   })),
@@ -82,25 +81,6 @@ jest.mock('./TokenListItem/TokenListItem', () => ({
     );
   },
 }));
-
-jest.mock('./TokenListItemV2/TokenListItemV2', () => ({
-  TokenListItemV2: ({ assetKey }: { assetKey: { address: string } }) => {
-    const React = jest.requireActual('react');
-    const { View, Text } = jest.requireActual('react-native');
-    return React.createElement(
-      View,
-      { testID: `token-item-v2-${assetKey.address}` },
-      React.createElement(Text, null, `Token V2: ${assetKey.address}`),
-    );
-  },
-}));
-
-jest.mock(
-  '../../../../selectors/featureFlagController/tokenListLayout',
-  () => ({
-    selectTokenListLayoutV2Enabled: jest.fn(() => false),
-  }),
-);
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => ({

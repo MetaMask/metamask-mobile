@@ -14,14 +14,12 @@ interface ActivityHeaderProps {
 
 const ActivityHeader = ({ asset }: ActivityHeaderProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const symbol = asset.name || asset.symbol;
-
   return (
     <View style={styles.wrapper}>
       <Text style={styles.title} variant={TextVariant.HeadingMD}>
-        {symbol
-          ? strings('asset_overview.activity', { symbol })
-          : strings('drawer.transaction_activity')}
+        {strings('asset_overview.activity', {
+          symbol: asset.name || asset.symbol,
+        })}
       </Text>
     </View>
   );

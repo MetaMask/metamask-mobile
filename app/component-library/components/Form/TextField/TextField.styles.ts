@@ -22,13 +22,13 @@ const styleSheet = (params: {
   vars: TextFieldStyleSheetVars;
 }) => {
   const { theme, vars } = params;
-  const { style, isError, isDisabled, isFocused } = vars;
-  let borderColor = theme.colors.border.muted;
-  if (isFocused) {
-    borderColor = theme.colors.border.default;
-  }
+  const { style, size, isError, isDisabled, isFocused } = vars;
+  let borderColor = theme.colors.border.default;
   if (isError) {
     borderColor = theme.colors.error.default;
+  }
+  if (isFocused) {
+    borderColor = theme.colors.primary.default;
   }
 
   return StyleSheet.create({
@@ -36,18 +36,18 @@ const styleSheet = (params: {
       {
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 12,
-        height: 48,
+        borderRadius: 8,
+        height: Number(size),
         borderWidth: BORDER_WIDTH,
         borderColor,
         paddingHorizontal: 16,
         opacity: isDisabled ? 0.5 : 1,
-        backgroundColor: theme.colors.background.muted,
+        backgroundColor: theme.colors.background.default,
       },
       StyleSheet.flatten(style),
     ) as ViewStyle,
     startAccessory: {
-      marginRight: 12,
+      marginRight: 8,
     },
     inputContainer: {
       flex: 1,
@@ -57,10 +57,10 @@ const styleSheet = (params: {
     input: {
       backgroundColor: 'inherit',
       // subtract border width from height so it won't overflow the container
-      height: 48 - BORDER_WIDTH * 2,
+      height: Number(size) - BORDER_WIDTH * 2,
     },
     endAccessory: {
-      marginLeft: 12,
+      marginLeft: 8,
     },
   });
 };

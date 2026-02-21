@@ -5,8 +5,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTokenLogo } from '../../../../hooks/useTokenLogo';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
-import { getAssetIconUrls } from '../../utils/marketUtils';
+import {
+  getAssetIconUrls,
+  getPerpsDisplaySymbol,
+} from '../../utils/marketUtils';
 import {
   ASSETS_REQUIRING_DARK_BG,
   ASSETS_REQUIRING_LIGHT_BG,

@@ -1,4 +1,4 @@
-import { type MarketType } from '@metamask/perps-controller';
+import type { MarketType } from '../../controllers/types';
 
 export type BadgeType = MarketType | 'experimental' | 'dex';
 

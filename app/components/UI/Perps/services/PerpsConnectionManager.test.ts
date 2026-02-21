@@ -1,20 +1,21 @@
 // Mock wait utility to avoid delays in tests
-jest.mock('@metamask/perps-controller', () => {
-  const actual = jest.requireActual('@metamask/perps-controller');
-  return {
-    ...actual,
-    wait: jest.fn().mockResolvedValue(undefined),
-    TradingReadinessCache: {
-      clear: jest.fn(),
-      clearAll: jest.fn(),
-      clearDexAbstraction: jest.fn(),
-      clearBuilderFee: jest.fn(),
-      clearReferral: jest.fn(),
-      get: jest.fn(),
-      set: jest.fn(),
-    },
-  };
-});
+jest.mock('../utils/wait', () => ({
+  wait: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Mock TradingReadinessCache for cache clearing tests
+// The mock must be defined inside the factory function because jest.mock is hoisted
+jest.mock('./TradingReadinessCache', () => ({
+  TradingReadinessCache: {
+    clear: jest.fn(),
+    clearAll: jest.fn(),
+    clearDexAbstraction: jest.fn(),
+    clearBuilderFee: jest.fn(),
+    clearReferral: jest.fn(),
+    get: jest.fn(),
+    set: jest.fn(),
+  },
+}));
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../core/Engine', () => ({
@@ -71,9 +72,6 @@ const mockStreamManagerInstance = {
   marketData: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   prices: { clearCache: jest.fn(), prewarm: jest.fn(async () => jest.fn()) },
   oiCaps: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
-  fills: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
-  topOfBook: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
-  candles: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -99,7 +97,7 @@ import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectPerpsNetwork } from '../selectors/perpsController';
-import { TradingReadinessCache } from '@metamask/perps-controller';
+import { TradingReadinessCache } from './TradingReadinessCache';
 
 // Import PerpsConnectionManager after mocks are set up
 // This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created

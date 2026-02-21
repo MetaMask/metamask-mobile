@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { type PerpsMarketData } from '@metamask/perps-controller';
+import type { PerpsMarketData } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
 
@@ -56,8 +56,8 @@ export const _clearMarketExistenceCache = (): void => {
  *
  * Key Features:
  * - Module-level caching to avoid repeated API calls
- * - Single lightweight API call: `getMarkets({ symbols: [symbol], standalone: true })`
- * - Uses standalone mode - works without full perps initialization (no wallet/WebSocket)
+ * - Single lightweight API call: `getMarkets({ symbols: [symbol], readOnly: true })`
+ * - Uses readOnly mode - works without full perps initialization (no wallet/WebSocket)
  * - Handles symbol normalization (ETH on any chain maps to ETH perp)
  *
  * @param symbol - Token symbol (e.g., 'ETH', 'BTC')
@@ -147,11 +147,11 @@ export const usePerpsMarketForAsset = (
     }
 
     try {
-      // Single lightweight API call with standalone mode
-      // standalone: true bypasses full initialization (no wallet/WebSocket needed)
+      // Single lightweight API call with readOnly mode
+      // readOnly: true bypasses full initialization (no wallet/WebSocket needed)
       const markets = await getMarkets({
         symbols: [lookupSymbol],
-        standalone: true,
+        readOnly: true,
       });
 
       // Verify this response matches current request (prevents stale updates)

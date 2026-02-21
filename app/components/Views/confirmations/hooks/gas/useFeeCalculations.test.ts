@@ -106,38 +106,13 @@ describe('useFeeCalculations', () => {
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
-  it('returns native fees but no fiat when conversion rate is null', () => {
-    const clonedState = cloneDeep(stakingDepositConfirmationState);
-
-    clonedState.engine.backgroundState.CurrencyRateController.currencyRates.ETH =
-      {
-        conversionDate: 1732887955.694,
-        conversionRate: null,
-        usdConversionRate: null,
-      } as unknown as {
-        conversionDate: number;
-        conversionRate: number;
-        usdConversionRate: number;
-      };
-
-    const { result } = renderHookWithProvider(
-      () => useFeeCalculations(transactionMeta),
-      {
-        state: clonedState,
-      },
+  it('returns null as estimatedFeeFiat if conversion rate is not available', () => {
+    const clonedStakingDepositConfirmationState = cloneDeep(
+      stakingDepositConfirmationState,
     );
 
-    expect(result.current.estimatedFeeFiat).toBeNull();
-    expect(result.current.estimatedFeeFiatPrecise).toBeNull();
-    expect(result.current.estimatedFeeNative).toBe('0.0001');
-    expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c22d00');
-    expect(result.current.calculateGasEstimate).toBeDefined();
-  });
-
-  it('returns native fees but no fiat when conversion rate is undefined', () => {
-    const clonedState = cloneDeep(stakingDepositConfirmationState);
-
-    clonedState.engine.backgroundState.CurrencyRateController.currencyRates.ETH =
+    // No type is exported for CurrencyRate, so we need to cast it to the correct type
+    clonedStakingDepositConfirmationState.engine.backgroundState.CurrencyRateController.currencyRates.ETH =
       null as unknown as {
         conversionDate: number;
         conversionRate: number;
@@ -147,14 +122,14 @@ describe('useFeeCalculations', () => {
     const { result } = renderHookWithProvider(
       () => useFeeCalculations(transactionMeta),
       {
-        state: clonedState,
+        state: clonedStakingDepositConfirmationState,
       },
     );
 
-    expect(result.current.estimatedFeeFiat).toBeNull();
-    expect(result.current.estimatedFeeFiatPrecise).toBeNull();
-    expect(result.current.estimatedFeeNative).toBe('0.0001');
-    expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c22d00');
+    expect(result.current.estimatedFeeFiat).toBe(null);
+    expect(result.current.estimatedFeeNative).toBe(null);
+    expect(result.current.estimatedFeeFiatPrecise).toBe(null);
+    expect(result.current.preciseNativeFeeInHex).toBe(null);
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
 

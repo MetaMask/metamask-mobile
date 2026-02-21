@@ -28,7 +28,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import HeaderStackedStandard from '../../../component-library/components-temp/HeaderStackedStandard';
+import HeaderWithTitleLeft from '../../../component-library/components-temp/HeaderWithTitleLeft';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 
@@ -158,13 +158,13 @@ const ImportPrivateKey = () => {
         showsVerticalScrollIndicator={false}
       >
         <View testID={ImportAccountFromPrivateKeyIDs.CONTAINER}>
-          <HeaderStackedStandard
+          <HeaderWithTitleLeft
             includesTopInset
             backButtonProps={{
               onPress: dismiss,
               testID: ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON,
             }}
-            titleStandardProps={{
+            titleLeftProps={{
               title: strings('import_private_key.title'),
               bottomAccessory: (
                 <View style={styles.descriptionContainer}>

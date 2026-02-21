@@ -1,7 +1,7 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import { setContentPreviewToken } from '../../../../actions/notification/helpers';
-import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import { PERFORMANCE_CONFIG } from '../../../../components/UI/Perps/constants/perpsConfig';
 
 export function navigateToHomeUrl(params: { homePath?: string }) {
   const { homePath } = params;

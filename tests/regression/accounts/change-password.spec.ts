@@ -1,16 +1,16 @@
-import { RegressionAccounts } from '../../tags.js';
+import { RegressionAccounts } from '../../../e2e/tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import { loginToApp } from '../../flows/wallet.flow';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
-import SettingsView from '../../page-objects/Settings/SettingsView';
-import SecurityAndPrivacy from '../../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import WalletView from '../../page-objects/wallet/WalletView';
-import ChangePasswordView from '../../page-objects/Settings/SecurityAndPrivacy/ChangePasswordView';
-import LoginView from '../../page-objects/wallet/LoginView';
-import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
-import ToastModal from '../../page-objects/wallet/ToastModal';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import SettingsView from '../../../e2e/pages/Settings/SettingsView';
+import SecurityAndPrivacy from '../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import ChangePasswordView from '../../../e2e/pages/Settings/SecurityAndPrivacy/ChangePasswordView';
+import LoginView from '../../../e2e/pages/wallet/LoginView';
+import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
+import ToastModal from '../../../e2e/pages/wallet/ToastModal';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 describe(RegressionAccounts('change password'), () => {

@@ -137,23 +137,13 @@ jest.mock('../../hooks/useTronStakeApy', () => ({
   }),
 }));
 
-const createEmptyResourcesMap = () => ({
-  energy: undefined,
-  bandwidth: undefined,
-  maxEnergy: undefined,
-  maxBandwidth: undefined,
-  stakedTrxForEnergy: undefined,
-  stakedTrxForBandwidth: undefined,
-  totalStakedTrx: 0,
-});
-
 describe('EarnBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (jest.mocked(selectTrxStakingEnabled) as jest.Mock).mockReturnValue(false);
     (
       jest.mocked(selectTronResourcesBySelectedAccountGroup) as jest.Mock
-    ).mockReturnValue(createEmptyResourcesMap());
+    ).mockReturnValue([]);
   });
 
   describe('Ethereum Mainnet', () => {
@@ -261,7 +251,7 @@ describe('EarnBalance', () => {
       };
 
       mockFlag.mockReturnValue(true);
-      mockTronResources.mockReturnValue(createEmptyResourcesMap());
+      mockTronResources.mockReturnValue([]);
 
       renderWithProvider(<EarnBalance asset={trx as TokenI} />);
 
@@ -282,12 +272,10 @@ describe('EarnBalance', () => {
       };
 
       mockFlag.mockReturnValue(true);
-      mockTronResources.mockReturnValue({
-        ...createEmptyResourcesMap(),
-        stakedTrxForEnergy: { symbol: 'strx-energy', balance: '1' },
-        stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '2' },
-        totalStakedTrx: 3,
-      });
+      mockTronResources.mockReturnValue([
+        { symbol: 'strx-energy', balance: '1' },
+        { symbol: 'strx-bandwidth', balance: '2' },
+      ]);
 
       renderWithProvider(<EarnBalance asset={strx as TokenI} />);
 

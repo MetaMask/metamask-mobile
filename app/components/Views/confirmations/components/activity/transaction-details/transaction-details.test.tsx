@@ -122,20 +122,6 @@ describe('TransactionDetails', () => {
       expect(mockTransactionDetailsRetry).toHaveBeenCalledTimes(1);
     });
 
-    it('renders summary section exactly once for musdClaim transactions', () => {
-      useTransactionDetailsMock.mockReturnValue({
-        transactionMeta: {
-          ...TRANSACTION_META_MOCK,
-          type: TransactionType.musdClaim,
-        } as unknown as TransactionMeta,
-      });
-
-      render();
-
-      expect(mockTransactionDetailsSummary).toHaveBeenCalledTimes(1);
-      expect(mockTransactionDetailsRetry).toHaveBeenCalledTimes(1);
-    });
-
     it('renders summary section exactly once for predictDeposit nested transactions', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
@@ -182,23 +168,6 @@ describe('TransactionDetails', () => {
       expect(mockSetOptions).toHaveBeenCalledWith(
         expect.objectContaining({
           title: strings('transaction_details.title.perps_deposit'),
-        }),
-      );
-    });
-
-    it('returns musd_claim title for musdClaim type', () => {
-      useTransactionDetailsMock.mockReturnValue({
-        transactionMeta: {
-          ...TRANSACTION_META_MOCK,
-          type: TransactionType.musdClaim,
-        } as unknown as TransactionMeta,
-      });
-
-      render();
-
-      expect(mockSetOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: strings('transaction_details.title.musd_claim'),
         }),
       );
     });
@@ -278,15 +247,14 @@ describe('TransactionDetails', () => {
   describe('SUMMARY_SECTION_TYPES', () => {
     it.each([
       TransactionType.musdConversion,
-      TransactionType.musdClaim,
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
     ])('includes %s', (type) => {
       expect(SUMMARY_SECTION_TYPES).toContain(type);
     });
 
-    it('contains exactly 4 transaction types', () => {
-      expect(SUMMARY_SECTION_TYPES).toHaveLength(4);
+    it('contains exactly 3 transaction types', () => {
+      expect(SUMMARY_SECTION_TYPES).toHaveLength(3);
     });
   });
 });

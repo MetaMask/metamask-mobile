@@ -39,9 +39,11 @@ import {
   USDC_DECIMALS,
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
+} from '../../constants/hyperLiquidConfig';
+import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller';
+} from '../../constants/eventNames';
 import {
   usePerpsMeasurement,
   usePerpsNetwork,

@@ -1,35 +1,32 @@
 import { act } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import {
-  useWithdrawalRequests,
-  type WithdrawalRequest,
-} from './useWithdrawalRequests';
+import { useWithdrawalRequests } from './useWithdrawalRequests';
 import Engine from '../../../../core/Engine';
+import { usePerpsSelector } from './usePerpsSelector';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import type { PerpsControllerState } from '../controllers/PerpsController';
 import type { RootState } from '../../../../reducers';
 import {
   createMockInternalAccount,
   createMockUuidFromAddress,
 } from '../../../../util/test/accountsControllerTestUtils';
 import { useSelector } from 'react-redux';
-import { selectWithdrawalRequestsBySelectedAccount } from '../../../../selectors/perps/withdrawalRequests';
 
 // Mock dependencies
 jest.mock('../../../../core/Engine');
+jest.mock('./usePerpsSelector');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
-jest.mock('../../../../selectors/perps/withdrawalRequests', () => ({
-  selectWithdrawalRequestsBySelectedAccount: jest.fn(),
-}));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
+const mockUsePerpsSelector = usePerpsSelector as jest.MockedFunction<
+  typeof usePerpsSelector
+>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockSelectWithdrawalRequests =
-  selectWithdrawalRequestsBySelectedAccount as unknown as jest.Mock;
 
 describe('useWithdrawalRequests', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890';
@@ -40,7 +37,7 @@ describe('useWithdrawalRequests', () => {
   );
 
   let mockController: {
-    getActiveProviderOrNull: jest.MockedFunction<() => unknown>;
+    getActiveProvider: jest.MockedFunction<() => unknown>;
     updateWithdrawalStatus: jest.MockedFunction<
       (id: string, status: string, txHash?: string) => void
     >;
@@ -145,22 +142,6 @@ describe('useWithdrawalRequests', () => {
       },
     }) as unknown as RootState;
 
-  // Helper to mock the withdrawal requests selector with specific data
-  const mockWithdrawalRequestsSelector = (
-    withdrawals: Partial<WithdrawalRequest>[],
-  ) => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === mockSelectWithdrawalRequests) {
-        return withdrawals;
-      }
-      const result = selector(createMockState());
-      if (typeof result === 'function') {
-        return () => mockInternalAccount;
-      }
-      return result;
-    });
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useRealTimers(); // Clear any existing fake timers first
@@ -168,7 +149,7 @@ describe('useWithdrawalRequests', () => {
 
     // Mock controller
     mockController = {
-      getActiveProviderOrNull: jest.fn(),
+      getActiveProvider: jest.fn(),
       updateWithdrawalStatus: jest.fn(),
     };
 
@@ -184,12 +165,15 @@ describe('useWithdrawalRequests', () => {
       PerpsController: mockController,
     };
 
-    // Mock useSelector to handle both the account selector and the withdrawal requests selector
+    // Mock usePerpsSelector to execute the selector function with mock state
+    mockUsePerpsSelector.mockImplementation((selector) =>
+      selector({
+        withdrawalRequests: mockPendingWithdrawals,
+      } as Partial<PerpsControllerState> as PerpsControllerState),
+    );
+
+    // Mock useSelector to return the mock account for selectSelectedInternalAccountByScope
     mockUseSelector.mockImplementation((selector) => {
-      // Check if this is the memoized withdrawal requests selector
-      if (selector === mockSelectWithdrawalRequests) {
-        return mockPendingWithdrawals;
-      }
       // Check if this is the selectSelectedInternalAccountByScope selector
       // It returns a function that takes a scope
       const result = selector(createMockState());
@@ -201,7 +185,7 @@ describe('useWithdrawalRequests', () => {
     });
 
     // Mock provider methods
-    mockController.getActiveProviderOrNull.mockReturnValue(mockProvider);
+    mockController.getActiveProvider.mockReturnValue(mockProvider);
     mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue(
       mockLedgerUpdates,
     );
@@ -325,8 +309,8 @@ describe('useWithdrawalRequests', () => {
       );
     });
 
-    it('handles null provider gracefully (silent early return)', async () => {
-      mockController.getActiveProviderOrNull.mockReturnValue(null);
+    it('handles provider errors gracefully', async () => {
+      mockController.getActiveProvider.mockReturnValue(null);
 
       const { result } = renderHookWithProvider(() => useWithdrawalRequests(), {
         state: createMockState(),
@@ -337,7 +321,7 @@ describe('useWithdrawalRequests', () => {
       });
 
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBeNull();
+      expect(result.current.error).toBe('No active provider available');
     });
 
     it('handles controller errors gracefully', async () => {
@@ -357,9 +341,7 @@ describe('useWithdrawalRequests', () => {
 
     it('handles provider method not supported', async () => {
       const providerWithoutMethod = {};
-      mockController.getActiveProviderOrNull.mockReturnValue(
-        providerWithoutMethod,
-      );
+      mockController.getActiveProvider.mockReturnValue(providerWithoutMethod);
 
       const { result } = renderHookWithProvider(() => useWithdrawalRequests(), {
         state: createMockState(),
@@ -595,7 +577,11 @@ describe('useWithdrawalRequests', () => {
         destination: '0x123',
       };
 
-      mockWithdrawalRequestsSelector([matchingPendingWithdrawal]);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: [matchingPendingWithdrawal],
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
       mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([
         {
           delta: {
@@ -653,7 +639,11 @@ describe('useWithdrawalRequests', () => {
         destination: '0x123',
       };
 
-      mockWithdrawalRequestsSelector([pendingWithdrawal]);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: [pendingWithdrawal],
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
       mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([
         {
           delta: {
@@ -698,7 +688,11 @@ describe('useWithdrawalRequests', () => {
         destination: '0x123',
       };
 
-      mockWithdrawalRequestsSelector([pendingWithdrawal]);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: [pendingWithdrawal],
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
       mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([
         {
           delta: {
@@ -747,7 +741,11 @@ describe('useWithdrawalRequests', () => {
         destination: '0x123',
       };
 
-      mockWithdrawalRequestsSelector([pendingWithdrawal]);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: [pendingWithdrawal],
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
       mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([
         {
           delta: {
@@ -790,7 +788,11 @@ describe('useWithdrawalRequests', () => {
         destination: '0x123',
       };
 
-      mockWithdrawalRequestsSelector([pendingWithdrawal]);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: [pendingWithdrawal],
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
       mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([
         {
           delta: {
@@ -833,7 +835,11 @@ describe('useWithdrawalRequests', () => {
         destination: '0x123',
       };
 
-      mockWithdrawalRequestsSelector([pendingWithdrawal]);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: [pendingWithdrawal],
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
       mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([
         {
           delta: {
@@ -868,7 +874,11 @@ describe('useWithdrawalRequests', () => {
 
   describe('sorting and ordering', () => {
     it('sorts withdrawals by timestamp descending', async () => {
-      mockWithdrawalRequestsSelector([]);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: [],
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
       mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([
         {
           delta: {
@@ -923,7 +933,11 @@ describe('useWithdrawalRequests', () => {
         },
       ];
 
-      mockWithdrawalRequestsSelector(activeWithdrawals);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: activeWithdrawals,
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
 
       renderHookWithProvider(() => useWithdrawalRequests(), {
         state: createMockState(),
@@ -962,7 +976,11 @@ describe('useWithdrawalRequests', () => {
         },
       ];
 
-      mockWithdrawalRequestsSelector(completedWithdrawals);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: completedWithdrawals,
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
 
       renderHookWithProvider(() => useWithdrawalRequests(), {
         state: createMockState(),
@@ -1001,7 +1019,11 @@ describe('useWithdrawalRequests', () => {
         },
       ];
 
-      mockWithdrawalRequestsSelector(activeWithdrawals);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: activeWithdrawals,
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
 
       const { unmount } = renderHookWithProvider(
         () => useWithdrawalRequests(),
@@ -1095,7 +1117,11 @@ describe('useWithdrawalRequests', () => {
 
   describe('edge cases', () => {
     it('handles empty pending withdrawals', () => {
-      mockWithdrawalRequestsSelector([]);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: [],
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
 
       const { result } = renderHookWithProvider(() => useWithdrawalRequests(), {
         state: createMockState(),
@@ -1135,7 +1161,11 @@ describe('useWithdrawalRequests', () => {
         },
       ];
 
-      mockWithdrawalRequestsSelector(failedWithdrawals);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: failedWithdrawals,
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
 
       const { result } = renderHookWithProvider(() => useWithdrawalRequests(), {
         state: createMockState(),
@@ -1170,7 +1200,11 @@ describe('useWithdrawalRequests', () => {
         },
       ];
 
-      mockWithdrawalRequestsSelector(sameTimestampWithdrawals);
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: sameTimestampWithdrawals,
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
 
       const { result } = renderHookWithProvider(() => useWithdrawalRequests(), {
         state: createMockState(),

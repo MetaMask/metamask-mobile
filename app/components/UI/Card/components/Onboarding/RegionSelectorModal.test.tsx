@@ -104,12 +104,14 @@ jest.mock(
       onChangeText,
       onPressClearButton,
       onFocus,
+      showClearButton,
       testID,
     }: {
       value: string;
       onChangeText: (text: string) => void;
       onPressClearButton?: () => void;
       onFocus?: () => void;
+      showClearButton?: boolean;
       testID?: string;
     }) =>
       React.createElement(
@@ -121,7 +123,7 @@ jest.mock(
           onChangeText,
           onFocus,
         }),
-        !!value &&
+        showClearButton &&
           React.createElement(
             TouchableOpacity,
             {

@@ -5,14 +5,7 @@ import {
   type AnalyticsTrackingEvent,
 } from '../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../util/analytics/analytics';
-import {
-  createDataDeletionTask as createDataDeletionTaskUtil,
-  checkDataDeleteStatus as checkDataDeleteStatusUtil,
-  getDeleteRegulationCreationDate as getDeleteRegulationCreationDateUtil,
-  getDeleteRegulationId as getDeleteRegulationIdUtil,
-  isDataRecorded as isDataRecordedUtil,
-  updateDataRecordingFlag as updateDataRecordingFlagUtil,
-} from '../../../util/analytics/analyticsDataDeletion';
+import { MetaMetrics } from '../../../core/Analytics';
 import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
 
 /**
@@ -104,7 +97,10 @@ export const useAnalytics = (): UseAnalyticsHook =>
           .build();
         analytics.trackEvent(analyticsEvent);
 
-        updateDataRecordingFlagUtil(analyticsEvent.saveDataRecording);
+        // Preserve data deletion behavior until MetaMetrics is fully removed.
+        MetaMetrics.getInstance().updateDataRecordingFlag(
+          analyticsEvent.saveDataRecording,
+        );
       },
       enable: async (enable?: boolean): Promise<void> => {
         if (enable === false) {
@@ -118,12 +114,15 @@ export const useAnalytics = (): UseAnalyticsHook =>
       ): Promise<void> => {
         analytics.identify(userTraits);
       },
-      createDataDeletionTask: () => createDataDeletionTaskUtil(),
-      checkDataDeleteStatus: () => checkDataDeleteStatusUtil(),
+      createDataDeletionTask: () =>
+        MetaMetrics.getInstance().createDataDeletionTask(),
+      checkDataDeleteStatus: () =>
+        MetaMetrics.getInstance().checkDataDeleteStatus(),
       getDeleteRegulationCreationDate: () =>
-        getDeleteRegulationCreationDateUtil(),
-      getDeleteRegulationId: () => getDeleteRegulationIdUtil(),
-      isDataRecorded: () => isDataRecordedUtil(),
+        MetaMetrics.getInstance().getDeleteRegulationCreationDate(),
+      getDeleteRegulationId: () =>
+        MetaMetrics.getInstance().getDeleteRegulationId(),
+      isDataRecorded: () => MetaMetrics.getInstance().isDataRecorded(),
       isEnabled: (): boolean => analytics.isEnabled(),
       getAnalyticsId: async (): Promise<string | undefined> => {
         const id = await analytics.getAnalyticsId();

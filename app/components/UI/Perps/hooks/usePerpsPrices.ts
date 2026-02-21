@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  PERFORMANCE_CONFIG,
-  type PriceUpdate,
-} from '@metamask/perps-controller';
+import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+import type { PriceUpdate } from '../controllers/types';
 import { usePerpsConnection } from './usePerpsConnection';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useStableArray } from './useStableArray';

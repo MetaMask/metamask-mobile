@@ -7,7 +7,9 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField from '../../../../../component-library/components/Form/TextField';
+import TextField, {
+  TextFieldSize,
+} from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -234,6 +236,7 @@ const ConfirmPhoneNumber = () => {
           autoCapitalize={'none'}
           onChangeText={handleValueChange}
           numberOfLines={1}
+          size={TextFieldSize.Lg}
           value={confirmCode}
           keyboardType="number-pad"
           textContentType="oneTimeCode"

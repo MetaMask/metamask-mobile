@@ -273,7 +273,6 @@ describe('rewardsReducer', () => {
             },
           ],
           activityTypes: [],
-          waysToEarn: [],
         },
         balance: {
           total: 500,
@@ -373,9 +372,9 @@ describe('rewardsReducer', () => {
         ...initialState,
         seasonActivityTypes: [
           {
-            id: 'activity-referral',
             type: 'REFERRAL',
             title: 'Referral',
+            description: 'Refer a friend',
             icon: 'UserCircleAdd',
           },
         ],
@@ -385,79 +384,6 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(stateWithActivities, action);
 
       expect(state.seasonActivityTypes).toEqual([]);
-    });
-
-    it('should set seasonWaysToEarn from season data', () => {
-      const mockSeasonStatus = {
-        season: {
-          id: 'season-ways',
-          name: 'Season Ways',
-          startDate: new Date('2024-02-01').getTime(),
-          endDate: new Date('2024-03-01').getTime(),
-          tiers: [],
-          activityTypes: [],
-          waysToEarn: [
-            {
-              id: 'way-swap',
-              type: 'SWAP',
-              title: 'Swap',
-              icon: 'SwapHorizontal',
-              shortDescription: '80 points per $100',
-              bottomSheetTitle: 'Swap tokens',
-              pointsEarningRule: '80 points per $100 swapped',
-              description: 'Swap tokens on supported networks.',
-              buttonLabel: 'Start a swap',
-              buttonAction: { deeplink: 'metamask://swap' },
-            },
-            {
-              id: 'way-referral',
-              type: 'REFERRAL',
-              title: 'Refer friends',
-              icon: 'People',
-              shortDescription: '10 points per 50 from friends',
-              bottomSheetTitle: 'Refer friends',
-              pointsEarningRule: '10 points per 50 pts earned',
-              description: 'Invite your friends.',
-              buttonLabel: 'Share link',
-              buttonAction: { route: { root: 'ReferralView', screen: '' } },
-            },
-          ],
-        },
-      } as unknown as SeasonStatusState;
-      const action = setSeasonStatus(mockSeasonStatus);
-
-      const state = rewardsReducer(initialState, action);
-
-      expect(state.seasonWaysToEarn).toEqual(
-        mockSeasonStatus.season.waysToEarn,
-      );
-      expect(state.seasonWaysToEarn).toHaveLength(2);
-      expect(state.seasonWaysToEarn[0].type).toBe('SWAP');
-      expect(state.seasonWaysToEarn[1].type).toBe('REFERRAL');
-    });
-
-    it('should clear seasonWaysToEarn when season status is null', () => {
-      const stateWithWaysToEarn = {
-        ...initialState,
-        seasonWaysToEarn: [
-          {
-            id: 'way-swap',
-            type: 'SWAP',
-            title: 'Swap',
-            icon: 'SwapHorizontal',
-            shortDescription: '80 points per $100',
-            bottomSheetTitle: 'Swap tokens',
-            pointsEarningRule: '80 points per $100 swapped',
-            description: 'Swap tokens.',
-            buttonLabel: 'Start a swap',
-          },
-        ],
-      };
-      const action = setSeasonStatus(null);
-
-      const state = rewardsReducer(stateWithWaysToEarn, action);
-
-      expect(state.seasonWaysToEarn).toEqual([]);
     });
 
     it('should set seasonShouldInstallNewVersion when provided', () => {
@@ -1481,9 +1407,9 @@ describe('rewardsReducer', () => {
           ],
           seasonActivityTypes: [
             {
-              id: 'activity-predict',
               type: 'PREDICT',
               title: 'Predict',
+              description: 'Prediction',
               icon: 'Speedometer',
             },
           ],
@@ -2084,7 +2010,6 @@ describe('rewardsReducer', () => {
           },
         ],
         seasonActivityTypes: [],
-        seasonWaysToEarn: [],
         seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_1,
         onboardingReferralCode: 'REF123',
@@ -2186,7 +2111,6 @@ describe('rewardsReducer', () => {
           },
         ],
         seasonActivityTypes: [],
-        seasonWaysToEarn: [],
         seasonShouldInstallNewVersion: null,
         onboardingActiveStep: OnboardingStep.STEP_2,
         onboardingReferralCode: 'PERSISTED_REF',
@@ -2281,9 +2205,9 @@ describe('rewardsReducer', () => {
         seasonId: 'persisted-season-id',
         seasonActivityTypes: [
           {
-            id: 'activity-musd-deposit',
             type: 'MUSD_DEPOSIT',
             title: 'mUSD deposit',
+            description: 'Deposit mUSD',
             icon: 'Coin',
           },
         ],
@@ -2299,39 +2223,6 @@ describe('rewardsReducer', () => {
 
       expect(state.seasonActivityTypes).toEqual(
         persistedRewardsState.seasonActivityTypes,
-      );
-    });
-
-    it('should restore seasonWaysToEarn from persisted state', () => {
-      const persistedRewardsState: RewardsState = {
-        ...initialState,
-        seasonId: 'persisted-season-id',
-        seasonWaysToEarn: [
-          {
-            id: 'way-perps',
-            type: 'PERPS',
-            title: 'Perps',
-            icon: 'Rocket',
-            shortDescription: '10 points per $100',
-            bottomSheetTitle: 'Trade perps',
-            pointsEarningRule: '10 points per $100 traded',
-            description: 'Trade perps to earn points.',
-            buttonLabel: 'Start a trade',
-            buttonAction: { route: { root: 'PerpsRoot', screen: 'PerpsHome' } },
-          },
-        ],
-      };
-      const rehydrateAction = {
-        type: 'persist/REHYDRATE',
-        payload: {
-          rewards: persistedRewardsState,
-        },
-      };
-
-      const state = rewardsReducer(initialState, rehydrateAction);
-
-      expect(state.seasonWaysToEarn).toEqual(
-        persistedRewardsState.seasonWaysToEarn,
       );
     });
 

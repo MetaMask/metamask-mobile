@@ -18,16 +18,16 @@
  * 2. Result elements are created in the DOM
  * 3. Results appear in the expected format (truncated vs non-truncated)
  */
-import { SmokeMultiChainAPI } from '../../tags';
+import { SmokeMultiChainAPI } from '../../../e2e/tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import MultichainTestDApp from '../../page-objects/Browser/MultichainTestDApp';
+import MultichainTestDApp from '../../../e2e/pages/Browser/MultichainTestDApp';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
-import MultichainUtilities from '../../helpers/multichain/MultichainUtilities';
+import MultichainUtilities from '../../../e2e/utils/MultichainUtilities';
 import Assertions from '../../framework/Assertions';
-import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
+import { MULTICHAIN_TEST_TIMEOUTS } from '../../../e2e/selectors/Browser/MultichainTestDapp.selectors';
 import { waitFor } from 'detox';
-import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
+import FooterActions from '../../../e2e/pages/Browser/Confirmations/FooterActions';
 import { isHexString } from '@metamask/utils';
 import { DappVariants } from '../../framework/Constants';
 import { LocalNodeType } from '../../framework';
@@ -41,8 +41,7 @@ const ANVIL_NODE_OPTIONS_WITH_GATOR = [
     type: 'anvil',
     options: {
       hardfork: 'prague',
-      loadState:
-        './tests/seeder/network-states/7702/withDelegatorContracts.json',
+      loadState: './e2e/seeder/network-states/7702/withDelegatorContracts.json',
     },
   },
 ];

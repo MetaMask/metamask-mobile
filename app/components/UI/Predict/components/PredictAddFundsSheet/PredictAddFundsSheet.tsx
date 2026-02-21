@@ -16,6 +16,7 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -39,6 +40,7 @@ const PredictAddFundsSheet = forwardRef<
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { deposit } = usePredictDeposit();
   const { executeGuardedAction } = usePredictActionGuard({
+    providerId: POLYMARKET_PROVIDER_ID,
     navigation,
   });
   const { sheetRef, isVisible, closeSheet, handleSheetClosed, getRefHandlers } =

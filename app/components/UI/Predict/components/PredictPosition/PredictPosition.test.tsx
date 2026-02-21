@@ -14,7 +14,6 @@ import {
 import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 
-import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
     if (key === 'predict.position_info' && vars) {
@@ -37,7 +36,7 @@ jest.mock('../../hooks/usePredictPositions', () => ({
 
 const basePosition: PredictPositionType = {
   id: 'pos-1',
-  providerId: POLYMARKET_PROVIDER_ID,
+  providerId: 'polymarket',
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcomeTokenId: '0',
@@ -66,13 +65,7 @@ const renderComponent = (
     ...basePosition,
     ...overrides,
   } as PredictPositionType;
-  return render(
-    <PredictPosition
-      position={position}
-      onPress={onPress}
-      privacyMode={false}
-    />,
-  );
+  return render(<PredictPosition position={position} onPress={onPress} />);
 };
 
 describe('PredictPosition', () => {
@@ -249,7 +242,7 @@ describe('PredictPosition', () => {
       claimable: true,
       endDate: '2026-01-01T00:00:00Z',
     };
-    render(<PredictPosition position={position} privacyMode={false} />);
+    render(<PredictPosition position={position} />);
 
     expect(screen.getByText('Test Market Question?')).toBeOnTheScreen();
     expect(screen.getByText('$75.25 on Maybe to win $7.50')).toBeOnTheScreen();
@@ -358,9 +351,7 @@ describe('PredictPosition', () => {
         error: null,
       });
 
-      rerender(
-        <PredictPosition position={resolvedPosition} privacyMode={false} />,
-      );
+      rerender(<PredictPosition position={resolvedPosition} />);
 
       await waitFor(() => {
         expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
@@ -427,9 +418,7 @@ describe('PredictPosition', () => {
         error: null,
       });
 
-      rerender(
-        <PredictPosition position={optimisticPosition} privacyMode={false} />,
-      );
+      rerender(<PredictPosition position={optimisticPosition} />);
 
       await waitFor(() => {
         expect(screen.getByText('$2,500')).toBeOnTheScreen();
@@ -469,11 +458,7 @@ describe('PredictPosition', () => {
       });
 
       rerender(
-        <PredictPosition
-          position={optimisticPosition}
-          onPress={mockOnPress}
-          privacyMode={false}
-        />,
+        <PredictPosition position={optimisticPosition} onPress={mockOnPress} />,
       );
 
       await waitFor(() => {
@@ -490,28 +475,6 @@ describe('PredictPosition', () => {
           optimistic: false,
         }),
       );
-    });
-  });
-
-  describe('privacy mode', () => {
-    it('hides monetary values when privacy mode is enabled', () => {
-      const { queryByText, getByText, queryAllByText } = render(
-        <PredictPosition position={basePosition} privacyMode />,
-      );
-
-      expect(queryByText('$2,345.67')).toBeNull();
-      expect(queryByText('5.25%')).toBeNull();
-      expect(queryByText('$123.45 on Yes to win $10')).toBeNull();
-      expect(getByText(basePosition.title)).toBeOnTheScreen();
-      expect(queryAllByText(/•+/).length).toBeGreaterThan(0);
-    });
-
-    it('displays monetary values when privacy mode is disabled', () => {
-      renderComponent();
-
-      expect(screen.getByText('$123.45 on Yes to win $10')).toBeOnTheScreen();
-      expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
-      expect(screen.getByText('5.25%')).toBeOnTheScreen();
     });
   });
 });

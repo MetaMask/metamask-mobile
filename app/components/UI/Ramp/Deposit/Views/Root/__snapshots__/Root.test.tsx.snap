@@ -311,28 +311,7 @@ exports[`Root Component render matches snapshot 1`] = `
                         "flex": 1,
                       }
                     }
-                  >
-                    <View
-                      style={
-                        [
-                          {
-                            "alignItems": "center",
-                            "display": "flex",
-                            "flexBasis": "0%",
-                            "flexGrow": 1,
-                            "flexShrink": 1,
-                            "justifyContent": "center",
-                          },
-                          undefined,
-                        ]
-                      }
-                    >
-                      <ActivityIndicator
-                        color="#4459ff"
-                        size="large"
-                      />
-                    </View>
-                  </View>
+                  />
                 </View>
               </View>
             </View>

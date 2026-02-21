@@ -204,17 +204,23 @@ describe('PerpsRecentActivityList', () => {
   });
 
   describe('Empty State', () => {
-    it('renders nothing when transactions array is empty', () => {
-      const { toJSON } = render(<PerpsRecentActivityList transactions={[]} />);
-
-      expect(toJSON()).toBeNull();
-    });
-
-    it('does not render header or empty message when empty', () => {
+    it('renders empty message when transactions array is empty', () => {
       render(<PerpsRecentActivityList transactions={[]} />);
 
-      expect(screen.queryByText('Recent Activity')).not.toBeOnTheScreen();
-      expect(screen.queryByText('No recent activity')).not.toBeOnTheScreen();
+      expect(screen.getByText('No recent activity')).toBeOnTheScreen();
+    });
+
+    it('renders header with title when empty', () => {
+      render(<PerpsRecentActivityList transactions={[]} />);
+
+      expect(screen.getByText('Recent Activity')).toBeOnTheScreen();
+    });
+
+    it('does not render pressable header when empty', () => {
+      render(<PerpsRecentActivityList transactions={[]} />);
+
+      // When empty, header is not pressable (no arrow icon)
+      expect(screen.queryByText('Recent Activity')).toBeOnTheScreen();
     });
   });
 
@@ -616,19 +622,20 @@ describe('PerpsRecentActivityList', () => {
     });
 
     it('transitions from empty state to fills', () => {
-      const { rerender, toJSON } = render(
+      const { rerender } = render(
         <PerpsRecentActivityList transactions={[]} />,
       );
 
-      expect(toJSON()).toBeNull();
+      expect(screen.getByText('No recent activity')).toBeOnTheScreen();
 
       rerender(<PerpsRecentActivityList transactions={mockTransactions} />);
 
+      expect(screen.queryByText('No recent activity')).not.toBeOnTheScreen();
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
     });
 
     it('transitions from fills to empty state', () => {
-      const { rerender, toJSON } = render(
+      const { rerender } = render(
         <PerpsRecentActivityList transactions={mockTransactions} />,
       );
 
@@ -637,7 +644,7 @@ describe('PerpsRecentActivityList', () => {
       rerender(<PerpsRecentActivityList transactions={[]} />);
 
       expect(screen.queryByText('Opened long')).not.toBeOnTheScreen();
-      expect(toJSON()).toBeNull();
+      expect(screen.getByText('No recent activity')).toBeOnTheScreen();
     });
 
     it('transitions from loading to fills', () => {
@@ -693,7 +700,7 @@ describe('PerpsRecentActivityList', () => {
     });
 
     it('cleans up properly when remounted with different props', () => {
-      const { rerender, toJSON } = render(
+      const { rerender } = render(
         <PerpsRecentActivityList transactions={mockTransactions} />,
       );
 
@@ -701,7 +708,7 @@ describe('PerpsRecentActivityList', () => {
 
       rerender(<PerpsRecentActivityList transactions={[]} />);
 
-      expect(toJSON()).toBeNull();
+      expect(screen.getByText('No recent activity')).toBeOnTheScreen();
 
       rerender(<PerpsRecentActivityList transactions={mockTransactions} />);
 

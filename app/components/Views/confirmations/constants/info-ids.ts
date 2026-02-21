@@ -5,7 +5,6 @@ export const ConfirmationInfoComponentIDs = {
   PERSONAL_SIGN: 'personal-sign-info',
   SIGN_TYPED_DATA_V1: 'sign-typed-data-v1-info',
   SIGN_TYPED_DATA_V3V4: 'sign-typed-data-v3v4-info',
-  MUSD_CLAIM: 'musd-claim-info',
   STAKING_CLAIM: 'staking-claim-info',
   STAKING_DEPOSIT: 'staking-deposit-info',
   STAKING_WITHDRAWAL: 'staking-withdrawal-info',

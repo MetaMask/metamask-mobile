@@ -34,7 +34,7 @@ export function useTransactionPayMetrics() {
   const hasLoadedQuoteRef = useRef(false);
   const quotes = useTransactionPayQuotes();
   const totals = useTransactionPayTotals();
-  const { availableTokens: tokens } = useTransactionPayAvailableTokens();
+  const tokens = useTransactionPayAvailableTokens();
 
   const transactionId = transactionMeta?.id ?? '';
   const storedMetrics = useSelector((state: RootState) =>

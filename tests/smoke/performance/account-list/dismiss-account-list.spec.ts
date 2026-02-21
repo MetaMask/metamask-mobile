@@ -1,9 +1,9 @@
-import { loginToApp } from '../../../flows/wallet.flow';
-import { SmokePerformance } from '../../../tags';
-import WalletView from '../../../page-objects/wallet/WalletView';
-import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import { SmokePerformance } from '../../../../e2e/tags';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import TestHelpers from '../../../helpers';
+import TestHelpers from '../../../../e2e/helpers';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { toChecksumAddress } from 'ethereumjs-util';

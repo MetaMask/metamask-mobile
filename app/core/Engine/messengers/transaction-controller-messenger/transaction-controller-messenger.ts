@@ -76,13 +76,7 @@ export function getTransactionControllerMessenger(
       'NetworkController:getNetworkClientById',
       'RemoteFeatureFlagController:getState',
     ],
-    events: [
-      'AccountActivityService:transactionUpdated',
-      'AccountActivityService:statusChanged',
-      'AccountsController:selectedAccountChange',
-      'BackendWebSocketService:connectionStateChanged',
-      'NetworkController:stateChange',
-    ],
+    events: [`NetworkController:stateChange`],
     messenger,
   });
   return messenger;

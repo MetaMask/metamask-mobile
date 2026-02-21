@@ -89,7 +89,9 @@ describe('usePredictAccountState', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(mockGetAccountState).toHaveBeenCalledWith({});
+      expect(mockGetAccountState).toHaveBeenCalledWith({
+        providerId: 'polymarket',
+      });
       expect(result.current.address).toEqual(mockAccountState.address);
     });
 
@@ -127,19 +129,23 @@ describe('usePredictAccountState', () => {
       });
 
       // Assert
-      expect(mockGetAccountState).toHaveBeenCalledWith({});
+      expect(mockGetAccountState).toHaveBeenCalledWith({
+        providerId: 'polymarket',
+      });
       expect(result.current.address).toEqual(mockAccountState.address);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
-    it('loads account state when requested', async () => {
+    it('uses custom providerId when specified', async () => {
       // Arrange
       mockGetAccountState.mockResolvedValue(mockAccountState);
+      const customProviderId = 'custom-provider';
 
       // Act
       const { result } = renderHook(() =>
         usePredictAccountState({
+          providerId: customProviderId,
           loadOnMount: false,
         }),
       );
@@ -149,7 +155,9 @@ describe('usePredictAccountState', () => {
       });
 
       // Assert
-      expect(mockGetAccountState).toHaveBeenCalledWith({});
+      expect(mockGetAccountState).toHaveBeenCalledWith({
+        providerId: customProviderId,
+      });
     });
 
     it('handles errors when loading account state', async () => {
@@ -372,9 +380,9 @@ describe('usePredictAccountState', () => {
       expect(focusCallback).not.toBeNull();
 
       // Simulate screen focus
-      act(() => {
+      await act(async () => {
         if (focusCallback) {
-          focusCallback();
+          await focusCallback();
         }
       });
 
@@ -383,7 +391,7 @@ describe('usePredictAccountState', () => {
       });
     });
 
-    it('does not refresh on focus when refreshOnFocus is false', () => {
+    it('does not refresh on focus when refreshOnFocus is false', async () => {
       // Arrange
       mockGetAccountState.mockResolvedValue(mockAccountState);
       let focusCallback: (() => void) | null = null;
@@ -408,9 +416,9 @@ describe('usePredictAccountState', () => {
       expect(mockUseFocusEffect).toHaveBeenCalledTimes(1);
 
       // Simulate screen focus if callback was provided
-      act(() => {
+      await act(async () => {
         if (focusCallback) {
-          focusCallback();
+          await focusCallback();
         }
       });
 
@@ -622,7 +630,7 @@ describe('usePredictAccountState', () => {
   });
 
   describe('default parameters', () => {
-    it('uses empty options object by default', async () => {
+    it('uses polymarket as default providerId', async () => {
       // Arrange
       mockGetAccountState.mockResolvedValue(mockAccountState);
 
@@ -636,7 +644,9 @@ describe('usePredictAccountState', () => {
       });
 
       // Assert
-      expect(mockGetAccountState).toHaveBeenCalledWith({});
+      expect(mockGetAccountState).toHaveBeenCalledWith({
+        providerId: 'polymarket',
+      });
     });
 
     it('uses true as default for loadOnMount', async () => {

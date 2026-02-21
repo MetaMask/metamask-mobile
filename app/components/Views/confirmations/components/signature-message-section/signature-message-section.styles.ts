@@ -36,6 +36,11 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.text.default,
       ...fontStyles.normal,
     },
+    copyButtonContainer: {
+      position: 'absolute',
+      top: -40,
+      right: 0,
+    },
   });
 };
 

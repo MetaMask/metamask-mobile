@@ -578,11 +578,5 @@ export const DEFAULT_BRIDGE_API_MOCKS = {
       response: BRIDGE_TOKEN_DETAILS_CHAIN_1,
       responseCode: 200,
     },
-    {
-      urlEndpoint:
-        /^https:\/\/bridge\.(api|dev-api)\.cx\.metamask\.io\/getTxStatus(\?.*)?$/,
-      response: { status: 'complete' },
-      responseCode: 200,
-    },
   ],
 };

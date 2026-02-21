@@ -4,7 +4,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTrading } from './usePerpsTrading';
 import { captureException } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { getPerpsDisplaySymbol } from '../utils/marketUtils';
 
 export interface UsePerpsMarginAdjustmentOptions {
   onSuccess?: () => void;

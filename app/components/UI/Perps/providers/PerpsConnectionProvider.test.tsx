@@ -23,6 +23,13 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
+jest.mock('../components/PerpsLoadingSkeleton', () => ({
+  __esModule: true,
+  default: () => {
+    const { View } = jest.requireActual('react-native');
+    return <View testID="perps-loading-skeleton" />;
+  },
+}));
 jest.mock('../components/PerpsConnectionErrorView', () => ({
   __esModule: true,
   default: ({
@@ -132,7 +139,7 @@ describe('PerpsConnectionProvider', () => {
     jest.useRealTimers();
   });
 
-  it('renders children correctly when initialized', () => {
+  it('should render children correctly when initialized', () => {
     const { getByText } = render(
       <PerpsConnectionProvider>
         <Text>Child Component</Text>
@@ -142,25 +149,25 @@ describe('PerpsConnectionProvider', () => {
     expect(getByText('Child Component')).toBeDefined();
   });
 
-  it('renders children immediately even while connecting', () => {
-    // Children should render even when isInitialized is false and isConnecting is true
-    // Individual sections handle their own loading states with per-row skeletons
+  it('should render loading skeleton when initializing', () => {
+    // Set isInitialized to false to trigger loading skeleton
     mockGetConnectionState.mockReturnValue({
       isConnected: false,
       isConnecting: true,
       isInitialized: false,
     });
 
-    const { getByText } = render(
+    const { getByTestId, queryByText } = render(
       <PerpsConnectionProvider>
         <Text>Child Component</Text>
       </PerpsConnectionProvider>,
     );
 
-    expect(getByText('Child Component')).toBeDefined();
+    expect(getByTestId('perps-loading-skeleton')).toBeDefined();
+    expect(queryByText('Child Component')).toBeNull();
   });
 
-  it('connects on mount', async () => {
+  it('should connect on mount', async () => {
     // Mock the lifecycle hook to trigger connection when visible
     const mockLifecycleHook = jest.requireMock(
       '../hooks/usePerpsConnectionLifecycle',
@@ -185,7 +192,7 @@ describe('PerpsConnectionProvider', () => {
     });
   });
 
-  it('disconnects on unmount', async () => {
+  it('should disconnect on unmount', async () => {
     // Mock the lifecycle hook to trigger disconnection on unmount
     const mockLifecycleHook = jest.requireMock(
       '../hooks/usePerpsConnectionLifecycle',
@@ -214,7 +221,7 @@ describe('PerpsConnectionProvider', () => {
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
-  it('provides connection state through context', async () => {
+  it('should provide connection state through context', async () => {
     mockGetConnectionState.mockReturnValue({
       isConnected: true,
       isConnecting: false,
@@ -232,7 +239,7 @@ describe('PerpsConnectionProvider', () => {
     });
   });
 
-  it('updates state when polling', async () => {
+  it('should update state when polling', async () => {
     const onRender = jest.fn();
 
     // Start with initialized but disconnected state
@@ -278,7 +285,7 @@ describe('PerpsConnectionProvider', () => {
     });
   });
 
-  it('handles connect errors', async () => {
+  it('should handle connect errors', async () => {
     const error = new Error('Connection failed');
     mockConnect.mockRejectedValue(error);
 
@@ -327,7 +334,7 @@ describe('PerpsConnectionProvider', () => {
     });
   });
 
-  it('handles disconnect through context', async () => {
+  it('should handle disconnect through context', async () => {
     const TestDisconnectComponent = () => {
       const { disconnect } = usePerpsConnection();
 
@@ -349,7 +356,7 @@ describe('PerpsConnectionProvider', () => {
     });
   });
 
-  it('handles connect through context', async () => {
+  it('should handle connect through context', async () => {
     const TestConnectComponent = () => {
       const { connect } = usePerpsConnection();
 
@@ -372,7 +379,7 @@ describe('PerpsConnectionProvider', () => {
     });
   });
 
-  it('resets error', async () => {
+  it('should reset error', async () => {
     const error = new Error('Test error');
     mockConnect.mockRejectedValue(error);
 
@@ -399,7 +406,7 @@ describe('PerpsConnectionProvider', () => {
     });
   });
 
-  it('throws error when usePerpsConnection is used outside provider', () => {
+  it('should throw error when usePerpsConnection is used outside provider', () => {
     const TestComponentOutsideProvider = () => {
       usePerpsConnection();
       return <Text>Test</Text>;
@@ -416,7 +423,7 @@ describe('PerpsConnectionProvider', () => {
     console.error = originalError;
   });
 
-  it('handles unknown errors in connect', async () => {
+  it('should handle unknown errors in connect', async () => {
     // Non-Error object thrown
     mockConnect.mockRejectedValue('String error');
 
@@ -468,7 +475,7 @@ describe('PerpsConnectionProvider', () => {
     });
   });
 
-  it('handles errors in disconnect gracefully', async () => {
+  it('should handle errors in disconnect gracefully', async () => {
     const error = new Error('Disconnect failed');
     mockDisconnect.mockRejectedValueOnce(error);
 
@@ -500,7 +507,7 @@ describe('PerpsConnectionProvider', () => {
   });
 
   describe('isFullScreen prop behavior', () => {
-    it('shows back button immediately when isFullScreen is true', async () => {
+    it('should show back button immediately when isFullScreen is true', async () => {
       // Mock error state
       mockGetConnectionState.mockReturnValue({
         isConnected: false,
@@ -522,7 +529,7 @@ describe('PerpsConnectionProvider', () => {
       });
     });
 
-    it('does not show back button initially when isFullScreen is false', async () => {
+    it('should not show back button initially when isFullScreen is false', async () => {
       // Mock error state
       mockGetConnectionState.mockReturnValue({
         isConnected: false,
@@ -544,7 +551,7 @@ describe('PerpsConnectionProvider', () => {
       });
     });
 
-    it('shows back button after retry when isFullScreen is false', async () => {
+    it('should show back button after retry when isFullScreen is false', async () => {
       // Mock error state
       mockGetConnectionState.mockReturnValue({
         isConnected: false,
@@ -580,7 +587,7 @@ describe('PerpsConnectionProvider', () => {
   });
 
   describe('retry logic behavior', () => {
-    it('calls PerpsConnectionManager.reconnectWithNewContext on retry', async () => {
+    it('should call PerpsConnectionManager.reconnectWithNewContext on retry', async () => {
       // Mock error state
       mockGetConnectionState.mockReturnValue({
         isConnected: false,
@@ -610,7 +617,7 @@ describe('PerpsConnectionProvider', () => {
       });
     });
 
-    it('updates state after retry attempt', async () => {
+    it('should update state after retry attempt', async () => {
       // Mock initial error state
       mockGetConnectionState.mockReturnValue({
         isConnected: false,
@@ -652,7 +659,7 @@ describe('PerpsConnectionProvider', () => {
       });
     });
 
-    it('increments retry attempts on each retry', async () => {
+    it('should increment retry attempts on each retry', async () => {
       // Mock error state
       mockGetConnectionState.mockReturnValue({
         isConnected: false,
@@ -701,7 +708,7 @@ describe('PerpsConnectionProvider', () => {
       });
     });
 
-    it('resets retry attempts on successful connection', async () => {
+    it('should reset retry attempts on successful connection', async () => {
       // Mock initial error state
       mockGetConnectionState.mockReturnValue({
         isConnected: false,
@@ -751,7 +758,7 @@ describe('PerpsConnectionProvider', () => {
       });
     });
 
-    it('does not call resetError during retry', async () => {
+    it('should not call resetError during retry', async () => {
       // Mock resetError
       const mockResetError = jest.fn();
       (PerpsConnectionManager.resetError as jest.Mock) = mockResetError;
@@ -788,7 +795,7 @@ describe('PerpsConnectionProvider', () => {
     });
   });
 
-  it('cleans up polling interval on unmount', () => {
+  it('should clean up polling interval on unmount', () => {
     // Reset disconnect mock to default behavior
     mockDisconnect.mockResolvedValue(undefined);
 
@@ -817,7 +824,7 @@ describe('PerpsConnectionProvider', () => {
       ).usePerpsConnectionLifecycle;
     });
 
-    it('calls usePerpsConnectionLifecycle with correct parameters', () => {
+    it('should call usePerpsConnectionLifecycle with correct parameters', () => {
       const { rerender } = render(
         <PerpsConnectionProvider isVisible>
           <Text>Test</Text>
@@ -847,7 +854,7 @@ describe('PerpsConnectionProvider', () => {
       );
     });
 
-    it('updates connection state when hook onConnect is called', async () => {
+    it('should update connection state when hook onConnect is called', async () => {
       let capturedOnConnect: (() => Promise<void>) | null = null;
 
       mockUsePerpsConnectionLifecycle.mockImplementation(
@@ -896,7 +903,7 @@ describe('PerpsConnectionProvider', () => {
       });
     });
 
-    it('updates connection state when hook onDisconnect is called', async () => {
+    it('should update connection state when hook onDisconnect is called', async () => {
       let capturedOnDisconnect: (() => Promise<void>) | null = null;
 
       mockUsePerpsConnectionLifecycle.mockImplementation(
@@ -926,7 +933,7 @@ describe('PerpsConnectionProvider', () => {
       };
 
       const { getByText } = render(
-        <PerpsConnectionProvider isVisible>
+        <PerpsConnectionProvider isVisible={false}>
           <TestComponentDisconnect />
         </PerpsConnectionProvider>,
       );
@@ -946,7 +953,7 @@ describe('PerpsConnectionProvider', () => {
       });
     });
 
-    it('sets error when hook onError is called', () => {
+    it('should set error when hook onError is called', () => {
       let capturedOnError: ((error: string) => void) | null = null;
 
       mockUsePerpsConnectionLifecycle.mockImplementation(
@@ -986,7 +993,7 @@ describe('PerpsConnectionProvider', () => {
       expect(getByText('Test error message')).toBeDefined();
     });
 
-    it('handles visibility changes through the hook', () => {
+    it('should handle visibility changes through the hook', () => {
       const { rerender } = render(
         <PerpsConnectionProvider isVisible>
           <Text>Test</Text>
@@ -1022,7 +1029,7 @@ describe('PerpsConnectionProvider', () => {
     });
   });
 
-  it('handles rapid state changes', async () => {
+  it('should handle rapid state changes', async () => {
     const onRender = jest.fn();
 
     render(

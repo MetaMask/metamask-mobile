@@ -16,7 +16,9 @@ import {
   selectReferralDetailsLoading,
   selectReferralDetailsError,
 } from '../../../../../reducers/rewards/selectors';
-import TextField from '../../../../../component-library/components/Form/TextField';
+import TextField, {
+  TextFieldSize,
+} from '../../../../../component-library/components/Form/TextField';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 import { useValidateReferralCode } from '../../hooks/useValidateReferralCode';
 import { useApplyReferralCode } from '../../hooks/useApplyReferralCode';
@@ -190,6 +192,14 @@ const ReferredByCodeSection: React.FC = () => {
           onChangeText={hasReferredByCode ? undefined : handleInputChange}
           isDisabled={hasReferredByCode}
           autoCapitalize="characters"
+          style={{
+            backgroundColor: colors.background.muted,
+            borderColor:
+              showClientValidationError || Boolean(applyReferralCodeError)
+                ? colors.error.default
+                : colors.border.muted,
+          }}
+          size={TextFieldSize.Lg}
           endAccessory={renderIcon()}
           isError={showClientValidationError || Boolean(applyReferralCodeError)}
         />

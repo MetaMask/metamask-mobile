@@ -7,11 +7,7 @@ import {
   closeRunningAppOnLedger,
 } from '../../../core/Ledger/Ledger';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
-import {
-  LedgerCommunicationErrors,
-  isEthAppNotOpenStatusCode,
-  isEthAppNotOpenErrorMessage,
-} from '../../../core/Ledger/ledgerErrors';
+import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 
 class LedgerError extends Error {
   public readonly code: LedgerCommunicationErrors;
@@ -218,12 +214,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
             setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
             break;
           default:
-            // Check if it's an ETH app not open error before falling back to UserRefusedConfirmation
-            if (isEthAppNotOpenStatusCode(e.statusCode)) {
-              setLedgerError(LedgerCommunicationErrors.EthAppNotOpen);
-            } else {
-              setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
-            }
+            setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
             break;
         }
       } else if (e.name === 'TransportRaceCondition') {
@@ -245,8 +236,6 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
         )
       ) {
         setLedgerError(LedgerCommunicationErrors.BlindSignError);
-      } else if (isEthAppNotOpenErrorMessage(e.message)) {
-        setLedgerError(LedgerCommunicationErrors.EthAppNotOpen);
       } else {
         setLedgerError(LedgerCommunicationErrors.UnknownError);
       }

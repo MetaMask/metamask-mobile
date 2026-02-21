@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsSelectModifyActionView from './PerpsSelectModifyActionView';
-import { type Position } from '@metamask/perps-controller';
+import type { Position } from '../../controllers/types';
 
 let mockRouteParams: { position?: Position } = {};
 const mockGoBack = jest.fn();

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsModifyActionSheet from './PerpsModifyActionSheet';
-import { type Position } from '@metamask/perps-controller';
+import type { Position } from '../../controllers/types';
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({

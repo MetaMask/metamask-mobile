@@ -60,7 +60,6 @@ import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
-import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -90,7 +89,6 @@ const Settings: React.FC = () => {
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
-  const isAccountMenuEnabled = useAccountMenuEnabled();
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
@@ -432,7 +430,7 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.privacy_browser_subheading')}
         </Text>
-        {!isAccountMenuEnabled && renderSDKSettings()}
+        {renderSDKSettings()}
         <ClearPrivacy />
         {renderClearBrowserHistorySection()}
         <ClearCookiesSection />

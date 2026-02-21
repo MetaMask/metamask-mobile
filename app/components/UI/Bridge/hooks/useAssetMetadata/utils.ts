@@ -18,7 +18,6 @@ import {
   formatChainIdToHex,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
-import { TokenRwaData } from '@metamask/assets-controllers';
 
 const TOKEN_API_V3_BASE_URL = 'https://tokens.api.cx.metamask.io/v3';
 const STATIC_METAMASK_BASE_URL = 'https://static.cx.metamask.io';
@@ -69,8 +68,6 @@ interface AssetMetadata {
   symbol: string;
   name: string;
   decimals: number;
-  iconUrl?: string;
-  rwaData?: TokenRwaData;
 }
 
 /**
@@ -96,15 +93,14 @@ export const fetchAssetMetadata = async (
   }
 
   try {
-    const url = `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${assetId}&includeIconUrl=true&includeRwaData=true`;
+    const url = `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${assetId}`;
     const [assetMetadata]: AssetMetadata[] = await handleFetch(url);
 
     const commonFields = {
       symbol: assetMetadata.symbol,
       decimals: assetMetadata.decimals,
       name: assetMetadata.name,
-      image: getAssetImageUrl(assetId, chainIdInCaip) || assetMetadata.iconUrl,
-      rwaData: assetMetadata.rwaData,
+      image: getAssetImageUrl(assetId, chainIdInCaip),
       assetId,
     };
 

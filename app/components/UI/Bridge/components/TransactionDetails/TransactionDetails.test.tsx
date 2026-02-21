@@ -161,9 +161,12 @@ describe('BridgeTransactionDetails', () => {
 
     // Should navigate to browser, not to the modal
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.BROWSER.VIEW,
+      Routes.BROWSER.HOME,
       expect.objectContaining({
-        newTabUrl: expect.stringContaining('solana-tx-hash-123'),
+        screen: Routes.BROWSER.VIEW,
+        params: expect.objectContaining({
+          newTabUrl: expect.stringContaining('solana-tx-hash-123'),
+        }),
       }),
     );
   });

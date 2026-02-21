@@ -4,7 +4,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { ActivityTab } from './ActivityTab';
 import type {
   SeasonStatusState,
-  SeasonActivityTypeDto,
   PointsEventDto,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -63,32 +62,32 @@ const mockSelectSeasonActivityTypes =
 const mockSubscriptionId: string = 'sub-12345678';
 
 // Mock activity types that match what the API returns
-const mockSeasonActivityTypes: SeasonActivityTypeDto[] = [
-  { id: 'activity-swap', type: 'SWAP', title: 'Swap', icon: 'Swap' },
-  { id: 'activity-perps', type: 'PERPS', title: 'Perps', icon: 'Perps' },
+const mockSeasonActivityTypes = [
+  { type: 'SWAP', title: 'Swap', description: 'Swap tokens', icon: 'Swap' },
+  { type: 'PERPS', title: 'Perps', description: 'Trade perps', icon: 'Perps' },
   {
-    id: 'activity-predict',
     type: 'PREDICT',
     title: 'Predict',
+    description: 'Predict outcomes',
     icon: 'Predict',
   },
   {
-    id: 'activity-referral',
     type: 'REFERRAL',
     title: 'Referral',
+    description: 'Refer friends',
     icon: 'Referral',
   },
-  { id: 'activity-card', type: 'CARD', title: 'Card', icon: 'Card' },
+  { type: 'CARD', title: 'Card', description: 'Use card', icon: 'Card' },
   {
-    id: 'activity-musd-deposit',
     type: 'MUSD_DEPOSIT',
     title: 'MUSD Deposit',
+    description: 'Deposit MUSD',
     icon: 'Deposit',
   },
   {
-    id: 'activity-shield',
     type: 'SHIELD',
     title: 'Shield',
+    description: 'Shield assets',
     icon: 'Shield',
   },
 ];
@@ -352,7 +351,6 @@ describe('ActivityTab', () => {
       endDate: Date.now() + 1000,
       tiers: [],
       activityTypes: mockSeasonActivityTypes,
-      waysToEarn: [],
     },
     balance: {
       total: 0,

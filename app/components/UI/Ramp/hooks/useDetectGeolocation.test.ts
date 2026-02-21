@@ -17,7 +17,7 @@ jest.mock('../Deposit/sdk/getSdkEnvironment', () => ({
 global.fetch = jest.fn();
 const mockFetch = global.fetch as jest.Mock;
 
-describe('useDetectGeolocation', () => {
+describe('useDetecGeolocation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -87,9 +87,10 @@ describe('useDetectGeolocation', () => {
 
     it('dispatches setDetectedGeolocation with undefined when response text is empty', async () => {
       mockGetSdkEnvironment.mockReturnValue(SdkEnvironment.Production);
+      const mockGeolocation = '';
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: jest.fn().mockResolvedValue(''),
+        text: jest.fn().mockResolvedValue(mockGeolocation),
       });
 
       renderHook(() => useDetectGeolocation());
@@ -104,9 +105,10 @@ describe('useDetectGeolocation', () => {
 
     it('dispatches setDetectedGeolocation with undefined when response text is null', async () => {
       mockGetSdkEnvironment.mockReturnValue(SdkEnvironment.Production);
+      const mockGeolocation = null;
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        text: jest.fn().mockResolvedValue(null),
+        text: jest.fn().mockResolvedValue(mockGeolocation),
       });
 
       renderHook(() => useDetectGeolocation());
@@ -121,43 +123,48 @@ describe('useDetectGeolocation', () => {
   });
 
   describe('Failed geolocation detection', () => {
-    it('does not dispatch or report to Sentry when response is not ok', async () => {
-      const mockLoggerError = jest.spyOn(Logger, 'error');
+    it('logs error when fetch response is not ok', async () => {
       mockGetSdkEnvironment.mockReturnValue(SdkEnvironment.Production);
+
       mockFetch.mockResolvedValueOnce({
         ok: false,
-        status: 502,
-        statusText: '',
+        statusText: 'Not Found',
       });
 
       renderHook(() => useDetectGeolocation());
-
-      await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
-      expect(mockLoggerError).not.toHaveBeenCalled();
-      expect(mockDispatch).not.toHaveBeenCalled();
-    });
-
-    it('reports to Sentry when fetch throws a network error', async () => {
       const mockLoggerError = jest.spyOn(Logger, 'error');
-      const networkError = new Error('Network error');
-      mockGetSdkEnvironment.mockReturnValue(SdkEnvironment.Production);
-      mockFetch.mockRejectedValueOnce(networkError);
-
-      renderHook(() => useDetectGeolocation());
 
       await waitFor(() =>
         expect(mockLoggerError).toHaveBeenCalledWith(
-          networkError,
-          'useDetectGeolocation: Failed to detect geolocation',
+          expect.any(Error),
+          'useDetectedGeolocation: Failed to detect geolocation',
         ),
       );
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('reports to Sentry when response.text() throws', async () => {
+    it('logs error when fetch throws network error', async () => {
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+      const networkError = new Error('Network error');
+      mockGetSdkEnvironment.mockReturnValue(SdkEnvironment.Production);
+
+      mockFetch.mockRejectedValueOnce(networkError);
+
+      renderHook(() => useDetectGeolocation());
+      await waitFor(() =>
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          networkError,
+          'useDetectedGeolocation: Failed to detect geolocation',
+        ),
+      );
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('logs error when response.text() throws', async () => {
       const mockLoggerError = jest.spyOn(Logger, 'error');
       const textError = new Error('Text parsing error');
       mockGetSdkEnvironment.mockReturnValue(SdkEnvironment.Production);
+
       mockFetch.mockResolvedValueOnce({
         ok: true,
         text: jest.fn().mockRejectedValue(textError),
@@ -168,7 +175,7 @@ describe('useDetectGeolocation', () => {
       await waitFor(() =>
         expect(mockLoggerError).toHaveBeenCalledWith(
           textError,
-          'useDetectGeolocation: Failed to detect geolocation',
+          'useDetectedGeolocation: Failed to detect geolocation',
         ),
       );
       expect(mockDispatch).not.toHaveBeenCalled();
@@ -213,6 +220,42 @@ describe('useDetectGeolocation', () => {
           'https://on-ramp.dev-api.cx.metamask.io/geolocation',
         );
         expect(mockFetch).toHaveBeenCalledTimes(2);
+      });
+    });
+  });
+
+  describe('Error handling edge cases', () => {
+    it('handles undefined response from fetch', async () => {
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+      mockGetSdkEnvironment.mockReturnValue(SdkEnvironment.Production);
+
+      mockFetch.mockResolvedValueOnce(undefined);
+
+      renderHook(() => useDetectGeolocation());
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          expect.any(Error),
+          'useDetectedGeolocation: Failed to detect geolocation',
+        );
+      });
+    });
+
+    it('handles response with missing text method', async () => {
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+      mockGetSdkEnvironment.mockReturnValue(SdkEnvironment.Production);
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+      });
+
+      renderHook(() => useDetectGeolocation());
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          expect.any(Error),
+          'useDetectedGeolocation: Failed to detect geolocation',
+        );
       });
     });
   });

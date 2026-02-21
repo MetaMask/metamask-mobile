@@ -15,7 +15,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import HeaderStackedStandard from '../../../../component-library/components-temp/HeaderStackedStandard';
+import HeaderWithTitleLeft from '../../../../component-library/components-temp/HeaderWithTitleLeft';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
@@ -161,9 +161,9 @@ const SelectHardwareWallet = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <HeaderStackedStandard
+      <HeaderWithTitleLeft
         onBack={navigation.goBack}
-        titleStandardProps={{
+        titleLeftProps={{
           title: strings('connect_hardware.title_select_hardware'),
           bottomAccessory: (
             <Text

@@ -8,6 +8,7 @@ import { PriceQuery, GetPriceResponse, Side } from '../types';
 
 export interface UsePredictPricesOptions {
   queries: PriceQuery[];
+  providerId?: string;
   enabled?: boolean;
   /**
    * optional polling interval in milliseconds.
@@ -29,7 +30,12 @@ export interface UsePredictPricesResult {
 export const usePredictPrices = (
   options: UsePredictPricesOptions,
 ): UsePredictPricesResult => {
-  const { queries = [], enabled = true, pollingInterval } = options;
+  const {
+    queries = [],
+    providerId = 'polymarket',
+    enabled = true,
+    pollingInterval,
+  } = options;
 
   const [prices, setPrices] = useState<GetPriceResponse>({
     providerId: '',
@@ -95,6 +101,7 @@ export const usePredictPrices = (
 
       const fetchedPrices = await controller.getPrices({
         queries,
+        providerId,
       });
 
       if (isMountedRef.current) {
@@ -126,6 +133,7 @@ export const usePredictPrices = (
             action: 'prices_load',
             operation: 'data_fetching',
             queriesCount: queries.length,
+            providerId,
           },
         },
       });
@@ -141,7 +149,7 @@ export const usePredictPrices = (
     }
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, queriesKey, pollingInterval]);
+  }, [enabled, queriesKey, providerId, pollingInterval]);
 
   useEffect(() => {
     if (pollingTimeoutRef.current) {

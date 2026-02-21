@@ -1,21 +1,23 @@
-import TestHelpers from '../../../../helpers';
-import { RegressionNetworkExpansion } from '../../../../tags';
-import Browser from '../../../../page-objects/Browser/BrowserView';
-import TabBarComponent from '../../../../page-objects/wallet/TabBarComponent';
-import NetworkListModal from '../../../../page-objects/Network/NetworkListModal';
-import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAccountsModal';
+import TestHelpers from '../../../../../e2e/helpers';
+import { RegressionNetworkExpansion } from '../../../../../e2e/tags';
+import Browser from '../../../../../e2e/pages/Browser/BrowserView';
+import TabBarComponent from '../../../../../e2e/pages/wallet/TabBarComponent';
+import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
+import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../../../flows/browser.flow';
+import {
+  loginToApp,
+  navigateToBrowserView,
+} from '../../../../../e2e/viewHelper';
 import Assertions from '../../../../framework/Assertions';
-import WalletView from '../../../../page-objects/wallet/WalletView';
-import NetworkNonPemittedBottomSheet from '../../../../page-objects/Network/NetworkNonPemittedBottomSheet';
-import NetworkConnectMultiSelector from '../../../../page-objects/Browser/NetworkConnectMultiSelector';
-import NetworkEducationModal from '../../../../page-objects/Network/NetworkEducationModal';
-import PermissionSummaryBottomSheet from '../../../../page-objects/Browser/PermissionSummaryBottomSheet';
+import WalletView from '../../../../../e2e/pages/wallet/WalletView';
+import NetworkNonPemittedBottomSheet from '../../../../../e2e/pages/Network/NetworkNonPemittedBottomSheet';
+import NetworkConnectMultiSelector from '../../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
+import NetworkEducationModal from '../../../../../e2e/pages/Network/NetworkEducationModal';
+import PermissionSummaryBottomSheet from '../../../../../e2e/pages/Browser/PermissionSummaryBottomSheet';
 import { DappVariants } from '../../../../framework/Constants';
-import TestDApp from '../../../../page-objects/Browser/TestDApp';
+import TestDApp from '../../../../../e2e/pages/Browser/TestDApp';
 
 /*
 Test Steps:

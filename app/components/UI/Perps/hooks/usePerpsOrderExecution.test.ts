@@ -1,22 +1,9 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { MetaMetricsEvents } from '../../../hooks/useMetrics';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-  type OrderParams,
-  type Position,
-} from '@metamask/perps-controller';
 import { usePerpsOrderExecution } from './usePerpsOrderExecution';
 import { usePerpsTrading } from './usePerpsTrading';
+import type { OrderParams, Position } from '../controllers/types';
 
 jest.mock('./usePerpsTrading');
-const mockTrack = jest.fn();
-jest.mock('./usePerpsEventTracking', () => ({
-  usePerpsEventTracking: () => ({ track: mockTrack }),
-}));
-jest.mock('./usePerpsMeasurement', () => ({
-  usePerpsMeasurement: jest.fn(),
-}));
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
@@ -40,7 +27,6 @@ describe('usePerpsOrderExecution', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockTrack.mockClear();
     mockGetPositions.mockResolvedValue([]); // Setup default
     (usePerpsTrading as jest.Mock).mockReturnValue({
       placeOrder: mockPlaceOrder,
@@ -81,7 +67,7 @@ describe('usePerpsOrderExecution', () => {
   };
 
   describe('successful order placement', () => {
-    it('places order and fetches position then calls onSuccess with position', async () => {
+    it('should place order and fetch position', async () => {
       const onSuccess = jest.fn();
       const onError = jest.fn();
 
@@ -114,7 +100,7 @@ describe('usePerpsOrderExecution', () => {
       expect(result.current.error).toBeUndefined();
     });
 
-    it('calls onSuccess with no args when position is not found after order', async () => {
+    it('should handle success without finding position', async () => {
       const onSuccess = jest.fn();
 
       mockPlaceOrder.mockResolvedValue({
@@ -138,7 +124,7 @@ describe('usePerpsOrderExecution', () => {
       expect(onSuccess).toHaveBeenCalledWith();
     });
 
-    it('calls onSuccess with no args when position fetch rejects', async () => {
+    it('should handle position fetch error gracefully', async () => {
       const onSuccess = jest.fn();
       const onError = jest.fn();
 
@@ -160,58 +146,14 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
+      // Should still call success even if position fetch fails
       expect(onSuccess).toHaveBeenCalledWith();
       expect(onError).not.toHaveBeenCalled();
-    });
-
-    it('tracks partially filled event with trackingData when filledSize is between 0 and order size', async () => {
-      const onSuccess = jest.fn();
-      const paramsWithTracking: OrderParams = {
-        ...mockOrderParams,
-        size: '0.2',
-        trackingData: {
-          totalFee: 0,
-          marketPrice: 50000,
-          tradeWithToken: true,
-          mmPayTokenSelected: 'USDC',
-          mmPayNetworkSelected: 'ethereum',
-        },
-      };
-
-      mockPlaceOrder.mockResolvedValue({
-        success: true,
-        orderId: 'order123',
-        filledSize: '0.1',
-      });
-      mockGetPositions.mockResolvedValue([mockPosition]);
-
-      const { result } = renderHook(() =>
-        usePerpsOrderExecution({ onSuccess, onError: jest.fn() }),
-      );
-
-      await act(async () => {
-        await result.current.placeOrder(paramsWithTracking);
-      });
-
-      await waitFor(() => {
-        expect(result.current.isPlacing).toBe(false);
-      });
-
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.STATUS]:
-            PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
-          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
-          [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
-          [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
-        }),
-      );
     });
   });
 
   describe('failed order placement', () => {
-    it('calls onError with message and sets error when order returns success false with error', async () => {
+    it('should handle order failure with error message', async () => {
       const onSuccess = jest.fn();
       const onError = jest.fn();
 
@@ -241,46 +183,7 @@ describe('usePerpsOrderExecution', () => {
       });
     });
 
-    it('tracks failed order with trade_with_token and mm_pay fields when trackingData is set', async () => {
-      const onError = jest.fn();
-      const paramsWithTracking: OrderParams = {
-        ...mockOrderParams,
-        trackingData: {
-          totalFee: 0,
-          marketPrice: 50000,
-          tradeWithToken: true,
-          mmPayTokenSelected: 'USDC',
-          mmPayNetworkSelected: 'ethereum',
-        },
-      };
-
-      mockPlaceOrder.mockResolvedValue({
-        success: false,
-        error: 'Insufficient margin',
-      });
-
-      const { result } = renderHook(() => usePerpsOrderExecution({ onError }));
-
-      await act(async () => {
-        await result.current.placeOrder(paramsWithTracking);
-      });
-
-      await waitFor(() => {
-        expect(result.current.isPlacing).toBe(false);
-      });
-
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
-          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
-          [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
-          [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
-        }),
-      );
-    });
-
-    it('calls onError with unknown error when order returns success false without error', async () => {
+    it('should handle order failure without error message', async () => {
       const onError = jest.fn();
 
       mockPlaceOrder.mockResolvedValue({
@@ -301,7 +204,7 @@ describe('usePerpsOrderExecution', () => {
       expect(result.current.error).toBe('Unknown error');
     });
 
-    it('calls onError with exception message when placeOrder rejects', async () => {
+    it('should handle order placement exception', async () => {
       const onError = jest.fn();
 
       mockPlaceOrder.mockRejectedValue(new Error('Network timeout'));
@@ -319,46 +222,10 @@ describe('usePerpsOrderExecution', () => {
       expect(onError).toHaveBeenCalledWith('Network timeout');
       expect(result.current.error).toBe('Network timeout');
     });
-
-    it('tracks exception with trade_with_token and mm_pay fields when placeOrder rejects and trackingData is set', async () => {
-      const onError = jest.fn();
-      const paramsWithTracking: OrderParams = {
-        ...mockOrderParams,
-        trackingData: {
-          totalFee: 0,
-          marketPrice: 50000,
-          tradeWithToken: true,
-          mmPayTokenSelected: 'USDC',
-          mmPayNetworkSelected: 'ethereum',
-        },
-      };
-
-      mockPlaceOrder.mockRejectedValue(new Error('Network timeout'));
-
-      const { result } = renderHook(() => usePerpsOrderExecution({ onError }));
-
-      await act(async () => {
-        await result.current.placeOrder(paramsWithTracking);
-      });
-
-      await waitFor(() => {
-        expect(result.current.isPlacing).toBe(false);
-      });
-
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
-          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
-          [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
-          [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
-        }),
-      );
-    });
   });
 
   describe('error state management', () => {
-    it('clears error when a subsequent order placement succeeds', async () => {
+    it('should clear error on new order placement', async () => {
       mockPlaceOrder
         .mockResolvedValueOnce({ success: false, error: 'First error' })
         .mockResolvedValueOnce({ success: true });
@@ -384,7 +251,7 @@ describe('usePerpsOrderExecution', () => {
   });
 
   describe('without callbacks', () => {
-    it('updates lastResult when placeOrder succeeds and no onSuccess provided', async () => {
+    it('should work without onSuccess callback', async () => {
       mockPlaceOrder.mockResolvedValue({ success: true });
 
       const { result } = renderHook(() => usePerpsOrderExecution());
@@ -400,7 +267,7 @@ describe('usePerpsOrderExecution', () => {
       expect(result.current.lastResult?.success).toBe(true);
     });
 
-    it('sets error when order fails and no onError provided', async () => {
+    it('should work without onError callback', async () => {
       mockPlaceOrder.mockResolvedValue({
         success: false,
         error: 'Order failed',

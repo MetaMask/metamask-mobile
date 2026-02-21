@@ -7,12 +7,12 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  type PerpsMarketData,
-  type Position,
-  type Order,
-} from '@metamask/perps-controller';
-import type { PerpsNavigationParamList } from '../../types/navigation';
+import type {
+  PerpsMarketData,
+  PerpsNavigationParamList,
+  Position,
+  Order,
+} from '../../controllers/types';
 import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';

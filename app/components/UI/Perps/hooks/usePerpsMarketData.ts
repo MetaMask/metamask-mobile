@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { type MarketInfo } from '@metamask/perps-controller';
+import type { MarketInfo } from '../controllers/types';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
 

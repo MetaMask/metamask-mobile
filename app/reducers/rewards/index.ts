@@ -8,7 +8,6 @@ import {
   PointsEventDto,
   SeasonActivityTypeDto,
   SnapshotDto,
-  SeasonWayToEarnDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -62,7 +61,6 @@ export interface RewardsState {
   seasonEndDate: Date | null;
   seasonTiers: SeasonTierDto[];
   seasonActivityTypes: SeasonActivityTypeDto[];
-  seasonWaysToEarn: SeasonWayToEarnDto[];
   seasonShouldInstallNewVersion: string | null;
 
   // Subscription Referral state
@@ -132,7 +130,6 @@ export const initialState: RewardsState = {
   seasonEndDate: null,
   seasonTiers: [],
   seasonActivityTypes: [],
-  seasonWaysToEarn: [],
 
   referralDetailsLoading: false,
   referralDetailsError: false,
@@ -222,7 +219,6 @@ const rewardsSlice = createSlice({
         : null;
       state.seasonTiers = action.payload?.season.tiers || [];
       state.seasonActivityTypes = action.payload?.season.activityTypes || [];
-      state.seasonWaysToEarn = action.payload?.season.waysToEarn || [];
       state.seasonShouldInstallNewVersion =
         action.payload?.season?.shouldInstallNewVersion || null;
 
@@ -334,7 +330,6 @@ const rewardsSlice = createSlice({
         state.seasonEndDate = initialState.seasonEndDate;
         state.seasonTiers = initialState.seasonTiers;
         state.seasonActivityTypes = initialState.seasonActivityTypes;
-        state.seasonWaysToEarn = initialState.seasonWaysToEarn;
         state.referralCode = initialState.referralCode;
         state.refereeCount = initialState.refereeCount;
         state.currentTier = initialState.currentTier;
@@ -538,7 +533,6 @@ const rewardsSlice = createSlice({
             seasonEndDate: action.payload.rewards.seasonEndDate,
             seasonTiers: action.payload.rewards.seasonTiers,
             seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
-            seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn,
             seasonShouldInstallNewVersion:
               action.payload.rewards.seasonShouldInstallNewVersion,
             referralCode: action.payload.rewards.referralCode,

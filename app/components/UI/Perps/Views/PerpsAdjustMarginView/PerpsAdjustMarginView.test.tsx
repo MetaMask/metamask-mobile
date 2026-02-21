@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView';
-import { type Position } from '@metamask/perps-controller';
+import type { Position } from '../../controllers/types';
 
 // Mock dependencies
 jest.mock('react-native-reanimated', () =>

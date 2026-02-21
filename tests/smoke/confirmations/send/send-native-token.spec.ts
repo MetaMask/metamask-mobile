@@ -1,12 +1,12 @@
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
-import SendView from '../../../page-objects/Send/RedesignedSendView';
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
-import WalletView from '../../../page-objects/wallet/WalletView';
+import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
+import SendView from '../../../../e2e/pages/Send/RedesignedSendView';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
 import { Assertions } from '../../../framework';
 import { DappVariants, LOCAL_NODE_RPC_URL } from '../../../framework/Constants';
-import { SmokeConfirmations } from '../../../tags';
-import { loginToApp } from '../../../flows/wallet.flow';
+import { SmokeConfirmations } from '../../../../e2e/tags';
+import { loginToApp } from '../../../../e2e/viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { LocalNode } from '../../../framework/types';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';

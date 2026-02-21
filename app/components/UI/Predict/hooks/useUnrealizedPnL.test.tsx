@@ -123,6 +123,7 @@ describe('useUnrealizedPnL', () => {
 
     expect(mockGetUnrealizedPnL).toHaveBeenCalledWith({
       address: mockSelectedAddress,
+      providerId: undefined,
     });
   });
 
@@ -132,6 +133,7 @@ describe('useUnrealizedPnL', () => {
     const { result } = renderHook(() =>
       useUnrealizedPnL({
         address: '0x2222222222222222222222222222222222222222',
+        providerId: 'polymarket',
       }),
     );
 
@@ -141,6 +143,7 @@ describe('useUnrealizedPnL', () => {
 
     expect(mockGetUnrealizedPnL).toHaveBeenCalledWith({
       address: '0x2222222222222222222222222222222222222222',
+      providerId: 'polymarket',
     });
   });
 
@@ -231,10 +234,12 @@ describe('useUnrealizedPnL', () => {
     mockGetUnrealizedPnL.mockResolvedValue(basePnL);
 
     const { rerender } = renderHook(
-      ({ address }: { address?: string }) => useUnrealizedPnL({ address }),
+      ({ address, providerId }: { address?: string; providerId?: string }) =>
+        useUnrealizedPnL({ address, providerId }),
       {
         initialProps: {
           address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          providerId: 'polymarket',
         },
       },
     );
@@ -245,6 +250,7 @@ describe('useUnrealizedPnL', () => {
 
     rerender({
       address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      providerId: 'other-provider',
     });
 
     await waitFor(() => {
@@ -253,9 +259,11 @@ describe('useUnrealizedPnL', () => {
 
     expect(mockGetUnrealizedPnL).toHaveBeenNthCalledWith(1, {
       address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      providerId: 'polymarket',
     });
     expect(mockGetUnrealizedPnL).toHaveBeenNthCalledWith(2, {
       address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      providerId: 'other-provider',
     });
   });
 
@@ -273,6 +281,7 @@ describe('useUnrealizedPnL', () => {
       expect(result.current.unrealizedPnL).toBeNull();
       expect(result.current.error).toBeNull();
       expect(mockGetPositions).toHaveBeenCalledWith({
+        providerId: undefined,
         limit: 1,
         offset: 0,
         claimable: false,
@@ -296,17 +305,22 @@ describe('useUnrealizedPnL', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('calls getPositions with expected params when options are provided', async () => {
+    it('calls getPositions with providerId when specified', async () => {
       mockGetUnrealizedPnL.mockResolvedValue(basePnL);
       mockGetPositions.mockResolvedValue([{ id: 'position-1' }]);
 
-      const { result } = renderHook(() => useUnrealizedPnL());
+      const { result } = renderHook(() =>
+        useUnrealizedPnL({
+          providerId: 'polymarket',
+        }),
+      );
 
       await waitFor(() => {
         expect(result.current.unrealizedPnL).toEqual(basePnL);
       });
 
       expect(mockGetPositions).toHaveBeenCalledWith({
+        providerId: 'polymarket',
         limit: 1,
         offset: 0,
         claimable: false,

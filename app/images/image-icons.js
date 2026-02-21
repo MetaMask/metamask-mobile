@@ -17,7 +17,6 @@ import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
-import CHZ from './chiliz.png';
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import BTC_TESTNET from './bitcoin-testnet-logo.png';
 import BTC_MUTINYNET from './bitcoin-mutinynet-logo.png';
@@ -131,5 +130,4 @@ export default {
   BOB,
   RBTC: ROOTSTOCK,
   tRBTC: ROOTSTOCK,
-  CHZ,
 };
