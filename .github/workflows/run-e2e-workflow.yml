@@ -157,19 +157,34 @@ jobs:
           mkdir -p ${{ steps.determine-target-paths.outputs.apk-target-path }}
           mkdir -p ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
 
-      - name: Download Android build artifacts
+      - name: Download Android APK artifact
         if: ${{ inputs.platform == 'android' }}
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+
+      - name: Download Android Test APK artifact
+        if: ${{ inputs.platform == 'android' }}
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
 
       - name: Move Android artifacts to expected locations
         if: ${{ inputs.platform == 'android' }}
         run: |
           # Copy from artifacts to expected locations
-          # Each artifact is uploaded as a folder so we need to cp from inside the folder
-          cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk/${{ steps.determine-target-paths.outputs.artifact_name }}.apk ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
-          cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+          # Use find to locate files - artifact structure varies (path preserved vs flattened)
+          APK_FILE=$(find artifacts -name "${{ steps.determine-target-paths.outputs.artifact_name }}.apk" -type f | head -1)
+          TEST_APK_FILE=$(find artifacts -name "${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk" -type f | head -1)
+          if [[ -z "$APK_FILE" || -z "$TEST_APK_FILE" ]]; then
+            echo "Artifact structure:"
+            find artifacts -type f -name "*.apk"
+            exit 1
+          fi
+          cp "$APK_FILE" ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+          cp "$TEST_APK_FILE" ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           echo "✅ Android artifacts ready for E2E tests"
 
       - name: Setup iOS artifacts from build job
@@ -185,6 +200,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
+          name: MetaMask.app
 
       # On re-run (run_attempt > 1), download previous test results to identify failed tests
       - name: Download previous test results (on re-run)
