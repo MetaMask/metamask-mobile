@@ -1,8 +1,43 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import AccountApproval from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { CommonSelectorsIDs } from '../../../util/Common.testIds';
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+    isEnabled: jest.fn().mockReturnValue(true),
+  },
+}));
+
+jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => {
+  const createEventBuilder = (eventName: string) => {
+    const builder = {
+      addProperties: jest.fn(),
+      addSensitiveProperties: jest.fn(),
+      build: jest.fn(() => ({ name: eventName })),
+    };
+    builder.addProperties.mockReturnValue(builder);
+    builder.addSensitiveProperties.mockReturnValue(builder);
+    return builder;
+  };
+  return {
+    AnalyticsEventBuilder: { createEventBuilder },
+  };
+});
+
+const mockGetPhishingTestResultAsync = jest.fn().mockResolvedValue({
+  result: false,
+});
+jest.mock('../../../util/phishingDetection', () => ({
+  getPhishingTestResultAsync: (origin: string) =>
+    mockGetPhishingTestResultAsync(origin),
+}));
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
@@ -73,7 +108,12 @@ const mockInitialState = {
 };
 
 describe('AccountApproval', () => {
-  it('should render correctly', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetPhishingTestResultAsync.mockResolvedValue({ result: false });
+  });
+
+  it('renders correctly', () => {
     const container = renderWithProvider(
       <AccountApproval
         currentPageInformation={{ icon: '', url: '', title: '' }}
@@ -84,14 +124,77 @@ describe('AccountApproval', () => {
     expect(container).toMatchSnapshot();
   });
 
-  it('should render a warning banner if the hostname is included in phishing list', async () => {
+  it('tracks CONNECT_REQUEST_STARTED on mount', () => {
+    renderWithProvider(
+      <AccountApproval
+        currentPageInformation={{
+          icon: '',
+          url: 'https://example.com',
+          title: '',
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: MetaMetricsEvents.CONNECT_REQUEST_STARTED,
+      }),
+    );
+  });
+
+  it('tracks CONNECT_REQUEST_CANCELLED when cancel is pressed', () => {
+    const onCancel = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <AccountApproval
+        currentPageInformation={{ icon: '', url: '', title: '' }}
+        onCancel={onCancel}
+      />,
+      { state: mockInitialState },
+    );
+
+    mockTrackEvent.mockClear();
+    fireEvent.press(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON));
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
+      }),
+    );
+    expect(onCancel).toHaveBeenCalled();
+  });
+
+  it('tracks CONNECT_REQUEST_COMPLETED when connect is pressed', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <AccountApproval
+        currentPageInformation={{ icon: '', url: '', title: '' }}
+        onConfirm={onConfirm}
+      />,
+      { state: mockInitialState },
+    );
+
+    mockTrackEvent.mockClear();
+    fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
+      }),
+    );
+    expect(onConfirm).toHaveBeenCalled();
+  });
+
+  it('renders warning banner when hostname is flagged as phishing', async () => {
+    mockGetPhishingTestResultAsync.mockResolvedValueOnce({ result: true });
+
     const { findByText } = renderWithProvider(
       <AccountApproval
         currentPageInformation={{ icon: '', url: 'phishing.com', title: '' }}
       />,
       { state: mockInitialState },
     );
-    // Need to await for the async phishing check to complete
+
     const warningText = await findByText('Deceptive site ahead');
     expect(warningText).toBeTruthy();
   });

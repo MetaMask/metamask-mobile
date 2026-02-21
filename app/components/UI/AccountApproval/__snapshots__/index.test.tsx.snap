@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountApproval should render correctly 1`] = `
+exports[`AccountApproval renders correctly 1`] = `
 <View
   style={
     {

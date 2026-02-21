@@ -42,8 +42,8 @@ import {
 import SRPListItem from '../../UI/SRPListItem';
 import { getMultichainAccountName } from '../../../core/SnapKeyring/utils/getMultichainAccountName';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
 
 const AddNewAccount = ({
@@ -74,7 +74,7 @@ const AddNewAccount = ({
   const hasMultipleSRPs = hdKeyringsWithSnapAccounts.length > 1;
   const [showSRPList, setShowSRPList] = useState(false);
   const [error, setError] = useState<string>('');
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { keyringToDisplay, keyringIndex } = useMemo(() => {
     const keyring =
