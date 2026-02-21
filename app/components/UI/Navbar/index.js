@@ -17,7 +17,8 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { analytics } from '../../../util/analytics/analytics';
 import { Authentication } from '../../../core';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
@@ -57,7 +58,7 @@ import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { RequestPaymentViewSelectors } from '../ReceiveRequest/RequestPaymentView.testIds';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 import {
   BadgeStatus,
@@ -74,10 +75,6 @@ import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
 import CardButton from '../Card/components/CardButton';
 import { Skeleton } from '../../../component-library/components/Skeleton';
-
-const trackEvent = (event, params = {}) => {
-  MetaMetrics.getInstance().trackEvent(event);
-};
 
 const styles = StyleSheet.create({
   hitSlop: {
@@ -236,8 +233,8 @@ export function getNavigationOptionsTitle(
 
   function navigationPop() {
     if (navigationPopEvent)
-      trackEvent(
-        MetricsEventBuilder.createEventBuilder(navigationPopEvent).build(),
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(navigationPopEvent).build(),
       );
     navigation.goBack();
   }
@@ -931,8 +928,8 @@ export function getWalletNavbarOptions(
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
       onScanSuccess,
     });
-    trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_QR_SCANNER,
       ).build(),
     );
@@ -941,8 +938,8 @@ export function getWalletNavbarOptions(
   function handleNotificationOnPress() {
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
       navigation.navigate(Routes.NOTIFICATIONS.VIEW);
-      trackEvent(
-        MetricsEventBuilder.createEventBuilder(
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.NOTIFICATIONS_MENU_OPENED,
         )
           .addProperties({
@@ -953,8 +950,8 @@ export function getWalletNavbarOptions(
       );
     } else {
       navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
-      trackEvent(
-        MetricsEventBuilder.createEventBuilder(
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.NOTIFICATIONS_ACTIVATED,
         )
           .addProperties({
@@ -967,8 +964,8 @@ export function getWalletNavbarOptions(
   }
 
   const handleHamburgerPress = () => {
-    trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
       ).build(),
     );
@@ -976,8 +973,8 @@ export function getWalletNavbarOptions(
   };
 
   const handleCardPress = () => {
-    trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.CARD_HOME_CLICKED,
       ).build(),
     );
@@ -1512,13 +1509,13 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
   const title = route.params?.title ?? 'Swap';
   const leftActionText = route.params?.leftAction ?? strings('navigation.back');
 
-  const leftAction = () => {
+  const trackQuotesCancelledIfNeeded = () => {
     const trade = route.params?.requestedTrade;
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      trackEvent(
-        MetricsEventBuilder.createEventBuilder(
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
         )
           .addProperties({
@@ -1535,32 +1532,15 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
           .build(),
       );
     }
+  };
+
+  const leftAction = () => {
+    trackQuotesCancelledIfNeeded();
     navigation.pop();
   };
 
   const rightAction = () => {
-    const trade = route.params?.requestedTrade;
-    const selectedQuote = route.params?.selectedQuote;
-    const quoteBegin = route.params?.quoteBegin;
-    if (!selectedQuote) {
-      trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-        )
-          .addProperties({
-            token_from: trade.token_from,
-            token_to: trade.token_to,
-            request_type: trade.request_type,
-            custom_slippage: trade.custom_slippage,
-            chain_id: trade.chain_id,
-            responseTime: new Date().getTime() - quoteBegin,
-          })
-          .addSensitiveProperties({
-            token_from_amount: trade.token_from_amount,
-          })
-          .build(),
-      );
-    }
+    trackQuotesCancelledIfNeeded();
     navigation.dangerouslyGetParent()?.pop();
   };
 
