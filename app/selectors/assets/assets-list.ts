@@ -257,7 +257,15 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
     const assets = Object.entries(bip44Assets)
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-      .flatMap(([_, chainAssets]) => chainAssets);
+      .flatMap(([_, chainAssets]) =>
+        chainAssets.filter(
+          (asset) =>
+            !asset.chainId?.startsWith('tron:') ||
+            !TRON_RESOURCE_SYMBOLS_SET.has(
+              (asset.symbol?.toLowerCase() ?? '') as TronResourceSymbol,
+            ),
+        ),
+      );
 
     const stakedAssetsArray = [];
     for (const asset of assets) {
