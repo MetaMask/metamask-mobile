@@ -24,7 +24,6 @@ import { showSimpleNotification } from '../../../actions/notification';
 import LedgerConnectionError, {
   LedgerConnectionErrorProps,
 } from './LedgerConnectionError';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { LEDGER_SUPPORT_LINK } from '../../../constants/urls';
 
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
@@ -111,12 +110,6 @@ const LedgerConnect = ({
       );
     }
   }, [selectedDevice, trackEvent, createEventBuilder, ledgerModelName]);
-
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle('', navigation, true, theme.colors),
-    );
-  }, [navigation, theme.colors]);
 
   const connectLedger = () => {
     setLoading(true);
