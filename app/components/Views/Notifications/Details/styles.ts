@@ -33,7 +33,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
     row: {
       flexDirection: 'row',
       minWidth: '100%',
-      paddingVertical: 5,
+      paddingVertical: 12,
       gap: 16,
     },
     badgeWrapper: {
@@ -103,8 +103,8 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderColor: colors.background.alternative,
     },
     squareLogo: {
-      width: 32,
-      height: 32,
+      width: 40,
+      height: 40,
       borderRadius: 8,
       overflow: 'hidden',
       borderWidth: 0.5,
@@ -112,25 +112,25 @@ export const createStyles = ({ colors, typography }: Theme) =>
     },
     squareLogoPlaceholder: {
       backgroundColor: colors.background.alternative,
-      width: 32,
-      height: 32,
+      width: 40,
+      height: 40,
       borderRadius: 8,
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
     circleLogo: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       overflow: 'hidden',
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
     circleLogoPlaceholder: {
       backgroundColor: colors.background.alternative,
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       borderWidth: 0.5,
       borderColor: colors.background.alternative,
     },
@@ -146,6 +146,15 @@ export const createStyles = ({ colors, typography }: Theme) =>
       paddingInline: 4,
       flex: 1,
     },
+    headerSpacer: {
+      width: 56,
+    },
+    titleText: {
+      textAlign: 'center',
+    },
+    subtitleText: {
+      textAlign: 'center',
+    },
     announcementDescriptionText: {
       ...typography.sBodyMD,
       fontFamily: getFontFamily(TextVariant.BodyMD),
@@ -156,6 +165,6 @@ export const createStyles = ({ colors, typography }: Theme) =>
       textAlign: 'justify',
     },
     backIcon: {
-      marginLeft: 16,
+      marginHorizontal: 16,
     },
   });
