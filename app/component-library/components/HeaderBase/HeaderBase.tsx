@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useState } from 'react';
+import React, { useRef, useState, useLayoutEffect, useCallback } from 'react';
 import { View, LayoutChangeEvent } from 'react-native';
 
 // External dependencies.
@@ -42,16 +42,10 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
 
+  const startAccessoryRef = useRef<View>(null);
+  const endAccessoryRef = useRef<View>(null);
   const [startAccessoryWidth, setStartAccessoryWidth] = useState(0);
   const [endAccessoryWidth, setEndAccessoryWidth] = useState(0);
-
-  const handleStartAccessoryLayout = useCallback((e: LayoutChangeEvent) => {
-    setStartAccessoryWidth(e.nativeEvent.layout.width);
-  }, []);
-
-  const handleEndAccessoryLayout = useCallback((e: LayoutChangeEvent) => {
-    setEndAccessoryWidth(e.nativeEvent.layout.width);
-  }, []);
 
   // Determine alignment and text variant based on variant prop
   const isLeftAligned = variant === HeaderBaseVariant.Display;
@@ -62,6 +56,53 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   const hasEndContent =
     endAccessory || (endButtonIconProps && endButtonIconProps.length > 0);
   const hasAnyAccessory = hasStartContent || hasEndContent;
+
+  // Attempt synchronous measurement on mount/updates to reduce flicker
+  useLayoutEffect(() => {
+    if (startAccessoryRef.current) {
+      startAccessoryRef.current.measure((_x, _y, width, _height) => {
+        if (width > 0 && width !== startAccessoryWidth) {
+          setStartAccessoryWidth(width);
+        }
+      });
+    }
+
+    if (endAccessoryRef.current) {
+      endAccessoryRef.current.measure((_x, _y, width, _height) => {
+        if (width > 0 && width !== endAccessoryWidth) {
+          setEndAccessoryWidth(width);
+        }
+      });
+    }
+  }, [
+    startAccessory,
+    startButtonIconProps,
+    endAccessory,
+    endButtonIconProps,
+    startAccessoryWidth,
+    endAccessoryWidth,
+  ]);
+
+  // Fallback onLayout callbacks for when measure() returns 0 or content changes
+  const handleStartAccessoryLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { width } = event.nativeEvent.layout;
+      if (width > 0 && width !== startAccessoryWidth) {
+        setStartAccessoryWidth(width);
+      }
+    },
+    [startAccessoryWidth],
+  );
+
+  const handleEndAccessoryLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { width } = event.nativeEvent.layout;
+      if (width > 0 && width !== endAccessoryWidth) {
+        setEndAccessoryWidth(width);
+      }
+    },
+    [endAccessoryWidth],
+  );
 
   // For Compact: render both wrappers if any accessory exists (for centering)
   // For Display: only render wrappers if their respective accessory exists
@@ -150,7 +191,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
           }
           {...startAccessoryWrapperProps}
         >
-          <View onLayout={handleStartAccessoryLayout}>
+          <View ref={startAccessoryRef} onLayout={handleStartAccessoryLayout}>
             {renderStartContent()}
           </View>
         </View>
@@ -182,6 +223,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
           {...endAccessoryWrapperProps}
         >
           <View
+            ref={endAccessoryRef}
             onLayout={handleEndAccessoryLayout}
             style={
               hasMultipleEndButtons ? tw.style('flex-row gap-2') : undefined
