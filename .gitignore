@@ -173,6 +173,7 @@ github-tools/
 *.local.md
 temp/
 /temp/
+.agent/
 
 # Reassure performance testing
 .reassure/
