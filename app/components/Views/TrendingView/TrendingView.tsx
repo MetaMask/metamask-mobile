@@ -26,6 +26,8 @@ import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
 import { useHomeSections, SectionId } from './sections.config';
+import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
@@ -243,35 +245,41 @@ export const ExploreFeed: React.FC = () => {
         >
           <QuickActions emptySections={emptySections} />
 
-          {homeSections.map((section) => {
-            // Hide section visually but keep mounted so it can report when data arrives
-            const isHidden = emptySections.has(section.id);
+          <PerpsConnectionProvider showConnectionUI={false}>
+            <PerpsStreamProvider>
+              {homeSections.map((section) => {
+                // Hide section visually but keep mounted so it can report when data arrives
+                const isHidden = emptySections.has(section.id);
 
-            const sectionComponent = (
-              <Section
-                sectionId={section.id}
-                refreshConfig={refreshConfig}
-                toggleSectionEmptyState={emptyStateCallbacks[section.id]}
-                toggleSectionLoadingState={loadingStateCallbacks[section.id]}
-              />
-            );
+                const sectionComponent = (
+                  <Section
+                    sectionId={section.id}
+                    refreshConfig={refreshConfig}
+                    toggleSectionEmptyState={emptyStateCallbacks[section.id]}
+                    toggleSectionLoadingState={
+                      loadingStateCallbacks[section.id]
+                    }
+                  />
+                );
 
-            return (
-              <Box
-                key={section.id}
-                twClassName={isHidden ? 'hidden' : undefined}
-              >
-                <SectionHeader sectionId={section.id} />
-                {section.SectionWrapper ? (
-                  <section.SectionWrapper>
-                    {sectionComponent}
-                  </section.SectionWrapper>
-                ) : (
-                  sectionComponent
-                )}
-              </Box>
-            );
-          })}
+                return (
+                  <Box
+                    key={section.id}
+                    twClassName={isHidden ? 'hidden' : undefined}
+                  >
+                    <SectionHeader sectionId={section.id} />
+                    {section.SectionWrapper ? (
+                      <section.SectionWrapper>
+                        {sectionComponent}
+                      </section.SectionWrapper>
+                    ) : (
+                      sectionComponent
+                    )}
+                  </Box>
+                );
+              })}
+            </PerpsStreamProvider>
+          </PerpsConnectionProvider>
         </ScrollView>
       ) : (
         <BasicFunctionalityEmptyState />

@@ -18,9 +18,7 @@ import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import { usePerpsMarkets } from '../../UI/Perps/hooks';
-import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
-import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
+import { usePerpsMarkets, usePerpsConnection } from '../../UI/Perps/hooks';
 import { Box, IconName } from '@metamask/design-system-react-native';
 import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
@@ -36,7 +34,7 @@ import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowIt
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
 
-export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
+export type SectionId = 'predictions' | 'tokens' | 'perps' | 'stocks' | 'sites';
 
 interface SectionData {
   data: unknown[];
@@ -229,14 +227,10 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     ),
     // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
     Skeleton: TrendingTokensSkeleton,
-    SectionWrapper: ({ children }) => (
-      <PerpsConnectionProvider>
-        <PerpsStreamProvider>{children}</PerpsStreamProvider>
-      </PerpsConnectionProvider>
-    ),
     Section: SectionCard,
     useSectionData: (searchQuery) => {
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
+      const { error: connectionError } = usePerpsConnection();
 
       const filteredMarkets = useMemo(() => {
         if (!searchQuery) {
@@ -248,7 +242,60 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
 
       return {
         data: filteredMarkets,
-        isLoading: isLoading || isRefreshing,
+        isLoading: connectionError ? false : isLoading || isRefreshing,
+        refetch: refresh,
+      };
+    },
+  },
+  stocks: {
+    id: 'stocks',
+    title: strings('trending.stocks'),
+    icon: IconName.Candlestick,
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: {
+          defaultMarketTypeFilter: 'stocks',
+        },
+      });
+    },
+    RowItem: ({ item, index: _index, navigation }) => (
+      <PerpsMarketRowItem
+        market={item as PerpsMarketData}
+        onPress={() => {
+          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+            Routes.PERPS.ROOT,
+            {
+              screen: Routes.PERPS.MARKET_DETAILS,
+              params: { market: item as PerpsMarketData },
+            },
+          );
+        }}
+        showBadge={false}
+        compact
+      />
+    ),
+    // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
+    Skeleton: TrendingTokensSkeleton,
+    Section: SectionCard,
+    useSectionData: (searchQuery) => {
+      const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
+      const { error: connectionError } = usePerpsConnection();
+
+      const filteredMarkets = useMemo(() => {
+        // Filter to only stock/equity markets (HIP-3 with marketType 'equity')
+        const stockMarkets = markets.filter((m) => m.marketType === 'equity');
+
+        if (!searchQuery) {
+          return stockMarkets;
+        }
+        const filteredByQuery = filterMarketsByQuery(stockMarkets, searchQuery);
+        return fuseSearch(filteredByQuery, searchQuery, PERPS_FUSE_OPTIONS);
+      }, [markets, searchQuery]);
+
+      return {
+        data: filteredMarkets,
+        isLoading: connectionError ? false : isLoading || isRefreshing,
         refetch: refresh,
       };
     },
@@ -319,6 +366,7 @@ const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
+  SECTIONS_CONFIG.stocks,
   SECTIONS_CONFIG.sites,
 ];
 
@@ -326,6 +374,7 @@ const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
 const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
+  SECTIONS_CONFIG.stocks,
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.sites,
 ];
@@ -337,7 +386,9 @@ export const useHomeSections = (): (SectionConfig & { id: SectionId })[] => {
     () =>
       isPerpsEnabled
         ? HOME_SECTIONS_ARRAY
-        : HOME_SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
+        : HOME_SECTIONS_ARRAY.filter(
+            (section) => !['perps', 'stocks'].includes(section.id),
+          ),
     [isPerpsEnabled],
   );
 };
@@ -349,7 +400,9 @@ export const useSectionsArray = (): (SectionConfig & { id: SectionId })[] => {
     () =>
       isPerpsEnabled
         ? SECTIONS_ARRAY
-        : SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
+        : SECTIONS_ARRAY.filter(
+            (section) => !['perps', 'stocks'].includes(section.id),
+          ),
     [isPerpsEnabled],
   );
 };
@@ -371,6 +424,9 @@ export const useSectionsData = (
   const { data: perpsMarkets, isLoading: isPerpsLoading } =
     SECTIONS_CONFIG.perps.useSectionData(searchQuery);
 
+  const { data: stocksMarkets, isLoading: isStocksLoading } =
+    SECTIONS_CONFIG.stocks.useSectionData(searchQuery);
+
   const { data: predictionMarkets, isLoading: isPredictionsLoading } =
     SECTIONS_CONFIG.predictions.useSectionData(searchQuery);
 
@@ -385,6 +441,10 @@ export const useSectionsData = (
     perps: {
       data: perpsMarkets,
       isLoading: isPerpsLoading,
+    },
+    stocks: {
+      data: stocksMarkets,
+      isLoading: isStocksLoading,
     },
     predictions: {
       data: predictionMarkets,

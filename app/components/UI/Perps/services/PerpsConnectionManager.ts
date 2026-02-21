@@ -37,6 +37,9 @@ import { ensureError } from '../../../../util/errorUtils';
  * share the same connection state and lifecycle
  */
 class PerpsConnectionManagerClass {
+  // TODO: REMOVE - flip to true to force connection error for testing
+  private readonly FORCE_ERROR = true;
+
   private static instance: PerpsConnectionManagerClass;
   private isConnected = false;
   private isConnecting = false;
@@ -412,6 +415,15 @@ class PerpsConnectionManagerClass {
   }
 
   async connect(): Promise<void> {
+    // TODO: REMOVE - force connection error for testing
+    if (this.FORCE_ERROR) {
+      this.isConnecting = false;
+      this.isConnected = false;
+      this.isInitialized = false;
+      this.setError('Simulated connection error');
+      throw new Error('Simulated connection error');
+    }
+
     // Cancel any active grace period when reconnecting
     if (this.isInGracePeriod) {
       DevLogger.log(
@@ -644,6 +656,15 @@ class PerpsConnectionManagerClass {
    * @param options - Reconnection options
    */
   async reconnectWithNewContext(options?: ReconnectOptions): Promise<void> {
+    // TODO: REMOVE - force connection error for testing
+    if (this.FORCE_ERROR) {
+      this.isConnecting = false;
+      this.isConnected = false;
+      this.isInitialized = false;
+      this.setError('Simulated connection error');
+      throw new Error('Simulated connection error');
+    }
+
     const force = options?.force ?? false;
 
     if (force) {

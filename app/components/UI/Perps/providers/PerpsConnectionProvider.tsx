@@ -35,6 +35,12 @@ interface PerpsConnectionProviderProps {
   children: React.ReactNode;
   isVisible?: boolean;
   isFullScreen?: boolean;
+  /**
+   * When false, skips loading skeleton and error UI — always renders children.
+   * Useful when embedded in a feed where sections handle their own loading states.
+   * @default true
+   */
+  showConnectionUI?: boolean;
 }
 
 /**
@@ -46,7 +52,12 @@ interface PerpsConnectionProviderProps {
  */
 export const PerpsConnectionProvider: React.FC<
   PerpsConnectionProviderProps
-> = ({ children, isVisible, isFullScreen = false }) => {
+> = ({
+  children,
+  isVisible,
+  isFullScreen = false,
+  showConnectionUI = true,
+}) => {
   const [connectionState, setConnectionState] = useState(() =>
     PerpsConnectionManager.getConnectionState(),
   );
@@ -249,6 +260,16 @@ export const PerpsConnectionProvider: React.FC<
       reconnectWithNewContext,
     ],
   );
+
+  // When showConnectionUI is false, always render children immediately.
+  // Sections handle their own loading states via isLoading from hooks.
+  if (!showConnectionUI) {
+    return (
+      <PerpsConnectionContext.Provider value={contextValue}>
+        {children}
+      </PerpsConnectionContext.Provider>
+    );
+  }
 
   // Environment-level error handling - show error screen if connection failed
   // This ensures NO Perps screen can render when there's a connection error

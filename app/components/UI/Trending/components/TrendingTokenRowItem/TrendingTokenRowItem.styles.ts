@@ -8,8 +8,7 @@ const styleSheet = (_params: { theme: Theme }) =>
       flexDirection: 'row',
       alignItems: 'flex-start',
       alignSelf: 'stretch',
-      paddingTop: 8,
-      paddingBottom: 8,
+      paddingVertical: 8,
       gap: 16,
     },
     badge: {
