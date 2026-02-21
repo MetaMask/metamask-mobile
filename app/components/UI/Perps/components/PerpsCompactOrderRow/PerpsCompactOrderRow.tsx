@@ -11,6 +11,11 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import { getPerpsDisplaySymbol, type Order } from '@metamask/perps-controller';
+import { strings } from '../../../../../../locales/i18n';
+import {
+  formatOrderLabel,
+  resolveOrderDisplayPriceAndLabel,
+} from '../../utils/orderUtils';
 import styleSheet from './PerpsCompactOrderRow.styles';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 
@@ -38,29 +43,18 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
   onPress,
   testID,
 }) => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   const orderInfo = useMemo(() => {
-    // Determine direction and color
-    const isLong = order.side === 'buy';
-    const direction = isLong ? 'long' : 'short';
-    const directionColor = isLong
-      ? theme.colors.success.default
-      : theme.colors.error.default;
+    const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
+    const formattedPrice =
+      priceValue !== null
+        ? formatPerpsFiat(priceValue, {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          })
+        : strings('perps.order.market');
 
-    // Format order type
-    let orderTypeLabel = 'Limit price';
-    if (order.detailedOrderType?.includes('Market')) {
-      orderTypeLabel = 'Market price';
-    } else if (order.isTrigger) {
-      orderTypeLabel = 'Trigger price';
-    }
-
-    // Format price - trigger orders already have triggerPx mapped to price by adapter
-    const priceValue = parseFloat(order.price || '0');
-    const formattedPrice = formatPerpsFiat(priceValue, {
-      ranges: PRICE_RANGES_MINIMAL_VIEW,
-    });
+    const orderTypeLabel = strings(labelKey);
 
     // Format size
     const size = Math.abs(parseFloat(order.size));
@@ -68,19 +62,16 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
     const symbol = getPerpsDisplaySymbol(order.symbol);
 
     // Order type display (e.g., "Limit long", "Stop Market")
-    const orderTypeDisplay = order.detailedOrderType || 'Limit';
+    const orderTypeDisplay = formatOrderLabel(order);
 
     return {
-      direction,
-      directionColor,
       orderTypeLabel,
       formattedPrice,
       formattedSize,
       symbol,
       orderTypeDisplay,
-      isLong,
     };
-  }, [order, theme]);
+  }, [order]);
 
   return (
     <TouchableOpacity
@@ -97,7 +88,7 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
         {/* Order info */}
         <View style={styles.infoContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {orderInfo.orderTypeDisplay} {orderInfo.direction}
+            {orderInfo.orderTypeDisplay}
           </Text>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {orderInfo.formattedSize} {orderInfo.symbol}

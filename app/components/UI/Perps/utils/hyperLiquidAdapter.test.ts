@@ -176,7 +176,48 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
       });
+    });
+
+    it('omits isPositionTpsl when the SDK payload does not include the field', () => {
+      const frontendOrder = {
+        oid: 12346,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.5',
+        origSz: '1.0',
+        limitPx: '50000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        tif: null,
+        cloid: null,
+      } as unknown as FrontendOrder;
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result).toEqual({
+        orderId: '12346',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'limit',
+        size: '0.5',
+        originalSize: '1.0',
+        price: '50000',
+        filledSize: '0.5',
+        remainingSize: '0.5',
+        status: 'open',
+        timestamp: 1234567890000,
+        detailedOrderType: 'Limit',
+        isTrigger: false,
+        reduceOnly: false,
+      });
+      expect(result).not.toHaveProperty('isPositionTpsl');
     });
 
     it('should convert sell order from SDK', () => {
@@ -216,6 +257,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: true,
+        isPositionTpsl: false,
       });
     });
 
@@ -256,6 +298,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Market',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
       });
     });
 
@@ -296,6 +339,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Stop Market',
         isTrigger: true,
         reduceOnly: true,
+        isPositionTpsl: false,
         triggerPrice: '25.50',
       });
     });
@@ -374,11 +418,175 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
         takeProfitPrice: '12',
         takeProfitOrderId: '22223',
         stopLossPrice: '8',
         stopLossOrderId: '22224',
       });
+    });
+
+    it('preserves parent-level TP/SL metadata when child orders are absent', () => {
+      const frontendOrder = {
+        oid: 77777,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.25',
+        origSz: '0.25',
+        limitPx: '90000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        takeProfitPrice: '95000',
+        stopLossPrice: '88000',
+        takeProfitOrderId: 88888,
+        stopLossOrderId: 99999,
+      } as FrontendOrder & {
+        takeProfitPrice: string;
+        stopLossPrice: string;
+        takeProfitOrderId: number;
+        stopLossOrderId: number;
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result).toEqual({
+        orderId: '77777',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'limit',
+        size: '0.25',
+        originalSize: '0.25',
+        price: '90000',
+        filledSize: '0',
+        remainingSize: '0.25',
+        status: 'open',
+        timestamp: 1234567890000,
+        detailedOrderType: 'Limit',
+        isTrigger: false,
+        reduceOnly: false,
+        isPositionTpsl: false,
+        takeProfitPrice: '95000',
+        stopLossPrice: '88000',
+        takeProfitOrderId: '88888',
+        stopLossOrderId: '99999',
+      });
+    });
+
+    it('preserves parent-level TP/SL metadata when isPositionTpsl is omitted', () => {
+      const frontendOrder = {
+        oid: 77778,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.25',
+        origSz: '0.25',
+        limitPx: '90000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        tif: null,
+        cloid: null,
+        takeProfitPrice: '95000',
+        stopLossPrice: '88000',
+        takeProfitOrderId: 88889,
+        stopLossOrderId: 99998,
+      } as unknown as FrontendOrder & {
+        takeProfitPrice: string;
+        stopLossPrice: string;
+        takeProfitOrderId: number;
+        stopLossOrderId: number;
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.takeProfitPrice).toBe('95000');
+      expect(result.stopLossPrice).toBe('88000');
+      expect(result.takeProfitOrderId).toBe('88889');
+      expect(result.stopLossOrderId).toBe('99998');
+      expect(result).not.toHaveProperty('isPositionTpsl');
+    });
+
+    it('ignores parent-level TP/SL metadata with invalid runtime types', () => {
+      const frontendOrder = {
+        oid: 77779,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.25',
+        origSz: '0.25',
+        limitPx: '90000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        takeProfitPrice: 95000,
+        stopLossPrice: { price: '88000' },
+        takeProfitOrderId: { id: 88890 },
+        stopLossOrderId: true,
+      } as unknown as FrontendOrder & {
+        takeProfitPrice: unknown;
+        stopLossPrice: unknown;
+        takeProfitOrderId: unknown;
+        stopLossOrderId: unknown;
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.takeProfitPrice).toBeUndefined();
+      expect(result.stopLossPrice).toBeUndefined();
+      expect(result.takeProfitOrderId).toBeUndefined();
+      expect(result.stopLossOrderId).toBeUndefined();
+    });
+
+    it('preserves string parent-level TP/SL order IDs', () => {
+      const frontendOrder = {
+        oid: 77780,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.25',
+        origSz: '0.25',
+        limitPx: '90000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        takeProfitPrice: '95000',
+        stopLossPrice: '88000',
+        takeProfitOrderId: 'tp-parent-1',
+        stopLossOrderId: 'sl-parent-1',
+      } as unknown as FrontendOrder & {
+        takeProfitPrice: string;
+        stopLossPrice: string;
+        takeProfitOrderId: string;
+        stopLossOrderId: string;
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.takeProfitOrderId).toBe('tp-parent-1');
+      expect(result.stopLossOrderId).toBe('sl-parent-1');
     });
 
     it('should handle partially filled order', () => {
@@ -418,6 +626,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
       });
     });
 
@@ -458,6 +667,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
       });
     });
 

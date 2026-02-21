@@ -95,6 +95,8 @@ jest.mock('../../../../../util/Logger', () => ({
 const mockUsePerpsAccount = jest.fn();
 const mockUsePerpsLiveAccount = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
+const mockUsePerpsLiveOrders = jest.fn();
+const mockUsePerpsLivePrices = jest.fn();
 
 // Mock usePerpsLiveAccount to avoid PerpsStreamProvider requirement
 jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
@@ -175,6 +177,12 @@ jest.mock('../../hooks/useHasExistingPosition', () => ({
   useHasExistingPosition: () => mockUseHasExistingPosition(),
 }));
 
+jest.mock('../../hooks/stream', () => ({
+  ...jest.requireActual('../../hooks/stream'),
+  usePerpsLiveOrders: () => mockUsePerpsLiveOrders(),
+  usePerpsLivePrices: () => mockUsePerpsLivePrices(),
+}));
+
 jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
   usePerpsLiveAccount: () => mockUsePerpsAccount(),
 }));
@@ -220,32 +228,65 @@ jest.mock('../../providers/PerpsConnectionProvider', () => ({
   }),
 }));
 
+interface MockOpenOrder {
+  id: string;
+  orderId: string;
+  symbol: string;
+  side: string;
+  size: string;
+  originalSize: string;
+  price: string;
+  status: string;
+  timestamp: number;
+  lastUpdated: number;
+  orderType: string;
+  filledSize: string;
+  remainingSize: string;
+  detailedOrderType: string;
+  isTrigger: boolean;
+  reduceOnly: boolean;
+  isPositionTpsl?: boolean;
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
+  takeProfitOrderId?: string;
+  stopLossOrderId?: string;
+}
+
+interface MockUsePerpsOpenOrdersResult {
+  orders: MockOpenOrder[];
+  refresh: jest.Mock;
+  isLoading: boolean;
+  error: string | null;
+}
+
 const mockRefreshOrders = jest.fn();
-const mockUsePerpsOpenOrdersImpl = jest.fn(() => ({
-  orders: [
-    {
-      id: 'order1',
-      orderId: 'order1',
-      symbol: 'BTC',
-      side: 'buy',
-      size: '0.1',
-      originalSize: '0.1',
-      price: '45000',
-      status: 'open',
-      timestamp: Date.now(),
-      lastUpdated: Date.now(),
-      orderType: 'limit',
-      filledSize: '0',
-      remainingSize: '0.1',
-      detailedOrderType: 'Limit Order',
-      isTrigger: false,
-      reduceOnly: false,
-    },
-  ],
-  refresh: mockRefreshOrders,
-  isLoading: false,
-  error: null,
-}));
+const mockUsePerpsOpenOrdersImpl = jest.fn<MockUsePerpsOpenOrdersResult, []>(
+  () => ({
+    orders: [
+      {
+        id: 'order1',
+        orderId: 'order1',
+        symbol: 'BTC',
+        side: 'buy',
+        size: '0.1',
+        originalSize: '0.1',
+        price: '45000',
+        status: 'open',
+        timestamp: Date.now(),
+        lastUpdated: Date.now(),
+        orderType: 'limit',
+        filledSize: '0',
+        remainingSize: '0.1',
+        detailedOrderType: 'Limit Order',
+        isTrigger: false,
+        reduceOnly: false,
+      },
+    ],
+    refresh: mockRefreshOrders,
+    isLoading: false,
+    error: null,
+  }),
+);
 
 jest.mock('../../hooks/usePerpsOpenOrders', () => ({
   usePerpsOpenOrders: () => mockUsePerpsOpenOrdersImpl(),
@@ -647,6 +688,21 @@ describe('PerpsMarketDetailsView', () => {
       existingPosition: null,
       refreshPosition: jest.fn(),
       positionOpenedTimestamp: undefined,
+    });
+
+    mockUsePerpsLiveOrders.mockImplementation(() => {
+      const openOrdersResult = mockUsePerpsOpenOrdersImpl();
+      return {
+        orders: openOrdersResult.orders ?? [],
+        isInitialLoading: false,
+      };
+    });
+
+    mockUsePerpsLivePrices.mockReturnValue({
+      BTC: {
+        markPrice: '45000',
+        price: '45000',
+      },
     });
 
     // Reset navigation mocks
@@ -2484,6 +2540,407 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       expect(chart).toBeTruthy();
+    });
+
+    it('hides reduce-only orders marked isPositionTpsl=true from Orders section', () => {
+      const timestamp = Date.now();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '1.0',
+          entryPrice: '45000',
+          positionValue: '45000',
+          unrealizedPnl: '0',
+          marginUsed: '2000',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '40000',
+          maxLeverage: 20,
+          returnOnEquity: '0',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders: [
+          {
+            id: 'parent-order',
+            orderId: 'parent-order',
+            symbol: 'BTC',
+            side: 'buy',
+            size: '1.0',
+            originalSize: '1.0',
+            price: '45000',
+            orderType: 'limit',
+            status: 'open',
+            timestamp,
+            lastUpdated: timestamp,
+            filledSize: '0',
+            remainingSize: '1.0',
+            detailedOrderType: 'Limit',
+            isTrigger: false,
+            reduceOnly: false,
+            isPositionTpsl: false,
+          },
+          {
+            id: 'full-position-tpsl',
+            orderId: 'full-position-tpsl',
+            symbol: 'BTC',
+            side: 'sell',
+            size: '1.0',
+            originalSize: '1.0',
+            price: '50000',
+            orderType: 'limit',
+            status: 'open',
+            timestamp,
+            lastUpdated: timestamp,
+            filledSize: '0',
+            remainingSize: '1.0',
+            detailedOrderType: 'Take Profit Limit',
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: true,
+          },
+        ],
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(getByTestId('compact-order-parent-order')).toBeTruthy();
+      expect(queryByTestId('compact-order-full-position-tpsl')).toBeNull();
+    });
+
+    it('hides flagged full-position TP/SL while position is loading', () => {
+      const timestamp = Date.now();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: false,
+        isLoading: true,
+        error: null,
+        existingPosition: undefined,
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders: [
+          {
+            id: 'standalone-during-loading',
+            orderId: 'standalone-during-loading',
+            symbol: 'BTC',
+            side: 'sell',
+            size: '0.25',
+            originalSize: '0.25',
+            price: '50000',
+            orderType: 'limit',
+            status: 'open',
+            timestamp,
+            lastUpdated: timestamp,
+            filledSize: '0',
+            remainingSize: '0.25',
+            detailedOrderType: 'Take Profit Limit',
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: false,
+          },
+          {
+            id: 'full-position-loading',
+            orderId: 'full-position-loading',
+            symbol: 'BTC',
+            side: 'sell',
+            size: '1.0',
+            originalSize: '1.0',
+            price: '50000',
+            orderType: 'limit',
+            status: 'open',
+            timestamp,
+            lastUpdated: timestamp,
+            filledSize: '0',
+            remainingSize: '1.0',
+            detailedOrderType: 'Take Profit Limit',
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: true,
+          },
+        ],
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId('compact-order-standalone-during-loading'),
+      ).toBeTruthy();
+      expect(queryByTestId('compact-order-full-position-loading')).toBeNull();
+    });
+
+    it('shows reduce-only orders marked isPositionTpsl=false in Orders section', () => {
+      const timestamp = Date.now();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '1.0',
+          entryPrice: '45000',
+          positionValue: '45000',
+          unrealizedPnl: '0',
+          marginUsed: '2000',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '40000',
+          maxLeverage: 20,
+          returnOnEquity: '0',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders: [
+          {
+            id: 'parent-order',
+            orderId: 'parent-order',
+            symbol: 'BTC',
+            side: 'buy',
+            size: '1.0',
+            originalSize: '1.0',
+            price: '45000',
+            orderType: 'limit',
+            status: 'open',
+            timestamp,
+            lastUpdated: timestamp,
+            filledSize: '0',
+            remainingSize: '1.0',
+            detailedOrderType: 'Limit',
+            isTrigger: false,
+            reduceOnly: false,
+            isPositionTpsl: false,
+          },
+          {
+            id: 'standalone-tpsl',
+            orderId: 'standalone-tpsl',
+            symbol: 'BTC',
+            side: 'sell',
+            size: '1.0',
+            originalSize: '1.0',
+            price: '50000',
+            orderType: 'limit',
+            status: 'open',
+            timestamp,
+            lastUpdated: timestamp,
+            filledSize: '0',
+            remainingSize: '1.0',
+            detailedOrderType: 'Take Profit Limit',
+            isTrigger: true,
+            reduceOnly: true,
+            isPositionTpsl: false,
+          },
+        ],
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(getByTestId('compact-order-standalone-tpsl')).toBeTruthy();
+      expect(getByText('Take profit limit close long')).toBeTruthy();
+    });
+
+    it('shows synthetic TP/SL rows when parent metadata exists and size matches existing position', () => {
+      const timestamp = Date.now();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '1.0',
+          entryPrice: '45000',
+          positionValue: '45000',
+          unrealizedPnl: '0',
+          marginUsed: '2000',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '40000',
+          maxLeverage: 20,
+          returnOnEquity: '0',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders: [
+          {
+            id: 'parent-order-with-metadata',
+            orderId: 'parent-order-with-metadata',
+            symbol: 'BTC',
+            side: 'buy',
+            size: '1.0',
+            originalSize: '1.0',
+            price: '45000',
+            orderType: 'limit',
+            status: 'open',
+            timestamp,
+            lastUpdated: timestamp,
+            filledSize: '0',
+            remainingSize: '1.0',
+            detailedOrderType: 'Limit',
+            isTrigger: false,
+            reduceOnly: false,
+            takeProfitPrice: '50000',
+            stopLossPrice: '43000',
+          },
+        ],
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId('compact-order-parent-order-with-metadata'),
+      ).toBeTruthy();
+      expect(
+        getByTestId('compact-order-parent-order-with-metadata-synthetic-tp'),
+      ).toBeTruthy();
+      expect(
+        getByTestId('compact-order-parent-order-with-metadata-synthetic-sl'),
+      ).toBeTruthy();
+    });
+
+    it('uses size fallback when isPositionTpsl is undefined', () => {
+      const timestamp = Date.now();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '1.0',
+          entryPrice: '45000',
+          positionValue: '45000',
+          unrealizedPnl: '0',
+          marginUsed: '2000',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '40000',
+          maxLeverage: 20,
+          returnOnEquity: '0',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders: [
+          {
+            id: 'fallback-full-size',
+            orderId: 'fallback-full-size',
+            symbol: 'BTC',
+            side: 'sell',
+            size: '1.0',
+            originalSize: '1.0',
+            price: '50000',
+            orderType: 'limit',
+            status: 'open',
+            timestamp,
+            lastUpdated: timestamp,
+            filledSize: '0',
+            remainingSize: '1.0',
+            detailedOrderType: 'Take Profit Limit',
+            isTrigger: true,
+            reduceOnly: true,
+          },
+          {
+            id: 'fallback-standalone',
+            orderId: 'fallback-standalone',
+            symbol: 'BTC',
+            side: 'sell',
+            size: '0.25',
+            originalSize: '0.25',
+            price: '50000',
+            orderType: 'limit',
+            status: 'open',
+            timestamp,
+            lastUpdated: timestamp,
+            filledSize: '0',
+            remainingSize: '0.25',
+            detailedOrderType: 'Take Profit Limit',
+            isTrigger: true,
+            reduceOnly: true,
+          },
+        ],
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(queryByTestId('compact-order-fallback-full-size')).toBeNull();
+      expect(getByTestId('compact-order-fallback-standalone')).toBeTruthy();
     });
 
     it('handles empty order list', () => {

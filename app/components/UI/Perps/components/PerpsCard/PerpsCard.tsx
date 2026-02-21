@@ -16,10 +16,15 @@ import {
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   formatPerpsFiat,
+  formatPositionSize,
   formatPnl,
   formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import {
+  formatOrderLabel,
+  resolveOrderDisplayPriceAndLabel,
+} from '../../utils/orderUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
@@ -76,13 +81,20 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
   } else if (order) {
     const displaySymbol = getPerpsDisplaySymbol(order.symbol);
-    primaryText = `${displaySymbol} ${order.side === 'buy' ? 'long' : 'short'}`;
-    secondaryText = `${order.originalSize} ${displaySymbol}`;
-    const orderValue = parseFloat(order.originalSize) * parseFloat(order.price);
-    valueText = formatPerpsFiat(orderValue, {
-      ranges: PRICE_RANGES_MINIMAL_VIEW,
-    });
-    labelText = strings('perps.order.limit');
+    const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
+
+    primaryText = formatOrderLabel(order);
+    secondaryText = `${formatPositionSize(order.originalSize)} ${displaySymbol}`;
+
+    valueText =
+      priceValue !== null
+        ? formatPerpsFiat(priceValue, {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          })
+        : strings('perps.order.market');
+
+    labelText = strings(labelKey);
+    valueColor = TextColor.Alternative;
   }
 
   // Memoize market lookup to avoid array search on every press

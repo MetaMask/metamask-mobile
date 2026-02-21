@@ -1,5 +1,12 @@
 import {
+  buildDisplayOrdersWithSyntheticTpsl,
+  inferTriggerConditionKey,
+  isOrderAssociatedWithFullPosition,
+  isSyntheticOrderCancelable,
+  isSyntheticPlaceholderOrderId,
+  shouldDisplayOrderInMarketDetailsOrders,
   formatOrderLabel,
+  resolveOrderDisplayPriceAndLabel,
   getOrderLabelDirection,
   getOrderDirection,
   willFlipPosition,
@@ -301,6 +308,564 @@ describe('orderUtils', () => {
     it('should return short for negative position', () => {
       const result = getOrderDirection('buy', '-1.5');
       expect(result).toBe('short');
+    });
+  });
+
+  describe('inferTriggerConditionKey', () => {
+    it('returns price_above for long take-profit', () => {
+      const result = inferTriggerConditionKey({
+        detailedOrderType: 'Take Profit Limit',
+        side: 'sell',
+        triggerPrice: '55000',
+        price: '55000',
+      });
+
+      expect(result).toBe('perps.order_details.price_above');
+    });
+
+    it('returns price_below for short take-profit', () => {
+      const result = inferTriggerConditionKey({
+        detailedOrderType: 'Take Profit Limit',
+        side: 'buy',
+        triggerPrice: '45000',
+        price: '45000',
+      });
+
+      expect(result).toBe('perps.order_details.price_below');
+    });
+
+    it('returns price_below for long stop-loss', () => {
+      const result = inferTriggerConditionKey({
+        detailedOrderType: 'Stop Market',
+        side: 'sell',
+        triggerPrice: '43000',
+        price: '0',
+      });
+
+      expect(result).toBe('perps.order_details.price_below');
+    });
+
+    it('returns price_above for short stop-loss', () => {
+      const result = inferTriggerConditionKey({
+        detailedOrderType: 'Stop Market',
+        side: 'buy',
+        triggerPrice: '87000',
+        price: '0',
+      });
+
+      expect(result).toBe('perps.order_details.price_above');
+    });
+
+    it('uses deterministic fallback for ambiguous types based on trigger vs execution price', () => {
+      const result = inferTriggerConditionKey({
+        detailedOrderType: 'Market',
+        side: 'buy',
+        triggerPrice: '87.12',
+        price: '95.84',
+      });
+
+      expect(result).toBe('perps.order_details.price_above');
+    });
+
+    it('returns undefined when trigger price is missing or invalid', () => {
+      expect(
+        inferTriggerConditionKey({
+          detailedOrderType: 'Stop Market',
+          side: 'buy',
+          triggerPrice: '0',
+          price: '95.84',
+        }),
+      ).toBeUndefined();
+    });
+  });
+
+  describe('resolveOrderDisplayPriceAndLabel', () => {
+    const baseOrder: Order = {
+      orderId: '1',
+      symbol: 'BTC',
+      side: 'sell',
+      orderType: 'limit',
+      size: '1',
+      originalSize: '1',
+      price: '50000',
+      filledSize: '0',
+      remainingSize: '1',
+      status: 'open',
+      timestamp: Date.now(),
+      reduceOnly: true,
+      isTrigger: true,
+      detailedOrderType: 'Take Profit Limit',
+    };
+
+    it('returns trigger price label when trigger price is valid', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        triggerPrice: '51000',
+      });
+
+      expect(result).toEqual({
+        priceValue: 51000,
+        labelKey: 'perps.order.trigger_price',
+      });
+    });
+
+    it('returns limit price label for trigger-limit when trigger price is invalid', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        triggerPrice: '0',
+        price: '49500',
+      });
+
+      expect(result).toEqual({
+        priceValue: 49500,
+        labelKey: 'perps.order.limit_price',
+      });
+    });
+
+    it('returns market label when trigger market has no valid prices', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        orderType: 'market',
+        detailedOrderType: 'Stop Market',
+        triggerPrice: '0',
+        price: '0',
+      });
+
+      expect(result).toEqual({
+        priceValue: null,
+        labelKey: 'perps.order.market_price',
+      });
+    });
+
+    it('returns limit label for non-trigger limit order', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        isTrigger: false,
+        reduceOnly: false,
+        detailedOrderType: 'Limit',
+        triggerPrice: undefined,
+        price: '48000',
+      });
+
+      expect(result).toEqual({
+        priceValue: 48000,
+        labelKey: 'perps.order.limit_price',
+      });
+    });
+  });
+
+  describe('order display association helpers', () => {
+    const mockLongPosition: Position = {
+      symbol: 'BTC',
+      size: '1.0',
+      entryPrice: '45000',
+      positionValue: '45000',
+      unrealizedPnl: '0',
+      marginUsed: '2000',
+      leverage: { type: 'isolated', value: 5 },
+      liquidationPrice: '40000',
+      maxLeverage: 20,
+      returnOnEquity: '0',
+      cumulativeFunding: {
+        allTime: '0',
+        sinceOpen: '0',
+        sinceChange: '0',
+      },
+      takeProfitCount: 0,
+      stopLossCount: 0,
+    };
+
+    const mockShortPosition: Position = {
+      ...mockLongPosition,
+      size: '-1.0',
+    };
+
+    const mockReduceOnlyOrder: Order = {
+      orderId: 'tp-order',
+      symbol: 'BTC',
+      side: 'sell',
+      orderType: 'limit',
+      size: '1.0',
+      originalSize: '1.0',
+      price: '50000',
+      filledSize: '0',
+      remainingSize: '1.0',
+      status: 'open',
+      timestamp: Date.now(),
+      reduceOnly: true,
+      isTrigger: true,
+    };
+
+    it('associates full-position TP/SL via native flag', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        { ...mockReduceOnlyOrder, isPositionTpsl: true },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('associates full-position TP/SL via native flag even when position is unavailable', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        { ...mockReduceOnlyOrder, isPositionTpsl: true },
+        undefined,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('associates full-position TP/SL via size fallback when flag is missing', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        mockReduceOnlyOrder,
+        mockLongPosition,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('associates full-position TP/SL for short positions via size fallback when flag is missing', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        { ...mockReduceOnlyOrder, side: 'buy' },
+        mockShortPosition,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('does not use size fallback when provider explicitly sets isPositionTpsl to false', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        { ...mockReduceOnlyOrder, isPositionTpsl: false },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('does not associate when reduce-only order size does not match full position', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        { ...mockReduceOnlyOrder, size: '0.25', originalSize: '0.25' },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('does not associate when side does not close the existing position', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        { ...mockReduceOnlyOrder, side: 'buy' },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('shows non-reduce-only orders in Market Details orders section', () => {
+      const result = shouldDisplayOrderInMarketDetailsOrders(
+        { ...mockReduceOnlyOrder, reduceOnly: false },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('hides full-position reduce-only TP/SL orders from Market Details orders section', () => {
+      const result = shouldDisplayOrderInMarketDetailsOrders(
+        { ...mockReduceOnlyOrder, isPositionTpsl: true },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('hides full-position reduce-only TP/SL orders for short positions from Market Details orders section', () => {
+      const result = shouldDisplayOrderInMarketDetailsOrders(
+        { ...mockReduceOnlyOrder, side: 'buy' },
+        mockShortPosition,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('shows standalone reduce-only TP/SL orders in Market Details orders section', () => {
+      const result = shouldDisplayOrderInMarketDetailsOrders(
+        { ...mockReduceOnlyOrder, size: '0.25', originalSize: '0.25' },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('buildDisplayOrdersWithSyntheticTpsl', () => {
+    const timestamp = 1730151332000;
+
+    const parentLimitOrder: Order = {
+      orderId: 'parent-limit-1',
+      symbol: 'BTC',
+      side: 'buy',
+      orderType: 'limit',
+      size: '0.5',
+      originalSize: '0.5',
+      price: '92000',
+      filledSize: '0',
+      remainingSize: '0.5',
+      status: 'open',
+      timestamp,
+      isTrigger: false,
+      reduceOnly: false,
+    };
+
+    it('creates a synthetic TP row from parent TP metadata', () => {
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+        },
+      ]);
+
+      expect(result).toHaveLength(2);
+      expect(result[1]).toMatchObject({
+        orderId: 'parent-limit-1-synthetic-tp',
+        parentOrderId: 'parent-limit-1',
+        isSynthetic: true,
+        isPositionTpsl: false,
+        isTrigger: true,
+        reduceOnly: true,
+        side: 'sell',
+        detailedOrderType: 'Take Profit Limit',
+        triggerPrice: '95000',
+        price: '95000',
+      });
+    });
+
+    it('creates both TP and SL synthetic rows when both prices exist', () => {
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+          stopLossPrice: '89000',
+        },
+      ]);
+
+      expect(result).toHaveLength(3);
+      expect(result.map((order) => order.orderId)).toEqual([
+        'parent-limit-1',
+        'parent-limit-1-synthetic-tp',
+        'parent-limit-1-synthetic-sl',
+      ]);
+    });
+
+    it('uses existing child TP/SL order IDs as synthetic row cancel targets when available', () => {
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+          stopLossPrice: '89000',
+          takeProfitOrderId: 'child-tp-order-id',
+          stopLossOrderId: 'child-sl-order-id',
+        },
+      ]);
+
+      expect(result).toHaveLength(3);
+      expect(result.map((order) => order.orderId)).toEqual([
+        'parent-limit-1',
+        'child-tp-order-id',
+        'child-sl-order-id',
+      ]);
+      expect(result[1].isSynthetic).toBe(true);
+      expect(result[2].isSynthetic).toBe(true);
+    });
+
+    it('does not create duplicate synthetic row when matching real child trigger exists', () => {
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+          takeProfitOrderId: 'real-child-tp',
+        },
+        {
+          orderId: 'real-child-tp',
+          symbol: 'BTC',
+          side: 'sell',
+          orderType: 'limit',
+          size: '0.5',
+          originalSize: '0.5',
+          price: '95000',
+          filledSize: '0',
+          remainingSize: '0.5',
+          status: 'open',
+          timestamp,
+          detailedOrderType: 'Take Profit Limit',
+          isTrigger: true,
+          reduceOnly: true,
+          triggerPrice: '95000',
+        },
+      ]);
+
+      expect(result).toHaveLength(2);
+      expect(result.find((order) => order.isSynthetic)).toBeUndefined();
+    });
+
+    it('does not suppress synthetic rows for a different parent with the same trigger price', () => {
+      const secondParentOrder: Order = {
+        ...parentLimitOrder,
+        orderId: 'parent-limit-2',
+      };
+
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+          takeProfitOrderId: 'real-child-parent-1',
+        },
+        {
+          ...secondParentOrder,
+          takeProfitPrice: '95000',
+        },
+        {
+          orderId: 'real-child-parent-1',
+          symbol: 'BTC',
+          side: 'sell',
+          orderType: 'limit',
+          size: '0.5',
+          originalSize: '0.5',
+          price: '95000',
+          filledSize: '0',
+          remainingSize: '0.5',
+          status: 'open',
+          timestamp,
+          detailedOrderType: 'Take Profit Limit',
+          isTrigger: true,
+          reduceOnly: true,
+          triggerPrice: '95000',
+        },
+      ]);
+
+      expect(result).toHaveLength(4);
+      expect(
+        result.find((order) => order.orderId === 'parent-limit-1-synthetic-tp'),
+      ).toBeUndefined();
+      expect(
+        result.find((order) => order.orderId === 'parent-limit-2-synthetic-tp'),
+      ).toBeDefined();
+    });
+
+    it('does not add synthetic row when a real order with the same orderId already exists', () => {
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+          takeProfitOrderId: 'existing-order-id',
+        },
+        {
+          orderId: 'existing-order-id',
+          symbol: 'BTC',
+          side: 'sell',
+          orderType: 'limit',
+          size: '0.5',
+          originalSize: '0.5',
+          price: '93000',
+          filledSize: '0',
+          remainingSize: '0.5',
+          status: 'open',
+          timestamp,
+          detailedOrderType: 'Limit',
+          isTrigger: false,
+          reduceOnly: false,
+        },
+      ]);
+
+      expect(
+        result.filter((order) => order.orderId === 'existing-order-id'),
+      ).toHaveLength(1);
+      expect(result.find((order) => order.isSynthetic)).toBeUndefined();
+    });
+
+    it('keeps synthetic rows visible in Orders when position size matches fallback association', () => {
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+        },
+      ]);
+
+      const syntheticTpOrder = result.find(
+        (order) => order.orderId === 'parent-limit-1-synthetic-tp',
+      );
+
+      expect(syntheticTpOrder).toBeDefined();
+      expect(syntheticTpOrder?.isPositionTpsl).toBe(false);
+
+      const existingPosition: Position = {
+        symbol: 'BTC',
+        size: '0.5',
+        entryPrice: '45000',
+        positionValue: '22500',
+        unrealizedPnl: '0',
+        marginUsed: '1000',
+        leverage: { type: 'isolated', value: 5 },
+        liquidationPrice: '40000',
+        maxLeverage: 20,
+        returnOnEquity: '0',
+        cumulativeFunding: {
+          allTime: '0',
+          sinceOpen: '0',
+          sinceChange: '0',
+        },
+        takeProfitCount: 0,
+        stopLossCount: 0,
+      };
+
+      expect(
+        shouldDisplayOrderInMarketDetailsOrders(
+          syntheticTpOrder as Order,
+          existingPosition,
+        ),
+      ).toBe(true);
+    });
+  });
+
+  describe('synthetic order cancelability', () => {
+    it('detects placeholder synthetic IDs', () => {
+      expect(isSyntheticPlaceholderOrderId('abc-synthetic-tp')).toBe(true);
+      expect(isSyntheticPlaceholderOrderId('abc-synthetic-sl')).toBe(true);
+      expect(isSyntheticPlaceholderOrderId('real-child-id-123')).toBe(false);
+    });
+
+    it('treats non-synthetic orders as cancelable', () => {
+      const order: Order = {
+        orderId: 'real-order',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'limit',
+        size: '1',
+        originalSize: '1',
+        price: '50000',
+        filledSize: '0',
+        remainingSize: '1',
+        status: 'open',
+        timestamp: Date.now(),
+      };
+
+      expect(isSyntheticOrderCancelable(order)).toBe(true);
+    });
+
+    it('treats synthetic placeholder orders as non-cancelable', () => {
+      const syntheticOrder = {
+        orderId: 'parent-123-synthetic-tp',
+        isSynthetic: true,
+      } as Order;
+
+      expect(isSyntheticOrderCancelable(syntheticOrder)).toBe(false);
+    });
+
+    it('treats synthetic orders with real child IDs as cancelable', () => {
+      const syntheticOrder = {
+        orderId: 'child-tp-order-id',
+        isSynthetic: true,
+      } as Order;
+
+      expect(isSyntheticOrderCancelable(syntheticOrder)).toBe(true);
     });
   });
 

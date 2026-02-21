@@ -33,29 +33,62 @@ import {
   formatPositionSize,
   formatOrderCardDate,
 } from '../../utils/formatUtils';
+import {
+  formatOrderLabel,
+  getValidOrderPrice,
+  getValidTriggerPrice,
+  inferTriggerConditionKey,
+  isSyntheticOrderCancelable,
+} from '../../utils/orderUtils';
 import { useTheme } from '../../../../../util/theme';
 
 interface OrderDetailsRouteParams {
   order: Order;
 }
 
+interface DetailRow {
+  key: string;
+  label: string;
+  value: string;
+}
+
 const PerpsOrderDetailsView: React.FC = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: OrderDetailsRouteParams }, 'params'>>();
-  const { order } = route.params || {};
+  const { order } = route.params ?? {};
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const { cancelOrder } = usePerpsTrading();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [isCanceling, setIsCanceling] = useState(false);
+  const canCancel = order ? isSyntheticOrderCancelable(order) : false;
+
+  const priceMetrics = useMemo(() => {
+    if (!order) {
+      return {
+        parsedPrice: 0,
+        validTriggerPrice: null as number | null,
+        hasPrice: false,
+        effectivePrice: 0,
+      };
+    }
+
+    const validOrderPrice = getValidOrderPrice(order);
+    const validTriggerPrice = getValidTriggerPrice(order);
+    const parsedPrice = validOrderPrice ?? 0;
+    const hasPrice = validOrderPrice !== null;
+    const effectivePrice = validOrderPrice ?? validTriggerPrice ?? 0;
+
+    return { parsedPrice, validTriggerPrice, hasPrice, effectivePrice };
+  }, [order]);
 
   // Calculate size in USD for fee calculation
   const sizeInUSD = useMemo(() => {
     if (!order) return '0';
-    return (parseFloat(order.size) * parseFloat(order.price)).toString();
-  }, [order]);
+    return (parseFloat(order.size) * priceMetrics.effectivePrice).toString();
+  }, [order, priceMetrics.effectivePrice]);
 
   // Get order fees
   const { totalFee } = usePerpsOrderFees({
@@ -78,13 +111,7 @@ const PerpsOrderDetailsView: React.FC = () => {
   const orderDetails = useMemo(() => {
     if (!order) return null;
 
-    const isLong = order.side === 'buy';
-    const directionLabel = isLong
-      ? strings('perps.order.long_label')
-      : strings('perps.order.short_label');
-    const orderTypeLabel = strings(
-      `perps.order_details.${order.orderType}_${order.side}`,
-    );
+    const orderTypeLabel = formatOrderLabel(order);
 
     // Calculate fill percentage
     const fillPercentage =
@@ -92,25 +119,67 @@ const PerpsOrderDetailsView: React.FC = () => {
         ? (parseFloat(order.filledSize) / parseFloat(order.originalSize)) * 100
         : 0;
 
-    // Calculate size in USD (size * price)
-    const orderSizeUSD = parseFloat(order.size) * parseFloat(order.price);
+    const { parsedPrice, validTriggerPrice, hasPrice, effectivePrice } =
+      priceMetrics;
+    const originalSizeUSD = parseFloat(order.originalSize) * effectivePrice;
+
+    const isMarketExecution =
+      order.orderType === 'market' ||
+      (order.detailedOrderType ?? '').toLowerCase().includes('market');
+
+    const priceText = isMarketExecution
+      ? strings('perps.order_details.market')
+      : formatPerpsFiat(hasPrice ? parsedPrice : (validTriggerPrice ?? 0));
+
+    let triggerCondition: string | undefined;
+    if (order.isTrigger && validTriggerPrice !== null) {
+      const formattedTriggerPrice = formatPerpsFiat(validTriggerPrice);
+      const conditionKey = inferTriggerConditionKey({
+        detailedOrderType: order.detailedOrderType,
+        side: order.side,
+        triggerPrice: order.triggerPrice,
+        price: order.price,
+      });
+      if (conditionKey) {
+        triggerCondition = strings(conditionKey, {
+          price: formattedTriggerPrice,
+        });
+      }
+    }
+
+    const parsedTakeProfitPrice = Number.parseFloat(
+      order.takeProfitPrice ?? '',
+    );
+    const hasTakeProfitPrice =
+      Number.isFinite(parsedTakeProfitPrice) && parsedTakeProfitPrice > 0;
+    const parsedStopLossPrice = Number.parseFloat(order.stopLossPrice ?? '');
+    const hasStopLossPrice =
+      Number.isFinite(parsedStopLossPrice) && parsedStopLossPrice > 0;
 
     // Format date using formatOrderCardDate
     const dateString = formatOrderCardDate(order.timestamp);
 
     return {
-      isLong,
-      directionLabel,
       orderTypeLabel,
       fillPercentage,
-      sizeInUSD: orderSizeUSD,
+      originalSizeInUSD: originalSizeUSD,
       dateString,
-      directionColor: isLong ? colors.success.default : colors.error.default,
+      triggerCondition,
+      priceText,
+      reduceOnlyText: order.reduceOnly
+        ? strings('perps.order_details.yes')
+        : strings('perps.order_details.no'),
+      takeProfitPriceText: hasTakeProfitPrice
+        ? formatPerpsFiat(parsedTakeProfitPrice)
+        : undefined,
+      stopLossPriceText: hasStopLossPrice
+        ? formatPerpsFiat(parsedStopLossPrice)
+        : undefined,
     };
-  }, [order, colors]);
+  }, [order, priceMetrics]);
 
   const handleCancelOrder = useCallback(async () => {
-    if (!order) return;
+    if (!order || !canCancel) return;
 
     setIsCanceling(true);
 
@@ -150,7 +219,7 @@ const PerpsOrderDetailsView: React.FC = () => {
     } finally {
       setIsCanceling(false);
     }
-  }, [order, cancelOrder, navigation, showToast, PerpsToastOptions]);
+  }, [order, canCancel, cancelOrder, navigation, showToast, PerpsToastOptions]);
 
   if (!order) {
     return (
@@ -167,6 +236,73 @@ const PerpsOrderDetailsView: React.FC = () => {
   if (!orderDetails) {
     return null;
   }
+
+  const detailRows: DetailRow[] = [
+    {
+      key: 'date',
+      label: strings('perps.order_details.date'),
+      value: orderDetails.dateString,
+    },
+    ...(orderDetails.triggerCondition
+      ? [
+          {
+            key: 'trigger-condition',
+            label: strings('perps.order_details.trigger_condition'),
+            value: orderDetails.triggerCondition,
+          },
+        ]
+      : []),
+    {
+      key: 'price',
+      label: strings('perps.order_details.price'),
+      value: orderDetails.priceText,
+    },
+    ...(orderDetails.takeProfitPriceText
+      ? [
+          {
+            key: 'take-profit',
+            label: strings('perps.order_details.take_profit'),
+            value: orderDetails.takeProfitPriceText,
+          },
+        ]
+      : []),
+    ...(orderDetails.stopLossPriceText
+      ? [
+          {
+            key: 'stop-loss',
+            label: strings('perps.order_details.stop_loss'),
+            value: orderDetails.stopLossPriceText,
+          },
+        ]
+      : []),
+    {
+      key: 'size',
+      label: strings('perps.order_details.size'),
+      value: `${formatPositionSize(parseFloat(order.size))} ${order.symbol}`,
+    },
+    {
+      key: 'original-size',
+      label: strings('perps.order_details.original_size'),
+      value: `${formatPositionSize(parseFloat(order.originalSize))} ${
+        order.symbol
+      }`,
+    },
+    {
+      key: 'order-value',
+      label: strings('perps.order_details.order_value'),
+      value: formatPerpsFiat(orderDetails.originalSizeInUSD),
+    },
+    {
+      key: 'reduce-only',
+      label: strings('perps.order_details.reduce_only'),
+      value: orderDetails.reduceOnlyText,
+    },
+    {
+      key: 'fee',
+      label: strings('perps.order_details.fee'),
+      value: formatPerpsFiat(totalFee),
+    },
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -204,98 +340,29 @@ const PerpsOrderDetailsView: React.FC = () => {
         {/* Order Details Card */}
         <View style={styles.section}>
           <View style={styles.detailsCard}>
-            {/* Date */}
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.detailLabel}
-              >
-                {strings('perps.order_details.date')}
-              </Text>
-              <View style={styles.detailValue}>
-                <Text variant={TextVariant.BodyMD}>
-                  {orderDetails.dateString}
-                </Text>
-              </View>
-            </View>
+            {detailRows.map((detailRow) => (
+              <React.Fragment key={detailRow.key}>
+                <View style={styles.detailRow}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                    style={styles.detailLabel}
+                  >
+                    {detailRow.label}
+                  </Text>
+                  <View style={styles.detailValue}>
+                    <Text variant={TextVariant.BodyMD}>{detailRow.value}</Text>
+                  </View>
+                </View>
 
-            <View
-              style={[
-                styles.separator,
-                { backgroundColor: colors.border.muted },
-              ]}
-            />
-
-            {/* Limit Price */}
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.detailLabel}
-              >
-                {strings('perps.order_details.limit_price')}
-              </Text>
-              <View style={styles.detailValue}>
-                <Text variant={TextVariant.BodyMD}>
-                  {formatPerpsFiat(parseFloat(order.price))}
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.separator,
-                { backgroundColor: colors.border.muted },
-              ]}
-            />
-
-            {/* Size */}
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.detailLabel}
-              >
-                {strings('perps.order_details.size')}
-              </Text>
-              <View style={styles.detailValue}>
-                <Text variant={TextVariant.BodyMD}>
-                  {formatPositionSize(parseFloat(order.size))} {order.symbol} •{' '}
-                  {formatPerpsFiat(orderDetails.sizeInUSD)}
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.separator,
-                { backgroundColor: colors.border.muted },
-              ]}
-            />
-
-            {/* Fee */}
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.detailLabel}
-              >
-                {strings('perps.order_details.fee')}
-              </Text>
-              <View style={styles.detailValue}>
-                <Text variant={TextVariant.BodyMD}>
-                  {formatPerpsFiat(totalFee)}
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.separator,
-                { backgroundColor: colors.border.muted },
-              ]}
-            />
+                <View
+                  style={[
+                    styles.separator,
+                    { backgroundColor: colors.border.muted },
+                  ]}
+                />
+              </React.Fragment>
+            ))}
 
             {/* Status */}
             <View style={styles.detailRow}>
@@ -331,16 +398,19 @@ const PerpsOrderDetailsView: React.FC = () => {
       </ScrollView>
 
       {/* Footer Actions */}
-      <View style={styles.footer}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.order_details.cancel_order')}
-          onPress={handleCancelOrder}
-          loading={isCanceling}
-        />
-      </View>
+      {canCancel ? (
+        <View style={styles.footer}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            isDanger
+            label={strings('perps.order_details.cancel_order')}
+            onPress={handleCancelOrder}
+            loading={isCanceling}
+          />
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 };

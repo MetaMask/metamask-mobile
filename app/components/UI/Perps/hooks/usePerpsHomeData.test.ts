@@ -404,11 +404,11 @@ describe('usePerpsHomeData', () => {
       );
     });
 
-    it('hides TP/SL orders from home screen', () => {
+    it('hides TP/SL and reduce-only orders from home screen', () => {
       renderHook(() => usePerpsHomeData());
 
       expect(mockUsePerpsLiveOrders).toHaveBeenCalledWith(
-        expect.objectContaining({ hideTpSl: true }),
+        expect.objectContaining({ hideTpSl: true, hideReduceOnly: true }),
       );
     });
 
