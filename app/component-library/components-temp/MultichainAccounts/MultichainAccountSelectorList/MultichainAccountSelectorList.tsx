@@ -10,6 +10,8 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 import { useStyles } from '../../../hooks';
 import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
@@ -30,10 +32,12 @@ import {
   MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID,
+  MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID,
 } from './MultichainAccountSelectorList.constants';
 import { strings } from '../../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import ExternalAccountCell from './ExternalAccountCell';
+import { areAddressesEqual, isEthAddress } from '../../../../util/address';
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
@@ -131,15 +135,51 @@ const MultichainAccountSelectorList = ({
       .filter((section) => section.data.length > 0);
   }, [walletSections, debouncedSearchText, matchesSearch]);
 
+  const trimmedSearchText = useMemo(
+    () => debouncedSearchText.trim(),
+    [debouncedSearchText],
+  );
+
+  const shouldShowExternalAccount = useMemo(
+    () =>
+      Boolean(trimmedSearchText) &&
+      filteredWalletSections.length === 0 &&
+      showExternalAccountOnEmptySearch,
+    [
+      filteredWalletSections.length,
+      showExternalAccountOnEmptySearch,
+      trimmedSearchText,
+    ],
+  );
+
+  const isExternalAddressValid = useMemo(() => {
+    if (!shouldShowExternalAccount || !chainId) {
+      return true;
+    }
+
+    if (isSolanaChainId(chainId)) {
+      return isSolanaAddress(trimmedSearchText);
+    }
+
+    const isEvmChainId =
+      chainId.startsWith('0x') || chainId.startsWith('eip155:');
+    return isEvmChainId ? isEthAddress(trimmedSearchText) : true;
+  }, [chainId, shouldShowExternalAccount, trimmedSearchText]);
+
+  const shouldShowInvalidAddressError =
+    shouldShowExternalAccount && !isExternalAddressValid;
+
   const flattenedData = useMemo((): FlattenedMultichainAccountListItem[] => {
     const items: FlattenedMultichainAccountListItem[] = [];
 
     if (filteredWalletSections.length === 0) {
-      if (showExternalAccountOnEmptySearch) {
-        const address = debouncedSearchText.trim();
+      if (shouldShowExternalAccount) {
         items.push({
           type: 'external',
-          data: { address },
+          data: {
+            address: trimmedSearchText,
+            isValid: isExternalAddressValid,
+          },
         });
       }
       return items;
@@ -168,8 +208,9 @@ const MultichainAccountSelectorList = ({
     return items;
   }, [
     filteredWalletSections,
-    debouncedSearchText,
-    showExternalAccountOnEmptySearch,
+    isExternalAddressValid,
+    shouldShowExternalAccount,
+    trimmedSearchText,
   ]);
 
   // Track if we've done the initial scroll to selected item
@@ -293,8 +334,7 @@ const MultichainAccountSelectorList = ({
 
           case 'external': {
             const isSelected = selectedExternalAddress
-              ? item.data.address.toLowerCase() ===
-                selectedExternalAddress.toLowerCase()
+              ? areAddressesEqual(item.data.address, selectedExternalAddress)
               : false;
             return (
               <ExternalAccountCell
@@ -302,6 +342,7 @@ const MultichainAccountSelectorList = ({
                 onPress={() => handleSelectExternalAccount(item.data.address)}
                 chainId={chainId}
                 isSelected={isSelected}
+                isDisabled={!item.data.isValid}
               />
             );
           }
@@ -359,10 +400,10 @@ const MultichainAccountSelectorList = ({
 
   const emptyStateText = useMemo(
     () =>
-      debouncedSearchText.trim()
+      trimmedSearchText
         ? strings('accounts.no_accounts_found_for_search')
         : strings('accounts.no_accounts_found'),
-    [debouncedSearchText],
+    [trimmedSearchText],
   );
 
   return (
@@ -375,7 +416,18 @@ const MultichainAccountSelectorList = ({
           placeholder={strings('accounts.search_your_accounts')}
           testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID}
           autoFocus={false}
+          isError={shouldShowInvalidAddressError}
         />
+        {shouldShowInvalidAddressError ? (
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Error}
+            style={styles.searchErrorText}
+            testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID}
+          >
+            {strings('bridge.invalid_recipient_address')}
+          </Text>
+        ) : null}
       </View>
       <View style={styles.listContainer} testID={testID}>
         {flattenedData.length === 0 ? (
