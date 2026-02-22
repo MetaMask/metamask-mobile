@@ -154,4 +154,16 @@ _To be added after bug submission by internal support / PM:_
 ## After Creation
 
 - Output the issue URL so the user can view it
-- Ask if they would like to investigate the code related to the bug
+- Investigate the codebase to identify the possible root cause of the bug (do NOT make any code changes — research only)
+- Add a comment to the created issue with the findings using:
+
+```bash
+gh issue comment <issue-number> --repo MetaMask/metamask-mobile --body "..."
+```
+
+The comment should include:
+
+- A summary of the possible root cause
+- The error flow with relevant file paths and line numbers
+- Key files table (file, line(s), description)
+- A suggested fix approach
