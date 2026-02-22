@@ -41,11 +41,9 @@ const generateUserProfileAnalyticsMetaData = (): AnalyticsUserTraits => {
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
     [UserProfileProperty.SECURITY_PROVIDERS]:
-      preferencesController?.securityAlertsEnabled ? 'blockaid' : '',
+      preferencesController?.securityAlertsEnabled ? ['blockaid'] : [],
     [UserProfileProperty.HAS_MARKETING_CONSENT]:
-      isDataCollectionForMarketingEnabled
-        ? UserProfileProperty.ON
-        : UserProfileProperty.OFF,
+      !!isDataCollectionForMarketingEnabled,
     [UserProfileProperty.CHAIN_IDS]: chainIds,
   };
   return traits;
