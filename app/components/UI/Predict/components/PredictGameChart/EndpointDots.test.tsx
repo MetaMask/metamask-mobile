@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import EndpointDots from './EndpointDots';
 import { GameChartSeries } from './PredictGameChart.types';
+import { brandColor } from '@metamask/design-tokens';
 
 jest.mock('react-native-svg', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -151,7 +152,7 @@ describe('EndpointDots', () => {
 
     it('handles series with empty data array', () => {
       const emptyDataSeries: GameChartSeries[] = [
-        { label: 'Empty', color: '#000', data: [] },
+        { label: 'Empty', color: brandColor.black, data: [] },
       ];
 
       const { queryAllByTestId } = render(

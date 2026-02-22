@@ -11,6 +11,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { InteractionManager, Platform } from 'react-native';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { ReactTestInstance } from 'react-test-renderer';
+import { brandColor } from '@metamask/design-tokens';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -340,9 +341,9 @@ describe('ManualBackupStep2', () => {
         fireEvent.press(click);
       });
 
-      expect(missingWordItemOne.props.style.color).not.toBe('#4459ff');
-      expect(missingWordItemTwo.props.style.color).not.toBe('#4459ff');
-      expect(missingWordItemThree.props.style.color).not.toBe('#4459ff');
+      expect(missingWordItemOne.props.style.color).not.toBe(brandColor.blue500);
+      expect(missingWordItemTwo.props.style.color).not.toBe(brandColor.blue500);
+      expect(missingWordItemThree.props.style.color).not.toBe(brandColor.blue500);
 
       // Press continue button
       const continueButton = wrapper.getByTestId(
@@ -590,7 +591,7 @@ describe('ManualBackupStep2', () => {
 
       // Verify we found exactly 3 empty slots and 9 non-empty slots
       expect(missingWordOne).toHaveStyle({
-        borderColor: '#4459ff',
+        borderColor: brandColor.blue500,
       });
     });
 
@@ -626,7 +627,7 @@ describe('ManualBackupStep2', () => {
       fireEvent.press(emptySlots[0]);
 
       expect(emptySlots[0]).toHaveStyle({
-        borderColor: '#4459ff',
+        borderColor: brandColor.blue500,
       });
     });
   });

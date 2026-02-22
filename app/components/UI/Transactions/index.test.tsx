@@ -19,6 +19,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
+import { brandColor } from '@metamask/design-tokens';
 
 // Mock the navigation and other dependencies
 const mockNavigationPush = jest.fn();
@@ -2006,7 +2007,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('should test renderLoader method directly', () => {
     instance.context = {
       colors: {
-        background: { default: '#fff' },
+        background: { default: brandColor.white },
         text: { muted: '#999' },
       },
       typography: {},
@@ -2019,7 +2020,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('should test renderEmpty method directly', () => {
     instance.context = {
       colors: {
-        background: { default: '#fff' },
+        background: { default: brandColor.white },
         text: { muted: '#999' },
       },
       typography: {},
@@ -2054,7 +2055,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('should test renderList method directly', () => {
     instance.context = {
       colors: {
-        background: { default: '#fff' },
+        background: { default: brandColor.white },
         text: { muted: '#999' },
         primary: { default: '#037dd6' },
         icon: { default: '#24272a' },
@@ -2085,7 +2086,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('should test render method directly', () => {
     instance.context = {
       colors: {
-        background: { default: '#fff' },
+        background: { default: brandColor.white },
         text: { muted: '#999' },
       },
       typography: {},
@@ -2219,7 +2220,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('should test renderEmpty with switch network scenarios', () => {
     instance.context = {
       colors: {
-        background: { default: '#fff' },
+        background: { default: brandColor.white },
         text: { muted: '#999' },
       },
       typography: {},

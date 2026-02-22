@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import PerpsLimitPriceBottomSheet from './PerpsLimitPriceBottomSheet';
+import { brandColor } from '@metamask/design-tokens';
 
 // Mock dependencies - only what's absolutely necessary
 jest.mock('react-native-reanimated', () =>
@@ -338,8 +339,8 @@ jest.mock('./PerpsLimitPriceBottomSheet.styles', () => ({
 describe('PerpsLimitPriceBottomSheet', () => {
   const mockTheme = {
     colors: {
-      background: { alternative: '#f0f0f0', default: '#ffffff' },
-      text: { default: '#000000', muted: '#666666', alternative: '#999999' },
+      background: { alternative: '#f0f0f0', default: brandColor.white },
+      text: { default: brandColor.black, muted: '#666666', alternative: '#999999' },
       border: { muted: '#e1e1e1' },
       primary: { default: '#0066cc' },
       error: { default: '#ff0000' },

@@ -5,6 +5,7 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 import { Copyable } from '@metamask/snaps-sdk/jsx';
 import { renderInterface } from '../testUtils';
 import { copyable } from './copyable';
+import { brandColor } from '@metamask/design-tokens';
 
 // Mock the ClipboardManager
 jest.mock('../../../../core/ClipboardManager', () => ({
@@ -45,8 +46,8 @@ describe('SnapUICopyable', () => {
     // Create a mock theme object
     const mockTheme = {
       colors: {
-        text: { default: '#000000' },
-        background: { default: '#FFFFFF' },
+        text: { default: brandColor.black },
+        background: { default: brandColor.white },
       },
     };
 

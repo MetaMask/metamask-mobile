@@ -13,6 +13,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { PERPS_SUPPORT_ARTICLES_URLS } from '../../constants/perpsConfig';
+import { brandColor } from '@metamask/design-tokens';
 
 // Mock Redux selector
 jest.mock('react-redux', () => ({
@@ -78,7 +79,7 @@ jest.mock('../../hooks', () => ({
 }));
 
 const mockColors = {
-  black: '#000000',
+  black: brandColor.black,
   gray: '#666666',
 };
 

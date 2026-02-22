@@ -2,6 +2,7 @@ import { link } from './link';
 import { LinkElement } from '@metamask/snaps-sdk/jsx';
 import { mockTheme } from '../../../../util/theme';
 import { UIComponent } from './types';
+import { brandColor } from '@metamask/design-tokens';
 
 describe('link component', () => {
   const defaultParams = {
@@ -30,7 +31,7 @@ describe('link component', () => {
           children: 'link',
           key: expect.any(String),
           props: {
-            color: '#4459ff',
+            color: brandColor.blue500,
             style: {
               fontWeight: undefined,
               textAlign: undefined,
@@ -75,7 +76,7 @@ describe('link component', () => {
           children: 'Visit ',
           key: expect.any(String),
           props: {
-            color: '#4459ff',
+            color: brandColor.blue500,
             style: {
               fontWeight: undefined,
               textAlign: undefined,
@@ -120,7 +121,7 @@ describe('link component', () => {
           children: 'Visit ',
           key: expect.any(String),
           props: {
-            color: '#4459ff',
+            color: brandColor.blue500,
             style: {
               fontWeight: undefined,
               textAlign: undefined,
@@ -133,7 +134,7 @@ describe('link component', () => {
           children: 'MetaMask',
           key: expect.any(String),
           props: {
-            color: '#4459ff',
+            color: brandColor.blue500,
             style: {
               fontWeight: undefined,
               textAlign: undefined,

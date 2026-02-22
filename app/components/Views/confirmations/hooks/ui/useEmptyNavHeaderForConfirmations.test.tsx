@@ -3,6 +3,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { Theme } from '../../../../../util/theme/models';
 import { getEmptyNavHeader } from '../../components/UI/navbar/navbar';
 import { useEmptyNavHeaderForConfirmations } from './useEmptyNavHeaderForConfirmations';
+import { brandColor } from '@metamask/design-tokens';
 
 jest.mock('../../../../../util/theme', () => ({
   useTheme: jest.fn().mockReturnValue({
@@ -24,7 +25,7 @@ describe('useEmptyNavHeaderForConfirmations', () => {
     headerRight: () => <></>,
     headerTitleAlign: 'center' as const,
     headerStyle: {
-      backgroundColor: '#ffffff',
+      backgroundColor: brandColor.white,
       shadowColor: 'transparent',
       elevation: 0,
     },

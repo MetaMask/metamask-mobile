@@ -121,8 +121,8 @@ describe('createTransactionDetailStyles', () => {
     // Arrange
     const incompleteTheme = {
       colors: {
-        background: { default: '#FFFFFF' },
-        text: { default: '#000000' },
+        background: { default: brandColor.white },
+        text: { default: brandColor.black },
         success: { default: '#28A745' },
         border: {},
       },

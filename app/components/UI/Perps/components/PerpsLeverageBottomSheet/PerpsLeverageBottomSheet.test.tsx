@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import { fireGestureHandler } from 'react-native-gesture-handler/jest-utils';
 import PerpsLeverageBottomSheet from './PerpsLeverageBottomSheet';
+import { brandColor } from '@metamask/design-tokens';
 
 // Mock dependencies - only what's absolutely necessary
 jest.mock('react-native-reanimated', () =>
@@ -317,7 +318,7 @@ describe('PerpsLeverageBottomSheet', () => {
   const mockTheme = {
     colors: {
       background: { alternative: '#f0f0f0' },
-      text: { default: '#000000', muted: '#666666' },
+      text: { default: brandColor.black, muted: '#666666' },
       primary: { default: '#0066cc' },
       warning: { default: '#ff9800' },
       error: { default: '#ff0000' },

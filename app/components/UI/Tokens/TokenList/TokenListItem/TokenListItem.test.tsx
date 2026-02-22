@@ -27,6 +27,7 @@ import {
 import { isEligibleForMerklRewards } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import { lightTheme } from '@metamask/design-tokens';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
@@ -522,7 +523,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
 
       expect(percentageText.props.children).toBe('+5.67%');
-      expect(percentageText.props.style.color).toBe('#457a39');
+      expect(percentageText.props.style.color).toBe(lightTheme.colors.success.default);
     });
 
     it('covers Number.isFinite check preventing Infinity', () => {

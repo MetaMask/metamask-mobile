@@ -9,6 +9,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import { FillType } from '../PerpsTransactionItem/PerpsTransactionItem';
+import { brandColor } from '@metamask/design-tokens';
 
 // Mock PerpsTokenLogo
 jest.mock('../PerpsTokenLogo', () => ({
@@ -32,7 +33,7 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 const mockColors = {
-  black: '#000000',
+  black: brandColor.black,
 };
 
 const mockStyles = StyleSheet.create({
