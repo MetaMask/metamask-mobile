@@ -1,7 +1,3 @@
-import type {
-  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
-  AccountTreeControllerSelectedAccountGroupChangeEvent,
-} from '@metamask/account-tree-controller';
 import {
   BaseController,
   ControllerGetStateAction,
@@ -10,29 +6,7 @@ import {
 } from '@metamask/base-controller';
 import type { StateChangeListener } from '@metamask/base-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import type {
-  KeyringControllerGetStateAction,
-  KeyringControllerSignTypedMessageAction,
-} from '@metamask/keyring-controller';
 import type { Messenger } from '@metamask/messenger';
-import type {
-  NetworkControllerGetStateAction,
-  NetworkControllerGetNetworkClientByIdAction,
-  NetworkControllerFindNetworkClientIdByChainIdAction,
-} from '@metamask/network-controller';
-import type { AuthenticationController } from '@metamask/profile-sync-controller';
-import type {
-  RemoteFeatureFlagControllerState,
-  RemoteFeatureFlagControllerStateChangeEvent,
-  RemoteFeatureFlagControllerGetStateAction,
-} from '@metamask/remote-feature-flag-controller';
-import {
-  TransactionControllerAddTransactionAction,
-  TransactionControllerTransactionConfirmedEvent,
-  TransactionControllerTransactionFailedEvent,
-  TransactionControllerTransactionSubmittedEvent,
-  TransactionType,
-} from '@metamask/transaction-controller';
 import type { Json } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -129,6 +103,7 @@ import type {
   PerpsActiveProviderMode,
   PerpsProviderType,
   PerpsSelectedPaymentToken,
+  PerpsRemoteFeatureFlagState,
 } from './types';
 import type { CandleData } from './types/perps-types';
 import {
@@ -745,36 +720,14 @@ export type PerpsControllerActions =
     };
 
 /**
- * External actions the PerpsController can call via messenger
- */
-export type AllowedActions =
-  | NetworkControllerGetStateAction
-  | AuthenticationController.AuthenticationControllerGetBearerToken
-  | RemoteFeatureFlagControllerGetStateAction
-  | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
-  | KeyringControllerGetStateAction
-  | KeyringControllerSignTypedMessageAction
-  | NetworkControllerGetNetworkClientByIdAction
-  | NetworkControllerFindNetworkClientIdByChainIdAction
-  | TransactionControllerAddTransactionAction;
-
-/**
- * External events the PerpsController can subscribe to
- */
-export type AllowedEvents =
-  | TransactionControllerTransactionSubmittedEvent
-  | TransactionControllerTransactionConfirmedEvent
-  | TransactionControllerTransactionFailedEvent
-  | RemoteFeatureFlagControllerStateChangeEvent
-  | AccountTreeControllerSelectedAccountGroupChangeEvent;
-
-/**
- * PerpsController messenger constraints
+ * PerpsController messenger constraints.
+ * Only PerpsController's own actions and events — no delegated external controller actions.
+ * Cross-controller interactions go through PerpsPlatformDependencies.controllers.
  */
 export type PerpsControllerMessenger = Messenger<
   'PerpsController',
-  PerpsControllerActions | AllowedActions,
-  PerpsControllerEvents | AllowedEvents
+  PerpsControllerActions,
+  PerpsControllerEvents
 >;
 
 /**
@@ -890,9 +843,8 @@ export class PerpsController extends BaseController<
 
     try {
       const localFlag = getLocalFlag();
-      const remoteState = this.messenger.call(
-        'RemoteFeatureFlagController:getState',
-      );
+      const remoteState =
+        this.#options.infrastructure.controllers.remoteFeatureFlags.getState();
       const remoteFlag =
         remoteState.remoteFeatureFlags?.perpsMyxProviderEnabled;
 
@@ -970,20 +922,19 @@ export class PerpsController extends BaseController<
       infrastructure,
     };
 
-    // Instantiate services with platform dependencies and messenger
-    // Services that need inter-controller communication receive the messenger
+    // Instantiate services with platform dependencies
+    // All cross-controller access goes through infrastructure.controllers.*
     this.#tradingService = new TradingService(infrastructure);
     this.#marketDataService = new MarketDataService(infrastructure);
-    this.#accountService = new AccountService(infrastructure, messenger);
+    this.#accountService = new AccountService(infrastructure);
     this.#eligibilityService = new EligibilityService(infrastructure);
-    this.#dataLakeService = new DataLakeService(infrastructure, messenger);
-    this.#depositService = new DepositService(infrastructure, messenger);
+    this.#dataLakeService = new DataLakeService(infrastructure);
+    this.#depositService = new DepositService(infrastructure);
     this.#featureFlagConfigurationService = new FeatureFlagConfigurationService(
       infrastructure,
     );
     this.#rewardsIntegrationService = new RewardsIntegrationService(
       infrastructure,
-      messenger,
     );
 
     // Set HIP-3 fallback configuration from client (will be updated if remote flags available)
@@ -1009,9 +960,8 @@ export class PerpsController extends BaseController<
      * We still subscribe in case the RemoteFeatureFlagController is not yet populated and updates later.
      */
     try {
-      const currentRemoteFeatureFlagState = this.messenger.call(
-        'RemoteFeatureFlagController:getState',
-      );
+      const currentRemoteFeatureFlagState =
+        infrastructure.controllers.remoteFeatureFlags.getState();
 
       this.refreshEligibilityOnFeatureFlagChange(currentRemoteFeatureFlagState);
     } catch (error) {
@@ -1028,8 +978,7 @@ export class PerpsController extends BaseController<
 
     const featureFlagHandler =
       this.refreshEligibilityOnFeatureFlagChange.bind(this);
-    this.messenger.subscribe(
-      'RemoteFeatureFlagController:stateChange',
+    infrastructure.controllers.remoteFeatureFlags.onStateChange(
       featureFlagHandler,
     );
 
@@ -1104,7 +1053,6 @@ export class PerpsController extends BaseController<
       allowlistMarkets: this.#hip3AllowlistMarkets,
       blocklistMarkets: this.#hip3BlocklistMarkets,
       platformDependencies: this.#options.infrastructure,
-      messenger: this.messenger,
     });
     this.#standaloneProviderIsTestnet = currentIsTestnet;
     this.#standaloneProviderHip3Version = currentHip3Version;
@@ -1160,8 +1108,7 @@ export class PerpsController extends BaseController<
    * @returns The resulting string value.
    */
   #findNetworkClientIdForChain(chainId: string): string | undefined {
-    return this.messenger.call(
-      'NetworkController:findNetworkClientIdByChainId',
+    return this.#options.infrastructure.controllers.network.findNetworkClientIdByChainId(
       chainId as `0x${string}`,
     );
   }
@@ -1193,15 +1140,14 @@ export class PerpsController extends BaseController<
     options: {
       networkClientId: string;
       origin?: string;
-      type?: TransactionType;
+      type?: string;
       skipInitialGasEstimate?: boolean;
     },
   ): Promise<{
     result: Promise<string>;
     transactionMeta: { id: string; hash?: string };
   }> {
-    return this.messenger.call(
-      'TransactionController:addTransaction',
+    return this.#options.infrastructure.controllers.transaction.addTransaction(
       txParams,
       options,
     );
@@ -1256,7 +1202,7 @@ export class PerpsController extends BaseController<
    * @param remoteFeatureFlagControllerState - State from RemoteFeatureFlagController.
    */
   protected refreshEligibilityOnFeatureFlagChange(
-    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
+    remoteFeatureFlagControllerState: PerpsRemoteFeatureFlagState,
   ): void {
     this.#featureFlagConfigurationService.refreshEligibility({
       remoteFeatureFlagControllerState,
@@ -1460,7 +1406,6 @@ export class PerpsController extends BaseController<
           allowlistMarkets: this.#hip3AllowlistMarkets,
           blocklistMarkets: this.#hip3BlocklistMarkets,
           platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
         });
         this.providers.set('hyperliquid', hyperLiquidProvider);
 
@@ -1948,7 +1893,9 @@ export class PerpsController extends BaseController<
       currentDepositId = depositId;
 
       // Get current account address via messenger (outside of update() for proper typing)
-      const evmAccount = getSelectedEvmAccount(this.messenger);
+      const evmAccount = getSelectedEvmAccount(
+        this.#options.infrastructure.controllers.accountTree,
+      );
       const accountAddress = evmAccount?.address ?? 'unknown';
 
       this.update((state) => {
@@ -1990,10 +1937,10 @@ export class PerpsController extends BaseController<
       };
 
       if (placeOrder) {
-        // Use messenger-based addTransaction to create transaction without navigating to confirmation screen
+        // Use addTransaction to create transaction without navigating to confirmation screen
         const addResult = await this.#submitTransaction(transaction, {
           ...defaultTransactionOptions,
-          type: TransactionType.perpsDepositAndOrder,
+          type: 'perpsDepositAndOrder',
         });
         transactionMeta = addResult.transactionMeta;
         // Return transaction ID immediately (fire-and-forget for caller)
@@ -2005,7 +1952,7 @@ export class PerpsController extends BaseController<
         // The promise will resolve when transaction completes or reject if cancelled/failed
         const submitResult = await this.#submitTransaction(transaction, {
           ...defaultTransactionOptions,
-          type: TransactionType.perpsDeposit,
+          type: 'perpsDeposit',
         });
         result = submitResult.result;
         transactionMeta = submitResult.transactionMeta;
@@ -2649,7 +2596,9 @@ export class PerpsController extends BaseController<
 
     // Watch for account changes via AccountTreeController
     const accountChangeHandler = (): void => {
-      const evmAccount = getSelectedEvmAccount(this.messenger);
+      const evmAccount = getSelectedEvmAccount(
+        this.#options.infrastructure.controllers.accountTree,
+      );
       const currentAddress = evmAccount?.address ?? null;
 
       // If there's cached data from a different account (or no EVM account now), clear it
@@ -2675,16 +2624,10 @@ export class PerpsController extends BaseController<
         }
       }
     };
-    this.messenger.subscribe(
-      'AccountTreeController:selectedAccountGroupChange',
-      accountChangeHandler,
-    );
-    this.#accountChangeUnsubscribe = (): void => {
-      this.messenger.unsubscribe(
-        'AccountTreeController:selectedAccountGroupChange',
+    this.#accountChangeUnsubscribe =
+      this.#options.infrastructure.controllers.accountTree.onSelectedAccountGroupChange(
         accountChangeHandler,
       );
-    };
   }
 
   /**
@@ -2801,7 +2744,9 @@ export class PerpsController extends BaseController<
     }
 
     // Get current user address
-    const evmAccount = getSelectedEvmAccount(this.messenger);
+    const evmAccount = getSelectedEvmAccount(
+      this.#options.infrastructure.controllers.accountTree,
+    );
     if (!evmAccount?.address) {
       return;
     }
@@ -4293,9 +4238,7 @@ export class PerpsController extends BaseController<
       slPrice: params.slPrice,
       tpPrice: params.tpPrice,
       isTestnet: this.state.isTestnet,
-      context: this.#createServiceContext('reportOrderToDataLake', {
-        messenger: this.messenger,
-      }),
+      context: this.#createServiceContext('reportOrderToDataLake', {}),
       retryCount: params.retryCount,
       _traceId: params._traceId,
     });

@@ -9,6 +9,10 @@ import {
 /**
  * Get the PerpsControllerMessenger for the PerpsController.
  *
+ * PerpsController no longer delegates cross-controller actions through the messenger.
+ * All controller interactions are handled via PerpsPlatformDependencies.controllers.*
+ * injected through mobileInfrastructure.ts.
+ *
  * @param rootExtendedMessenger - The root extended messenger.
  * @returns The PerpsControllerMessenger.
  */
@@ -23,27 +27,6 @@ export function getPerpsControllerMessenger(
   >({
     namespace: 'PerpsController',
     parent: rootExtendedMessenger,
-  });
-  rootExtendedMessenger.delegate({
-    actions: [
-      'NetworkController:getState',
-      'AuthenticationController:getBearerToken',
-      'RemoteFeatureFlagController:getState',
-      'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      'KeyringController:getState',
-      'KeyringController:signTypedMessage',
-      'NetworkController:getNetworkClientById',
-      'NetworkController:findNetworkClientIdByChainId',
-      'TransactionController:addTransaction',
-    ],
-    events: [
-      'TransactionController:transactionSubmitted',
-      'TransactionController:transactionConfirmed',
-      'TransactionController:transactionFailed',
-      'RemoteFeatureFlagController:stateChange',
-      'AccountTreeController:selectedAccountGroupChange',
-    ],
-    messenger,
   });
   return messenger;
 }

@@ -241,7 +241,7 @@ describe('accountUtils', () => {
   });
 
   describe('getSelectedEvmAccount', () => {
-    it('returns EVM account when messenger returns accounts with EVM', () => {
+    it('returns EVM account when accountTree returns accounts with EVM', () => {
       const mockAccounts = [
         {
           address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
@@ -258,19 +258,13 @@ describe('accountUtils', () => {
         },
       ] as unknown as InternalAccount[];
 
-      const mockMessenger = {
-        call: jest.fn().mockReturnValue(mockAccounts) as jest.MockedFunction<
-          (
-            action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
-          ) => InternalAccount[]
-        >,
+      const mockAccountTree = {
+        getAccountsFromSelectedGroup: jest.fn().mockReturnValue(mockAccounts),
       };
 
-      const result = getSelectedEvmAccount(mockMessenger);
+      const result = getSelectedEvmAccount(mockAccountTree);
 
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      );
+      expect(mockAccountTree.getAccountsFromSelectedGroup).toHaveBeenCalled();
       expect(result).toEqual({
         address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
       });
@@ -293,29 +287,21 @@ describe('accountUtils', () => {
         },
       ] as unknown as InternalAccount[];
 
-      const mockMessenger = {
-        call: jest.fn().mockReturnValue(mockAccounts) as jest.MockedFunction<
-          (
-            action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
-          ) => InternalAccount[]
-        >,
+      const mockAccountTree = {
+        getAccountsFromSelectedGroup: jest.fn().mockReturnValue(mockAccounts),
       };
 
-      const result = getSelectedEvmAccount(mockMessenger);
+      const result = getSelectedEvmAccount(mockAccountTree);
 
       expect(result).toBeUndefined();
     });
 
-    it('returns undefined when messenger returns empty accounts', () => {
-      const mockMessenger = {
-        call: jest.fn().mockReturnValue([]) as jest.MockedFunction<
-          (
-            action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
-          ) => InternalAccount[]
-        >,
+    it('returns undefined when accountTree returns empty accounts', () => {
+      const mockAccountTree = {
+        getAccountsFromSelectedGroup: jest.fn().mockReturnValue([]),
       };
 
-      const result = getSelectedEvmAccount(mockMessenger);
+      const result = getSelectedEvmAccount(mockAccountTree);
 
       expect(result).toBeUndefined();
     });

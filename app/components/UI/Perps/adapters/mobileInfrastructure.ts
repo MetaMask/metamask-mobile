@@ -216,14 +216,6 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
     // === Platform Services ===
     streamManager: createStreamManagerAdapter(),
 
-    // === Rewards ===
-    rewards: {
-      getFeeDiscount: (caipAccountId: `${string}:${string}:${string}`) =>
-        Engine.context.RewardsController.getPerpsDiscountForAccount(
-          caipAccountId,
-        ),
-    },
-
     // === Feature Flags ===
     featureFlags: {
       validateVersionGated(flag: VersionGatedFeatureFlag): boolean | undefined {
@@ -236,6 +228,116 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
 
     // === Cache Invalidation ===
     cacheInvalidator: createCacheInvalidatorAdapter(),
+
+    // === Controllers (cross-controller DI) ===
+    controllers: {
+      network: {
+        getState() {
+          return Engine.context.NetworkController.state;
+        },
+        getNetworkClientById(id: string) {
+          return Engine.context.NetworkController.getNetworkClientById(id);
+        },
+        findNetworkClientIdByChainId(chainId: `0x${string}`) {
+          return Engine.context.NetworkController.findNetworkClientIdByChainId(
+            chainId,
+          );
+        },
+      },
+      keyring: {
+        getState() {
+          return Engine.context.KeyringController.state;
+        },
+        signTypedMessage(
+          params: Parameters<
+            typeof Engine.context.KeyringController.signTypedMessage
+          >[0],
+          version: string,
+        ) {
+          return Engine.context.KeyringController.signTypedMessage(
+            params,
+            version as Parameters<
+              typeof Engine.context.KeyringController.signTypedMessage
+            >[1],
+          );
+        },
+      },
+      transaction: {
+        addTransaction(
+          txParams: Parameters<
+            typeof Engine.context.TransactionController.addTransaction
+          >[0],
+          opts: Parameters<
+            typeof Engine.context.TransactionController.addTransaction
+          >[1],
+        ) {
+          return Engine.context.TransactionController.addTransaction(
+            txParams,
+            opts,
+          );
+        },
+      },
+      remoteFeatureFlags: {
+        getState() {
+          return Engine.context.RemoteFeatureFlagController.state;
+        },
+        onStateChange(
+          handler: (state: {
+            remoteFeatureFlags: Record<string, unknown>;
+          }) => void,
+        ) {
+          Engine.controllerMessenger.subscribe(
+            'RemoteFeatureFlagController:stateChange',
+            handler as Parameters<
+              typeof Engine.controllerMessenger.subscribe<'RemoteFeatureFlagController:stateChange'>
+            >[1],
+          );
+          return () => {
+            Engine.controllerMessenger.unsubscribe(
+              'RemoteFeatureFlagController:stateChange',
+              handler as Parameters<
+                typeof Engine.controllerMessenger.subscribe<'RemoteFeatureFlagController:stateChange'>
+              >[1],
+            );
+          };
+        },
+      },
+      accountTree: {
+        getAccountsFromSelectedGroup() {
+          return Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup();
+        },
+        onSelectedAccountGroupChange(handler: () => void) {
+          Engine.controllerMessenger.subscribe(
+            'AccountTreeController:selectedAccountGroupChange',
+            handler as Parameters<
+              typeof Engine.controllerMessenger.subscribe<'AccountTreeController:selectedAccountGroupChange'>
+            >[1],
+          );
+          return () => {
+            Engine.controllerMessenger.unsubscribe(
+              'AccountTreeController:selectedAccountGroupChange',
+              handler as Parameters<
+                typeof Engine.controllerMessenger.subscribe<'AccountTreeController:selectedAccountGroupChange'>
+              >[1],
+            );
+          };
+        },
+      },
+      authentication: {
+        getBearerToken() {
+          return Engine.context.AuthenticationController.getBearerToken();
+        },
+      },
+      rewards: {
+        getPerpsDiscountForAccount(
+          caipAccountId: `${string}:${string}:${string}`,
+        ) {
+          return Engine.context.RewardsController.getPerpsDiscountForAccount(
+            caipAccountId,
+          );
+        },
+      },
+    },
   };
 }
 

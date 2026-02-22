@@ -2,12 +2,8 @@ import { createMockHyperLiquidProvider } from '../../../components/UI/Perps/__mo
 import {
   createMockServiceContext,
   createMockInfrastructure,
-  createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
-import type {
-  PerpsControllerState,
-  PerpsControllerMessenger,
-} from '../PerpsController';
+import type { PerpsControllerState } from '../PerpsController';
 import { PerpsAnalyticsEvent } from '../types';
 import type {
   PerpsProvider,
@@ -50,7 +46,6 @@ describe('AccountService', () => {
   let mockContext: ServiceContext;
   let mockRefreshAccountState: jest.Mock;
   let mockDeps: PerpsPlatformDependencies;
-  let mockMessenger: jest.Mocked<PerpsControllerMessenger>;
   let accountService: AccountService;
 
   const mockWithdrawParams: WithdrawParams = {
@@ -69,8 +64,7 @@ describe('AccountService', () => {
 
     // Create mock dependencies and service instance
     mockDeps = createMockInfrastructure();
-    mockMessenger = createMockMessenger();
-    accountService = new AccountService(mockDeps, mockMessenger);
+    accountService = new AccountService(mockDeps);
 
     jest.clearAllMocks();
 

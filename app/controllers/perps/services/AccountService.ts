@@ -6,7 +6,6 @@ import {
 } from '../constants/eventNames';
 import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type { PerpsControllerMessenger } from '../PerpsController';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import {
   PerpsAnalyticsEvent,
@@ -37,20 +36,13 @@ import { ensureError } from '../utils/errorUtils';
 export class AccountService {
   readonly #deps: PerpsPlatformDependencies;
 
-  readonly #messenger: PerpsControllerMessenger;
-
   /**
    * Create a new AccountService instance
    *
    * @param deps - Platform dependencies for logging, metrics, etc.
-   * @param messenger - Messenger for inter-controller communication
    */
-  constructor(
-    deps: PerpsPlatformDependencies,
-    messenger: PerpsControllerMessenger,
-  ) {
+  constructor(deps: PerpsPlatformDependencies) {
     this.#deps = deps;
-    this.#messenger = messenger;
   }
 
   /**
@@ -120,8 +112,10 @@ export class AccountService {
           const feeAmount = 1.0; // HyperLiquid withdrawal fee is $1 USDC
           const netAmount = Math.max(0, grossAmount - feeAmount);
 
-          // Get current account address via messenger
-          const evmAccount = getSelectedEvmAccount(this.#messenger);
+          // Get current account address via DI accountTree
+          const evmAccount = getSelectedEvmAccount(
+            this.#deps.controllers.accountTree,
+          );
           const accountAddress = evmAccount?.address ?? 'unknown';
 
           this.#deps.debugLogger.log(

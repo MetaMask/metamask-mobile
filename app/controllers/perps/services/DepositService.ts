@@ -1,10 +1,12 @@
 import { toHex } from '@metamask/controller-utils';
-import type { TransactionParams } from '@metamask/transaction-controller';
 import { parseCaipAssetId } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
 
-import type { PerpsControllerMessenger } from '../PerpsController';
-import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
+import type {
+  PerpsProvider,
+  PerpsPlatformDependencies,
+  PerpsTransactionParams,
+} from '../types';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { generateDepositId } from '../utils/idUtils';
 import { generateERC20TransferData } from '../utils/transferData';
@@ -25,20 +27,13 @@ const DEPOSIT_GAS_LIMIT = toHex(100000);
 export class DepositService {
   readonly #deps: PerpsPlatformDependencies;
 
-  readonly #messenger: PerpsControllerMessenger;
-
   /**
    * Create a new DepositService instance
    *
    * @param deps - Platform dependencies for logging, metrics, etc.
-   * @param messenger - Messenger for inter-controller communication
    */
-  constructor(
-    deps: PerpsPlatformDependencies,
-    messenger: PerpsControllerMessenger,
-  ) {
+  constructor(deps: PerpsPlatformDependencies) {
     this.#deps = deps;
-    this.#messenger = messenger;
   }
 
   /**
@@ -50,7 +45,7 @@ export class DepositService {
    * @returns Transaction data ready for TransactionController.addTransaction
    */
   async prepareTransaction(options: { provider: PerpsProvider }): Promise<{
-    transaction: TransactionParams;
+    transaction: PerpsTransactionParams;
     assetChainId: Hex;
     currentDepositId: string;
   }> {
@@ -72,8 +67,10 @@ export class DepositService {
       '0x0',
     );
 
-    // Get EVM account from selected account group via messenger
-    const evmAccount = getSelectedEvmAccount(this.#messenger);
+    // Get EVM account from selected account group via DI accountTree
+    const evmAccount = getSelectedEvmAccount(
+      this.#deps.controllers.accountTree,
+    );
     if (!evmAccount) {
       throw new Error(
         'No EVM-compatible account found in selected account group',
@@ -87,7 +84,7 @@ export class DepositService {
     const tokenAddress = parsedAsset.assetReference as Hex;
 
     // Build transaction parameters for TransactionController
-    const transaction: TransactionParams = {
+    const transaction: PerpsTransactionParams = {
       from: accountAddress,
       to: tokenAddress,
       value: '0x0',

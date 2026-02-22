@@ -1,5 +1,4 @@
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type { PerpsControllerMessenger } from '../PerpsController';
 import type { PerpsPlatformDependencies } from '../types';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
@@ -11,40 +10,30 @@ import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
  * Handles rewards-related operations and fee discount calculations.
  * Stateless service that coordinates with RewardsController and NetworkController.
  *
- * Instance-based service with constructor injection of platform dependencies
- * and messenger for inter-controller communication.
+ * Instance-based service with constructor injection of platform dependencies.
  */
 export class RewardsIntegrationService {
   readonly #deps: PerpsPlatformDependencies;
-
-  readonly #messenger: PerpsControllerMessenger;
 
   /**
    * Create a new RewardsIntegrationService instance
    *
    * @param deps - Platform dependencies for logging, metrics, etc.
-   * @param messenger - Messenger for inter-controller communication
    */
-  constructor(
-    deps: PerpsPlatformDependencies,
-    messenger: PerpsControllerMessenger,
-  ) {
+  constructor(deps: PerpsPlatformDependencies) {
     this.#deps = deps;
-    this.#messenger = messenger;
   }
 
   /**
-   * Get chain ID for a network client via messenger
+   * Get chain ID for a network client via DI network controller
    *
    * @param networkClientId - The network client identifier to look up.
    * @returns The chain ID string, or undefined if the network client is not found.
    */
   #getChainIdForNetwork(networkClientId: string): string | undefined {
     try {
-      const networkClient = this.#messenger.call(
-        'NetworkController:getNetworkClientById',
-        networkClientId,
-      );
+      const networkClient =
+        this.#deps.controllers.network.getNetworkClientById(networkClientId);
       return networkClient.configuration.chainId;
     } catch {
       // Network client may not exist
@@ -60,7 +49,9 @@ export class RewardsIntegrationService {
    */
   async calculateUserFeeDiscount(): Promise<number | undefined> {
     try {
-      const evmAccount = getSelectedEvmAccount(this.#messenger);
+      const evmAccount = getSelectedEvmAccount(
+        this.#deps.controllers.accountTree,
+      );
 
       if (!evmAccount) {
         this.#deps.debugLogger.log(
@@ -69,8 +60,8 @@ export class RewardsIntegrationService {
         return undefined;
       }
 
-      // Get the chain ID using messenger
-      const networkState = this.#messenger.call('NetworkController:getState');
+      // Get the chain ID via DI network controller
+      const networkState = this.#deps.controllers.network.getState();
       const { selectedNetworkClientId } = networkState;
       const chainId = this.#getChainIdForNetwork(selectedNetworkClientId);
 
@@ -115,9 +106,11 @@ export class RewardsIntegrationService {
         return undefined;
       }
 
-      // Use rewards from deps (stays as DI - no messenger action in core)
+      // Use rewards controller via DI (same pattern as other controllers.*)
       const discountBips =
-        await this.#deps.rewards.getFeeDiscount(caipAccountId);
+        await this.#deps.controllers.rewards.getPerpsDiscountForAccount(
+          caipAccountId,
+        );
 
       this.#deps.debugLogger.log(
         'RewardsIntegrationService: Fee discount calculated',
