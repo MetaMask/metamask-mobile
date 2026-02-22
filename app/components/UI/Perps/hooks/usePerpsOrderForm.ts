@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import {
-  TRADING_DEFAULTS,
-  OrderType,
-  getMaxAllowedAmount,
-  selectTradeConfiguration,
-  selectPendingTradeConfiguration,
-  type OrderFormState,
-} from '@metamask/perps-controller';
+import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
+import { OrderType } from '../controllers/types';
+import type { OrderFormState } from '../types/perps-types';
+import { getMaxAllowedAmount } from '../utils/orderCalculations';
 import {
   usePerpsLiveAccount,
   usePerpsLivePositions,
@@ -15,6 +11,10 @@ import {
 } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
+import {
+  selectTradeConfiguration,
+  selectPendingTradeConfiguration,
+} from '../controllers/selectors';
 import { usePerpsSelector } from './usePerpsSelector';
 
 interface UsePerpsOrderFormParams {
@@ -205,26 +205,28 @@ export function usePerpsOrderForm(
     }
   }, [initialAmountValue]);
 
+  // Restore pending config values on mount (only once)
+  const hasRestoredPendingConfig = useRef(false);
   useEffect(() => {
-    if (!pendingConfig) return;
-    setOrderForm((prev) => ({
-      ...prev,
-      ...(pendingConfig.amount && { amount: pendingConfig.amount }),
-      ...(pendingConfig.leverage && { leverage: pendingConfig.leverage }),
-      ...(pendingConfig.takeProfitPrice !== undefined && {
-        takeProfitPrice: pendingConfig.takeProfitPrice,
-      }),
-      ...(pendingConfig.stopLossPrice !== undefined && {
-        stopLossPrice: pendingConfig.stopLossPrice,
-      }),
-      ...(pendingConfig.limitPrice !== undefined && {
-        limitPrice: pendingConfig.limitPrice,
-      }),
-      ...(pendingConfig.orderType && { type: pendingConfig.orderType }),
-    }));
-    // We don't need to depend on pendingConfig because we only want to restore it once when the component mounts
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!hasRestoredPendingConfig.current && pendingConfig) {
+      setOrderForm((prev) => ({
+        ...prev,
+        ...(pendingConfig.amount && { amount: pendingConfig.amount }),
+        ...(pendingConfig.leverage && { leverage: pendingConfig.leverage }),
+        ...(pendingConfig.takeProfitPrice !== undefined && {
+          takeProfitPrice: pendingConfig.takeProfitPrice,
+        }),
+        ...(pendingConfig.stopLossPrice !== undefined && {
+          stopLossPrice: pendingConfig.stopLossPrice,
+        }),
+        ...(pendingConfig.limitPrice !== undefined && {
+          limitPrice: pendingConfig.limitPrice,
+        }),
+        ...(pendingConfig.orderType && { type: pendingConfig.orderType }),
+      }));
+      hasRestoredPendingConfig.current = true;
+    }
+  }, [pendingConfig]);
 
   // Sync leverage from existing position when it loads asynchronously
   // This handles the case where positions haven't loaded yet when form initializes

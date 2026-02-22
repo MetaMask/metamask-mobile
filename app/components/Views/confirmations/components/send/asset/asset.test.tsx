@@ -94,6 +94,7 @@ jest.mock(
         onChangeText,
         placeholder,
         onPressClearButton,
+        showClearButton,
       }: // eslint-disable-next-line @typescript-eslint/no-explicit-any
       any) => (
         <TextInput
@@ -102,6 +103,7 @@ jest.mock(
           onChangeText={onChangeText}
           placeholder={placeholder}
           onPressClearButton={onPressClearButton}
+          showClearButton={showClearButton}
         />
       ),
     };
@@ -285,14 +287,14 @@ describe('Asset', () => {
     render(<Asset />);
 
     const searchInput = screen.getByTestId('search-input');
-    expect(searchInput.props.value).toBe('ETH');
+    expect(searchInput.props.showClearButton).toBe(true);
   });
 
-  it('has empty value when search query is empty', () => {
+  it('hides clear button when search query is empty', () => {
     render(<Asset />);
 
     const searchInput = screen.getByTestId('search-input');
-    expect(searchInput.props.value).toBe('');
+    expect(searchInput.props.showClearButton).toBe(false);
   });
 
   it('calls clearSearch when clear button is pressed', () => {

@@ -43,7 +43,7 @@ jest.mock('../../../selectors/tokensController', () => ({
 }));
 
 jest.mock('../../../core/redux/slices/bridge', () => ({
-  selectEnabledSourceChains: jest.fn(() => []),
+  selectAllBridgeableNetworks: jest.fn(() => []),
 }));
 
 // Mock swaps selectors

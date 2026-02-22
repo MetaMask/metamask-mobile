@@ -60,7 +60,6 @@ import {
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
   ROUNDING_CONFIG,
-  SAFE_EXEC_GAS_LIMIT,
 } from './constants';
 import {
   computeProxyAddress,
@@ -425,7 +424,7 @@ export class PolymarketProvider implements PredictProvider {
    */
   public async getPrices({
     queries,
-  }: GetPriceParams): Promise<GetPriceResponse> {
+  }: Omit<GetPriceParams, 'providerId'>): Promise<GetPriceResponse> {
     if (!queries || queries.length === 0) {
       throw new Error('queries parameter is required and must not be empty');
     }
@@ -962,7 +961,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async previewOrder(
-    params: PreviewOrderParams & {
+    params: Omit<PreviewOrderParams, 'providerId'> & {
       signer: Signer;
       feeCollection?: PredictFeeCollection;
     },
@@ -982,7 +981,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async placeOrder(
-    params: PlaceOrderParams & { signer: Signer },
+    params: Omit<PlaceOrderParams, 'providerId'> & { signer: Signer },
   ): Promise<OrderResult> {
     const { signer, preview } = params;
     const {
@@ -1602,7 +1601,6 @@ export class PolymarketProvider implements PredictProvider {
         params: {
           to: MATIC_CONTRACTS.collateral as Hex,
           data: callData,
-          gas: numberToHex(SAFE_EXEC_GAS_LIMIT) as Hex,
         },
         type: TransactionType.predictWithdraw,
       },

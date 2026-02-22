@@ -40,60 +40,32 @@ interface ValueType {
 /**
  * Support backwards compatibility DAI while it's still being deprecated. See EIP-2612 for more info.
  */
-const coerceAllowedToBoolean = (
-  allowed?: number | string | boolean | null,
-): boolean | undefined => {
-  if (allowed === undefined) {
-    return undefined;
-  }
-
-  return Boolean(allowed);
-};
-
-const coerceNumberishToBigInt = (
-  value?: number | string | BigNumber | null,
-): bigint | undefined => {
-  if (value === undefined || value === null) {
-    return undefined;
-  }
-
-  try {
-    if (value instanceof BigNumber) {
-      return BigInt(value.toFixed());
-    }
-    return BigInt(value);
-  } catch {
-    return undefined;
-  }
-};
-
 export const isPermitDaiUnlimited = (
   tokenAddress: string,
-  allowed?: number | string | boolean | null,
+  allowed?: number | string | boolean,
 ) => {
   if (!tokenAddress) return false;
 
-  const parsedAllowed = coerceAllowedToBoolean(allowed);
-
   return (
     tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase() &&
-    parsedAllowed === true
+    Number(allowed) > 0
   );
 };
 
 export const isPermitDaiRevoke = (
   tokenAddress: string,
-  allowed?: number | string | boolean | null,
-  value?: number | string | BigNumber | null,
+  allowed?: number | string | boolean,
+  value?: number | string | BigNumber,
 ) => {
   if (!tokenAddress) return false;
 
-  const parsedAllowed = coerceAllowedToBoolean(allowed);
-  const parsedValue = coerceNumberishToBigInt(value);
-
   return (
     tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase() &&
-    (parsedAllowed === false || parsedValue === BigInt(0))
+    (allowed === 0 ||
+      allowed === false ||
+      allowed === 'false' ||
+      value === '0' ||
+      (value instanceof BigNumber && value.eq(0)))
   );
 };
 

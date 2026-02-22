@@ -154,14 +154,6 @@ describe('deepLinkAnalytics', () => {
       expect(result.symbol).toBeUndefined();
     });
 
-    it('extracts asset properties for asset route', () => {
-      const result = extractSensitiveProperties(DeepLinkRoute.ASSET, {
-        ...mockUrlParams,
-        assetId: 'eip155:1/erc20:0x1',
-      });
-      expect(result.asset).toBe('eip155:1/erc20:0x1');
-    });
-
     it('extracts perps-specific properties including symbol and navigation', () => {
       const perpsRoute = DeepLinkRoute.PERPS;
       const result = extractSensitiveProperties(perpsRoute, mockUrlParams);
@@ -463,12 +455,6 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.HOME);
     });
 
-    it('maps asset action to ASSET route', () => {
-      const assetAction = ACTIONS.ASSET;
-      const result = mapSupportedActionToRoute(assetAction);
-      expect(result).toBe(DeepLinkRoute.ASSET);
-    });
-
     it.each([
       [ACTIONS.DAPP, DeepLinkRoute.DAPP],
       [ACTIONS.WC, DeepLinkRoute.WC],
@@ -523,13 +509,6 @@ describe('deepLinkAnalytics', () => {
         'https://link.metamask.io/sell?crypto=ETH',
       );
       expect(result).toBe(DeepLinkRoute.SELL);
-    });
-
-    it('extract asset route', () => {
-      const result = extractRouteFromUrl(
-        'https://link.metamask.io/asset?assetId=eip155:1/erc20:0x1',
-      );
-      expect(result).toBe(DeepLinkRoute.ASSET);
     });
 
     it('extract shield route', () => {

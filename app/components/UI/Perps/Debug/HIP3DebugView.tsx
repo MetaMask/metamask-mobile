@@ -14,10 +14,8 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { ensureError } from '../../../../util/errorUtils';
 import styleSheet from './HIP3DebugView.styles';
 import Engine from '../../../../core/Engine';
-import {
-  type HyperLiquidProvider,
-  type MarketInfo,
-} from '@metamask/perps-controller';
+import type { HyperLiquidProvider } from '../controllers/providers/HyperLiquidProvider';
+import type { MarketInfo } from '../controllers/types';
 
 interface TestResult {
   status: 'idle' | 'loading' | 'success' | 'error';

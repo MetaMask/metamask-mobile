@@ -1,0 +1,149 @@
+diff --git a/dist/SmartTransactionsController.cjs b/dist/SmartTransactionsController.cjs
+index 4fdd658575c4f28685f390a05c81efc16dbdb363..8317eaa156df56cb27022bfb5a3776c2b34911f9 100644
+--- a/dist/SmartTransactionsController.cjs
++++ b/dist/SmartTransactionsController.cjs
+@@ -327,7 +327,7 @@ class SmartTransactionsController extends (0, polling_controller_1.StaticInterva
+     }
+     // * After this successful call client must add a nonce representative to
+     // * transaction controller external transactions list
+-    async submitSignedTransactions({ transactionMeta, txParams, signedTransactions, signedCanceledTransactions = [], networkClientId, }) {
++    async submitSignedTransactions({ transactionMeta, txParams, signedTransactions, signedCanceledTransactions = [], signedTransactionsWithMetadata, networkClientId, }) {
+         var _a, _b;
+         const selectedNetworkClientId = networkClientId !== null && networkClientId !== void 0 ? networkClientId : this.messenger.call('NetworkController:getState').selectedNetworkClientId;
+         const chainId = __classPrivateFieldGet(this, _SmartTransactionsController_instances, "m", _SmartTransactionsController_getChainId).call(this, {
+@@ -341,6 +341,7 @@ class SmartTransactionsController extends (0, polling_controller_1.StaticInterva
+             body: JSON.stringify({
+                 rawTxs: signedTransactions,
+                 rawCancelTxs: signedCanceledTransactions,
++                rawTxsWithMetadata: signedTransactionsWithMetadata,
+             }),
+         }));
+         const time = Date.now();
+diff --git a/dist/SmartTransactionsController.d.cts b/dist/SmartTransactionsController.d.cts
+index 15ab0bf321ffffb4d3d1c8cc834a22c67d398b8a..80c9936c5b35d57dd7178956384a85f5b122ff3c 100644
+--- a/dist/SmartTransactionsController.d.cts
++++ b/dist/SmartTransactionsController.d.cts
+@@ -5,7 +5,7 @@ import type { Messenger } from "@metamask/messenger";
+ import type { NetworkClientId, NetworkControllerGetNetworkClientByIdAction, NetworkControllerGetStateAction, NetworkControllerStateChangeEvent } from "@metamask/network-controller";
+ import type { TransactionControllerGetNonceLockAction, TransactionControllerGetTransactionsAction, TransactionControllerUpdateTransactionAction, TransactionMeta, TransactionParams } from "@metamask/transaction-controller";
+ import { MetaMetricsEventCategory, MetaMetricsEventName } from "./constants.cjs";
+-import type { Fees, Hex, IndividualTxFees, SignedCanceledTransaction, SignedTransaction, SmartTransaction, SmartTransactionsStatus, UnsignedTransaction, MetaMetricsProps, FeatureFlags, ClientId } from "./types.cjs";
++import type { Fees, Hex, IndividualTxFees, SignedCanceledTransaction, SignedTransaction, SmartTransaction, SmartTransactionsStatus, UnsignedTransaction, MetaMetricsProps, FeatureFlags, ClientId, SignedTransactionWithMetadata } from "./types.cjs";
+ import { SmartTransactionStatuses } from "./types.cjs";
+ import { getSmartTransactionMetricsProperties, getSmartTransactionMetricsSensitiveProperties } from "./utils.cjs";
+ export declare const DEFAULT_INTERVAL: number;
+@@ -122,9 +122,10 @@ export declare class SmartTransactionsController extends SmartTransactionsContro
+     getFees(tradeTx: UnsignedTransaction, approvalTx?: UnsignedTransaction, { networkClientId }?: {
+         networkClientId?: NetworkClientId;
+     }): Promise<Fees>;
+-    submitSignedTransactions({ transactionMeta, txParams, signedTransactions, signedCanceledTransactions, networkClientId, }: {
++    submitSignedTransactions({ transactionMeta, txParams, signedTransactions, signedCanceledTransactions, signedTransactionsWithMetadata, networkClientId, }: {
+         signedTransactions: SignedTransaction[];
+         signedCanceledTransactions?: SignedCanceledTransaction[];
++        signedTransactionsWithMetadata?: SignedTransactionWithMetadata[];
+         transactionMeta?: TransactionMeta;
+         txParams?: TransactionParams;
+         networkClientId?: NetworkClientId;
+diff --git a/dist/SmartTransactionsController.d.mts b/dist/SmartTransactionsController.d.mts
+index a174b4a49998d6758cd7587b871cbbc37dd5c9cb..5c6797101637fc982481107c9b797d7062a7e227 100644
+--- a/dist/SmartTransactionsController.d.mts
++++ b/dist/SmartTransactionsController.d.mts
+@@ -5,7 +5,7 @@ import type { Messenger } from "@metamask/messenger";
+ import type { NetworkClientId, NetworkControllerGetNetworkClientByIdAction, NetworkControllerGetStateAction, NetworkControllerStateChangeEvent } from "@metamask/network-controller";
+ import type { TransactionControllerGetNonceLockAction, TransactionControllerGetTransactionsAction, TransactionControllerUpdateTransactionAction, TransactionMeta, TransactionParams } from "@metamask/transaction-controller";
+ import { MetaMetricsEventCategory, MetaMetricsEventName } from "./constants.mjs";
+-import type { Fees, Hex, IndividualTxFees, SignedCanceledTransaction, SignedTransaction, SmartTransaction, SmartTransactionsStatus, UnsignedTransaction, MetaMetricsProps, FeatureFlags, ClientId } from "./types.mjs";
++import type { Fees, Hex, IndividualTxFees, SignedCanceledTransaction, SignedTransaction, SmartTransaction, SmartTransactionsStatus, UnsignedTransaction, MetaMetricsProps, FeatureFlags, ClientId, SignedTransactionWithMetadata } from "./types.mjs";
+ import { SmartTransactionStatuses } from "./types.mjs";
+ import { getSmartTransactionMetricsProperties, getSmartTransactionMetricsSensitiveProperties } from "./utils.mjs";
+ export declare const DEFAULT_INTERVAL: number;
+@@ -122,9 +122,10 @@ export declare class SmartTransactionsController extends SmartTransactionsContro
+     getFees(tradeTx: UnsignedTransaction, approvalTx?: UnsignedTransaction, { networkClientId }?: {
+         networkClientId?: NetworkClientId;
+     }): Promise<Fees>;
+-    submitSignedTransactions({ transactionMeta, txParams, signedTransactions, signedCanceledTransactions, networkClientId, }: {
++    submitSignedTransactions({ transactionMeta, txParams, signedTransactions, signedCanceledTransactions, signedTransactionsWithMetadata, networkClientId, }: {
+         signedTransactions: SignedTransaction[];
+         signedCanceledTransactions?: SignedCanceledTransaction[];
++        signedTransactionsWithMetadata?: SignedTransactionWithMetadata[];
+         transactionMeta?: TransactionMeta;
+         txParams?: TransactionParams;
+         networkClientId?: NetworkClientId;
+diff --git a/dist/index.d.cts b/dist/index.d.cts
+index 4ee8cafa424027756e52f7915256f2d2a851d104..fcd84e08a4e2a9e2ea1cab781e4854a58afac48d 100644
+--- a/dist/index.d.cts
++++ b/dist/index.d.cts
+@@ -1,6 +1,6 @@
+ export { SmartTransactionsController } from "./SmartTransactionsController.cjs";
+ export type { SmartTransactionsControllerMessenger, SmartTransactionsControllerState, SmartTransactionsControllerGetStateAction, SmartTransactionsControllerActions, SmartTransactionsControllerStateChangeEvent, SmartTransactionsControllerSmartTransactionEvent, SmartTransactionsControllerSmartTransactionConfirmationDoneEvent, SmartTransactionsControllerEvents, } from "./SmartTransactionsController.cjs";
+-export { type Fee, type Fees, type IndividualTxFees, type FeatureFlags, type SmartTransaction, SmartTransactionMinedTx, SmartTransactionCancellationReason, SmartTransactionStatuses, ClientId, } from "./types.cjs";
++export { type Fee, type Fees, type IndividualTxFees, type FeatureFlags, type SmartTransaction, type SentinelMeta, type SignedTransactionWithMetadata, SmartTransactionMinedTx, SmartTransactionCancellationReason, SmartTransactionStatuses, ClientId, } from "./types.cjs";
+ export { MetaMetricsEventName, MetaMetricsEventCategory } from "./constants.cjs";
+ export { getSmartTransactionMetricsProperties, getSmartTransactionMetricsSensitiveProperties, } from "./utils.cjs";
+ //# sourceMappingURL=index.d.cts.map
+\ No newline at end of file
+diff --git a/dist/index.d.mts b/dist/index.d.mts
+index f4a89e3d58c5286dde1400a5cae29d1a4cc79027..b69b7afea23e655e79538cb7b3590821bc5f28ee 100644
+--- a/dist/index.d.mts
++++ b/dist/index.d.mts
+@@ -1,6 +1,6 @@
+ export { SmartTransactionsController } from "./SmartTransactionsController.mjs";
+ export type { SmartTransactionsControllerMessenger, SmartTransactionsControllerState, SmartTransactionsControllerGetStateAction, SmartTransactionsControllerActions, SmartTransactionsControllerStateChangeEvent, SmartTransactionsControllerSmartTransactionEvent, SmartTransactionsControllerSmartTransactionConfirmationDoneEvent, SmartTransactionsControllerEvents, } from "./SmartTransactionsController.mjs";
+-export { type Fee, type Fees, type IndividualTxFees, type FeatureFlags, type SmartTransaction, SmartTransactionMinedTx, SmartTransactionCancellationReason, SmartTransactionStatuses, ClientId, } from "./types.mjs";
++export { type Fee, type Fees, type IndividualTxFees, type FeatureFlags, type SmartTransaction, type SentinelMeta, type SignedTransactionWithMetadata, SmartTransactionMinedTx, SmartTransactionCancellationReason, SmartTransactionStatuses, ClientId, } from "./types.mjs";
+ export { MetaMetricsEventName, MetaMetricsEventCategory } from "./constants.mjs";
+ export { getSmartTransactionMetricsProperties, getSmartTransactionMetricsSensitiveProperties, } from "./utils.mjs";
+ //# sourceMappingURL=index.d.mts.map
+\ No newline at end of file
+diff --git a/dist/types.d.cts b/dist/types.d.cts
+index ce40c052ed5cc9cdf44c116af86cafd74b9a5108..14eefc1d94bb5f6fd869ef24dc8856cdf977e457 100644
+--- a/dist/types.d.cts
++++ b/dist/types.d.cts
+@@ -1,4 +1,10 @@
+ import type { NetworkClientId } from "@metamask/network-controller";
++import type { TransactionType } from "@metamask/transaction-controller";
++
++export interface SentinelMeta {
++  txType?: TransactionType;
++}
++
+ /** API */
+ export declare enum APIType {
+     'GET_FEES' = 0,
+@@ -102,6 +108,10 @@ export declare type Fees = {
+ };
+ export declare type UnsignedTransaction = any;
+ export declare type SignedTransaction = any;
++export declare type SignedTransactionWithMetadata = {
++    tx: string;
++    metadata?: SentinelMeta;
++};
+ export declare type SignedCanceledTransaction = any;
+ export declare type Hex = `0x${string}`;
+ export declare type MetaMetricsProps = {
+diff --git a/dist/types.d.mts b/dist/types.d.mts
+index 0e76dc27efeb49352d4580f4da11dc95d0972f3b..d53eee79db73f53ffc9cded6b1743cffa870dde0 100644
+--- a/dist/types.d.mts
++++ b/dist/types.d.mts
+@@ -1,4 +1,10 @@
+ import type { NetworkClientId } from "@metamask/network-controller";
++import type { TransactionType } from "@metamask/transaction-controller";
++
++export interface SentinelMeta {
++  txType?: TransactionType;
++}
++
+ /** API */
+ export declare enum APIType {
+     'GET_FEES' = 0,
+@@ -102,6 +108,10 @@ export declare type Fees = {
+ };
+ export declare type UnsignedTransaction = any;
+ export declare type SignedTransaction = any;
++export declare type SignedTransactionWithMetadata = {
++    tx: string;
++    metadata?: SentinelMeta;
++};
+ export declare type SignedCanceledTransaction = any;
+ export declare type Hex = `0x${string}`;
+ export declare type MetaMetricsProps = {

@@ -3,7 +3,7 @@ import { Pressable } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
-import { CandlePeriod, CANDLE_PERIODS } from '@metamask/perps-controller';
+import { CandlePeriod, CANDLE_PERIODS } from '../../constants/chartConfig';
 import { getPerpsCandlePeriodSelector } from '../../Perps.testIds';
 import Icon, {
   IconColor,

@@ -4,7 +4,6 @@ import Engine from '../../../../core/Engine';
 import { usePredictMarketData } from './usePredictMarketData';
 import { PredictMarket, Recurrence } from '../types';
 
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 // Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../core/Engine', () => ({
@@ -21,7 +20,7 @@ describe('usePredictMarketData', () => {
   const mockMarketData: PredictMarket[] = [
     {
       id: 'market-1',
-      providerId: POLYMARKET_PROVIDER_ID,
+      providerId: 'polymarket',
       slug: 'bitcoin-price-prediction',
       title: 'Will Bitcoin reach $100k by end of 2024?',
       description: 'Bitcoin price prediction market',
@@ -33,7 +32,7 @@ describe('usePredictMarketData', () => {
       outcomes: [
         {
           id: 'outcome-1',
-          providerId: POLYMARKET_PROVIDER_ID,
+          providerId: 'polymarket',
           marketId: 'market-1',
           title: 'Yes',
           description: 'Bitcoin will reach $100k',
@@ -51,7 +50,7 @@ describe('usePredictMarketData', () => {
         },
         {
           id: 'outcome-2',
-          providerId: POLYMARKET_PROVIDER_ID,
+          providerId: 'polymarket',
           marketId: 'market-1',
           title: 'No',
           description: 'Bitcoin will not reach $100k',
@@ -73,7 +72,7 @@ describe('usePredictMarketData', () => {
     },
     {
       id: 'market-2',
-      providerId: POLYMARKET_PROVIDER_ID,
+      providerId: 'polymarket',
       slug: 'ethereum-price-prediction',
       title: 'Will Ethereum reach $100000 by end of 2025?',
       description: 'Ethereum price prediction market',
@@ -85,7 +84,7 @@ describe('usePredictMarketData', () => {
       outcomes: [
         {
           id: 'outcome-3',
-          providerId: POLYMARKET_PROVIDER_ID,
+          providerId: 'polymarket',
           marketId: 'market-2',
           title: 'Yes',
           description: 'Ethereum will reach $100k',
@@ -103,7 +102,7 @@ describe('usePredictMarketData', () => {
         },
         {
           id: 'outcome-4',
-          providerId: POLYMARKET_PROVIDER_ID,
+          providerId: 'polymarket',
           marketId: 'market-2',
           title: 'No',
           description: 'Ethereum will not reach $100k',

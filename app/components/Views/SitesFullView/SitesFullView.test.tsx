@@ -373,7 +373,7 @@ describe('SitesFullView', () => {
   });
 
   describe('Data Fetching', () => {
-    it('fetches sites on mount', () => {
+    it('fetches sites with limit of 100', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -382,7 +382,7 @@ describe('SitesFullView', () => {
 
       render(<SitesFullView />);
 
-      expect(mockUseSitesData).toHaveBeenCalledWith('');
+      expect(mockUseSitesData).toHaveBeenCalledWith('', 100);
     });
 
     it('calls refetch when refresh is triggered', async () => {

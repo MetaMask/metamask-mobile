@@ -2,7 +2,7 @@
  * Margin adjustment calculation utilities
  * Provides risk assessment and margin calculation functions for position management
  */
-import { MARGIN_ADJUSTMENT_CONFIG } from '@metamask/perps-controller';
+import { MARGIN_ADJUSTMENT_CONFIG } from '../constants/perpsConfig';
 
 export type RiskLevel = 'safe' | 'warning' | 'danger';
 

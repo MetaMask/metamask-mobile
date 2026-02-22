@@ -1,10 +1,9 @@
-import { RegressionNetworkAbstractions } from '../../tags';
-import { loginToApp } from '../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../flows/browser.flow';
+import { RegressionNetworkAbstractions } from '../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import WalletView from '../../page-objects/wallet/WalletView';
-import BrowserView from '../../page-objects/Browser/BrowserView';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import BrowserView from '../../../e2e/pages/Browser/BrowserView';
 import Assertions from '../../framework/Assertions';
 
 describe(

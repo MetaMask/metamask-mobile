@@ -1,12 +1,14 @@
-import TestHelpers from '../../../../helpers';
-import { RegressionNetworkExpansion } from '../../../../tags';
-import Browser from '../../../../page-objects/Browser/BrowserView';
-import NetworkListModal from '../../../../page-objects/Network/NetworkListModal';
-import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAccountsModal';
+import TestHelpers from '../../../../../e2e/helpers';
+import { RegressionNetworkExpansion } from '../../../../../e2e/tags';
+import Browser from '../../../../../e2e/pages/Browser/BrowserView';
+import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
+import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../../../flows/browser.flow';
+import {
+  loginToApp,
+  navigateToBrowserView,
+} from '../../../../../e2e/viewHelper';
 import Assertions from '../../../../framework/Assertions';
 import { DappVariants } from '../../../../framework/Constants';
 

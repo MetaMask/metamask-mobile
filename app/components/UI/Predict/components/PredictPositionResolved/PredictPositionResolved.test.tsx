@@ -6,7 +6,6 @@ import {
   type PredictPosition as PredictPositionType,
 } from '../../types';
 
-import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock strings function from i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string | number>) => {
@@ -42,7 +41,7 @@ jest.mock('dayjs', () => {
 
 const basePosition: PredictPositionType = {
   id: 'pos-1',
-  providerId: POLYMARKET_PROVIDER_ID,
+  providerId: 'polymarket',
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcomeTokenId: '0',
@@ -63,17 +62,12 @@ const basePosition: PredictPositionType = {
   endDate: '2020-01-01T00:00:00Z', // Past date so it shows "Ended X ago" instead of "Resolved early"
 };
 
-const renderComponent = (
-  overrides?: Partial<PredictPositionType>,
-  privacyMode = false,
-) => {
+const renderComponent = (overrides?: Partial<PredictPositionType>) => {
   const position: PredictPositionType = {
     ...basePosition,
     ...overrides,
   } as PredictPositionType;
-  return render(
-    <PredictPositionResolved position={position} privacyMode={privacyMode} />,
-  );
+  return render(<PredictPositionResolved position={position} />);
 };
 
 describe('PredictPositionResolved', () => {
@@ -118,11 +112,7 @@ describe('PredictPositionResolved', () => {
   it('calls onPress when position is tapped', () => {
     const mockOnPress = jest.fn();
     render(
-      <PredictPositionResolved
-        position={basePosition}
-        onPress={mockOnPress}
-        privacyMode={false}
-      />,
+      <PredictPositionResolved position={basePosition} onPress={mockOnPress} />,
     );
 
     const touchableElement = screen.getByText(basePosition.title);
@@ -138,28 +128,5 @@ describe('PredictPositionResolved', () => {
     const touchableElement = screen.getByText(basePosition.title);
     // Should not throw when onPress is not provided
     expect(() => fireEvent.press(touchableElement)).not.toThrow();
-  });
-
-  describe('privacy mode', () => {
-    it('hides won amount and position info when privacy mode is enabled', () => {
-      const { queryByText, getByText, queryAllByText } = renderComponent(
-        undefined,
-        true,
-      );
-
-      expect(queryByText(/\$123\.45 on Yes/)).toBeNull();
-      expect(queryByText(/Ended 2 days ago/)).toBeNull();
-      expect(queryByText(/Won\s+\$2,345\.67/)).toBeNull();
-      expect(getByText(basePosition.title)).toBeOnTheScreen();
-      expect(queryAllByText(/•+/).length).toBeGreaterThan(0);
-    });
-
-    it('displays won amount and position info when privacy mode is disabled', () => {
-      renderComponent();
-
-      expect(screen.getByText(/\$123\.45 on Yes/)).toBeOnTheScreen();
-      expect(screen.getByText(/Ended 2 days ago/)).toBeOnTheScreen();
-      expect(screen.getByText(/Won\s+\$2,345\.67/)).toBeOnTheScreen();
-    });
   });
 });

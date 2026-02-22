@@ -6,13 +6,7 @@
  * Provider-agnostic: works with Anthropic, OpenAI, or Google.
  */
 
-import {
-  ToolInput,
-  ModeAnalysisTypes,
-  SkillMetadata,
-  AnalysisContext,
-  type ModeConfig,
-} from '../types';
+import { ToolInput, ModeAnalysisTypes, SkillMetadata } from '../types';
 import { LLM_CONFIG } from '../config';
 import { getToolDefinitions } from '../ai-tools/tool-registry';
 import { executeTool, ToolContext } from '../ai-tools/tool-executor';
@@ -31,31 +25,35 @@ import {
   createConservativeResult as createSelectTagsConservativeResult,
   createEmptyResult as createSelectTagsEmptyResult,
   outputAnalysis as outputSelectTagsAnalysis,
-  checkHardRules as checkSelectTagsHardRules,
 } from '../modes/select-tags/handlers';
 
 /**
- * Mode Registry — see ModeConfig in types/index.ts for the full interface.
+ * Mode Registry
  *
- * To add a new mode:
- * 1. Define its result type and add it to ModeAnalysisTypes
- * 2. Implement all required ModeConfig<T> fields
- * 3. Register it here
+ * Each mode defines its handlers for processing and output.
+ * systemPromptBuilder now takes availableSkills parameter for on-demand skill loading.
  */
-export const MODES: {
-  [K in keyof ModeAnalysisTypes]: ModeConfig<ModeAnalysisTypes[K]>;
-} = {
+export const MODES = {
   'select-tags': {
     description: 'Analyze code changes and select E2E test tags to run',
     finalizeToolName: 'finalize_tag_selection',
-    systemPromptBuilder: buildSelectTagsSystemPrompt,
+    systemPromptBuilder: buildSelectTagsSystemPrompt, // Takes SkillMetadata[]
     taskPromptBuilder: buildSelectTagsTaskPrompt,
     processAnalysis: processSelectTagsAnalysis,
     createConservativeResult: createSelectTagsConservativeResult,
     createEmptyResult: createSelectTagsEmptyResult,
     outputAnalysis: outputSelectTagsAnalysis,
-    checkHardRules: checkSelectTagsHardRules,
   },
+  // Future modes (add imports and register here):
+  // 'suggest-migration': {
+  //   description: 'Identify E2E tests that could be unit/integration tests',
+  //   finalizeToolName: 'finalize_migration_suggestions',
+  //   taskPromptBuilder: buildMigrationTaskPrompt,
+  //   processAnalysis: migrationHandlers.processAnalysis,
+  //   createConservativeResult: migrationHandlers.createConservativeResult,
+  //   createEmptyResult: migrationHandlers.createEmptyResult,
+  //   outputAnalysis: migrationHandlers.outputAnalysis,
+  // },
 };
 
 // Type aliases for mode keys and analysis results
@@ -74,6 +72,16 @@ export function validateMode(modeInput?: string): ModeKey {
   }
 
   return modeInput as ModeKey;
+}
+
+/**
+ * Analysis context containing all parameters needed for the analysis
+ */
+export interface AnalysisContext {
+  baseDir: string;
+  baseBranch: string;
+  prNumber?: number;
+  githubRepo?: string;
 }
 
 /**
@@ -96,14 +104,6 @@ export async function analyzeWithAgent<M extends ModeKey>(
 ): Promise<ModeAnalysisResult<M>> {
   // Get mode configuration
   const modeConfig = MODES[mode];
-
-  // Check mode-specific hard rules before AI analysis
-  if (modeConfig.checkHardRules) {
-    const hardRuleResult = modeConfig.checkHardRules(allChangedFiles, context);
-    if (hardRuleResult) {
-      return hardRuleResult as ModeAnalysisResult<M>;
-    }
-  }
 
   // Build system prompt with available skills metadata
   const systemPrompt = modeConfig.systemPromptBuilder(availableSkills);

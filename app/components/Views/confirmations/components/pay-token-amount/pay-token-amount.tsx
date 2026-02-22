@@ -17,7 +17,6 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
 } from '../../hooks/pay/useTransactionPayData';
-import { isTransactionPayWithdraw } from '../../utils/transaction';
 
 export interface PayTokenAmountProps {
   amountHuman: string;
@@ -31,7 +30,6 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   const targetTokenAddress = getTokenAddress(transaction);
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const isQuotesLoading = useIsTransactionPayLoading();
-  const isWithdraw = isTransactionPayWithdraw(transaction);
 
   const fiatRequests = useMemo(
     () =>
@@ -70,11 +68,6 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 
     return formatAmount(I18n.locale, payTokenAmount);
   }, [amountHuman, disabled, payToken, fiatRates]);
-
-  // Don't render for withdrawal transactions - they use PayWithRow for token selection
-  if (isWithdraw) {
-    return null;
-  }
 
   if (disabled) {
     return (

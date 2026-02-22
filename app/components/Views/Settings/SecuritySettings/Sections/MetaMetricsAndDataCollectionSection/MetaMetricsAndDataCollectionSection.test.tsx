@@ -54,15 +54,26 @@ jest.mock('../../../../../../util/analytics/analytics', () => ({
   },
 }));
 
-jest.mock('../../../../../../core/Analytics/MetaMetrics', () => ({
-  __esModule: true,
-  default: {
-    getInstance: jest.fn(() => ({})),
-  },
-  MetaMetricsEvents: jest.requireActual(
-    '../../../../../../core/Analytics/MetaMetrics.events',
-  ).MetaMetricsEvents,
-}));
+// Mock MetaMetrics for events and getInstance
+jest.mock('../../../../../../core/Analytics/MetaMetrics', () => {
+  const mockInstance = {
+    createDataDeletionTask: jest.fn(),
+    checkDataDeleteStatus: jest.fn(),
+    getDeleteRegulationCreationDate: jest.fn(),
+    getDeleteRegulationId: jest.fn(),
+    isDataRecorded: jest.fn(),
+    updateDataRecordingFlag: jest.fn(),
+  };
+  return {
+    __esModule: true,
+    default: {
+      getInstance: jest.fn(() => mockInstance),
+    },
+    MetaMetricsEvents: jest.requireActual(
+      '../../../../../../core/Analytics/MetaMetrics.events',
+    ).MetaMetricsEvents,
+  };
+});
 
 jest.mock('../../../../../../core/OAuthService/OAuthService', () => ({
   updateMarketingOptInStatus: jest.fn(),

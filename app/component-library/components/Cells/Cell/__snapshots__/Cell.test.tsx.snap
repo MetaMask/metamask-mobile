@@ -292,7 +292,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
       }
     >
       <View
-        pointerEvents="none"
+        pointerEvents="auto"
       >
         <TouchableOpacity
           disabled={false}

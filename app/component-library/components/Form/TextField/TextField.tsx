@@ -12,12 +12,13 @@ import { Pressable, TextInput, View } from 'react-native';
 // External dependencies.
 import { useStyles } from '../../../hooks';
 import Input from './foundation/Input';
-import { TextVariant } from '../../../components/Texts/Text';
 
 // Internal dependencies.
 import styleSheet from './TextField.styles';
 import { TextFieldProps } from './TextField.types';
 import {
+  DEFAULT_TEXTFIELD_SIZE,
+  TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT,
   TEXTFIELD_TEST_ID,
   TEXTFIELD_STARTACCESSORY_TEST_ID,
   TEXTFIELD_ENDACCESSORY_TEST_ID,
@@ -27,6 +28,7 @@ const TextField = React.forwardRef<TextInput | null, TextFieldProps>(
   (
     {
       style,
+      size = DEFAULT_TEXTFIELD_SIZE,
       startAccessory,
       endAccessory,
       isError = false,
@@ -52,6 +54,7 @@ const TextField = React.forwardRef<TextInput | null, TextFieldProps>(
 
     const { styles } = useStyles(styleSheet, {
       style,
+      size,
       isError,
       isDisabled,
       isFocused,
@@ -104,15 +107,13 @@ const TextField = React.forwardRef<TextInput | null, TextFieldProps>(
         <View style={styles.inputContainer}>
           {inputElement ?? (
             <Input
-              textVariant={TextVariant.BodyMD}
+              textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
               isDisabled={isDisabled}
               autoFocus={autoFocus}
               onBlur={onBlurHandler}
               onFocus={onFocusHandler}
               testID={testID}
               style={styles.input}
-              numberOfLines={1}
-              multiline={false}
               {...props}
               ref={inputRef}
               isStateStylesDisabled

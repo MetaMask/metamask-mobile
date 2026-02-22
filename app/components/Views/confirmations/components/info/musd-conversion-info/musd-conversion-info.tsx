@@ -25,7 +25,8 @@ const MusdOverrideContent: React.FC<MusdOverrideContentProps> = ({
   const { shouldShowOutputAmountTag, outputAmount, outputSymbol } =
     useCustomAmount({ amountHuman });
 
-  const { hasTokens } = useTransactionPayAvailableTokens();
+  const availableTokens = useTransactionPayAvailableTokens();
+  const hasTokens = availableTokens.length > 0;
 
   return (
     <>

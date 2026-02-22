@@ -7,7 +7,8 @@ import {
   unlockAsync,
   OrientationLock,
 } from 'expo-screen-orientation';
-import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
+import { CandlePeriod } from '../../constants/chartConfig';
+import type { CandleData } from '../../types/perps-types';
 import type { TPSLLines } from '../TradingViewChart/TradingViewChart';
 import {
   PerpsChartFullscreenModalSelectorsIDs,

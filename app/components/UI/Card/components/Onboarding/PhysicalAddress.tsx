@@ -6,18 +6,26 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Icon,
+  IconName,
+  IconSize,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField from '../../../../../component-library/components/Form/TextField';
+import TextField, {
+  TextFieldSize,
+} from '../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
-import SelectField from './SelectField';
 import type { ShippingAddress } from '../../Views/ReviewOrder';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import { useDispatch, useSelector } from 'react-redux';
@@ -42,7 +50,7 @@ import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import Logger from '../../../../../util/Logger';
-import { Linking } from 'react-native';
+import { Linking, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import {
@@ -121,6 +129,7 @@ export const AddressFields = ({
           autoCapitalize={'none'}
           onChangeText={handleAddressLine1Change}
           numberOfLines={1}
+          size={TextFieldSize.Lg}
           autoComplete="one-time-code"
           value={addressLine1}
           keyboardType="default"
@@ -142,6 +151,7 @@ export const AddressFields = ({
           autoCapitalize={'none'}
           onChangeText={handleAddressLine2Change}
           numberOfLines={1}
+          size={TextFieldSize.Lg}
           autoComplete="one-time-code"
           value={addressLine2}
           keyboardType="default"
@@ -161,6 +171,7 @@ export const AddressFields = ({
           autoCapitalize={'none'}
           onChangeText={handleCityChange}
           numberOfLines={1}
+          size={TextFieldSize.Lg}
           autoComplete="one-time-code"
           value={city}
           keyboardType="default"
@@ -177,11 +188,14 @@ export const AddressFields = ({
           <Label>
             {strings('card.card_onboarding.physical_address.state_label')}
           </Label>
-          <SelectField
-            value={state}
-            onPress={handleStateSelect}
-            testID="state-select"
-          />
+          <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
+            <TouchableOpacity onPress={handleStateSelect} testID="state-select">
+              <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
+                <Text variant={TextVariant.BodyMd}>{state}</Text>
+                <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+              </Box>
+            </TouchableOpacity>
+          </Box>
         </Box>
       )}
       {/* ZIP Code */}
@@ -193,6 +207,7 @@ export const AddressFields = ({
           autoCapitalize={'none'}
           onChangeText={handleZipCodeChange}
           numberOfLines={1}
+          size={TextFieldSize.Lg}
           autoComplete="one-time-code"
           value={zipCode}
           keyboardType="default"
@@ -208,7 +223,16 @@ export const AddressFields = ({
         <Label>
           {strings('card.card_onboarding.physical_address.country_label')}
         </Label>
-        <SelectField value={selectedCountry?.name} />
+        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
+          <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-text-alternative"
+            >
+              {selectedCountry?.name}
+            </Text>
+          </Box>
+        </Box>
       </Box>
     </>
   );

@@ -16,7 +16,7 @@ import {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './PerpsQuoteExpiredModal.styles';
-import { DEPOSIT_CONFIG } from '@metamask/perps-controller';
+import { DEPOSIT_CONFIG } from '../../constants/hyperLiquidConfig';
 
 const PerpsQuoteExpiredModal = () => {
   const navigation = useNavigation();

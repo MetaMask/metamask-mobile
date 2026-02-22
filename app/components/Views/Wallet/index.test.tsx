@@ -43,7 +43,12 @@ jest.mock('../../../util/remoteFeatureFlag', () => ({
   validatedVersionGatedFeatureFlag: jest.fn(() => false),
 }));
 
-// Note: BIP-44 multichain accounts is now the default behavior
+jest.mock(
+  '../../../selectors/featureFlagController//multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
 
 // Mock the Perps feature flag selector - will be controlled per test
 let mockPerpsEnabled = true;
@@ -109,7 +114,7 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -389,6 +394,12 @@ jest.mock('../../../util/address', () => ({
   }),
 }));
 
+jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
+  useNetworkSelection: jest.fn(() => ({
+    selectNetwork: jest.fn(),
+  })),
+}));
+
 // Better navigation mock pattern (from WalletActions.test.tsx)
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -624,19 +635,24 @@ describe('Wallet', () => {
       const onReceive = mockAssetDetailsActions.mock.calls[0][0].onReceive;
       onReceive();
 
-      // Assert - onReceive navigates to MultichainAddressList with groupId and title
+      // Assert
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
-        expect.objectContaining({
-          groupId: expect.any(String),
-          title: expect.any(String),
-        }),
+        Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+        {
+          screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+          params: expect.objectContaining({
+            address: expect.any(String),
+            networkName: expect.any(String),
+            chainId: expect.any(String),
+            groupId: expect.any(String),
+          }),
+        },
       );
     });
 
-    it('should handle onReceive callback correctly with BIP-44 multichain accounts', () => {
-      // Arrange - Create mock state with required data
-      const mockStateWithMultichainAccounts = {
+    it('should handle onReceive callback correctly when multichain accounts state 2 is enabled', () => {
+      // Arrange - Create mock state with state2 enabled and required data
+      const mockStateWithState2 = {
         ...mockInitialState,
         engine: {
           ...mockInitialState.engine,
@@ -653,10 +669,14 @@ describe('Wallet', () => {
 
       jest.mocked(useSelector).mockImplementation((callback) => {
         const selectorString = callback.toString();
+        // Override specific selectors for state2 test
+        if (selectorString.includes('selectMultichainAccountsState2Enabled')) {
+          return true;
+        }
         if (selectorString.includes('selectSelectedAccountGroupId')) {
           return 'group-id-123'; // Ensure this returns the group ID
         }
-        return callback(mockStateWithMultichainAccounts);
+        return callback(mockStateWithState2);
       });
 
       // Act
@@ -668,7 +688,7 @@ describe('Wallet', () => {
       // Assert - createAddressListNavigationDetails spreads an array [route, params]
       expect(mockNavigate).toHaveBeenCalled();
       expect(mockNavigate.mock.calls[0]).toBeDefined();
-      // Verify it was called with address list navigation
+      // Verify it was called with address list navigation (state2 behavior)
       const [route, params] = mockNavigate.mock.calls[0];
       expect(route).toBeDefined();
       expect(params).toBeDefined();
@@ -963,6 +983,78 @@ describe('Wallet', () => {
       });
 
       jest.clearAllMocks();
+    });
+  });
+
+  describe('Network Manager Integration', () => {
+    const { useNetworkSelection } = jest.requireMock(
+      '../../../components/hooks/useNetworkSelection/useNetworkSelection',
+    );
+
+    // Common test configurations
+    const createMockSelectNetwork = () => jest.fn();
+
+    const createStateWithEnabledNetworks = (enabledNetworks: string[]) => ({
+      ...mockInitialState,
+      engine: {
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          NetworkEnablementController: {
+            ...mockInitialState.engine.backgroundState
+              .NetworkEnablementController,
+            enabledNetworkMap: {
+              eip155: enabledNetworks.reduce(
+                (acc, network) => {
+                  acc[network] = true;
+                  return acc;
+                },
+                {} as Record<string, boolean>,
+              ),
+            },
+          },
+        },
+      },
+    });
+
+    const setupMocks = (mockSelectNetwork: jest.Mock) => {
+      jest.mocked(useNetworkSelection).mockReturnValue({
+        selectNetwork: mockSelectNetwork,
+      });
+    };
+
+    const renderWalletWithState = (state: unknown) => {
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback) => callback(state));
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should call selectNetwork when no enabled EVM networks', () => {
+      const mockSelectNetwork = createMockSelectNetwork();
+      setupMocks(mockSelectNetwork);
+
+      const stateWithNoEnabledNetworks = createStateWithEnabledNetworks([]);
+      renderWalletWithState(stateWithNoEnabledNetworks);
+
+      expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
+    });
+
+    it('should not call selectNetwork when there are enabled EVM networks', () => {
+      const mockSelectNetwork = createMockSelectNetwork();
+      setupMocks(mockSelectNetwork);
+
+      const stateWithEnabledNetworks = createStateWithEnabledNetworks([
+        '0x1',
+        '0x5',
+      ]);
+      renderWalletWithState(stateWithEnabledNetworks);
+
+      expect(mockSelectNetwork).not.toHaveBeenCalled();
     });
   });
 

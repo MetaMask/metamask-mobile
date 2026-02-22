@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { TextInput, ViewStyle, KeyboardTypeOptions } from 'react-native';
-import TextField from '../../../component-library/components/Form/TextField';
+import TextField, {
+  TextFieldSize,
+} from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -80,6 +82,7 @@ export const SnapUIInput = ({
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
       <TextField
         {...props}
+        size={TextFieldSize.Lg}
         isDisabled={disabled}
         ref={inputRef}
         onFocus={handleFocus}

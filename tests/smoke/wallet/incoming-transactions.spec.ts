@@ -1,16 +1,16 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import { Mockttp } from 'mockttp';
 
-import { SmokeWalletPlatform } from '../../tags';
-import { loginToApp } from '../../flows/wallet.flow';
+import { SmokeWalletPlatform } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../framework/fixtures/FixtureBuilder';
-import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
-import ToastModal from '../../page-objects/wallet/ToastModal';
+import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import ToastModal from '../../../e2e/pages/wallet/ToastModal';
 import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';

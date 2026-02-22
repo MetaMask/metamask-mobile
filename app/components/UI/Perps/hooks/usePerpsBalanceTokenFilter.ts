@@ -9,12 +9,11 @@ import { useTransactionMetadataRequest } from '../../../Views/confirmations/hook
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import perpsPayTokenIcon from 'images/perps-pay-token-icon.png';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import {
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+  PERPS_CONSTANTS,
 } from '../constants/perpsConfig';
-import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
 import { selectPerpsAccountState } from '../selectors/perpsController';
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 
@@ -36,9 +35,6 @@ export function usePerpsBalanceTokenFilter(): (
   const transactionMeta = useTransactionMetadataRequest();
   const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
   const perpsAccount = useSelector(selectPerpsAccountState);
-  const allowListAssets = useSelector(
-    selectPerpsPayWithAnyTokenAllowlistAssets,
-  );
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
   const filterAllowedTokens = useCallback(
@@ -77,19 +73,11 @@ export function usePerpsBalanceTokenFilter(): (
         description: PERPS_CONSTANTS.PerpsBalanceTokenDescription,
       };
 
-      let mappedTokens = tokens.map((token) => ({
+      const mappedTokens = tokens.map((token) => ({
         ...token,
         isSelected:
           token.isSelected && isPerpsBalanceSelected ? false : token.isSelected,
       }));
-
-      if ((allowListAssets?.length ?? 0) > 0) {
-        const allowSet = new Set(allowListAssets);
-        mappedTokens = mappedTokens.filter((token) => {
-          const key = `${token.chainId}.${(token.address ?? '').toLowerCase()}`;
-          return allowSet.has(key);
-        });
-      }
 
       return [perpsBalanceToken, ...mappedTokens];
     },
@@ -97,7 +85,6 @@ export function usePerpsBalanceTokenFilter(): (
       transactionMeta,
       isPerpsBalanceSelected,
       perpsAccount?.availableBalance,
-      allowListAssets,
       formatFiat,
     ],
   );

@@ -35,7 +35,7 @@ import {
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { formatMarketStats, getPriceChangeFieldKey } from './utils';
+import { formatMarketStats } from './utils';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
@@ -45,7 +45,6 @@ import StockBadge from '../../../shared/StockBadge';
 import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 /**
  * Extracts CAIP chain ID from asset ID
@@ -126,6 +125,26 @@ const getPriceChangePrefix = (
   return isPositive ? '+' : '-';
 };
 
+/**
+ * Maps TimeOption to the corresponding priceChangePct field key
+ */
+export const getPriceChangeFieldKey = (
+  timeOption: TimeOption,
+): 'h24' | 'h6' | 'h1' | 'm5' => {
+  switch (timeOption) {
+    case TimeOption.TwentyFourHours:
+      return 'h24';
+    case TimeOption.SixHours:
+      return 'h6';
+    case TimeOption.OneHour:
+      return 'h1';
+    case TimeOption.FiveMinutes:
+      return 'm5';
+    default:
+      return 'h24';
+  }
+};
+
 interface TrendingTokenRowItemProps {
   token: TrendingAsset;
   selectedTimeOption?: TimeOption;
@@ -163,7 +182,6 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
     isNative: isNativeToken,
     isETH: isNativeToken && hexChainId === '0x1',
     isFromTrending: true,
-    source: TokenDetailsSource.Trending,
     rwaData: token.rwaData,
   };
 };

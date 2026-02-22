@@ -44,8 +44,6 @@ import {
   formatPositionSize,
   formatPrice,
 } from '../../utils/format';
-import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
-import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import styleSheet from './PredictSellPreview.styles';
 
 const PredictSellPreview = () => {
@@ -99,8 +97,6 @@ const PredictSellPreview = () => {
     isLoading,
     result,
     error: placeOrderError,
-    isOrderNotFilled,
-    resetOrderNotFilled,
   } = usePredictPlaceOrder();
 
   const {
@@ -108,6 +104,7 @@ const PredictSellPreview = () => {
     error: previewError,
     isLoading: isPreviewLoading,
   } = usePredictOrderPreview({
+    providerId: position.providerId,
     marketId: position.marketId,
     outcomeId: position.outcomeId,
     outcomeTokenId: position.outcomeTokenId,
@@ -115,19 +112,6 @@ const PredictSellPreview = () => {
     size: position.amount,
     positionId: position.id,
     autoRefreshTimeout: 1000,
-  });
-
-  const {
-    retrySheetRef,
-    retrySheetVariant,
-    isRetrying,
-    handleRetryWithBestPrice,
-  } = usePredictOrderRetry({
-    preview,
-    placeOrder,
-    analyticsProperties,
-    isOrderNotFilled,
-    resetOrderNotFilled,
   });
 
   // Track screen load performance (position data + preview)
@@ -141,10 +125,6 @@ const PredictSellPreview = () => {
     },
   });
 
-  const errorMessage = isOrderNotFilled
-    ? undefined
-    : (previewError ?? placeOrderError);
-
   // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
     const controller = Engine.context.PredictController;
@@ -152,6 +132,7 @@ const PredictSellPreview = () => {
     controller.trackPredictOrderEvent({
       status: PredictTradeStatus.INITIATED,
       analyticsProperties,
+      providerId: position.providerId,
       sharePrice: position?.price,
       amountUsd: position?.amount,
       pnl: position?.percentPnl, // PnL as percentage for sell orders
@@ -195,10 +176,11 @@ const PredictSellPreview = () => {
     if (!preview) return;
 
     await placeOrder({
+      providerId: position.providerId,
       analyticsProperties,
       preview,
     });
-  }, [preview, placeOrder, analyticsProperties]);
+  }, [preview, placeOrder, analyticsProperties, position.providerId]);
 
   const renderCashOutButton = () => {
     if (isLoading) {
@@ -320,13 +302,22 @@ const PredictSellPreview = () => {
           )}
         </View>
         <View style={styles.bottomContainer}>
-          {errorMessage && (
+          {placeOrderError && (
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.ErrorDefault}
               style={tw.style('text-center')}
             >
-              {errorMessage}
+              {placeOrderError}
+            </Text>
+          )}
+          {previewError && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              style={tw.style('text-center')}
+            >
+              {previewError}
             </Text>
           )}
           <Box twClassName="flex-row items-center gap-4">
@@ -365,15 +356,6 @@ const PredictSellPreview = () => {
           </View>
         </View>
       </View>
-      <PredictOrderRetrySheet
-        ref={retrySheetRef}
-        variant={retrySheetVariant}
-        sharePrice={preview?.sharePrice ?? position?.price ?? 0}
-        side={Side.SELL}
-        onRetry={handleRetryWithBestPrice}
-        onDismiss={resetOrderNotFilled}
-        isRetrying={isRetrying}
-      />
     </SafeAreaView>
   );
 };

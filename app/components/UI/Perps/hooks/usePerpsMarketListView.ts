@@ -3,14 +3,13 @@ import { useSelector } from 'react-redux';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
+import type { PerpsMarketData, MarketTypeFilter } from '../controllers/types';
 import {
   sortMarkets,
-  type PerpsMarketData,
-  type MarketTypeFilter,
   type SortField,
   type SortDirection,
-  type SortOptionId,
-} from '@metamask/perps-controller';
+} from '../utils/sortMarkets';
+import type { SortOptionId } from '../constants/perpsConfig';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,

@@ -2,6 +2,22 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { TokenDetailsInlineHeader } from './TokenDetailsInlineHeader';
 
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
+}));
+
+jest.mock('../../../hooks/useStyles', () => ({
+  useStyles: () => ({
+    styles: {
+      container: {},
+      leftButton: {},
+      titleWrapper: {},
+      rightButton: {},
+      rightPlaceholder: {},
+    },
+  }),
+}));
+
 describe('TokenDetailsInlineHeader', () => {
   const mockOnBackPress = jest.fn();
   const mockOnOptionsPress = jest.fn();
@@ -39,7 +55,7 @@ describe('TokenDetailsInlineHeader', () => {
         <TokenDetailsInlineHeader {...defaultProps} networkName="" />,
       );
 
-      expect(queryByText('Ethereum Mainnet')).not.toBeOnTheScreen();
+      expect(queryByText('Ethereum Mainnet')).toBeNull();
     });
 
     it('renders back button with testID', () => {
@@ -62,7 +78,7 @@ describe('TokenDetailsInlineHeader', () => {
     it('renders placeholder when onOptionsPress is falsy', () => {
       const props = {
         ...defaultProps,
-        onOptionsPress: undefined,
+        onOptionsPress: undefined as unknown as () => void,
       };
 
       const { getByTestId, queryByTestId } = render(
@@ -70,7 +86,7 @@ describe('TokenDetailsInlineHeader', () => {
       );
 
       expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
-      expect(queryByTestId('button-icon')).not.toBeOnTheScreen();
+      expect(queryByTestId('button-icon')).toBeNull();
     });
   });
 

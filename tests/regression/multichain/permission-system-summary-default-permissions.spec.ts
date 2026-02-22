@@ -1,12 +1,11 @@
-import { RegressionNetworkAbstractions } from '../../tags';
-import Browser from '../../page-objects/Browser/BrowserView';
-import ConnectedAccountsModal from '../../page-objects/Browser/ConnectedAccountsModal';
+import { RegressionNetworkAbstractions } from '../../../e2e/tags';
+import Browser from '../../../e2e/pages/Browser/BrowserView';
+import ConnectedAccountsModal from '../../../e2e/pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../flows/browser.flow';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
 import Assertions from '../../framework/Assertions';
-import PermissionSummaryBottomSheet from '../../page-objects/Browser/PermissionSummaryBottomSheet';
+import PermissionSummaryBottomSheet from '../../../e2e/pages/Browser/PermissionSummaryBottomSheet';
 import { DappVariants } from '../../framework/Constants';
 import { PermissionSummaryBottomSheetSelectorsText } from '../../../app/components/Views/AccountConnect/PermissionSummaryBottomSheet.testIds';
 

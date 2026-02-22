@@ -22,6 +22,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  IconName,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
@@ -52,7 +53,7 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import PerpsHomeHeader from '../../components/PerpsHomeHeader';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
@@ -60,7 +61,7 @@ import { TraceName } from '../../../../../util/trace';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller';
+} from '../../constants/eventNames';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
@@ -329,16 +330,20 @@ const PerpsHomeView = () => {
       });
     }
 
-    items.push({
-      label: strings(LEARN_MORE_CONFIG.TitleKey),
-      onPress: () => navigtateToTutorial(),
-      testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
-    });
+    // Avoid duplicate "Learn more" button (shown in empty state card)
+    if (!isBalanceEmpty) {
+      items.push({
+        label: strings(LEARN_MORE_CONFIG.TitleKey),
+        onPress: () => navigtateToTutorial(),
+        testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
+      });
+    }
 
     return items;
   }, [
     navigateToContactSupport,
     navigtateToTutorial,
+    isBalanceEmpty,
     isFeedbackEnabled,
     handleGiveFeedback,
   ]);
@@ -409,9 +414,17 @@ const PerpsHomeView = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <PerpsHomeHeader
+      <HeaderCompactStandard
+        title={strings('perps.title')}
         onBack={handleBackPress}
-        onSearchToggle={handleSearchToggle}
+        backButtonProps={{ testID: 'back-button' }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Search,
+            onPress: handleSearchToggle,
+            testID: 'perps-home-search-toggle',
+          },
+        ]}
         testID="perps-home"
       />
 

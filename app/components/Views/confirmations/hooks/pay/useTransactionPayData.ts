@@ -3,7 +3,6 @@ import { RootState } from '../../../../../reducers';
 import {
   selectIsTransactionPayLoadingByTransactionId,
   selectTransactionPayIsMaxAmountByTransactionId,
-  selectTransactionPayIsPostQuoteByTransactionId,
   selectTransactionPayQuotesByTransactionId,
   selectTransactionPaySourceAmountsByTransactionId,
   selectTransactionPayTokensByTransactionId,
@@ -42,10 +41,6 @@ export function useTransactionPayTotals() {
 
 export function useTransactionPayIsMaxAmount() {
   return useTransactionPayData(selectTransactionPayIsMaxAmountByTransactionId);
-}
-
-export function useTransactionPayIsPostQuote() {
-  return useTransactionPayData(selectTransactionPayIsPostQuoteByTransactionId);
 }
 
 function useTransactionPayData<T>(

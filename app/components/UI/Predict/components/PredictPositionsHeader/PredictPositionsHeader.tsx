@@ -6,6 +6,7 @@ import {
   Text,
   TextVariant,
   ButtonSize as ButtonSizeHero,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -24,20 +25,13 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
-import {
-  TextVariant as ComponentTextVariant,
-  TextColor as ComponentTextColor,
-} from '../../../../../component-library/components/Texts/Text/Text.types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { selectPredictWonPositions } from '../../selectors/predictController';
 import { PredictPosition } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
@@ -63,12 +57,12 @@ const PredictPositionsHeader = forwardRef<
   PredictPositionsHeaderProps
 >((props, ref) => {
   const { onError } = props;
-  const privacyMode = useSelector(selectPrivacyMode);
   const { claim } = usePredictClaim();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
   const { executeGuardedAction } = usePredictActionGuard({
+    providerId: POLYMARKET_PROVIDER_ID,
     navigation,
   });
   const {
@@ -92,7 +86,9 @@ const PredictPositionsHeader = forwardRef<
     isLoading: isUnrealizedPnLLoading,
     loadUnrealizedPnL,
     error: pnlError,
-  } = useUnrealizedPnL();
+  } = useUnrealizedPnL({
+    providerId: POLYMARKET_PROVIDER_ID,
+  });
 
   // Notify parent of errors while keeping state isolated
   useEffect(() => {
@@ -180,16 +176,11 @@ const PredictPositionsHeader = forwardRef<
           onPress={handleClaim}
           style={tw.style('w-full')}
         >
-          <SensitiveText
-            variant={ComponentTextVariant.BodyMD}
-            color={ComponentTextColor.Inverse}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Medium}
-          >
+          <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryInverse}>
             {strings('predict.claim_amount_text', {
               amount: totalClaimableAmount.toFixed(2),
             })}
-          </SensitiveText>
+          </Text>
         </ButtonHero>
       )}
 
@@ -243,15 +234,13 @@ const PredictPositionsHeader = forwardRef<
                     />
                   ) : (
                     <>
-                      <SensitiveText
-                        variant={ComponentTextVariant.BodyMD}
-                        isHidden={privacyMode}
-                        length={SensitiveTextLength.Medium}
-                        style={tw.style('text-primary mr-1')}
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        twClassName="text-primary mr-1"
                         testID="claimable-amount"
                       >
                         {formatPrice(balance, { maximumDecimals: 2 })}
-                      </SensitiveText>
+                      </Text>
                       <Icon
                         name={IconName.ArrowRight}
                         size={IconSize.Sm}
@@ -285,21 +274,19 @@ const PredictPositionsHeader = forwardRef<
                     style={tw.style('rounded-md')}
                   />
                 ) : (
-                  <SensitiveText
-                    variant={ComponentTextVariant.BodyMD}
-                    color={
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName={
                       unrealizedAmount >= 0
-                        ? ComponentTextColor.Success
-                        : ComponentTextColor.Error
+                        ? 'text-success-default'
+                        : 'text-error-default'
                     }
-                    isHidden={privacyMode}
-                    length={SensitiveTextLength.Long}
                   >
                     {strings('predict.unrealized_pnl_value', {
                       amount: formatAmount(unrealizedAmount),
                       percent: formatPercent(unrealizedPercent),
                     })}
-                  </SensitiveText>
+                  </Text>
                 )}
               </Box>
             </>

@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
-import {
-  type Funding,
-  type GetFundingParams,
-} from '@metamask/perps-controller';
+import type { Funding, GetFundingParams } from '../controllers/types';
 
 export interface UsePerpsFundingResult {
   /**

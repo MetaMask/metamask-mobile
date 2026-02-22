@@ -10,23 +10,10 @@
     └── build.yml        # HOW to build (CI/CD automation)
 
 scripts/
-├── apply-build-config.js                  # Runtime: reads builds.yml → exports env, code_fencing, remote_feature_flags
-├── validate-build-config.js              # Validates builds.yml structure
-├── set-secrets-from-config.js            # Runtime: maps GitHub Secrets → env vars (writes to GITHUB_ENV)
-└── generate-build-workflow-secrets-env.js # Maintenance: regenerates build.yml "Set secrets" env from builds.yml
+├── apply-build-config.js      # Reads builds.yml → sets env vars + remote flag defaults
+├── validate-build-config.js   # Validates builds.yml structure
+└── set-secrets-from-config.js # Maps GitHub Secrets → env vars
 ```
-
----
-
-## Build scripts: runtime vs maintenance
-
-| Script                                     | When it runs                                               | Responsibility                                                                                                                                                                                                                                        |
-| ------------------------------------------ | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **apply-build-config.js**                  | At workflow runtime (during "Apply build config" step)     | Exports non-secret config from builds.yml: `env`, `code_fencing`, `remote_feature_flags`. Does **not** handle secrets.                                                                                                                                |
-| **set-secrets-from-config.js**             | At workflow runtime (during "Set secrets" step)            | Maps GitHub Environment secrets to env vars and writes them to `GITHUB_ENV` so subsequent steps (e.g. build.sh) see them.                                                                                                                             |
-| **generate-build-workflow-secrets-env.js** | At edit time (on your machine, when you change builds.yml) | Regenerates the "Set secrets" step `env:` block in build.yml from builds.yml. GitHub Actions requires each secret to be explicitly listed in the workflow YAML; this script keeps that list in sync with builds.yml so you don't maintain it by hand. |
-
-**Why two scripts for builds.yml?** `apply-build-config.js` runs during the workflow and exports config. Secrets cannot be injected dynamically at runtime—the workflow file must list each `secrets.SECRET_NAME` explicitly. So a separate maintenance script (`generate-build-workflow-secrets-env.js`) reads builds.yml and generates that list into build.yml. Single source of truth: builds.yml.
 
 ---
 
@@ -121,13 +108,11 @@ builds:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Maintenance:** The "Set secrets" step env block in `build.yml` is generated from `builds.yml`. When you add, remove, or rename entries in any build's `secrets` map, run `yarn build:workflow:update-secrets` to regenerate that block (single source of truth: `builds.yml`).
-
 ---
 
-### 3. `scripts/apply-build-config.js` — Config Loader (runtime)
+### 3. `scripts/apply-build-config.js` — Config Loader
 
-**Purpose:** Reads `builds.yml` and exports non-secret config: env vars, code fencing, remote feature flag defaults. Does **not** handle secrets (those are injected by the "Set secrets" step).
+**Purpose:** Reads `builds.yml` and exports environment variables + remote feature flag defaults.
 
 **Two modes:**
 
@@ -208,24 +193,6 @@ MM_SENTRY_DSN: "MM_SENTRY_DSN_TEST"  →  $MM_SENTRY_DSN_TEST  →  $MM_SENTRY_D
 ```bash
 CONFIG_SECRETS='{"SEGMENT_WRITE_KEY":"SEGMENT_KEY_QA"}' node scripts/set-secrets-from-config.js
 # ✓ SEGMENT_WRITE_KEY
-```
-
----
-
-### 6. `scripts/generate-build-workflow-secrets-env.js` — Workflow Env Generator (maintenance)
-
-**Purpose:** Regenerates the "Set secrets" step `env:` block in `.github/workflows/build.yml` from `builds.yml`. Runs at **edit time** (on your machine), not during workflow execution.
-
-**Why?** GitHub Actions requires each secret to be explicitly listed in the workflow YAML (e.g. `SECRET_NAME: ${{ secrets.SECRET_NAME }}`). It cannot dynamically inject secrets from a list. This script keeps that list in sync with `builds.yml` so you don't maintain it by hand.
-
-**When to run:** After adding, removing, or renaming entries in any build's `secrets` map in `builds.yml`.
-
-**Usage:**
-
-```bash
-yarn build:workflow:update-secrets
-# Found 45 unique secret names from builds.yml
-# Updated .github/workflows/build.yml
 ```
 
 ---
@@ -402,47 +369,15 @@ export const selectPerpsEnabledFlag = createSelector(
 | Build        | Environment | GitHub Environment | Use Case                  |
 | ------------ | ----------- | ------------------ | ------------------------- |
 | `main-prod`  | production  | build-production   | App Store release         |
-| `main-beta`  | beta        | build-beta         | TestFlight / Play beta    |
 | `main-rc`    | rc          | build-rc           | Release candidate testing |
-| `main-test`  | test        | build-uat          | QA testing                |
+| `main-test`  | test        | build-test         | QA testing                |
 | `main-e2e`   | e2e         | build-e2e          | E2E automated tests       |
 | `main-exp`   | exp         | build-exp          | Experimental builds       |
 | `main-dev`   | dev         | build-dev          | Local development         |
-| `flask-prod` | production  | build-flask-prod   | Flask App Store release   |
-| `flask-test` | test        | build-flask-uat    | Flask QA testing          |
-| `flask-e2e`  | e2e         | build-flask-e2e    | Flask E2E tests           |
-| `flask-dev`  | dev         | build-flask-dev    | Flask local development   |
-
----
-
-## Signing Configuration (AWS Secrets Manager)
-
-Builds that produce signed device binaries (not simulator/debug) use AWS Secrets Manager for code signing. The `signing` section in `builds.yml` maps each build to an AWS role and secret.
-
-| Build type                             | GH Environment(s)                | AWS Role                    | AWS Secret                        | Android keystore         |
-| -------------------------------------- | -------------------------------- | --------------------------- | --------------------------------- | ------------------------ |
-| main-prod                              | build-production                 | metamask-mobile-prod-signer | metamask-mobile-main-prod-signer  | release.keystore         |
-| main-beta, main-rc                     | build-beta, build-rc             | metamask-mobile-rc-signer   | metamask-mobile-main-rc-signer    | rc.keystore              |
-| main-test, main-e2e, main-exp, qa-prod | build-uat, build-e2e, build-exp  | metamask-mobile-uat-signer  | metamask-mobile-main-uat-signer   | internalRelease.keystore |
-| flask-prod                             | build-flask-prod                 | metamask-mobile-prod-signer | metamask-mobile-flask-prod-signer | flaskRelease.keystore    |
-| flask-test, flask-e2e                  | build-flask-uat, build-flask-e2e | metamask-mobile-uat-signer  | metamask-mobile-flask-uat-signer  | flask-uat.keystore       |
-
-**Dev builds** (main-dev, flask-dev, qa-dev) omit `signing` — they use simulator/debug and require no certificates.
-
-### GH Environments and AWS secrets (for configuring GitHub)
-
-Configure these GitHub Environments with the secrets required by the build workflow. Signing uses AWS Secrets Manager (Account `363762752069`). Each environment that runs signed builds needs the same set of app secrets (Sentry, Segment, Firebase, OAuth, etc.); the table below only lists **signing** mapping.
-
-| GH Environment                   | Signing (AWS)                                                                           |
-| -------------------------------- | --------------------------------------------------------------------------------------- |
-| build-production                 | Role: `metamask-mobile-prod-signer`, Secret: `metamask-mobile-main-prod-signer`         |
-| build-beta                       | Same as RC: Role: `metamask-mobile-rc-signer`, Secret: `metamask-mobile-main-rc-signer` |
-| build-rc                         | Role: `metamask-mobile-rc-signer`, Secret: `metamask-mobile-main-rc-signer`             |
-| build-uat, build-e2e, build-exp  | Role: `metamask-mobile-uat-signer`, Secret: `metamask-mobile-main-uat-signer`           |
-| build-flask-prod                 | Role: `metamask-mobile-prod-signer`, Secret: `metamask-mobile-flask-prod-signer`        |
-| build-flask-uat, build-flask-e2e | Role: `metamask-mobile-uat-signer`, Secret: `metamask-mobile-flask-uat-signer`          |
-
-**AWS secret structure** (per build.gradle expectations): The secret must contain keys such as `ANDROID_KEYSTORE` (base64), `BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD`, `BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS`, `BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD` for UAT builds; adjust for prod/rc/flask variants.
+| `flask-prod` | production  | build-production   | Flask App Store release   |
+| `flask-test` | test        | build-test         | Flask QA testing          |
+| `flask-e2e`  | e2e         | build-e2e          | Flask E2E tests           |
+| `flask-dev`  | dev         | build-dev          | Flask local development   |
 
 ---
 
