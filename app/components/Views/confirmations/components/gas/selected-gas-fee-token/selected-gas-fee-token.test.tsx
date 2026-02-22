@@ -3,7 +3,6 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { SelectedGasFeeToken } from './selected-gas-fee-token';
 import { useInsufficientBalanceAlert } from '../../../hooks/alerts/useInsufficientBalanceAlert';
-import { useEstimationFailed } from '../../../hooks/gas/useEstimationFailed';
 import { useSelectedGasFeeToken } from '../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../hooks/gas/useIsGaslessSupported';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
@@ -16,7 +15,6 @@ import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTr
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
 jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert');
-jest.mock('../../../hooks/gas/useEstimationFailed');
 jest.mock('../../../hooks/gas/useGasFeeToken');
 jest.mock('../../../hooks/gas/useIsGaslessSupported');
 jest.mock('../../../hooks/useNetworkInfo');
@@ -28,7 +26,6 @@ describe('SelectedGasFeeToken', () => {
   const mockUseInsufficientBalanceAlert = jest.mocked(
     useInsufficientBalanceAlert,
   );
-  const mockUseEstimationFailed = jest.mocked(useEstimationFailed);
   const mockUseSelectedGasFeeToken = jest.mocked(useSelectedGasFeeToken);
   const mockUseIsGaslessSupported = jest.mocked(useIsGaslessSupported);
   const mockUseNetworkInfo = jest.mocked(useNetworkInfo);
@@ -46,7 +43,6 @@ describe('SelectedGasFeeToken', () => {
     isSmartTransaction = false,
     gasFeeTokens = [],
     transactionMetadata,
-    estimationFailed = false,
   }: {
     insufficientBalance?: Alert[];
     selectedGasFeeToken?: ReturnType<typeof useSelectedGasFeeToken>;
@@ -57,10 +53,8 @@ describe('SelectedGasFeeToken', () => {
       typeof useTransactionMetadataRequest
     > | null;
     expectModal?: boolean;
-    estimationFailed?: boolean;
   } = {}) => {
     mockUseInsufficientBalanceAlert.mockReturnValue(insufficientBalance);
-    mockUseEstimationFailed.mockReturnValue(estimationFailed);
     mockUseSelectedGasFeeToken.mockReturnValue(selectedGasFeeToken);
     mockUseIsGaslessSupported.mockReturnValue({
       isSupported: gaslessSupported,
@@ -135,7 +129,6 @@ describe('SelectedGasFeeToken', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Set default mock return values
-    mockUseEstimationFailed.mockReturnValue(false);
     mockUseTransactionBatchesMetadata.mockReturnValue(undefined);
   });
 
@@ -266,59 +259,6 @@ describe('SelectedGasFeeToken', () => {
           { tokenAddress: '0xTokenAddress1', symbol: 'DAI' },
           { tokenAddress: NATIVE_TOKEN_ADDRESS, symbol: 'ETH' },
         ] as unknown as GasFeeToken[],
-      });
-
-      expectModalToOpen();
-    });
-  });
-
-  describe('estimation failed', () => {
-    it('does not open modal when estimation failed even if gas fee tokens are supported', () => {
-      const { expectModalNotToOpen } = setupTest({
-        selectedGasFeeToken: {
-          tokenAddress: '0xTokenAddress',
-          symbol: 'DAI',
-        } as unknown as ReturnType<typeof useSelectedGasFeeToken>,
-        gaslessSupported: true,
-        isSmartTransaction: true,
-        gasFeeTokens: [
-          { tokenAddress: '0xTokenAddress', symbol: 'DAI' },
-        ] as unknown as GasFeeToken[],
-        estimationFailed: true,
-      });
-
-      expectModalNotToOpen();
-    });
-
-    it('does not render arrow icon when estimation failed', () => {
-      const { queryByTestId } = setupTest({
-        selectedGasFeeToken: {
-          tokenAddress: '0xTokenAddress',
-          symbol: 'DAI',
-        } as unknown as ReturnType<typeof useSelectedGasFeeToken>,
-        gaslessSupported: true,
-        isSmartTransaction: true,
-        gasFeeTokens: [
-          { tokenAddress: '0xTokenAddress', symbol: 'DAI' },
-        ] as unknown as GasFeeToken[],
-        estimationFailed: true,
-      });
-
-      expect(queryByTestId('selected-gas-fee-token-arrow')).toBeNull();
-    });
-
-    it('opens modal when estimation has not failed and gas fee tokens are supported', () => {
-      const { expectModalToOpen } = setupTest({
-        selectedGasFeeToken: {
-          tokenAddress: '0xTokenAddress',
-          symbol: 'DAI',
-        } as unknown as ReturnType<typeof useSelectedGasFeeToken>,
-        gaslessSupported: true,
-        isSmartTransaction: true,
-        gasFeeTokens: [
-          { tokenAddress: '0xTokenAddress', symbol: 'DAI' },
-        ] as unknown as GasFeeToken[],
-        estimationFailed: false,
       });
 
       expectModalToOpen();

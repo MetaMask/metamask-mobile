@@ -63,7 +63,6 @@ function getDepositAnalyticsPayload(
     currency_destination_symbol: order?.cryptoCurrency?.symbol,
     currency_destination_network: getNetworkName(order),
     currency_source: order?.fiatCurrency || '',
-    provider_onramp: order?.provider || '',
   };
 
   if (fiatOrder.state === FIAT_ORDER_STATES.COMPLETED) {

@@ -1,5 +1,5 @@
 import { RouteProp } from '@react-navigation/native';
-import type { PerpsNavigationParamList } from './navigation';
+import { PerpsNavigationParamList } from '../controllers/types';
 
 export enum PerpsOrderTransactionStatus {
   Filled = 'Filled',

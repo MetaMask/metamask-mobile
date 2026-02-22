@@ -7,7 +7,7 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 
 // Static helper functions - moved outside component to avoid recreation
 const allTrue = (conditionArray: boolean[]): boolean =>

@@ -9,8 +9,6 @@ export const POLYMARKET_TERMS_URL = 'https://polymarket.com/tos';
  */
 export const SLIPPAGE_BUY = 0.03; // 3%
 export const SLIPPAGE_SELL = 0.05; // 5%
-// BUY is floored at maxAmountSpent + tickSize. SELL has no floor — user accepts up to 99% less USDC.
-export const SLIPPAGE_BEST_AVAILABLE = 0.99; // 99%
 
 export const ORDER_RATE_LIMIT_MS = 5000;
 
@@ -66,12 +64,6 @@ export const ROUNDING_CONFIG: Record<TickSize, RoundConfig> = {
     amount: 6,
   },
 };
-
-/**
- * Gas limit for the Safe execTransaction call used during withdrawals.
- * The actual execution uses ~93k gas; includes a 30% buffer.
- */
-export const SAFE_EXEC_GAS_LIMIT = 121000;
 
 export const MATIC_CONTRACTS: ContractConfig = {
   exchange: '0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E',

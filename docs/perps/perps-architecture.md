@@ -4,10 +4,7 @@
 
 The Perps feature enables perpetual futures trading in MetaMask Mobile. This document provides a high-level architectural overview of the codebase structure, key patterns, and references to detailed documentation.
 
-**Locations**:
-
-- **Controller**: `app/controllers/perps/` — business logic, providers, services, types (portable, no mobile-specific imports)
-- **UI**: `app/components/UI/Perps/` — React components, hooks, views, contexts
+**Location**: `app/components/UI/Perps/`
 
 ## Quick Navigation
 
@@ -52,54 +49,21 @@ graph TD
 
 ## Directory Structure
 
-### Controller (`app/controllers/perps/`)
-
-The controller is isolated from mobile-specific code and published as `@metamask/perps-controller`.
-See [ADR-042](https://github.com/MetaMask/core/blob/main/docs/adr/ADR-042-perps-controller-location.md) for the architectural decision.
-
 ```
-app/controllers/perps/
-├── PerpsController.ts      - Main controller (state, lifecycle, provider mgmt)
-├── index.ts                - Package entry point
-├── perpsErrorCodes.ts      - Error code definitions
-├── selectors.ts            - Redux state selectors
-├── providers/              - Protocol-specific implementations
-│   ├── HyperLiquidProvider.ts
-│   ├── MYXProvider.ts
-│   └── AggregatedPerpsProvider.ts
-├── services/               - Business logic services
-│   ├── AccountService.ts
-│   ├── TradingService.ts
-│   ├── MarketDataService.ts
-│   ├── EligibilityService.ts
-│   ├── DepositService.ts
-│   ├── DataLakeService.ts
-│   ├── RewardsIntegrationService.ts
-│   ├── FeatureFlagConfigurationService.ts
-│   ├── HyperLiquidClientService.ts
-│   ├── HyperLiquidSubscriptionService.ts
-│   ├── HyperLiquidWalletService.ts
-│   ├── MYXClientService.ts
-│   ├── TradingReadinessCache.ts
-│   └── ServiceContext.ts
-├── routing/                - Provider routing logic
-├── aggregation/            - Multi-provider aggregation
-├── types/                  - TypeScript type definitions
-├── constants/              - Configuration values
-└── utils/                  - Pure utility functions
-```
-
-### UI (`app/components/UI/Perps/`)
-
-```
-app/components/UI/Perps/
+/Perps
 ├── components/       - Reusable UI components
 ├── Views/           - Main screen-level components
 ├── hooks/           - React hooks for data access and logic
 │   └── stream/      - WebSocket subscription hooks (real-time data)
+├── controllers/     - Business logic and Redux state
+│   └── providers/   - Protocol-specific implementations
 ├── providers/       - React context providers
-├── selectors/       - Redux selectors by domain
+├── services/        - External integrations (WebSocket, HTTP, wallet)
+├── utils/           - Pure utility functions
+├── types/           - TypeScript type definitions
+├── constants/       - Configuration values
 ├── contexts/        - React contexts
+├── selectors/       - Redux selectors by domain
 ├── styles/          - Shared style utilities
 ├── Debug/           - Developer tools
 ├── animations/      - Rive animation files
@@ -221,35 +185,23 @@ React hooks organized by category:
 - `usePerpsDepositStatus` - Deposit status tracking
 - `usePerpsWithdrawStatus` - Withdrawal status tracking
 
-### Controller (`app/controllers/perps/`)
+### Controllers
 
-Business logic and Redux state management. Isolated from mobile-specific code — uses `PerpsPlatformDependencies` for dependency injection of platform-specific services (logging, metrics, feature flags, etc.).
+Business logic and Redux state management:
 
-- **PerpsController** (`app/controllers/perps/PerpsController.ts`) - Main controller managing providers, orders, positions, market data
-- **HyperLiquidProvider** (`app/controllers/perps/providers/HyperLiquidProvider.ts`) - HyperLiquid protocol implementation
-- **MYXProvider** (`app/controllers/perps/providers/MYXProvider.ts`) - MYX protocol implementation
-- **AggregatedPerpsProvider** (`app/controllers/perps/providers/AggregatedPerpsProvider.ts`) - Multi-protocol aggregation via `ProviderRouter`
-- **Selectors** (`app/controllers/perps/selectors.ts`) - Redux state selectors
-- **Error Codes** (`app/controllers/perps/perpsErrorCodes.ts`) - Error code definitions
+- **PerpsController** (`controllers/PerpsController.ts`) - Main controller managing providers, orders, positions, market data
+- **PerpsProvider** (`controllers/providers/HyperLiquidProvider.ts`) - HyperLiquid protocol implementation
+- **Selectors** (`controllers/selectors.ts`) - Redux state selectors
+- **Error Codes** (`controllers/perpsErrorCodes.ts`) - Error code definitions
 
-### Services (`app/controllers/perps/services/`)
+### Services
 
-Business logic services instantiated with platform dependencies:
+External integrations and infrastructure:
 
-- **AccountService** - Account state, balances, withdrawals
-- **TradingService** - Order placement, cancellation, position management
-- **MarketDataService** - Market info, candles, funding rates
-- **EligibilityService** - User eligibility and geo-blocking
-- **DepositService** - Deposit flow with transaction confirmation
-- **DataLakeService** - Historical data queries
-- **RewardsIntegrationService** - Rewards program integration
-- **FeatureFlagConfigurationService** - Remote feature flag configuration (HIP-3, geo-blocking)
-- **HyperLiquidClientService** - HTTP client for HyperLiquid REST API
+- **HyperLiquidClientService** - HTTP client for REST API
 - **HyperLiquidSubscriptionService** - WebSocket subscription management
-- **HyperLiquidWalletService** - Wallet operations and signing
-- **MYXClientService** - HTTP client for MYX protocol
-- **TradingReadinessCache** - Cached trading readiness state
-- **PerpsConnectionManager** (`app/components/UI/Perps/services/`) - Connection lifecycle orchestration (mobile-specific singleton, stays in UI layer)
+- **HyperLiquidWalletService** - Wallet operations
+- **PerpsConnectionManager** - Connection lifecycle orchestration (singleton)
 
 ### Providers
 
@@ -324,41 +276,6 @@ const prices = useLivePrices({
 
 **See [perps-connection-architecture.md](./perps-connection-architecture.md) for WebSocket architecture details.**
 
-### Background Preloading
-
-Market data and user data are preloaded in the background before the user opens Perps, enabling instant rendering of all sections on the home screen.
-
-#### Preload Pipeline
-
-| Step              | Method                                  | What It Does                                                 |
-| ----------------- | --------------------------------------- | ------------------------------------------------------------ |
-| 1. Trigger        | `startMarketDataPreload()` (Wallet tab) | Starts immediate fetch + 5-min periodic refresh              |
-| 2. Market data    | `performMarketDataPreload()`            | Fetches market data via standalone REST → `cachedMarketData` |
-| 3. User data      | `performUserDataPreload()`              | Fetches positions, orders, account state → cached fields     |
-| 4. Cache guard    | `PRELOAD_GUARD_MS` (30s)                | Debounce to prevent rapid re-fetches                         |
-| 5. Account change | State-change handler                    | Clears user data cache, re-preloads                          |
-
-#### Cache-Seeded Hook Initialization
-
-Hooks use lazy `useState` initializers to read cached data from the controller, so the first render already has data instead of showing an empty skeleton.
-
-| Utility                      | Purpose                                              |
-| ---------------------------- | ---------------------------------------------------- |
-| `hasPreloadedData(field)`    | Returns `true` if controller cache field is non-null |
-| `getPreloadedData<T>(field)` | Returns cached value or `null`                       |
-
-Cache freshness is managed by the controller's 5-minute preload cycle, not by the hooks — there is no client-side TTL.
-
-#### What the User Sees
-
-| Timing       | Content                                                                              |
-| ------------ | ------------------------------------------------------------------------------------ |
-| **Instant**  | Market lists, positions, orders, and account balance populated from cached REST data |
-| **~1-2s**    | Live WebSocket data replaces cache with real-time updates                            |
-| **On error** | `PerpsConnectionErrorView` renders (unchanged behavior)                              |
-
-**See [perps-connection-architecture.md](./perps-connection-architecture.md) for detailed preloading architecture.**
-
 ### Form Management
 
 Component input → Hook state → Validation → Controller action
@@ -378,100 +295,6 @@ if (validation.isValid) {
   await controller.placeOrder(params)
 }
 ```
-
-### Standalone Mode (Lightweight Queries)
-
-For discovery use cases that need perps data without full initialization:
-
-```typescript
-// Check if perps market exists for an asset (usePerpsMarketForAsset hook)
-const markets = await perpsController.getMarkets({
-  symbols: ['ETH'],
-  standalone: true,
-});
-
-// Query positions for any address without WebSocket, wallet setup, etc.
-const positions = await perpsController.getPositions({
-  standalone: true,
-  userAddress: '0x...',
-});
-
-// Check if user has perps funds (for discovery banners)
-const accountState = await perpsController.getAccountState({
-  standalone: true,
-  userAddress: '0x...',
-});
-```
-
-**Supported methods:** `getMarkets`, `getPositions`, `getAccountState`
-
-**When to use:**
-
-- Spot token detail pages checking for perps market availability (see `usePerpsMarketForAsset`)
-- Token detail pages showing perps positions
-- Discovery banners checking if user has perps funds
-- Portfolio analytics without entering perps context
-
-**How it works:**
-
-1. Bypasses `getActiveProvider()` check (works even when controller is not initialized)
-2. Creates standalone HTTP client via `createStandaloneInfoClient` (see `utils/standaloneInfoClient.ts`)
-3. No WebSocket, wallet, or account setup required
-4. HIP-3 multi-DEX aggregation supported (positions and account state)
-
-**Limitations:**
-
-- No TP/SL data on positions (would require additional API calls)
-- No spot balance aggregation on account state
-- No real-time updates (HTTP only, no WebSocket)
-
-### Cache Invalidation
-
-Standalone queries use client-side caching for performance (e.g., 30s TTL for positions).
-The `PerpsCacheInvalidator` service provides loosely-coupled cache invalidation when
-data changes in the perps environment:
-
-**Hook side (consumers):**
-
-```typescript
-import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
-
-// Subscribe to invalidation events
-useEffect(() => {
-  const unsubPositions = PerpsCacheInvalidator.subscribe('positions', () => {
-    clearMyCache();
-    refetch();
-  });
-  const unsubAccount = PerpsCacheInvalidator.subscribe('accountState', () => {
-    clearMyCache();
-    refetch();
-  });
-  return () => {
-    unsubPositions();
-    unsubAccount();
-  };
-}, []);
-```
-
-**Service side (producers):**
-
-```typescript
-// After successful position change (TradingService)
-PerpsCacheInvalidator.invalidate('positions');
-PerpsCacheInvalidator.invalidate('accountState');
-
-// After successful withdrawal (AccountService)
-PerpsCacheInvalidator.invalidate('accountState');
-```
-
-**Cache types:**
-
-- `positions` - Position data caches (invalidated on order placement, position close)
-- `accountState` - Account balance/state caches (invalidated on trades, withdrawals)
-- `markets` - Market data caches (rarely changes)
-
-This pattern allows token detail pages to show accurate position status even after
-the user closes positions in the perps environment, without polling or WebSocket overhead.
 
 ## Stream Architecture
 
@@ -609,27 +432,13 @@ The codebase maintains high quality standards:
 
 ## Protocol Integration
 
-Multi-protocol architecture with provider abstraction:
-
-### HyperLiquid (primary)
+Currently integrated with HyperLiquid protocol:
 
 - **REST API** - Account queries, order placement, market data
 - **WebSocket** - Real-time prices, order fills, position updates
 - **Wallet Integration** - Ethereum signing for orders
 
-### MYX (feature-flagged)
-
-- MYX protocol support via `MYXProvider` and `MYXClientService`
-- Enabled via `perpsMyxProviderEnabled` remote feature flag with version gating
-- When enabled alongside HyperLiquid, uses `AggregatedPerpsProvider` with `ProviderRouter`
-
-### Multi-Protocol Architecture
-
-- **`ProviderRouter`** (`routing/`) - Routes operations to the correct provider based on market
-- **`AggregatedPerpsProvider`** - Wraps multiple providers behind the `PerpsProvider` interface
-- **`SubscriptionMultiplexer`** - Merges WebSocket subscriptions from multiple providers
-
-**See [hyperliquid/](./hyperliquid/) directory for HyperLiquid-specific documentation.**
+**See [hyperliquid/](./hyperliquid/) directory for protocol-specific documentation.**
 
 ## Migration Notes
 

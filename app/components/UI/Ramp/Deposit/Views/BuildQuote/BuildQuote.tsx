@@ -56,7 +56,7 @@ import { createUnsupportedRegionModalNavigationDetails } from '../Modals/Unsuppo
 import { createIncompatibleAccountTokenModalNavigationDetails } from '../Modals/IncompatibleAccountTokenModal';
 import { createConfigurationModalNavigationDetails } from '../Modals/ConfigurationModal/ConfigurationModal';
 
-import { useFormatters } from '../../../../../hooks/useFormatters';
+import { formatCurrency } from '../../utils';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { strings } from '../../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../../Navbar';
@@ -74,19 +74,16 @@ import { getAllDepositOrders } from '../../../../../../reducers/fiatOrders';
 
 interface BuildQuoteParams {
   shouldRouteImmediately?: boolean;
-  amount?: string;
 }
 
 export const createBuildQuoteNavDetails =
   createNavigationDetails<BuildQuoteParams>(Routes.DEPOSIT.BUILD_QUOTE);
 
 const BuildQuote = () => {
-  const { shouldRouteImmediately, amount: initialAmount } =
-    useParams<BuildQuoteParams>();
+  const { shouldRouteImmediately } = useParams<BuildQuoteParams>();
 
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { formatCurrency } = useFormatters();
   const trackEvent = useAnalytics();
   const depositOrders = useSelector(getAllDepositOrders);
 
@@ -132,12 +129,8 @@ const BuildQuote = () => {
     selectedWalletAddress,
   } = useDepositSDK();
 
-  const [amount, setAmount] = useState<string>(() =>
-    initialAmount && Number(initialAmount) > 0 ? initialAmount : '0',
-  );
-  const [amountAsNumber, setAmountAsNumber] = useState<number>(() =>
-    initialAmount && Number(initialAmount) > 0 ? Number(initialAmount) : 0,
-  );
+  const [amount, setAmount] = useState<string>('0');
+  const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const [quoteError, setError] = useState<string | null>();
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =

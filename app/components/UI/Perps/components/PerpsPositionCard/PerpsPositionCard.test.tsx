@@ -1,8 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
-import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import PerpsPositionCard from './PerpsPositionCard';
+import type { Position } from '../../controllers/types';
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),

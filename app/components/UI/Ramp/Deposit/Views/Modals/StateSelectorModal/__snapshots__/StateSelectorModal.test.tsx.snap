@@ -436,7 +436,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "minHeight": 56,
+                                  "height": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -552,7 +552,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderRadius": 8,
+                                          "borderRadius": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "opacity": 1,
@@ -570,8 +570,8 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
+                                            "height": 20,
+                                            "width": 20,
                                           },
                                           undefined,
                                         ]
@@ -623,12 +623,12 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
-                                  "borderRadius": 24,
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#b7bbc8",
+                                  "borderRadius": 8,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
-                                  "height": 48,
+                                  "height": 40,
                                   "opacity": 1,
                                   "paddingHorizontal": 16,
                                 }
@@ -638,23 +638,23 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                               <View
                                 style={
                                   {
-                                    "marginRight": 12,
+                                    "marginRight": 8,
                                   }
                                 }
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#121314"
                                   fill="currentColor"
-                                  height={20}
+                                  height={16}
                                   name="Search"
                                   style={
                                     {
-                                      "height": 20,
-                                      "width": 20,
+                                      "height": 16,
+                                      "width": 16,
                                     }
                                   }
-                                  width={20}
+                                  width={16}
                                 />
                               </View>
                               <View
@@ -667,13 +667,10 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                 <TextInput
                                   autoFocus={false}
                                   editable={true}
-                                  multiline={false}
-                                  numberOfLines={1}
                                   onBlur={[Function]}
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by state"
-                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -683,10 +680,10 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 46,
+                                      "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 0,
                                       "opacity": 1,
+                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -697,7 +694,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                               <View
                                 style={
                                   {
-                                    "marginLeft": 12,
+                                    "marginLeft": 8,
                                   }
                                 }
                                 testID="textfield-endacccessory"
@@ -713,25 +710,25 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 28,
+                                      "height": 24,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 28,
+                                      "width": 24,
                                     }
                                   }
                                 >
                                   <SvgMock
-                                    color="#686e7d"
+                                    color="#121314"
                                     fill="currentColor"
-                                    height={20}
-                                    name="CircleX"
+                                    height={16}
+                                    name="Close"
                                     style={
                                       {
-                                        "height": 20,
-                                        "width": 20,
+                                        "height": 16,
+                                        "width": 16,
                                       }
                                     }
-                                    width={20}
+                                    width={16}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -1302,7 +1299,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "minHeight": 56,
+                                  "height": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -1418,7 +1415,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderRadius": 8,
+                                          "borderRadius": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "opacity": 1,
@@ -1436,8 +1433,8 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
+                                            "height": 20,
+                                            "width": 20,
                                           },
                                           undefined,
                                         ]
@@ -1489,12 +1486,12 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
-                                  "borderRadius": 24,
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#b7bbc8",
+                                  "borderRadius": 8,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
-                                  "height": 48,
+                                  "height": 40,
                                   "opacity": 1,
                                   "paddingHorizontal": 16,
                                 }
@@ -1504,23 +1501,23 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                               <View
                                 style={
                                   {
-                                    "marginRight": 12,
+                                    "marginRight": 8,
                                   }
                                 }
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#121314"
                                   fill="currentColor"
-                                  height={20}
+                                  height={16}
                                   name="Search"
                                   style={
                                     {
-                                      "height": 20,
-                                      "width": 20,
+                                      "height": 16,
+                                      "width": 16,
                                     }
                                   }
-                                  width={20}
+                                  width={16}
                                 />
                               </View>
                               <View
@@ -1533,13 +1530,10 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                                 <TextInput
                                   autoFocus={false}
                                   editable={true}
-                                  multiline={false}
-                                  numberOfLines={1}
                                   onBlur={[Function]}
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by state"
-                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -1549,10 +1543,10 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 46,
+                                      "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 0,
                                       "opacity": 1,
+                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -1563,7 +1557,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                               <View
                                 style={
                                   {
-                                    "marginLeft": 12,
+                                    "marginLeft": 8,
                                   }
                                 }
                                 testID="textfield-endacccessory"
@@ -1579,25 +1573,25 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 28,
+                                      "height": 24,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 28,
+                                      "width": 24,
                                     }
                                   }
                                 >
                                   <SvgMock
-                                    color="#686e7d"
+                                    color="#121314"
                                     fill="currentColor"
-                                    height={20}
-                                    name="CircleX"
+                                    height={16}
+                                    name="Close"
                                     style={
                                       {
-                                        "height": 20,
-                                        "width": 20,
+                                        "height": 16,
+                                        "width": 16,
                                       }
                                     }
-                                    width={20}
+                                    width={16}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -2112,7 +2106,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "minHeight": 56,
+                                  "height": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -2228,7 +2222,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderRadius": 8,
+                                          "borderRadius": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "opacity": 1,
@@ -2246,8 +2240,8 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
+                                            "height": 20,
+                                            "width": 20,
                                           },
                                           undefined,
                                         ]
@@ -2299,12 +2293,12 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
-                                  "borderRadius": 24,
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#b7bbc8",
+                                  "borderRadius": 8,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
-                                  "height": 48,
+                                  "height": 40,
                                   "opacity": 1,
                                   "paddingHorizontal": 16,
                                 }
@@ -2314,23 +2308,23 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                               <View
                                 style={
                                   {
-                                    "marginRight": 12,
+                                    "marginRight": 8,
                                   }
                                 }
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#121314"
                                   fill="currentColor"
-                                  height={20}
+                                  height={16}
                                   name="Search"
                                   style={
                                     {
-                                      "height": 20,
-                                      "width": 20,
+                                      "height": 16,
+                                      "width": 16,
                                     }
                                   }
-                                  width={20}
+                                  width={16}
                                 />
                               </View>
                               <View
@@ -2343,13 +2337,10 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                 <TextInput
                                   autoFocus={false}
                                   editable={true}
-                                  multiline={false}
-                                  numberOfLines={1}
                                   onBlur={[Function]}
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by state"
-                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -2359,10 +2350,10 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 46,
+                                      "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 0,
                                       "opacity": 1,
+                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -2373,7 +2364,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                               <View
                                 style={
                                   {
-                                    "marginLeft": 12,
+                                    "marginLeft": 8,
                                   }
                                 }
                                 testID="textfield-endacccessory"
@@ -2389,25 +2380,25 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 28,
+                                      "height": 24,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 28,
+                                      "width": 24,
                                     }
                                   }
                                 >
                                   <SvgMock
-                                    color="#686e7d"
+                                    color="#121314"
                                     fill="currentColor"
-                                    height={20}
-                                    name="CircleX"
+                                    height={16}
+                                    name="Close"
                                     style={
                                       {
-                                        "height": 20,
-                                        "width": 20,
+                                        "height": 16,
+                                        "width": 16,
                                       }
                                     }
-                                    width={20}
+                                    width={16}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -2978,7 +2969,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "minHeight": 56,
+                                  "height": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -3094,7 +3085,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderRadius": 8,
+                                          "borderRadius": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "opacity": 1,
@@ -3112,8 +3103,8 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
+                                            "height": 20,
+                                            "width": 20,
                                           },
                                           undefined,
                                         ]
@@ -3165,12 +3156,12 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
-                                  "borderRadius": 24,
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#b7bbc8",
+                                  "borderRadius": 8,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
-                                  "height": 48,
+                                  "height": 40,
                                   "opacity": 1,
                                   "paddingHorizontal": 16,
                                 }
@@ -3180,23 +3171,23 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                               <View
                                 style={
                                   {
-                                    "marginRight": 12,
+                                    "marginRight": 8,
                                   }
                                 }
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#121314"
                                   fill="currentColor"
-                                  height={20}
+                                  height={16}
                                   name="Search"
                                   style={
                                     {
-                                      "height": 20,
-                                      "width": 20,
+                                      "height": 16,
+                                      "width": 16,
                                     }
                                   }
-                                  width={20}
+                                  width={16}
                                 />
                               </View>
                               <View
@@ -3209,13 +3200,10 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                 <TextInput
                                   autoFocus={false}
                                   editable={true}
-                                  multiline={false}
-                                  numberOfLines={1}
                                   onBlur={[Function]}
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by state"
-                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -3225,10 +3213,10 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 46,
+                                      "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 0,
                                       "opacity": 1,
+                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -3239,7 +3227,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                               <View
                                 style={
                                   {
-                                    "marginLeft": 12,
+                                    "marginLeft": 8,
                                   }
                                 }
                                 testID="textfield-endacccessory"
@@ -3255,25 +3243,25 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 28,
+                                      "height": 24,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 28,
+                                      "width": 24,
                                     }
                                   }
                                 >
                                   <SvgMock
-                                    color="#686e7d"
+                                    color="#121314"
                                     fill="currentColor"
-                                    height={20}
-                                    name="CircleX"
+                                    height={16}
+                                    name="Close"
                                     style={
                                       {
-                                        "height": 20,
-                                        "width": 20,
+                                        "height": 16,
+                                        "width": 16,
                                       }
                                     }
-                                    width={20}
+                                    width={16}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -3844,7 +3832,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "minHeight": 56,
+                                  "height": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -3960,7 +3948,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderRadius": 8,
+                                          "borderRadius": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "opacity": 1,
@@ -3978,8 +3966,8 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
+                                            "height": 20,
+                                            "width": 20,
                                           },
                                           undefined,
                                         ]
@@ -4031,12 +4019,12 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
-                                  "borderRadius": 24,
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#b7bbc8",
+                                  "borderRadius": 8,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
-                                  "height": 48,
+                                  "height": 40,
                                   "opacity": 1,
                                   "paddingHorizontal": 16,
                                 }
@@ -4046,23 +4034,23 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                               <View
                                 style={
                                   {
-                                    "marginRight": 12,
+                                    "marginRight": 8,
                                   }
                                 }
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#121314"
                                   fill="currentColor"
-                                  height={20}
+                                  height={16}
                                   name="Search"
                                   style={
                                     {
-                                      "height": 20,
-                                      "width": 20,
+                                      "height": 16,
+                                      "width": 16,
                                     }
                                   }
-                                  width={20}
+                                  width={16}
                                 />
                               </View>
                               <View
@@ -4075,13 +4063,10 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                 <TextInput
                                   autoFocus={false}
                                   editable={true}
-                                  multiline={false}
-                                  numberOfLines={1}
                                   onBlur={[Function]}
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by state"
-                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -4091,10 +4076,10 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 46,
+                                      "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 0,
                                       "opacity": 1,
+                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -4973,7 +4958,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "minHeight": 56,
+                                  "height": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -5089,7 +5074,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderRadius": 8,
+                                          "borderRadius": 2,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "opacity": 1,
@@ -5107,8 +5092,8 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
+                                            "height": 20,
+                                            "width": 20,
                                           },
                                           undefined,
                                         ]
@@ -5160,12 +5145,12 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
-                                  "borderRadius": 24,
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#b7bbc8",
+                                  "borderRadius": 8,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
-                                  "height": 48,
+                                  "height": 40,
                                   "opacity": 1,
                                   "paddingHorizontal": 16,
                                 }
@@ -5175,23 +5160,23 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                               <View
                                 style={
                                   {
-                                    "marginRight": 12,
+                                    "marginRight": 8,
                                   }
                                 }
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#121314"
                                   fill="currentColor"
-                                  height={20}
+                                  height={16}
                                   name="Search"
                                   style={
                                     {
-                                      "height": 20,
-                                      "width": 20,
+                                      "height": 16,
+                                      "width": 16,
                                     }
                                   }
-                                  width={20}
+                                  width={16}
                                 />
                               </View>
                               <View
@@ -5204,13 +5189,10 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                 <TextInput
                                   autoFocus={false}
                                   editable={true}
-                                  multiline={false}
-                                  numberOfLines={1}
                                   onBlur={[Function]}
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by state"
-                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -5220,10 +5202,10 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 46,
+                                      "height": 38,
                                       "letterSpacing": 0,
-                                      "lineHeight": 0,
                                       "opacity": 1,
+                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -5234,7 +5216,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                               <View
                                 style={
                                   {
-                                    "marginLeft": 12,
+                                    "marginLeft": 8,
                                   }
                                 }
                                 testID="textfield-endacccessory"
@@ -5250,25 +5232,25 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 28,
+                                      "height": 24,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 28,
+                                      "width": 24,
                                     }
                                   }
                                 >
                                   <SvgMock
-                                    color="#686e7d"
+                                    color="#121314"
                                     fill="currentColor"
-                                    height={20}
-                                    name="CircleX"
+                                    height={16}
+                                    name="Close"
                                     style={
                                       {
-                                        "height": 20,
-                                        "width": 20,
+                                        "height": 16,
+                                        "width": 16,
                                       }
                                     }
-                                    width={20}
+                                    width={16}
                                   />
                                 </TouchableOpacity>
                               </View>

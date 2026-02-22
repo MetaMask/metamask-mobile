@@ -334,7 +334,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 }
               >
                 <View
-                  pointerEvents="none"
+                  pointerEvents="auto"
                 >
                   <TouchableOpacity
                     disabled={false}
@@ -522,7 +522,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 }
               >
                 <View
-                  pointerEvents="none"
+                  pointerEvents="auto"
                 >
                   <TouchableOpacity
                     disabled={false}

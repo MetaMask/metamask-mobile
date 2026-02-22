@@ -90,11 +90,11 @@ describe('usePerpsMarketForAsset', () => {
 
     expect(mockGetMarkets).toHaveBeenCalledWith({
       symbols: ['BTC'],
-      standalone: true,
+      readOnly: true,
     });
   });
 
-  it('calls getMarkets with standalone:true', async () => {
+  it('calls getMarkets with readOnly:true', async () => {
     mockGetMarkets.mockResolvedValue([]);
 
     renderHook(() => usePerpsMarketForAsset('DOGE'));
@@ -102,7 +102,7 @@ describe('usePerpsMarketForAsset', () => {
     await waitFor(() => {
       expect(mockGetMarkets).toHaveBeenCalledWith({
         symbols: ['DOGE'],
-        standalone: true,
+        readOnly: true,
       });
     });
   });

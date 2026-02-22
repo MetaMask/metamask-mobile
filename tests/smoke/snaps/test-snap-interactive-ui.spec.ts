@@ -1,9 +1,8 @@
-import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../flows/browser.flow';
+import { FlaskBuildTests } from '../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TestSnaps from '../../page-objects/Browser/TestSnaps';
+import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
 import { Assertions } from '../../framework';
 import Matchers from '../../framework/Matchers';
 import { DateTime } from 'luxon';

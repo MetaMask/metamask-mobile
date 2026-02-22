@@ -139,76 +139,6 @@ describe('NotificationManager', () => {
     });
   });
 
-  describe('constructTitleAndMessage - EIP-7702 transactions (without nonce)', () => {
-    it('constructs success title without nonce for EIP-7702 transactions', () => {
-      const { title, message } = constructTitleAndMessage({
-        type: NotificationTransactionTypes.success,
-        transaction: {
-          id: '0x123',
-          // nonce is intentionally undefined for EIP-7702 transactions
-        },
-      });
-
-      const expectedTitle = strings('notifications.success_title', {
-        nonce: '',
-      })
-        .replace(' # ', ' ')
-        .trim();
-
-      expect(title).toBe(expectedTitle);
-      expect(message).toBe(strings('notifications.success_message'));
-    });
-
-    it('constructs success title with nonce when nonce exists', () => {
-      const { title, message } = constructTitleAndMessage({
-        type: NotificationTransactionTypes.success,
-        transaction: {
-          id: '0x123',
-          nonce: '3',
-        },
-      });
-
-      expect(title).toBe(
-        strings('notifications.success_title', { nonce: '3' }),
-      );
-      expect(message).toBe(strings('notifications.success_message'));
-    });
-
-    it('constructs speedup title without nonce for EIP-7702 transactions', () => {
-      const { title, message } = constructTitleAndMessage({
-        type: NotificationTransactionTypes.speedup,
-        transaction: {
-          id: '0x123',
-          // nonce is intentionally undefined for EIP-7702 transactions
-        },
-      });
-
-      const expectedTitle = strings('notifications.speedup_title', {
-        nonce: '',
-      })
-        .replace(' #', '')
-        .trim();
-
-      expect(title).toBe(expectedTitle);
-      expect(message).toBe(strings('notifications.speedup_message'));
-    });
-
-    it('constructs speedup title with nonce when nonce exists', () => {
-      const { title, message } = constructTitleAndMessage({
-        type: NotificationTransactionTypes.speedup,
-        transaction: {
-          id: '0x123',
-          nonce: '5',
-        },
-      });
-
-      expect(title).toBe(
-        strings('notifications.speedup_title', { nonce: '5' }),
-      );
-      expect(message).toBe(strings('notifications.speedup_message'));
-    });
-  });
-
   describe('controller events', () => {
     const mockTransactionController = {
       getTransactions: jest.fn(),
@@ -328,7 +258,7 @@ describe('NotificationManager', () => {
         },
       };
       mockTransactionController.getTransactions.mockReturnValue([
-        mockTransaction as unknown as TransactionMeta,
+        mockTransaction as TransactionMeta,
       ]);
 
       const smartTransaction = {
@@ -427,19 +357,7 @@ describe('NotificationManager', () => {
       );
     });
 
-    it('shows a confirm notification for a transaction with nonce', async () => {
-      const transactionMeta = {
-        id: '0x123',
-        txParams: { nonce: '0x1' },
-        chainId: '0x1',
-        time: 123,
-        status: 'confirmed' as TransactionMeta['status'],
-      };
-
-      mockTransactionController.state.transactions.push(
-        transactionMeta as unknown as TransactionMeta,
-      );
-
+    it('shows a confirm notification for a transaction', async () => {
       notificationManager.watchSubmittedTransaction({
         id: '0x123',
         txParams: {
@@ -451,9 +369,9 @@ describe('NotificationManager', () => {
       const subscribeCallback =
         mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
 
-      subscribeCallback(transactionMeta, {
+      subscribeCallback({
         id: '0x123',
-        assetType: 'ETH',
+        txParams: { nonce: '0x1' },
       });
 
       jest.advanceTimersByTime(2000);
@@ -461,103 +379,6 @@ describe('NotificationManager', () => {
       expect(showNotificationSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'success',
-          transaction: expect.objectContaining({
-            id: '0x123',
-            nonce: expect.any(String),
-          }),
-        }),
-      );
-    });
-
-    it('shows a confirm notification for EIP-7702 transaction without nonce', async () => {
-      const eip7702TransactionMeta = {
-        id: '0x456',
-        txParams: {
-          // nonce is intentionally undefined for EIP-7702 transactions
-        },
-        chainId: '0x1',
-        time: 123,
-        status: 'confirmed' as TransactionMeta['status'],
-      };
-
-      // Add EIP-7702 transaction to controller state
-      mockTransactionController.state.transactions.push(
-        eip7702TransactionMeta as unknown as TransactionMeta,
-      );
-
-      const originalTransaction = {
-        id: '0x456',
-        assetType: 'ETH',
-      };
-
-      notificationManager.watchSubmittedTransaction({
-        id: '0x456',
-        txParams: {
-          // nonce is intentionally undefined for EIP-7702 transactions
-        },
-        silent: false,
-      });
-
-      const subscribeCallback =
-        mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
-
-      subscribeCallback(eip7702TransactionMeta, originalTransaction);
-
-      jest.advanceTimersByTime(2000);
-
-      expect(showNotificationSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'success',
-          autoHide: true,
-          transaction: expect.objectContaining({
-            id: '0x456',
-            nonce: undefined,
-          }),
-          duration: 5000,
-        }),
-      );
-    });
-
-    it('shows a confirm notification for transaction with null nonce', async () => {
-      const transactionWithNullNonce = {
-        id: '0x789',
-        txParams: {
-          nonce: null,
-        },
-        chainId: '0x1',
-        time: 123,
-        status: 'confirmed' as TransactionMeta['status'],
-      };
-
-      mockTransactionController.state.transactions.push(
-        transactionWithNullNonce as unknown as TransactionMeta,
-      );
-
-      notificationManager.watchSubmittedTransaction({
-        id: '0x789',
-        txParams: {
-          nonce: null,
-        },
-        silent: false,
-      });
-
-      const subscribeCallback =
-        mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
-
-      subscribeCallback(transactionWithNullNonce, {
-        id: '0x789',
-        assetType: 'ETH',
-      });
-
-      jest.advanceTimersByTime(2000);
-
-      expect(showNotificationSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'success',
-          transaction: expect.objectContaining({
-            id: '0x789',
-            nonce: undefined,
-          }),
         }),
       );
     });
@@ -670,7 +491,7 @@ describe('NotificationManager', () => {
           mockTransactionController.state.transactions.push({
             type: TransactionType.perpsDeposit,
             status: transactionStatus,
-          } as unknown as TransactionMeta);
+          } as TransactionMeta);
         });
 
         it('does not show submit confirmation', () => {
@@ -745,7 +566,7 @@ describe('NotificationManager', () => {
         requiredTransactionIds: [
           mockTransactionController.state.transactions[0].id,
         ],
-      } as unknown as TransactionMeta);
+      } as TransactionMeta);
 
       notificationManager.watchSubmittedTransaction({
         id: '0x123',
@@ -764,7 +585,7 @@ describe('NotificationManager', () => {
       mockTransactionController.state.transactions.push({
         type: TransactionType.perpsDeposit,
         batchId,
-      } as unknown as TransactionMeta);
+      } as TransactionMeta);
 
       mockTransactionController.state.transactions[0].batchId = batchId;
 

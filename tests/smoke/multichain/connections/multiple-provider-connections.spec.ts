@@ -1,18 +1,17 @@
-import { SmokeNetworkExpansion } from '../../../tags';
+import { SmokeNetworkExpansion } from '../../../../e2e/tags';
 import Assertions from '../../../framework/Assertions';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
 } from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import TestDApp from '../../../page-objects/Browser/TestDApp';
-import Browser from '../../../page-objects/Browser/BrowserView';
-import ConnectBottomSheet from '../../../page-objects/Browser/ConnectBottomSheet';
-import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal';
-import NetworkConnectMultiSelector from '../../../page-objects/Browser/NetworkConnectMultiSelector';
+import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
+import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import ConnectBottomSheet from '../../../../e2e/pages/Browser/ConnectBottomSheet';
+import ConnectedAccountsModal from '../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import NetworkConnectMultiSelector from '../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
-import { loginToApp } from '../../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../../flows/browser.flow';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,

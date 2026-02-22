@@ -11,11 +11,12 @@
 
 ## E2E Framework Structure
 
-- **Regression Testing Scenarios (`tests/regression/`)** - Regression Test files organized by feature
-- **Snoke Testing Scenarios (`tests/smoke/`)** - Smoke Test files organized by feature
+- **Regression Testing Scenarios (`e2e/regression/`)** - Regression Test files organized by feature
+- **Snoke Testing Scenarios (`e2e/smoke/`)** - Smoke Test files organized by feature
 - **TypeScript Framework (`tests/framework/`)**: Modern testing framework with type safety
-- **Page Objects (`tests/page-objects/`)**: Page Object Model implementation
-- **Selectors (`tests/selectors/`)**: Element selectors organized by feature
+- **Legacy JavaScript (`e2e/utils/`)**: Deprecated utilities being migrated
+- **Page Objects (`e2e/pages/`)**: Page Object Model implementation
+- **Selectors (`e2e/selectors/`)**: Element selectors organized by feature
 - **Fixtures (`tests/framework/fixtures/`)**: Test data and state management
 - **API Mocking (`tests/api-mocking/`)**: Comprehensive API mocking system
 
@@ -32,10 +33,11 @@
 - `tests/framework/` - TypeScript framework foundation (USE THIS)
 - `tests/smoke/` - Smoke Test files organized by feature
 - `tests/regression/` - Regression Test files organized by feature
-- `tests/page-objects/` - Page Object classes following POM pattern
-- `tests/selectors/` - Element selectors (avoid direct use in tests)
+- `e2e/pages/` - Page Object classes following POM pattern
+- `e2e/selectors/` - Element selectors (avoid direct use in tests)
 - `tests/api-mocking/` - API mocking utilities and responses
-- `tests/framework/fixtures/` - Test fixtures and data
+- `e2e/fixtures/` - Test fixtures and data (⚠️ being deprecated)
+- `e2e/utils/` - Legacy utilities (⚠️ deprecated - use framework/)
 
 ## E2E Testing Best Practices
 
@@ -110,19 +112,19 @@ await Gestures.tap(loadingButton, {
 ## E2E Test Examples and Patterns
 
 - **ALWAYS** use `withFixtures` - every test must use this pattern
-- **Framework Migration**: Use TypeScript framework (`tests/framework/`)
+- **Framework Migration**: Use TypeScript framework (`tests/framework/`), not legacy JavaScript (`e2e/utils/`)
 - **API Mocking**: All tests run with mocked APIs - use `testSpecificMock` for test-specific needs
 - **Page Objects**: Mandatory pattern - no direct element access in test specs
 - **Element State**: Configure visibility, enabled, and stability checking appropriately
 - **Debugging**: Check test output for unmocked API requests and framework warnings
 - **Performance**: Use `checkStability: false` by default, enable only for animated elements
-- Check `.cursor/rules/e2e-testing-guidelines.mdc` for comprehensive testing guidelines
+- Check `e2e/.cursor/rules/e2e-testing-guidelines.mdc` for comprehensive testing guidelines
 
 **Basic E2E Test Structure:**
 
 ```typescript
 import { SmokeE2E } from '../../tags';
-import { loginToApp } from '../../tests/flows/wallet.flow';
+import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../pages/wallet/WalletView';

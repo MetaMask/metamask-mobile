@@ -188,10 +188,7 @@ describe('CustomAmountInfo', () => {
     });
 
     useAccountTokensMock.mockReturnValue([]);
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [{}] as AssetType[],
-      hasTokens: true,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([{}] as AssetType[]);
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
     useTransactionConfirmMock.mockReturnValue({} as never);
     useIsTransactionPayLoadingMock.mockReturnValue(false);
@@ -250,10 +247,7 @@ describe('CustomAmountInfo', () => {
   });
 
   it('renders buy button if no available tokens', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [],
-      hasTokens: false,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([]);
 
     const { getByText } = render();
 
@@ -263,10 +257,7 @@ describe('CustomAmountInfo', () => {
   });
 
   it('navigates to ramps if buy button pressed', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [],
-      hasTokens: false,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([]);
 
     useAccountTokensMock.mockReturnValue([
       {

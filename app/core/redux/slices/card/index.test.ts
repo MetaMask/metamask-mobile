@@ -1064,19 +1064,7 @@ describe('Card Reducer', () => {
 
         expect(state.authenticatedPriorityToken).toBeNull();
         expect(state.authenticatedPriorityTokenLastFetched).toBeNull();
-        expect(state.isAuthenticated).toBe(false);
-      });
-
-      it('preserves userCardLocation when resetting authenticated data', () => {
-        const currentState: CardSliceState = {
-          ...initialState,
-          userCardLocation: 'us',
-          isAuthenticated: true,
-        };
-
-        const state = cardReducer(currentState, resetAuthenticatedData());
-
-        expect(state.userCardLocation).toBe('us');
+        expect(state.userCardLocation).toBe('international');
         expect(state.isAuthenticated).toBe(false);
       });
 
@@ -1113,10 +1101,8 @@ describe('Card Reducer', () => {
         // Authenticated data is reset
         expect(state.authenticatedPriorityToken).toBeNull();
         expect(state.authenticatedPriorityTokenLastFetched).toBeNull();
+        expect(state.userCardLocation).toBe('international');
         expect(state.isAuthenticated).toBe(false);
-
-        // userCardLocation is preserved (not part of auth data)
-        expect(state.userCardLocation).toBe('us');
 
         // Other state properties remain unchanged
         expect(state.cardholderAccounts).toEqual(['0x123']);
@@ -1145,6 +1131,17 @@ describe('Card Reducer', () => {
         expect(state.authenticatedPriorityTokenLastFetched).toBeNull();
         expect(state.userCardLocation).toBe('international');
         expect(state.isAuthenticated).toBe(false);
+      });
+
+      it('resets userCardLocation to international from us', () => {
+        const currentState: CardSliceState = {
+          ...initialState,
+          userCardLocation: 'us',
+        };
+
+        const state = cardReducer(currentState, resetAuthenticatedData());
+
+        expect(state.userCardLocation).toBe('international');
       });
 
       it('resets string date format for authenticatedPriorityTokenLastFetched', () => {
@@ -2204,11 +2201,7 @@ describe('verifyCardAuthentication Async Thunk', () => {
       expect(state.userCardLocation).toBe('international');
     });
 
-    it('preserves existing userCardLocation when payload has null location', () => {
-      const currentState: CardSliceState = {
-        ...initialState,
-        userCardLocation: 'us',
-      };
+    it('defaults to international when userCardLocation is null', () => {
       const mockPayload = {
         isAuthenticated: true,
         userCardLocation: null,
@@ -2217,31 +2210,13 @@ describe('verifyCardAuthentication Async Thunk', () => {
         type: verifyCardAuthentication.fulfilled.type,
         payload: mockPayload,
       };
-      const state = cardReducer(currentState, action);
+      const state = cardReducer(initialState, action);
 
       expect(state.isAuthenticated).toBe(true);
-      expect(state.userCardLocation).toBe('us');
+      expect(state.userCardLocation).toBe('international');
     });
 
-    it('preserves existing userCardLocation when payload has no location', () => {
-      const currentState: CardSliceState = {
-        ...initialState,
-        userCardLocation: 'us',
-      };
-      const mockPayload = {
-        isAuthenticated: true,
-      };
-      const action = {
-        type: verifyCardAuthentication.fulfilled.type,
-        payload: mockPayload,
-      };
-      const state = cardReducer(currentState, action);
-
-      expect(state.isAuthenticated).toBe(true);
-      expect(state.userCardLocation).toBe('us');
-    });
-
-    it('keeps default userCardLocation when payload has no location and state is default', () => {
+    it('defaults to international when userCardLocation is undefined', () => {
       const mockPayload = {
         isAuthenticated: true,
       };
@@ -2273,7 +2248,7 @@ describe('verifyCardAuthentication Async Thunk', () => {
   });
 
   describe('verifyCardAuthentication.rejected', () => {
-    it('resets authentication state on error but preserves userCardLocation', () => {
+    it('resets authentication state on error', () => {
       const currentState: CardSliceState = {
         ...initialState,
         isAuthenticated: true,
@@ -2291,7 +2266,7 @@ describe('verifyCardAuthentication Async Thunk', () => {
       const state = cardReducer(currentState, action);
 
       expect(state.isAuthenticated).toBe(false);
-      expect(state.userCardLocation).toBe('us');
+      expect(state.userCardLocation).toBe('international');
       expect(state.authenticatedPriorityToken).toBeNull();
       expect(state.authenticatedPriorityTokenLastFetched).toBeNull();
     });

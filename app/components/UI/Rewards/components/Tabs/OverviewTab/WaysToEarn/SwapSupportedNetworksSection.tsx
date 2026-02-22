@@ -12,11 +12,13 @@ import {
 import AvatarNetwork from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
 import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
+import { NETWORKS_CHAIN_ID } from '../../../../../../../constants/network';
+import { SolScope } from '@metamask/keyring-api';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../../selectors/networkController';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../../../selectors/multichainNetworkController';
+import { strings } from '../../../../../../../../locales/i18n';
 import { PopularList } from '../../../../../../../util/networks/customNetworks';
 import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../../selectors/featureFlagController/networkBlacklist';
-import { SeasonWayToEarnSpecificSwapDto } from '../../../../../../../core/Engine/controllers/rewards-controller/types';
 
 interface NetworkConfig {
   chainId: string;
@@ -63,10 +65,22 @@ const SwapSupportedNetworkItem = ({ network }: { network: NetworkConfig }) => (
   </Box>
 );
 
-export const SwapSupportedNetworksSection = ({
-  supportedNetworksTitle,
-  supportedNetworks,
-}: SeasonWayToEarnSpecificSwapDto) => {
+// Define which networks are supported for rewards
+const SWAP_SUPPORTED_CHAIN_IDS = [
+  NETWORKS_CHAIN_ID.MAINNET,
+  NETWORKS_CHAIN_ID.LINEA_MAINNET,
+  NETWORKS_CHAIN_ID.OPTIMISM,
+  NETWORKS_CHAIN_ID.BSC,
+  NETWORKS_CHAIN_ID.POLYGON,
+  NETWORKS_CHAIN_ID.BASE,
+  NETWORKS_CHAIN_ID.ARBITRUM,
+  SolScope.Mainnet,
+  NETWORKS_CHAIN_ID.AVAXCCHAIN,
+  NETWORKS_CHAIN_ID.ZKSYNC_ERA,
+  NETWORKS_CHAIN_ID.MONAD,
+];
+
+export const SwapSupportedNetworksSection = () => {
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -77,7 +91,7 @@ export const SwapSupportedNetworksSection = ({
     selectAdditionalNetworksBlacklistFeatureFlag,
   );
 
-  const resolvedNetworks = useMemo(() => {
+  const supportedNetworks = useMemo(() => {
     const allNetworkConfigurations: Record<
       string,
       { name: string; [key: string]: unknown }
@@ -87,32 +101,35 @@ export const SwapSupportedNetworksSection = ({
     };
 
     // Exclude any chain IDs present in the remote/local blacklist
-    const allowedNetworks = supportedNetworks.filter(
-      (network) => !additionalNetworksBlacklist?.includes(network.chainId),
+    const allowedChainIds = SWAP_SUPPORTED_CHAIN_IDS.filter(
+      (chainId) => !additionalNetworksBlacklist?.includes(chainId),
     );
 
-    return allowedNetworks
-      .map((network) => {
-        const networkConfig = allNetworkConfigurations[network.chainId];
+    return allowedChainIds
+      .map((chainId) => {
+        const networkConfig = allNetworkConfigurations[chainId];
         let name = networkConfig?.name;
 
         // If we don't have the network config, check if it's in PopularList and use that name
         if (!name) {
           const popularNetwork = PopularList.find(
-            (popular) => popular.chainId === network.chainId,
+            (network) => network.chainId === chainId,
           );
           name = popularNetwork?.nickname || 'Unknown Network';
         }
 
+        // Add boost for Linea
+        const boost =
+          chainId === NETWORKS_CHAIN_ID.LINEA_MAINNET ? '+100%' : undefined;
+
         return {
-          chainId: network.chainId,
+          chainId,
           name,
-          ...(network.boost && { boost: network.boost }),
+          ...(boost && { boost }),
         };
       })
-      .filter((network) => network.name !== 'Unknown Network');
+      .filter((network) => network.name !== 'Unknown Network'); // Only include networks we have names for
   }, [
-    supportedNetworks,
     evmNetworkConfigurations,
     nonEvmNetworkConfigurations,
     additionalNetworksBlacklist,
@@ -120,13 +137,15 @@ export const SwapSupportedNetworksSection = ({
 
   return (
     <Box twClassName="w-full bg-muted p-4 rounded-md">
-      <Text variant={TextVariant.SectionHeading}>{supportedNetworksTitle}</Text>
+      <Text variant={TextVariant.SectionHeading}>
+        {strings('rewards.ways_to_earn.supported_networks')}
+      </Text>
       <Box twClassName="mt-3">
         <Box
           flexDirection={BoxFlexDirection.Row}
           twClassName="flex-wrap -mx-2 -my-1"
         >
-          {resolvedNetworks.map((network) => (
+          {supportedNetworks.map((network) => (
             <Box key={network.chainId} twClassName="basis-1/2 px-2 py-1">
               <SwapSupportedNetworkItem network={network} />
             </Box>

@@ -1,18 +1,18 @@
-import { loginToApp } from '../../../flows/wallet.flow';
-import TestHelpers from '../../../helpers';
-import WalletView from '../../../page-objects/wallet/WalletView';
-import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import TestHelpers from '../../../../e2e/helpers';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import { SmokeIdentity } from '../../../tags';
+import { SmokeIdentity } from '../../../../e2e/tags';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController';
-import AddAccountBottomSheet from '../../../page-objects/wallet/AddAccountBottomSheet';
-import ImportAccountView from '../../../page-objects/importAccount/ImportAccountView';
-import SuccessImportAccountView from '../../../page-objects/importAccount/SuccessImportAccountView';
+import AddAccountBottomSheet from '../../../../e2e/pages/wallet/AddAccountBottomSheet';
+import ImportAccountView from '../../../../e2e/pages/importAccount/ImportAccountView';
+import SuccessImportAccountView from '../../../../e2e/pages/importAccount/SuccessImportAccountView';
 import { IDENTITY_TEAM_IMPORTED_PRIVATE_KEY } from '../utils/constants';
 import { createUserStorageController } from '../utils/mocks';
 import {

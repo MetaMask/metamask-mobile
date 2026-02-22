@@ -1,9 +1,9 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokePredictions } from '../../tags';
-import { loginToApp } from '../../flows/wallet.flow';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
+import { SmokePredictions } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import Assertions from '../../framework/Assertions';
 import { POLYMARKET_API_DOWN } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';

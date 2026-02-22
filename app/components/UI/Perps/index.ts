@@ -6,6 +6,8 @@ export {
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsGtmOnboardingModalEnabledFlag,
 } from './selectors/featureFlags';
+export { PERPS_CONSTANTS } from './constants/perpsConfig';
+
 export { usePerpsPaymentToken } from './hooks/usePerpsPaymentToken';
 
-export * from '@metamask/perps-controller';
+export * from './types/perps-types';

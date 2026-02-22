@@ -11,13 +11,13 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  type PerpsMarketData,
-  type MarketTypeFilter,
-  type SortField,
-} from '@metamask/perps-controller';
-import type { PerpsNavigationParamList } from '../../types/navigation';
+import type {
+  PerpsMarketData,
+  PerpsNavigationParamList,
+  MarketTypeFilter,
+} from '../../controllers/types';
 import { useStyles } from '../../../../../component-library/hooks';
+import type { SortField } from '../../utils/sortMarkets';
 import PerpsMarketList from '../PerpsMarketList';
 import styleSheet from './PerpsMarketTypeSection.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';

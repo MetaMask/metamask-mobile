@@ -58,8 +58,7 @@ import PerpsOrderBookTable, {
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-  getPerpsDisplaySymbol,
-} from '@metamask/perps-controller';
+} from '../../constants/eventNames';
 import {
   usePerpsMarkets,
   usePerpsNavigation,
@@ -80,6 +79,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import {
   calculateAggregationParams,
   calculateGroupingOptions,

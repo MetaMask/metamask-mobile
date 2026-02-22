@@ -6,11 +6,16 @@ import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { usePredictTrading } from './usePredictTrading';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
+import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { selectPredictBalanceByAddress } from '../selectors/predictController';
 import { ensureError } from '../utils/predictErrorHandler';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 
 interface UsePredictBalanceOptions {
+  /**
+   * The provider ID to load balance for
+   */
+  providerId?: string;
   /**
    * Whether to load balance on mount
    * @default true
@@ -40,7 +45,11 @@ interface UsePredictBalanceReturn {
 export function usePredictBalance(
   options: UsePredictBalanceOptions = {},
 ): UsePredictBalanceReturn {
-  const { loadOnMount = false, refreshOnFocus = false } = options;
+  const {
+    providerId = POLYMARKET_PROVIDER_ID,
+    loadOnMount = false,
+    refreshOnFocus = false,
+  } = options;
 
   const { getBalance } = usePredictTrading();
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
@@ -57,6 +66,7 @@ export function usePredictBalance(
   const balance =
     useSelector(
       selectPredictBalanceByAddress({
+        providerId,
         address: selectedInternalAccountAddress || '',
       }),
     ) || 0;
@@ -100,10 +110,12 @@ export function usePredictBalance(
         // Get balance from Predict controller
         const balanceData = await getBalance({
           address: selectedInternalAccountAddress,
+          providerId,
         });
 
         DevLogger.log('usePredictBalance: Loaded balance', {
           balance: balanceData,
+          providerId,
         });
       } catch (err) {
         const errorMessage =
@@ -123,6 +135,7 @@ export function usePredictBalance(
               method: 'loadBalance',
               action: 'balance_load',
               operation: 'data_fetching',
+              providerId,
             },
           },
         });
@@ -134,7 +147,7 @@ export function usePredictBalance(
     },
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [getBalance, selectedInternalAccountAddress],
+    [getBalance, selectedInternalAccountAddress, providerId],
   );
 
   // Load balance on mount if enabled

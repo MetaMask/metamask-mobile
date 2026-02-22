@@ -1,9 +1,8 @@
-import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../flows/browser.flow';
+import { FlaskBuildTests } from '../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TestSnaps from '../../page-objects/Browser/TestSnaps';
+import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
 
 jest.setTimeout(150_000);
@@ -86,20 +85,9 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
         await TestSnaps.fillMessage('entropyMessageInput', 'foo bar');
         await TestSnaps.tapButton('signEntropyMessageButton');
         await TestSnaps.approveSignRequest();
-        // iOS shows the error as a native alert; Android renders it in the
-        // web-view result span as JSON with escaped quotes.
-        if (device.getPlatform() === 'ios') {
-          await Assertions.expectTextDisplayed(
-            'Entropy source with ID "invalid" not found.',
-            { timeout: 30000 },
-          );
-        } else {
-          await TestSnaps.checkResultSpanIncludes(
-            'entropySignResultSpan',
-            'Entropy source with ID',
-            { timeout: 30000 },
-          );
-        }
+        await Assertions.checkIfTextIsDisplayed(
+          'Entropy source with ID "invalid" not found.',
+        );
       },
     );
   });

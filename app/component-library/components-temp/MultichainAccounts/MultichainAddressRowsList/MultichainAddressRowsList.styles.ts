@@ -30,6 +30,12 @@ const styleSheet = (params: {
       padding: 16,
       backgroundColor: colors.background.default,
     } as ViewStyle,
+    searchTextField: {
+      backgroundColor: colors.background.muted,
+      borderWidth: 0,
+      borderRadius: 16,
+      padding: 0,
+    } as ViewStyle,
     list: {
       flex: 1,
     } as ViewStyle,

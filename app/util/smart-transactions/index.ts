@@ -33,21 +33,21 @@ export const getTransactionType = (
 
   const isSwapApproveOrSwapTransaction = getIsSwapApproveOrSwapTransaction(
     data,
+    transactionMeta.origin,
     to,
     chainId,
-    transactionMeta.type,
   );
   const isSwapApproveTx = getIsSwapApproveTransaction(
     data,
+    transactionMeta.origin,
     to,
     chainId,
-    transactionMeta.type,
   );
   const isSwapTransaction = getIsSwapTransaction(
     data,
+    transactionMeta.origin,
     to,
     chainId,
-    transactionMeta.type,
   );
 
   const isNativeTokenTransferred = getIsNativeTokenTransferred(

@@ -88,7 +88,9 @@ import { useMetrics } from '../../hooks/useMetrics';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import Label from '../../../component-library/components/Form/Label';
-import TextField from '../../../component-library/components/Form/TextField';
+import TextField, {
+  TextFieldSize,
+} from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -144,7 +146,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const {
     styles,
-    theme: { themeAppearance },
+    theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
@@ -676,7 +678,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   {strings('login.password')}
                 </Label>
                 <TextField
+                  size={TextFieldSize.Lg}
                   placeholder={strings('login.password_placeholder')}
+                  placeholderTextColor={colors.text.alternative}
                   testID={LoginViewSelectors.PASSWORD_INPUT}
                   returnKeyType={'done'}
                   autoCapitalize="none"

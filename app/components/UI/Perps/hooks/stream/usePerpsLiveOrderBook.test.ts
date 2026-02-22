@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsLiveOrderBook } from './usePerpsLiveOrderBook';
 import Engine from '../../../../../core/Engine';
-import { type OrderBookData } from '@metamask/perps-controller';
+import type { OrderBookData } from '../../controllers/types';
 
 // Mock Engine
 jest.mock('../../../../../core/Engine', () => ({

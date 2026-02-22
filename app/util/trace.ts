@@ -169,8 +169,6 @@ export enum TraceName {
   PerpsWithdrawView = 'Perps Withdraw View',
   PerpsConnectionEstablishment = 'Perps Connection Establishment',
   PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
-  PerpsMarketDataPreload = 'Perps Market Data Preload',
-  PerpsUserDataPreload = 'Perps User Data Preload',
   // Predict
   PredictFeedView = 'Predict Feed View',
   PredictMarketDetailsView = 'Predict Market Details View',

@@ -2,21 +2,21 @@ import { useCallback } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
-import {
-  PERPS_CONSTANTS,
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-  type PerpsMarketData,
-  type Position,
-  type Order,
-} from '@metamask/perps-controller';
+import type { PerpsMarketData, Position, Order } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '../constants/eventNames';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
-import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import {
+  PERPS_CONSTANTS,
+  CONFIRMATION_HEADER_CONFIG,
+} from '../constants/perpsConfig';
 
 /**
  * Navigation handler result interface
@@ -156,10 +156,11 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
           );
         })
         .catch((error: unknown) => {
-          const err = ensureError(error, 'usePerpsNavigation.navigateToOrder');
+          const err = ensureError(error);
           Logger.error(err, {
-            tags: { feature: PERPS_CONSTANTS.FeatureName },
-            context: { name: 'usePerpsNavigation.navigateToOrder', data: {} },
+            feature: PERPS_CONSTANTS.FeatureName,
+            message:
+              'Failed to start one-click trade (deposit rejected or failed)',
           });
 
           track(MetaMetricsEvents.PERPS_ERROR, {

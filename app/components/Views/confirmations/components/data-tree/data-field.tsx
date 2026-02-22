@@ -62,22 +62,6 @@ function isTokenValueField(label: string, primaryType?: PrimaryType) {
   );
 }
 
-function parseTypedSignDateValue(value: string) {
-  try {
-    const parsedValue = BigInt(value);
-    if (
-      parsedValue > BigInt(Number.MAX_SAFE_INTEGER) ||
-      parsedValue < BigInt(Number.MIN_SAFE_INTEGER)
-    ) {
-      return undefined;
-    }
-
-    return Number(parsedValue);
-  } catch {
-    return undefined;
-  }
-}
-
 const createStyles = (depth: number) =>
   StyleSheet.create({
     container: {
@@ -115,15 +99,13 @@ const DataField = memo(
     if (type === 'address' && isValidHexAddress(value as Hex)) {
       fieldDisplay = <Address address={value} chainId={chainId} />;
     } else if (isDateField(label, primaryType) && Boolean(value)) {
-      const intValue = parseTypedSignDateValue(value);
+      const intValue = parseInt(value, 10);
 
       fieldDisplay =
         intValue === NONE_DATE_VALUE ? (
           <Text>{strings('confirm.none')}</Text>
-        ) : intValue === undefined ? (
-          <Text>{value}</Text>
         ) : (
-          <InfoDate unixTimestamp={intValue} />
+          <InfoDate unixTimestamp={parseInt(value, 10)} />
         );
     } else if (isTokenValueField(label, primaryType)) {
       fieldDisplay = (

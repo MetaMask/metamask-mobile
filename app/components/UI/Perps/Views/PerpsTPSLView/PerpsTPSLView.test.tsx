@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsTPSLView from './PerpsTPSLView';
-import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
+import type { Position } from '../../controllers/types';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 
 // Mock dependencies
 jest.mock('react-native-reanimated', () =>

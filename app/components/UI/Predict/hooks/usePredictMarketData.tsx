@@ -9,6 +9,7 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { PredictCategory, PredictMarket } from '../types';
 
 export interface UsePredictMarketDataOptions {
+  providerId?: string;
   q?: string;
   category?: PredictCategory;
   pageSize?: number;
@@ -36,6 +37,7 @@ export const usePredictMarketData = (
     category = 'trending',
     q,
     pageSize = 20,
+    providerId,
     customQueryParams,
   } = options;
   const [marketData, setMarketData] = useState<PredictMarket[]>([]);
@@ -97,6 +99,7 @@ export const usePredictMarketData = (
             }
 
             const markets = await controller.getMarkets({
+              providerId,
               category,
               q,
               limit: pageSize,
@@ -172,6 +175,7 @@ export const usePredictMarketData = (
               method: 'loadMarketData',
               action: 'market_data_load',
               operation: 'data_fetching',
+              providerId,
               category,
               hasSearchQuery: !!q,
               pageSize,
@@ -188,7 +192,7 @@ export const usePredictMarketData = (
         setIsLoadingMore(false);
       }
     },
-    [category, q, pageSize, customQueryParams],
+    [category, q, pageSize, providerId, customQueryParams],
   );
 
   const loadMore = useCallback(async () => {
