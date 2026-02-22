@@ -4,7 +4,7 @@ import { usePerpsPositions } from './usePerpsPositions';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsConnection } from './usePerpsConnection';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { type Position } from '@metamask/perps-controller';
+import type { Position } from '../controllers/types';
 
 jest.mock('./usePerpsTrading');
 jest.mock('./usePerpsConnection');

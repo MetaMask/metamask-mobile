@@ -22,13 +22,12 @@ import { endTrace, trace, TraceName } from '../util/trace';
 import { hasTransactionType } from '../components/Views/confirmations/utils/transaction';
 
 export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
-  TransactionType.musdClaim,
-  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
-  TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
+  TransactionType.musdConversion,
+  TransactionType.perpsDepositAndOrder,
 ];
 
 export const IN_PROGRESS_SKIP_STATUS = [
@@ -54,32 +53,16 @@ export const constructTitleAndMessage = (notification) => {
       message = strings('notifications.pending_withdrawal_message');
       break;
     case NotificationTransactionTypes.success:
-      {
-        const nonce = notification?.transaction?.nonce;
-        if (nonce) {
-          title = strings('notifications.success_title', { nonce });
-        } else {
-          // For transactions without nonce (e.g., EIP-7702), show without nonce
-          title = strings('notifications.success_title', { nonce: '' })
-            .replace(' # ', ' ')
-            .trim();
-        }
-        message = strings('notifications.success_message');
-      }
+      title = strings('notifications.success_title', {
+        nonce: notification?.transaction?.nonce || '',
+      });
+      message = strings('notifications.success_message');
       break;
     case NotificationTransactionTypes.speedup:
-      {
-        const nonce = notification?.transaction?.nonce;
-        if (nonce) {
-          title = strings('notifications.speedup_title', { nonce });
-        } else {
-          // For transactions without nonce, show without nonce
-          title = strings('notifications.speedup_title', { nonce: '' })
-            .replace(' #', '')
-            .trim();
-        }
-        message = strings('notifications.speedup_message');
-      }
+      title = strings('notifications.speedup_title', {
+        nonce: notification?.transaction?.nonce || '',
+      });
+      message = strings('notifications.speedup_message');
       break;
     case NotificationTransactionTypes.success_withdrawal:
       title = strings('notifications.success_withdrawal_title');
@@ -241,13 +224,7 @@ class NotificationManager {
   _confirmedCallback = (transactionMeta, originalTransaction) => {
     // Once it's confirmed we hide the pending tx notification
     this._removeNotificationById(transactionMeta.id);
-    const nonce = transactionMeta.txParams?.nonce;
-    const hasNonce = nonce !== undefined && nonce !== null;
-    const shouldShowNotification =
-      !hasNonce ||
-      (this._transactionsWatchTable[nonce]?.length &&
-        this._transactionsWatchTable[nonce].length);
-    shouldShowNotification &&
+    this._transactionsWatchTable[transactionMeta.txParams.nonce].length &&
       setTimeout(() => {
         // Then we show the success notification
         !this.#shouldSkipNotification(transactionMeta) &&
@@ -256,7 +233,7 @@ class NotificationManager {
             autoHide: true,
             transaction: {
               id: transactionMeta.id,
-              nonce: hasNonce ? `${hexToBN(nonce).toString()}` : undefined,
+              nonce: `${hexToBN(transactionMeta.txParams.nonce).toString()}`,
             },
             duration: 5000,
           });

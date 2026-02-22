@@ -1,11 +1,11 @@
 import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
-import {
-  type PerpsActiveProviderMode,
-  type SwitchProviderResult,
-  type ToggleTestnetResult,
-} from '@metamask/perps-controller';
+import type {
+  PerpsActiveProviderMode,
+  SwitchProviderResult,
+  ToggleTestnetResult,
+} from '../controllers/types';
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({

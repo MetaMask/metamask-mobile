@@ -20,15 +20,13 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { capitalize } from '../../../../util/general';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import {
-  PERPS_EVENT_VALUE,
-  OrderDirection,
-  getPerpsDisplaySymbol,
-  type Position,
-} from '@metamask/perps-controller';
+import { PERPS_EVENT_VALUE } from '../constants/eventNames';
+import { OrderDirection } from '../types/perps-types';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { handlePerpsError } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
+import { Position } from '../controllers/types';
+import { getPerpsDisplaySymbol } from '../utils/marketUtils';
 
 export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
   hapticsType: NotificationFeedbackType;

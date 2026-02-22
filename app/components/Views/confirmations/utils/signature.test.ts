@@ -1,6 +1,4 @@
 import {
-  isPermitDaiRevoke,
-  isPermitDaiUnlimited,
   parseAndNormalizeSignTypedData,
   isRecognizedPermit,
   isTypedSignV3V4Request,
@@ -17,7 +15,6 @@ import {
   SignatureRequest,
   SignatureRequestType,
 } from '@metamask/signature-controller';
-import { TOKEN_ADDRESS } from '../constants/tokens';
 import {
   mockTypedSignV3Message,
   personalSignSignatureRequest,
@@ -176,27 +173,6 @@ describe('Signature Utils', () => {
         // String values are not matched by the large value regex, so JSON.parse result is used
         expect(result.message.value).toBe('123');
       });
-    });
-  });
-
-  describe('DAI permit coercion helpers', () => {
-    it('mirrors bool truthiness coercion for DAI permit unlimited checks', () => {
-      expect(isPermitDaiUnlimited(TOKEN_ADDRESS.DAI, true)).toBe(true);
-      expect(isPermitDaiUnlimited(TOKEN_ADDRESS.DAI, 'false')).toBe(true);
-      expect(isPermitDaiUnlimited(TOKEN_ADDRESS.DAI, 0)).toBe(false);
-    });
-
-    it('does not classify DAI permit as revoke when allowed is the string "false"', () => {
-      expect(isPermitDaiRevoke(TOKEN_ADDRESS.DAI, 'false')).toBe(false);
-    });
-
-    it('classifies DAI permit as revoke for zero-like numeric values', () => {
-      expect(isPermitDaiRevoke(TOKEN_ADDRESS.DAI, undefined, '0x0')).toBe(true);
-      expect(isPermitDaiRevoke(TOKEN_ADDRESS.DAI, undefined, '0')).toBe(true);
-    });
-
-    it('classifies DAI permit as revoke when allowed is an empty string', () => {
-      expect(isPermitDaiRevoke(TOKEN_ADDRESS.DAI, '')).toBe(true);
     });
   });
 

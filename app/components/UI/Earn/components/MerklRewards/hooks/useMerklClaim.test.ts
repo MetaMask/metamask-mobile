@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useMerklClaim } from './useMerklClaim';
 import { addTransaction } from '../../../../../../util/transaction-controller';
@@ -42,13 +42,8 @@ jest.mock('../../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-// Mock merkl-client to bypass module-level cache
-const mockFetchMerklRewardsForAsset = jest.fn();
-jest.mock('../merkl-client', () => ({
-  fetchMerklRewardsForAsset: (...args: unknown[]) =>
-    mockFetchMerklRewardsForAsset(...args),
-  clearMerklRewardsCache: jest.fn(),
-}));
+// Mock fetch globally
+global.fetch = jest.fn();
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockAddTransaction = addTransaction as jest.MockedFunction<
@@ -76,33 +71,42 @@ const mockAsset: TokenI = {
   isNative: false,
 };
 
-// Helper to create mock reward data (shape returned by fetchMerklRewardsForAsset)
+// Helper to create mock reward data
 const createMockRewardData = (overrides?: {
   address?: string;
   chainId?: number;
   symbol?: string;
   amount?: string;
-}) => ({
-  token: {
-    address: overrides?.address ?? '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
-    chainId: overrides?.chainId ?? 1,
-    symbol: overrides?.symbol ?? 'aglaMerkl',
-    decimals: 18,
-    price: null,
+}) => [
+  {
+    rewards: [
+      {
+        token: {
+          address:
+            overrides?.address ?? '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+          chainId: overrides?.chainId ?? 1,
+          symbol: overrides?.symbol ?? 'aglaMerkl',
+          decimals: 18,
+          price: null,
+        },
+        accumulated: '0',
+        unclaimed: '0',
+        pending: overrides?.amount ?? '1000000000000000000',
+        proofs: [
+          '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        ],
+        amount: overrides?.amount ?? '1000000000000000000',
+        claimed: '0',
+        recipient: mockSelectedAddress,
+      },
+    ],
   },
-  pending: overrides?.amount ?? '1000000000000000000',
-  proofs: [
-    '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-  ],
-  amount: overrides?.amount ?? '1000000000000000000',
-  claimed: '0',
-  recipient: mockSelectedAddress,
-});
+];
 
 describe('useMerklClaim', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFetchMerklRewardsForAsset.mockReset();
+    (global.fetch as jest.Mock).mockClear();
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
@@ -143,7 +147,7 @@ describe('useMerklClaim', () => {
     expect(typeof result.current.claimRewards).toBe('function');
   });
 
-  it('sets error and returns undefined when no account is selected', async () => {
+  it('sets error and throws when no account is selected', async () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return null;
@@ -153,17 +157,17 @@ describe('useMerklClaim', () => {
 
     const { result } = renderHook(() => useMerklClaim(mockAsset));
 
-    let claimResult: unknown;
     await act(async () => {
-      claimResult = await result.current.claimRewards();
+      await expect(result.current.claimRewards()).rejects.toThrow(
+        'No account or network selected',
+      );
     });
 
-    expect(claimResult).toBeUndefined();
     expect(result.current.error).toBe('No account or network selected');
     expect(result.current.isClaiming).toBe(false);
   });
 
-  it('sets error and returns undefined when no network is selected', async () => {
+  it('sets error and throws when no network is selected', async () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
@@ -180,18 +184,21 @@ describe('useMerklClaim', () => {
 
     const { result } = renderHook(() => useMerklClaim(mockAsset));
 
-    let claimResult: unknown;
     await act(async () => {
-      claimResult = await result.current.claimRewards();
+      await expect(result.current.claimRewards()).rejects.toThrow(
+        'No account or network selected',
+      );
     });
 
-    expect(claimResult).toBeUndefined();
     expect(result.current.error).toBe('No account or network selected');
     expect(result.current.isClaiming).toBe(false);
   });
 
   it('fetches rewards and submits transaction successfully', async () => {
-    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(createMockRewardData());
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => createMockRewardData(),
+    });
 
     mockAddTransaction.mockResolvedValueOnce({
       result: Promise.resolve('0xabc123'),
@@ -207,14 +214,12 @@ describe('useMerklClaim', () => {
 
     // Transaction submitted successfully
     expect(claimResult?.txHash).toBe('0xabc123');
-    // isClaiming is false after addTransaction resolves
-    expect(result.current.isClaiming).toBe(false);
+    // isClaiming stays true - component will unmount and useMerklClaimStatus handles the rest
+    expect(result.current.isClaiming).toBe(true);
     expect(result.current.error).toBe(null);
-    expect(mockFetchMerklRewardsForAsset).toHaveBeenCalledWith(
-      mockAsset,
-      mockSelectedAddress,
-      expect.any(AbortSignal),
-    );
+    expect(global.fetch).toHaveBeenCalled();
+    const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
+    expect(fetchCall[0]).toContain(`chainId=${Number(CHAIN_IDS.MAINNET)}`);
 
     const txCall = mockAddTransaction.mock.calls[0][0];
     expect(txCall.from).toBe(mockSelectedAddress);
@@ -223,23 +228,91 @@ describe('useMerklClaim', () => {
   });
 
   it('sets error when API fetch fails', async () => {
-    mockFetchMerklRewardsForAsset.mockRejectedValueOnce(
-      new Error('Failed to fetch Merkl rewards: 500'),
-    );
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+    });
 
     const { result } = renderHook(() => useMerklClaim(mockAsset));
 
     await act(async () => {
-      await result.current.claimRewards();
+      try {
+        await result.current.claimRewards();
+      } catch {
+        // Expected to throw
+      }
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBeTruthy();
     });
 
     expect(result.current.isClaiming).toBe(false);
     expect(result.current.error).toContain('Failed to fetch Merkl rewards');
   });
 
-  it('sets error when no claimable rewards found', async () => {
-    // fetchMerklRewardsForAsset returns null when no matching reward exists
-    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(null);
+  it('throws error when no claimable rewards found', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => [{ rewards: [] }],
+    });
+
+    const { result } = renderHook(() => useMerklClaim(mockAsset));
+
+    await act(async () => {
+      try {
+        await result.current.claimRewards();
+      } catch {
+        // Expected
+      }
+    });
+
+    await waitFor(() => expect(result.current.error).toBeTruthy());
+    expect(result.current.error).toBe('No claimable rewards found');
+    expect(result.current.isClaiming).toBe(false);
+  });
+
+  it('throws error when no matching token found in rewards', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () =>
+        createMockRewardData({
+          address: '0x1111111111111111111111111111111111111111',
+          symbol: 'OTHER',
+        }),
+    });
+
+    const { result } = renderHook(() => useMerklClaim(mockAsset));
+
+    await act(async () => {
+      try {
+        await result.current.claimRewards();
+      } catch {
+        // Expected
+      }
+    });
+
+    await waitFor(() => expect(result.current.error).toBeTruthy());
+    expect(result.current.error).toBe('No claimable rewards found');
+    expect(result.current.isClaiming).toBe(false);
+  });
+
+  it('finds matching reward in second data array element', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => [
+        ...createMockRewardData({
+          address: '0x1111111111111111111111111111111111111111',
+          symbol: 'OTHER',
+        }),
+        createMockRewardData({ amount: '2500000000000000000' })[0],
+      ],
+    });
+
+    mockAddTransaction.mockResolvedValueOnce({
+      result: Promise.resolve('0xabc123'),
+      transactionMeta: { id: 'tx-123' },
+    } as never);
 
     const { result } = renderHook(() => useMerklClaim(mockAsset));
 
@@ -247,29 +320,41 @@ describe('useMerklClaim', () => {
       await result.current.claimRewards();
     });
 
-    expect(result.current.error).toBe('No claimable rewards found');
-    expect(result.current.isClaiming).toBe(false);
+    // isClaiming stays true - component will unmount and useMerklClaimStatus handles the rest
+    expect(result.current.isClaiming).toBe(true);
+    expect(mockAddTransaction.mock.calls[0][0].to).toBe(
+      '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae',
+    );
   });
 
-  it('sets error and returns undefined on network failure', async () => {
-    mockFetchMerklRewardsForAsset.mockRejectedValueOnce(
-      new Error('Network error'),
-    );
+  it('sets error and rethrows on network failure', async () => {
+    const error = new Error('Network error');
+    (global.fetch as jest.Mock).mockRejectedValueOnce(error);
 
     const { result } = renderHook(() => useMerklClaim(mockAsset));
 
-    let claimResult: unknown;
     await act(async () => {
-      claimResult = await result.current.claimRewards();
+      try {
+        await result.current.claimRewards();
+      } catch (claimError) {
+        // Expected to throw
+        expect(claimError).toBe(error);
+      }
     });
 
-    expect(claimResult).toBeUndefined();
+    await waitFor(() => {
+      expect(result.current.error).toBeTruthy();
+    });
+
     expect(result.current.error).toBe('Network error');
     expect(result.current.isClaiming).toBe(false);
   });
 
   it('sets isClaiming to true during claim process', async () => {
-    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(createMockRewardData());
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => createMockRewardData(),
+    });
 
     mockAddTransaction.mockResolvedValueOnce({
       result: Promise.resolve('0xabc123'),
@@ -292,8 +377,8 @@ describe('useMerklClaim', () => {
       await claimPromise;
     });
 
-    // isClaiming is false after addTransaction resolves
-    expect(result.current.isClaiming).toBe(false);
+    // isClaiming stays true - component will unmount and useMerklClaimStatus handles the rest
+    expect(result.current.isClaiming).toBe(true);
   });
 
   it('uses asset chainId for API fetch and transaction', async () => {
@@ -303,13 +388,15 @@ describe('useMerklClaim', () => {
       address: '0x1234567890123456789012345678901234567890' as const,
     };
 
-    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(
-      createMockRewardData({
-        address: '0x1234567890123456789012345678901234567890',
-        chainId: Number(CHAIN_IDS.LINEA_MAINNET),
-        symbol: 'mUSD',
-      }),
-    );
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () =>
+        createMockRewardData({
+          address: '0x1234567890123456789012345678901234567890',
+          chainId: Number(CHAIN_IDS.LINEA_MAINNET),
+          symbol: 'mUSD',
+        }),
+    });
 
     mockAddTransaction.mockResolvedValueOnce({
       result: Promise.resolve('0xabc123'),
@@ -322,20 +409,46 @@ describe('useMerklClaim', () => {
       await result.current.claimRewards();
     });
 
-    expect(mockFetchMerklRewardsForAsset).toHaveBeenCalledWith(
-      lineaAsset,
-      mockSelectedAddress,
-      expect.any(AbortSignal),
+    const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
+    expect(fetchCall[0]).toContain(
+      `chainId=${Number(CHAIN_IDS.LINEA_MAINNET)}`,
     );
     expect(mockAddTransaction.mock.calls[0][0].chainId).toBe(
       `0x${Number(CHAIN_IDS.LINEA_MAINNET).toString(16)}`,
     );
   });
 
-  it('always uses Linea chain ID for claims even when token.chainId is undefined', async () => {
-    const rewardData = createMockRewardData();
-    rewardData.token.chainId = undefined as unknown as number;
-    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(rewardData);
+  it('falls back to asset chainId when token.chainId is undefined', async () => {
+    // Create reward data without chainId in token
+    const rewardDataWithoutChainId = [
+      {
+        rewards: [
+          {
+            token: {
+              address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+              chainId: undefined, // No chainId from API
+              symbol: 'aglaMerkl',
+              decimals: 18,
+              price: null,
+            },
+            accumulated: '0',
+            unclaimed: '0',
+            pending: '1000000000000000000',
+            proofs: [
+              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+            ],
+            amount: '1000000000000000000',
+            claimed: '0',
+            recipient: mockSelectedAddress,
+          },
+        ],
+      },
+    ];
+
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => rewardDataWithoutChainId,
+    });
 
     mockAddTransaction.mockResolvedValueOnce({
       result: Promise.resolve('0xabc123'),
@@ -348,16 +461,19 @@ describe('useMerklClaim', () => {
       await result.current.claimRewards();
     });
 
-    // Claims always go to Linea mainnet
+    // Should use asset.chainId as fallback (mainnet = 0x1)
     expect(mockAddTransaction.mock.calls[0][0].chainId).toBe(
-      `0x${Number(CHAIN_IDS.LINEA_MAINNET).toString(16)}`,
+      `0x${Number(CHAIN_IDS.MAINNET).toString(16)}`,
     );
   });
 
   it('returns transaction hash after successful submission', async () => {
     const expectedTxHash = '0xabc123';
 
-    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(createMockRewardData());
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => createMockRewardData(),
+    });
 
     mockAddTransaction.mockResolvedValueOnce({
       result: Promise.resolve(expectedTxHash),
@@ -373,11 +489,15 @@ describe('useMerklClaim', () => {
 
     // Verify transaction was submitted and hash returned
     expect(claimResult?.txHash).toBe(expectedTxHash);
-    expect(result.current.isClaiming).toBe(false);
+    // isClaiming stays true - component will unmount and useMerklClaimStatus handles the rest
+    expect(result.current.isClaiming).toBe(true);
   });
 
   it('does not set error when user rejects the transaction (EIP-1193 code 4001)', async () => {
-    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(createMockRewardData());
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => createMockRewardData(),
+    });
 
     // Create error with EIP-1193 user rejection code
     const userRejectionError = Object.assign(
@@ -402,7 +522,10 @@ describe('useMerklClaim', () => {
   });
 
   it('sets error for non-user-rejection errors (no code 4001)', async () => {
-    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(createMockRewardData());
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => createMockRewardData(),
+    });
 
     // Error without code 4001 should set error state
     mockAddTransaction.mockRejectedValueOnce(new Error('Network error'));
@@ -420,96 +543,5 @@ describe('useMerklClaim', () => {
     // Error SHOULD be set for non-user-rejection errors
     expect(result.current.error).toBe('Network error');
     expect(result.current.isClaiming).toBe(false);
-  });
-
-  describe('undefined asset handling', () => {
-    it('initializes with correct default values when asset is undefined', () => {
-      const { result } = renderHook(() => useMerklClaim(undefined));
-
-      expect(result.current.isClaiming).toBe(false);
-      expect(result.current.error).toBe(null);
-      expect(typeof result.current.claimRewards).toBe('function');
-    });
-
-    it('sets error and returns undefined when claimRewards is called with undefined asset', async () => {
-      const { result } = renderHook(() => useMerklClaim(undefined));
-
-      let claimResult: unknown;
-      await act(async () => {
-        claimResult = await result.current.claimRewards();
-      });
-
-      expect(claimResult).toBeUndefined();
-      expect(result.current.error).toBe('No asset available for claiming');
-      expect(result.current.isClaiming).toBe(false);
-    });
-  });
-
-  describe('isClaiming reset after addTransaction', () => {
-    it('sets isClaiming to false after addTransaction resolves (before waiting for tx hash)', async () => {
-      mockFetchMerklRewardsForAsset.mockResolvedValueOnce(
-        createMockRewardData(),
-      );
-
-      // Create a deferred promise so we can control when result resolves
-      let resolveResult!: (value: string) => void;
-      const resultPromise = new Promise<string>((resolve) => {
-        resolveResult = resolve;
-      });
-
-      mockAddTransaction.mockResolvedValueOnce({
-        result: resultPromise,
-        transactionMeta: { id: 'tx-123' },
-      } as never);
-
-      const { result } = renderHook(() => useMerklClaim(mockAsset));
-
-      // Start claim
-      let claimPromise: Promise<unknown>;
-      act(() => {
-        claimPromise = result.current.claimRewards();
-      });
-
-      // Wait for addTransaction to resolve (but result promise is still pending)
-      await act(async () => {
-        // Let microtasks flush so addTransaction resolves
-        await Promise.resolve();
-        await Promise.resolve();
-      });
-
-      // isClaiming should be false now — addTransaction resolved, setIsClaiming(false) was called
-      expect(result.current.isClaiming).toBe(false);
-
-      // Now resolve the tx hash
-      await act(async () => {
-        resolveResult('0xabc123');
-        if (claimPromise) {
-          await claimPromise;
-        }
-      });
-
-      expect(result.current.isClaiming).toBe(false);
-    });
-
-    it('returns undefined and sets isClaiming to false when transactionMeta is undefined', async () => {
-      mockFetchMerklRewardsForAsset.mockResolvedValueOnce(
-        createMockRewardData(),
-      );
-
-      mockAddTransaction.mockResolvedValueOnce({
-        result: Promise.resolve('0xabc123'),
-        transactionMeta: undefined,
-      } as never);
-
-      const { result } = renderHook(() => useMerklClaim(mockAsset));
-
-      let claimResult: unknown;
-      await act(async () => {
-        claimResult = await result.current.claimRewards();
-      });
-
-      expect(claimResult).toBeUndefined();
-      expect(result.current.isClaiming).toBe(false);
-    });
   });
 });

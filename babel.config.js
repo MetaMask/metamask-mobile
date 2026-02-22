@@ -23,14 +23,6 @@ module.exports = {
       },
     ],
     'transform-inline-environment-variables',
-    [
-      'module-resolver',
-      {
-        alias: {
-          '@metamask/perps-controller': './app/controllers/perps',
-        },
-      },
-    ],
     'react-native-reanimated/plugin',
   ],
   overrides: [

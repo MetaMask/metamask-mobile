@@ -1,7 +1,7 @@
-import { SmokeWalletPlatform } from '../../tags';
+import { SmokeWalletPlatform } from '../../../e2e/tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import { loginToApp } from '../../flows/wallet.flow';
+import { loginToApp } from '../../../e2e/viewHelper.ts';
 import {
   startExportForKeyring,
   completeSrpQuiz,

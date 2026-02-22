@@ -29,6 +29,7 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
+import WalletConnect from './WalletConnect';
 import {
   getHostname,
   getScopedPermissions,
@@ -716,14 +717,8 @@ export class WC2Manager {
       }
 
       if (params.version === 1) {
-        // WalletConnect V1 was shut down on June 28, 2023. V1 URIs are no longer supported.
-        console.warn(
-          `WalletConnect V1 is no longer supported. V1 was shut down on June 28, 2023. URI: ${wcUri}`,
-        );
-        return;
-      }
-
-      if (params.version === 2) {
+        await WalletConnect.newSession(wcUri, redirectUrl, false, origin);
+      } else if (params.version === 2) {
         // check if already connected
         const activeSession = this.getSessions().find(
           (session) =>
@@ -758,10 +753,9 @@ export class WC2Manager {
             JSON.stringify(this.deeplinkSessions),
           );
         }
-        return;
+      } else {
+        console.warn(`Invalid wallet connect uri`, wcUri);
       }
-
-      console.warn(`Invalid wallet connect uri`, wcUri);
     } catch (err) {
       console.error(`Failed to connect uri=${wcUri}`, err);
     }

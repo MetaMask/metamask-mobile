@@ -1,18 +1,17 @@
-import { SmokeNetworkExpansion } from '../../../tags';
+import { SmokeNetworkExpansion } from '../../../../e2e/tags';
 import Assertions from '../../../framework/Assertions';
-import SolanaTestDApp from '../../../page-objects/Browser/SolanaTestDApp';
+import SolanaTestDApp from '../../../../e2e/pages/Browser/SolanaTestDApp';
 import {
   account1Short,
   account2Short,
   connectSolanaTestDapp,
   navigateToSolanaTestDApp,
 } from '../../../flows/solana-connection.flow';
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
-import WalletView from '../../../page-objects/wallet/WalletView';
-import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
 import { Utilities } from '../../../framework';
-import { loginToApp } from '../../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../../flows/browser.flow';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { DappVariants } from '../../../framework/Constants';

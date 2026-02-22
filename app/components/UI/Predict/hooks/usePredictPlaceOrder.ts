@@ -38,26 +38,8 @@ interface UsePredictPlaceOrderReturn {
   error?: string;
   isLoading: boolean;
   result: Result | null;
-  placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
-  isOrderNotFilled: boolean;
-  resetOrderNotFilled: () => void;
+  placeOrder: (params: PlaceOrderParams) => Promise<void>;
 }
-
-export type PlaceOrderOutcome =
-  | {
-      status: 'success';
-      result: Result;
-    }
-  | {
-      status: 'deposit_required';
-    }
-  | {
-      status: 'order_not_filled';
-    }
-  | {
-      status: 'error';
-      error: string;
-    };
 
 /**
  * Hook for placing Predict orders with loading states and error handling
@@ -73,7 +55,6 @@ export function usePredictPlaceOrder(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<Result | null>(null);
-  const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { balance } = usePredictBalance({ loadOnMount: false });
   const { deposit } = usePredictDeposit();
@@ -147,7 +128,7 @@ export function usePredictPlaceOrder(
   }, [toastRef]);
 
   const placeOrder = useCallback(
-    async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
+    async (orderParams: PlaceOrderParams) => {
       const {
         preview: { minAmountReceived, side, maxAmountSpent },
       } = orderParams;
@@ -163,12 +144,11 @@ export function usePredictPlaceOrder(
             entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
           },
         });
-        return { status: 'deposit_required' };
+        return;
       }
 
       try {
         setIsLoading(true);
-
         // Place order using Predict controller
         const orderResult = await controllerPlaceOrder(orderParams);
 
@@ -188,7 +168,6 @@ export function usePredictPlaceOrder(
         }
 
         DevLogger.log('usePredictPlaceOrder: Order placed successfully');
-        return { status: 'success', result: orderResult };
       } catch (err) {
         const parsedErrorMessage = parseErrorMessage({
           error: err,
@@ -211,6 +190,7 @@ export function usePredictPlaceOrder(
               method: 'placeOrder',
               action: 'order_placement',
               operation: 'order_management',
+              providerId: orderParams.providerId,
               side: orderParams.preview?.side,
               marketId: orderParams.analyticsProperties?.marketId,
               transactionType: orderParams.analyticsProperties?.transactionType,
@@ -218,19 +198,8 @@ export function usePredictPlaceOrder(
           },
         });
 
-        const rawMessage = err instanceof Error ? err.message : String(err);
-        const isNotFilled =
-          rawMessage === PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED ||
-          rawMessage === PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED;
-
-        if (isNotFilled) {
-          setIsOrderNotFilled(true);
-          return { status: 'order_not_filled' };
-        }
-
         setError(parsedErrorMessage);
         onError?.(parsedErrorMessage);
-        return { status: 'error', error: parsedErrorMessage };
       } finally {
         setIsLoading(false);
       }
@@ -246,17 +215,10 @@ export function usePredictPlaceOrder(
     ],
   );
 
-  const resetOrderNotFilled = useCallback(() => {
-    setIsOrderNotFilled(false);
-    setError(undefined);
-  }, []);
-
   return {
     error,
     isLoading,
     result,
     placeOrder,
-    isOrderNotFilled,
-    resetOrderNotFilled,
   };
 }

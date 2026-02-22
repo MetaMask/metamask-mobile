@@ -1,8 +1,8 @@
-import { RegressionWalletUX } from '../../../tags';
-import SettingsView from '../../../page-objects/Settings/SettingsView';
+import { RegressionWalletUX } from '../../../../e2e/tags';
+import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { loginToApp } from '../../../flows/wallet.flow';
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
 import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 

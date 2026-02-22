@@ -1,10 +1,10 @@
 import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { CaipChainId, Hex } from '@metamask/utils';
 import {
   BRIDGE_DEV_API_BASE_URL,
   BRIDGE_PROD_API_BASE_URL,
 } from '@metamask/bridge-controller';
-import { NETWORK_CHAIN_ID } from '../util/networks/customNetworks';
 
 /**
  * Native token address (zero address)
@@ -19,19 +19,17 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   Hex | CaipChainId,
   string
 > = {
-  [NETWORK_CHAIN_ID.MAINNET]: 'Ethereum',
-  [NETWORK_CHAIN_ID.LINEA_MAINNET]: 'Linea',
-  [NETWORK_CHAIN_ID.POLYGON]: 'Polygon',
-  [NETWORK_CHAIN_ID.AVALANCHE]: 'Avalanche',
-  [NETWORK_CHAIN_ID.BSC]: 'BNB',
-  [NETWORK_CHAIN_ID.ARBITRUM]: 'Arbitrum',
-  [NETWORK_CHAIN_ID.OPTIMISM]: 'Optimism',
-  [NETWORK_CHAIN_ID.ZKSYNC_ERA]: 'zkSync',
-  [NETWORK_CHAIN_ID.BASE]: 'Base',
-  [NETWORK_CHAIN_ID.SEI]: 'Sei',
-  [NETWORK_CHAIN_ID.MONAD]: 'Monad',
-  [NETWORK_CHAIN_ID.HYPE]: 'HyperEVM',
-  [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: 'MegaETH',
+  [CHAIN_IDS.MAINNET]: 'Ethereum',
+  [CHAIN_IDS.LINEA_MAINNET]: 'Linea',
+  [CHAIN_IDS.POLYGON]: 'Polygon',
+  [CHAIN_IDS.AVALANCHE]: 'Avalanche',
+  [CHAIN_IDS.BSC]: 'BNB',
+  [CHAIN_IDS.ARBITRUM]: 'Arbitrum',
+  [CHAIN_IDS.OPTIMISM]: 'Optimism',
+  [CHAIN_IDS.ZKSYNC_ERA]: 'zkSync',
+  [CHAIN_IDS.BASE]: 'Base',
+  [CHAIN_IDS.SEI]: 'Sei',
+  [CHAIN_IDS.MONAD]: 'Monad',
   [SolScope.Mainnet]: 'Solana',
   [BtcScope.Mainnet]: 'BTC',
   [TrxScope.Mainnet]: 'Tron',

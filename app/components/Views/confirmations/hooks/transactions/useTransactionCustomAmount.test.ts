@@ -39,7 +39,7 @@ jest.mock('../metrics/useConfirmationMetricEvents');
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
-      setTransactionConfig: jest.fn(),
+      setIsMaxAmount: jest.fn(),
     },
   },
 }));
@@ -103,8 +103,8 @@ describe('useTransactionCustomAmount', () => {
   const useTransactionPayHasSourceAmountMock = jest.mocked(
     useTransactionPayHasSourceAmount,
   );
-  const setTransactionConfigMock = jest.mocked(
-    Engine.context.TransactionPayController.setTransactionConfig,
+  const setIsMaxAmountMock = jest.mocked(
+    Engine.context.TransactionPayController.setIsMaxAmount,
   );
   const useConfirmationMetricEventsMock = jest.mocked(
     useConfirmationMetricEvents,
@@ -406,11 +406,8 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('1234.56');
-      expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
-
-      const config = { isMaxAmount: false };
-      setTransactionConfigMock.mock.calls[0][1](config);
-      expect(config.isMaxAmount).toBe(true);
+      expect(setIsMaxAmountMock).toHaveBeenCalledTimes(1);
+      expect(setIsMaxAmountMock).toHaveBeenCalledWith(expect.anything(), true);
     });
 
     it('to percentage of predict balance converted to USD', async () => {
@@ -454,9 +451,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(50);
       });
 
-      const config = { isMaxAmount: true };
-      setTransactionConfigMock.mock.calls[0][1](config);
-      expect(config.isMaxAmount).toBe(false);
+      expect(setIsMaxAmountMock).toHaveBeenCalledWith(expect.anything(), false);
     });
   });
 
@@ -469,8 +464,6 @@ describe('useTransactionCustomAmount', () => {
       result.current.updatePendingAmount('100');
     });
 
-    const config = { isMaxAmount: true };
-    setTransactionConfigMock.mock.calls[0][1](config);
-    expect(config.isMaxAmount).toBe(false);
+    expect(setIsMaxAmountMock).toHaveBeenCalledWith(expect.anything(), false);
   });
 });

@@ -34,7 +34,8 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
       priority: 1000,
     },
     {
-      urlEndpoint: /https:\/\/nft\.api\.cx\.metamask\.io\/explore\/sites.*/,
+      urlEndpoint:
+        /https:\/\/portfolio\.api\.cx\.metamask\.io\/explore\/sites.*/,
       responseCode: 200,
       response: {
         dapps: [

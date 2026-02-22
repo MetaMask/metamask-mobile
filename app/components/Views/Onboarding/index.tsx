@@ -87,7 +87,7 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
@@ -119,7 +119,6 @@ interface OnboardingRouteParams {
   [PREVIOUS_SCREEN]: string;
   delete_wallet_toast_visible?: boolean;
   delete?: string;
-  showErrorReportSentToast?: boolean;
 }
 
 const Onboarding = () => {
@@ -127,7 +126,7 @@ const Onboarding = () => {
   const route =
     useRoute<RouteProp<{ params: OnboardingRouteParams }, 'params'>>();
   const dispatch = useDispatch();
-  const metrics = useAnalytics();
+  const metrics = useMetrics();
 
   const passwordSet = useSelector((state: RootState) => state.user.passwordSet);
   const existingUserProp = useSelector(selectExistingUser);
@@ -842,21 +841,7 @@ const Onboarding = () => {
 
   const handleSimpleNotification =
     useCallback((): React.ReactElement | null => {
-      if (!route?.params?.delete && !route?.params?.showErrorReportSentToast)
-        return null;
-
-      const notificationData = route?.params?.showErrorReportSentToast
-        ? {
-            title: strings('wallet_creation_error.error_report_sent_title'),
-            description: strings(
-              'wallet_creation_error.error_report_sent_description',
-            ),
-          }
-        : {
-            title: strings('onboarding.success'),
-            description: strings('onboarding.your_wallet'),
-          };
-
+      if (!route?.params?.delete) return null;
       return (
         <Animated.View
           style={[
@@ -865,16 +850,17 @@ const Onboarding = () => {
           ]}
         >
           <ElevatedView style={styles.modalTypeView} elevation={100}>
-            <BaseNotification status="success" data={notificationData} />
+            <BaseNotification
+              status="success"
+              data={{
+                title: strings('onboarding.success'),
+                description: strings('onboarding.your_wallet'),
+              }}
+            />
           </ElevatedView>
         </Animated.View>
       );
-    }, [
-      route?.params?.delete,
-      route?.params?.showErrorReportSentToast,
-      styles,
-      notificationAnimated,
-    ]);
+    }, [route?.params?.delete, styles, notificationAnimated]);
 
   useEffect(() => {
     onboardingTraceCtx.current = trace({
@@ -892,7 +878,7 @@ const Onboarding = () => {
     InteractionManager.runAfterInteractions(() => {
       checkForMigrationFailureAndVaultBackup();
       PreventScreenshot.forbid();
-      if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
+      if (route?.params?.delete) {
         showNotification();
       }
       setState((prevState) => ({

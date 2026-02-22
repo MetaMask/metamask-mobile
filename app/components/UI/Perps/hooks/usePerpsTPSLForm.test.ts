@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { usePerpsTPSLForm } from './usePerpsTPSLForm';
-import { type Position } from '@metamask/perps-controller';
+import type { Position } from '../controllers/types';
 
 // Mock DevLogger to avoid console noise in tests
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({

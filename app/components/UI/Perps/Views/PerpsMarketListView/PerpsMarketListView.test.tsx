@@ -6,7 +6,7 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import PerpsMarketListView from './PerpsMarketListView';
-import { type PerpsMarketData } from '@metamask/perps-controller';
+import type { PerpsMarketData } from '../../controllers/types';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
@@ -321,12 +321,14 @@ jest.mock(
       onChangeText,
       placeholder,
       testID,
+      showClearButton,
       onPressClearButton,
     }: {
       value: string;
       onChangeText: (text: string) => void;
       placeholder: string;
       testID: string;
+      showClearButton?: boolean;
       onPressClearButton?: () => void;
     }) {
       return (
@@ -337,7 +339,7 @@ jest.mock(
             placeholder={placeholder}
             testID={testID}
           />
-          {!!value && (
+          {showClearButton && (
             <RNTouchableOpacity
               onPress={onPressClearButton}
               testID={`${testID}-clear`}

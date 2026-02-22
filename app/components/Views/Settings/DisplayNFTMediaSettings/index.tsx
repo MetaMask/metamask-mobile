@@ -13,13 +13,13 @@ import Text, {
 import styleSheet from './index.styles';
 import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './index.constants';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../hooks/useMetrics';
 
 const DisplayNFTMediaSettings = () => {
   const theme = useTheme();
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
-  const { addTraitsToUser } = useAnalytics();
+  const { addTraitsToUser } = useMetrics();
 
   const displayNftMedia = useSelector(selectDisplayNftMedia);
 

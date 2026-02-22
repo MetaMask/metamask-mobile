@@ -7,14 +7,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => false),
-}));
-
-jest.mock('../PerpsProviderSelector', () => ({
-  PerpsProviderSelectorBadge: () => null,
-}));
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => {
     const translations: Record<string, string> = {

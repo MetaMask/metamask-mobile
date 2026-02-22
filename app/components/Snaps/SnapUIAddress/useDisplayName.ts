@@ -9,6 +9,7 @@ import { RootState } from '../../../reducers';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { areAddressesEqual } from '../../../util/address';
 import { selectAddressBookByChain } from '../../../selectors/addressBookController';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectAccountGroupsByAddress } from '../../../selectors/multichainAccounts/accounts';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
@@ -53,6 +54,10 @@ export const useDisplayName = (
     areAddressesEqual(contact.address, address),
   );
 
+  const showAccountGroupName = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
   const parsedAddress = isEip155 ? toChecksumHexAddress(address) : address;
   const accountGroups = useSelector((state: RootState) =>
     selectAccountGroupsByAddress(state, [parsedAddress]),
@@ -62,7 +67,7 @@ export const useDisplayName = (
   const accountName = account?.metadata?.name;
 
   return (
-    accountGroupName ||
+    (showAccountGroupName && accountGroupName) ||
     accountName ||
     (isEip155 && addressBookEntry?.name) ||
     undefined

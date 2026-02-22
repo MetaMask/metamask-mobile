@@ -1,6 +1,5 @@
-import { SmokeWalletPlatform } from '../../tags';
-import { loginToApp } from '../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../flows/browser.flow';
+import { SmokeWalletPlatform } from '../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../framework/Constants';
@@ -10,8 +9,8 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
 import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import Browser from '../../page-objects/Browser/BrowserView';
-import TestDApp from '../../page-objects/Browser/TestDApp';
+import Browser from '../../../e2e/pages/Browser/BrowserView';
+import TestDApp from '../../../e2e/pages/Browser/TestDApp';
 
 describe(SmokeWalletPlatform('Trending Feature Browser Test'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {

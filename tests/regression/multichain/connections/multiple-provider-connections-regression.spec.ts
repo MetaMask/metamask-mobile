@@ -3,19 +3,18 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_2,
 } from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import TestHelpers from '../../../helpers';
-import { RegressionNetworkExpansion } from '../../../tags';
-import { loginToApp } from '../../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../../flows/browser.flow';
-import Browser from '../../../page-objects/Browser/BrowserView';
-import ConnectBottomSheet from '../../../page-objects/Browser/ConnectBottomSheet';
+import TestHelpers from '../../../../e2e/helpers';
+import { RegressionNetworkExpansion } from '../../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import ConnectBottomSheet from '../../../../e2e/pages/Browser/ConnectBottomSheet';
 import { requestPermissions } from '../../../helpers/multichain/connections/helpers';
 import {
   navigateToSolanaTestDApp,
   connectSolanaTestDapp,
 } from '../../../flows/solana-connection.flow';
-import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal';
-import NetworkConnectMultiSelector from '../../../page-objects/Browser/NetworkConnectMultiSelector';
+import ConnectedAccountsModal from '../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import NetworkConnectMultiSelector from '../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
 import Assertions from '../../../framework/Assertions';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 

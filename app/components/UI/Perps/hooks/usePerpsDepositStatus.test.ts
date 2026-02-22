@@ -20,7 +20,7 @@ import { NotificationFeedbackType } from 'expo-haptics';
 import {
   USDC_ARBITRUM_MAINNET_ADDRESS,
   ARBITRUM_MAINNET_CHAIN_ID_HEX,
-} from '@metamask/perps-controller';
+} from '../constants/hyperLiquidConfig';
 import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
 
 // Mock dependencies

@@ -40,7 +40,10 @@ describe('usePredictEligibility', () => {
     engine: {
       backgroundState: {
         PredictController: {
-          eligibility: { eligible: boolean; country?: string };
+          eligibility: Record<
+            string,
+            { eligible: boolean; country?: string } | undefined
+          >;
         };
       };
     };
@@ -69,7 +72,7 @@ describe('usePredictEligibility', () => {
       engine: {
         backgroundState: {
           PredictController: {
-            eligibility: { eligible: false },
+            eligibility: {},
           },
         },
       },
@@ -84,32 +87,38 @@ describe('usePredictEligibility', () => {
   });
 
   describe('eligibility state', () => {
-    it('returns isEligible true when eligible', () => {
+    it('returns isEligible true for eligible provider', () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
+        polymarket: { eligible: true, country: 'US' },
+        example: { eligible: false, country: 'UK' },
       };
 
-      const { result } = renderHook(() => usePredictEligibility());
+      const { result } = renderHook(() =>
+        usePredictEligibility({ providerId: 'polymarket' }),
+      );
 
       expect(result.current.isEligible).toBe(true);
       expect(result.current.country).toBe('US');
     });
 
-    it('returns isEligible false when ineligible', () => {
+    it('returns isEligible false for ineligible provider', () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: false,
-        country: 'UK',
+        polymarket: { eligible: true, country: 'US' },
+        example: { eligible: false, country: 'UK' },
       };
 
-      const { result } = renderHook(() => usePredictEligibility());
+      const { result } = renderHook(() =>
+        usePredictEligibility({ providerId: 'example' }),
+      );
 
       expect(result.current.isEligible).toBe(false);
       expect(result.current.country).toBe('UK');
     });
 
-    it('returns false when eligibility is not set', () => {
-      const { result } = renderHook(() => usePredictEligibility());
+    it('returns false when provider eligibility is not set', () => {
+      const { result } = renderHook(() =>
+        usePredictEligibility({ providerId: 'unknown' }),
+      );
 
       expect(result.current.isEligible).toBe(false);
       expect(result.current.country).toBeUndefined();
@@ -118,7 +127,7 @@ describe('usePredictEligibility', () => {
 
   describe('singleton manager registration', () => {
     it('sets up AppState listener when first hook mounts', () => {
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       expect(mockAppStateAddEventListener).toHaveBeenCalledTimes(1);
       expect(mockAppStateAddEventListener).toHaveBeenCalledWith(
@@ -134,11 +143,13 @@ describe('usePredictEligibility', () => {
     });
 
     it('does not create additional listeners when second hook mounts', () => {
-      const { unmount: unmount1 } = renderHook(() => usePredictEligibility());
+      const { unmount: unmount1 } = renderHook(() =>
+        usePredictEligibility({ providerId: 'polymarket' }),
+      );
 
       jest.clearAllMocks();
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       expect(mockAppStateAddEventListener).not.toHaveBeenCalled();
       expect(mockDevLogger).toHaveBeenCalledWith(
@@ -152,7 +163,9 @@ describe('usePredictEligibility', () => {
     });
 
     it('removes AppState listener when last hook unmounts', () => {
-      const { unmount } = renderHook(() => usePredictEligibility());
+      const { unmount } = renderHook(() =>
+        usePredictEligibility({ providerId: 'polymarket' }),
+      );
 
       unmount();
 
@@ -163,9 +176,11 @@ describe('usePredictEligibility', () => {
     });
 
     it('keeps listener active when one of multiple hooks unmounts', () => {
-      const { unmount: unmount1 } = renderHook(() => usePredictEligibility());
+      const { unmount: unmount1 } = renderHook(() =>
+        usePredictEligibility({ providerId: 'polymarket' }),
+      );
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       jest.clearAllMocks();
 
@@ -183,7 +198,7 @@ describe('usePredictEligibility', () => {
 
   describe('auto-refresh on app focus', () => {
     it('refreshes eligibility when app transitions from background to active', async () => {
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -203,7 +218,7 @@ describe('usePredictEligibility', () => {
     });
 
     it('refreshes eligibility when app transitions from inactive to active', async () => {
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -218,11 +233,10 @@ describe('usePredictEligibility', () => {
 
     it('ignores transition from active to background', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
+        polymarket: { eligible: true, country: 'US' },
       };
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -237,11 +251,10 @@ describe('usePredictEligibility', () => {
 
     it('ignores transition from active to inactive', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
+        polymarket: { eligible: true, country: 'US' },
       };
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -256,11 +269,10 @@ describe('usePredictEligibility', () => {
 
     it('ignores transition from background to inactive', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
+        polymarket: { eligible: true, country: 'US' },
       };
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -277,11 +289,10 @@ describe('usePredictEligibility', () => {
   describe('debouncing', () => {
     it('skips refresh when less than debounce interval has passed', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
+        polymarket: { eligible: true, country: 'US' },
       };
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -312,11 +323,10 @@ describe('usePredictEligibility', () => {
 
     it('allows refresh when debounce interval has elapsed', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
+        polymarket: { eligible: true, country: 'US' },
       };
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -340,11 +350,10 @@ describe('usePredictEligibility', () => {
 
     it('allows refresh when more than debounce interval has elapsed', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
+        polymarket: { eligible: true, country: 'US' },
       };
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -368,11 +377,10 @@ describe('usePredictEligibility', () => {
 
     it('resets debounce timer after successful refresh', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
+        polymarket: { eligible: true, country: 'US' },
       };
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -406,7 +414,9 @@ describe('usePredictEligibility', () => {
 
   describe('manual refresh', () => {
     it('calls controller refreshEligibility method', async () => {
-      const { result } = renderHook(() => usePredictEligibility());
+      const { result } = renderHook(() =>
+        usePredictEligibility({ providerId: 'polymarket' }),
+      );
 
       await act(async () => {
         await result.current.refreshEligibility();
@@ -416,7 +426,9 @@ describe('usePredictEligibility', () => {
     });
 
     it('bypasses debounce for manual refresh', async () => {
-      const { result } = renderHook(() => usePredictEligibility());
+      const { result } = renderHook(() =>
+        usePredictEligibility({ providerId: 'polymarket' }),
+      );
 
       await act(async () => {
         await result.current.refreshEligibility();
@@ -435,11 +447,12 @@ describe('usePredictEligibility', () => {
 
     it('updates debounce timer after manual refresh', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
+        polymarket: { eligible: true, country: 'US' },
       };
 
-      const { result } = renderHook(() => usePredictEligibility());
+      const { result } = renderHook(() =>
+        usePredictEligibility({ providerId: 'polymarket' }),
+      );
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -470,7 +483,7 @@ describe('usePredictEligibility', () => {
       const testError = new Error('Network error');
       mockRefreshEligibility.mockRejectedValueOnce(testError);
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -491,7 +504,7 @@ describe('usePredictEligibility', () => {
     it('logs unknown error when auto-refresh fails with non-Error', async () => {
       mockRefreshEligibility.mockRejectedValueOnce('string error');
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -511,13 +524,12 @@ describe('usePredictEligibility', () => {
 
     it('continues operation after failed refresh', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
+        polymarket: { eligible: true, country: 'US' },
       };
 
       mockRefreshEligibility.mockRejectedValueOnce(new Error('Network error'));
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -549,7 +561,7 @@ describe('usePredictEligibility', () => {
       });
       mockRefreshEligibility.mockReturnValueOnce(refreshPromise);
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -581,7 +593,7 @@ describe('usePredictEligibility', () => {
       });
       mockRefreshEligibility.mockReturnValueOnce(refreshPromise);
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -610,9 +622,9 @@ describe('usePredictEligibility', () => {
       });
       mockRefreshEligibility.mockReturnValueOnce(refreshPromise);
 
-      renderHook(() => usePredictEligibility());
-      renderHook(() => usePredictEligibility());
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -632,8 +644,7 @@ describe('usePredictEligibility', () => {
 
     it('allows new refresh after previous one completes', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
+        polymarket: { eligible: true, country: 'US' },
       };
 
       let resolveFirstRefresh: (() => void) | undefined;
@@ -642,7 +653,7 @@ describe('usePredictEligibility', () => {
       });
       mockRefreshEligibility.mockReturnValueOnce(firstRefreshPromise);
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -672,8 +683,7 @@ describe('usePredictEligibility', () => {
 
     it('clears in-flight promise after error', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
+        polymarket: { eligible: true, country: 'US' },
       };
 
       let rejectRefresh: ((error: Error) => void) | undefined;
@@ -682,7 +692,7 @@ describe('usePredictEligibility', () => {
       });
       mockRefreshEligibility.mockReturnValueOnce(refreshPromise);
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       const handleAppStateChange = mockAppStateAddEventListener.mock
         .calls[0][1] as (nextState: AppStateStatus) => void;
@@ -718,10 +728,10 @@ describe('usePredictEligibility', () => {
   describe('auto-refresh when country is missing', () => {
     it('starts polling when country is not returned', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        polymarket: { eligible: true },
       };
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       await act(async () => {
         await Promise.resolve();
@@ -730,16 +740,16 @@ describe('usePredictEligibility', () => {
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
       expect(mockDevLogger).toHaveBeenCalledWith(
         'PredictController: Country missing, auto-refreshing eligibility',
-        { retryCount: 1, maxRetries: 3 },
+        { providerId: 'polymarket', retryCount: 1, maxRetries: 3 },
       );
     });
 
     it('polls again after polling interval when country is still missing', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        polymarket: { eligible: true },
       };
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       await act(async () => {
         await Promise.resolve();
@@ -764,10 +774,10 @@ describe('usePredictEligibility', () => {
 
     it('continues polling while country is missing up to max retries', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        polymarket: { eligible: true },
       };
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       // Wait for initial poll to complete (retry 1)
       await act(async () => {
@@ -795,10 +805,10 @@ describe('usePredictEligibility', () => {
 
     it('stops polling after reaching max retries', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        polymarket: { eligible: true },
       };
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       // Complete all 3 retries
       await act(async () => {
@@ -828,6 +838,7 @@ describe('usePredictEligibility', () => {
       expect(mockDevLogger).toHaveBeenCalledWith(
         'PredictController: Max retries reached for missing country',
         expect.objectContaining({
+          providerId: 'polymarket',
           retryCount: 3,
         }),
       );
@@ -835,11 +846,10 @@ describe('usePredictEligibility', () => {
 
     it('does not start polling when country is already available', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
+        polymarket: { eligible: true, country: 'US' },
       };
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       await act(async () => {
         await Promise.resolve();
@@ -853,12 +863,12 @@ describe('usePredictEligibility', () => {
 
     it('continues polling after failed refresh', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        polymarket: { eligible: true },
       };
 
       mockRefreshEligibility.mockRejectedValueOnce(new Error('Network error'));
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       await act(async () => {
         await Promise.resolve();
@@ -885,12 +895,12 @@ describe('usePredictEligibility', () => {
 
     it('logs unknown error when auto-refresh fails with non-Error', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        polymarket: { eligible: true },
       };
 
       mockRefreshEligibility.mockRejectedValueOnce('string error');
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       await act(async () => {
         await Promise.resolve();
@@ -907,10 +917,12 @@ describe('usePredictEligibility', () => {
 
     it('clears timeout on unmount', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        polymarket: { eligible: true },
       };
 
-      const { unmount } = renderHook(() => usePredictEligibility());
+      const { unmount } = renderHook(() =>
+        usePredictEligibility({ providerId: 'polymarket' }),
+      );
 
       await act(async () => {
         await Promise.resolve();
@@ -930,7 +942,7 @@ describe('usePredictEligibility', () => {
 
     it('uses sequential polling pattern - waits for response before scheduling next poll', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        polymarket: { eligible: true },
       };
 
       let resolveRefresh: (() => void) | undefined;
@@ -939,7 +951,7 @@ describe('usePredictEligibility', () => {
       });
       mockRefreshEligibility.mockReturnValueOnce(refreshPromise);
 
-      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       await act(async () => {
         jest.advanceTimersByTime(2000);

@@ -12,11 +12,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  getPerpsDisplaySymbol,
-  PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller';
-import type { PerpsNavigationParamList } from '../../types/navigation';
+import type { PerpsNavigationParamList } from '../../controllers/types';
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsFillTag from '../PerpsFillTag';
@@ -24,6 +20,8 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsRecentActivityList.styles';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -147,7 +145,22 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   }
 
   if (transactions.length === 0) {
-    return null;
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+            {strings('perps.home.recent_activity')}
+          </Text>
+        </View>
+        <Text
+          variant={TextVariant.BodySM}
+          color={TextColor.Alternative}
+          style={styles.emptyText}
+        >
+          {strings('perps.home.no_activity')}
+        </Text>
+      </View>
+    );
   }
 
   return (

@@ -7,8 +7,7 @@ import { selectNetworkConnectionBannerState } from '../../../selectors/networkCo
 import { selectIsDeviceOffline } from '../../../selectors/connectivityController';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
-import { useAnalytics } from '../useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../useMetrics';
 import {
   hideNetworkConnectionBanner,
   showNetworkConnectionBanner,
@@ -56,7 +55,7 @@ const useNetworkConnectionBanner = (): {
 } => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const networkConnectionBannerState = useSelector(
     selectNetworkConnectionBannerState,

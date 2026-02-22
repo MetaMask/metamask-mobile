@@ -102,7 +102,7 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
-import { analytics } from '../../../util/analytics/analytics';
+import { MetaMetrics } from '../../../core/Analytics';
 import {
   NETWORK_SELECTOR_SOURCES,
   NetworkSelectorSource,
@@ -884,7 +884,9 @@ const NetworkSelector = () => {
       const { NetworkController } = Engine.context;
       NetworkController.removeNetwork(chainId);
 
-      analytics.identify(removeItemFromChainIdList(chainId));
+      MetaMetrics.getInstance().addTraitsToUser(
+        removeItemFromChainIdList(chainId),
+      );
 
       // set tokenNetworkFilter
       const { PreferencesController } = Engine.context;

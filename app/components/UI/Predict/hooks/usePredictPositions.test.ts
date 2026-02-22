@@ -261,14 +261,15 @@ describe('usePredictPositions', () => {
     expect(result.current.positions).toEqual([]);
   });
 
-  it('calls getPositions without providerId option', async () => {
+  it('passes providerId when specified', async () => {
     mockGetPositions.mockResolvedValue([]);
 
-    renderHook(() => usePredictPositions());
+    renderHook(() => usePredictPositions({ providerId: 'polymarket' }));
 
     await waitFor(() => {
       expect(mockGetPositions).toHaveBeenCalledWith({
         address: '0x1234567890123456789012345678901234567890',
+        providerId: 'polymarket',
         claimable: false,
       });
     });

@@ -1,9 +1,9 @@
-import { RegressionWalletPlatform } from '../../../tags';
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
-import SettingsView from '../../../page-objects/Settings/SettingsView';
-import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
-import AddContactView from '../../../page-objects/Settings/Contacts/AddContactView';
-import { loginToApp } from '../../../flows/wallet.flow';
+import { RegressionWalletPlatform } from '../../../../e2e/tags';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
+import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView';
+import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView';
+import { loginToApp } from '../../../../e2e/viewHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import Assertions from '../../../framework/Assertions';
@@ -18,9 +18,9 @@ import {
   SEND_ETH_SIMULATION_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
 import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import CommonView from '../../../page-objects/CommonView';
+import CommonView from '../../../../e2e/pages/CommonView';
 import enContent from '../../../../locales/languages/en.json';
-import WalletView from '../../../page-objects/wallet/WalletView';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
 import { device } from 'detox';
 
 const MEMO = 'Test adding ENS';

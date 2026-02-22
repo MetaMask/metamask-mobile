@@ -1,5 +1,3 @@
-import AUTHENTICATION_TYPE from '../../constants/userProperties';
-
 /**
  * Verbose error types for unlocking the wallet.
  */
@@ -18,24 +16,4 @@ export enum UnlockWalletErrorType {
 export enum ReauthenticateErrorType {
   PASSWORD_NOT_SET_WITH_BIOMETRICS = 'PASSWORD_NOT_SET_WITH_BIOMETRICS',
   BIOMETRIC_ERROR = 'BIOMETRIC_ERROR',
-}
-
-/**
- * Detailed information about available authentication capabilities.
- */
-export interface AuthCapabilities {
-  /** Whether biometrics are enrolled and available to this app */
-  isBiometricsAvailable: boolean;
-  /** If device supports biometrics but they're not available to the app (iOS: permission denied, Android: not enrolled) */
-  biometricsDisabledOnOS: boolean;
-  /** Whether the authentication toggle is visible (based on biometric-first priority) */
-  isAuthToggleVisible: boolean;
-  /** Human-readable label for the toggle (e.g., "Face ID", "Biometrics", "Device Passcode") */
-  authToggleLabel: string;
-  /** Whether the OS-level authentication is enabled (from user preference in Redux) */
-  osAuthEnabled: boolean;
-  /** Whether Remember Me is enabled (from user preference in Redux) */
-  allowLoginWithRememberMe: boolean;
-  /** The derived AUTHENTICATION_TYPE for keychain storage based on capabilities + user preference. Priority: REMEMBER_ME > BIOMETRIC > PASSCODE > PASSWORD */
-  authStorageType: AUTHENTICATION_TYPE;
 }

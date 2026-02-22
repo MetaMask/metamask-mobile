@@ -5,11 +5,7 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-  type Position,
-} from '@metamask/perps-controller';
+import type { Position } from '../../controllers/types';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import PerpsModifyActionSheet, {
   type ModifyAction,
@@ -17,6 +13,10 @@ import PerpsModifyActionSheet, {
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '../../constants/eventNames';
 
 interface PerpsSelectModifyActionViewProps {
   sheetRef?: React.RefObject<BottomSheetRef>;

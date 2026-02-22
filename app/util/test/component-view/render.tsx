@@ -1,16 +1,13 @@
 import React from 'react';
 import { Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import renderWithProvider, {
-  renderScreen,
-  type ProviderValues,
-} from '../renderWithProvider';
+import renderWithProvider, { renderScreen } from '../renderWithProvider';
 
 export function renderComponentViewScreen(
   Component: React.ComponentType,
   options: { name: string },
-  providerValues?: ProviderValues,
-  initialParams?: Record<string, unknown>,
+  providerValues?: Parameters<typeof renderScreen>[2],
+  initialParams?: Parameters<typeof renderScreen>[3],
 ) {
   return renderScreen(Component, options, providerValues, initialParams);
 }
@@ -26,7 +23,7 @@ export function renderScreenWithRoutes(
     name: string;
     Component?: React.ComponentType<unknown>;
   }[],
-  providerValues?: ProviderValues,
+  providerValues?: Parameters<typeof renderScreen>[2],
   initialParams?: Record<string, unknown>,
 ) {
   const Stack = createStackNavigator();

@@ -97,23 +97,20 @@ describe('useAutomaticTransactionPayToken', () => {
   });
 
   it('selects first token', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_3_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      },
+      {
+        address: TOKEN_ADDRESS_3_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      },
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      },
+    ] as AssetType[]);
 
     runHook();
 
@@ -124,10 +121,7 @@ describe('useAutomaticTransactionPayToken', () => {
   });
 
   it('selects target token if no tokens with balance', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [] as AssetType[],
-      hasTokens: false,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([] as AssetType[]);
 
     runHook();
 
@@ -138,10 +132,7 @@ describe('useAutomaticTransactionPayToken', () => {
   });
 
   it('does nothing if no required tokens', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [],
-      hasTokens: false,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([]);
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
 
     runHook();
@@ -150,23 +141,20 @@ describe('useAutomaticTransactionPayToken', () => {
   });
 
   it('selects target token if hardware wallet', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_3_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      },
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      },
+      {
+        address: TOKEN_ADDRESS_3_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      },
+    ] as AssetType[]);
 
     isHardwareAccountMock.mockReturnValue(true);
 
@@ -179,15 +167,12 @@ describe('useAutomaticTransactionPayToken', () => {
   });
 
   it('selected nothing if disabled', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      },
+    ] as AssetType[]);
 
     runHook({ disable: true });
 
@@ -195,23 +180,20 @@ describe('useAutomaticTransactionPayToken', () => {
   });
 
   it('selects preferred payment token when provided with available tokens', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-        {
-          address: PREFERRED_TOKEN_ADDRESS_MOCK,
-          chainId: PREFERRED_CHAIN_ID_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      },
+      {
+        address: PREFERRED_TOKEN_ADDRESS_MOCK,
+        chainId: PREFERRED_CHAIN_ID_MOCK,
+      },
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      },
+    ] as AssetType[]);
 
     runHook({
       preferredToken: {
@@ -227,19 +209,16 @@ describe('useAutomaticTransactionPayToken', () => {
   });
 
   it('ignores preferred payment token when using hardware wallet', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_3_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      },
+      {
+        address: TOKEN_ADDRESS_3_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      },
+    ] as AssetType[]);
 
     isHardwareAccountMock.mockReturnValue(true);
 
@@ -257,10 +236,7 @@ describe('useAutomaticTransactionPayToken', () => {
   });
 
   it('selects target token when preferred payment token provided but no tokens available', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [] as AssetType[],
-      hasTokens: false,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([] as AssetType[]);
 
     runHook({
       preferredToken: {
@@ -276,19 +252,16 @@ describe('useAutomaticTransactionPayToken', () => {
   });
 
   it('selects first available token when preferred token not in available tokens', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
+    useTransactionPayAvailableTokensMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      },
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      },
+    ] as AssetType[]);
 
     runHook({
       preferredToken: {

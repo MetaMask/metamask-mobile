@@ -6,7 +6,7 @@ import {
   usePerpsOrderForm,
   UsePerpsOrderFormReturn,
 } from '../hooks/usePerpsOrderForm';
-import { OrderType } from '@metamask/perps-controller';
+import { OrderType } from '../controllers/types';
 
 // Mock the usePerpsOrderForm hook
 jest.mock('../hooks/usePerpsOrderForm', () => ({

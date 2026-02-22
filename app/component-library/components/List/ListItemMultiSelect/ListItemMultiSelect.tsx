@@ -33,7 +33,7 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
       {...props}
     >
       <ListItem gap={gap} style={styles.listItem}>
-        <View pointerEvents={'none'}>
+        <View pointerEvents={'auto'}>
           <Checkbox
             style={styles.checkbox}
             isChecked={isSelected}

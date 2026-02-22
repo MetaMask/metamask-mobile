@@ -7,8 +7,6 @@ import {
   type RampsToken,
   type TokensResponse,
   type ResourceState,
-  type Quote,
-  type QuotesResponse,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
 
@@ -87,14 +85,4 @@ export const selectPaymentMethods = createSelector(
   ): ResourceState<PaymentMethod[], PaymentMethod | null> =>
     rampsControllerState?.paymentMethods ??
     createDefaultResourceState<PaymentMethod[], PaymentMethod | null>([], null),
-);
-
-/**
- * Selects the quotes resource state (data, selected, isLoading, error).
- */
-export const selectQuotes = createSelector(
-  selectRampsControllerState,
-  (rampsControllerState): ResourceState<QuotesResponse | null, Quote | null> =>
-    rampsControllerState?.quotes ??
-    createDefaultResourceState<QuotesResponse | null, Quote | null>(null, null),
 );

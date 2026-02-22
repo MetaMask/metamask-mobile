@@ -21,18 +21,25 @@ jest.mock('../../../../../util/address', () => ({
   getAddressAccountType: (str: string) => str,
 }));
 
-const mockTrackEvent = jest.fn();
+const mockTrackEvent = jest.fn().mockImplementation();
+jest.mock('../../../../../core/Analytics', () => ({
+  ...jest.requireActual('../../../../../core/Analytics'),
+  MetaMetrics: {
+    getInstance: () => ({
+      trackEvent: mockTrackEvent,
+      updateDataRecordingFlag: jest.fn(),
+    }),
+  },
+}));
+
 const mockAddProperties = jest
   .fn()
   .mockImplementation(() => ({ build: () => ({}) }));
-jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: () => ({
-      addProperties: mockAddProperties,
-      build: () => ({}),
-    }),
-  }),
+jest.mock('../../../../../core/Analytics/MetricsEventBuilder', () => ({
+  ...jest.requireActual('../../../../../core/Analytics/MetricsEventBuilder'),
+  MetricsEventBuilder: {
+    createEventBuilder: () => ({ addProperties: mockAddProperties }),
+  },
 }));
 
 const SignatureMetrics = {

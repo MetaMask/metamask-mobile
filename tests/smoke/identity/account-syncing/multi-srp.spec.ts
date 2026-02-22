@@ -1,9 +1,9 @@
-import { loginToApp } from '../../../flows/wallet.flow';
-import TestHelpers from '../../../helpers';
-import WalletView from '../../../page-objects/wallet/WalletView';
-import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet';
+import { loginToApp } from '../../../../e2e/viewHelper';
+import TestHelpers from '../../../../e2e/helpers';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import { SmokeIdentity } from '../../../tags';
+import { SmokeIdentity } from '../../../../e2e/tags';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers';
 import {
@@ -11,15 +11,15 @@ import {
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController';
 import { goToImportSrp, inputSrp } from '../../../flows/accounts.flow';
-import ImportSrpView from '../../../page-objects/importSrp/ImportSrpView';
+import ImportSrpView from '../../../../e2e/pages/importSrp/ImportSrpView';
 import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../utils/constants';
 import { createUserStorageController } from '../utils/mocks';
 import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
 } from '@metamask/account-tree-controller';
-import AccountDetails from '../../../page-objects/MultichainAccounts/AccountDetails';
-import EditAccountName from '../../../page-objects/MultichainAccounts/EditAccountName';
+import AccountDetails from '../../../../e2e/pages/MultichainAccounts/AccountDetails';
+import EditAccountName from '../../../../e2e/pages/MultichainAccounts/EditAccountName';
 
 describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
@@ -74,16 +74,6 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           prepareEventsEmittedCounter,
           waitUntilSyncedAccountsNumberEquals,
         } = arrangeTestUtils(userStorageMockttpController);
-
-        // Wait for the initial full sync to complete before adding accounts.
-        // The AccountTreeController's enqueueSingleGroupSync silently drops
-        // sync requests when isAccountTreeSyncingInProgress is true or
-        // hasAccountTreeSyncingSyncedAtLeastOnce is false, so we must ensure
-        // the first full sync has finished pushing the initial group.
-        await waitUntilSyncedAccountsNumberEquals(1);
-
-        // Set up event counter AFTER the initial sync completes so it only
-        // tracks events from subsequent account mutations.
         const { waitUntilEventsEmittedNumberEquals } =
           prepareEventsEmittedCounter(
             UserStorageMockttpControllerEvents.PUT_SINGLE,

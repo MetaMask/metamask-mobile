@@ -168,7 +168,7 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -188,8 +188,8 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 32,
-                          "width": 32,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -480,7 +480,9 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                                   "textAlign": "left",
                                 }
                               }
-                            />
+                            >
+                              MetaMask v7.0.0 (1000)
+                            </Text>
                             <Text
                               style={
                                 {

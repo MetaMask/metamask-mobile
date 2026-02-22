@@ -511,8 +511,6 @@ export default class Gestures {
       scrollAmount = 350,
       elemDescription,
       delay = 0,
-      startPositionX = NaN,
-      startPositionY = NaN,
     } = options;
 
     return Utilities.executeWithRetry(
@@ -529,19 +527,14 @@ export default class Gestures {
             await waitFor(target).toBeVisible().withTimeout(100);
             return;
           } catch {
-            await scrollableElement.scroll(
-              scrollAmount,
-              direction,
-              startPositionX,
-              startPositionY,
-            );
+            await scrollableElement.scroll(scrollAmount, direction);
             await waitFor(target).toBeVisible().withTimeout(100);
           }
         } else {
           await waitFor(target)
             .toBeVisible()
             .whileElement(scrollable)
-            .scroll(scrollAmount, direction, startPositionX, startPositionY);
+            .scroll(scrollAmount, direction);
         }
       },
       {

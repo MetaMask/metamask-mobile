@@ -3,10 +3,7 @@ import { waitFor } from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { usePerpsOrderFills } from './usePerpsOrderFills';
-import {
-  type OrderFill,
-  type GetOrderFillsParams,
-} from '@metamask/perps-controller';
+import type { OrderFill, GetOrderFillsParams } from '../controllers/types';
 import { CaipAccountId, Hex } from '@metamask/utils';
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');

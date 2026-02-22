@@ -14,6 +14,10 @@ export interface UseUnrealizedPnLOptions {
    */
   address?: string;
   /**
+   * The provider ID to fetch unrealized P&L from
+   */
+  providerId?: string;
+  /**
    * Whether to load unrealized P&L on mount
    * @default true
    */
@@ -41,7 +45,12 @@ export interface UseUnrealizedPnLResult {
 export const useUnrealizedPnL = (
   options: UseUnrealizedPnLOptions = {},
 ): UseUnrealizedPnLResult => {
-  const { address, loadOnMount = true, refreshOnFocus = true } = options;
+  const {
+    address,
+    providerId,
+    loadOnMount = true,
+    refreshOnFocus = true,
+  } = options;
 
   const [unrealizedPnL, setUnrealizedPnL] = useState<UnrealizedPnL | null>(
     null,
@@ -69,8 +78,10 @@ export const useUnrealizedPnL = (
         const [unrealizedPnLData, positions] = await Promise.all([
           Engine.context.PredictController.getUnrealizedPnL({
             address: address ?? selectedInternalAccountAddress,
+            providerId,
           }),
           Engine.context.PredictController.getPositions({
+            providerId,
             limit: 1,
             offset: 0,
             claimable: false,
@@ -82,6 +93,7 @@ export const useUnrealizedPnL = (
 
         DevLogger.log('useUnrealizedPnL: Loaded unrealized P&L', {
           unrealizedPnL: unrealizedPnLData,
+          providerId,
         });
       } catch (err) {
         const errorMessage =
@@ -102,6 +114,7 @@ export const useUnrealizedPnL = (
               method: 'loadUnrealizedPnL',
               action: 'unrealized_pnl_load',
               operation: 'data_fetching',
+              providerId,
             },
           },
         });
@@ -110,7 +123,7 @@ export const useUnrealizedPnL = (
         setIsRefreshing(false);
       }
     },
-    [address, selectedInternalAccountAddress],
+    [address, providerId, selectedInternalAccountAddress],
   );
 
   // Load unrealized P&L on mount if enabled

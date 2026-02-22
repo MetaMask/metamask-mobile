@@ -1,4 +1,5 @@
 import {
+  GasFeeEstimateType,
   GasFeeEstimateLevel,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
@@ -20,6 +21,7 @@ export function getGasMetricsProperties({
     chainId,
     dappSuggestedGasFees,
     gasFeeEstimatesLoaded,
+    gasFeeEstimates,
     gasFeeTokens,
     selectedGasFeeToken,
     txParams,
@@ -27,13 +29,29 @@ export function getGasMetricsProperties({
   } = transactionMeta;
 
   const { from } = txParams ?? {};
+  const { type: gasFeeEstimateType } = gasFeeEstimates ?? {};
 
-  let presentedGasFeeOption: string = 'not_loaded';
+  const presentedGasFeeOptions = ['custom'];
 
-  if (dappSuggestedGasFees) {
-    presentedGasFeeOption = 'dapp_proposed';
-  } else if (gasFeeEstimatesLoaded) {
-    presentedGasFeeOption = GasFeeEstimateLevel.Medium;
+  if (gasFeeEstimatesLoaded) {
+    if (
+      gasFeeEstimateType === GasFeeEstimateType.FeeMarket ||
+      gasFeeEstimateType === GasFeeEstimateType.Legacy
+    ) {
+      presentedGasFeeOptions.push(
+        GasFeeEstimateLevel.Low,
+        GasFeeEstimateLevel.Medium,
+        GasFeeEstimateLevel.High,
+      );
+    }
+
+    if (gasFeeEstimateType === GasFeeEstimateType.GasPrice) {
+      presentedGasFeeOptions.push('network_proposed');
+    }
+
+    if (dappSuggestedGasFees) {
+      presentedGasFeeOptions.push('dapp_proposed');
+    }
   }
 
   const gas_payment_tokens_available = gasFeeTokens?.map(
@@ -59,7 +77,7 @@ export function getGasMetricsProperties({
   return {
     properties: {
       gas_estimation_failed: !gasFeeEstimatesLoaded,
-      gas_fee_presented: presentedGasFeeOption,
+      gas_fee_presented: presentedGasFeeOptions,
       gas_fee_selected: userFeeLevel,
       gas_insufficient_native_asset,
       gas_paid_with,

@@ -1,23 +1,25 @@
-import TestHelpers from '../../../../helpers';
-import { RegressionNetworkAbstractions } from '../../../../tags';
-import WalletView from '../../../../page-objects/wallet/WalletView';
-import ImportAccountView from '../../../../page-objects/importAccount/ImportAccountView';
-import TabBarComponent from '../../../../page-objects/wallet/TabBarComponent';
+import TestHelpers from '../../../../../e2e/helpers';
+import { RegressionNetworkAbstractions } from '../../../../../e2e/tags';
+import WalletView from '../../../../../e2e/pages/wallet/WalletView';
+import ImportAccountView from '../../../../../e2e/pages/importAccount/ImportAccountView';
+import TabBarComponent from '../../../../../e2e/pages/wallet/TabBarComponent';
 
-import Browser from '../../../../page-objects/Browser/BrowserView';
-import AccountListBottomSheet from '../../../../page-objects/wallet/AccountListBottomSheet';
+import Browser from '../../../../../e2e/pages/Browser/BrowserView';
+import AccountListBottomSheet from '../../../../../e2e/pages/wallet/AccountListBottomSheet';
 
-import ConnectBottomSheet from '../../../../page-objects/Browser/ConnectBottomSheet';
-import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAccountsModal';
-import NetworkListModal from '../../../../page-objects/Network/NetworkListModal';
-import NetworkEducationModal from '../../../../page-objects/Network/NetworkEducationModal';
+import ConnectBottomSheet from '../../../../../e2e/pages/Browser/ConnectBottomSheet';
+import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../../../../e2e/pages/Network/NetworkEducationModal';
 
 import Accounts from '../../../../../wdio/helpers/Accounts';
-import { importWalletWithRecoveryPhrase } from '../../../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../../../flows/browser.flow';
-import AddAccountBottomSheet from '../../../../page-objects/wallet/AddAccountBottomSheet';
+import {
+  importWalletWithRecoveryPhrase,
+  navigateToBrowserView,
+} from '../../../../../e2e/viewHelper';
+import AddAccountBottomSheet from '../../../../../e2e/pages/wallet/AddAccountBottomSheet';
 import Assertions from '../../../../framework/Assertions';
-import SuccessImportAccountView from '../../../../page-objects/importAccount/SuccessImportAccountView';
+import SuccessImportAccountView from '../../../../../e2e/pages/importAccount/SuccessImportAccountView';
 
 const SEPOLIA = 'Sepolia';
 

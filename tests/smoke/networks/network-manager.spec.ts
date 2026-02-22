@@ -1,8 +1,8 @@
-import { SmokeNetworkAbstractions } from '../../tags';
-import { loginToApp } from '../../flows/wallet.flow';
+import { SmokeNetworkAbstractions } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import NetworkManager from '../../page-objects/wallet/NetworkManager';
+import NetworkManager from '../../../e2e/pages/wallet/NetworkManager';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import Assertions from '../../framework/Assertions';
 

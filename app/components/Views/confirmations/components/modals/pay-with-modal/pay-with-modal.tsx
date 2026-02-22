@@ -1,7 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { strings } from '../../../../../../../locales/i18n';
 import { Asset } from '../../send/asset';
 import BottomSheet, {
@@ -13,10 +12,7 @@ import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransacti
 import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
-import {
-  hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+import { hasTransactionType } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
@@ -30,7 +26,6 @@ export function PayWithModal() {
     HIDE_NETWORK_FILTER_TYPES,
   );
   const { payToken, setPayToken } = useTransactionPayToken();
-  const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
@@ -83,13 +78,6 @@ export function PayWithModal() {
 
   const tokenFilter = useCallback(
     (tokens: AssetType[]) => {
-      // For withdrawal transactions, show all available tokens (any chain, popular tokens)
-      // The bridging service will handle the actual token conversion
-      if (isTransactionPayWithdraw(transactionMeta)) {
-        return tokens;
-      }
-
-      // Standard deposit/payment token filtering
       const availableTokens = getAvailableTokens({
         payToken,
         requiredTokens,
@@ -121,11 +109,6 @@ export function PayWithModal() {
     ],
   );
 
-  // Dynamic title based on transaction type
-  const modalTitle = isWithdraw
-    ? strings('pay_with_modal.title_receive')
-    : strings('pay_with_modal.title');
-
   return (
     <BottomSheet
       isFullscreen
@@ -133,7 +116,7 @@ export function PayWithModal() {
       keyboardAvoidingViewEnabled={false}
     >
       <HeaderCompactStandard
-        title={modalTitle}
+        title={strings('pay_with_modal.title')}
         // HeaderCompactStandard close handler receives a press event; we must ignore it so it
         // isn't forwarded to `onCloseBottomSheet` as the post-close callback.
         onClose={() => close()}

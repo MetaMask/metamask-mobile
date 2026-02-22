@@ -26,7 +26,6 @@ import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
 
 export const SUMMARY_SECTION_TYPES = [
-  TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
@@ -92,8 +91,6 @@ function getTitle(transactionMeta: TransactionMeta) {
   switch (transactionMeta.type) {
     case TransactionType.musdConversion:
       return strings('transaction_details.title.musd_conversion');
-    case TransactionType.musdClaim:
-      return strings('transaction_details.title.musd_claim');
     case TransactionType.perpsDeposit:
       return strings('transaction_details.title.perps_deposit');
     default:

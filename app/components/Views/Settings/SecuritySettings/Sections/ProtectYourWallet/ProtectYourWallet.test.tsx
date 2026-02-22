@@ -40,15 +40,12 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
   }),
 });
 
-jest.mock(
-  '../../../../../../components/hooks/useAnalytics/useAnalytics',
-  () => ({
-    useAnalytics: () => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    }),
+jest.mock('../../../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
-);
+}));
 
 describe('ProtectYourWallet', () => {
   beforeEach(() => {

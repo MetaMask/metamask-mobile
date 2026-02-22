@@ -64,7 +64,7 @@ import { areAddressesEqual } from '../../../util/address';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarketForAsset } from '../../UI/Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../../UI/Perps/components/PerpsDiscoveryBanner';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import { PERPS_EVENT_VALUE } from '../../UI/Perps/constants/eventNames';
 import { isTokenTrustworthyForPerps } from '../../UI/Perps/constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 

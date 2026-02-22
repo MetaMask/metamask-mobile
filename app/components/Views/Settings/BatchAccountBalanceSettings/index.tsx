@@ -17,14 +17,14 @@ import {
   SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
 } from './index.constants';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../hooks/useMetrics';
 
 const BatchAccountBalanceSettings = () => {
   const { PreferencesController } = Engine.context;
   const theme = useTheme();
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
-  const { addTraitsToUser } = useAnalytics();
+  const { addTraitsToUser } = useMetrics();
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,

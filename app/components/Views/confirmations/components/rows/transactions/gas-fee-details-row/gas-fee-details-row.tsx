@@ -20,7 +20,6 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
 import useBalanceChanges from '../../../../../../UI/SimulationDetails/useBalanceChanges';
-import { useEstimationFailed } from '../../../../hooks/gas/useEstimationFailed';
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
 import { useFeeCalculationsTransactionBatch } from '../../../../hooks/gas/useFeeCalculationsTransactionBatch';
 import { useSelectedGasFeeToken } from '../../../../hooks/gas/useGasFeeToken';
@@ -97,8 +96,6 @@ const EstimationInfo = ({
   const isSimulationLoading =
     !isBatch && (!simulationData || balanceChangesResult.pending);
 
-  const isEstimationFailed = useEstimationFailed();
-
   return (
     <View style={styles.estimationContainer}>
       {isGasFeeSponsored ? (
@@ -107,13 +104,7 @@ const EstimationInfo = ({
         <SkeletonEstimationInfo />
       ) : (
         <>
-          {displayValue && (
-            <Text style={displayStyle}>
-              {isEstimationFailed
-                ? strings('transactions.unavailable')
-                : displayValue}
-            </Text>
-          )}
+          {displayValue && <Text style={displayStyle}>{displayValue}</Text>}
           {!fiatOnly && <SelectedGasFeeToken />}
         </>
       )}

@@ -3,7 +3,6 @@ import { Hex } from '@metamask/utils';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 const MIN_VALID_DATA_LENGTH = 10;
 const VALID_ADDRESS_LENGTH = 42;
 
@@ -26,7 +25,7 @@ function getErrorContext(
   return {
     tags: {
       feature: PREDICT_CONSTANTS.FEATURE_NAME,
-      provider: POLYMARKET_PROVIDER_ID,
+      provider: 'polymarket',
     },
     context: {
       name: 'PredictController',

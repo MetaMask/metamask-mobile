@@ -22,6 +22,7 @@ import { mockTheme, ThemeContext, useTheme } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
   selectDismissSmartAccountSuggestionEnabled,
+  selectSmartAccountOptIn,
   selectSmartTransactionsOptInStatus,
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
@@ -40,7 +41,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { withAnalyticsAwareness } from '../../../../components/hooks/useAnalytics/withAnalyticsAwareness';
+import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
@@ -220,9 +221,9 @@ class AdvancedSettings extends PureComponent {
      */
     route: PropTypes.object,
     /**
-     * Analytics injected by withAnalyticsAwareness HOC
+     * Metrics injected by withMetricsAwareness HOC
      */
-    analytics: PropTypes.object,
+    metrics: PropTypes.object,
     /**
      * Boolean that checks if smart transactions is enabled
      */
@@ -231,6 +232,10 @@ class AdvancedSettings extends PureComponent {
      * Boolean to disable smart account upgrade prompts
      */
     dismissSmartAccountSuggestionEnabled: PropTypes.bool,
+    /**
+     * Boolean for user to opt-in for smart account upgrade
+     */
+    smartAccountOptIn: PropTypes.bool,
   };
 
   scrollView = React.createRef();
@@ -300,8 +305,8 @@ class AdvancedSettings extends PureComponent {
   };
 
   trackMetricsEvent = (event, properties) => {
-    this.props.analytics.trackEvent(
-      this.props.analytics
+    this.props.metrics.trackEvent(
+      this.props.metrics
         .createEventBuilder(event)
         .addProperties({
           location: 'Advanced Settings',
@@ -319,6 +324,15 @@ class AdvancedSettings extends PureComponent {
 
     this.trackMetricsEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
       stx_opt_in: smartTransactionsOptInStatus,
+    });
+  };
+
+  toggleSmartAccountOptIn = (smartAccountOptIn) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setSmartAccountOptIn(smartAccountOptIn);
+
+    this.trackMetricsEvent(MetaMetricsEvents.SMART_ACCOUNT_OPT_IN, {
+      smart_account_opt_in: smartAccountOptIn,
     });
   };
 
@@ -343,12 +357,17 @@ class AdvancedSettings extends PureComponent {
     Linking.openURL(AppConstants.URLS.SMART_TXS);
   };
 
+  openLinkAboutSmartAccount = () => {
+    Linking.openURL(AppConstants.URLS.SMART_ACCOUNTS);
+  };
+
   render = () => {
     const {
       showHexData,
       showFiatOnTestnets,
       setShowHexData,
       setShowFiatOnTestnets,
+      smartAccountOptIn,
       smartTransactionsOptInStatus,
       dismissSmartAccountSuggestionEnabled,
     } = this.props;
@@ -392,6 +411,26 @@ class AdvancedSettings extends PureComponent {
                 style={styles.accessory}
               />
             </View>
+
+            <SettingsRow
+              heading={strings('app_settings.use_smart_account_heading')}
+              description={
+                <>
+                  {strings('app_settings.use_smart_account_desc')}{' '}
+                  <Text
+                    color={TextColor.Primary}
+                    link
+                    onPress={this.openLinkAboutSmartAccount}
+                  >
+                    {strings('app_settings.use_smart_account_learn_more')}
+                  </Text>
+                </>
+              }
+              value={smartAccountOptIn}
+              onValueChange={this.toggleSmartAccountOptIn}
+              testId={AdvancedViewSelectorsIDs.SMART_ACCOUNT_OPT_IN}
+              styles={styles}
+            />
 
             <SettingsRow
               heading={strings(
@@ -499,6 +538,7 @@ const mapStateToProps = (state) => ({
   ),
   dismissSmartAccountSuggestionEnabled:
     selectDismissSmartAccountSuggestionEnabled(state),
+  smartAccountOptIn: selectSmartAccountOptIn(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -510,4 +550,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withAnalyticsAwareness(AdvancedSettings));
+)(withMetricsAwareness(AdvancedSettings));

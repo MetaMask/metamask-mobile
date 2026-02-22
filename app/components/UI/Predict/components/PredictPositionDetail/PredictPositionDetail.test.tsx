@@ -16,7 +16,6 @@ import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 
-import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 declare global {
   // eslint-disable-next-line no-var
   var __mockNavigate: jest.Mock;
@@ -76,7 +75,7 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
 
 const basePosition: PredictPositionType = {
   id: 'pos-1',
-  providerId: POLYMARKET_PROVIDER_ID,
+  providerId: 'polymarket',
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcomeTokenId: '0',
@@ -99,7 +98,7 @@ const basePosition: PredictPositionType = {
 
 const baseMarket: PredictMarket = {
   id: 'market-1',
-  providerId: POLYMARKET_PROVIDER_ID,
+  providerId: 'polymarket',
   slug: 'will-etf-be-approved',
   title: 'Will ETF be approved?',
   description: 'Test market',
@@ -112,7 +111,7 @@ const baseMarket: PredictMarket = {
   outcomes: [
     {
       id: 'outcome-1',
-      providerId: POLYMARKET_PROVIDER_ID,
+      providerId: 'polymarket',
       marketId: 'market-1',
       title: 'Yes',
       description: 'Yes outcome',
@@ -124,7 +123,7 @@ const baseMarket: PredictMarket = {
     },
     {
       id: 'outcome-2',
-      providerId: POLYMARKET_PROVIDER_ID,
+      providerId: 'polymarket',
       marketId: 'market-1',
       title: 'No',
       description: 'No outcome',
@@ -139,24 +138,17 @@ const baseMarket: PredictMarket = {
   volume: 200000,
 };
 
-const createState = (privacyMode = false) => ({
+const initialState = {
   engine: {
-    backgroundState: {
-      ...backgroundState,
-      PreferencesController: {
-        ...backgroundState.PreferencesController,
-        privacyMode,
-      },
-    },
+    backgroundState,
   },
-});
+};
 
 const renderComponent = (
   overrides?: Partial<PredictPositionType>,
   marketOverrides?: Partial<PredictMarket>,
   marketStatus: PredictMarketStatus = PredictMarketStatus.OPEN,
   previewOverrides?: { minAmountReceived?: number; error?: string | null },
-  privacyMode = false,
 ) => {
   const position: PredictPositionType = {
     ...basePosition,
@@ -205,7 +197,7 @@ const renderComponent = (
       market={market}
       marketStatus={marketStatus}
     />,
-    { state: createState(privacyMode) },
+    { state: initialState },
   );
 };
 
@@ -273,16 +265,6 @@ describe('PredictPositionDetail', () => {
     expect(screen.getByText('Cash out')).toBeOnTheScreen();
   });
 
-  it('hides open position monetary values when privacy mode is enabled', () => {
-    renderComponent(undefined, undefined, undefined, undefined, true);
-
-    expect(screen.queryByText('$123.45 on Yes to win $10')).toBeNull();
-    expect(screen.queryByText('$129.93')).toBeNull();
-    expect(screen.queryByText('5.25%')).toBeNull();
-    expect(screen.getByText('••••••••••••')).toBeOnTheScreen();
-    expect(screen.getAllByText('••••••').length).toBeGreaterThanOrEqual(2);
-  });
-
   it.each([
     { value: -3.5, expected: '-3.5%' },
     { value: 0, expected: '0%' },
@@ -324,19 +306,6 @@ describe('PredictPositionDetail', () => {
     expect(screen.getByText('Won $500')).toBeOnTheScreen();
     expect(screen.queryByText('+12.34%')).toBeNull();
     expect(screen.queryByText('Cash out')).toBeNull();
-  });
-
-  it('hides won or lost text amount when privacy mode is enabled', () => {
-    renderComponent(
-      { percentPnl: 12.34, currentValue: 500 },
-      { status: 'closed' },
-      PredictMarketStatus.CLOSED,
-      { minAmountReceived: 500 },
-      true,
-    );
-
-    expect(screen.queryByText('Won $500')).toBeNull();
-    expect(screen.getByText('•••••••••')).toBeOnTheScreen();
   });
 
   it('renders lost result with initial value when market is closed and percent not positive', () => {

@@ -1,7 +1,6 @@
-import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../flows/browser.flow';
-import TestSnaps from '../../page-objects/Browser/TestSnaps';
+import { FlaskBuildTests } from '../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import { Matchers } from '../../framework';

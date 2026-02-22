@@ -18,7 +18,6 @@ import PAGINATION_OPERATIONS from '../../constants/pagination';
 import { strings } from '../../../locales/i18n';
 import { keyringTypeToName } from '@metamask/accounts-controller';
 import { removeAccountsFromPermissions } from '../Permissions';
-import { isEthAppNotOpenError } from './ledgerErrors';
 
 /**
  * Perform an operation with the Ledger keyring.
@@ -189,9 +188,6 @@ export const getLedgerAccountsByOperation = async (
     }));
   } catch (e) {
     /* istanbul ignore next */
-    if (isEthAppNotOpenError(e)) {
-      throw new Error(strings('ledger.eth_app_not_open_message'));
-    }
     throw new Error(strings('ledger.unspecified_error_during_connect'));
   }
 };
@@ -245,38 +241,31 @@ export const checkAccountNameExists = async (accountName: string) => {
  */
 export const unlockLedgerWalletAccount = async (index: number) => {
   const accountsController = Engine.context.AccountsController;
-  try {
-    const { unlockAccount, name } = await withLedgerKeyring(
-      async ({ keyring }) => {
-        const existingAccounts = await keyring.getAccounts();
-        const keyringName = keyringTypeToName(ExtendedKeyringTypes.ledger);
-        const accountName = `${keyringName} ${existingAccounts.length + 1}`;
+  const { unlockAccount, name } = await withLedgerKeyring(
+    async ({ keyring }) => {
+      const existingAccounts = await keyring.getAccounts();
+      const keyringName = keyringTypeToName(ExtendedKeyringTypes.ledger);
+      const accountName = `${keyringName} ${existingAccounts.length + 1}`;
 
-        if (await checkAccountNameExists(accountName)) {
-          throw new Error(
-            strings('ledger.account_name_existed', { accountName }),
-          );
-        }
+      if (await checkAccountNameExists(accountName)) {
+        throw new Error(
+          strings('ledger.account_name_existed', { accountName }),
+        );
+      }
 
-        keyring.setAccountToUnlock(index);
-        const accounts = await keyring.addAccounts(1);
-        return {
-          unlockAccount: accounts[accounts.length - 1],
-          name: accountName,
-        };
-      },
-    );
+      keyring.setAccountToUnlock(index);
+      const accounts = await keyring.addAccounts(1);
+      return {
+        unlockAccount: accounts[accounts.length - 1],
+        name: accountName,
+      };
+    },
+  );
 
-    const account = accountsController.getAccountByAddress(unlockAccount);
+  const account = accountsController.getAccountByAddress(unlockAccount);
 
-    if (account && name !== account.metadata.name) {
-      accountsController.setAccountName(account.id, name);
-    }
-    Engine.setSelectedAddress(unlockAccount);
-  } catch (e) {
-    if (isEthAppNotOpenError(e)) {
-      throw new Error(strings('ledger.eth_app_not_open_message'));
-    }
-    throw e;
+  if (account && name !== account.metadata.name) {
+    accountsController.setAccountName(account.id, name);
   }
+  Engine.setSelectedAddress(unlockAccount);
 };

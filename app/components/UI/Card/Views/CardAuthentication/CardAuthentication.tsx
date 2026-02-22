@@ -10,7 +10,9 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
+import TextField, {
+  TextFieldSize,
+} from '../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../component-library/components/Form/Label';
 
 import Button, {
@@ -294,6 +296,7 @@ const CardAuthentication = () => {
               autoCapitalize={'none'}
               onChangeText={handleOtpValueChange}
               numberOfLines={1}
+              size={TextFieldSize.Lg}
               value={confirmCode}
               keyboardType="number-pad"
               textContentType="oneTimeCode"
@@ -405,6 +408,7 @@ const CardAuthentication = () => {
               autoComplete="one-time-code"
               onChangeText={handleEmailChange}
               numberOfLines={1}
+              size={TextFieldSize.Lg}
               value={email}
               returnKeyType={'next'}
               keyboardType="email-address"
@@ -422,6 +426,7 @@ const CardAuthentication = () => {
               onChangeText={handlePasswordChange}
               autoComplete="one-time-code"
               numberOfLines={1}
+              size={TextFieldSize.Lg}
               value={password}
               maxLength={255}
               returnKeyType={'done'}

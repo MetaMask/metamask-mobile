@@ -76,7 +76,6 @@ enum EVENT_NAME {
   COLLECTIBLE_ADDED = 'Collectible Added',
   NFT_DETAILS_OPENED = 'NFT Details Opened',
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
-  TOKEN_DETAILS_OPENED = 'Token Details Opened',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
   VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
@@ -179,10 +178,6 @@ enum EVENT_NAME {
   SETTINGS_VIEWED = 'Settings Viewed',
   SETTINGS_UPDATED = 'Settings Updated',
   CURRENCY_CHANGED = 'Selected Currency Changed',
-  SETTINGS_ABOUT = 'About MetaMask',
-  NAVIGATION_TAPS_GET_HELP = 'Get Help',
-  NAVIGATION_TAPS_SEND_FEEDBACK = 'Send Feedback',
-  NAVIGATION_TAPS_LOGOUT = 'Logout',
 
   // Reveal SRP
   REVEAL_SRP_CTA = 'Clicks Reveal Secret Recovery Phrase',
@@ -551,10 +546,6 @@ enum EVENT_NAME {
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
   CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
-  CARD_PUSH_PROVISIONING_STARTED = 'Card Push Provisioning Started',
-  CARD_PUSH_PROVISIONING_COMPLETED = 'Card Push Provisioning Completed',
-  CARD_PUSH_PROVISIONING_FAILED = 'Card Push Provisioning Failed',
-  CARD_PUSH_PROVISIONING_CANCELED = 'Card Push Provisioning Canceled',
   CARD_METAL_CHECKOUT_VIEWED = 'Card Metal Checkout Viewed',
   CARD_METAL_CHECKOUT_STARTED = 'Card Metal Checkout Started',
   CARD_METAL_CHECKOUT_COMPLETED = 'Card Metal Checkout Completed',
@@ -1369,7 +1360,7 @@ const events = {
   EARN_TOKEN_LIST_ITEM_CLICKED: generateOpt(
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
-  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
+  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_CLICKED),
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
@@ -1451,18 +1442,6 @@ const events = {
   ),
   CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
-  ),
-  CARD_PUSH_PROVISIONING_STARTED: generateOpt(
-    EVENT_NAME.CARD_PUSH_PROVISIONING_STARTED,
-  ),
-  CARD_PUSH_PROVISIONING_COMPLETED: generateOpt(
-    EVENT_NAME.CARD_PUSH_PROVISIONING_COMPLETED,
-  ),
-  CARD_PUSH_PROVISIONING_FAILED: generateOpt(
-    EVENT_NAME.CARD_PUSH_PROVISIONING_FAILED,
-  ),
-  CARD_PUSH_PROVISIONING_CANCELED: generateOpt(
-    EVENT_NAME.CARD_PUSH_PROVISIONING_CANCELED,
   ),
   CARD_METAL_CHECKOUT_VIEWED: generateOpt(
     EVENT_NAME.CARD_METAL_CHECKOUT_VIEWED,

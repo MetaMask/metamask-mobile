@@ -19,7 +19,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import { usePerpsLivePositions } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {

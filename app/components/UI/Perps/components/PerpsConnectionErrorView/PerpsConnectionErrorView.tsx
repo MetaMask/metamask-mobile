@@ -23,7 +23,7 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller';
+} from '../../constants/eventNames';
 import styleSheet from './PerpsConnectionErrorView.styles';
 
 interface PerpsConnectionErrorViewProps {

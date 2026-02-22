@@ -94,10 +94,7 @@ describe('MusdConversionInfo', () => {
       outputAmount: null,
       outputSymbol: null,
     });
-    mockUseTransactionPayAvailableTokens.mockReturnValue({
-      availableTokens: [],
-      hasTokens: false,
-    });
+    mockUseTransactionPayAvailableTokens.mockReturnValue([]);
   });
 
   afterEach(() => {
@@ -207,10 +204,9 @@ describe('MusdConversionInfo', () => {
   describe('MusdOverrideContent', () => {
     it('calls useTransactionPayAvailableTokens when rendered', () => {
       mockUseRoute.mockReturnValue(mockRoute);
-      mockUseTransactionPayAvailableTokens.mockReturnValue({
-        availableTokens: [{ address: '0x123' }],
-        hasTokens: true,
-      } as never);
+      mockUseTransactionPayAvailableTokens.mockReturnValue([
+        { address: '0x123' },
+      ] as never);
 
       renderWithProvider(<MusdConversionInfo />, {
         state: {},

@@ -130,15 +130,7 @@ const getTitle = (status, { nonce, amount, assetType }) => {
     case 'pending_withdrawal':
       return strings('notifications.pending_withdrawal_title');
     case 'success':
-      if (nonce && !isNaN(parseInt(nonce))) {
-        return strings('notifications.success_title', {
-          nonce: parseInt(nonce),
-        });
-      }
-      // For transactions without nonce (e.g., EIP-7702), show without nonce
-      return strings('notifications.success_title', { nonce: '' })
-        .replace(' # ', ' ')
-        .trim();
+      return strings('notifications.success_title', { nonce: parseInt(nonce) });
     case 'success_deposit':
       return strings('notifications.success_deposit_title');
     case 'success_withdrawal':
@@ -149,15 +141,7 @@ const getTitle = (status, { nonce, amount, assetType }) => {
         assetType,
       });
     case 'speedup':
-      if (nonce && !isNaN(parseInt(nonce))) {
-        return strings('notifications.speedup_title', {
-          nonce: parseInt(nonce),
-        });
-      }
-      // For transactions without nonce, show without nonce
-      return strings('notifications.speedup_title', { nonce: '' })
-        .replace(' #', '')
-        .trim();
+      return strings('notifications.speedup_title', { nonce: parseInt(nonce) });
     case 'received_payment':
       return strings('notifications.received_payment_title');
     case 'cancelled':

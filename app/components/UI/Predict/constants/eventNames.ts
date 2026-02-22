@@ -128,8 +128,6 @@ export const PredictTradeStatus = {
   SUBMITTED: 'submitted',
   SUCCEEDED: 'succeeded',
   FAILED: 'failed',
-  RETRY_PROMPTED: 'retry_prompted',
-  RETRY_SUBMITTED: 'retry_submitted',
 } as const;
 
 export type PredictTradeStatusValue =

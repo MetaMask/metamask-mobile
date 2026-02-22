@@ -43,7 +43,6 @@ import {
   ROUNDING_CONFIG,
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
-  POLYMARKET_PROVIDER_ID,
 } from './constants';
 import { SafeFeeAuthorization } from './safe/types';
 import {
@@ -596,7 +595,7 @@ export const parsePolymarketMarket = (
   event: PolymarketApiEvent,
 ): PredictOutcome => ({
   id: market.conditionId,
-  providerId: POLYMARKET_PROVIDER_ID,
+  providerId: 'polymarket',
   marketId: event.id,
   title: market.question,
   description: market.description,
@@ -659,8 +658,9 @@ export const parsePolymarketEvents = (
       return {
         id: event.id,
         slug: event.slug,
-        providerId: POLYMARKET_PROVIDER_ID,
-        title: event.title,
+        providerId: 'polymarket',
+        // TODO: remove this temporary fix for Super Bowl LX
+        title: event.id === '188978' ? 'Super Bowl LX' : event.title,
         description: event.description,
         image: event.icon,
         status: event.closed
@@ -721,7 +721,7 @@ export const parsePolymarketActivity = (
 
     const parsedActivity: PredictActivity = {
       id,
-      providerId: POLYMARKET_PROVIDER_ID,
+      providerId: 'polymarket',
       entry:
         entryType === 'claimWinnings'
           ? { type: 'claimWinnings', timestamp, amount }
@@ -790,14 +790,12 @@ export const getParsedMarketsFromPolymarketApi = async (
     const active = `active=true`;
     const archived = `archived=false`;
     const closed = `closed=false`;
-    const ascendingCategories: Set<PredictCategory> = new Set(['ending-soon']);
-    const ascending = `ascending=${ascendingCategories.has(category)}`;
+    const ascending = `ascending=false`;
     const volume = `volume_min=${10000.0}`;
     const liquidity = `liquidity_min=${10000.0}`;
 
     const categoryTagMap: Record<PredictCategory, string> = {
       trending: '&order=volume24hr',
-      'ending-soon': '&order=endDate',
       new: '&order=startDate&exclude_tag_id=102169',
       sports: '&tag_slug=sports&order=volume24hr',
       crypto: '&tag_slug=crypto&order=volume24hr',
@@ -905,7 +903,7 @@ export const parsePolymarketPositions = async ({
   const parsedPositions: PredictPosition[] = positions.map(
     (position: PolymarketPosition) => ({
       id: position.asset,
-      providerId: POLYMARKET_PROVIDER_ID,
+      providerId: 'polymarket',
       marketId: position.eventId,
       outcomeId: position.conditionId,
       outcome: position.outcome,

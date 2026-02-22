@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import {
-  CHAIN_IDS,
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
@@ -13,7 +12,7 @@ import { selectDefaultEndpointByChainId } from '../../../../../../selectors/netw
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { TokenI } from '../../../../Tokens/types';
 import { RootState } from '../../../../../../reducers';
-import { fetchMerklRewardsForAsset } from '../merkl-client';
+import { fetchMerklRewardsForAsset, getClaimChainId } from '../merkl-client';
 import {
   DISTRIBUTOR_CLAIM_ABI,
   MERKL_CLAIM_ORIGIN,
@@ -25,7 +24,7 @@ import {
  * After successful submission, user is navigated to home page.
  * Toast notifications and balance refresh are handled globally by useMerklClaimStatus.
  */
-export const useMerklClaim = (asset: TokenI | undefined) => {
+export const useMerklClaim = (asset: TokenI) => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -44,7 +43,7 @@ export const useMerklClaim = (asset: TokenI | undefined) => {
 
   // Get the chain ID where claims should be executed
   // For mUSD, claims always go to Linea regardless of which chain the user is viewing
-  const claimChainId = CHAIN_IDS.LINEA_MAINNET as Hex;
+  const claimChainId = getClaimChainId(asset);
 
   const endpoint = useSelector((state: RootState) =>
     selectDefaultEndpointByChainId(state, claimChainId),
@@ -52,14 +51,10 @@ export const useMerklClaim = (asset: TokenI | undefined) => {
   const networkClientId = endpoint?.networkClientId;
 
   const claimRewards = useCallback(async () => {
-    if (!asset) {
-      setError('No asset available for claiming');
-      return undefined;
-    }
-
     if (!selectedAddress || !networkClientId) {
-      setError('No account or network selected');
-      return undefined;
+      const errorMessage = 'No account or network selected';
+      setError(errorMessage);
+      throw new Error(errorMessage);
     }
 
     // Abort any previous in-flight request
@@ -79,9 +74,7 @@ export const useMerklClaim = (asset: TokenI | undefined) => {
       );
 
       if (!rewardData) {
-        setError('No claimable rewards found');
-        setIsClaiming(false);
-        return undefined;
+        throw new Error('No claimable rewards found');
       }
 
       // Prepare claim parameters
@@ -118,40 +111,38 @@ export const useMerklClaim = (asset: TokenI | undefined) => {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
         origin: MERKL_CLAIM_ORIGIN,
-        type: TransactionType.musdClaim,
+        type: TransactionType.contractInteraction,
       });
-
-      // Transaction request is now visible — stop showing the loader
-      setIsClaiming(false);
 
       // transactionMeta can be undefined if user cancels before tx is created
       if (!transactionMeta) {
+        setIsClaiming(false);
         return undefined;
       }
 
       // Wait for transaction hash (indicates tx is submitted to network)
       const txHash = await result;
 
+      // Don't reset isClaiming here - component will unmount after navigation
+      // and useMerklClaimStatus will handle the rest globally
+
       return { txHash, transactionMeta };
     } catch (e) {
-      const { name, code, message } = e as Error & { code?: number };
+      const error = e as Error & { code?: number };
 
       // Ignore AbortError - component unmounted or request was cancelled
-      // Still reset isClaiming so the spinner doesn't stick if the component
-      // is still mounted (e.g. a stale abort from a deduplicated request).
-      if (name === 'AbortError') {
-        setIsClaiming(false);
+      if (error.name === 'AbortError') {
         return undefined;
       }
 
       // Don't show error if user rejected/cancelled the transaction (EIP-1193 code 4001)
-      const isUserRejection = code === 4001;
+      const isUserRejection = error.code === 4001;
 
       if (!isUserRejection) {
-        setError(message);
+        setError(error.message);
       }
       setIsClaiming(false);
-      return undefined;
+      throw e;
     }
   }, [selectedAddress, networkClientId, asset, claimChainId]);
 

@@ -134,6 +134,8 @@ export class RPCBridgeAdapter
             current: this.connInfo.metadata.dapp.icon as ImageSourcePropType,
           },
           navigation: null,
+          isHomepage: () => false,
+          fromHomepage: { current: false },
           tabId: '',
           isWalletConnect: false,
           analytics: {
@@ -142,6 +144,8 @@ export class RPCBridgeAdapter
               this.connInfo.metadata.sdk.platform ??
               AppConstants.MM_SDK.UNKNOWN_PARAM,
           },
+          toggleUrlModal: () => null,
+          injectHomePageScripts: () => null,
         }),
       isMainFrame: true,
       getApprovedHosts: () => ({

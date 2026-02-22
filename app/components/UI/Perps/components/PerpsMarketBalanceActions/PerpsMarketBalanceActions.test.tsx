@@ -11,7 +11,7 @@ import {
 } from '../../hooks';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { getDefaultPerpsControllerState } from '@metamask/perps-controller';
+import { getDefaultPerpsControllerState } from '../../controllers';
 
 // TypeScript interfaces for component props
 interface MockComponentProps {

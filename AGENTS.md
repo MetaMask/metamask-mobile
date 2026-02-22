@@ -91,8 +91,7 @@ app/
 ├── hooks/                # Custom React hooks
 └── styles/               # Global styles
 
-tests/smoke               # Detox Smoke E2E tests
-tests/regression          # Detox Regression E2E tests
+e2e/                      # Detox E2E tests
 docs/                     # Documentation
 scripts/                  # Build and automation scripts
 ```
@@ -191,6 +190,3 @@ If the user asks to implement a ticket directly from Jira:
 | Storybook                 | `/docs/readme/storybook.md`                  |
 | Troubleshooting           | `/docs/readme/troubleshooting.md`            |
 | MetaMask Contributor Docs | https://github.com/MetaMask/contributor-docs |
-
-## Test Guidelines
-When working on tests, read tests/AGENTS.md for testing conventions.

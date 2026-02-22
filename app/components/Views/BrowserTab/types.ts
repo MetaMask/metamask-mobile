@@ -79,6 +79,10 @@ export type BrowserTabProps = SharedTabProps & {
    */
   addBookmark: (bookmark: { name: string; url: string }) => void;
   /**
+   * Array of bookmarks
+   */
+  bookmarks: { name: string; url: string }[];
+  /**
    * String representing the current search engine
    */
   searchEngine: string;

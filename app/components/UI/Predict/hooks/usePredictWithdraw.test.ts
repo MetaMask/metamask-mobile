@@ -2,7 +2,6 @@ import { renderHook } from '@testing-library/react-native';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 // Create mock functions
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -96,13 +95,13 @@ function createMockWithdrawTransaction(overrides = {}) {
     amount: 100,
     chainId: 137,
     status: 'pending',
-    providerId: POLYMARKET_PROVIDER_ID,
+    providerId: 'polymarket',
     ...overrides,
   };
 }
 
 // Helper to setup test
-function setupUsePredictWithdrawTest(stateOverrides = {}) {
+function setupUsePredictWithdrawTest(stateOverrides = {}, hookOptions = {}) {
   jest.clearAllMocks();
   mockState = {
     engine: {
@@ -114,7 +113,7 @@ function setupUsePredictWithdrawTest(stateOverrides = {}) {
       },
     },
   };
-  return renderHook(() => usePredictWithdraw());
+  return renderHook(() => usePredictWithdraw(hookOptions));
 }
 
 describe('usePredictWithdraw', () => {
@@ -209,7 +208,7 @@ describe('usePredictWithdraw', () => {
       });
     });
 
-    it('calls prepareWithdraw with empty options object', async () => {
+    it('calls prepareWithdraw with default providerId', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
       const { result } = setupUsePredictWithdrawTest();
@@ -219,20 +218,27 @@ describe('usePredictWithdraw', () => {
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(mockPrepareWithdraw).toHaveBeenCalledWith({});
+      expect(mockPrepareWithdraw).toHaveBeenCalledWith({
+        providerId: 'polymarket',
+      });
     });
 
-    it('calls prepareWithdraw with empty options object', async () => {
+    it('calls prepareWithdraw with custom providerId', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
-      const { result } = setupUsePredictWithdrawTest({});
+      const { result } = setupUsePredictWithdrawTest(
+        {},
+        { providerId: 'custom-provider' },
+      );
 
       await result.current.withdraw();
 
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(mockPrepareWithdraw).toHaveBeenCalledWith({});
+      expect(mockPrepareWithdraw).toHaveBeenCalledWith({
+        providerId: 'custom-provider',
+      });
     });
 
     it('returns response from prepareWithdraw on success', async () => {
@@ -431,8 +437,8 @@ describe('usePredictWithdraw', () => {
     });
   });
 
-  describe('withdraw payload handling', () => {
-    it('calls prepareWithdraw with empty object by default', async () => {
+  describe('providerId handling', () => {
+    it('uses default providerId polymarket when not specified', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
       const { result } = setupUsePredictWithdrawTest();
@@ -442,31 +448,27 @@ describe('usePredictWithdraw', () => {
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(mockPrepareWithdraw).toHaveBeenCalledWith({});
+      expect(mockPrepareWithdraw).toHaveBeenCalledWith({
+        providerId: 'polymarket',
+      });
     });
 
-    it('calls prepareWithdraw with empty object when not specified', async () => {
+    it('uses custom providerId when provided', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
-      const { result } = setupUsePredictWithdrawTest();
+      const { result } = setupUsePredictWithdrawTest(
+        {},
+        { providerId: 'test-provider' },
+      );
 
       await result.current.withdraw();
 
+      // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(mockPrepareWithdraw).toHaveBeenCalledWith({});
-    });
-
-    it('calls prepareWithdraw with empty object for repeated calls', async () => {
-      mockPrepareWithdraw.mockResolvedValue({ success: true });
-
-      const { result } = setupUsePredictWithdrawTest({});
-
-      await result.current.withdraw();
-
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(mockPrepareWithdraw).toHaveBeenCalledWith({});
+      expect(mockPrepareWithdraw).toHaveBeenCalledWith({
+        providerId: 'test-provider',
+      });
     });
   });
 

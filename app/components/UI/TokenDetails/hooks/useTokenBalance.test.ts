@@ -4,33 +4,13 @@ import { TokenI } from '../../Tokens/types';
 import {
   selectAsset,
   selectTronResourcesBySelectedAccountGroup,
-  TronResourcesMap,
 } from '../../../../selectors/assets/assets-list';
 import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
-
-const createEmptyResourcesMap = (): TronResourcesMap => ({
-  energy: undefined,
-  bandwidth: undefined,
-  maxEnergy: undefined,
-  maxBandwidth: undefined,
-  stakedTrxForEnergy: undefined,
-  stakedTrxForBandwidth: undefined,
-  totalStakedTrx: 0,
-});
+import { Asset } from '@metamask/assets-controllers';
 
 jest.mock('../../../../selectors/assets/assets-list', () => ({
   selectAsset: jest.fn(),
-  selectTronResourcesBySelectedAccountGroup: jest.fn(
-    (): TronResourcesMap => ({
-      energy: undefined,
-      bandwidth: undefined,
-      maxEnergy: undefined,
-      maxBandwidth: undefined,
-      stakedTrxForEnergy: undefined,
-      stakedTrxForBandwidth: undefined,
-      totalStakedTrx: 0,
-    }),
-  ),
+  selectTronResourcesBySelectedAccountGroup: jest.fn(() => []),
 }));
 
 jest.mock('../../AssetOverview/utils/createStakedTrxAsset', () => ({
@@ -46,7 +26,7 @@ const mockCreateStakedTrxAsset = jest.mocked(createStakedTrxAsset);
 describe('useTokenBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectTronResources.mockReturnValue(createEmptyResourcesMap());
+    mockSelectTronResources.mockReturnValue([]);
   });
 
   afterEach(() => {
@@ -118,11 +98,10 @@ describe('useTokenBalance', () => {
       symbol: 'TRX',
     } as TokenI);
 
-    mockSelectTronResources.mockReturnValue({
-      ...createEmptyResourcesMap(),
-      stakedTrxForEnergy: { symbol: 'strx-energy', balance: '100' },
-      stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '200' },
-    } as TronResourcesMap);
+    mockSelectTronResources.mockReturnValue([
+      { symbol: 'strx-energy', balance: '100' },
+      { symbol: 'strx-bandwidth', balance: '200' },
+    ] as Asset[]);
 
     mockCreateStakedTrxAsset.mockReturnValue(mockStakedAsset);
 

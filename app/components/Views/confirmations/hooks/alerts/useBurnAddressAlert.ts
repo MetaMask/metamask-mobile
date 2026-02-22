@@ -37,7 +37,7 @@ export function useBurnAddressAlert(): Alert[] {
     return [
       {
         key: AlertKeys.BurnAddress,
-        field: RowAlertKey.FromToAddress,
+        field: RowAlertKey.BurnAddress,
         message: strings('alert_system.burn_address.message'),
         title: strings('alert_system.burn_address.title'),
         severity: Severity.Danger,

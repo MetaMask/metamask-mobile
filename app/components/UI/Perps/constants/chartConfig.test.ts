@@ -4,8 +4,8 @@ import {
   getCandlePeriodsForDuration,
   getDefaultCandlePeriodForDuration,
   calculateCandleCount,
-} from '@metamask/perps-controller';
-import { getCandlestickColors } from './chartConfig';
+  getCandlestickColors,
+} from './chartConfig';
 
 describe('chartConfig', () => {
   describe('getCandlePeriodsForDuration', () => {

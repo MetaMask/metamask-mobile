@@ -9,8 +9,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
+import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
+import { TextFieldSize } from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
 import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
 import { TokenList } from '../../token-list';
@@ -52,6 +54,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
     useState<AssetType[]>(tokens);
   const [selectedNetworkFilter, setSelectedNetworkFilter] =
     useState<string>('all');
+  const theme = useTheme();
   const { bottom: bottomOffset } = useSafeAreaInsets();
 
   const {
@@ -129,7 +132,12 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
               ? strings('send.search_tokens')
               : strings('send.search_tokens_and_nfts')
           }
+          size={TextFieldSize.Lg}
+          showClearButton={searchQuery.length > 0}
           onPressClearButton={clearSearch}
+          style={{
+            borderColor: theme.colors.border.muted,
+          }}
         />
       </Box>
       {!hideNetworkFilter && (

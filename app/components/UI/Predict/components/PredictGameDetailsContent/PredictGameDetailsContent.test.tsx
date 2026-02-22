@@ -3,7 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PredictGameDetailsContent from './PredictGameDetailsContent';
 import { PredictMarket, PredictMarketStatus } from '../../types';
 
-import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -192,7 +191,7 @@ const createMockMarket = (
     title: 'Test Game Market',
     description: 'Test description',
     image: 'https://example.com/image.png',
-    providerId: POLYMARKET_PROVIDER_ID,
+    providerId: 'polymarket',
     status: PredictMarketStatus.OPEN,
     category: 'sports',
     tags: ['NFL'],

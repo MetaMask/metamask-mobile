@@ -84,7 +84,7 @@ interface MockReduxState {
     backgroundState: {
       PredictController: {
         pendingDeposits: {
-          [address: string]: boolean;
+          [providerId: string]: { [address: string]: boolean };
         };
       };
       AccountsController: {
@@ -156,6 +156,7 @@ const mockLoggerError = Logger.error as jest.MockedFunction<
 // Helper to setup test
 function setupUsePredictDepositTest(
   stateOverrides = {},
+  hookOptions = {},
   customToastRef?:
     | React.RefObject<{ showToast: jest.Mock; closeToast: jest.Mock }>
     | null
@@ -200,7 +201,7 @@ function setupUsePredictDepositTest(
       children,
     );
 
-  return renderHook(() => usePredictDeposit(), { wrapper });
+  return renderHook(() => usePredictDeposit(hookOptions), { wrapper });
 }
 
 describe('usePredictDeposit', () => {
@@ -244,7 +245,9 @@ describe('usePredictDeposit', () => {
     it('returns true when deposit is pending for current address', () => {
       const { result } = setupUsePredictDepositTest({
         pendingDeposits: {
-          [mockAccountAddress]: true,
+          polymarket: {
+            [mockAccountAddress]: true,
+          },
         },
       });
 
@@ -254,7 +257,9 @@ describe('usePredictDeposit', () => {
     it('returns false when deposit is not pending for current address', () => {
       const { result } = setupUsePredictDepositTest({
         pendingDeposits: {
-          [mockAccountAddress]: false,
+          polymarket: {
+            [mockAccountAddress]: false,
+          },
         },
       });
 
@@ -269,10 +274,12 @@ describe('usePredictDeposit', () => {
       expect(result.current.isDepositPending).toBe(false);
     });
 
-    it('returns false when address does not exist in pendingDeposits', () => {
+    it('returns false when provider does not exist in pendingDeposits', () => {
       const { result } = setupUsePredictDepositTest({
         pendingDeposits: {
-          '0xother': true,
+          'other-provider': {
+            [mockAccountAddress]: true,
+          },
         },
       });
 
@@ -297,7 +304,7 @@ describe('usePredictDeposit', () => {
       });
     });
 
-    it('calls depositWithConfirmation with empty options', async () => {
+    it('calls depositWithConfirmation with default providerId', async () => {
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockResolvedValue({
@@ -314,7 +321,34 @@ describe('usePredictDeposit', () => {
 
       expect(
         Engine.context.PredictController.depositWithConfirmation,
-      ).toHaveBeenCalledWith({});
+      ).toHaveBeenCalledWith({
+        providerId: 'polymarket',
+      });
+    });
+
+    it('calls depositWithConfirmation with custom providerId', async () => {
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockResolvedValue({
+        success: true,
+        response: { batchId: 'batch-123' },
+      });
+
+      const { result } = setupUsePredictDepositTest(
+        {},
+        { providerId: 'custom-provider' },
+      );
+
+      await result.current.deposit();
+
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(
+        Engine.context.PredictController.depositWithConfirmation,
+      ).toHaveBeenCalledWith({
+        providerId: 'custom-provider',
+      });
     });
 
     it('navigates back and logs error when depositWithConfirmation fails', async () => {
@@ -377,7 +411,9 @@ describe('usePredictDeposit', () => {
           backgroundState: {
             PredictController: {
               pendingDeposits: {
-                [mockAccountAddress]: true,
+                polymarket: {
+                  [mockAccountAddress]: true,
+                },
               },
             },
             AccountsController: {
@@ -412,7 +448,9 @@ describe('usePredictDeposit', () => {
           backgroundState: {
             PredictController: {
               pendingDeposits: {
-                [mockAccountAddress]: true,
+                polymarket: {
+                  [mockAccountAddress]: true,
+                },
               },
             },
             AccountsController: {
@@ -437,7 +475,9 @@ describe('usePredictDeposit', () => {
     it('updates isDepositPending when pendingDeposits changes to false', () => {
       const { result, rerender } = setupUsePredictDepositTest({
         pendingDeposits: {
-          [mockAccountAddress]: true,
+          polymarket: {
+            [mockAccountAddress]: true,
+          },
         },
       });
 
@@ -449,7 +489,9 @@ describe('usePredictDeposit', () => {
           backgroundState: {
             PredictController: {
               pendingDeposits: {
-                [mockAccountAddress]: false,
+                polymarket: {
+                  [mockAccountAddress]: false,
+                },
               },
             },
             AccountsController: {
@@ -472,8 +514,8 @@ describe('usePredictDeposit', () => {
     });
   });
 
-  describe('deposit payload handling', () => {
-    it('uses empty options object when not specified', async () => {
+  describe('providerId handling', () => {
+    it('uses default providerId polymarket when not specified', async () => {
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockResolvedValue({ success: true });
@@ -487,7 +529,31 @@ describe('usePredictDeposit', () => {
 
       expect(
         Engine.context.PredictController.depositWithConfirmation,
-      ).toHaveBeenCalledWith({});
+      ).toHaveBeenCalledWith({
+        providerId: 'polymarket',
+      });
+    });
+
+    it('uses custom providerId when provided', async () => {
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockResolvedValue({ success: true });
+
+      const { result } = setupUsePredictDepositTest(
+        {},
+        { providerId: 'test-provider' },
+      );
+
+      await result.current.deposit();
+
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(
+        Engine.context.PredictController.depositWithConfirmation,
+      ).toHaveBeenCalledWith({
+        providerId: 'test-provider',
+      });
     });
   });
 
@@ -517,6 +583,7 @@ describe('usePredictDeposit', () => {
             action: 'deposit_initialization',
             method: 'deposit',
             operation: 'financial_operations',
+            providerId: 'polymarket',
           },
         },
       });
@@ -548,6 +615,7 @@ describe('usePredictDeposit', () => {
             action: 'deposit_initialization',
             method: 'deposit',
             operation: 'financial_operations',
+            providerId: 'polymarket',
           },
         },
       });
@@ -577,6 +645,7 @@ describe('usePredictDeposit', () => {
             action: 'deposit_navigation',
             method: 'deposit',
             operation: 'financial_operations',
+            providerId: 'polymarket',
           },
         },
       });
@@ -607,6 +676,7 @@ describe('usePredictDeposit', () => {
               action: 'deposit_navigation',
               method: 'deposit',
               operation: 'financial_operations',
+              providerId: 'polymarket',
             },
           },
         },
@@ -677,7 +747,7 @@ describe('usePredictDeposit', () => {
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockRejectedValue(new Error('Deposit failed'));
-      const { result } = setupUsePredictDepositTest({}, null);
+      const { result } = setupUsePredictDepositTest({}, {}, null);
 
       await result.current.deposit();
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -694,7 +764,7 @@ describe('usePredictDeposit', () => {
       mockNavigateToConfirmation.mockImplementationOnce(() => {
         throw new Error('Navigation failed');
       });
-      const { result } = setupUsePredictDepositTest({}, null);
+      const { result } = setupUsePredictDepositTest({}, {}, null);
 
       await result.current.deposit();
 
@@ -800,6 +870,7 @@ describe('usePredictDeposit', () => {
         Engine.context.PredictController.trackPredictOrderEvent,
       ).toHaveBeenCalledWith({
         status: 'initiated',
+        providerId: 'polymarket',
         amountUsd: 100,
         analyticsProperties: {
           entryPoint: 'homepage_balance',
@@ -824,14 +895,17 @@ describe('usePredictDeposit', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('tracks analytics event with market metadata', async () => {
+    it('tracks analytics event with custom providerId', async () => {
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockResolvedValue({
         success: true,
         response: { batchId: 'batch-123' },
       });
-      const { result } = setupUsePredictDepositTest();
+      const { result } = setupUsePredictDepositTest(
+        {},
+        { providerId: 'custom-provider' },
+      );
 
       await result.current.deposit({
         amountUsd: 50,
@@ -845,6 +919,7 @@ describe('usePredictDeposit', () => {
         Engine.context.PredictController.trackPredictOrderEvent,
       ).toHaveBeenCalledWith({
         status: 'initiated',
+        providerId: 'custom-provider',
         amountUsd: 50,
         analyticsProperties: {
           entryPoint: 'buy_preview',
@@ -873,6 +948,7 @@ describe('usePredictDeposit', () => {
         Engine.context.PredictController.trackPredictOrderEvent,
       ).toHaveBeenCalledWith({
         status: 'initiated',
+        providerId: 'polymarket',
         amountUsd: undefined,
         analyticsProperties: {
           entryPoint: 'homepage_balance',

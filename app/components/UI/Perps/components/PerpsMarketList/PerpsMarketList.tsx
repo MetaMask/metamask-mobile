@@ -12,7 +12,7 @@ import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import { PERPS_MARKET_LIST_CONSTANTS } from '../../constants/marketListConfig';
 import styleSheet from './PerpsMarketList.styles';
 import type { PerpsMarketListProps } from './PerpsMarketList.types';
-import { type PerpsMarketData } from '@metamask/perps-controller';
+import type { PerpsMarketData } from '../../controllers/types';
 
 /**
  * PerpsMarketList Component

@@ -1,17 +1,25 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Icon,
+  IconName,
+  IconSize,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField from '../../../../../component-library/components/Form/TextField';
+import TextField, {
+  TextFieldSize,
+} from '../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
-import SelectField from './SelectField';
 import DepositDateField from '../../../Ramp/Deposit/components/DepositDateField';
 import {
   resetOnboardingState,
@@ -37,6 +45,7 @@ import {
   Region,
   setOnValueChange,
 } from './RegionSelectorModal';
+import { TouchableOpacity } from 'react-native';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
@@ -309,6 +318,7 @@ const PersonalDetails = () => {
           autoCapitalize={'none'}
           onChangeText={setFirstName}
           numberOfLines={1}
+          size={TextFieldSize.Lg}
           autoComplete="one-time-code"
           value={firstName}
           keyboardType="default"
@@ -329,6 +339,7 @@ const PersonalDetails = () => {
           autoCapitalize={'none'}
           onChangeText={setLastName}
           numberOfLines={1}
+          size={TextFieldSize.Lg}
           autoComplete="one-time-code"
           value={lastName}
           keyboardType="default"
@@ -353,11 +364,19 @@ const PersonalDetails = () => {
         <Label>
           {strings('card.card_onboarding.personal_details.nationality_label')}
         </Label>
-        <SelectField
-          value={nationalityName || nationalityKey}
-          onPress={handleNationalitySelect}
-          testID="personal-details-nationality-select"
-        />
+        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
+          <TouchableOpacity
+            onPress={handleNationalitySelect}
+            testID="personal-details-nationality-select"
+          >
+            <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
+              <Text variant={TextVariant.BodyMd}>
+                {nationalityName || nationalityKey}
+              </Text>
+              <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+            </Box>
+          </TouchableOpacity>
+        </Box>
       </Box>
 
       {/* SSN */}
@@ -371,6 +390,7 @@ const PersonalDetails = () => {
             onChangeText={handleSSNChange}
             onBlur={handleSSNBlur}
             numberOfLines={1}
+            size={TextFieldSize.Lg}
             value={SSN}
             keyboardType="number-pad"
             autoComplete="one-time-code"

@@ -1,9 +1,9 @@
-import { SmokeNetworkAbstractions } from '../../../tags';
-import WalletView from '../../../page-objects/wallet/WalletView';
+import { SmokeNetworkAbstractions } from '../../../../e2e/tags';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
 import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { loginToApp } from '../../../flows/wallet.flow';
+import { loginToApp } from '../../../../e2e/viewHelper';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { defiPositionsWithData } from '../../../api-mocking/mock-responses/defi-api-mocks';

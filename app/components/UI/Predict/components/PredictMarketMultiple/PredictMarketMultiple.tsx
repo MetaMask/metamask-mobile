@@ -75,6 +75,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   const tw = useTailwind();
 
   const { executeGuardedAction } = usePredictActionGuard({
+    providerId: market.providerId,
     navigation,
   });
 

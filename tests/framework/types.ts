@@ -91,20 +91,10 @@ export interface LongPressOptions extends GestureOptions {
   duration?: number;
 }
 
-/**
- * The options for the scroll gesture.
- * @param {string} direction - The direction to scroll.
- * @param {number} scrollAmount - The amount to scroll.
- * @param {number} delay - The delay before the scroll.
- * @param {number} startPositionX - The starting position on the X axis.
- * @param {number} startPositionY - The starting position on the Y axis.
- */
 export interface ScrollOptions extends GestureOptions {
   direction?: 'up' | 'down' | 'left' | 'right';
   scrollAmount?: number;
   delay?: number;
-  startPositionX?: number;
-  startPositionY?: number;
 }
 
 // Assertions
@@ -132,10 +122,6 @@ export interface RampsRegion {
   emoji: string;
   id: string;
   name: string;
-  countryName: string;
-  countryIsoCode: string;
-  stateName?: string;
-  stateIsoCode?: string;
   support: { buy: boolean; sell: boolean; recurringBuy: boolean };
   unsupported: boolean;
   recommended: boolean;
@@ -169,12 +155,13 @@ export enum LocalNodeType {
   bitcoin = 'bitcoin',
 }
 
-export enum E2ECommandTypes {
+export enum PerpsModifiersCommandTypes {
   pushPrice = 'push-price',
   forceLiquidation = 'force-liquidation',
   mockDeposit = 'mock-deposit',
-  exportState = 'export-state',
 }
+
+export type CommandType = PerpsModifiersCommandTypes;
 
 export enum GanacheHardfork {
   london = 'london',

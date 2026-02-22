@@ -2,11 +2,11 @@
  * E2E tests for wallet_sessionChanged API
  * Tests that sessionChanged event is fired when networks are added to the session
  */
-import { SmokeMultiChainAPI } from '../../tags';
+import { SmokeMultiChainAPI } from '../../../e2e/tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import MultichainTestDApp from '../../page-objects/Browser/MultichainTestDApp';
-import MultichainUtilities from '../../helpers/multichain/MultichainUtilities';
+import MultichainTestDApp from '../../../e2e/pages/Browser/MultichainTestDApp';
+import MultichainUtilities from '../../../e2e/utils/MultichainUtilities';
 import Assertions from '../../framework/Assertions';
 import { DappVariants } from '../../framework/Constants';
 

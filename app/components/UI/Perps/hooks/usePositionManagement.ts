@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import type { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { type Position } from '@metamask/perps-controller';
+import type { Position } from '../controllers/types';
 
 /**
  * Options for position management hook

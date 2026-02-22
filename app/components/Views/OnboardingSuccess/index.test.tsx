@@ -8,7 +8,7 @@ import OnboardingSuccess, {
 } from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
@@ -101,9 +101,24 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
 }));
 
+const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
+
+jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: () =>
+    mockIsMultichainAccountsState2Enabled(),
+}));
+
+const mockImportAdditionalAccounts = jest.fn();
+
+jest.mock(
+  '../../../util/importAdditionalAccounts',
+  () => () => mockImportAdditionalAccounts(),
+);
+
 describe('OnboardingSuccessComponent', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockImportAdditionalAccounts.mockReset();
+    mockIsMultichainAccountsState2Enabled.mockReset();
   });
 
   it('renders matching snapshot when successFlow is BACKED_UP_SRP', () => {
@@ -136,7 +151,7 @@ describe('OnboardingSuccessComponent', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('calls discoverAccounts when onDone is called', () => {
+  it('imports additional accounts when onDone is called', async () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
@@ -146,6 +161,24 @@ describe('OnboardingSuccessComponent', () => {
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     button.props.onPress();
 
+    await waitFor(() => {
+      expect(mockImportAdditionalAccounts).toHaveBeenCalled();
+    });
+  });
+
+  it('(state 2) - calls discoverAccounts but does not import additional accounts when onDone is called', () => {
+    mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+    const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
+    button.props.onPress();
+
+    expect(mockImportAdditionalAccounts).not.toHaveBeenCalled();
     expect(mockDiscoverAccounts).toHaveBeenCalled();
   });
 
@@ -249,10 +282,11 @@ describe('OnboardingSuccessComponent', () => {
 });
 
 describe('OnboardingSuccess', () => {
+  mockImportAdditionalAccounts.mockResolvedValue(true);
+
   beforeEach(() => {
     // Reset mocks before each test
     (useSelector as jest.Mock).mockReset();
-    mockDiscoverAccounts.mockReset();
   });
 
   describe('route params successFlow is IMPORT_FROM_SEED_PHRASE', () => {
@@ -292,7 +326,7 @@ describe('OnboardingSuccess', () => {
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
       const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
       fireEvent.press(button);
-      expect(mockDiscoverAccounts).toHaveBeenCalled();
+      expect(mockImportAdditionalAccounts).toHaveBeenCalled();
 
       expect(mockNavigationDispatch).toHaveBeenCalledWith(
         ResetNavigationToHome,

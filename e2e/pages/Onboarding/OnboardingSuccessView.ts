@@ -1,0 +1,21 @@
+import { OnboardingSuccessSelectorIDs } from '../../../app/components/Views/OnboardingSuccess/OnboardingSuccess.testIds';
+import Matchers from '../../../tests/framework/Matchers';
+import Gestures from '../../../tests/framework/Gestures';
+
+class OnboardingSuccessView {
+  get container(): DetoxElement {
+    return Matchers.getElementByID(OnboardingSuccessSelectorIDs.CONTAINER_ID);
+  }
+
+  get doneButton(): DetoxElement {
+    return Matchers.getElementByID(OnboardingSuccessSelectorIDs.DONE_BUTTON);
+  }
+
+  async tapDone(): Promise<void> {
+    await Gestures.waitAndTap(this.doneButton, {
+      elemDescription: 'Onboarding Success Done Button',
+    });
+  }
+}
+
+export default new OnboardingSuccessView();

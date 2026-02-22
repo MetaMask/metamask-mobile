@@ -53,8 +53,8 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-jest.mock('@metamask/perps-controller', () => ({
-  getPerpsDisplaySymbol: jest.fn((symbol: string) => symbol),
+jest.mock('../utils/marketUtils', () => ({
+  getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
 }));
 
 describe('usePerpsMarginAdjustment', () => {

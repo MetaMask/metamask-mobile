@@ -44,6 +44,7 @@ export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
 export const ANALYTICS_ID = `${prefix}AnalyticsId`;
 
+export const WALLETCONNECT_SESSIONS = `${prefix}walletconnectSessions`;
 export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;
 
 export const PUSH_NOTIFICATIONS_PROMPT_COUNT = `${prefix}pushNotificationsPromptCount`;

@@ -322,10 +322,6 @@ exports[`Browser - Rendering and Initialization renders Browser component 1`] = 
                       testID="browser-screen"
                     >
                       BrowserTab
-                      BrowserTab
-                      BrowserTab
-                      BrowserTab
-                      BrowserTab
                     </View>
                   </View>
                 </View>

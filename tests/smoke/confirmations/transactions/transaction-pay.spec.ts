@@ -1,7 +1,7 @@
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { SmokeConfirmations } from '../../../tags';
-import { loginToApp } from '../../../flows/wallet.flow';
+import { SmokeConfirmations } from '../../../../e2e/tags';
+import { loginToApp } from '../../../../e2e/viewHelper';
 import {
   remoteFeatureEip7702,
   remoteFeatureFlagPredictEnabled,
@@ -15,13 +15,13 @@ import {
   mockRelayStatus,
 } from '../../../api-mocking/mock-responses/transaction-pay';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation';
-import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
+import TransactionPayConfirmation from '../../../../e2e/pages/Confirmation/TransactionPayConfirmation';
+import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
 import { Gestures } from '../../../framework';
-import TransactionDetailsModal from '../../../page-objects/Transactions/TransactionDetailsModal';
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
-import ActivitiesView from '../../../page-objects/Transactions/ActivitiesView';
+import TransactionDetailsModal from '../../../../e2e/pages/Transactions/TransactionDetailsModal';
+import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../../../e2e/pages/wallet/WalletActionsBottomSheet';
+import ActivitiesView from '../../../../e2e/pages/Transactions/ActivitiesView';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 
 describe(SmokeConfirmations('Transaction Pay'), () => {

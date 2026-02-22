@@ -13,10 +13,10 @@ const { withAnalyticsAwareness } = jest.requireActual(
 );
 
 describe('withAnalyticsAwareness', () => {
-  it('injects analytics prop from useAnalytics', () => {
+  it('injects metrics prop from useAnalytics', () => {
     const renderSpy = jest.fn();
-    const MockComponent = ({ analytics }: IWithAnalyticsAwarenessProps) => {
-      renderSpy(analytics);
+    const MockComponent = ({ metrics }: IWithAnalyticsAwarenessProps) => {
+      renderSpy(metrics);
       return <View />;
     };
 
@@ -24,14 +24,14 @@ describe('withAnalyticsAwareness', () => {
 
     render(<MockComponentWithAnalytics />);
 
-    // Verify the analytics prop was passed and has the expected structure
+    // Verify the metrics prop was passed and has the expected structure
     expect(renderSpy).toHaveBeenCalledTimes(1);
-    const analyticsProp = renderSpy.mock.calls[0][0];
-    expect(analyticsProp).toBeDefined();
-    expect(analyticsProp).toHaveProperty('trackEvent');
-    expect(analyticsProp).toHaveProperty('createEventBuilder');
-    expect(analyticsProp).toHaveProperty('isEnabled');
-    expect(analyticsProp).toHaveProperty('enable');
-    expect(analyticsProp).toHaveProperty('addTraitsToUser');
+    const metricsProp = renderSpy.mock.calls[0][0];
+    expect(metricsProp).toBeDefined();
+    expect(metricsProp).toHaveProperty('trackEvent');
+    expect(metricsProp).toHaveProperty('createEventBuilder');
+    expect(metricsProp).toHaveProperty('isEnabled');
+    expect(metricsProp).toHaveProperty('enable');
+    expect(metricsProp).toHaveProperty('addTraitsToUser');
   });
 });

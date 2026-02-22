@@ -243,24 +243,5 @@ describe('accountUtils', () => {
         metadata: { name: 'EVM EOA' },
       });
     });
-
-    it('returns null when AccountTreeController is unavailable', () => {
-      const originalContext = (
-        Engine as unknown as { context: typeof mockEngineContext }
-      ).context;
-
-      (
-        Engine as unknown as {
-          context: Partial<typeof mockEngineContext>;
-        }
-      ).context = {};
-
-      const result = getEvmAccountFromSelectedAccountGroup();
-
-      expect(result).toBeNull();
-
-      (Engine as unknown as { context: typeof mockEngineContext }).context =
-        originalContext;
-    });
   });
 });

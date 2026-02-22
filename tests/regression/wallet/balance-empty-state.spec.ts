@@ -1,14 +1,14 @@
-import { RegressionWalletPlatform } from '../../tags';
+import { RegressionWalletPlatform } from '../../../e2e/tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../flows/wallet.flow';
-import WalletView from '../../page-objects/wallet/WalletView';
-import NetworkListModal from '../../page-objects/Network/NetworkListModal';
-import NetworkEducationModal from '../../page-objects/Network/NetworkEducationModal';
-import NetworkManager from '../../page-objects/wallet/NetworkManager';
+import { loginToApp } from '../../../e2e/viewHelper';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import NetworkListModal from '../../../e2e/pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../../e2e/pages/Network/NetworkEducationModal';
+import NetworkManager from '../../../e2e/pages/wallet/NetworkManager';
 import Assertions from '../../framework/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import BuyGetStartedView from '../../page-objects/Ramps/BuyGetStartedView';
+import BuyGetStartedView from '../../../e2e/pages/Ramps/BuyGetStartedView';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 
 describe(RegressionWalletPlatform('Balance Empty State'), (): void => {

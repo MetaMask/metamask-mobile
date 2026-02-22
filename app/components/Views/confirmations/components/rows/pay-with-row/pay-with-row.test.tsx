@@ -2,8 +2,6 @@ import React from 'react';
 import { PayWithRow } from './pay-with-row';
 import { TokenIconProps } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -19,8 +17,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
-jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
-jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../../../../util/address');
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents');
 
@@ -49,10 +45,6 @@ describe('PayWithRow', () => {
   const useConfirmationMetricEventsMock = jest.mocked(
     useConfirmationMetricEvents,
   );
-  const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
-  const useTransactionPayRequiredTokensMock = jest.mocked(
-    useTransactionPayRequiredTokens,
-  );
   const mockSetConfirmationMetric = jest.fn();
 
   beforeEach(() => {
@@ -61,13 +53,6 @@ describe('PayWithRow', () => {
     useConfirmationMetricEventsMock.mockReturnValue({
       setConfirmationMetric: mockSetConfirmationMetric,
     } as never);
-
-    useTransactionPayWithdrawMock.mockReturnValue({
-      isWithdraw: false,
-      canSelectWithdrawToken: false,
-    });
-
-    useTransactionPayRequiredTokensMock.mockReturnValue(undefined as never);
 
     jest.mocked(useTransactionPayToken).mockReturnValue({
       payToken: {
@@ -143,57 +128,6 @@ describe('PayWithRow', () => {
           mm_pay_token_list_opened: true,
         },
       });
-    });
-  });
-
-  describe('withdraw mode', () => {
-    beforeEach(() => {
-      useTransactionPayWithdrawMock.mockReturnValue({
-        isWithdraw: true,
-        canSelectWithdrawToken: true,
-      });
-    });
-
-    it('shows "Receive" label instead of "Pay with"', () => {
-      const { getByText } = render();
-      expect(getByText('Receive test')).toBeDefined();
-    });
-
-    it('hides balance in withdraw mode', () => {
-      const { queryByTestId } = render();
-      expect(queryByTestId('pay-with-balance')).toBeNull();
-    });
-
-    it('falls back to default required token when no payToken is selected', () => {
-      jest.mocked(useTransactionPayToken).mockReturnValue({
-        payToken: undefined,
-        setPayToken: jest.fn(),
-      });
-
-      const requiredAddress = '0xRequiredTokenAddress';
-      const requiredChainId = '0x89';
-      useTransactionPayRequiredTokensMock.mockReturnValue([
-        {
-          address: requiredAddress,
-          chainId: requiredChainId,
-          symbol: 'USDC.e',
-        },
-      ] as never);
-
-      const { getByText } = render();
-      expect(getByText(`${requiredAddress} ${requiredChainId}`)).toBeDefined();
-    });
-
-    it('shows skeleton when no payToken and no required token in withdraw mode', () => {
-      jest.mocked(useTransactionPayToken).mockReturnValue({
-        payToken: undefined,
-        setPayToken: jest.fn(),
-      });
-
-      useTransactionPayRequiredTokensMock.mockReturnValue(undefined as never);
-
-      const { getByTestId } = render();
-      expect(getByTestId('pay-with-row-skeleton')).toBeDefined();
     });
   });
 });

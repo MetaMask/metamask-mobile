@@ -1,0 +1,22 @@
+diff --git a/dist/constants.cjs b/dist/constants.cjs
+index 394aca551c114318741b7b54b04ea357de636f88..b35ea08439b898cfba2ca4d9a5005856d7ac77b3 100644
+--- a/dist/constants.cjs
++++ b/dist/constants.cjs
+@@ -14,5 +14,6 @@ exports.POPULAR_NETWORKS = [
+     '0x144',
+     '0x2a15c308d',
+     '0x3e7', // HyperEVM (999)
++    '0x8f', // Monad
+ ];
+ //# sourceMappingURL=constants.cjs.map
+diff --git a/dist/constants.mjs b/dist/constants.mjs
+index abc923ddd7f6611ccb5353ded80fcf87e1ad969e..68a6f478a5d804ec15c5bfa4897d0aa52245246c 100644
+--- a/dist/constants.mjs
++++ b/dist/constants.mjs
+@@ -11,5 +11,6 @@ export const POPULAR_NETWORKS = [
+     '0x144',
+     '0x2a15c308d',
+     '0x3e7', // HyperEVM (999)
++    '0x8f', // Monad
+ ];
+ //# sourceMappingURL=constants.mjs.map

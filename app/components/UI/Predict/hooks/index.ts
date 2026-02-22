@@ -15,14 +15,3 @@ export {
   type UseLivePositionsOptions,
   type UseLivePositionsResult,
 } from './useLivePositions';
-
-export {
-  usePredictTabs,
-  type FeedTab,
-  type UsePredictTabsResult,
-} from './usePredictTabs';
-
-export {
-  usePredictSearch,
-  type UsePredictSearchResult,
-} from './usePredictSearch';

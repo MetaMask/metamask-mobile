@@ -1,14 +1,13 @@
-import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../flows/browser.flow';
+import { FlaskBuildTests } from '../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
-import TestSnaps from '../../page-objects/Browser/TestSnaps';
-import SettingsView from '../../page-objects/Settings/SettingsView';
-import SnapSettingsView from '../../page-objects/Settings/SnapSettingsView';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import SettingsView from '../../../e2e/pages/Settings/SettingsView';
+import SnapSettingsView from '../../../e2e/pages/Settings/SnapSettingsView';
 import { Assertions } from '../../framework';
-import BrowserView from '../../page-objects/Browser/BrowserView';
+import BrowserView from '../../../e2e/pages/Browser/BrowserView';
 
 jest.setTimeout(150_000);
 

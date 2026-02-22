@@ -30,9 +30,11 @@ import { selectPerpsEligibility } from '../../selectors/perpsController';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-  type PerpsMarketData,
-} from '@metamask/perps-controller';
-import type { PerpsNavigationParamList } from '../../types/navigation';
+} from '../../constants/eventNames';
+import type {
+  PerpsNavigationParamList,
+  PerpsMarketData,
+} from '../../controllers/types';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,

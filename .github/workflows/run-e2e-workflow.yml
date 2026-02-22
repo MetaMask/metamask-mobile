@@ -263,7 +263,7 @@ jobs:
           cd ${{ github.workspace }}
 
           # Run merge script to combine previous results with current
-          node .github/scripts/e2e-merge-test-results.mjs ./previous-test-results ./tests/reports
+          node .github/scripts/e2e-merge-test-results.mjs ./previous-test-results ./e2e/reports
 
           # Clean up temporary node_modules
           rm -rf node_modules temp-deps
@@ -273,7 +273,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-e2e-${{ inputs.test-suite-name }}-junit-results
-          path: tests/reports/
+          path: e2e/reports/
           retention-days: 7
 
       - name: Upload Screenshots
@@ -281,5 +281,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-e2e-${{ inputs.test-suite-name }}-screenshots
-          path: tests/artifacts/
+          path: e2e/artifacts/
           retention-days: 7

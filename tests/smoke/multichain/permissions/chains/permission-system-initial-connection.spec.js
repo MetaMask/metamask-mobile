@@ -1,15 +1,17 @@
-import { SmokeNetworkExpansion } from '../../../../tags';
-import Browser from '../../../../page-objects/Browser/BrowserView';
-import TestDApp from '../../../../page-objects/Browser/TestDApp';
-import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAccountsModal';
+import { SmokeNetworkExpansion } from '../../../../../e2e/tags';
+import Browser from '../../../../../e2e/pages/Browser/BrowserView';
+import TestDApp from '../../../../../e2e/pages/Browser/TestDApp';
+import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../../../flows/browser.flow';
+import {
+  loginToApp,
+  navigateToBrowserView,
+} from '../../../../../e2e/viewHelper';
 import Assertions from '../../../../framework/Assertions';
-import ConnectBottomSheet from '../../../../page-objects/Browser/ConnectBottomSheet';
-import NetworkNonPemittedBottomSheet from '../../../../page-objects/Network/NetworkNonPemittedBottomSheet';
-import NetworkConnectMultiSelector from '../../../../page-objects/Browser/NetworkConnectMultiSelector';
+import ConnectBottomSheet from '../../../../../e2e/pages/Browser/ConnectBottomSheet';
+import NetworkNonPemittedBottomSheet from '../../../../../e2e/pages/Network/NetworkNonPemittedBottomSheet';
+import NetworkConnectMultiSelector from '../../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
 import { DappVariants } from '../../../../framework/Constants';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../api-mocking/mock-responses/feature-flags-mocks';

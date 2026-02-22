@@ -2,93 +2,37 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { NetworkPills } from './NetworkPills';
 import { CaipChainId } from '@metamask/utils';
-import { useSelector, useDispatch } from 'react-redux';
-import {
-  selectAllowedChainRanking,
-  selectVisiblePillChainIds,
-} from '../../../../../core/redux/slices/bridge';
-
-const mockDispatch = jest.fn();
+import { useSelector } from 'react-redux';
+import { MOCK_CHAIN_IDS } from '../../testUtils/fixtures';
+import { TokenSelectorType } from '../../types';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-  useDispatch: jest.fn(),
 }));
 
 const mockUseSelector = useSelector as jest.Mock;
 
 // Mock chain ranking array with names from feature flags
 const mockChainRanking = [
-  { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
-  { chainId: 'eip155:56' as CaipChainId, name: 'BNB Chain' },
-  {
-    chainId: 'bip122:000000000019d6689c085ae165831e93' as CaipChainId,
-    name: 'Bitcoin',
-  },
-  {
-    chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId,
-    name: 'Solana',
-  },
-  { chainId: 'eip155:137' as CaipChainId, name: 'Polygon' },
-  { chainId: 'eip155:10' as CaipChainId, name: 'Optimism' },
-  { chainId: 'eip155:42161' as CaipChainId, name: 'Arbitrum' },
+  { chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' },
+  { chainId: MOCK_CHAIN_IDS.polygon, name: 'Polygon' },
+  { chainId: MOCK_CHAIN_IDS.optimism, name: 'Optimism' },
 ];
 
-// Small chain ranking with fewer than MAX_VISIBLE_PILLS networks
-const mockSmallChainRanking = [
-  { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
-  { chainId: 'eip155:137' as CaipChainId, name: 'Polygon' },
-];
-
-jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  selectAllowedChainRanking: jest.fn(),
-  selectVisiblePillChainIds: jest.fn(),
-  setVisiblePillChainIds: jest.fn((ids) => ({
-    type: 'bridge/setVisiblePillChainIds',
-    payload: ids,
-  })),
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => (key === 'bridge.all' ? 'All' : key),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
-jest.mock('../../../../../util/networks', () => ({
-  getNetworkImageSource: jest.fn(() => ({ uri: 'mock-network-icon' })),
-}));
-
 jest.mock('@metamask/design-system-react-native', () => {
   const { createElement } = jest.requireActual('react');
-  const { Text, View } = jest.requireActual('react-native');
+  const { Text } = jest.requireActual('react-native');
   return {
-    AvatarBaseShape: { Circle: 'circle', Square: 'square' },
-    AvatarNetwork: ({
-      name,
-      testID,
-    }: {
-      name?: string;
-      testID?: string;
-      src?: unknown;
-      size?: string;
-      shape?: string;
-    }) => createElement(View, { testID: testID ?? `avatar-network-${name}` }),
-    AvatarNetworkSize: { Xs: '16', Sm: '24', Md: '32' },
-    Box: ({
-      children,
-      ...props
-    }: {
-      children: React.ReactNode;
-      [key: string]: unknown;
-    }) => createElement(View, props, children),
-    BoxAlignItems: { Center: 'center' },
-    BoxFlexDirection: { Row: 'row' },
-    FontWeight: { Medium: '500' },
     Text: ({ children }: { children: React.ReactNode }) =>
       createElement(Text, null, children),
-    TextColor: {
-      PrimaryInverse: 'text-primary-inverse',
-      TextDefault: 'text-default',
-    },
     TextVariant: { BodySm: 'BodySm', BodyMd: 'BodyMd' },
   };
 });
@@ -100,118 +44,42 @@ jest.mock('react-native-gesture-handler', () => {
 
 describe('NetworkPills', () => {
   const mockOnChainSelect = jest.fn();
-  const mockOnMorePress = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectAllowedChainRanking) {
-        return mockChainRanking;
-      }
-      if (selector === selectVisiblePillChainIds) {
-        return undefined; // default: use first N from chainRanking
-      }
-      return undefined;
-    });
+    mockUseSelector.mockReturnValue(mockChainRanking);
   });
 
   describe('rendering', () => {
-    it('renders All pill and first MAX_VISIBLE_PILLS chain pills', () => {
-      const { getByText, queryByText } = render(
-        <NetworkPills
-          selectedChainId={undefined}
-          onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
-        />,
-      );
-
-      expect(getByText('All')).toBeTruthy();
-      // First 4 from chainRanking: Ethereum, BNB Chain, Bitcoin, Solana
-      expect(getByText('Ethereum')).toBeTruthy();
-      expect(getByText('BNB Chain')).toBeTruthy();
-      expect(getByText('Bitcoin')).toBeTruthy();
-      expect(getByText('Solana')).toBeTruthy();
-      // Remaining chains should not be rendered as pills
-      expect(queryByText('Polygon')).toBeNull();
-      expect(queryByText('Optimism')).toBeNull();
-      expect(queryByText('Arbitrum')).toBeNull();
-    });
-
-    it('renders network icons for each visible chain pill', () => {
-      const { getByTestId, queryByTestId } = render(
-        <NetworkPills
-          selectedChainId={undefined}
-          onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
-        />,
-      );
-
-      expect(getByTestId('avatar-network-Ethereum')).toBeTruthy();
-      expect(getByTestId('avatar-network-BNB Chain')).toBeTruthy();
-      expect(getByTestId('avatar-network-Bitcoin')).toBeTruthy();
-      expect(getByTestId('avatar-network-Solana')).toBeTruthy();
-      expect(queryByTestId('avatar-network-Polygon')).toBeNull();
-    });
-
-    it('renders "+X more" pill with correct count', () => {
+    it('renders All pill and chain pills in source mode', () => {
       const { getByText } = render(
         <NetworkPills
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
+          type={TokenSelectorType.Source}
         />,
       );
 
-      // 7 total - 4 visible = 3 remaining
-      expect(getByText('+3 more')).toBeTruthy();
-    });
-
-    it('does not render "+X more" when all networks are visible', () => {
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectVisiblePillChainIds) return undefined;
-        return mockSmallChainRanking;
-      });
-
-      const { queryByTestId } = render(
-        <NetworkPills
-          selectedChainId={undefined}
-          onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
-        />,
-      );
-
-      expect(queryByTestId('network-pills-more-button')).toBeNull();
-    });
-
-    it('shows first MAX_VISIBLE_PILLS from any chainRanking order', () => {
-      const customRanking = [
-        { chainId: 'eip155:137' as CaipChainId, name: 'Polygon' },
-        { chainId: 'eip155:10' as CaipChainId, name: 'Optimism' },
-        { chainId: 'eip155:42161' as CaipChainId, name: 'Arbitrum' },
-        { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
-        { chainId: 'eip155:56' as CaipChainId, name: 'BNB Chain' },
-      ];
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectVisiblePillChainIds) return undefined;
-        return customRanking;
-      });
-
-      const { getByText, queryByText } = render(
-        <NetworkPills
-          selectedChainId={undefined}
-          onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
-        />,
-      );
-
-      // First 4 from the custom ranking
+      expect(getByText('All')).toBeTruthy();
+      expect(getByText('Ethereum')).toBeTruthy();
       expect(getByText('Polygon')).toBeTruthy();
       expect(getByText('Optimism')).toBeTruthy();
-      expect(getByText('Arbitrum')).toBeTruthy();
+    });
+
+    it('renders pills for each chain in chainRanking in dest mode', () => {
+      const { getByText } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          type={TokenSelectorType.Dest}
+        />,
+      );
+
+      // Should render 3 chain pills + All pill
+      expect(getByText('All')).toBeTruthy();
       expect(getByText('Ethereum')).toBeTruthy();
-      // 5th entry should not be visible
-      expect(queryByText('BNB Chain')).toBeNull();
+      expect(getByText('Polygon')).toBeTruthy();
+      expect(getByText('Optimism')).toBeTruthy();
     });
   });
 
@@ -219,9 +87,9 @@ describe('NetworkPills', () => {
     it('calls onChainSelect with undefined when All pill is pressed', () => {
       const { getByText } = render(
         <NetworkPills
-          selectedChainId={'eip155:1' as CaipChainId}
+          selectedChainId={MOCK_CHAIN_IDS.ethereum}
           onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
+          type={TokenSelectorType.Source}
         />,
       );
 
@@ -235,113 +103,30 @@ describe('NetworkPills', () => {
         <NetworkPills
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
+          type={TokenSelectorType.Source}
         />,
       );
 
       fireEvent.press(getByText('Ethereum'));
 
-      expect(mockOnChainSelect).toHaveBeenCalledWith('eip155:1');
-    });
-
-    it('calls onMorePress when "+X more" pill is pressed', () => {
-      const { getByText } = render(
-        <NetworkPills
-          selectedChainId={undefined}
-          onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
-        />,
-      );
-
-      fireEvent.press(getByText('+3 more'));
-
-      expect(mockOnMorePress).toHaveBeenCalled();
+      expect(mockOnChainSelect).toHaveBeenCalledWith(MOCK_CHAIN_IDS.ethereum);
     });
   });
 
   describe('selection state', () => {
-    it('highlights selected chain pill', () => {
+    it.each([
+      ['Polygon pill when selected', MOCK_CHAIN_IDS.polygon, 'Polygon'],
+      ['All pill when no chain selected', undefined, 'All'],
+    ])('highlights %s', (_, selectedChainId, expectedText) => {
       const { getByText } = render(
         <NetworkPills
-          selectedChainId={'eip155:56' as CaipChainId}
+          selectedChainId={selectedChainId as CaipChainId | undefined}
           onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
+          type={TokenSelectorType.Source}
         />,
       );
 
-      expect(getByText('BNB Chain')).toBeTruthy();
-    });
-
-    it('highlights All pill when no chain selected', () => {
-      const { getByText } = render(
-        <NetworkPills
-          selectedChainId={undefined}
-          onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
-        />,
-      );
-
-      expect(getByText('All')).toBeTruthy();
-    });
-  });
-
-  describe('visible pills update on selection', () => {
-    it('dispatches new visible list when non-visible chain is selected', () => {
-      const { rerender } = render(
-        <NetworkPills
-          selectedChainId={undefined}
-          onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
-        />,
-      );
-
-      // Select Polygon (non-visible chain)
-      rerender(
-        <NetworkPills
-          selectedChainId={'eip155:137' as CaipChainId}
-          onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
-        />,
-      );
-
-      // Should dispatch with Polygon at front, Solana popped
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: 'bridge/setVisiblePillChainIds',
-        payload: [
-          'eip155:137', // Polygon pushed to front
-          'eip155:1', // Ethereum
-          'eip155:56', // BNB Chain
-          'bip122:000000000019d6689c085ae165831e93', // Bitcoin
-        ],
-      });
-    });
-
-    it('does not dispatch when selecting an already visible chain', () => {
-      const { rerender } = render(
-        <NetworkPills
-          selectedChainId={undefined}
-          onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
-        />,
-      );
-
-      mockDispatch.mockClear();
-
-      // Select Ethereum (already visible)
-      rerender(
-        <NetworkPills
-          selectedChainId={'eip155:1' as CaipChainId}
-          onChainSelect={mockOnChainSelect}
-          onMorePress={mockOnMorePress}
-        />,
-      );
-
-      // Should not dispatch setVisiblePillChainIds
-      expect(mockDispatch).not.toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'bridge/setVisiblePillChainIds',
-        }),
-      );
+      expect(getByText(expectedText)).toBeTruthy();
     });
   });
 });

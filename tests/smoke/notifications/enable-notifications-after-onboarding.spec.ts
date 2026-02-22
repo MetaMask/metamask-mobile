@@ -1,9 +1,9 @@
-import NotificationDetailsView from '../../page-objects/Notifications/NotificationDetailsView';
-import NotificationMenuView from '../../page-objects/Notifications/NotificationMenuView';
-import WalletView from '../../page-objects/wallet/WalletView';
-import { SmokeNetworkAbstractions } from '../../tags';
+import NotificationDetailsView from '../../../e2e/pages/Notifications/NotificationDetailsView';
+import NotificationMenuView from '../../../e2e/pages/Notifications/NotificationMenuView';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import { SmokeNetworkAbstractions } from '../../../e2e/tags';
 import Assertions from '../../framework/Assertions';
-import { loginToApp } from '../../flows/wallet.flow';
+import { loginToApp } from '../../../e2e/viewHelper';
 import {
   getMockFeatureAnnouncementItemId,
   getMockWalletNotificationItemIds,

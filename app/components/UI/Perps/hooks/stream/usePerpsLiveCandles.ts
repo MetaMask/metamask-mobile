@@ -1,11 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
-import {
-  CandlePeriod,
-  TimeDuration,
-  PERPS_CONSTANTS,
-  type CandleData,
-} from '@metamask/perps-controller';
+import type { CandleData } from '../../types/perps-types';
+import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
@@ -127,7 +124,7 @@ export function usePerpsLiveCandles(
         },
         throttleMs,
         onError: (err: Error) => {
-          const errorInstance = ensureError(err, 'usePerpsLiveCandles.onError');
+          const errorInstance = ensureError(err);
 
           // Log to Sentry: async subscription initialization failure
           Logger.error(errorInstance, {
@@ -157,23 +154,20 @@ export function usePerpsLiveCandles(
       const errorInstance = err instanceof Error ? err : new Error(String(err));
 
       // Log to Sentry: subscription setup failure prevents live updates
-      Logger.error(
-        ensureError(errorInstance, 'usePerpsLiveCandles.subscribe'),
-        {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            component: 'usePerpsLiveCandles',
-          },
-          context: {
-            name: 'candle_subscription',
-            data: {
-              operation: 'subscribe',
-              symbol,
-              interval,
-            },
+      Logger.error(ensureError(errorInstance), {
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'usePerpsLiveCandles',
+        },
+        context: {
+          name: 'candle_subscription',
+          data: {
+            operation: 'subscribe',
+            symbol,
+            interval,
           },
         },
-      );
+      });
 
       setError(errorInstance);
       setIsLoading(false);

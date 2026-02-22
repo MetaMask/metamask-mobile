@@ -35,12 +35,12 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import { useSelector } from 'react-redux';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
-  getPerpsDisplaySymbol,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+} from '../../constants/eventNames';
 
 /**
  * PerpsOpenOrderCard Component

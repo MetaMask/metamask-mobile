@@ -12,8 +12,7 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { useTheme } from '../../../../util/theme';
 import {
   ClearCookiesSection,
@@ -61,7 +60,6 @@ import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
-import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -76,7 +74,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
-  const { trackEvent, isEnabled, createEventBuilder } = useAnalytics();
+  const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -91,7 +89,6 @@ const Settings: React.FC = () => {
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
-  const isAccountMenuEnabled = useAccountMenuEnabled();
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
@@ -433,7 +430,7 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.privacy_browser_subheading')}
         </Text>
-        {!isAccountMenuEnabled && renderSDKSettings()}
+        {renderSDKSettings()}
         <ClearPrivacy />
         {renderClearBrowserHistorySection()}
         <ClearCookiesSection />

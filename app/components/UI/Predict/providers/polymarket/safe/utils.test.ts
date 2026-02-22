@@ -1,10 +1,6 @@
 import { Interface } from 'ethers/lib/utils';
 import Engine from '../../../../../../core/Engine';
-import {
-  MATIC_CONTRACTS,
-  POLYGON_MAINNET_CHAIN_ID,
-  POLYMARKET_PROVIDER_ID,
-} from '../constants';
+import { MATIC_CONTRACTS, POLYGON_MAINNET_CHAIN_ID } from '../constants';
 import { SAFE_FACTORY_ADDRESS, SAFE_MULTISEND_ADDRESS } from './constants';
 import {
   computeProxyAddress,
@@ -698,7 +694,7 @@ describe('safe utils', () => {
   describe('createClaimSafeTransaction', () => {
     const mockPosition: PredictPosition = {
       id: 'position-1',
-      providerId: POLYMARKET_PROVIDER_ID,
+      providerId: 'polymarket',
       marketId: 'market-1',
       outcomeId: 'outcome-1',
       outcome: 'YES',
@@ -1033,7 +1029,7 @@ describe('safe utils', () => {
   describe('getClaimTransaction', () => {
     const mockPosition: PredictPosition = {
       id: 'position-1',
-      providerId: POLYMARKET_PROVIDER_ID,
+      providerId: 'polymarket',
       marketId: 'market-1',
       outcomeId: 'outcome-1',
       outcome: 'YES',

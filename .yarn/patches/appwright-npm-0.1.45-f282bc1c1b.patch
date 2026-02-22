@@ -1,5 +1,5 @@
 diff --git a/dist/config.js b/dist/config.js
-index a51913b3f9380fd5740b1d52cd1d3472e29233c3..6479c9b92ed17319f654e9323f689792e52fce06 100644
+index a51913b..6479c9b 100644
 --- a/dist/config.js
 +++ b/dist/config.js
 @@ -24,8 +24,8 @@ const defaultConfig = {
@@ -14,7 +14,7 @@ index a51913b3f9380fd5740b1d52cd1d3472e29233c3..6479c9b92ed17319f654e9323f689792
      use: {
          // TODO: Use this for actions
 diff --git a/dist/device/index.js b/dist/device/index.js
-index fda54b682837d06eb579596087826c862c35f33e..b61aceca45b8b3293dee14552c26f002b38a4e36 100644
+index fda54b6..b61acec 100644
 --- a/dist/device/index.js
 +++ b/dist/device/index.js
 @@ -237,7 +237,7 @@ let Device = (() => {
@@ -27,24 +27,19 @@ index fda54b682837d06eb579596087826c862c35f33e..b61aceca45b8b3293dee14552c26f002
          }
          /**
 diff --git a/dist/locator/index.js b/dist/locator/index.js
-index 03f00574615d647d1887440ee7ae10798934c250..0329b4f698cfffbc93141491a06a759fbd57db31 100644
+index 03f0057..40089ce 100644
 --- a/dist/locator/index.js
 +++ b/dist/locator/index.js
-@@ -69,9 +69,9 @@ let Locator = (() => {
-         selector;
-         findStrategy;
-         textToMatch;
--        constructor(webDriverClient, timeoutOpts, 
-+        constructor(webDriverClient, timeoutOpts,
-         // Used for find elements request that is sent to Appium server
--        selector, findStrategy, 
-+        selector, findStrategy,
-         // Used to filter elements received from Appium server
-         textToMatch) {
-             this.webDriverClient = webDriverClient;
-@@ -250,45 +250,26 @@ let Locator = (() => {
-          * @returns
-          */
+@@ -244,51 +244,33 @@ let Locator = (() => {
+                 ]);
+             }
+         }
+-        /**
+-         * Retrieves the element reference based on the `selector`.
+-         *
+-         * @returns
+-         */
++
          async getElement() {
 -            /**
 -             * Determine whether `path` is a regex or string, and find elements accordingly.
@@ -68,8 +63,10 @@ index 03f00574615d647d1887440ee7ae10798934c250..0329b4f698cfffbc93141491a06a759f
 -            // of finding the element is higher at higher depth
 +            const elements = await this.webDriverClient.findElements(this.findStrategy, this.selector);
              const reversedElements = elements.reverse();
++            console.log('Reversed elements length', reversedElements.length);
 +            // If no text matching is needed, just return the first (deepest) element
 +            if (!this.textToMatch) {
++                console.log('No text to match, returning first element');
 +                return reversedElements[0] || null;
 +            }
 +
@@ -85,6 +82,9 @@ index 03f00574615d647d1887440ee7ae10798934c250..0329b4f698cfffbc93141491a06a759f
 -                        elementText.includes(this.textToMatch)) {
 -                        return element;
 -                    }
++                console.log('Element text', elementText);
++                console.log('Text to match', this.textToMatch);
++                
 +                if (this.textToMatch instanceof RegExp &&
 +                    this.textToMatch.test(elementText)) {
 +                    return element;
@@ -101,30 +101,8 @@ index 03f00574615d647d1887440ee7ae10798934c250..0329b4f698cfffbc93141491a06a759f
              return null;
          }
      };
-diff --git a/dist/providers/appium.js b/dist/providers/appium.js
-index 2d8e8924124b882d44ab0aa11fede4d4094b7a65..56de1dae01ac07dd3ec441c12d633070827778d9 100644
---- a/dist/providers/appium.js
-+++ b/dist/providers/appium.js
-@@ -43,7 +43,7 @@ async function installDriver(driverName) {
- async function startAppiumServer(provider) {
-     let emulatorStartRequested = false;
-     return new Promise((resolve, reject) => {
--        const appiumProcess = (0, child_process_1.spawn)("npx", ["appium"], {
-+        const appiumProcess = (0, child_process_1.spawn)("npx", ["appium", "--allow-insecure=chromedriver_autodownload"], {
-             stdio: "pipe",
-         });
-         appiumProcess.stderr.on("data", async (data) => {
-@@ -207,7 +207,7 @@ async function getConnectedIOSDeviceUDID() {
-             return matches[1];
-         }
-         else {
--            throw new Error(`Please check your iPhone device connection. 
-+            throw new Error(`Please check your iPhone device connection.
- To check for connected devices run "xcrun xctrace list devices | grep iPhone | grep -v Simulator"`);
-         }
-     }
 diff --git a/dist/providers/browserstack/index.js b/dist/providers/browserstack/index.js
-index 638c5df686413ffe050ef7e7329b9e9446e98002..6599e6dd453de2cc38a4c299d3509e85db5540df 100644
+index 638c5df..f5b8ff4 100644
 --- a/dist/providers/browserstack/index.js
 +++ b/dist/providers/browserstack/index.js
 @@ -104,6 +104,7 @@ class BrowserStackDeviceProvider {
@@ -144,27 +122,22 @@ index 638c5df686413ffe050ef7e7329b9e9446e98002..6599e6dd453de2cc38a4c299d3509e85
 +            logger_1.logger.log('Video download disabled by environment variable DISABLE_VIDEO_DOWNLOAD');
 +            return null;
 +        }
-+
++        
          const sessionData = await getSessionDetails(sessionId);
          const sessionDetails = sessionData?.automation_session;
          const videoURL = sessionDetails?.video_url;
-@@ -241,8 +248,15 @@ class BrowserStackDeviceProvider {
+@@ -241,7 +248,10 @@ class BrowserStackDeviceProvider {
              capabilities: {
                  "bstack:options": {
                      debug: true,
-+                    local: typeof process.env.BROWSERSTACK_LOCAL === 'string' && process.env.BROWSERSTACK_LOCAL.toLowerCase() === 'true',
 +                    networkProfile : '4g-lte-advanced-good',
                      interactiveDebugging: true,
 +                    selfHeal: true,
 +                    appProfiling: true,
                      networkLogs: true,
-+                    networkLogsOptions:{
-+                        captureContent: true,
-+                    },
                      appiumVersion: "2.6.0",
                      enableCameraImageInjection: this.project.use.device?.enableCameraImageInjection,
-                     idleTimeout: 180,
-@@ -250,10 +264,10 @@ class BrowserStackDeviceProvider {
+@@ -250,10 +260,10 @@ class BrowserStackDeviceProvider {
                      osVersion: this.project.use.device.osVersion,
                      platformName: platformName,
                      deviceOrientation: this.project.use.device?.orientation,
@@ -172,14 +145,17 @@ index 638c5df686413ffe050ef7e7329b9e9446e98002..6599e6dd453de2cc38a4c299d3509e85
 +                    buildName: process.env.BROWSERSTACK_BUILD_NAME || `${projectName} ${platformName}`,
                      sessionName: `${projectName} ${platformName} test`,
                      buildIdentifier: process.env.GITHUB_ACTIONS === "true"
-                         ? `CI ${process.env.GITHUB_RUN_ID}`
+-                        ? `CI ${process.env.GITHUB_RUN_ID}`
++                        ? ""
                          : process.env.USER,
                  },
                  "appium:autoGrantPermissions": true,
-@@ -261,6 +275,25 @@ class BrowserStackDeviceProvider {
+@@ -261,6 +271,25 @@ class BrowserStackDeviceProvider {
                  "appium:autoAcceptAlerts": true,
                  "appium:fullReset": true,
                  "appium:settings[snapshotMaxDepth]": 62,
++                "appium:settings[autoGrantPermissions]": true,
++                "appium:settings[waitForIdleTimeout]": 0,
 +                "appium:settings[actionAcknowledgmentTimeout]": 3000,
 +                "appium:settings[ignoreUnimportantViews]": true,
 +                "appium:settings[waitForSelectorTimeout]": 1000,
@@ -197,61 +173,6 @@ index 638c5df686413ffe050ef7e7329b9e9446e98002..6599e6dd453de2cc38a4c299d3509e85
 +                'appium:waitForIdleTimeout': 0,           // Don't wait for idle
 +                'appium:disableWindowAnimation': true,    // Disable animations
 +                'appium:skipDeviceInitialization': true,  // Skip init (faster startup)
-+                "appium:includeSafariInWebviews": true,
-+                "appium:chromedriverAutodownload": true,
-             },
-         };
-     }
-diff --git a/dist/providers/emulator/index.js b/dist/providers/emulator/index.js
-index f3bc1502e7aa9d59b99a915adcbba5e13928e413..d7fc93da7e9eb60b64dde53918b77f701a6c68d3 100644
---- a/dist/providers/emulator/index.js
-+++ b/dist/providers/emulator/index.js
-@@ -24,14 +24,14 @@ class EmulatorProvider {
-             const androidHome = process.env.ANDROID_HOME;
-             const androidSimulatorConfigDocLink = "https://github.com/empirical-run/appwright/blob/main/docs/config.md#android-emulator";
-             if (!androidHome) {
--                throw new Error(`The ANDROID_HOME environment variable is not set. 
-+                throw new Error(`The ANDROID_HOME environment variable is not set.
- This variable is required to locate your Android SDK.
--Please set it to the correct path of your Android SDK installation. 
-+Please set it to the correct path of your Android SDK installation.
- Follow the steps mentioned in ${androidSimulatorConfigDocLink} to run test on Android emulator.`);
-             }
-             const javaHome = process.env.JAVA_HOME;
-             if (!javaHome) {
--                throw new Error(`The JAVA_HOME environment variable is not set.  
-+                throw new Error(`The JAVA_HOME environment variable is not set.
- Follow the steps mentioned in ${androidSimulatorConfigDocLink} to run test on Android emulator.`);
-             }
-             await (0, appium_1.isEmulatorInstalled)(this.project.use.platform);
-@@ -77,6 +77,8 @@ Follow the steps mentioned in ${androidSimulatorConfigDocLink} to run test on An
-                 "appium:deviceOrientation": this.project.use.device?.orientation,
-                 "appium:settings[snapshotMaxDepth]": 62,
-                 "appium:wdaLaunchTimeout": 300_000,
-+                "appium:includeSafariInWebviews": true,
-+                "appium:chromedriverAutodownload": true,
-             },
-         };
-     }
-diff --git a/dist/providers/local/index.js b/dist/providers/local/index.js
-index dc394b0696dd67d259a03856c5b49dcb5820d0ad..d920eed34ae4621cb6ad711a4d8dca8ba7d4a36d 100644
---- a/dist/providers/local/index.js
-+++ b/dist/providers/local/index.js
-@@ -59,7 +59,7 @@ class LocalDeviceProvider {
-             else {
-                 const activeAndroidDevices = await (0, appium_1.getActiveAndroidDevices)();
-                 if (activeAndroidDevices > 1) {
--                    logger_1.logger.warn(`Multiple active devices detected. Selecting one for the test. 
-+                    logger_1.logger.warn(`Multiple active devices detected. Selecting one for the test.
- To specify a device, use the udid property. Run "adb devices" to get the UDID for active devices.`);
-                 }
-             }
-@@ -79,6 +79,8 @@ To specify a device, use the udid property. Run "adb devices" to get the UDID fo
-                 "appium:fullReset": true,
-                 "appium:deviceOrientation": this.project.use.device?.orientation,
-                 "appium:settings[snapshotMaxDepth]": 62,
-+                "appium:includeSafariInWebviews": true,
-+                "appium:chromedriverAutodownload": true,
              },
          };
      }

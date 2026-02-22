@@ -1,5 +1,3 @@
-import { TimeOption } from '../TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
-
 /**
  * Formats a number as compact USD currency string
  * @param value - The number to format
@@ -37,23 +35,3 @@ export function formatMarketStats(marketCap: number, volume: number): string {
   const volStr = volume === 0 ? '-' : formatCompactUSD(volume);
   return `${capStr} cap • ${volStr} vol`;
 }
-
-/**
- * Maps TimeOption to the corresponding priceChangePct field key
- */
-export const getPriceChangeFieldKey = (
-  timeOption: TimeOption,
-): 'h24' | 'h6' | 'h1' | 'm5' => {
-  switch (timeOption) {
-    case TimeOption.TwentyFourHours:
-      return 'h24';
-    case TimeOption.SixHours:
-      return 'h6';
-    case TimeOption.OneHour:
-      return 'h1';
-    case TimeOption.FiveMinutes:
-      return 'm5';
-    default:
-      return 'h24';
-  }
-};

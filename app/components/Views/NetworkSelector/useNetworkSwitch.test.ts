@@ -3,7 +3,7 @@ import {
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../hooks/useMetrics';
 import Engine from '../../../core/Engine';
 
 // Mock the feature flags
@@ -23,8 +23,8 @@ jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
   useNetworkSelection: jest.fn(),
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
+jest.mock('../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
 }));
 
 // Mock Engine
@@ -80,9 +80,7 @@ const mockUseNetworksByNamespace =
 const mockUseNetworkSelection = useNetworkSelection as jest.MockedFunction<
   typeof useNetworkSelection
 >;
-const mockUseAnalytics = useAnalytics as jest.MockedFunction<
-  typeof useAnalytics
->;
+const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 
 const mockSelectNetwork = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -110,7 +108,7 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       customNetworksToReset: [],
     });
 
-    mockUseAnalytics.mockReturnValue({
+    mockUseMetrics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
       isEnabled: () => true,
@@ -121,7 +119,7 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       getDeleteRegulationCreationDate: jest.fn(),
       getDeleteRegulationId: jest.fn(),
       isDataRecorded: jest.fn(),
-      getAnalyticsId: jest.fn(),
+      getMetaMetricsId: jest.fn(),
     });
 
     // Mock the event builder
@@ -166,7 +164,7 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       // Verify that the hooks are properly initialized
       expect(mockUseNetworksByNamespace).toBeDefined();
       expect(mockUseNetworkSelection).toBeDefined();
-      expect(mockUseAnalytics).toBeDefined();
+      expect(mockUseMetrics).toBeDefined();
     });
 
     it('should have all necessary Engine controllers available', () => {
@@ -185,7 +183,7 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
 
     it('should have proper metrics setup', () => {
       // Verify that metrics are properly set up
-      expect(mockUseAnalytics).toBeDefined();
+      expect(mockUseMetrics).toBeDefined();
       expect(mockTrackEvent).toBeDefined();
       expect(mockCreateEventBuilder).toBeDefined();
     });

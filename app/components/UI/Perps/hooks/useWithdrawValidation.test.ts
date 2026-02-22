@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
-import { WITHDRAWAL_CONSTANTS } from '@metamask/perps-controller';
+import { WITHDRAWAL_CONSTANTS } from '../constants/perpsConfig';
 import { useWithdrawValidation } from './useWithdrawValidation';
 
 // Mock Engine

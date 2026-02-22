@@ -7,7 +7,6 @@ import { useCallback, useEffect, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import useEarnToasts from './useEarnToasts';
 import { MERKL_CLAIM_ORIGIN } from '../components/MerklRewards/constants';
-import { clearMerklRewardsCache } from '../components/MerklRewards/merkl-client';
 import Logger from '../../../../util/Logger';
 
 /**
@@ -100,8 +99,6 @@ export const useMerklClaimStatus = () => {
           // Show success toast (same as mUSD conversion success per AC)
           showToast(EarnToastOptions.bonusClaim.success);
           shownToastsRef.current.add(toastKey);
-          // Invalidate cached Merkl rewards so the next fetch reflects the new on-chain state
-          clearMerklRewardsCache();
           // Refresh token balances so user sees updated balance on home page
           if (chainId) {
             refreshTokenBalances(chainId);

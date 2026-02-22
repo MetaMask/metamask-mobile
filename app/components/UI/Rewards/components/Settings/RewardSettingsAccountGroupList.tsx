@@ -25,6 +25,7 @@ import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import RewardSettingsAccountGroup from './RewardSettingsAccountGroup';
+import RewardSettingsOptOut from './RewardSettingsOptOut';
 import ReferredByCodeSection from './ReferredByCodeSection';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import RewardsErrorBanner from '../RewardsErrorBanner';
@@ -349,6 +350,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
     () => (
       <Box>
         <ReferredByCodeSection />
+        <RewardSettingsOptOut />
       </Box>
     ),
     [],

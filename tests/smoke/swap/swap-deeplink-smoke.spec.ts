@@ -2,16 +2,16 @@
 /* eslint-disable no-console */
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNode, LocalNodeType } from '../../framework/types';
-import { loginToApp } from '../../flows/wallet.flow';
+import { loginToApp } from '../../../e2e/viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { SmokeTrade } from '../../tags';
+import { SmokeTrade } from '../../../e2e/tags';
 import Assertions from '../../framework/Assertions';
-import QuoteView from '../../page-objects/swaps/QuoteView';
+import QuoteView from '../../../e2e/pages/swaps/QuoteView';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
-import WalletView from '../../page-objects/wallet/WalletView';
-import DeeplinkModal from '../../page-objects/swaps/Deeplink';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import DeeplinkModal from '../../../e2e/pages/swaps/Deeplink';
 
 // Deep link URLs for testing unified swap/bridge experience
 // Note: URLs use 'swap' terminology for backward compatibility but redirect to unified bridge experience
@@ -142,7 +142,9 @@ describe(
           await DeeplinkModal.tapContinue();
 
           // Check that we are on the quote view with default state
-          await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea);
+          await Assertions.expectElementToBeVisible(
+            QuoteView.selectAmountLabel,
+          );
 
           // Verify we can navigate back
           await Assertions.expectElementToBeVisible(QuoteView.backButton);
@@ -204,7 +206,9 @@ describe(
           await DeeplinkModal.tapContinue();
 
           // Wait for bridge view to load after modal is dismissed
-          await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea);
+          await Assertions.expectElementToBeVisible(
+            QuoteView.selectAmountLabel,
+          );
 
           // Verify we can navigate back
           await Assertions.expectElementToBeVisible(QuoteView.backButton);

@@ -28,7 +28,6 @@ import {
 } from './TabBar.constants';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectAssetsTrendingTokensEnabled } from '../../../../selectors/featureFlagController/assetsTrendingTokens';
-import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -37,7 +36,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const isAssetsTrendingTokensEnabled = useSelector(
     selectAssetsTrendingTokensEnabled,
   );
-  const isAccountMenuEnabled = useAccountMenuEnabled();
   const tabBarRef = useRef(null);
   const previousTabIndexRef = useRef<number>(state.index);
   const tw = useTailwind();
@@ -100,9 +98,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             break;
           case Routes.SETTINGS_VIEW:
             navigation.navigate(Routes.SETTINGS_VIEW, {
-              screen: isAccountMenuEnabled
-                ? Routes.ACCOUNTS_MENU_VIEW
-                : 'Settings',
+              screen: 'Settings',
             });
             break;
           case Routes.TRENDING_VIEW:
@@ -142,7 +138,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       createEventBuilder,
       tw,
       isAssetsTrendingTokensEnabled,
-      isAccountMenuEnabled,
     ],
   );
 

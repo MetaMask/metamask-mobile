@@ -9,11 +9,11 @@ import { QuickPickButtonOption } from './types';
 
 interface Props {
   options: QuickPickButtonOption[];
-  show?: boolean;
+  hidden?: boolean;
 }
 
-export const QuickPickButtons = ({ options, show }: Props) => {
-  if (!show) {
+export const QuickPickButtons = ({ options, hidden }: Props) => {
+  if (hidden) {
     return null;
   }
 

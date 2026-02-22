@@ -12,21 +12,18 @@ import {
   GET_POPULAR_TOKENS_MAINNET_RESPONSE,
   GET_POPULAR_TOKENS_BASE_RESPONSE,
 } from './constants';
-import { setupSpotPricesMock } from './swap-mocks';
 
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
-  await setupSpotPricesMock(mockServer);
-
   // Set up feature flags with chainRanking for network pills
   await setupRemoteFeatureFlagsMock(mockServer, {
     bridgeConfigV2: {
       chainRanking: [
         { chainId: 'eip155:1', name: 'Ethereum' },
-        { chainId: 'eip155:8453', name: 'Base' },
         { chainId: 'eip155:10', name: 'OP Mainnet' },
         { chainId: 'eip155:137', name: 'Polygon' },
+        { chainId: 'eip155:8453', name: 'Base' },
         { chainId: 'eip155:42161', name: 'Arbitrum One' },
         { chainId: 'eip155:43114', name: 'Avalanche' },
         { chainId: 'eip155:59144', name: 'Linea' },

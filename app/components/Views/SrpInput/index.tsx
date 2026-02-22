@@ -21,11 +21,12 @@ import Input from './Input';
 import styleSheet from '../../../component-library/components/Form/TextField/TextField.styles';
 import { TextFieldProps } from '../../../component-library/components/Form/TextField/TextField.types';
 import {
+  DEFAULT_TEXTFIELD_SIZE,
+  TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT,
   TEXTFIELD_TEST_ID,
   TEXTFIELD_STARTACCESSORY_TEST_ID,
   TEXTFIELD_ENDACCESSORY_TEST_ID,
 } from '../../../component-library/components/Form/TextField/TextField.constants';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Device from '../../../util/device';
 
 const TextField = React.forwardRef<
@@ -38,6 +39,7 @@ const TextField = React.forwardRef<
   (
     {
       style,
+      size = DEFAULT_TEXTFIELD_SIZE,
       startAccessory,
       endAccessory,
       isError = false,
@@ -61,6 +63,7 @@ const TextField = React.forwardRef<
 
     const { styles } = useStyles(styleSheet, {
       style,
+      size,
       isError,
       isDisabled,
       isFocused,
@@ -119,7 +122,7 @@ const TextField = React.forwardRef<
           <View style={[styles.input, styles.inputContainer]}>
             {inputElement ?? (
               <Input
-                textVariant={TextVariant.BodyMD}
+                textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
                 isDisabled={isDisabled}
                 autoFocus={autoFocus}
                 onBlur={onBlurHandler}

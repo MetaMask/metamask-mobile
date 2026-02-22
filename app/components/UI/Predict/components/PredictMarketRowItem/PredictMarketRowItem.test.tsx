@@ -12,7 +12,6 @@ import { PredictEntryPointProvider } from '../../contexts';
 import PredictMarketRowItem from './';
 import Routes from '../../../../../constants/navigation/Routes';
 
-import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -23,7 +22,7 @@ jest.mock('@react-navigation/native', () => ({
 
 const createMockOutcome = (overrides = {}): PredictOutcome => ({
   id: 'test-outcome-1',
-  providerId: POLYMARKET_PROVIDER_ID,
+  providerId: 'polymarket',
   marketId: 'test-market-1',
   title: 'Monad market cap (FDV) >$4B one day after launch?',
   description: 'Test outcome description',
@@ -50,7 +49,7 @@ const createMockOutcome = (overrides = {}): PredictOutcome => ({
 
 const createMockMarket = (overrides = {}): PredictMarketType => ({
   id: 'test-market-1',
-  providerId: POLYMARKET_PROVIDER_ID,
+  providerId: 'polymarket',
   slug: 'monad-fdv-prediction',
   title: 'Monad FDV one day after launch?',
   description: 'Prediction market for Monad FDV',

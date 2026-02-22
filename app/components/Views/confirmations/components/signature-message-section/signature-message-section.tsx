@@ -13,6 +13,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
+import CopyButton from '../UI/copy-button';
 import Expandable from '../UI/expandable';
 import styleSheet from './signature-message-section.styles';
 import InfoSection from '../UI/info-row/info-section';
@@ -69,6 +70,9 @@ const SignatureMessageSection = ({
       }
       expandedContent={
         <View style={styles.messageContainer}>
+          <View style={styles.copyButtonContainer}>
+            <CopyButton copyText={copyMessageText} />
+          </View>
           <ScrollView>
             <View style={styles.scrollableSection}>
               <TouchableOpacity>{messageExpanded}</TouchableOpacity>
@@ -78,7 +82,6 @@ const SignatureMessageSection = ({
       }
       expandedContentTitle={strings('confirm.message')}
       testID={ConfirmationRowComponentIDs.MESSAGE}
-      copyText={copyMessageText}
     />
   );
 };

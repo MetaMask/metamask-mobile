@@ -1,5 +1,14 @@
 import MetaMetrics from './MetaMetrics';
 import StorageWrapper from '../../store/storage-wrapper';
+import {
+  ANALYTICS_DATA_DELETION_DATE,
+  METAMETRICS_DELETION_REGULATION_ID,
+} from '../../constants/storage';
+import axios, { AxiosError, AxiosResponse } from 'axios';
+import {
+  DataDeleteResponseStatus,
+  DataDeleteStatus,
+} from './MetaMetrics.types';
 import { MetricsEventBuilder } from './MetricsEventBuilder';
 import { analytics } from '../../util/analytics/analytics';
 
@@ -7,6 +16,8 @@ jest.mock('../../store/storage-wrapper');
 const mockGet = jest.fn();
 const mockSet = jest.fn();
 const mockClear = jest.fn();
+
+jest.mock('axios');
 
 // Mock analytics utility
 jest.mock('../../util/analytics/analytics', () => ({
@@ -92,11 +103,24 @@ describe('MetaMetrics', () => {
     });
   });
 
+  describe('Configuration', () => {
+    it('succeeds', async () => {
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+    });
+    it('fails silently', async () => {
+      StorageWrapper.getItem = jest.fn().mockRejectedValue(new Error('error'));
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeFalsy();
+    });
+  });
+
   describe('Disabling', () => {
     it('defaults to disabled metrics', async () => {
       mockGet.mockResolvedValue(undefined);
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
       const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
 
       expect(metaMetrics.isEnabled()).toBeFalsy();
     });
@@ -105,12 +129,14 @@ describe('MetaMetrics', () => {
       mockGet.mockResolvedValue(undefined);
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
       const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
 
       expect(metaMetrics.isEnabled()).toBeTruthy();
     });
 
     it('enables metrics', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
       await metaMetrics.enable();
 
@@ -120,6 +146,7 @@ describe('MetaMetrics', () => {
 
     it('disables metrics', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
 
       // Enable first
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
@@ -136,6 +163,7 @@ describe('MetaMetrics', () => {
     it('does not track event when disabled', async () => {
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
       const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
       const event = MetricsEventBuilder.createEventBuilder({
         category: 'test event',
       }).build();
@@ -148,6 +176,7 @@ describe('MetaMetrics', () => {
     it('tracks event when enabled', async () => {
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
       const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
       await metaMetrics.enable();
       const event = MetricsEventBuilder.createEventBuilder({
         category: 'test event',
@@ -164,6 +193,7 @@ describe('MetaMetrics', () => {
       it('without properties (test A)', async () => {
         (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
         const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
         await metaMetrics.enable();
         const event = MetricsEventBuilder.createEventBuilder({
           category: 'test event',
@@ -182,6 +212,7 @@ describe('MetaMetrics', () => {
       it('with only non-anonymous properties (test B)', async () => {
         (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
         const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
         await metaMetrics.enable();
         const nonAnonProp = { non_anon_prop: 'test value' };
         const event = MetricsEventBuilder.createEventBuilder({
@@ -203,6 +234,7 @@ describe('MetaMetrics', () => {
       it('with only anonymous properties group (test C)', async () => {
         (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
         const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
         await metaMetrics.enable();
         const groupAnonProperties = { group_anon_property: 'group anon value' };
         const event = MetricsEventBuilder.createEventBuilder({
@@ -224,6 +256,7 @@ describe('MetaMetrics', () => {
       it('with anonymous and non-anonymous properties (test D)', async () => {
         (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
         const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
         await metaMetrics.enable();
         const nonAnonProperties = { non_anon_prop: 'non anon value' };
         const anonProperties = { group_anon_property: 'group anon value' };
@@ -242,6 +275,27 @@ describe('MetaMetrics', () => {
             name: event.name,
           }),
         );
+      });
+    });
+
+    describe('saveDataRecording', () => {
+      it('tracks event without updating dataRecorded status', async () => {
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
+        await metaMetrics.enable();
+        const event = MetricsEventBuilder.createEventBuilder({
+          category: 'test event',
+        }).build();
+
+        metaMetrics.trackEvent(event, false);
+
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: event.name,
+          }),
+        );
+        expect(metaMetrics.isDataRecorded()).toBeFalsy();
       });
     });
   });
@@ -275,6 +329,7 @@ describe('MetaMetrics', () => {
     it('adds traits to user', async () => {
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
       const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
       await metaMetrics.enable();
       const userTraits = { trait1: 'value1' };
       await metaMetrics.addTraitsToUser(userTraits);
@@ -323,6 +378,7 @@ describe('MetaMetrics', () => {
       const testID = '12345678-1234-4234-b234-123456789012';
       (mockAnalytics.getAnalyticsId as jest.Mock).mockResolvedValue(testID);
       const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
 
       const metricsId = await metaMetrics.getMetaMetricsId();
       expect(metricsId).toEqual(testID);
@@ -332,8 +388,226 @@ describe('MetaMetrics', () => {
       const UUID = '12345678-1234-4234-b234-123456789012';
       (mockAnalytics.getAnalyticsId as jest.Mock).mockResolvedValue(UUID);
       const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
 
       expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
+    });
+  });
+
+  describe('Delete regulation', () => {
+    describe('delete request', () => {
+      it('data deletion task succeeds', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        (mockAnalytics.getAnalyticsId as jest.Mock).mockResolvedValue(
+          'test-analytics-id',
+        );
+        (axios as jest.MockedFunction<typeof axios>).mockResolvedValue({
+          status: 200,
+          data: { data: { regulateId: 'TWV0YU1hc2t1c2Vzbm9wb2ludCE' } },
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as AxiosResponse<any>);
+
+        const result = await metaMetrics.createDataDeletionTask();
+
+        expect(result).toEqual({ status: DataDeleteResponseStatus.ok });
+
+        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+          METAMETRICS_DELETION_REGULATION_ID,
+          'TWV0YU1hc2t1c2Vzbm9wb2ludCE',
+        );
+
+        const currentDate = new Date();
+        const day = currentDate.getUTCDate();
+        const month = currentDate.getUTCMonth() + 1;
+        const year = currentDate.getUTCFullYear();
+        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+          ANALYTICS_DATA_DELETION_DATE,
+          `${day}/${month}/${year}`,
+        );
+      });
+
+      it('data deletion task fails', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        (mockAnalytics.getAnalyticsId as jest.Mock).mockResolvedValue(
+          'test-analytics-id',
+        );
+        (axios as jest.MockedFunction<typeof axios>).mockRejectedValue({
+          response: {
+            status: 422,
+            data: { message: 'Validation error' },
+          },
+        } as AxiosError);
+
+        const result = await metaMetrics.createDataDeletionTask();
+
+        expect(result.status).toBe(DataDeleteResponseStatus.error);
+        expect(result.error).toBe('Analytics Deletion Task Error');
+        expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
+          METAMETRICS_DELETION_REGULATION_ID,
+          expect.any(String),
+        );
+        expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
+          ANALYTICS_DATA_DELETION_DATE,
+          expect.any(String),
+        );
+      });
+    });
+
+    describe('Date', () => {
+      it('gets date from preferences storage', async () => {
+        const expectedDate = '04/05/2023';
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(expectedDate);
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
+        expect(metaMetrics.getDeleteRegulationCreationDate()).toBe(
+          expectedDate,
+        );
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+          ANALYTICS_DATA_DELETION_DATE,
+        );
+      });
+
+      it('keeps date in instance', async () => {
+        const expectedDate = '04/05/2023';
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(expectedDate);
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
+        // this resets the call count and changes the return value to nothing
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(null);
+        expect(metaMetrics.getDeleteRegulationCreationDate()).toBe(
+          expectedDate,
+        );
+        expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(
+          ANALYTICS_DATA_DELETION_DATE,
+        );
+      });
+
+      it('returns empty string if no date in preferences storage', async () => {
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(undefined);
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
+        expect(metaMetrics.getDeleteRegulationCreationDate()).toBeUndefined();
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+          ANALYTICS_DATA_DELETION_DATE,
+        );
+      });
+    });
+
+    describe('Regulation Id', () => {
+      it('gets id from preferences storage', async () => {
+        const expecterRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
+        StorageWrapper.getItem = jest
+          .fn()
+          .mockResolvedValue(expecterRegulationId);
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
+        expect(metaMetrics.getDeleteRegulationId()).toBe(expecterRegulationId);
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+          METAMETRICS_DELETION_REGULATION_ID,
+        );
+      });
+
+      it('keeps id in instance', async () => {
+        const expecterRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
+        StorageWrapper.getItem = jest
+          .fn()
+          .mockResolvedValue(expecterRegulationId);
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
+        // this resets the call count and changes the return value to nothing
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(null);
+        expect(metaMetrics.getDeleteRegulationId()).toBe(expecterRegulationId);
+        expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(
+          METAMETRICS_DELETION_REGULATION_ID,
+        );
+      });
+
+      it('returns empty string if no id in preferences storage', async () => {
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(undefined);
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
+        expect(metaMetrics.getDeleteRegulationId()).toBeUndefined();
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+          METAMETRICS_DELETION_REGULATION_ID,
+        );
+      });
+    });
+
+    describe('check request', () => {
+      it('data deletion task check succeeds', async () => {
+        StorageWrapper.getItem = jest.fn((key) => {
+          switch (key) {
+            case METAMETRICS_DELETION_REGULATION_ID:
+              return Promise.resolve('TWV0YU1hc2t1c2Vzbm9wb2ludCE');
+            case ANALYTICS_DATA_DELETION_DATE:
+              return Promise.resolve('11/12/2023');
+            default:
+              return Promise.resolve('');
+          }
+        });
+
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
+        (axios as jest.MockedFunction<typeof axios>).mockResolvedValue({
+          status: 200,
+          data: {
+            data: {
+              regulation: {
+                id: 'TWV0YU1hc2t1c2Vzbm9wb2ludCE',
+                workspaceId: 'TWV0YUZveA',
+                overallStatus: 'RUNNING',
+                createdAt: '2023-12-11T01:23:45.123456Z',
+                streamStatus: [
+                  {
+                    id: 'RXRoZXJldW1SdWxleiE',
+                    destinationStatus: [
+                      {
+                        name: 'Segment',
+                        id: 'segment',
+                        status: 'RUNNING',
+                        errString: '',
+                        errCode: 0,
+                        finishedAt: null,
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as AxiosResponse<any>);
+
+        const {
+          hasCollectedDataSinceDeletionRequest,
+          deletionRequestDate,
+          dataDeletionRequestStatus,
+        } = await metaMetrics.checkDataDeleteStatus();
+
+        expect(hasCollectedDataSinceDeletionRequest).toBeFalsy();
+        expect(dataDeletionRequestStatus).toEqual(DataDeleteStatus.running);
+        expect(deletionRequestDate).toEqual('11/12/2023');
+      });
+
+      it('data deletion task check fails without METAMETRICS_DELETION_REGULATION_ID', async () => {
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(undefined);
+        const metaMetrics = TestMetaMetrics.getInstance();
+
+        const {
+          hasCollectedDataSinceDeletionRequest,
+          deletionRequestDate,
+          dataDeletionRequestStatus,
+        } = await metaMetrics.checkDataDeleteStatus();
+
+        expect(
+          axios as jest.MockedFunction<typeof axios>,
+        ).not.toHaveBeenCalled();
+        expect(hasCollectedDataSinceDeletionRequest).toBeFalsy();
+        expect(dataDeletionRequestStatus).toEqual(DataDeleteStatus.unknown);
+        expect(deletionRequestDate).toBeUndefined();
+      });
     });
   });
 
@@ -351,6 +625,7 @@ describe('MetaMetrics', () => {
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
 
       const metaMetrics = MetaMetrics.getInstance();
+      await metaMetrics.configure();
       await metaMetrics.enable();
 
       const event = MetricsEventBuilder.createEventBuilder({

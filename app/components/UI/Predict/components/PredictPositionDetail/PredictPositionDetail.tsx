@@ -12,15 +12,6 @@ import {
 } from '@react-navigation/native';
 import React, { useMemo } from 'react';
 import { Image } from 'react-native';
-import { useSelector } from 'react-redux';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
-import {
-  TextVariant as ComponentTextVariant,
-  TextColor as ComponentTextColor,
-} from '../../../../../component-library/components/Texts/Text/Text.types';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -57,7 +48,6 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   marketStatus,
 }: PredictPositionProps) => {
   const tw = useTailwind();
-  const privacyMode = useSelector(selectPrivacyMode);
 
   const currentPosition = usePredictOptimisticPositionRefresh({
     position,
@@ -69,6 +59,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
+    providerId: currentPosition.providerId,
     navigation,
   });
 
@@ -81,6 +72,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
       : undefined;
 
   const { preview, isLoading: isPreviewLoading } = usePredictOrderPreview({
+    providerId: currentPosition.providerId,
     marketId: currentPosition.marketId,
     outcomeId: currentPosition.outcomeId,
     outcomeTokenId: currentPosition.outcomeTokenId,
@@ -141,40 +133,30 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         return <Skeleton width={70} height={20} />;
       }
       return (
-        <SensitiveText
-          variant={ComponentTextVariant.BodyMDMedium}
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Short}
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          style={tw.style('font-medium')}
         >
           {formatPrice(currentValue, { maximumDecimals: 2 })}
-        </SensitiveText>
+        </Text>
       );
     }
 
     if (percentPnl > 0) {
       return (
-        <SensitiveText
-          variant={ComponentTextVariant.BodyMD}
-          color={ComponentTextColor.Success}
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Medium}
-        >
+        <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
           {strings('predict.market_details.won')}{' '}
           {formatPrice(currentValue, { maximumDecimals: 2 })}
-        </SensitiveText>
+        </Text>
       );
     }
 
     return (
-      <SensitiveText
-        variant={ComponentTextVariant.BodyMD}
-        color={ComponentTextColor.Error}
-        isHidden={privacyMode}
-        length={SensitiveTextLength.Medium}
-      >
+      <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
         {strings('predict.market_details.lost')}{' '}
         {formatPrice(initialValue, { maximumDecimals: 2 })}
-      </SensitiveText>
+      </Text>
     );
   };
 
@@ -199,11 +181,10 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
           >
             {groupItemTitle ?? title}
           </Text>
-          <SensitiveText
-            variant={ComponentTextVariant.BodySMMedium}
-            color={ComponentTextColor.Alternative}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Long}
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            style={tw.style('font-medium')}
           >
             {strings('predict.position_info', {
               initialValue: formatPrice(initialValue, {
@@ -214,7 +195,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
                 maximumDecimals: 2,
               }),
             })}
-          </SensitiveText>
+          </Text>
         </Box>
         <Box twClassName="items-end justify-end ml-auto shrink-0">
           {renderValueText()}
@@ -222,18 +203,17 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             (optimistic || isPreviewLoading ? (
               <Skeleton width={55} height={16} style={tw.style('mt-1')} />
             ) : (
-              <SensitiveText
-                variant={ComponentTextVariant.BodySMMedium}
+              <Text
+                variant={TextVariant.BodySm}
                 color={
                   percentPnl > 0
-                    ? ComponentTextColor.Success
-                    : ComponentTextColor.Error
+                    ? TextColor.SuccessDefault
+                    : TextColor.ErrorDefault
                 }
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
+                style={tw.style('font-medium')}
               >
                 {formatPercentage(percentPnl)}
-              </SensitiveText>
+              </Text>
             ))}
         </Box>
       </Box>

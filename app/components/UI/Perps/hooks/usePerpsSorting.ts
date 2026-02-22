@@ -1,12 +1,14 @@
 import { useState, useCallback, useMemo } from 'react';
+import type { PerpsMarketData } from '../controllers/types';
 import {
-  MARKET_SORTING_CONFIG,
   sortMarkets,
-  type PerpsMarketData,
   type SortField,
   type SortDirection,
+} from '../utils/sortMarkets';
+import {
+  MARKET_SORTING_CONFIG,
   type SortOptionId,
-} from '@metamask/perps-controller';
+} from '../constants/perpsConfig';
 
 interface UsePerpsSortingParams {
   initialOptionId?: SortOptionId;

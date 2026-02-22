@@ -11,7 +11,6 @@ import {
 } from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 
-import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string>) => {
     if (key === 'predict.claim_amount_text' && params?.amount) {
@@ -32,7 +31,7 @@ const createMockGetPrice =
 
 const createMockOutcome = (overrides = {}): PredictOutcome => ({
   id: 'outcome-1',
-  providerId: POLYMARKET_PROVIDER_ID,
+  providerId: 'polymarket',
   marketId: 'market-1',
   title: 'Will it happen?',
   description: 'Test outcome',
@@ -49,7 +48,7 @@ const createMockOutcome = (overrides = {}): PredictOutcome => ({
 
 const createMockMarket = (overrides = {}): PredictMarket => ({
   id: 'market-1',
-  providerId: POLYMARKET_PROVIDER_ID,
+  providerId: 'polymarket',
   slug: 'test-market',
   title: 'Test Market',
   description: 'Test market description',
