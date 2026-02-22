@@ -53,7 +53,6 @@ import {
 } from './polymarket-constants.ts';
 import { createTransactionSentinelResponse } from './polymarket-transaction-sentinel-response.ts';
 import { GEO_BLOCKED_COUNTRIES } from '../../../../app/components/UI/Predict/constants/geoblock.ts';
-import { POLYMARKET_GEOBLOCK_ELIGIBLE } from '../defaults/polymarket-apis.ts';
 
 /**
  * Mock for Polymarket API returning 500 error
@@ -156,19 +155,6 @@ export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
     url: 'https://polymarket.com/api/geoblock',
     responseCode: 200,
     response: { blocked: true, country: GEO_BLOCKED_COUNTRIES[0].country },
-  });
-};
-
-/**
- * Mock for Polymarket geoblock endpoint returning eligible region.
- * Reuses POLYMARKET_GEOBLOCK_ELIGIBLE from defaults so there is a single source of truth.
- */
-export const POLYMARKET_GEO_ELIGIBLE_MOCKS = async (mockServer: Mockttp) => {
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: POLYMARKET_GEOBLOCK_ELIGIBLE.urlEndpoint,
-    responseCode: POLYMARKET_GEOBLOCK_ELIGIBLE.responseCode,
-    response: POLYMARKET_GEOBLOCK_ELIGIBLE.response,
   });
 };
 
@@ -1808,10 +1794,6 @@ export const POLYMARKET_ALL_POSITIONS_MOCKS = async (mockServer: Mockttp) => {
  * Returns data for proxy wallet: 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
 export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
-  // Explicit geoblock mock: test-specific rules are registered first and take precedence.
-  // Avoids relying on default _events when the request reaches the server, and ensures
-  // eligible response even if the generic handler ordering ever changes.
-  await POLYMARKET_GEO_ELIGIBLE_MOCKS(mockServer);
   await POLYMARKET_ALL_POSITIONS_MOCKS(mockServer);
   await POLYMARKET_ACTIVITY_MOCKS(mockServer);
   await POLYMARKET_UPNL_MOCKS(mockServer);

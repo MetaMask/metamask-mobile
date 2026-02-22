@@ -67,25 +67,4 @@ describe('Expandable', () => {
     fireEvent.press(getByTestId('collapseButtonTestID'));
     expect(getByText('Open')).toBeDefined();
   });
-
-  it('renders copy button when copyText is provided', async () => {
-    const { getByText, getByTestId } = render(
-      <Expandable
-        collapsedContent={
-          <View>
-            <Text>Open</Text>
-          </View>
-        }
-        expandedContent={
-          <InfoSection>
-            <InfoRow label="label-Key">Value-Text</InfoRow>
-          </InfoSection>
-        }
-        expandedContentTitle={'Title'}
-        copyText={'Copy me'}
-      />,
-    );
-    fireEvent.press(getByText('Open'));
-    expect(getByTestId('copyButtonTestId')).toBeDefined();
-  });
 });

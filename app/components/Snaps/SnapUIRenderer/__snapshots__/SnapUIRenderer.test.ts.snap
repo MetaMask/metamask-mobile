@@ -254,9 +254,9 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
-                    "borderRadius": 12,
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
                     "flexGrow": 1,
@@ -281,12 +281,9 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                     autoFocus={false}
                     editable={true}
                     id="input"
-                    multiline={false}
-                    numberOfLines={1}
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
-                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -298,8 +295,8 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
-                        "lineHeight": 0,
                         "opacity": 1,
+                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }
@@ -415,9 +412,9 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
-                    "borderRadius": 12,
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
                     "flexGrow": 1,
@@ -443,12 +440,9 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                     editable={true}
                     id="input"
                     keyboardType="numeric"
-                    multiline={false}
-                    numberOfLines={1}
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
-                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -460,8 +454,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
-                        "lineHeight": 0,
                         "opacity": 1,
+                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }
@@ -512,9 +506,9 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
-                    "borderRadius": 12,
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
                     "flexGrow": 1,
@@ -539,12 +533,9 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                     autoFocus={false}
                     editable={true}
                     id="input2"
-                    multiline={false}
-                    numberOfLines={1}
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
-                    placeholderTextColor="#686e7d"
                     secureTextEntry={true}
                     style={
                       {
@@ -557,8 +548,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
-                        "lineHeight": 0,
                         "opacity": 1,
+                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }
@@ -674,9 +665,9 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
-                    "borderRadius": 12,
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
                     "flexGrow": 1,
@@ -701,12 +692,9 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                     autoFocus={false}
                     editable={true}
                     id="input"
-                    multiline={false}
-                    numberOfLines={1}
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
-                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -718,8 +706,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
-                        "lineHeight": 0,
                         "opacity": 1,
+                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }
@@ -770,9 +758,9 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
-                    "borderRadius": 12,
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
                     "flexGrow": 1,
@@ -797,12 +785,9 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                     autoFocus={false}
                     editable={true}
                     id="input2"
-                    multiline={false}
-                    numberOfLines={1}
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
-                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -814,8 +799,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
-                        "lineHeight": 0,
                         "opacity": 1,
+                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }
@@ -1838,9 +1823,9 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#3c4d9d0f",
-                      "borderColor": "#b7bbc866",
-                      "borderRadius": 12,
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#b7bbc8",
+                      "borderRadius": 8,
                       "borderWidth": 1,
                       "flexDirection": "row",
                       "flexGrow": 1,
@@ -1855,7 +1840,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   <View
                     style={
                       {
-                        "marginRight": 12,
+                        "marginRight": 8,
                       }
                     }
                     testID="textfield-startacccessory"
@@ -1953,12 +1938,9 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                       autoFocus={false}
                       editable={true}
                       id="input"
-                      multiline={false}
-                      numberOfLines={1}
                       onBlur={[Function]}
                       onChangeText={[Function]}
                       onFocus={[Function]}
-                      placeholderTextColor="#686e7d"
                       style={
                         {
                           "backgroundColor": "inherit",
@@ -1970,8 +1952,8 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
-                          "lineHeight": 0,
                           "opacity": 1,
+                          "paddingVertical": 2,
                           "textAlignVertical": "center",
                         }
                       }
@@ -1982,7 +1964,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   <View
                     style={
                       {
-                        "marginLeft": 12,
+                        "marginLeft": 8,
                       }
                     }
                     testID="textfield-endacccessory"
@@ -2125,9 +2107,9 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
-                    "borderRadius": 12,
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
                     "flexGrow": 1,
@@ -2152,12 +2134,9 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                     autoFocus={false}
                     editable={true}
                     id="input"
-                    multiline={false}
-                    numberOfLines={1}
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
-                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -2169,8 +2148,8 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
-                        "lineHeight": 0,
                         "opacity": 1,
+                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }

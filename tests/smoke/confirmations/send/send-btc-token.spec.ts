@@ -1,12 +1,10 @@
-import SendView from '../../../page-objects/Send/RedesignedSendView';
-import TokenOverview from '../../../page-objects/wallet/TokenOverview';
-import WalletView from '../../../page-objects/wallet/WalletView';
-import { SmokeConfirmations } from '../../../tags';
+import SendView from '../../../../e2e/pages/Send/RedesignedSendView';
+import TokenOverview from '../../../../e2e/pages/wallet/TokenOverview';
+import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import { SmokeConfirmations } from '../../../../e2e/tags';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { loginToApp } from '../../../flows/wallet.flow';
-
-const TOKEN = 'Bitcoin';
+import { loginToApp } from '../../../../e2e/viewHelper.ts';
 
 describe(SmokeConfirmations('Send Bitcoin'), () => {
   it('shows insufficient funds', async () => {
@@ -18,8 +16,7 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
       async () => {
         await loginToApp();
         await device.disableSynchronization();
-        await WalletView.waitForTokenToBeReady(TOKEN, 0);
-        await WalletView.tapOnToken(TOKEN);
+        await WalletView.tapOnToken('Bitcoin');
         await TokenOverview.tapSendButton();
         await SendView.enterZeroAmount();
         await SendView.checkInsufficientFundsError();

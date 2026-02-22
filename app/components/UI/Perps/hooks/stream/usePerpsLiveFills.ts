@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { type OrderFill } from '@metamask/perps-controller';
+import type { OrderFill } from '../../controllers/types';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_FILLS: OrderFill[] = [];
@@ -31,10 +31,7 @@ export function usePerpsLiveFills(
   const { throttleMs = 0 } = options;
   const stream = usePerpsStream();
   const [fills, setFills] = useState<OrderFill[]>(EMPTY_FILLS);
-  // FillStreamChannel.getCachedData() always returns [] (never null),
-  // so subscribe() will always call the callback synchronously in useEffect.
-  // Start with false to avoid a 1-frame skeleton flash.
-  const [isInitialLoading, setIsInitialLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const lastFillsRef = useRef<OrderFill[]>(EMPTY_FILLS);
   const hasReceivedFirstUpdate = useRef(false);
 

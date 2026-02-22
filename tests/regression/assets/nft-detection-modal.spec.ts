@@ -1,11 +1,11 @@
-import WalletView from '../../page-objects/wallet/WalletView';
-import { loginToApp } from '../../flows/wallet.flow';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import { loginToApp } from '../../../e2e/viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TestHelpers from '../../helpers';
+import TestHelpers from '../../../e2e/helpers';
 import Assertions from '../../framework/Assertions';
-import NftDetectionModal from '../../page-objects/wallet/NftDetectionModal';
-import { RegressionAssets } from '../../tags';
+import NftDetectionModal from '../../../e2e/pages/wallet/NftDetectionModal';
+import { RegressionAssets } from '../../../e2e/tags';
 
 import { NftDetectionModalSelectorsText } from '../../../app/components/Views/NFTAutoDetectionModal/NftDetectionModal.testIds.ts';
 

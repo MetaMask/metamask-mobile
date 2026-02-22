@@ -49,20 +49,28 @@ const selectPredictBalances = createSelector(
   (predictControllerState) => predictControllerState?.balances || {},
 );
 
-const selectPredictBalanceByAddress = ({ address }: { address: string }) =>
+const selectPredictBalanceByAddress = ({
+  providerId,
+  address,
+}: {
+  providerId: string;
+  address: string;
+}) =>
   createSelector(
     selectPredictBalances,
-    (balances) => balances[address]?.balance || 0,
+    (balances) => balances[providerId]?.[address]?.balance || 0,
   );
 
 const selectPredictPendingDepositByAddress = ({
+  providerId,
   address,
 }: {
+  providerId: string;
   address: string;
 }) =>
   createSelector(
     selectPredictPendingDeposits,
-    (pendingDeposits) => pendingDeposits[address] || undefined,
+    (pendingDeposits) => pendingDeposits[providerId]?.[address] || undefined,
   );
 
 const selectPredictAccountMeta = createSelector(

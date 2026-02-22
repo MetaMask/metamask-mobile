@@ -1,9 +1,9 @@
-import { RegressionWalletPlatform } from '../../tags';
+import { RegressionWalletPlatform } from '../../../e2e/tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../flows/wallet.flow';
-import WalletView from '../../page-objects/wallet/WalletView';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import { loginToApp } from '../../../e2e/viewHelper';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
 import { LocalNode } from '../../framework/types';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';

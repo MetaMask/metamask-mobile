@@ -14,7 +14,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { styleSheet } from './PerpsMarketSortDropdowns.styles';
 import type { PerpsMarketSortDropdownsProps } from './PerpsMarketSortDropdowns.types';
-import { MARKET_SORTING_CONFIG } from '@metamask/perps-controller';
+import { MARKET_SORTING_CONFIG } from '../../constants/perpsConfig';
 
 /**
  * PerpsMarketSortDropdowns Component

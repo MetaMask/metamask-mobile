@@ -1,11 +1,11 @@
 /* eslint-disable no-unsafe-finally */
 /* eslint-disable import/no-nodejs-modules */
-import FixtureServer from './FixtureServer';
+import FixtureServer from './FixtureServer.ts';
 import {
   AnvilManager,
   Hardfork,
   DEFAULT_ANVIL_PORT,
-} from '../../seeder/anvil-manager';
+} from '../../seeder/anvil-manager.ts';
 import Ganache, { DEFAULT_GANACHE_PORT } from '../../../app/util/test/ganache';
 import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
@@ -14,13 +14,13 @@ import {
   startResourceWithRetry,
   startMultiInstanceResourceWithRetry,
   cleanupAllAndroidPortForwarding,
-} from './FixtureUtils';
-import Utilities from '../Utilities';
-import { dismissDevScreens } from '../../flows/general.flow';
-import TestHelpers from '../../helpers';
-import MockServerE2E from '../../api-mocking/MockServerE2E';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { AnvilSeeder } from '../../seeder/anvil-seeder';
+} from './FixtureUtils.ts';
+import Utilities from '../Utilities.ts';
+import { dismissDevScreens } from '../../../e2e/viewHelper.ts';
+import TestHelpers from '../../../e2e/helpers';
+import MockServerE2E from '../../api-mocking/MockServerE2E.ts';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
+import { AnvilSeeder } from '../../seeder/anvil-seeder.ts';
 import {
   LocalNodeConfig,
   LocalNodeOptionsInput,
@@ -32,7 +32,7 @@ import {
   AnvilNodeOptions,
   GanacheNodeOptions,
   TestSpecificMock,
-} from '../types';
+} from '../types.ts';
 import {
   TestDapps,
   DappVariants,
@@ -41,16 +41,16 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
-} from '../Constants';
+} from '../Constants.ts';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
-import FixtureBuilder from './FixtureBuilder';
-import { createLogger } from '../logger';
-import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
-import PortManager, { ResourceType } from '../PortManager';
+import FixtureBuilder from './FixtureBuilder.ts';
+import { createLogger } from '../logger.ts';
+import { mockNotificationServices } from '../../smoke/notifications/utils/mocks.ts';
+import PortManager, { ResourceType } from '../PortManager.ts';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
-import CommandQueueServer from './CommandQueueServer';
-import DappServer from '../DappServer';
-import { PlatformDetector } from '../PlatformLocator';
+import CommandQueueServer from './CommandQueueServer.ts';
+import DappServer from '../DappServer.ts';
+import { PlatformDetector } from '../PlatformLocator.ts';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -100,17 +100,6 @@ async function handleDapps(
               dapp.dappPath ||
               TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
             dappVariant: DappVariants.SOLANA_TEST_DAPP,
-          }),
-        );
-        break;
-      case DappVariants.BROWSER_PLAYGROUND:
-        dappServer.push(
-          new DappServer({
-            dappCounter: i,
-            rootDirectory:
-              dapp.dappPath ||
-              TestDapps[DappVariants.BROWSER_PLAYGROUND].dappPath,
-            dappVariant: DappVariants.BROWSER_PLAYGROUND,
           }),
         );
         break;

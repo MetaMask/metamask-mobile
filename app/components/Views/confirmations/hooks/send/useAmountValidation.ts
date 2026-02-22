@@ -137,7 +137,7 @@ export function validatePositiveNumericString(
   return undefined;
 }
 
-export function mapSnapErrorCodeIntoTranslation(errorCode: string): string {
+function mapSnapErrorCodeIntoTranslation(errorCode: string): string {
   switch (errorCode) {
     case 'InsufficientBalance':
       return strings('send.insufficient_funds');

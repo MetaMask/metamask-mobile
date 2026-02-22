@@ -7,6 +7,18 @@ interface MockPredictHomePositionsProps {
   onError?: (error: string | null) => void;
 }
 
+jest.mock('../../hooks/usePredictDepositToasts', () => ({
+  usePredictDepositToasts: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePredictClaimToasts', () => ({
+  usePredictClaimToasts: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePredictWithdrawToasts', () => ({
+  usePredictWithdrawToasts: jest.fn(),
+}));
+
 jest.mock('../../hooks/usePredictMeasurement', () => ({
   usePredictMeasurement: jest.fn(),
 }));

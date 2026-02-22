@@ -52,9 +52,6 @@ export const selectSeasonTiers = (state: RootState) =>
 export const selectSeasonActivityTypes = (state: RootState) =>
   state.rewards.seasonActivityTypes;
 
-export const selectSeasonWaysToEarn = (state: RootState) =>
-  state.rewards.seasonWaysToEarn;
-
 export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
   state.rewards.onboardingActiveStep;
 

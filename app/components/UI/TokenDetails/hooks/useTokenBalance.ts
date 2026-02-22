@@ -33,19 +33,19 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const { stakedTrxForEnergy, stakedTrxForBandwidth } = useSelector(
-    selectTronResourcesBySelectedAccountGroup,
+  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
+  const strxEnergy = tronResources.find(
+    (a) => a.symbol.toLowerCase() === 'strx-energy',
+  );
+  const strxBandwidth = tronResources.find(
+    (a) => a.symbol.toLowerCase() === 'strx-bandwidth',
   );
 
   const isTronNative =
     token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
 
   const stakedTrxAsset = isTronNative
-    ? createStakedTrxAsset(
-        token,
-        stakedTrxForEnergy?.balance,
-        stakedTrxForBandwidth?.balance,
-      )
+    ? createStakedTrxAsset(token, strxEnergy?.balance, strxBandwidth?.balance)
     : undefined;
   ///: END:ONLY_INCLUDE_IF
 

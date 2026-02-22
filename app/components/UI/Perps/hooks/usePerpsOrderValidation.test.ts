@@ -1,8 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import {
-  VALIDATION_THRESHOLDS,
-  type OrderFormState,
-} from '@metamask/perps-controller';
+import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
+import type { OrderFormState } from '../types/perps-types';
 import { usePerpsOrderValidation } from './usePerpsOrderValidation';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';

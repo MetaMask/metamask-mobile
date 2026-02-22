@@ -13,11 +13,11 @@ import { useWithdrawalRequests } from '../../hooks';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
 import {
+  HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS,
   PROGRESS_BAR_COMPLETION_DELAY_MS,
   WITHDRAWAL_PROGRESS_STAGES,
   ZERO_BALANCE,
-} from '@metamask/perps-controller';
-import { HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS } from '../../constants/perpsUIConfig';
+} from '../../constants/hyperLiquidConfig';
 
 // Mock dependencies
 jest.mock('../../hooks/usePerpsDepositProgress');

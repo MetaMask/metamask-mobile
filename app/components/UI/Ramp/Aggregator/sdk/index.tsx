@@ -55,6 +55,10 @@ export const SDK = OnRampSdk.create(environment, context, {
   locale: I18n.locale,
 });
 
+I18nEvents.addListener('localeChanged', (locale) => {
+  SDK.setLocale(locale);
+});
+
 interface RampSDKConfig {
   POLLING_INTERVAL: number;
   POLLING_INTERVAL_HIGHLIGHT: number;
@@ -130,17 +134,6 @@ export const RampSDKProvider = ({
     provider: true,
     internal: isDevelopmentOrInternalBuild,
   });
-
-  useEffect(() => {
-    SDK.setLocale(I18n.locale);
-    const handleLocaleChanged = (locale: string) => {
-      SDK.setLocale(locale);
-    };
-    I18nEvents.addListener('localeChanged', handleLocaleChanged);
-    return () => {
-      I18nEvents.removeListener('localeChanged', handleLocaleChanged);
-    };
-  }, []);
 
   useEffect(() => {
     (async () => {

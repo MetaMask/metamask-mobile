@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
 import {
   resetAuthenticatedData,
-  selectCardGeoLocation,
   selectIsAuthenticatedCard,
   verifyCardAuthentication,
 } from '../../../../core/redux/slices/card';
@@ -21,7 +20,6 @@ export const useCardAuthenticationVerification = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
-  const cardGeoLocation = useSelector(selectCardGeoLocation);
 
   const checkAuthentication = useCallback(() => {
     dispatch(
@@ -32,6 +30,10 @@ export const useCardAuthenticationVerification = () => {
   }, [isBaanxLoginEnabled, dispatch]);
 
   useEffect(() => {
+    // Only run authentication check when:
+    // 1. User is logged in
+    // 2. Baanx login is enabled
+    // As a fallback, set the authentication state to false
     if (userLoggedIn && isBaanxLoginEnabled) {
       try {
         checkAuthentication();
@@ -41,17 +43,19 @@ export const useCardAuthenticationVerification = () => {
           'useCardAuthenticationVerification::Error verifying authentication',
         );
       }
-    } else if (userLoggedIn && !isBaanxLoginEnabled && isAuthenticated) {
-      if (cardGeoLocation !== 'UNKNOWN') {
+    } else if (userLoggedIn && !isBaanxLoginEnabled) {
+      if (isAuthenticated) {
+        Logger.log(
+          'useCardAuthenticationVerification::User is logged in but Baanx login is disabled, setting authentication state to false',
+        );
         dispatch(resetAuthenticatedData());
       }
     }
   }, [
     userLoggedIn,
     isBaanxLoginEnabled,
-    isAuthenticated,
-    cardGeoLocation,
     checkAuthentication,
     dispatch,
+    isAuthenticated,
   ]);
 };

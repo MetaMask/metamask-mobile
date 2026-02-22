@@ -21,8 +21,8 @@ import type { PerpsMarketSortFieldBottomSheetProps } from './PerpsMarketSortFiel
 import {
   MARKET_SORTING_CONFIG,
   type SortOptionId,
-  type SortDirection,
-} from '@metamask/perps-controller';
+} from '../../constants/perpsConfig';
+import type { SortDirection } from '../../utils/sortMarkets';
 
 /**
  * PerpsMarketSortFieldBottomSheet Component

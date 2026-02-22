@@ -365,6 +365,7 @@ function RegionSelectorModal() {
       <View style={styles.searchContainer}>
         <TextFieldSearch
           value={searchString}
+          showClearButton={searchString.length > 0}
           onPressClearButton={clearSearchText}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}

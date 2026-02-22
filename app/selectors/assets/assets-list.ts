@@ -24,10 +24,8 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../currencyRateController';
-import { safeParseBigNumber } from '../../util/number/bignumber';
 import { selectAccountsByChainId } from '../accountTrackerController';
 import {
-  TRON_RESOURCE,
   TRON_RESOURCE_SYMBOLS_SET,
   TronResourceSymbol,
 } from '../../core/Multichain/constants';
@@ -35,40 +33,6 @@ import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAsse
 import { selectAllTokens } from '../tokensController';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
 import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
-
-/**
- * Structured map of Tron resources for efficient access.
- * Each property corresponds to a specific Tron resource type.
- */
-export interface TronResourcesMap {
-  /** Current available energy */
-  energy: Asset | undefined;
-  /** Current available bandwidth */
-  bandwidth: Asset | undefined;
-  /** Maximum energy capacity */
-  maxEnergy: Asset | undefined;
-  /** Maximum bandwidth capacity */
-  maxBandwidth: Asset | undefined;
-  /** TRX staked for energy (sTRX-Energy) */
-  stakedTrxForEnergy: Asset | undefined;
-  /** TRX staked for bandwidth (sTRX-Bandwidth) */
-  stakedTrxForBandwidth: Asset | undefined;
-  /** Total staked TRX (sum of energy + bandwidth staking) */
-  totalStakedTrx: number;
-}
-
-/**
- * Empty constant to avoid creating new objects on each call when no Tron networks are enabled.
- */
-const EMPTY_TRON_RESOURCES_MAP: TronResourcesMap = Object.freeze({
-  energy: undefined,
-  bandwidth: undefined,
-  maxEnergy: undefined,
-  maxBandwidth: undefined,
-  stakedTrxForEnergy: undefined,
-  stakedTrxForBandwidth: undefined,
-  totalStakedTrx: 0,
-});
 
 const getStateForAssetSelector = (state: RootState) => {
   const {
@@ -418,86 +382,25 @@ function assetToToken(
   };
 }
 
-/**
- * Selects Tron resources (Energy, Bandwidth, Max values, and staked TRX) for the
- * currently selected account group.
- *
- * Returns a structured object with all resources pre-mapped for efficient access,
- * eliminating the need for consumers to iterate/search the array.
- */
+// This is used to select Tron resources (Energy & Bandwidth)
 export const selectTronResourcesBySelectedAccountGroup =
   createDeepEqualSelector(
     [getStateForAssetSelector, selectEnabledNetworks],
-    (assetsState, enabledNetworks): TronResourcesMap => {
-      const enabledTronNetworks = enabledNetworks.filter((networkId) =>
-        networkId.startsWith('tron:'),
-      );
-
-      if (enabledTronNetworks.length === 0) {
-        return EMPTY_TRON_RESOURCES_MAP;
-      }
-
+    (assetsState, enabledNetworks) => {
       const allAssets = _selectAssetsBySelectedAccountGroup(assetsState, {
         filterTronStakedTokens: false,
       });
+      const tronResources = Object.entries(allAssets)
+        .filter(([networkId, _]) => enabledNetworks.includes(networkId))
+        .flatMap(([_, chainAssets]) => chainAssets)
+        .filter(
+          (asset) =>
+            asset.chainId?.includes('tron:') &&
+            TRON_RESOURCE_SYMBOLS_SET.has(
+              asset.symbol?.toLowerCase() as TronResourceSymbol,
+            ),
+        );
 
-      const enabledTronNetworksSet = new Set(enabledTronNetworks);
-
-      const resourceMap: TronResourcesMap = {
-        energy: undefined,
-        bandwidth: undefined,
-        maxEnergy: undefined,
-        maxBandwidth: undefined,
-        stakedTrxForEnergy: undefined,
-        stakedTrxForBandwidth: undefined,
-        totalStakedTrx: 0,
-      };
-
-      for (const [networkId, chainAssets] of Object.entries(allAssets)) {
-        if (!enabledTronNetworksSet.has(networkId)) continue;
-
-        for (const asset of chainAssets) {
-          const symbol = asset.symbol?.toLowerCase() as TronResourceSymbol;
-          if (!TRON_RESOURCE_SYMBOLS_SET.has(symbol)) continue;
-
-          switch (symbol) {
-            case TRON_RESOURCE.ENERGY:
-              resourceMap.energy = asset;
-              break;
-            case TRON_RESOURCE.BANDWIDTH:
-              resourceMap.bandwidth = asset;
-              break;
-            case TRON_RESOURCE.MAX_ENERGY:
-              resourceMap.maxEnergy = asset;
-              break;
-            case TRON_RESOURCE.MAX_BANDWIDTH:
-              resourceMap.maxBandwidth = asset;
-              break;
-            case TRON_RESOURCE.STRX_ENERGY:
-              resourceMap.stakedTrxForEnergy = asset;
-              break;
-            case TRON_RESOURCE.STRX_BANDWIDTH:
-              resourceMap.stakedTrxForBandwidth = asset;
-              break;
-          }
-        }
-      }
-
-      /**
-       * Compute total staked TRX using BigNumber to avoid floating-point precision errors
-       */
-      const stakedTrxForEnergyBN = safeParseBigNumber(
-        resourceMap.stakedTrxForEnergy?.balance,
-      );
-      const stakedTrxForBandwidthBN = safeParseBigNumber(
-        resourceMap.stakedTrxForBandwidth?.balance,
-      );
-      const totalStakedTrxBN = stakedTrxForEnergyBN.plus(
-        stakedTrxForBandwidthBN,
-      );
-
-      resourceMap.totalStakedTrx = totalStakedTrxBN.toNumber();
-
-      return resourceMap;
+      return tronResources;
     },
   );

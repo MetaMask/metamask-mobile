@@ -3,10 +3,11 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { useCallback } from 'react';
+import { useCallback, useContext } from 'react';
 import Engine from '../../../../core/Engine';
+import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import usePerpsToasts from './usePerpsToasts';
 
 /**
@@ -23,6 +24,7 @@ import usePerpsToasts from './usePerpsToasts';
  */
 export const usePerpsOrderDepositTracking = () => {
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { toastRef } = useContext(ToastContext);
 
   const showProgressToast = useCallback(
     (transactionId: string) => {
@@ -37,7 +39,7 @@ export const usePerpsOrderDepositTracking = () => {
             isBold: true,
           },
         ],
-        hasNoTimeout: false,
+        hasNoTimeout: true,
       });
     },
     [showToast, PerpsToastOptions],
@@ -81,6 +83,7 @@ export const usePerpsOrderDepositTracking = () => {
         ) {
           if (failedTransactionMeta.id === transactionId) {
             clearTimeout(depositLongerTimeoutId);
+            toastRef?.current?.closeToast();
             showToast(PerpsToastOptions.accountManagement.deposit.error);
           }
         }
@@ -96,6 +99,7 @@ export const usePerpsOrderDepositTracking = () => {
           updatedTransactionMeta.status === TransactionStatus.confirmed
         ) {
           clearTimeout(depositLongerTimeoutId);
+          toastRef?.current?.closeToast();
           if (!cancelTradeRequested) {
             callback?.();
           }
@@ -111,7 +115,12 @@ export const usePerpsOrderDepositTracking = () => {
         handleTransactionStatusUpdated,
       );
     },
-    [showToast, showProgressToast, PerpsToastOptions.accountManagement.deposit],
+    [
+      showToast,
+      toastRef,
+      showProgressToast,
+      PerpsToastOptions.accountManagement.deposit,
+    ],
   );
 
   return {

@@ -3,7 +3,6 @@ import Engine from '../../../../core/Engine';
 import { usePredictMarket } from './usePredictMarket';
 import { PredictMarket, Recurrence } from '../types';
 
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 // Mock dependencies
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -18,7 +17,7 @@ describe('usePredictMarket', () => {
 
   const mockMarket: PredictMarket = {
     id: 'market-1',
-    providerId: POLYMARKET_PROVIDER_ID,
+    providerId: 'polymarket',
     slug: 'bitcoin-price-prediction',
     title: 'Will Bitcoin reach $200k by end of 2025?',
     description: 'Bitcoin price prediction market',
@@ -31,7 +30,7 @@ describe('usePredictMarket', () => {
     outcomes: [
       {
         id: 'outcome-1',
-        providerId: POLYMARKET_PROVIDER_ID,
+        providerId: 'polymarket',
         marketId: 'market-1',
         title: 'Yes',
         description: 'Bitcoin will reach $200k',
@@ -49,7 +48,7 @@ describe('usePredictMarket', () => {
       },
       {
         id: 'outcome-2',
-        providerId: POLYMARKET_PROVIDER_ID,
+        providerId: 'polymarket',
         marketId: 'market-1',
         title: 'No',
         description: 'Bitcoin will not reach $200k',
@@ -143,14 +142,15 @@ describe('usePredictMarket', () => {
       expect(result.current.market).toEqual(mockMarket);
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: '123',
+        providerId: undefined,
       });
     });
 
-    it('fetches market data with string id', async () => {
+    it('fetches market data with providerId', async () => {
       mockGetMarket.mockResolvedValue(mockMarket);
 
       const { result, waitForNextUpdate } = renderHook(() =>
-        usePredictMarket({ id: 'market-1' }),
+        usePredictMarket({ id: 'market-1', providerId: 'polymarket' }),
       );
 
       await waitForNextUpdate();
@@ -158,6 +158,7 @@ describe('usePredictMarket', () => {
       expect(result.current.market).toEqual(mockMarket);
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'market-1',
+        providerId: 'polymarket',
       });
     });
 
@@ -252,6 +253,7 @@ describe('usePredictMarket', () => {
       expect(result.current.market).toEqual(mockMarket);
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'market-1',
+        providerId: undefined,
       });
     });
   });
@@ -317,6 +319,7 @@ describe('usePredictMarket', () => {
 
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'market-1',
+        providerId: undefined,
       });
 
       // Change id
@@ -326,31 +329,34 @@ describe('usePredictMarket', () => {
 
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'market-2',
+        providerId: undefined,
       });
       expect(mockGetMarket).toHaveBeenCalledTimes(2);
     });
 
-    it('refetches when id changes across rerenders', async () => {
+    it('refetches when providerId changes', async () => {
       mockGetMarket.mockResolvedValue(mockMarket);
 
       const { rerender, waitForNextUpdate } = renderHook(
-        ({ id }) => usePredictMarket({ id }),
-        { initialProps: { id: 'market-1' } },
+        ({ providerId }) => usePredictMarket({ id: 'market-1', providerId }),
+        { initialProps: { providerId: 'polymarket' } },
       );
 
       await waitForNextUpdate();
 
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'market-1',
+        providerId: 'polymarket',
       });
 
-      // Change id
-      rerender({ id: 'market-2' });
+      // Change providerId
+      rerender({ providerId: 'other-provider' });
 
       await waitForNextUpdate();
 
       expect(mockGetMarket).toHaveBeenCalledWith({
-        marketId: 'market-2',
+        marketId: 'market-1',
+        providerId: 'other-provider',
       });
       expect(mockGetMarket).toHaveBeenCalledTimes(2);
     });
@@ -397,6 +403,7 @@ describe('usePredictMarket', () => {
 
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: '0',
+        providerId: undefined,
       });
     });
 
@@ -411,6 +418,7 @@ describe('usePredictMarket', () => {
 
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: '-1',
+        providerId: undefined,
       });
     });
 
@@ -443,6 +451,7 @@ describe('usePredictMarket', () => {
       const { waitForNextUpdate } = renderHook(() =>
         usePredictMarket({
           id: 'test-market-id',
+          providerId: 'test-provider',
         }),
       );
 
@@ -450,6 +459,7 @@ describe('usePredictMarket', () => {
 
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'test-market-id',
+        providerId: 'test-provider',
       });
       expect(mockGetMarket).toHaveBeenCalledTimes(1);
     });

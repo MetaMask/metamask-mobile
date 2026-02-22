@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsDataMonitor } from './usePerpsDataMonitor';
-import { type Order, type Position } from '@metamask/perps-controller';
+import type { Order, Position } from '../controllers/types';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 // Mock DevLogger

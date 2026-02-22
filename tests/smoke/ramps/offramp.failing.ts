@@ -1,22 +1,22 @@
-import { loginToApp } from '../../flows/wallet.flow';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
-import WalletView from '../../page-objects/wallet/WalletView';
-import FundActionMenu from '../../page-objects/UI/FundActionMenu';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import FundActionMenu from '../../../e2e/pages/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import { SmokeTrade } from '../../tags';
+import { SmokeTrade } from '../../../e2e/tags';
 import Assertions from '../../framework/Assertions';
-import SellGetStartedView from '../../page-objects/Ramps/SellGetStartedView';
-import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
-import QuotesView from '../../page-objects/Ramps/QuotesView';
+import SellGetStartedView from '../../../e2e/pages/Ramps/SellGetStartedView';
+import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView';
+import QuotesView from '../../../e2e/pages/Ramps/QuotesView';
 import {
   EventPayload,
   getEventsPayloads,
 } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
-import TestHelpers from '../../helpers';
+import TestHelpers from '../../../e2e/helpers';
 
 describe(SmokeTrade('Off-Ramp'), () => {
   let shouldCheckProviderSelectedEvents = true;

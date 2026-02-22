@@ -1,15 +1,14 @@
 import Assertions from '../../framework/Assertions';
-import Browser from '../../page-objects/Browser/BrowserView';
-import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
+import Browser from '../../../e2e/pages/Browser/BrowserView';
+import FooterActions from '../../../e2e/pages/Browser/Confirmations/FooterActions';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import RequestTypes from '../../page-objects/Browser/Confirmations/RequestTypes';
-import TestDApp from '../../page-objects/Browser/TestDApp';
-import { loginToApp } from '../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../flows/browser.flow';
+import RequestTypes from '../../../e2e/pages/Browser/Confirmations/RequestTypes';
+import TestDApp from '../../../e2e/pages/Browser/TestDApp';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { RegressionConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../../e2e/tags';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
-import RowComponents from '../../page-objects/Browser/Confirmations/RowComponents';
+import RowComponents from '../../../e2e/pages/Browser/Confirmations/RowComponents';
 import { DappVariants } from '../../framework/Constants';
 
 import { NETWORK_TEST_CONFIGS } from '../../resources/mock-configs';

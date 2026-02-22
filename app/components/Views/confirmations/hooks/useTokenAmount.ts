@@ -36,7 +36,6 @@ import { useCallback, useMemo } from 'react';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensController';
 import { getTokenTransferData } from '../utils/transaction-pay';
-import useMerklClaimAmount from './earn/useMerklClaimAmount';
 
 interface TokenAmountProps {
   /**
@@ -131,9 +130,6 @@ export const useTokenAmount = ({
     networkClientId,
   );
 
-  const { pending: merklClaimPending, claimAmount: merklClaimAmount } =
-    useMerklClaimAmount(transaction, nativeConversionRate, usdConversionRate);
-
   const transactionData = useMemo(
     () => parseStandardTokenTransactionData(tokenData?.data),
     [tokenData?.data],
@@ -218,29 +214,6 @@ export const useTokenAmount = ({
       usdValue = usdConversionRateFromCurrencyRates
         ? usdAmount.toFixed(2)
         : null;
-      break;
-    }
-    case TransactionType.musdClaim: {
-      if (merklClaimPending) break;
-
-      if (merklClaimAmount) {
-        const { claimAmountDecimal, fiatValue } = merklClaimAmount;
-
-        return {
-          amount: formatAmount(I18n.locale, claimAmountDecimal),
-          amountNative: undefined,
-          amountPrecise: formatAmountMaxPrecision(
-            I18n.locale,
-            claimAmountDecimal,
-          ),
-          amountUnformatted: claimAmountDecimal.toString(),
-          fiat: fiatFormatter(fiatValue),
-          fiatUnformatted: fiatValue.toString(),
-          isNative: false,
-          updateTokenAmount,
-          usdValue: claimAmountDecimal.toFixed(2),
-        };
-      }
       break;
     }
     default: {

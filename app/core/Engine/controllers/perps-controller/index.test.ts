@@ -6,30 +6,14 @@ import {
   PerpsControllerMessenger,
   PerpsControllerState,
   InitializationState,
-  MARKET_SORTING_CONFIG,
-} from '@metamask/perps-controller';
+} from '../../../../components/UI/Perps/controllers';
+import { MARKET_SORTING_CONFIG } from '../../../../components/UI/Perps/constants/perpsConfig';
 import { perpsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-// Mock mobile-specific modules that ./index.ts imports to avoid pulling in
-// Engine and React Native dependencies in the test environment
-jest.mock(
-  '../../../../components/UI/Perps/adapters/mobileInfrastructure',
-  () => ({
-    createMobileInfrastructure: jest.fn(() => ({})),
-  }),
-);
-jest.mock('../../../../components/UI/Perps/utils/e2eBridgePerps', () => ({
-  applyE2EControllerMocks: jest.fn(),
-}));
-
-jest.mock('@metamask/perps-controller', () => {
+jest.mock('../../../../components/UI/Perps/controllers', () => {
   const actualPerpsController = jest.requireActual(
-    '@metamask/perps-controller/PerpsController',
-  );
-  const actualUtils = jest.requireActual('@metamask/perps-controller/utils');
-  const actualConstants = jest.requireActual(
-    '@metamask/perps-controller/constants',
+    '../../../../components/UI/Perps/controllers',
   );
 
   return {
@@ -38,8 +22,6 @@ jest.mock('@metamask/perps-controller', () => {
       actualPerpsController.getDefaultPerpsControllerState,
     InitializationState: actualPerpsController.InitializationState,
     PerpsController: jest.fn(),
-    parseCommaSeparatedString: actualUtils.parseCommaSeparatedString,
-    MARKET_SORTING_CONFIG: actualConstants.MARKET_SORTING_CONFIG,
   };
 });
 
@@ -83,7 +65,7 @@ describe('perps controller init', () => {
 
   it('controller state should be default state when no initial state is passed in', () => {
     const defaultPerpsControllerState = jest
-      .requireActual('@metamask/perps-controller/PerpsController')
+      .requireActual('../../../../components/UI/Perps/controllers')
       .getDefaultPerpsControllerState();
 
     perpsControllerInit(initRequestMock);
@@ -140,13 +122,6 @@ describe('perps controller init', () => {
       initializationError: null,
       initializationAttempts: 0,
       selectedPaymentToken: null,
-      cachedMarketData: null,
-      cachedMarketDataTimestamp: 0,
-      cachedPositions: null,
-      cachedOrders: null,
-      cachedAccountState: null,
-      cachedUserDataTimestamp: 0,
-      cachedUserDataAddress: null,
     };
 
     initRequestMock.persistedState = {

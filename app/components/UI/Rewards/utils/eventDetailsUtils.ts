@@ -5,7 +5,6 @@ import {
   SwapEventPayload,
   PerpsEventPayload,
   CardEventPayload,
-  MusdDepositEventPayload,
   EventAssetDto,
   SeasonActivityTypeDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -180,77 +179,6 @@ export const getCardEventDetails = (
 };
 
 /**
- * Resolved event details with optional title override.
- */
-export interface ResolvedEventDetails {
-  /** Optional title override. When provided, takes precedence over the activity type title. */
-  title?: string;
-  /** The resolved details string. */
-  details: string | undefined;
-}
-
-/**
- * Resolves event details based on the activity type and event payload.
- * Each event type has its own logic for computing the title and details.
- * @param type - The activity type (e.g., 'SWAP', 'PERPS', 'CARD', etc.)
- * @param payload - The event payload
- * @param accountName - Optional account name for bonus events
- * @returns Resolved details for known types, or null if the type is not
- * recognized (caller should use fallback)
- */
-export const resolveEventDetails = (
-  type: string,
-  payload: PointsEventDto['payload'],
-  accountName?: string,
-): ResolvedEventDetails | null => {
-  switch (type) {
-    case 'SWAP':
-      return {
-        details: payload
-          ? formatSwapDetails(payload as SwapEventPayload)
-          : undefined,
-      };
-    case 'PERPS':
-      return {
-        title: payload
-          ? getPerpsEventTitle(payload as PerpsEventPayload)
-          : undefined,
-        details: payload
-          ? getPerpsEventDetails(payload as PerpsEventPayload)
-          : undefined,
-      };
-    case 'CARD':
-      return {
-        details: payload
-          ? getCardEventDetails(payload as CardEventPayload)
-          : undefined,
-      };
-    case 'SIGN_UP_BONUS':
-    case 'LOYALTY_BONUS':
-      return { details: accountName };
-    case 'MUSD_DEPOSIT': {
-      const formattedDate = formatRewardsMusdDepositPayloadDate(
-        (payload as MusdDepositEventPayload | null)?.date,
-      );
-      return {
-        details: formattedDate
-          ? strings('rewards.events.musd_deposit_for', {
-              date: formattedDate,
-            })
-          : undefined,
-      };
-    }
-    case 'REFERRAL':
-    case 'APPLY_REFERRAL_BONUS':
-    case 'ONE_TIME_BONUS':
-    case 'PREDICT':
-      return { details: undefined };
-    default:
-      return null;
-  }
-};
-
-/**
  * Formats an event details
  * @param event - The event
  * @param activityTypes - The activity types
@@ -270,39 +198,92 @@ export const getEventDetails = (
     (activity) => activity.type === event.type,
   );
 
-  if (matchingActivityType) {
-    const resolved = resolveEventDetails(
-      matchingActivityType.type,
-      event.payload,
-      accountName,
-    );
-
-    if (resolved) {
+  switch (event.type) {
+    case 'SWAP':
       return {
-        title: resolved.title ?? matchingActivityType.title,
-        details: resolved.details,
-        icon: getIconName(matchingActivityType.icon),
+        title: strings('rewards.events.type.swap'),
+        details: formatSwapDetails(event.payload as SwapEventPayload),
+        icon: IconName.SwapVertical,
+      };
+    case 'PERPS':
+      return {
+        title: getPerpsEventTitle(event.payload as PerpsEventPayload),
+        details: getPerpsEventDetails(event.payload as PerpsEventPayload),
+        icon: IconName.Candlestick,
+      };
+    case 'CARD':
+      return {
+        title: strings('rewards.events.type.card_spend'),
+        details: getCardEventDetails(event.payload as CardEventPayload),
+        icon: IconName.Card,
+      };
+    case 'REFERRAL':
+      return {
+        title: strings('rewards.events.type.referral_action'),
+        details: undefined,
+        icon: IconName.UserCircleAdd,
+      };
+    case 'APPLY_REFERRAL_BONUS':
+      return {
+        title: strings('rewards.events.type.apply_referral_bonus'),
+        details: undefined,
+        icon: IconName.UserCircleAdd,
+      };
+    case 'SIGN_UP_BONUS':
+      return {
+        title: strings('rewards.events.type.sign_up_bonus'),
+        details: accountName,
+        icon: IconName.Edit,
+      };
+    case 'LOYALTY_BONUS':
+      return {
+        title: strings('rewards.events.type.loyalty_bonus'),
+        details: accountName,
+        icon: IconName.ThumbUp,
+      };
+    case 'ONE_TIME_BONUS':
+      return {
+        title: strings('rewards.events.type.one_time_bonus'),
+        details: undefined,
+        icon: IconName.Gift,
+      };
+    case 'PREDICT':
+      return {
+        title: strings('rewards.events.type.predict'),
+        details: undefined,
+        icon: IconName.Speedometer,
+      };
+    case 'MUSD_DEPOSIT': {
+      const formattedDate = formatRewardsMusdDepositPayloadDate(
+        event.payload?.date,
+      );
+      return {
+        title: strings('rewards.events.type.musd_deposit'),
+        details: formattedDate
+          ? strings('rewards.events.musd_deposit_for', {
+              date: formattedDate,
+            })
+          : undefined,
+        icon: IconName.Coin,
       };
     }
+    default: {
+      if (matchingActivityType) {
+        return {
+          title: matchingActivityType.title,
+          details: resolveTemplate(
+            matchingActivityType.description,
+            (event.payload ?? {}) as Record<string, string>,
+          ),
+          icon: getIconName(matchingActivityType.icon),
+        };
+      }
 
-    // For unknown types, fall back to description template resolution
-    return {
-      title: matchingActivityType.title,
-      details: resolveTemplate(
-        (
-          matchingActivityType as SeasonActivityTypeDto & {
-            description: string;
-          }
-        ).description ?? '',
-        (event.payload ?? {}) as Record<string, string>,
-      ),
-      icon: getIconName(matchingActivityType.icon),
-    };
+      return {
+        title: strings('rewards.events.type.uncategorized_event'),
+        details: undefined,
+        icon: IconName.Star,
+      };
+    }
   }
-
-  return {
-    title: strings('rewards.events.type.uncategorized_event'),
-    details: undefined,
-    icon: IconName.Star,
-  };
 };

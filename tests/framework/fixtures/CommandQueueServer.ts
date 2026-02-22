@@ -1,7 +1,7 @@
 import { getLocalHost } from './FixtureUtils.ts';
 import Koa, { Context } from 'koa';
 import { createLogger } from '../logger.ts';
-import { E2ECommandTypes, Resource, ServerStatus } from '../types.ts';
+import { CommandType, Resource, ServerStatus } from '../types.ts';
 import PortManager, { ResourceType } from '../PortManager.ts';
 
 const logger = createLogger({
@@ -15,7 +15,7 @@ const logger = createLogger({
  * @param args - The arguments to add to the command queue
  */
 export interface CommandQueueItem {
-  type: E2ECommandTypes;
+  type: CommandType;
   args: Record<string, unknown>;
 }
 
@@ -23,14 +23,12 @@ class CommandQueueServer implements Resource {
   private _app: Koa;
   private _server: ReturnType<Koa['listen']> | undefined;
   private _queue: CommandQueueItem[];
-  private _exportedState: Record<string, unknown> | null;
   _serverPort: number;
   _serverStatus: ServerStatus = ServerStatus.STOPPED;
 
   constructor() {
     this._app = new Koa();
     this._queue = [];
-    this._exportedState = null;
     this._serverPort = 0; // will be set with setServerPort()
     this._app.use(async (ctx: Context) => {
       // Middleware to handle requests
@@ -40,39 +38,18 @@ class CommandQueueServer implements Resource {
         'Access-Control-Allow-Headers',
         'Origin, X-Requested-With, Content-Type, Accept',
       );
-
       if (this._isQueueRequest(ctx)) {
         const newQueue = [...this._queue];
         this._queue.length = 0;
         ctx.body = {
           queue: newQueue,
         };
-        return;
       }
 
       if (this._isDebugRequest(ctx)) {
         ctx.body = {
           queue: this._queue,
         };
-        return;
-      }
-
-      if (this._isExportedStatePost(ctx)) {
-        const body = await this._parseJsonBody(ctx);
-        this._exportedState = body as Record<string, unknown>;
-        ctx.status = 200;
-        ctx.body = { success: true };
-        return;
-      }
-
-      if (this._isExportedStateGet(ctx)) {
-        if (this._exportedState === null) {
-          ctx.status = 404;
-          ctx.body = { error: 'No exported state available' };
-          return;
-        }
-        ctx.body = this._exportedState;
-        return;
       }
     });
   }
@@ -184,66 +161,12 @@ class CommandQueueServer implements Resource {
     this._queue.push(item);
   }
 
-  requestStateExport() {
-    this._exportedState = null;
-    this._queue.push({
-      type: E2ECommandTypes.exportState,
-      args: {},
-    });
-  }
-
-  async getExportedState(
-    timeout = 10000,
-    pollInterval = 500,
-  ): Promise<Record<string, unknown>> {
-    const deadline = Date.now() + timeout;
-
-    while (Date.now() < deadline) {
-      if (this._exportedState !== null) {
-        const state = this._exportedState;
-        this._exportedState = null;
-        return state;
-      }
-      await new Promise((resolve) => setTimeout(resolve, pollInterval));
-    }
-
-    throw new Error(
-      `getExportedState timed out after ${timeout}ms — the app did not POST to /exported-state. ` +
-        'Ensure the command queue server is running and the app is polling /queue.json.',
-    );
-  }
-
   private _isQueueRequest(ctx: Context) {
     return ctx.method === 'GET' && ctx.path === '/queue.json';
   }
 
   private _isDebugRequest(ctx: Context) {
     return ctx.method === 'GET' && ctx.path === '/debug.json';
-  }
-
-  private _isExportedStatePost(ctx: Context) {
-    return ctx.method === 'POST' && ctx.path === '/exported-state';
-  }
-
-  private _isExportedStateGet(ctx: Context) {
-    return ctx.method === 'GET' && ctx.path === '/exported-state.json';
-  }
-
-  private _parseJsonBody(ctx: Context): Promise<unknown> {
-    return new Promise((resolve, reject) => {
-      let body = '';
-      ctx.req.on('data', (chunk: Buffer) => {
-        body += chunk.toString();
-      });
-      ctx.req.on('end', () => {
-        try {
-          resolve(JSON.parse(body));
-        } catch (e) {
-          reject(e);
-        }
-      });
-      ctx.req.on('error', reject);
-    });
   }
 }
 

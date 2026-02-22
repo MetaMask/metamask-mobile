@@ -12,7 +12,6 @@ import BigNumber from 'bignumber.js';
 import currencySymbols from '../currency-symbols.json';
 import { isZero } from '../lodash';
 import { regex } from '../regex';
-import { formatSubscriptNotation } from './subscriptNotation';
 
 const MAX_DECIMALS_FOR_TOKENS = 36;
 BigNumber.config({ DECIMAL_PLACES: MAX_DECIMALS_FOR_TOKENS });
@@ -562,28 +561,8 @@ export function addCurrencySymbol(
   amount,
   currencyCode,
   extendDecimals = false,
-  useSubscriptNotation = false,
 ) {
   const prefix = parseFloat(amount) < 0 ? '-' : '';
-  const num = parseFloat(amount);
-  const absNum = Math.abs(num);
-
-  // Apply subscript notation for very small numbers
-  if (useSubscriptNotation) {
-    const formatted = formatSubscriptNotation(absNum);
-
-    if (formatted) {
-      const symbol =
-        currencySymbols[currencyCode] ||
-        currencySymbols[currencyCode?.toLowerCase()] ||
-        '';
-
-      return symbol
-        ? `${prefix}${symbol}${formatted}`
-        : `${prefix}${formatted} ${currencyCode}`;
-    }
-  }
-
   if (extendDecimals) {
     if (isNumberScientificNotationWhenString(amount)) {
       amount = amount.toFixed(18);

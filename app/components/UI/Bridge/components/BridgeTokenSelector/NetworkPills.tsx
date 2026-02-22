@@ -1,18 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useRef } from 'react';
+import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  AvatarBaseShape,
-  AvatarNetwork,
-  AvatarNetworkSize,
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
   selectSourceChainRanking,
@@ -23,133 +12,81 @@ import { ScrollView } from 'react-native-gesture-handler';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 import { TokenSelectorType } from '../../types';
-import { getNetworkImageSource } from '../../../../../util/networks';
 
-/** Maximum number of network pills visible in the horizontal list */
-export const MAX_VISIBLE_PILLS = 4;
+const PILL_WIDTH = 90; // Average pill width including gap
 
-/** Estimated average pill width (px) for scroll offset calculations */
-const PILL_WIDTH = 100;
+const styles = StyleSheet.create({
+  pill: {
+    borderRadius: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingLeft: 12,
+    paddingRight: 12,
+  },
+});
 
 interface NetworkPillsProps {
   selectedChainId?: CaipChainId;
   onChainSelect: (chainId?: CaipChainId) => void;
-  onMorePress: () => void;
   type: TokenSelectorType;
 }
-
-interface ChainRankingEntry {
-  chainId: CaipChainId;
-  name: string;
-}
-
-/**
- * Returns the first MAX_VISIBLE_PILLS chain IDs from chainRanking.
- * The ranking order is determined by the feature flag, so the first entries
- * are already the highest-priority networks.
- */
-const getVisibleChainIds = (chainRanking: ChainRankingEntry[]): CaipChainId[] =>
-  chainRanking.slice(0, MAX_VISIBLE_PILLS).map((c) => c.chainId);
 
 export const NetworkPills: React.FC<NetworkPillsProps> = ({
   selectedChainId,
   onChainSelect,
-  onMorePress,
   type,
 }) => {
   const tw = useTailwind();
   const scrollViewRef = useRef<ScrollView>(null);
+  const hasScrolledRef = useRef(false);
   const sourceChainRanking = useSelector(selectSourceChainRanking);
   const destChainRanking = useSelector(selectDestChainRanking);
-  const chainRanking: ChainRankingEntry[] =
+  const chainRanking =
     type === TokenSelectorType.Source ? sourceChainRanking : destChainRanking;
 
-  // Track which chain IDs are visible as pills
-  const [visibleChainIds, setVisibleChainIds] = useState<CaipChainId[]>(() =>
-    getVisibleChainIds(chainRanking),
-  );
+  // Auto-scroll to selected network on initial layout
+  const handleContentSizeChange = () => {
+    if (hasScrolledRef.current || !selectedChainId) return;
 
-  // Resolve visible chains to full entries from chainRanking
-  const visibleChains = useMemo(
-    () =>
-      visibleChainIds
-        .map((id) => chainRanking.find((c) => c.chainId === id))
-        .filter((c): c is ChainRankingEntry => c !== undefined),
-    [visibleChainIds, chainRanking],
-  );
-
-  const remainingCount = chainRanking.length - visibleChains.length;
-
-  // When a non-visible network is selected (e.g. from the bottom sheet),
-  // push it to the first position and pop the last visible pill.
-  // Also scroll the pills to bring the selected network into view.
-  //
-  // Only `selectedChainId` is listed as a dependency because
-  // `visibleChainIds` is a state variable that this effect mutates;
-  // including it would cause an infinite update loop.
-  useEffect(() => {
-    if (!selectedChainId) {
-      // "All" selected — scroll to start
-      scrollViewRef.current?.scrollTo({ x: 0, animated: true });
-      return;
-    }
-
-    const existingIndex = visibleChainIds.indexOf(selectedChainId);
-
-    if (existingIndex === -1) {
-      // Non-visible network: push to front and scroll to start
-      setVisibleChainIds((prev) => [
-        selectedChainId,
-        ...prev.slice(0, MAX_VISIBLE_PILLS - 1),
-      ]);
-      scrollViewRef.current?.scrollTo({ x: 0, animated: true });
-    } else {
-      // Already visible: scroll to bring it into view
-      const scrollX = Math.max(0, existingIndex * PILL_WIDTH);
-      scrollViewRef.current?.scrollTo({ x: scrollX, animated: true });
-    }
-  }, [selectedChainId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const renderChainPill = (chain: ChainRankingEntry) => {
-    const isSelected = selectedChainId === chain.chainId;
-    const imageSource = getNetworkImageSource({ chainId: chain.chainId });
-
-    return (
-      <ButtonToggle
-        key={chain.chainId}
-        label={
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            {/* translateY corrects optical misalignment between icon and text
-               caused by font line-height metrics */}
-            <AvatarNetwork
-              src={imageSource}
-              size={AvatarNetworkSize.Xs}
-              name={chain.name}
-              shape={AvatarBaseShape.Square}
-              twClassName="rounded translate-y-px"
-            />
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={
-                isSelected ? TextColor.PrimaryInverse : TextColor.TextDefault
-              }
-            >
-              {chain.name}
-            </Text>
-          </Box>
-        }
-        isActive={isSelected}
-        onPress={() => onChainSelect(chain.chainId)}
-        size={ButtonSize.Md}
-        style={tw.style('rounded-xl py-2 px-3')}
-      />
+    const selectedIndex = chainRanking.findIndex(
+      (chain: { chainId: CaipChainId }) => chain.chainId === selectedChainId,
     );
+
+    // Only scroll if the selected network is beyond the first 2 visible networks
+    // The first few networks are already visible, no need to scroll
+    if (selectedIndex > 1) {
+      // Scroll to position the selected network more towards the center
+      scrollViewRef.current?.scrollTo({
+        x: selectedIndex * PILL_WIDTH - PILL_WIDTH,
+        animated: false,
+      });
+    }
+    hasScrolledRef.current = true;
   };
+
+  const handleAllPress = () => {
+    onChainSelect(undefined);
+  };
+
+  const handleChainPress = (chainId: CaipChainId) => {
+    onChainSelect(chainId);
+  };
+
+  const renderChainPills = () =>
+    chainRanking.map((chain: { chainId: CaipChainId; name: string }) => {
+      const isSelected = selectedChainId === chain.chainId;
+
+      return (
+        <ButtonToggle
+          key={chain.chainId}
+          label={chain.name}
+          isActive={isSelected}
+          onPress={() => handleChainPress(chain.chainId)}
+          size={ButtonSize.Md}
+          style={styles.pill}
+        />
+      );
+    });
 
   return (
     <ScrollView
@@ -158,28 +95,17 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       showsHorizontalScrollIndicator={false}
       style={tw.style('flex-grow-0')}
       contentContainerStyle={tw.style('flex-row items-center gap-2')}
+      onContentSizeChange={handleContentSizeChange}
     >
       {/* All CTA - First pill */}
       <ButtonToggle
         label={strings('bridge.all')}
         isActive={!selectedChainId}
-        onPress={() => onChainSelect(undefined)}
-        style={tw.style('rounded-xl py-2 px-3')}
+        onPress={handleAllPress}
+        style={styles.pill}
         size={ButtonSize.Md}
       />
-      {visibleChains.map(renderChainPill)}
-      {remainingCount > 0 && (
-        <ButtonToggle
-          label={strings('bridge.more_networks', {
-            count: remainingCount,
-          })}
-          isActive={false}
-          onPress={onMorePress}
-          style={tw.style('rounded-xl py-2 px-3')}
-          size={ButtonSize.Md}
-          testID="network-pills-more-button"
-        />
-      )}
+      {renderChainPills()}
     </ScrollView>
   );
 };

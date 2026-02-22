@@ -11,13 +11,14 @@
  */
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { DECIMAL_PRECISION_CONFIG } from '@metamask/perps-controller';
-// Re-export significant figures utilities from controller for backwards compatibility
+import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
+// Re-export significant figures utilities from formatUtils for backwards compatibility
+// These utilities are now consolidated in formatUtils.ts to avoid duplication
 export {
   countSignificantFigures,
   hasExceededSignificantFigures,
   roundToSignificantFigures,
-} from '@metamask/perps-controller';
+} from './formatUtils';
 
 interface ValidationParams {
   currentPrice: number;

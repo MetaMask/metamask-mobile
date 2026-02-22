@@ -2,7 +2,7 @@
  * Shared provider mocks for Perps tests
  * Provides reusable mock implementations for HyperLiquidProvider and related interfaces
  */
-import { type HyperLiquidProvider } from '@metamask/perps-controller';
+import { type HyperLiquidProvider } from '../controllers/providers/HyperLiquidProvider';
 
 export const createMockHyperLiquidProvider =
   (): jest.Mocked<HyperLiquidProvider> =>

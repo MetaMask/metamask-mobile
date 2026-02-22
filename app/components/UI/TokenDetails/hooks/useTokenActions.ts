@@ -35,7 +35,6 @@ import {
 } from '../../Bridge/utils/tokenUtils';
 import { useSendNonEvmAsset } from '../../../hooks/useSendNonEvmAsset';
 import {
-  formatAddressToAssetId,
   formatChainIdToCaip,
   isNativeAddress,
 } from '@metamask/bridge-controller';
@@ -392,33 +391,13 @@ export const useTokenActions = ({
   const handleBuyPress = useCallback(() => {
     // If user has no eligible tokens to swap with, route to on-ramp
     if (!buySourceToken) {
-      let assetId: string | undefined;
-
-      try {
-        if (isCaipAssetType(token.address)) {
-          assetId = token.address;
-        } else if (token.chainId) {
-          assetId =
-            formatAddressToAssetId(token.address, token.chainId) ?? undefined;
-        }
-      } catch {
-        assetId = undefined;
-      }
-
-      goToBuy({ assetId });
+      goToBuy();
       return;
     }
 
     if (!goToSwaps) return;
     goToSwaps(buySourceToken, currentTokenAsBridgeToken);
-  }, [
-    goToSwaps,
-    goToBuy,
-    buySourceToken,
-    currentTokenAsBridgeToken,
-    token.address,
-    token.chainId,
-  ]);
+  }, [goToSwaps, goToBuy, buySourceToken, currentTokenAsBridgeToken]);
 
   // Sell: current token as source, let swap UI compute default dest
   const handleSellPress = useCallback(() => {

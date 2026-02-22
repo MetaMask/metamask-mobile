@@ -1,6 +1,6 @@
 // Mock the constants
-jest.mock('@metamask/perps-controller', () => {
-  const actual = jest.requireActual('@metamask/perps-controller');
+jest.mock('../../constants/chartConfig', () => {
+  const actual = jest.requireActual('../../constants/chartConfig');
   return {
     ...actual,
     getCandlePeriodsForDuration: jest
@@ -29,7 +29,7 @@ import {
   getCandlePeriodsForDuration,
   CandlePeriod,
   TimeDuration,
-} from '@metamask/perps-controller';
+} from '../../constants/chartConfig';
 
 // Mock react-native-safe-area-context first
 jest.mock('react-native-safe-area-context', () => ({

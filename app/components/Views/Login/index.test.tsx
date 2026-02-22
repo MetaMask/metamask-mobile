@@ -3,7 +3,13 @@ import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act } from '@testing-library/react-native';
 import { LoginViewSelectors } from './LoginView.testIds';
-import { InteractionManager, BackHandler, Image, Platform } from 'react-native';
+import {
+  InteractionManager,
+  BackHandler,
+  Alert,
+  Image,
+  Platform,
+} from 'react-native';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -42,7 +48,6 @@ const mockLockApp = jest.fn();
 const mockReauthenticate = jest.fn();
 const mockRevealSRP = jest.fn();
 const mockRevealPrivateKey = jest.fn();
-const mockCheckIsSeedlessPasswordOutdated = jest.fn().mockResolvedValue(false);
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -54,7 +59,6 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
     reauthenticate: mockReauthenticate,
     revealSRP: mockRevealSRP,
     revealPrivateKey: mockRevealPrivateKey,
-    checkIsSeedlessPasswordOutdated: mockCheckIsSeedlessPasswordOutdated,
   }),
 }));
 
@@ -502,27 +506,26 @@ describe('Login', () => {
       expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
     });
 
-    it('biometric button is shown when biometric credentials exist', async () => {
-      // With toggle removed, biometric button shows based on credentials, not storage flags
+    it('biometric button is not shown when previously disabled', async () => {
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
         if (key === BIOMETRY_CHOICE_DISABLED) return Promise.resolve(TRUE);
         return Promise.resolve(null);
       });
 
       mockGetAuthType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
         availableBiometryType: 'TouchID',
       });
 
-      const { getByTestId } = renderWithProvider(<Login />);
+      const { queryByTestId } = renderWithProvider(<Login />);
 
       // Wait for useEffect to complete
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      // Should render biometric button when biometric credentials exist
-      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeOnTheScreen();
+      // Should NOT render biometric button when previously disabled
+      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
     });
   });
 
@@ -667,6 +670,30 @@ describe('Login', () => {
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeOnTheScreen();
       expect(errorElement.props.children).toEqual('Some unexpected error');
+    });
+
+    it('displays alert when passcode not set', async () => {
+      const mockAlert = jest
+        .spyOn(Alert, 'alert')
+        .mockImplementation(() => undefined);
+      mockUnlockWallet.mockRejectedValue(new Error('Passcode not set.'));
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockAlert).toHaveBeenCalledWith(
+        strings('login.security_alert_title'),
+        strings('login.security_alert_desc'),
+      );
+
+      mockAlert.mockRestore();
     });
 
     it('navigates to rehydrate screen when seedless onboarding error is detected', async () => {

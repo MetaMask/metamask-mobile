@@ -9,12 +9,14 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   PERPS_CONSTANTS,
-  getPerpsDisplaySymbol,
-  type PerpsMarketData,
-} from '@metamask/perps-controller';
-import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+  HOME_SCREEN_CONFIG,
+} from '../../constants/perpsConfig';
+import type { PerpsMarketData } from '../../controllers/types';
 import { usePerpsLivePrices } from '../../hooks/stream';
-import { getMarketBadgeType } from '../../utils/marketUtils';
+import {
+  getPerpsDisplaySymbol,
+  getMarketBadgeType,
+} from '../../utils/marketUtils';
 import {
   formatFundingRate,
   formatPercentage,
@@ -35,9 +37,8 @@ const PerpsMarketRowItem = ({
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   displayMetric = 'volume',
   showBadge = false, // We can re-enable this if/when we decide to render the badges for stocks and commodities
-  compact = false,
 }: PerpsMarketRowItemProps) => {
-  const { styles } = useStyles(styleSheet, { compact });
+  const { styles } = useStyles(styleSheet, {});
 
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({

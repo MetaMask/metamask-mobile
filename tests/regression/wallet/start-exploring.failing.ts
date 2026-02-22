@@ -1,12 +1,12 @@
-import { RegressionWalletPlatform } from '../../tags';
-import TestHelpers from '../../helpers';
-import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
-import OnboardingCarouselView from '../../page-objects/Onboarding/OnboardingCarouselView';
-import ProtectYourWalletView from '../../page-objects/Onboarding/ProtectYourWalletView';
-import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
-import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
-import SkipAccountSecurityModal from '../../page-objects/Onboarding/SkipAccountSecurityModal';
-import { acceptTermOfUse } from '../../flows/wallet.flow';
+import { RegressionWalletPlatform } from '../../../e2e/tags';
+import TestHelpers from '../../../e2e/helpers';
+import OnboardingView from '../../../e2e/pages/Onboarding/OnboardingView';
+import OnboardingCarouselView from '../../../e2e/pages/Onboarding/OnboardingCarouselView';
+import ProtectYourWalletView from '../../../e2e/pages/Onboarding/ProtectYourWalletView';
+import CreatePasswordView from '../../../e2e/pages/Onboarding/CreatePasswordView';
+import OnboardingSuccessView from '../../../e2e/pages/Onboarding/OnboardingSuccessView';
+import SkipAccountSecurityModal from '../../../e2e/pages/Onboarding/SkipAccountSecurityModal';
+import { acceptTermOfUse } from '../../../e2e/viewHelper';
 import Assertions from '../../framework/Assertions';
 
 const PASSWORD = '12345678';

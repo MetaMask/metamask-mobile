@@ -44,10 +44,6 @@ const getEstimatedTime = (
 
   const { minWaitTimeEstimate } = networkGasFeeEstimates[userFeeLevel];
 
-  if (minWaitTimeEstimate < 1000) {
-    return ' < 1 sec';
-  }
-
   const humanizedWaitTime = toHumanSeconds(minWaitTimeEstimate);
 
   // Intentional space as prefix

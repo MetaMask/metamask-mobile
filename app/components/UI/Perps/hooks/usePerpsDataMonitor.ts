@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
+import type { Position } from '../controllers/types';
 import { usePerpsLiveOrders, usePerpsLivePositions } from './stream';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 export interface DataMonitorParams {
   /** Asset symbol */
