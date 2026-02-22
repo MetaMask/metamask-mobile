@@ -7,6 +7,7 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { useDestinationAccounts } from './useDestinationAccounts';
 import { areAddressesEqual } from '../../../../util/address';
 
@@ -16,6 +17,7 @@ export const useRecipientInitialization = (
   const dispatch = useDispatch();
   const { destinationAccounts } = useDestinationAccounts();
   const currentlySelectedAccount = useSelector(selectSelectedAccountGroup);
+  const internalAccounts = useSelector(selectInternalAccounts);
 
   const destAddress = useSelector(selectDestAddress);
   const destToken = useSelector(selectDestToken);
@@ -34,11 +36,20 @@ export const useRecipientInitialization = (
   // This properly handles switching between different non-EVM chains (e.g., BTC → SOL)
   // by checking if the address exists in the filtered destination accounts list
   const isDestAddressValidForDestChain = useMemo(() => {
-    if (
-      !destAddress ||
-      !destToken?.chainId ||
-      destinationAccounts.length === 0
-    ) {
+    if (!destAddress || !destToken?.chainId) {
+      return false;
+    }
+
+    const isInternalDestAddress = internalAccounts.some((internalAccount) =>
+      areAddressesEqual(internalAccount.address, destAddress),
+    );
+
+    // Preserve external recipients selected by the user.
+    if (!isInternalDestAddress) {
+      return true;
+    }
+
+    if (destinationAccounts.length === 0) {
       return false;
     }
 
@@ -48,7 +59,7 @@ export const useRecipientInitialization = (
     return destinationAccounts.some((account) =>
       areAddressesEqual(account.address, destAddress),
     );
-  }, [destAddress, destToken?.chainId, destinationAccounts]);
+  }, [destAddress, destToken?.chainId, destinationAccounts, internalAccounts]);
 
   // Initialize default recipient account
   useEffect(() => {
