@@ -458,7 +458,11 @@
     "reset_wallet_desc_bold": "在该设备上从",
     "reset_wallet_desc_2": "MetaMask 永久删除。此操作无法撤销。",
     "reset_wallet_desc_login": "要恢复您的钱包，您可以使用您的私钥助记词，或您的 Google 账户/ Apple 账户密码。MetaMask 没有这些信息。",
-    "reset_wallet_desc_srp": "要恢复您的钱包，请确保您已备份私钥助记词。MetaMask 不会存储此信息。"
+    "reset_wallet_desc_srp": "要恢复您的钱包，请确保您已备份私钥助记词。MetaMask 不会存储此信息。",
+    "biometric_authentication_cancelled": "Biometric authentication cancelled",
+    "biometric_authentication_cancelled_title": "Biometric Setup Failed",
+    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
+    "biometric_authentication_cancelled_button": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "连接硬件钱包",
@@ -1040,7 +1044,7 @@
       "title": "要存入的金额",
       "get_usdc_hyperliquid": "获取 USDC • Hyperliquid",
       "insufficient_funds": "资金不足",
-      "no_funds_available": "无可用资金。请先充值。",
+      "no_funds_available": "Not enough funds available. Deposit funds or select a different payment method",
       "enter_amount": "输入金额",
       "fetching_quote": "正在获取报价",
       "submitting": "正在提交交易",
@@ -2051,6 +2055,16 @@
       "referral_code_text": "使用我的推荐码即可赚取额外奖励。"
     }
   },
+  "market_insights": {
+    "title": "Market insights",
+    "updated_ago": "Updated {{time}}",
+    "disclaimer": "AI insights. Not financial advice.",
+    "whats_driving_price": "What's driving the price?",
+    "what_people_saying": "What people are saying",
+    "trade_button": "Trade",
+    "sources_count": "+{{count}} sources",
+    "sources_title": "Sources"
+  },
   "predict": {
     "title": "MetaMask 预测",
     "prediction_markets": "预测市场",
@@ -2752,6 +2766,9 @@
     "disconnect_all_accounts": "断开所有账户的连接",
     "deceptive_site_ahead": "前方为欺骗性网站",
     "deceptive_site_desc": "您尝试访问的网站并不安全。攻击者可能会诱使您做一些危险的事情",
+    "malicious_site_detected": "Malicious site detected",
+    "malicious_site_warning": "If you connect to this site, you could lose all your assets.",
+    "connect_anyway": "Connect Anyway",
     "learn_more": "了解详情",
     "advisory_by": "建议由以太坊网络钓鱼探测器和PhishFort提供",
     "potential_threat": "潜在威胁包括",
@@ -2846,7 +2863,10 @@
     "permissions": "许可",
     "card_title": "MetaMask 卡",
     "settings": "设置",
-    "log_out": "退出登录"
+    "log_out": "退出登录",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "正在启用通知...",
@@ -2870,6 +2890,8 @@
     "state_logs": "状态记录",
     "add_network_title": "添加网络",
     "auto_lock": "自动锁定",
+    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "选择应用程序自动锁定之前空闲的时间。",
     "state_logs_desc": "这将帮助 MetaMask 调试您可能遇到的任何问题。请通过电子邮件将其发送到 support@metamask.io",
     "autolock_immediately": "立即",
@@ -3379,6 +3401,7 @@
     "sell_description": "卖出加密货币换取现金"
   },
   "asset_overview": {
+    "market_closed": "Market closed",
     "send_button": "发送",
     "buy_button": "买入",
     "cash_buy_button": "现金买入",
@@ -3399,19 +3422,6 @@
     "bridge": "桥接",
     "earn": "赚取",
     "convert_to_musd": "兑换为 mUSD",
-    "merkl_rewards": {
-      "annual_bonus": "{{apy}}% 奖励",
-      "claimable_bonus": "可领取奖励",
-      "claimable_bonus_tooltip_description": "mUSD 奖励在 Linea 上领取。",
-      "terms_apply": "具体条款适用。",
-      "ok": "确定",
-      "claim": "领取",
-      "processing_claim": "正在处理领取……",
-      "claim_on_linea_title": "在 Linea 上领取奖励",
-      "claim_on_linea_description": "您的奖励将在 Linea 网络上发放，与您在以太坊上的 mUSD 余额相互独立。",
-      "continue": "继续",
-      "unexpected_error": "发生意外错误。请重试。"
-    },
     "tron": {
       "daily_resource_new_energy": "每日新能量",
       "sufficient_to_cover": "足以覆盖",
@@ -3795,7 +3805,7 @@
     "no_tabs_desc": "要浏览去中心化网络，请添加新标签页",
     "got_it": "知道了",
     "max_tabs_title": "达到最大标签页数量限制",
-    "max_tabs_desc": "我们目前仅支持同时打开 5 个标签页。请在添加新标签页前关闭现有标签页。",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "我们无法解析该 ENS 名称",
     "remove_bookmark_title": "删除收藏",
     "remove_bookmark_msg": "是否确实想要从您的收藏夹中删除此站点？",
@@ -4181,11 +4191,7 @@
     "enable_device_passcode_android": "使用设备 PIN 登录？"
   },
   "authentication": {
-    "auth_prompt_title": "需要身份验证",
-    "auth_prompt_desc": "请进行身份验证以便使用 MetaMask",
-    "fingerprint_prompt_title": "需要身份验证",
-    "fingerprint_prompt_desc": "使用您的指纹解锁 MetaMask",
-    "fingerprint_prompt_cancel": "取消"
+    "auth_prompt_desc": "请进行身份验证以便使用 MetaMask"
   },
   "accountApproval": {
     "title": "连接请求",
@@ -5530,10 +5536,10 @@
     "enable_remember_me_description": "在“记住我”功能打开时，任何有访问您手机权限的人都可以访问您的 MetaMask 账户。"
   },
   "turn_off_remember_me": {
-    "title": "输入密码以关闭“记住我”",
-    "placeholder": "密码",
-    "description": "如果关闭此选项，从现在起，您需要使用密码来解锁 MetaMask。",
-    "action": "关闭“记住我”"
+    "title": "Turn off Remember Me",
+    "placeholder": "Confirm password",
+    "description": "Once turned off, Remember Me can't be used again. This feature has been discontinued, so you can unlock MetaMask with your password or biometrics instead.",
+    "action": "Turn off Remember Me"
   },
   "dapp_connect": {
     "warning": "要使用此功能，请将应用程序更新到最新版本"
@@ -6435,6 +6441,13 @@
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "若交易处理期间价格发生波动，根据您设置的滑点容差，此为您将收到的最低金额。该金额来自流动性供应商提供的预估，最终到账金额可能存在差异。",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Done"
+    },
     "submit": "提交",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "cancel": "取消",
@@ -6739,6 +6752,7 @@
     "password_bottomsheet": {
       "title": "输入密码",
       "description": "输入您的钱包密码以查看卡详情。",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "密码",
       "confirm": "确认",
       "cancel": "取消",
@@ -7001,6 +7015,7 @@
       "enable_card_error": "启用卡失败。请稍后再试。",
       "view_card_details_error": "卡详情加载失败。请重试。",
       "biometric_verification_required": "查看卡详情需要身份验证。",
+      "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "warnings": {
         "close_spending_limit": {
           "title": "您即将达到消费限额",
@@ -7018,7 +7033,7 @@
         },
         "frozen": {
           "title": "您的卡已冻结",
-          "description": "请联系支持团队解冻您的卡"
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "您的卡已封禁",
@@ -7068,7 +7083,14 @@
         "travel_description": "预订酒店享高达 70% 折扣",
         "card_tos_title": "条款和条件",
         "order_metal_card": "金属卡",
-        "order_metal_card_description": "立即订购您的实体金属卡"
+        "order_metal_card_description": "立即订购您的实体金属卡",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {
@@ -7677,5 +7699,16 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "重新加载",
     "primary_action_acknowledge": "知道了"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs",
+      "import_nfts": "Import NFTs",
+      "import_nfts_description": "Easily add your collectibles"
+    }
   }
 }

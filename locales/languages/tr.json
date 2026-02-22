@@ -458,7 +458,11 @@
     "reset_wallet_desc_bold": "bu cihazda",
     "reset_wallet_desc_2": "MetaMask'ten kalıcı olarak silinecek. Bu işlem geri alınamaz.",
     "reset_wallet_desc_login": "Cüzdanınızı geri yüklemek için Gizli Kurtarma İfadenizi veya Google ya da Apple hesap şifrenizi kullanabilirsiniz. MetaMask bu bilgilere sahip değildir.",
-    "reset_wallet_desc_srp": "Cüzdanınızı geri yüklemek için Gizli Kurtarma İfadenizin hazır bulunduğundan emin olun. MetaMask bu bilgiye sahip değildir."
+    "reset_wallet_desc_srp": "Cüzdanınızı geri yüklemek için Gizli Kurtarma İfadenizin hazır bulunduğundan emin olun. MetaMask bu bilgiye sahip değildir.",
+    "biometric_authentication_cancelled": "Biometric authentication cancelled",
+    "biometric_authentication_cancelled_title": "Biometric Setup Failed",
+    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
+    "biometric_authentication_cancelled_button": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "Bir donanım cüzdanı bağlayın",
@@ -1040,7 +1044,7 @@
       "title": "Yatırılacak miktar",
       "get_usdc_hyperliquid": "USDC • Hyperliquid al",
       "insufficient_funds": "Yetersiz bakiye",
-      "no_funds_available": "Kullanılabilir para yok. Lütfen önce para yatırın.",
+      "no_funds_available": "Not enough funds available. Deposit funds or select a different payment method",
       "enter_amount": "Tutar gir",
       "fetching_quote": "Teklif alınıyor",
       "submitting": "İşlem gönderiliyor",
@@ -2051,6 +2055,16 @@
       "referral_code_text": "Referans kodumu kullanarak ekstra ödüller kazan."
     }
   },
+  "market_insights": {
+    "title": "Market insights",
+    "updated_ago": "Updated {{time}}",
+    "disclaimer": "AI insights. Not financial advice.",
+    "whats_driving_price": "What's driving the price?",
+    "what_people_saying": "What people are saying",
+    "trade_button": "Trade",
+    "sources_count": "+{{count}} sources",
+    "sources_title": "Sources"
+  },
   "predict": {
     "title": "MetaMask Tahminler",
     "prediction_markets": "Tahmin piyasaları",
@@ -2752,6 +2766,9 @@
     "disconnect_all_accounts": "Tüm hesapların bağlantısını kes",
     "deceptive_site_ahead": "Aldatıcı siteye gidiliyor",
     "deceptive_site_desc": "Ziyaret etmeye çalıştığınız sayfa güvenli değil. Saldırganlar tehlikeli bir şey yapmanız konusunda sizi aldatabilir.",
+    "malicious_site_detected": "Malicious site detected",
+    "malicious_site_warning": "If you connect to this site, you could lose all your assets.",
+    "connect_anyway": "Connect Anyway",
     "learn_more": "Daha fazla bilgi edin",
     "advisory_by": "Ethereum Kimlik Avı Algılayıcı ve PhishFort tarafından sunulan uyarı",
     "potential_threat": "Potansiyel tehditler şunları içerir",
@@ -2846,7 +2863,10 @@
     "permissions": "İzinler",
     "card_title": "MetaMask Kartı",
     "settings": "Ayarlar",
-    "log_out": "Oturumu kapat"
+    "log_out": "Oturumu kapat",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "Bildirimler etkinleştiriliyor...",
@@ -2870,6 +2890,8 @@
     "state_logs": "Durum günlükleri",
     "add_network_title": "Ağ ekle",
     "auto_lock": "Otomatik kilitle",
+    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Uygulama otomatik olarak kilitlenmeden süre miktarını seçin.",
     "state_logs_desc": "Bu, MetaMask'ın, karşılaşabileceğiniz her sorunu çözmesine yardımcı olur. Lütfen hamburger simgesinden > Geri Bildirim Gönder kısmından MetaMask destek bölümüne gönderin veya varsa mevcut sorgunuza yanıt verin.",
     "autolock_immediately": "Hemen",
@@ -3379,6 +3401,7 @@
     "sell_description": "Nakit karşılığı kripto sat"
   },
   "asset_overview": {
+    "market_closed": "Market closed",
     "send_button": "Gönder",
     "buy_button": "Satın Al",
     "cash_buy_button": "Nakit Al",
@@ -3399,19 +3422,6 @@
     "bridge": "Köprü",
     "earn": "Kazan",
     "convert_to_musd": "mUSD'ye dönüştür",
-    "merkl_rewards": {
-      "annual_bonus": "%{{apy}} bonus",
-      "claimable_bonus": "Alınabilir bonus",
-      "claimable_bonus_tooltip_description": "mUSD bonusları Linea'da alınır.",
-      "terms_apply": "Şartlar uygulanır.",
-      "ok": "Tamam",
-      "claim": "Al",
-      "processing_claim": "Talep işleme alınıyor...",
-      "claim_on_linea_title": "Bonusları Linea üzerinde alın",
-      "claim_on_linea_description": "Bonusunuz, Ethereum mUSD bakiyenizden ayrı olacak şekilde, Linea üzerinde düzenlenecektir.",
-      "continue": "Devam et",
-      "unexpected_error": "Beklenmedik hata. Lütfen tekrar deneyin."
-    },
     "tron": {
       "daily_resource_new_energy": "Yeni günlük enerji",
       "sufficient_to_cover": "Karşılanamıyor",
@@ -3795,7 +3805,7 @@
     "no_tabs_desc": "Merkeziyetsiz webde gezinmek için yeni bir sekme ekleyin",
     "got_it": "Anladım",
     "max_tabs_title": "Maksimum sekmeye ulaşıldı",
-    "max_tabs_desc": "Şu anda aynı anda yalnızca 5 açık sekmeyi destekliyoruz. Yenilerini eklemeden önce lütfen mevcut sekmeleri kapatın.",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "Bu ENS adını çözümleyemedik",
     "remove_bookmark_title": "Favoriyi kaldır",
     "remove_bookmark_msg": "Bu siteyi gerçekten favorilerinizden kaldırmak istiyor musunuz?",
@@ -4181,11 +4191,7 @@
     "enable_device_passcode_android": "Cihazın PIN kodu ile kilidi aç?"
   },
   "authentication": {
-    "auth_prompt_title": "Doğrulama gerekli",
-    "auth_prompt_desc": "MetaMask'ı kullanabilmek için lütfen doğrulama yapın",
-    "fingerprint_prompt_title": "Doğrulama gerekli",
-    "fingerprint_prompt_desc": "MetaMask'ın kilidini açmak için parmak izinizi kullanın",
-    "fingerprint_prompt_cancel": "İptal"
+    "auth_prompt_desc": "MetaMask'ı kullanabilmek için lütfen doğrulama yapın"
   },
   "accountApproval": {
     "title": "BAĞLANTI TALEBİ",
@@ -5530,10 +5536,10 @@
     "enable_remember_me_description": "Beni Hatırla özelliği açıldığında telefonunuza erişimi olan herkes MetaMask hesabınıza erişim sağlayabilir."
   },
   "turn_off_remember_me": {
-    "title": "Beni Hatırla özelliğini kapatmak için şifrenizi girin",
-    "placeholder": "Şifre",
-    "description": "Bu seçeneği kapatırsanız şu andan itibaren MetaMask'in kilidini açmak için şifrenizi girmeniz gerekecektir.",
-    "action": "Beni Hatırla özelliğini kapat"
+    "title": "Turn off Remember Me",
+    "placeholder": "Confirm password",
+    "description": "Once turned off, Remember Me can't be used again. This feature has been discontinued, so you can unlock MetaMask with your password or biometrics instead.",
+    "action": "Turn off Remember Me"
   },
   "dapp_connect": {
     "warning": "Bu özelliği kullanabilmek için lütfen uygulamayı en yeni sürüme güncelleyin."
@@ -6435,6 +6441,13 @@
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "Kayma toleransınıza göre işleminiz gerçekleştirilirken fiyat değişirse alacağınız minimum tutar. Bu, likidite sağlayıcılarımızdan alınan bir tahmindir. Nihai tutarlar değişiklik gösterebilir.",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Done"
+    },
     "submit": "Gönder",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "cancel": "İptal",
@@ -6739,6 +6752,7 @@
     "password_bottomsheet": {
       "title": "Şifre girin",
       "description": "Kart bilgilerini görüntülemek için cüzdan şifrenizi girin.",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "Şifre",
       "confirm": "Onayla",
       "cancel": "İptal et",
@@ -7001,6 +7015,7 @@
       "enable_card_error": "Kart etkinleştirilemedi. Lütfen daha sonra tekrar deneyin.",
       "view_card_details_error": "Kart bilgileri yüklenemedi. Lütfen tekrar deneyin.",
       "biometric_verification_required": "Kart bilgilerini görüntülemek için kimlik doğrulama gereklidir.",
+      "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "warnings": {
         "close_spending_limit": {
           "title": "Harcama limitinize yakınsınız",
@@ -7018,7 +7033,7 @@
         },
         "frozen": {
           "title": "Kartınız dondurulmuş",
-          "description": "Kartınızın dondurulma işlemini iptal etmek için lütfen destek ekibiyle iletişime geçin"
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "Kartınız bloke edilmiş",
@@ -7068,7 +7083,14 @@
         "travel_description": "%70'e varan indirimlerle otel rezervasyonu yapın",
         "card_tos_title": "Şart ve koşullar",
         "order_metal_card": "Metal Kart",
-        "order_metal_card_description": "Hemen Fiziksel Metal Kart siparişinizi verin"
+        "order_metal_card_description": "Hemen Fiziksel Metal Kart siparişinizi verin",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {
@@ -7677,5 +7699,16 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "Tekrar Yükle",
     "primary_action_acknowledge": "Anladım"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs",
+      "import_nfts": "Import NFTs",
+      "import_nfts_description": "Easily add your collectibles"
+    }
   }
 }

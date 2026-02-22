@@ -458,7 +458,11 @@
     "reset_wallet_desc_bold": "xóa vĩnh viễn",
     "reset_wallet_desc_2": "khỏi MetaMask trên thiết bị này. Hành động này không thể hoàn tác.",
     "reset_wallet_desc_login": "Để khôi phục ví, bạn có thể sử dụng Cụm từ khôi phục bí mật hoặc mật khẩu tài khoản Google hoặc Apple của bạn. MetaMask không lưu trữ thông tin này.",
-    "reset_wallet_desc_srp": "Để khôi phục ví, hãy đảm bảo bạn có Cụm từ khôi phục bí mật. MetaMask không lưu trữ thông tin này."
+    "reset_wallet_desc_srp": "Để khôi phục ví, hãy đảm bảo bạn có Cụm từ khôi phục bí mật. MetaMask không lưu trữ thông tin này.",
+    "biometric_authentication_cancelled": "Biometric authentication cancelled",
+    "biometric_authentication_cancelled_title": "Biometric Setup Failed",
+    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
+    "biometric_authentication_cancelled_button": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "Kết nối ví cứng",
@@ -1040,7 +1044,7 @@
       "title": "Số tiền cần nạp",
       "get_usdc_hyperliquid": "Nhận USDC • Hyperliquid",
       "insufficient_funds": "Không đủ tiền",
-      "no_funds_available": "Không có sẵn tiền. Vui lòng nạp tiền trước.",
+      "no_funds_available": "Not enough funds available. Deposit funds or select a different payment method",
       "enter_amount": "Nhập số tiền",
       "fetching_quote": "Tìm nạp báo giá",
       "submitting": "Đang gửi giao dịch",
@@ -2051,6 +2055,16 @@
       "referral_code_text": "Sử dụng mã giới thiệu của tôi để nhận thêm phần thưởng."
     }
   },
+  "market_insights": {
+    "title": "Market insights",
+    "updated_ago": "Updated {{time}}",
+    "disclaimer": "AI insights. Not financial advice.",
+    "whats_driving_price": "What's driving the price?",
+    "what_people_saying": "What people are saying",
+    "trade_button": "Trade",
+    "sources_count": "+{{count}} sources",
+    "sources_title": "Sources"
+  },
   "predict": {
     "title": "MetaMask Dự đoán",
     "prediction_markets": "Thị trường dự đoán",
@@ -2752,6 +2766,9 @@
     "disconnect_all_accounts": "Ngắt kết nối tất cả các tài khoản",
     "deceptive_site_ahead": "Phía trước là trang web lừa đảo",
     "deceptive_site_desc": "Trang web mà bạn đang cố gắng truy cập không an toàn. Những kẻ tấn công có thể lừa bạn thực hiện một hành động nguy hiểm.",
+    "malicious_site_detected": "Malicious site detected",
+    "malicious_site_warning": "If you connect to this site, you could lose all your assets.",
+    "connect_anyway": "Connect Anyway",
     "learn_more": "Tìm hiểu thêm",
     "advisory_by": "Cảnh báo được cung cấp bởi Trình phát hiện lừa đảo qua mạng Ethereum và PhishFort",
     "potential_threat": "Các mối đe dọa tiềm ẩn bao gồm",
@@ -2846,7 +2863,10 @@
     "permissions": "Quyền",
     "card_title": "Thẻ MetaMask",
     "settings": "Cài đặt",
-    "log_out": "Đăng xuất"
+    "log_out": "Đăng xuất",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "Đang bật thông báo...",
@@ -2870,6 +2890,8 @@
     "state_logs": "Nhật ký trạng thái",
     "add_network_title": "Thêm mạng",
     "auto_lock": "Tự động khóa",
+    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Chọn khoảng thời gian trước khi ứng dụng tự động khóa.",
     "state_logs_desc": "Điều này sẽ giúp MetaMask gỡ lỗi bất kỳ sự cố nào bạn có thể gặp phải. Vui lòng gửi đến bộ phận hỗ trợ MetaMask thông qua biểu tượng bánh hamburger > Gửi phản hồi hoặc trả lời phiếu hỏi đáp hiện tại của bạn nếu có.",
     "autolock_immediately": "Ngay lập tức",
@@ -3379,6 +3401,7 @@
     "sell_description": "Bán tiền mã hóa lấy tiền mặt"
   },
   "asset_overview": {
+    "market_closed": "Market closed",
     "send_button": "Gửi",
     "buy_button": "Mua",
     "cash_buy_button": "Mua bằng tiền mặt",
@@ -3399,19 +3422,6 @@
     "bridge": "Cầu nối",
     "earn": "Kiếm lợi nhuận",
     "convert_to_musd": "Chuyển đổi sang mUSD",
-    "merkl_rewards": {
-      "annual_bonus": "Thưởng {{apy}}%",
-      "claimable_bonus": "Thưởng có thể nhận",
-      "claimable_bonus_tooltip_description": "Đã nhận thưởng mUSD trên Linea.",
-      "terms_apply": "Áp dụng điều khoản.",
-      "ok": "OK",
-      "claim": "Nhận",
-      "processing_claim": "Đang xử lý nhận thưởng...",
-      "claim_on_linea_title": "Nhận thưởng trên Linea",
-      "claim_on_linea_description": "Khoản thưởng của bạn sẽ được phát hành trên Linea, tách biệt với số dư mUSD Ethereum của bạn.",
-      "continue": "Tiếp tục",
-      "unexpected_error": "Lỗi không mong muốn. Vui lòng thử lại."
-    },
     "tron": {
       "daily_resource_new_energy": "Năng lượng hằng ngày mới",
       "sufficient_to_cover": "Đủ để thực hiện",
@@ -3795,7 +3805,7 @@
     "no_tabs_desc": "Để duyệt trang web phi tập trung, hãy thêm một thẻ mới",
     "got_it": "Đã hiểu",
     "max_tabs_title": "Đã đạt đến số lượng tab tối đa",
-    "max_tabs_desc": "Chúng tôi hiện chỉ hỗ trợ tối đa 5 tab mở cùng lúc. Vui lòng đóng các tab hiện có trước khi thêm tab mới.",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "Chúng tôi không thể giải quyết tên ENS đó",
     "remove_bookmark_title": "Gỡ bỏ mục ưa thích",
     "remove_bookmark_msg": "Bạn có thực sự muốn gỡ bỏ trang web này ra khỏi mục ưa thích?",
@@ -4181,11 +4191,7 @@
     "enable_device_passcode_android": "Mở khóa bằng mã PIN của thiết bị?"
   },
   "authentication": {
-    "auth_prompt_title": "Yêu cầu xác thực",
-    "auth_prompt_desc": "Vui lòng xác thực để sử dụng MetaMask",
-    "fingerprint_prompt_title": "Yêu cầu xác thực",
-    "fingerprint_prompt_desc": "Sử dụng vân tay của bạn để mở khóa MetaMask",
-    "fingerprint_prompt_cancel": "Hủy"
+    "auth_prompt_desc": "Vui lòng xác thực để sử dụng MetaMask"
   },
   "accountApproval": {
     "title": "YÊU CẦU KẾT NỐI",
@@ -5530,10 +5536,10 @@
     "enable_remember_me_description": "Khi bật Ghi nhớ, bất kỳ ai có quyền truy cập vào điện thoại của bạn đều có thể truy cập vào tài khoản MetaMask của bạn."
   },
   "turn_off_remember_me": {
-    "title": "Nhập mật khẩu để tắt Ghi nhớ",
-    "placeholder": "Mật khẩu",
-    "description": "Nếu bạn tắt tùy chọn này, bạn sẽ cần nhập mật khẩu để mở khóa MetaMask kể từ bây giờ.",
-    "action": "Tắt Ghi nhớ"
+    "title": "Turn off Remember Me",
+    "placeholder": "Confirm password",
+    "description": "Once turned off, Remember Me can't be used again. This feature has been discontinued, so you can unlock MetaMask with your password or biometrics instead.",
+    "action": "Turn off Remember Me"
   },
   "dapp_connect": {
     "warning": "Để sử dụng tính năng này, vui lòng cập nhật ứng dụng lên phiên bản mới nhất"
@@ -6435,6 +6441,13 @@
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "Số lượng tối thiểu bạn sẽ nhận được nếu giá thay đổi trong quá trình xử lý giao dịch, dựa trên mức trượt giá bạn cho phép. Đây là con số ước tính từ các nhà cung cấp thanh khoản. Số lượng cuối cùng có thể khác.",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Done"
+    },
     "submit": "Gửi",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "cancel": "Hủy",
@@ -6739,6 +6752,7 @@
     "password_bottomsheet": {
       "title": "Nhập mật khẩu",
       "description": "Nhập mật khẩu ví của bạn để xem thông tin thẻ.",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "Mật khẩu",
       "confirm": "Xác nhận",
       "cancel": "Hủy",
@@ -7001,6 +7015,7 @@
       "enable_card_error": "Không thể kích hoạt thẻ. Vui lòng thử lại sau.",
       "view_card_details_error": "Không thể tải thông tin thẻ. Vui lòng thử lại.",
       "biometric_verification_required": "Yêu cầu xác thực để xem thông tin thẻ.",
+      "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "warnings": {
         "close_spending_limit": {
           "title": "Bạn sắp đạt đến hạn mức chi tiêu",
@@ -7018,7 +7033,7 @@
         },
         "frozen": {
           "title": "Thẻ của bạn bị đóng băng",
-          "description": "Vui lòng liên hệ bộ phận hỗ trợ để hủy đóng băng thẻ của bạn"
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "Thẻ của bạn bị chặn",
@@ -7068,7 +7083,14 @@
         "travel_description": "Đặt phòng khách sạn với mức giảm giá lên đến 70%",
         "card_tos_title": "Điều khoản và điều kiện",
         "order_metal_card": "Thẻ Metal",
-        "order_metal_card_description": "Đặt hàng Thẻ Metal vật lý ngay"
+        "order_metal_card_description": "Đặt hàng Thẻ Metal vật lý ngay",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {
@@ -7677,5 +7699,16 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "Tải lại",
     "primary_action_acknowledge": "Tôi đã hiểu"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs",
+      "import_nfts": "Import NFTs",
+      "import_nfts_description": "Easily add your collectibles"
+    }
   }
 }

@@ -458,7 +458,11 @@
     "reset_wallet_desc_bold": "dihapus secara permanen",
     "reset_wallet_desc_2": "dari MetaMask di perangkat ini. Tindakan ini tidak dapat dibatalkan.",
     "reset_wallet_desc_login": "Untuk memulihkan dompet, Anda dapat menggunakan Frasa Pemulihan Rahasia, atau kata sandi akun Google atau Apple. MetaMask tidak memiliki informasi ini.",
-    "reset_wallet_desc_srp": "Untuk memulihkan dompet, pastikan Anda memiliki Frasa Pemulihan Rahasia. MetaMask tidak memiliki informasi ini."
+    "reset_wallet_desc_srp": "Untuk memulihkan dompet, pastikan Anda memiliki Frasa Pemulihan Rahasia. MetaMask tidak memiliki informasi ini.",
+    "biometric_authentication_cancelled": "Biometric authentication cancelled",
+    "biometric_authentication_cancelled_title": "Biometric Setup Failed",
+    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
+    "biometric_authentication_cancelled_button": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "Hubungkan dompet perangkat keras",
@@ -1040,7 +1044,7 @@
       "title": "Jumlah yang akan dideposit",
       "get_usdc_hyperliquid": "Dapatkan USDC • Hyperliquid",
       "insufficient_funds": "Dana tidak cukup",
-      "no_funds_available": "Tidak ada dana yang tersedia. Silakan deposit terlebih dahulu.",
+      "no_funds_available": "Not enough funds available. Deposit funds or select a different payment method",
       "enter_amount": "Masukkan jumlah",
       "fetching_quote": "Mengambil kuotasi",
       "submitting": "Mengirimkan transaksi",
@@ -2051,6 +2055,16 @@
       "referral_code_text": "Gunakan kode referensi saya untuk mendapatkan reward tambahan."
     }
   },
+  "market_insights": {
+    "title": "Market insights",
+    "updated_ago": "Updated {{time}}",
+    "disclaimer": "AI insights. Not financial advice.",
+    "whats_driving_price": "What's driving the price?",
+    "what_people_saying": "What people are saying",
+    "trade_button": "Trade",
+    "sources_count": "+{{count}} sources",
+    "sources_title": "Sources"
+  },
   "predict": {
     "title": "MetaMask Predictions",
     "prediction_markets": "Pasar prediksi",
@@ -2752,6 +2766,9 @@
     "disconnect_all_accounts": "Putuskan koneksi semua akun",
     "deceptive_site_ahead": "Situs yang menipu terdeteksi",
     "deceptive_site_desc": "Situs yang akan Anda kunjungi tidak aman. Penyerang dapat mengelabui Anda untuk melakukan sesuatu yang berbahaya.",
+    "malicious_site_detected": "Malicious site detected",
+    "malicious_site_warning": "If you connect to this site, you could lose all your assets.",
+    "connect_anyway": "Connect Anyway",
     "learn_more": "Selengkapnya",
     "advisory_by": "Penasihat disediakan oleh Ethereum Phishing Detector dan PhishFort",
     "potential_threat": "Potensi ancaman meliputi",
@@ -2846,7 +2863,10 @@
     "permissions": "Izin",
     "card_title": "Kartu MetaMask",
     "settings": "Pengaturan",
-    "log_out": "Keluar"
+    "log_out": "Keluar",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "Mengaktifkan notifikasi...",
@@ -2870,6 +2890,8 @@
     "state_logs": "Log state",
     "add_network_title": "Tambahkan jaringan",
     "auto_lock": "Kunci otomatis",
+    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Pilih jumlah waktu sebelum aplikasi terkunci secara otomatis.",
     "state_logs_desc": "Ini akan membantu MetaMask memperbaiki masalah apa pun yang mungkin Anda temui. Kirimkan kepada dukungan MetaMask melalui ikon hamburger > Kirim Umpan Balik, atau balas tiket yang ada, jika ada.",
     "autolock_immediately": "Langsung",
@@ -3379,6 +3401,7 @@
     "sell_description": "Jual kripto untuk dapat uang tunai"
   },
   "asset_overview": {
+    "market_closed": "Market closed",
     "send_button": "Kirim",
     "buy_button": "Beli",
     "cash_buy_button": "Pembelian Tunai",
@@ -3399,19 +3422,6 @@
     "bridge": "Bridge",
     "earn": "Dapatkan",
     "convert_to_musd": "Konversikan ke mUSD",
-    "merkl_rewards": {
-      "annual_bonus": "Bonus {{apy}}%",
-      "claimable_bonus": "Bonus yang dapat diklaim",
-      "claimable_bonus_tooltip_description": "Bonus mUSD diklaim di Linea.",
-      "terms_apply": "Syarat berlaku.",
-      "ok": "Oke",
-      "claim": "Klaim",
-      "processing_claim": "Memproses klaim...",
-      "claim_on_linea_title": "Klaim bonus di Linea",
-      "claim_on_linea_description": "Bonus Anda akan diterbitkan di Linea, terpisah dari saldo mUSD Ethereum.",
-      "continue": "Lanjutkan",
-      "unexpected_error": "Terjadi kesalahan tidak terduga. Coba lagi."
-    },
     "tron": {
       "daily_resource_new_energy": "Energi harian baru",
       "sufficient_to_cover": "Cukup untuk menutupi",
@@ -3795,7 +3805,7 @@
     "no_tabs_desc": "Untuk menelusuri web yang terdesentralisasi, tambahkan tab baru",
     "got_it": "Mengerti",
     "max_tabs_title": "Jumlah tab maksimum tercapai",
-    "max_tabs_desc": "Saat ini kami hanya mendukung 5 tab yang terbuka sekaligus. Tutup tab yang ada sebelum menambahkan tab baru.",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "Kami tidak dapat menyelesaikan nama ENS tersebut",
     "remove_bookmark_title": "Hapus favorit",
     "remove_bookmark_msg": "Yakin ingin menghapus situs ini dari favorit Anda?",
@@ -4181,11 +4191,7 @@
     "enable_device_passcode_android": "Buka dengan PIN perangkat?"
   },
   "authentication": {
-    "auth_prompt_title": "Autentikasi diperlukan",
-    "auth_prompt_desc": "Harap autentikasikan untuk menggunakan MetaMask",
-    "fingerprint_prompt_title": "Autentikasi diperlukan",
-    "fingerprint_prompt_desc": "Gunakan sidik jari untuk membuka MetaMask",
-    "fingerprint_prompt_cancel": "Batal"
+    "auth_prompt_desc": "Harap autentikasikan untuk menggunakan MetaMask"
   },
   "accountApproval": {
     "title": "PERMINTAAN CONNECT",
@@ -5530,10 +5536,10 @@
     "enable_remember_me_description": "Saat Ingatkan saya aktif, siapa pun yang memiliki akses ke ponsel Anda dapat mengakses akun MetaMask Anda."
   },
   "turn_off_remember_me": {
-    "title": "Masukkan kata sandi Anda untuk menonaktifkan Ingatkan saya",
-    "placeholder": "Kata sandi",
-    "description": "Jika Anda menonaktifkan opsi ini, Anda memerlukan kata sandi untuk membuka MetaMask mulai sekarang.",
-    "action": "Nonaktifkan Ingatkan saya"
+    "title": "Turn off Remember Me",
+    "placeholder": "Confirm password",
+    "description": "Once turned off, Remember Me can't be used again. This feature has been discontinued, so you can unlock MetaMask with your password or biometrics instead.",
+    "action": "Turn off Remember Me"
   },
   "dapp_connect": {
     "warning": "Untuk menggunakan fitur ini, perbarui aplikasi ke versi terbaru"
@@ -6435,6 +6441,13 @@
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "Jumlah minimum yang akan Anda terima jika harga berubah selama transaksi diproses, berdasarkan toleransi selip. Ini merupakan estimasi dari penyedia likuiditas kami. Jumlah akhir dapat berbeda.",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Done"
+    },
     "submit": "Kirim",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "cancel": "Batal",
@@ -6739,6 +6752,7 @@
     "password_bottomsheet": {
       "title": "Masukkan kata sandi",
       "description": "Masukkan kata sandi dompet untuk melihat detail kartu.",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "Kata sandi",
       "confirm": "Konfirmasikan",
       "cancel": "Batalkan",
@@ -7001,6 +7015,7 @@
       "enable_card_error": "Gagal mengaktifkan kartu. Coba lagi nanti.",
       "view_card_details_error": "Tidak dapat memuat detail kartu. Coba lagi.",
       "biometric_verification_required": "Autentikasi untuk melihat detail kartu diperlukan.",
+      "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "warnings": {
         "close_spending_limit": {
           "title": "Batas penggunaan hampir tercapai",
@@ -7018,7 +7033,7 @@
         },
         "frozen": {
           "title": "Kartu Anda dibekukan",
-          "description": "Hubungi dukungan untuk mencairkan kartu Anda"
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "Kartu Anda diblokir",
@@ -7068,7 +7083,14 @@
         "travel_description": "Pesan hotel dengan diskon hingga 70%",
         "card_tos_title": "Syarat dan Ketentuan",
         "order_metal_card": "Kartu Logam",
-        "order_metal_card_description": "Pesan Kartu Logam fisik sekarang"
+        "order_metal_card_description": "Pesan Kartu Logam fisik sekarang",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {
@@ -7677,5 +7699,16 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "Muat ulang",
     "primary_action_acknowledge": "Mengerti"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs",
+      "import_nfts": "Import NFTs",
+      "import_nfts_description": "Easily add your collectibles"
+    }
   }
 }

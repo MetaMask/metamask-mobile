@@ -458,7 +458,11 @@
     "reset_wallet_desc_bold": "permanenteng buburahin",
     "reset_wallet_desc_2": "sa MetaMask gamit ang device na ito. Hindi ito maaaring bawiin.",
     "reset_wallet_desc_login": "Para ibalik ang iyong wallet, maaari mong gamitin ang iyong Lihim na Parirala sa Pagbawi, o ang password ng iyong Google o Apple account. Wala sa MetaMask ang impormasyong ito.",
-    "reset_wallet_desc_srp": "Para maibalik ang wallet mo, siguraduhing mayroon ka ng Lihim na Parirala sa Pagbawi (Secret Recovery Phrase) mo. Wala sa MetaMask ang impormasyong ito."
+    "reset_wallet_desc_srp": "Para maibalik ang wallet mo, siguraduhing mayroon ka ng Lihim na Parirala sa Pagbawi (Secret Recovery Phrase) mo. Wala sa MetaMask ang impormasyong ito.",
+    "biometric_authentication_cancelled": "Biometric authentication cancelled",
+    "biometric_authentication_cancelled_title": "Biometric Setup Failed",
+    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
+    "biometric_authentication_cancelled_button": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "Magkonekta ng wallet na hardware",
@@ -1040,7 +1044,7 @@
       "title": "Halagang idedeposito",
       "get_usdc_hyperliquid": "Kumuha ng USDC • Hyperliquid",
       "insufficient_funds": "Hindi sapat ang mga pondo",
-      "no_funds_available": "Walang available na mga pondo. Magdeposito muna.",
+      "no_funds_available": "Not enough funds available. Deposit funds or select a different payment method",
       "enter_amount": "Ilagay ang halaga",
       "fetching_quote": "Kumukuha ng quote",
       "submitting": "Isinusumite ang transaksyon",
@@ -2051,6 +2055,16 @@
       "referral_code_text": "Gamitin ang referral code ko para makakuha ng dagdag na reward."
     }
   },
+  "market_insights": {
+    "title": "Market insights",
+    "updated_ago": "Updated {{time}}",
+    "disclaimer": "AI insights. Not financial advice.",
+    "whats_driving_price": "What's driving the price?",
+    "what_people_saying": "What people are saying",
+    "trade_button": "Trade",
+    "sources_count": "+{{count}} sources",
+    "sources_title": "Sources"
+  },
   "predict": {
     "title": "Mga Predisksyon ng MetaMask",
     "prediction_markets": "Mga market ng prediksyon",
@@ -2752,6 +2766,9 @@
     "disconnect_all_accounts": "Idiskonekta ang lahat ng account",
     "deceptive_site_ahead": "Papunta sa isang mapanlinlang na site",
     "deceptive_site_desc": "Ang site na iyong sinusubukang bisitahin ay hindi ligtas. Maaari kang linlangin ng mga umaatake na gumawa ng mapanganib na bagay.",
+    "malicious_site_detected": "Malicious site detected",
+    "malicious_site_warning": "If you connect to this site, you could lose all your assets.",
+    "connect_anyway": "Connect Anyway",
     "learn_more": "Matuto pa",
     "advisory_by": "Payo na ibinigay ng Ethereum Phishing Detector at PhishFort",
     "potential_threat": "Kabilang sa potensyal na panganib ay",
@@ -2846,7 +2863,10 @@
     "permissions": "Mga Pahintulot",
     "card_title": "MetaMask Card",
     "settings": "Mga Setting",
-    "log_out": "Mag-log out"
+    "log_out": "Mag-log out",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "Pinapagana ang mga notipikasyon...",
@@ -2870,6 +2890,8 @@
     "state_logs": "Mga log ng estado",
     "add_network_title": "Magdagdag ng network",
     "auto_lock": "Awtomatikong i-lock",
+    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Piliin kung gaano katagal bago awtomatikong mala-lock ang application.",
     "state_logs_desc": "Makakatulong ito sa MetaMask na ma-debug ang anumang isyung kaharapin mo. Pakipadala ito sa suporta sa MetaMask sa pamamagitan ng icon na hamburger > Magpadala ng Feedback, o mag-reply sa kasalukuyan mong ticket kung mayroon.",
     "autolock_immediately": "Kaagad",
@@ -3379,6 +3401,7 @@
     "sell_description": "Magbenta ng crypto kapalit ng cash"
   },
   "asset_overview": {
+    "market_closed": "Market closed",
     "send_button": "Ipadala",
     "buy_button": "Bumili",
     "cash_buy_button": "Mag-cash Buy",
@@ -3399,19 +3422,6 @@
     "bridge": "Mag-bridge",
     "earn": "Kumita",
     "convert_to_musd": "I-convert sa mUSD",
-    "merkl_rewards": {
-      "annual_bonus": "{{apy}}% bonus",
-      "claimable_bonus": "Naki-claim na bonus",
-      "claimable_bonus_tooltip_description": "Kini-claim ang mga mUSD na bonus sa Linea.",
-      "terms_apply": "Nalalapat ang mga tuntunin.",
-      "ok": "OK",
-      "claim": "I-claim",
-      "processing_claim": "Pinoproseso ang claim...",
-      "claim_on_linea_title": "I-claim ang mga bonus sa Linea",
-      "claim_on_linea_description": "Ibibigay ang bonus mo sa Linea, hiwalay sa balanse ng Ethereum mUSD mo.",
-      "continue": "Magpatuloy",
-      "unexpected_error": "Hindi inaasahang error. Pakisubukan muli."
-    },
     "tron": {
       "daily_resource_new_energy": "Bagong enerhiya araw-araw",
       "sufficient_to_cover": "Sapat para matugunan",
@@ -3795,7 +3805,7 @@
     "no_tabs_desc": "Para i-browse ang desentralisadong web, magdagdag ng bagong tab",
     "got_it": "Nakuha ko",
     "max_tabs_title": "Naabot na ang maximum na dami ng tab",
-    "max_tabs_desc": "Sa kasalukuyan, 5 bukas na tab lang ang nasusuportahan namin sa isang pagkakataon. Isara ang mga ginagamit na tab bago magdagdag ng bago.",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "Hindi namin maresolba ang ENS name na iyon",
     "remove_bookmark_title": "Alisin ang paborito",
     "remove_bookmark_msg": "Gusto mo ba talagang alisin ang site na ito sa mga paborito mo?",
@@ -4181,11 +4191,7 @@
     "enable_device_passcode_android": "I-unlock gamit ang PIN ng device?"
   },
   "authentication": {
-    "auth_prompt_title": "Kinakailangan ang pag-authenticate",
-    "auth_prompt_desc": "Mag-authenticate para magamit ang MetaMask",
-    "fingerprint_prompt_title": "Kinakailangan ang pag-authenticate",
-    "fingerprint_prompt_desc": "Gamitin ang iyong fingerprint para i-unlock ang MetaMask",
-    "fingerprint_prompt_cancel": "Kanselahin"
+    "auth_prompt_desc": "Mag-authenticate para magamit ang MetaMask"
   },
   "accountApproval": {
     "title": "KAHILINGANG KUMONEKTA",
@@ -5530,10 +5536,10 @@
     "enable_remember_me_description": "Kapag naka-on ang tandaan ako, sinumang may access sa iyong telepono ay makaka-access sa iyong MetaMask account."
   },
   "turn_off_remember_me": {
-    "title": "Ilagay ang iyong password para i-off ang Tandaan ako",
-    "placeholder": "Password",
-    "description": "Kung in-off mo ang opsyong ito, kakailanganin mo ang iyong password upang i-unlock ang MetaMask mula ngayon.",
-    "action": "I-off ang Tandaan ako"
+    "title": "Turn off Remember Me",
+    "placeholder": "Confirm password",
+    "description": "Once turned off, Remember Me can't be used again. This feature has been discontinued, so you can unlock MetaMask with your password or biometrics instead.",
+    "action": "Turn off Remember Me"
   },
   "dapp_connect": {
     "warning": "Para magamit ang feature na ito, paki-update ang app sa pinakabagong bersyon"
@@ -6435,6 +6441,13 @@
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "Ang pinakamababang halaga na iyong matatanggap kapag nagbago ang presyo habang pinoproseso ang iyong transaksyon, batay sa iyong slippage tolerance. Pagtantiya ito mula sa aming mga liquidity provider. Posibleng mag-iba ang pinal na halaga.",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Done"
+    },
     "submit": "Isumite",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "cancel": "Kanselahin",
@@ -6739,6 +6752,7 @@
     "password_bottomsheet": {
       "title": "Ilagay ang password",
       "description": "Ilagay ang password ng wallet mo para tingnan ang mga detalye ng card.",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "Password",
       "confirm": "Kumpirmahin",
       "cancel": "Kanselahin",
@@ -7001,6 +7015,7 @@
       "enable_card_error": "Hindi napagana ang card. Subukan ulit mamaya.",
       "view_card_details_error": "Hindi mai-load ang mga detalye ng card. Pakisubukan muli.",
       "biometric_verification_required": "Kinakailangan ang pag-authenticate para makita ang mga detalye ng card.",
+      "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "warnings": {
         "close_spending_limit": {
           "title": "Malapit mo nang maabot ang limitasyon mo sa paggastos",
@@ -7018,7 +7033,7 @@
         },
         "frozen": {
           "title": "Na-freeze ang card mo",
-          "description": "Pakikontakin ang suporta para ma-unfreeze ang iyong card"
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "Naka-block ang iyong card",
@@ -7068,7 +7083,14 @@
         "travel_description": "Mag-book ng mga hotel na may hanggang 70% diskuwento",
         "card_tos_title": "Mga tuntunin at kundisyon",
         "order_metal_card": "Metal Card",
-        "order_metal_card_description": "I-order ngayon ang pisikal na Metal Card mo"
+        "order_metal_card_description": "I-order ngayon ang pisikal na Metal Card mo",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {
@@ -7677,5 +7699,16 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "I-reload",
     "primary_action_acknowledge": "Nakuha ko"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs",
+      "import_nfts": "Import NFTs",
+      "import_nfts_description": "Easily add your collectibles"
+    }
   }
 }
