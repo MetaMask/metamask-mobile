@@ -3,6 +3,8 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import Routes from '../../../../constants/navigation/Routes';
 
 import { usePredictToastRegistrations } from './usePredictToastRegistrations';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 
 const mockInvalidateQueries = jest.fn();
 jest.mock('@tanstack/react-query', () => ({
@@ -64,6 +66,24 @@ jest.mock('../utils/accounts', () => ({
   getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
     address: selectedAddress,
   })),
+}));
+
+jest.mock('../../../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({})),
+  },
+}));
+
+jest.mock('../../../../selectors/transactionController', () => ({
+  selectTransactionMetadataById: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../../selectors/tokensController', () => ({
+  selectSingleTokenByAddressAndChainId: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../../selectors/networkController', () => ({
+  selectTickerByChainId: jest.fn(() => undefined),
 }));
 
 describe('usePredictToastRegistrations', () => {
@@ -417,6 +437,48 @@ describe('usePredictToastRegistrations', () => {
           labelOptions: expect.arrayContaining([
             expect.objectContaining({
               label: expect.stringContaining('$55.12'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('looks up transaction from store and resolves token for post-quote withdraw toast', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: {
+          isPostQuote: true,
+          targetFiat: '25.50',
+          chainId: '0x38',
+          tokenAddress: '0x55d398326f99059ff775485246999027b3197955',
+        },
+      });
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue({
+        symbol: 'USDT',
+      });
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-withdraw-1',
+          amount: 10,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$25.50'),
+            }),
+            expect.objectContaining({
+              label: expect.stringContaining('USDT'),
             }),
           ]),
         }),
