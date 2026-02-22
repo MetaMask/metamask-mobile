@@ -237,6 +237,10 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
+          queryClient.invalidateQueries({
+            queryKey: predictQueries.positions.keys.all(),
+          });
+
           showSuccessToast({
             showToast,
             title: strings('predict.deposit.account_ready'),

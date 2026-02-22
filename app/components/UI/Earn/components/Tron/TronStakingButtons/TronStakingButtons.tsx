@@ -15,7 +15,8 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
 import styleSheet from './TronStakingButtons.styles';
 import { strings } from '../../../../../../../locales/i18n';
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { EVENT_LOCATIONS } from '../../../../../UI/Stake/constants/events';
 import { trace, TraceName } from '../../../../../../util/trace';
 import { RootState } from '../../../../../../reducers';
@@ -38,7 +39,7 @@ const TronStakingButtons = ({
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { isEligible } = useStakingEligibility();
 
   const isStakedTrx =
