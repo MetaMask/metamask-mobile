@@ -154,8 +154,9 @@ _To be added after bug submission by internal support / PM:_
 ## After Creation
 
 - Output the issue URL so the user can view it
-- Investigate the codebase to identify the possible root cause of the bug (do NOT make any code changes — research only)
-- Add a comment to the created issue with the findings using:
+- Ask the user: "Would you like me to investigate the codebase for the possible root cause? (yes/no)"
+- Default is **no** — only proceed with the investigation if the user explicitly says yes
+- If yes, investigate the codebase (do NOT make any code changes — research only) and add a comment to the created issue using:
 
 ```bash
 gh issue comment <issue-number> --repo MetaMask/metamask-mobile --body "..."
