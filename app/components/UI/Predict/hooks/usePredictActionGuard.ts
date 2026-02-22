@@ -6,6 +6,7 @@ import { PredictNavigationParamList } from '../types/navigation';
 import { usePredictEligibility } from './usePredictEligibility';
 
 interface UsePredictActionGuardOptions {
+  providerId: string;
   navigation: NavigationProp<PredictNavigationParamList>;
 }
 
@@ -22,9 +23,10 @@ interface UsePredictActionGuardResult {
 }
 
 export const usePredictActionGuard = ({
+  providerId,
   navigation,
 }: UsePredictActionGuardOptions): UsePredictActionGuardResult => {
-  const { isEligible } = usePredictEligibility();
+  const { isEligible } = usePredictEligibility({ providerId });
 
   const executeGuardedAction = useCallback(
     (
@@ -37,6 +39,7 @@ export const usePredictActionGuard = ({
         // Track geo-block analytics if attemptedAction is provided
         if (attemptedAction) {
           Engine.context.PredictController.trackGeoBlockTriggered({
+            providerId,
             attemptedAction,
           });
         }
@@ -49,7 +52,7 @@ export const usePredictActionGuard = ({
 
       return action();
     },
-    [isEligible, navigation],
+    [isEligible, navigation, providerId],
   );
 
   return {

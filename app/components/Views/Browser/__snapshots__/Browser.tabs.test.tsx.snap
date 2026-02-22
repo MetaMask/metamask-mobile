@@ -322,7 +322,6 @@ exports[`Browser - Tab Operations closeTabsView behavior renders Browser compone
                       testID="browser-screen"
                     >
                       BrowserTab
-                      BrowserTab
                     </View>
                   </View>
                 </View>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getAssetIconUrl } from '../utils/marketUtils';
-import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 
 // Cache for validated asset URLs to prevent repeated HEAD requests
 const assetUrlCache = new Map<

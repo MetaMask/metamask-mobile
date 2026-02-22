@@ -10,7 +10,6 @@ import {
   PredictGameStatus,
 } from '../../types';
 
-import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock the hooks
 jest.mock('../../hooks/usePredictPriceHistory');
 jest.mock('../../hooks/useLiveMarketPrices');
@@ -99,7 +98,7 @@ const createMockMarket = (
     title: 'Test Game Market',
     description: 'Test description',
     image: 'https://example.com/image.png',
-    providerId: POLYMARKET_PROVIDER_ID,
+    providerId: 'polymarket',
     status: PredictMarketStatus.OPEN,
     category: 'sports',
     tags: ['NFL'],
@@ -160,6 +159,7 @@ describe('PredictGameChart Wrapper', () => {
           marketIds: defaultTokenIds,
           interval: PredictPriceHistoryInterval.ONE_HOUR,
           fidelity: 1,
+          providerId: 'polymarket',
           enabled: true,
         }),
       );
@@ -171,6 +171,25 @@ describe('PredictGameChart Wrapper', () => {
       expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(defaultTokenIds, {
         enabled: true,
       });
+    });
+
+    it('passes custom providerId to usePredictPriceHistory', () => {
+      const marketWithCustomProvider = createMockMarket({
+        providerId: 'custom-provider',
+      });
+
+      render(
+        <PredictGameChart
+          market={marketWithCustomProvider}
+          providerId="custom-provider"
+        />,
+      );
+
+      expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerId: 'custom-provider',
+        }),
+      );
     });
 
     it('disables hooks when market has no tokens', () => {

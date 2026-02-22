@@ -1,11 +1,11 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { RegressionTrade } from '../../tags';
-import { loginToApp } from '../../flows/wallet.flow';
-import WalletView from '../../page-objects/wallet/WalletView';
-import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
+import { RegressionTrade } from '../../../e2e/tags';
+import { loginToApp } from '../../../e2e/viewHelper';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import PerpsTabView from '../../../e2e/pages/Perps/PerpsTabView';
 import Assertions from '../../framework/Assertions';
-import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
+import PerpsOnboarding from '../../../e2e/pages/Perps/PerpsOnboarding';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 
 describe(

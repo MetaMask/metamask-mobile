@@ -2,7 +2,8 @@ import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { usePerpsMarketFills } from './usePerpsMarketFills';
 import { usePerpsLiveFills } from './stream';
 import Engine from '../../../../core/Engine';
-import { PERPS_CONSTANTS, type OrderFill } from '@metamask/perps-controller';
+import type { OrderFill } from '../controllers/types';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({

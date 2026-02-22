@@ -9,12 +9,9 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  PERPS_EVENT_VALUE,
-  type Position,
-  type PerpsMarketData,
-} from '@metamask/perps-controller';
+import type { Position, PerpsMarketData } from '../../controllers/types';
 import PerpsTabView from './PerpsTabView';
+import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),

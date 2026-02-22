@@ -5,6 +5,13 @@ const styleSheet = () =>
     infoRowOverride: {
       paddingBottom: 4,
     },
+    networkRowContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    avatarNetwork: {
+      marginRight: 4,
+    },
     skeletonContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',

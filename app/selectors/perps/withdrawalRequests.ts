@@ -11,7 +11,7 @@ export interface WithdrawalRequest {
   amount: string;
   asset: string;
   timestamp: number;
-  status: 'pending' | 'bridging' | 'completed' | 'failed';
+  status: 'pending' | 'completed' | 'failed';
   success: boolean;
   txHash?: string;
   errorMessage?: string;

@@ -10,7 +10,9 @@ import { TextVariant } from '../../../component-library/components/Texts/Text';
 import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
-import TextField from '../../../component-library/components/Form/TextField';
+import TextField, {
+  TextFieldSize,
+} from '../../../component-library/components/Form/TextField';
 import { Platform, TextInput, TouchableOpacity, View } from 'react-native';
 import stylesheet from './SnapUIDateTimePicker.styles';
 import ApprovalModal from '../../Approvals/ApprovalModal';
@@ -296,6 +298,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
       <TextField
         testID={`snap-ui-renderer__date-time-picker--${type}`}
+        size={TextFieldSize.Lg}
         placeholder={placeholder}
         isDisabled={disabled}
         ref={inputRef}

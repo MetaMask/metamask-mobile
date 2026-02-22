@@ -2,7 +2,7 @@ import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import AmountScreen from './AmountScreen';
 import { expect as appwrightExpect } from 'appwright';
-import { splitAmountIntoDigits } from '../../tests/framework/utils/Utils';
+import { splitAmountIntoDigits } from 'appwright/utils/Utils';
 import PerpsPositionDetailsView from './PerpsPositionDetailsView';
 
 class PerpsOrderView {

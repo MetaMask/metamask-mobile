@@ -4,7 +4,7 @@ import { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
 import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
-import { formatAccountToCaipAccountId } from '@metamask/perps-controller';
+import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Mock react-redux
@@ -31,8 +31,7 @@ jest.mock('../../../../core/Multichain/utils', () => ({
   getFormattedAddressFromInternalAccount: jest.fn(),
 }));
 
-jest.mock('@metamask/perps-controller', () => ({
-  ...jest.requireActual('@metamask/perps-controller'),
+jest.mock('../utils/rewardsUtils', () => ({
   formatAccountToCaipAccountId: jest.fn(),
 }));
 

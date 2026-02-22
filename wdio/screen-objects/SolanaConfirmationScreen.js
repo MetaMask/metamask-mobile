@@ -1,6 +1,6 @@
 import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import { expect as appwrightExpect } from 'appwright';
-import { SendActionViewSelectorsIDs } from '../../tests/selectors/SendFlow/SendActionView.selectors';
+import { SendActionViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendActionView.selectors';
 
 class SolanaConfirmationScreen {
   get device() {

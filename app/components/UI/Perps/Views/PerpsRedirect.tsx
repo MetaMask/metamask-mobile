@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
-import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 import PerpsLoader from '../components/PerpsLoader';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
 

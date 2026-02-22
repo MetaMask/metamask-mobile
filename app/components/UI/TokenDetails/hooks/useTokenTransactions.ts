@@ -23,7 +23,6 @@ import {
   selectTransactions,
 } from '../../../../selectors/transactionController';
 import { TOKEN_CATEGORY_HASH } from '../../../UI/TransactionElement/utils';
-import { isMusdClaimForCurrentView } from '../../Earn/utils/musd';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import {
   selectSelectedInternalAccount,
@@ -269,19 +268,6 @@ export const useTokenTransactions = (
     ///: END:ONLY_INCLUDE_IF
   ]);
 
-  // Wrapper for shared mUSD claim detection utility
-  const checkIsMusdClaimForCurrentView = useCallback(
-    (tx: Transaction): boolean =>
-      isMusdClaimForCurrentView({
-        tx,
-        navAddress,
-        navSymbol,
-        chainId,
-        selectedAddress: selectedAddress ?? '',
-      }),
-    [chainId, navAddress, navSymbol, selectedAddress],
-  );
-
   // ETH filter - for native token transactions
   const ethFilter = useCallback(
     (tx: Transaction) => {
@@ -292,10 +278,6 @@ export const useTokenTransactions = (
         transferInformation,
         type,
       } = tx;
-
-      if (checkIsMusdClaimForCurrentView(tx)) {
-        return true;
-      }
 
       if (
         (areAddressesEqual(from ?? '', selectedAddress ?? '') ||
@@ -319,7 +301,7 @@ export const useTokenTransactions = (
       }
       return false;
     },
-    [chainId, checkIsMusdClaimForCurrentView, selectedAddress, tokens],
+    [chainId, selectedAddress, tokens],
   );
 
   // Non-ETH filter - for token transactions
@@ -331,10 +313,6 @@ export const useTokenTransactions = (
         isTransfer,
         transferInformation,
       } = tx;
-
-      if (checkIsMusdClaimForCurrentView(tx)) {
-        return true;
-      }
 
       if (
         (areAddressesEqual(from ?? '', selectedAddress ?? '') ||
@@ -364,13 +342,7 @@ export const useTokenTransactions = (
       }
       return false;
     },
-    [
-      chainId,
-      checkIsMusdClaimForCurrentView,
-      navAddress,
-      selectedAddress,
-      swapsTransactions,
-    ],
+    [chainId, navAddress, selectedAddress, swapsTransactions],
   );
 
   // Determine which filter to use

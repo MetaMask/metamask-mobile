@@ -45,10 +45,8 @@ export const ConfirmationRowComponentIDs = {
   STAKING_DETAILS: 'staking-details',
   TOKEN_HERO: 'token-hero',
   TOTAL: 'total',
-  RECEIVE: 'receive',
   TRANSACTION_FEE: 'transaction-fee',
   NETWORK_FEE: 'network-fee',
-  AMOUNT: 'amount',
 } as const;
 
 export const ConfirmationFooterSelectorIDs = {

@@ -49,7 +49,7 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
   closeButtonProps,
   endButtonIconProps,
   startButtonIconProps,
-  twClassName = '',
+  twClassName,
   testID,
   ...headerBaseProps
 }) => {
@@ -120,13 +120,15 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
     return null;
   };
 
+  const resolvedTwClassName = twClassName ? `px-2 ${twClassName}` : 'px-2';
+
   return (
     <HeaderBase
       testID={testID}
       startButtonIconProps={resolvedStartButtonIconProps}
       endButtonIconProps={resolvedEndButtonIconProps}
+      twClassName={resolvedTwClassName}
       {...headerBaseProps}
-      twClassName={`px-2 ${twClassName}`.trim()}
     >
       {renderContent()}
     </HeaderBase>

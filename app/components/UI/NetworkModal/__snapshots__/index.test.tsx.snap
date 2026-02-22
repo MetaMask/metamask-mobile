@@ -153,7 +153,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                       "alignItems": "center",
                       "flexDirection": "row",
                       "gap": 16,
-                      "minHeight": 56,
+                      "height": 56,
                     },
                     false,
                     {

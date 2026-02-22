@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsLiveFills } from './stream';
-import { PERPS_CONSTANTS, type OrderFill } from '@metamask/perps-controller';
+import type { OrderFill } from '../controllers/types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../../../../util/errorUtils';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
@@ -100,7 +101,7 @@ export const usePerpsMarketFills = ({
       const accountAddress = addressRef.current ?? 'unknown';
 
       // Log error to Sentry but don't fail - WebSocket fills still work
-      Logger.error(ensureError(err, 'usePerpsMarketFills.fetchFills'), {
+      Logger.error(ensureError(err), {
         tags: {
           feature: PERPS_CONSTANTS.FeatureName,
         },

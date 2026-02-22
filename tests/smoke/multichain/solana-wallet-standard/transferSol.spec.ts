@@ -1,10 +1,10 @@
-import { SmokeNetworkExpansion } from '../../../tags';
-import SolanaTestDApp from '../../../page-objects/Browser/SolanaTestDApp';
+import { SmokeNetworkExpansion } from '../../../../e2e/tags';
+import SolanaTestDApp from '../../../../e2e/pages/Browser/SolanaTestDApp';
 import {
   connectSolanaTestDapp,
   navigateToSolanaTestDApp,
 } from '../../../flows/solana-connection.flow';
-import { loginToApp } from '../../../flows/wallet.flow';
+import { loginToApp } from '../../../../e2e/viewHelper';
 import { DappVariants } from '../../../framework/Constants';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';

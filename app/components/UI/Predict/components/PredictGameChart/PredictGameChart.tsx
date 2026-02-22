@@ -63,6 +63,7 @@ const getDefaultTimeframe = (
 
 const PredictGameChart: React.FC<PredictGameChartProps> = ({
   market,
+  providerId = 'polymarket',
   testID,
 }) => {
   const game = market.game;
@@ -119,6 +120,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
       startTs,
       endTs,
       fidelity,
+      providerId,
       enabled: tokenIds.length === 2,
     });
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 interface UsePerpsConnectionLifecycleParams {
   isVisible?: boolean;

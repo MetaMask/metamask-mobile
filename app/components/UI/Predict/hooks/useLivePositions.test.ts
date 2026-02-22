@@ -3,14 +3,13 @@ import { useLivePositions } from './useLivePositions';
 import { useLiveMarketPrices } from './useLiveMarketPrices';
 import { PredictPosition, PredictPositionStatus, PriceUpdate } from '../types';
 
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 jest.mock('./useLiveMarketPrices');
 
 const createMockPosition = (
   overrides: Partial<PredictPosition> = {},
 ): PredictPosition => ({
   id: 'position-1',
-  providerId: POLYMARKET_PROVIDER_ID,
+  providerId: 'polymarket',
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcome: 'Yes',

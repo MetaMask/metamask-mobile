@@ -1241,37 +1241,7 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
       response: ACCOUNTS_API_TRANSACTIONS_RESPONSE,
     },
     {
-      urlEndpoint: 'https://accounts.api.cx.metamask.io/v2/supportedNetworks',
-      responseCode: 200,
-      response: {
-        fullSupport: [
-          'eip155:1',
-          'eip155:137',
-          'eip155:56',
-          'eip155:59144',
-          'eip155:8453',
-          'eip155:10',
-          'eip155:42161',
-          'eip155:534352',
-          'eip155:1329',
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
-          'eip155:999',
-        ],
-        partialSupport: { balances: ['eip155:42220', 'eip155:43114'] },
-      },
-    },
-    {
-      urlEndpoint: 'https://accounts.api.cx.metamask.io/v2/supportedNetworks',
-      responseCode: 200,
-      response: {
-        fullSupport: [1, 137, 56, 59144, 8453, 10, 42161, 534352, 1329],
-        partialSupport: { balances: [42220, 43114] },
-      },
-    },
-    {
-      urlEndpoint:
-        /^https:\/\/accounts\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/,
+      urlEndpoint: 'https://accounts.api.cx.metamask.io/v1/supportedNetworks',
       responseCode: 200,
       response: {
         fullSupport: [1, 137, 56, 59144, 8453, 10, 42161, 534352, 1329],

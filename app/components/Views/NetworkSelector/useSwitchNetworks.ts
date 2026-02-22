@@ -28,6 +28,13 @@ import {
   endTrace,
   trace,
 } from '../../../util/trace';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectHasCreatedSolanaMainnetAccount } from '../../../selectors/accountsController';
+import { SolScope } from '@metamask/keyring-api';
+import Routes from '../../../constants/navigation/Routes';
+import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
+import { useNavigation } from '@react-navigation/native';
+///: END:ONLY_INCLUDE_IF
 import Logger from '../../../util/Logger';
 
 interface UseSwitchNetworksProps {
@@ -68,6 +75,13 @@ export function useSwitchNetworks({
     selectEvmNetworkConfigurationsByChainId,
   );
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const isSolanaAccountAlreadyCreated = useSelector(
+    selectHasCreatedSolanaMainnetAccount,
+  );
+  const { navigate } = useNavigation();
+  ///: END:ONLY_INCLUDE_IF
 
   /**
    * Sets the token network filter based on the chain ID
@@ -234,15 +248,25 @@ export function useSwitchNetworks({
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-
+  /**
+   * Switches to a non-EVM network
+   */
   const onNonEvmNetworkChange = useCallback(
     async (chainId: CaipChainId) => {
+      if (!isSolanaAccountAlreadyCreated && chainId === SolScope.Mainnet) {
+        navigate(Routes.SHEET.ACCOUNT_SELECTOR, {
+          navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
+        });
+
+        return;
+      }
+
       await Engine.context.MultichainNetworkController.setActiveNetwork(
         chainId,
       );
       dismissModal?.();
     },
-    [dismissModal],
+    [dismissModal, isSolanaAccountAlreadyCreated, navigate],
   );
   ///: END:ONLY_INCLUDE_IF
 

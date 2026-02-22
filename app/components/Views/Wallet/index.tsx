@@ -111,19 +111,23 @@ import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
-import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { Token } from '@metamask/assets-controllers';
-import { Hex } from '@metamask/utils';
+import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
-import { selectUseTokenDetection } from '../../../selectors/preferencesController';
+import {
+  selectUseTokenDetection,
+  selectTokenNetworkFilter,
+} from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
 import { useNftDetection } from '../../hooks/useNftDetection';
 import { Carousel } from '../../UI/Carousel';
@@ -149,7 +153,14 @@ import {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import {
+  NetworkType,
+  useNetworksByCustomNamespace,
+  useNetworksByNamespace,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import {
   selectPerpsEnabledFlag,
   selectPerpsGtmOnboardingModalEnabledFlag,
@@ -164,6 +175,8 @@ import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
 import { SolScope } from '@metamask/keyring-api';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import NftGrid from '../../UI/NftGrid/NftGrid';
@@ -297,11 +310,19 @@ const WalletTokensTabView = forwardRef<
   WalletTokensTabViewProps
 >((props, ref) => {
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
-  // With BIP-44 multichain accounts, perps is enabled for both EVM and non-EVM networks
-  const isPerpsEnabled = isPerpsFlagEnabled;
+  const isPerpsEnabled = useMemo(
+    () =>
+      isPerpsFlagEnabled &&
+      (isEvmSelected || isMultichainAccountsState2Enabled),
+    [isPerpsFlagEnabled, isEvmSelected, isMultichainAccountsState2Enabled],
+  );
   const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
     () => isPredictFlagEnabled,
@@ -460,17 +481,6 @@ const WalletTokensTabView = forwardRef<
       perpsVisibilityCallback.current(isPerpsTabVisible);
     }
   }, [currentTabIndex, perpsTabIndex, isPerpsTabVisible, isPerpsEnabled]);
-
-  // Background preload perps market data when feature is enabled
-  useEffect(() => {
-    const controller = Engine.context.PerpsController;
-    if (isPerpsEnabled) {
-      controller.startMarketDataPreload();
-    } else {
-      controller.stopMarketDataPreload();
-    }
-    return () => controller.stopMarketDataPreload();
-  }, [isPerpsEnabled]);
 
   // Handle deep link effects
   useHomeDeepLinkEffects({
@@ -645,17 +655,26 @@ const Wallet = ({
    */
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
+  const enabledNetworks = useSelector(selectEVMEnabledNetworks);
 
   const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
 
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
   const enabledNetworksHasTestNet = useMemo(() => {
-    if (allEnabledNetworks.length === 1) {
-      return allEnabledNetworks.some((network) => isTestNet(network.chainId));
+    if (isMultichainAccountsState2Enabled) {
+      if (allEnabledNetworks.length === 1) {
+        return allEnabledNetworks.some((network) => isTestNet(network.chainId));
+      }
+      return false;
     }
-    return false;
-  }, [allEnabledNetworks]);
+    return enabledNetworks.some((network) => isTestNet(network));
+  }, [enabledNetworks, isMultichainAccountsState2Enabled, allEnabledNetworks]);
 
   const prevChainId = usePrevious(chainId);
 
@@ -686,21 +705,58 @@ const Wallet = ({
       location: ActionLocation.HOME,
     });
 
-    if (selectedAccountGroupId) {
-      navigate(
-        ...createAddressListNavigationDetails({
-          groupId: selectedAccountGroupId as AccountGroupId,
-          title: `${strings(
-            'multichain_accounts.address_list.receiving_address',
-          )}`,
-        }),
-      );
+    if (isMultichainAccountsState2Enabled) {
+      if (selectedAccountGroupId) {
+        navigate(
+          ...createAddressListNavigationDetails({
+            groupId: selectedAccountGroupId as AccountGroupId,
+            title: `${strings(
+              'multichain_accounts.address_list.receiving_address',
+            )}`,
+          }),
+        );
+      } else {
+        Logger.error(
+          new Error(
+            'Wallet::onReceive - Missing selectedAccountGroupId for state2',
+          ),
+        );
+      }
+    } else if (
+      selectedInternalAccount?.address &&
+      selectedAccountGroupId &&
+      chainId
+    ) {
+      // Show address QR code for receiving funds
+      navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+        params: {
+          address: selectedInternalAccount.address,
+          networkName: providerConfig?.nickname || 'Unknown Network',
+          chainId,
+          groupId: selectedAccountGroupId,
+        },
+      });
     } else {
       Logger.error(
-        new Error('Wallet::onReceive - Missing selectedAccountGroupId'),
+        new Error('Wallet::onReceive - Missing required data for navigation'),
+        {
+          hasAddress: !!selectedInternalAccount?.address,
+          hasGroupId: !!selectedAccountGroupId,
+          hasChainId: !!chainId,
+        },
       );
     }
-  }, [trackEvent, createEventBuilder, navigate, selectedAccountGroupId]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    isMultichainAccountsState2Enabled,
+    navigate,
+    selectedAccountGroupId,
+    selectedInternalAccount,
+    chainId,
+    providerConfig,
+  ]);
 
   const onSend = useCallback(async () => {
     try {
@@ -752,11 +808,14 @@ const Wallet = ({
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const collectiblesEnabled = useMemo(() => {
-    if (allEnabledNetworks.length === 1) {
-      return isEvmSelected;
+    if (isMultichainAccountsState2Enabled) {
+      if (allEnabledNetworks.length === 1) {
+        return isEvmSelected;
+      }
+      return true;
     }
-    return true;
-  }, [isEvmSelected, allEnabledNetworks]);
+    return isEvmSelected;
+  }, [isMultichainAccountsState2Enabled, isEvmSelected, allEnabledNetworks]);
 
   const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
 
@@ -774,6 +833,51 @@ const Wallet = ({
   const displayName = accountGroupName || accountName;
   useAccountsWithNetworkActivitySync();
 
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+
+  const { networks: evmNetworks } = useNetworksByCustomNamespace({
+    networkType: NetworkType.Popular,
+    namespace: KnownCaipNamespace.Eip155,
+  });
+
+  const { networks: solanaNetworks } = useNetworksByCustomNamespace({
+    networkType: NetworkType.Popular,
+    namespace: KnownCaipNamespace.Solana,
+  });
+
+  const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
+  const selectedSolanaAccount = useSelector(
+    selectSelectedInternalAccountByScope,
+  )(SolScope.Mainnet);
+
+  const allNetworks = useMemo(() => {
+    if (isMultichainAccountsState2Enabled) {
+      if (selectedEvmAccount && selectedSolanaAccount) {
+        return [...evmNetworks, ...solanaNetworks];
+      } else if (selectedEvmAccount) {
+        return evmNetworks;
+      } else if (selectedSolanaAccount) {
+        return solanaNetworks;
+      }
+      return networks;
+    }
+    return networks;
+  }, [
+    isMultichainAccountsState2Enabled,
+    selectedEvmAccount,
+    selectedSolanaAccount,
+    evmNetworks,
+    solanaNetworks,
+    networks,
+  ]);
+
+  const { selectNetwork } = useNetworkSelection({
+    networks: allNetworks,
+  });
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   // Track component mount state to prevent state updates after unmount
@@ -950,6 +1054,7 @@ const Wallet = ({
     networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
+  const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
@@ -1001,6 +1106,37 @@ const Wallet = ({
         .build(),
     );
   }, [navigate, chainId, trackEvent, createEventBuilder]);
+
+  /**
+   * Handle network filter called when app is mounted and tokenNetworkFilter is empty
+   * TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
+   */
+  const handleNetworkFilter = useCallback(() => {
+    // TODO: Come back possibly just add the chain id of the eth
+    // network as the default state instead of doing this
+    const { PreferencesController } = Engine.context;
+
+    if (Object.keys(tokenNetworkFilter).length === 0) {
+      PreferencesController.setTokenNetworkFilter({
+        [chainId]: true,
+      });
+    }
+
+    if (enabledEVMNetworks.length === 0) {
+      selectNetwork(chainId);
+    }
+  }, [chainId, selectNetwork, enabledEVMNetworks, tokenNetworkFilter]);
+
+  useEffect(() => {
+    if (!isMultichainAccountsState2Enabled) {
+      handleNetworkFilter();
+    }
+  }, [
+    chainId,
+    handleNetworkFilter,
+    enabledEVMNetworks,
+    isMultichainAccountsState2Enabled,
+  ]);
 
   /**
    * Check to see if notifications are enabled

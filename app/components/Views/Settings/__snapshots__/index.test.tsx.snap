@@ -25,7 +25,7 @@ exports[`Settings renders settings component with all sections 1`] = `
           "alignItems": "center",
           "flexDirection": "row",
           "gap": 16,
-          "minHeight": 56,
+          "height": 56,
           "paddingLeft": 8,
           "paddingRight": 8,
         },
@@ -93,7 +93,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "transparent",
-                  "borderRadius": 8,
+                  "borderRadius": 2,
                   "height": 32,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -111,8 +111,8 @@ exports[`Settings renders settings component with all sections 1`] = `
                 [
                   {
                     "color": "#121314",
-                    "height": 24,
-                    "width": 24,
+                    "height": 20,
+                    "width": 20,
                   },
                   undefined,
                 ]

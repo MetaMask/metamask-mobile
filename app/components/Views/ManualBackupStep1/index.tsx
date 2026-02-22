@@ -51,6 +51,7 @@ import Button, {
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import Label from '../../../component-library/components/Form/Label';
+import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { AppThemeKey } from '../../../util/theme/models';
@@ -347,10 +348,12 @@ const ManualBackupStep1 = () => {
                 value={password}
                 onChangeText={onPasswordChange}
                 secureTextEntry
+                placeholderTextColor={colors.text.muted}
                 onSubmitEditing={tryUnlock}
                 testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
                 keyboardAppearance={themeAppearance}
                 autoCapitalize="none"
+                size={TextFieldSize.Lg}
                 autoFocus
               />
               {warningIncorrectPassword && (
