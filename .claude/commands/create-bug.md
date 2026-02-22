@@ -65,7 +65,7 @@ gh issue list \
 8. **Expected behavior** — What should have happened?
 9. **Screenshots/Recordings** — Any visual evidence?
 10. **Error messages or log output** — Any relevant error text or logs?
-11. **Build type** — Beta, Flask, or standard (use "_No response_" if standard — section must always be present)
+11. **Build type** — Beta, Flask, or Other (non-standard build); use "_No response_" for standard/main builds (section must always be present)
 12. **Additional context** — Any other relevant details?
 
 ## Create the GitHub Issue
@@ -132,7 +132,7 @@ Format the body exactly as follows, using the information collected:
 
 ### Build type
 
-<Beta | Flask | Other (standard build) | _No response_ if standard>
+<Beta | Flask | Other (please specify exactly where you obtained this build in "Additional Context" section) | _No response_ if standard/main build>
 
 ### Device
 
