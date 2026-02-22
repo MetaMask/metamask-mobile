@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsSlider from './PerpsSlider';
+import { brandColor } from '@metamask/design-tokens';
 
 // Mock dependencies - only what's absolutely necessary
 jest.mock('react-native-reanimated', () => {
@@ -125,7 +126,7 @@ describe('PerpsSlider', () => {
     thumb: {
       width: 21,
       height: 21,
-      backgroundColor: '#ffffff',
+      backgroundColor: brandColor.white,
       borderRadius: 10.5,
       position: 'absolute',
     },

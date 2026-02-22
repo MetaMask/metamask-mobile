@@ -1,6 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictDetailsChart, { ChartSeries } from './PredictDetailsChart';
+import { lightTheme, brandColor } from '@metamask/design-tokens';
 
 jest.mock('react-native-svg-charts', () => ({
   LineChart: jest.fn(({ children, data, svg, ...props }) => {
@@ -106,7 +107,7 @@ describe('PredictDetailsChart', () => {
   const mockMultipleSeries: ChartSeries[] = [
     {
       label: 'Outcome A',
-      color: '#4459FF',
+      color: brandColor.blue500,
       data: [
         { timestamp: 1640995200000, value: 0.5 },
         { timestamp: 1640998800000, value: 0.6 },
@@ -116,7 +117,7 @@ describe('PredictDetailsChart', () => {
     },
     {
       label: 'Outcome B',
-      color: '#CA3542',
+      color: lightTheme.colors.error.default,
       data: [
         { timestamp: 1640995200000, value: 0.3 },
         { timestamp: 1640998800000, value: 0.2 },
@@ -189,7 +190,7 @@ describe('PredictDetailsChart', () => {
 
     it('renders empty state when no data provided', () => {
       const { queryByText } = setupTest({
-        data: [{ label: 'Empty', color: '#000', data: [] }],
+        data: [{ label: 'Empty', color: brandColor.black, data: [] }],
         isLoading: false,
       });
 
@@ -199,7 +200,7 @@ describe('PredictDetailsChart', () => {
     it('renders custom empty label when provided', () => {
       const customLabel = 'No data available';
       const { getByText } = setupTest({
-        data: [{ label: 'Empty', color: '#000', data: [] }],
+        data: [{ label: 'Empty', color: brandColor.black, data: [] }],
         emptyLabel: customLabel,
       });
 
@@ -449,7 +450,7 @@ describe('PredictDetailsChart', () => {
         const longLabelSeries: ChartSeries[] = [
           {
             label: 'This is a very long outcome label that exceeds limit',
-            color: '#4459FF',
+            color: brandColor.blue500,
             data: [
               { timestamp: 1640995200000, value: 0.5 },
               { timestamp: 1640998800000, value: 0.6 },
@@ -478,7 +479,7 @@ describe('PredictDetailsChart', () => {
         const specialCharSeries: ChartSeries[] = [
           {
             label: 'Outcome #1 (Test) - Result',
-            color: '#4459FF',
+            color: brandColor.blue500,
             data: [
               { timestamp: 1640995200000, value: 0.5 },
               { timestamp: 1640998800000, value: 0.6 },
@@ -523,7 +524,7 @@ describe('PredictDetailsChart', () => {
         const crossingSeries: ChartSeries[] = [
           {
             label: 'Series A',
-            color: '#4459FF',
+            color: brandColor.blue500,
             data: [
               { timestamp: 1, value: 0.3 },
               { timestamp: 2, value: 0.7 },
@@ -550,7 +551,7 @@ describe('PredictDetailsChart', () => {
         const closeSeries: ChartSeries[] = [
           {
             label: 'Close A',
-            color: '#4459FF',
+            color: brandColor.blue500,
             data: [
               { timestamp: 1, value: 0.5 },
               { timestamp: 2, value: 0.501 },
@@ -586,7 +587,7 @@ describe('PredictDetailsChart', () => {
         const fullRangeSeries: ChartSeries[] = [
           {
             label: 'Full Range',
-            color: '#4459FF',
+            color: brandColor.blue500,
             data: Array.from({ length: 50 }, (_, i) => ({
               timestamp: 1640995200000 + i * 3600000,
               value: 0.3 + (i / 50) * 0.4, // Values from 0.3 to 0.7
@@ -643,7 +644,7 @@ describe('PredictDetailsChart', () => {
         const threeSeries: ChartSeries[] = [
           {
             label: 'Series 1',
-            color: '#4459FF',
+            color: brandColor.blue500,
             data: [
               { timestamp: 1, value: 0.5 },
               { timestamp: 2, value: 0.6 },

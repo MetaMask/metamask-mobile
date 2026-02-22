@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import PerpsPositionCard from './PerpsPositionCard';
+import { brandColor } from '@metamask/design-tokens';
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
@@ -196,8 +197,8 @@ describe('PerpsPositionCard', () => {
 
   const mockTheme = {
     colors: {
-      background: { section: '#ffffff' },
-      text: { default: '#000000', muted: '#666666' },
+      background: { section: brandColor.white },
+      text: { default: brandColor.black, muted: '#666666' },
       border: { muted: '#e1e1e1' },
       success: { default: '#00ff00', muted: '#ccffcc' },
       error: { default: '#ff0000', muted: '#ffcccc' },

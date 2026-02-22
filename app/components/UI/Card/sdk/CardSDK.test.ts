@@ -20,6 +20,7 @@ import {
 import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
 import AppConstants from '../../../../core/AppConstants';
+import { brandColor } from '@metamask/design-tokens';
 
 // Type definition for accessing private methods in tests
 interface CardSDKPrivateAccess {
@@ -3985,9 +3986,9 @@ describe('CardSDK', () => {
 
       const customCss = {
         cardBackgroundColor: '#FF5C16',
-        cardTextColor: '#FFFFFF',
+        cardTextColor: brandColor.white,
         panBackgroundColor: '#EFEFEF',
-        panTextColor: '#000000',
+        panTextColor: brandColor.black,
       };
 
       // When: generateCardDetailsToken is called with custom CSS

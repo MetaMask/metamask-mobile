@@ -5,6 +5,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
+import { lightTheme } from '@metamask/design-tokens';
 
 // Mock Logger
 jest.mock('../../../../util/Logger', () => ({
@@ -634,7 +635,7 @@ describe('usePredictDeposit', () => {
         expect.objectContaining({
           variant: 'Icon',
           iconName: 'Error',
-          iconColor: '#ca3542',
+          iconColor: lightTheme.colors.error.default,
           backgroundColor: '#89b0ff',
           hasNoTimeout: false,
           linkButtonOptions: expect.objectContaining({
@@ -660,7 +661,7 @@ describe('usePredictDeposit', () => {
         expect.objectContaining({
           variant: 'Icon',
           iconName: 'Error',
-          iconColor: '#ca3542',
+          iconColor: lightTheme.colors.error.default,
           backgroundColor: '#89b0ff',
           hasNoTimeout: false,
           linkButtonOptions: expect.objectContaining({

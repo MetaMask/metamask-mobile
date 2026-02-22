@@ -7,18 +7,19 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PREDICT_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { brandColor } from '@metamask/design-tokens';
 
 const mockTheme = {
   colors: {
     background: {
-      default: '#ffffff',
+      default: brandColor.white,
       alternative: '#f2f4f6',
     },
     text: {
       default: '#24272a',
     },
     shadow: {
-      default: '#000000',
+      default: brandColor.black,
     },
     accent02: {
       light: '#EAC2FF',

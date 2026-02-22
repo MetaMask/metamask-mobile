@@ -13,6 +13,7 @@ import {
   PolymarketApiTeam,
 } from '../providers/polymarket/types';
 import { PredictSportTeam, PredictSportsLeague } from '../types';
+import { brandColor } from '@metamask/design-tokens';
 
 const createMockApiTeam = (
   overrides: Partial<PolymarketApiTeam> = {},
@@ -296,7 +297,7 @@ describe('gameParser', () => {
         name: 'Custom Team',
         logo: 'https://custom.com/logo.png',
         abbreviation: 'CUS',
-        color: '#FFFFFF',
+        color: brandColor.white,
         alias: 'Customs',
       });
 
@@ -306,7 +307,7 @@ describe('gameParser', () => {
       expect(result.name).toBe('Custom Team');
       expect(result.logo).toBe('https://custom.com/logo.png');
       expect(result.abbreviation).toBe('CUS');
-      expect(result.color).toBe('#FFFFFF');
+      expect(result.color).toBe(brandColor.white);
       expect(result.alias).toBe('Customs');
     });
   });

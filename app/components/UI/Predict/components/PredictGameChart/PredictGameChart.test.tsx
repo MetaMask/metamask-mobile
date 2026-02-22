@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictGameChartContent from './PredictGameChartContent';
 import { GameChartSeries } from './PredictGameChart.types';
+import { brandColor } from '@metamask/design-tokens';
 
 jest.mock('react-native-svg-charts', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -134,7 +135,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
 
     it('renders empty state when data has empty series', () => {
       const emptySeriesData: GameChartSeries[] = [
-        { label: 'Empty', color: '#000', data: [] },
+        { label: 'Empty', color: brandColor.black, data: [] },
       ];
       const { getByText } = renderWithProvider(
         <PredictGameChartContent data={emptySeriesData} testID="chart" />,
@@ -247,7 +248,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
     it('limits series to maximum of 2', () => {
       const threeSeries: GameChartSeries[] = [
         ...mockDualSeriesData,
-        { label: 'Extra', color: '#000', data: [{ timestamp: 1, value: 50 }] },
+        { label: 'Extra', color: brandColor.black, data: [{ timestamp: 1, value: 50 }] },
       ];
 
       const { getAllByTestId } = renderWithProvider(
@@ -340,7 +341,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
       const extremeData: GameChartSeries[] = [
         {
           label: 'Extreme',
-          color: '#000',
+          color: brandColor.black,
           data: [
             { timestamp: 1, value: 5 },
             { timestamp: 2, value: 95 },
@@ -359,7 +360,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
 
     it('renders empty state when series has no data points', () => {
       const emptyData: GameChartSeries[] = [
-        { label: 'Empty', color: '#000', data: [] },
+        { label: 'Empty', color: brandColor.black, data: [] },
       ];
 
       const { getByText } = renderWithProvider(

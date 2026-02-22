@@ -10,6 +10,7 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { lightTheme } from '@metamask/design-tokens';
 
 // Create mock functions
 const mockNavigate = jest.fn();
@@ -201,7 +202,7 @@ describe('usePredictClaim', () => {
           },
         ],
         iconName: IconName.Error,
-        iconColor: '#ca3542',
+        iconColor: lightTheme.colors.error.default,
         backgroundColor: '#89b0ff',
         hasNoTimeout: false,
         linkButtonOptions: {

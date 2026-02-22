@@ -7,6 +7,7 @@ import {
   ButtonIconVariant,
 } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { lightTheme } from '@metamask/design-tokens';
 
 // Mock dependencies
 jest.mock('react', () => ({
@@ -107,7 +108,7 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
-        iconColor: '#457a39',
+        iconColor: lightTheme.colors.success.default,
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Success,
         hasNoTimeout: false,
@@ -131,7 +132,7 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
-        iconColor: '#457a39',
+        iconColor: lightTheme.colors.success.default,
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Success,
         hasNoTimeout: false,
@@ -154,7 +155,7 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Danger,
-        iconColor: '#ca3542',
+        iconColor: lightTheme.colors.error.default,
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Error,
         hasNoTimeout: false,
@@ -178,7 +179,7 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Danger,
-        iconColor: '#ca3542',
+        iconColor: lightTheme.colors.error.default,
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Error,
         hasNoTimeout: false,

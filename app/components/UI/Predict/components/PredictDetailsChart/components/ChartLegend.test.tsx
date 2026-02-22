@@ -2,6 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import ChartLegend from './ChartLegend';
 import { ChartSeries } from '../PredictDetailsChart';
+import { brandColor } from '@metamask/design-tokens';
 
 jest.mock('../utils', () => ({
   formatTickValue: jest.fn((value: number, range: number) => {
@@ -22,7 +23,7 @@ describe('ChartLegend', () => {
   const mockSingleSeries: ChartSeries[] = [
     {
       label: 'Outcome A',
-      color: '#4459FF',
+      color: brandColor.blue500,
       data: [
         { timestamp: 1640995200000, value: 0.5 },
         { timestamp: 1640998800000, value: 0.6 },
@@ -34,7 +35,7 @@ describe('ChartLegend', () => {
   const mockMultipleSeries: ChartSeries[] = [
     {
       label: 'Outcome A',
-      color: '#4459FF',
+      color: brandColor.blue500,
       data: [
         { timestamp: 1640995200000, value: 0.5 },
         { timestamp: 1640998800000, value: 0.6 },
@@ -132,7 +133,7 @@ describe('ChartLegend', () => {
       const seriesWithEmptyData: ChartSeries[] = [
         {
           label: 'Empty Series',
-          color: '#4459FF',
+          color: brandColor.blue500,
           data: [],
         },
       ];
@@ -203,7 +204,7 @@ describe('ChartLegend', () => {
       const seriesWithEmptyData: ChartSeries[] = [
         {
           label: 'Empty',
-          color: '#4459FF',
+          color: brandColor.blue500,
           data: [],
         },
       ];
@@ -217,7 +218,7 @@ describe('ChartLegend', () => {
       const seriesWithSinglePoint: ChartSeries[] = [
         {
           label: 'Single Point',
-          color: '#4459FF',
+          color: brandColor.blue500,
           data: [{ timestamp: 1640995200000, value: 0.42 }],
         },
       ];
@@ -250,7 +251,7 @@ describe('ChartLegend', () => {
       const seriesWithSmallValues: ChartSeries[] = [
         {
           label: 'Small',
-          color: '#4459FF',
+          color: brandColor.blue500,
           data: [{ timestamp: 1640995200000, value: 0.001 }],
         },
       ];
@@ -267,7 +268,7 @@ describe('ChartLegend', () => {
       const seriesWithLargeValues: ChartSeries[] = [
         {
           label: 'Large',
-          color: '#4459FF',
+          color: brandColor.blue500,
           data: [{ timestamp: 1640995200000, value: 999.99 }],
         },
       ];
@@ -303,7 +304,7 @@ describe('ChartLegend', () => {
       const seriesWithDifferentLengths: ChartSeries[] = [
         {
           label: 'Long',
-          color: '#4459FF',
+          color: brandColor.blue500,
           data: [
             { timestamp: 1, value: 0.1 },
             { timestamp: 2, value: 0.2 },
