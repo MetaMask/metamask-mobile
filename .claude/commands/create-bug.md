@@ -51,7 +51,30 @@ gh issue list \
 
 ## Step 3: Collect Fields
 
-Using the parsed field list from Step 1:
+### 3a: Infer from description
+
+Before prompting, scan the user's description for any values that can be inferred:
+
+- **Device** — device brand/model mentions (e.g. "iPhone 14", "Galaxy A42", "Pixel 7")
+- **Operating system** — "iOS", "Android", or platform hints from the device name
+- **Version** — semantic version patterns (e.g. `7.67.0`)
+- **Build number** — standalone numbers that look like build numbers (e.g. `3746`)
+- **Steps to reproduce** — if the description is written as steps or a clear sequence of actions
+- **Build type** — mentions of "beta", "flask", or non-standard build sources
+- Any other field whose value is clearly stated
+
+For each inferred value, present it to the user for confirmation before accepting it. Example:
+
+> I inferred the following from your description — please confirm or correct each:
+>
+> - **Device**: Android Galaxy A42 ✓ or enter correct value
+> - **Version**: 7.67.0 ✓ or enter correct value
+
+Only skip the confirmation prompt if no values could be inferred.
+
+### 3b: Prompt for remaining fields
+
+After confirming inferred values, collect only the fields that were not already inferred:
 
 1. Prompt for all **required** fields first, in template order
 2. Then offer each **optional** field (skip Severity — see Step 1)
