@@ -976,10 +976,11 @@ export class PerpsController extends BaseController<
       );
     }
 
-    const featureFlagHandler =
-      this.refreshEligibilityOnFeatureFlagChange.bind(this);
+    // Subscribe for the full controller lifetime — intentionally not stored;
+    // geo-blocking and HIP-3 flag propagation must remain active across
+    // disconnect → reconnect cycles and must never be torn down.
     infrastructure.controllers.remoteFeatureFlags.onStateChange(
-      featureFlagHandler,
+      this.refreshEligibilityOnFeatureFlagChange.bind(this),
     );
 
     this.providers = new Map();

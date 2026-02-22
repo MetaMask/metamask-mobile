@@ -12,6 +12,9 @@ import {
   parseCaipChainId,
 } from '@metamask/utils';
 
+import type { PerpsLogger } from '../types';
+import { ensureError } from './errorUtils';
+
 /**
  * Converts a numeric or hex chain ID to a CAIP-2 chain ID string.
  * e.g. '0x1' → 'eip155:1', '42161' → 'eip155:42161'
@@ -25,9 +28,6 @@ function formatChainIdToCaip(chainId: string): string {
     : parseInt(chainId, 10);
   return `eip155:${decimal}`;
 }
-
-import type { PerpsLogger } from '../types';
-import { ensureError } from './errorUtils';
 
 /**
  * Formats an address to CAIP-10 account ID format
