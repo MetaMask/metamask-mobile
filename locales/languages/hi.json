@@ -458,7 +458,11 @@
     "reset_wallet_desc_bold": "डिवाइस",
     "reset_wallet_desc_2": "पर MetaMask से आपका वॉलेट डेटा हमेशा के लिए मिटा दिया जाएगा। इसे वापस नहीं लाया जा सकता।",
     "reset_wallet_desc_login": "अपने वॉलेट को रिस्टोर करने के लिए, आप अपने सीक्रेट रिकवरी फ्रेज़, या अपने Google या Apple अकाउंट के पासवर्ड का उपयोग कर सकते हैं। MetaMask के पास यह जानकारी नहीं है।",
-    "reset_wallet_desc_srp": "अपने वॉलेट को रिस्टोर करने के लिए, सुनिश्चित करें कि आपके पास अपना सीक्रेट रिकवरी फ्रेज़ है। MetaMask के पास यह जानकारी नहीं है।"
+    "reset_wallet_desc_srp": "अपने वॉलेट को रिस्टोर करने के लिए, सुनिश्चित करें कि आपके पास अपना सीक्रेट रिकवरी फ्रेज़ है। MetaMask के पास यह जानकारी नहीं है।",
+    "biometric_authentication_cancelled": "Biometric authentication cancelled",
+    "biometric_authentication_cancelled_title": "Biometric Setup Failed",
+    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
+    "biometric_authentication_cancelled_button": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "किसी hardware wallet को कनेक्ट करें",
@@ -1040,7 +1044,7 @@
       "title": "डिपॉज़िट करने के लिए राशि",
       "get_usdc_hyperliquid": "USDC प्राप्त करें • हाइपरलिक्विड",
       "insufficient_funds": "अपर्याप्त फंड",
-      "no_funds_available": "कोई फंड उपलब्ध नहीं है। कृपया पहले डिपॉज़िट करें।",
+      "no_funds_available": "Not enough funds available. Deposit funds or select a different payment method",
       "enter_amount": "रकम डालें",
       "fetching_quote": "कोटेशन लाया जा रहा है",
       "submitting": "ट्रांसेक्शन सबमिट किया जा रहा है",
@@ -2051,6 +2055,16 @@
       "referral_code_text": "एक्स्ट्रा रिवॉर्ड कमाने के लिए मेरे रेफ़रल कोड का उपयोग करें।"
     }
   },
+  "market_insights": {
+    "title": "Market insights",
+    "updated_ago": "Updated {{time}}",
+    "disclaimer": "AI insights. Not financial advice.",
+    "whats_driving_price": "What's driving the price?",
+    "what_people_saying": "What people are saying",
+    "trade_button": "Trade",
+    "sources_count": "+{{count}} sources",
+    "sources_title": "Sources"
+  },
   "predict": {
     "title": "MetaMask प्रिडिक्शन्स",
     "prediction_markets": "प्रेडिक्शन मार्केट",
@@ -2752,6 +2766,9 @@
     "disconnect_all_accounts": "सभी खाते डिस्कनेक्ट करें",
     "deceptive_site_ahead": "आगे धोखाधड़ी करने वाली साइट मौजूद है",
     "deceptive_site_desc": "आप जिस साइट पर जाना चाह रहे हैं वह सुरक्षित नहीं है। हमला करने वाले आपको कुछ खतरनाक काम करने के लिए उकसा सकते हैं।",
+    "malicious_site_detected": "Malicious site detected",
+    "malicious_site_warning": "If you connect to this site, you could lose all your assets.",
+    "connect_anyway": "Connect Anyway",
     "learn_more": "ज़्यादा जानें",
     "advisory_by": "Ethereum Phishing Detector और PhishFort द्वारा दी गई एडवाइज़री",
     "potential_threat": "बड़े ख़तरों में शामिल हैं",
@@ -2846,7 +2863,10 @@
     "permissions": "अनुमतियां",
     "card_title": "MetaMask कार्ड",
     "settings": "सेटिंग्स",
-    "log_out": "लॉग आउट करें"
+    "log_out": "लॉग आउट करें",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "नोटिफिकेशंस चालू किया जा रहा है...",
@@ -2870,6 +2890,8 @@
     "state_logs": "स्टेट लॉग्स",
     "add_network_title": "एक नेटवर्क जोड़ें",
     "auto_lock": "ऑटो-लॉक",
+    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "एप्लिकेशन के अपने आप लॉक होने में लगने वाले समय का चयन करें। ",
     "state_logs_desc": "किसी समस्या को डिबग करने में यह MetaMask की मदद करेगा, जिससे आपका मुकाबला हो सकता है।  कृपया इसे हैमबर्गर आइकन > फीडबेक भेजें के जरिए MetaMask समर्थन को भेजें, या अपने वर्तमान टिकट का जवाब दें यदि आपके पास एक है।",
     "autolock_immediately": "तुरंत ही",
@@ -3379,6 +3401,7 @@
     "sell_description": "कैश के लिए क्रिप्टो बेचें"
   },
   "asset_overview": {
+    "market_closed": "Market closed",
     "send_button": "भेजें",
     "buy_button": "खरीदें",
     "cash_buy_button": "कैश में खरीदें",
@@ -3399,19 +3422,6 @@
     "bridge": "ब्रिज",
     "earn": "कमाएं",
     "convert_to_musd": "mUSD में कन्वर्ट करें",
-    "merkl_rewards": {
-      "annual_bonus": "{{apy}}% बोनस",
-      "claimable_bonus": "क्लेम करने योग्य बोनस",
-      "claimable_bonus_tooltip_description": "mUSD बोनस Linea पर क्लेम किए जाते हैं।",
-      "terms_apply": "नियम लागू।",
-      "ok": "ठीक है",
-      "claim": "क्लेम करें",
-      "processing_claim": "क्लेम प्रोसेस हो रहा है...",
-      "claim_on_linea_title": "Linea पर बोनस क्लेम करें",
-      "claim_on_linea_description": "आपका बोनस Linea पर जारी किया जाएगा, जो आपके Ethereum mUSD बैलेंस से अलग होगा।",
-      "continue": "जारी रखें",
-      "unexpected_error": "एक अनचाही गड़बड़ी हुई। कृपया फिर से कोशिश करें।"
-    },
     "tron": {
       "daily_resource_new_energy": "नई दैनिक ऊर्जा",
       "sufficient_to_cover": "कवर करने के लिए पर्याप्त",
@@ -3795,7 +3805,7 @@
     "no_tabs_desc": "विकेन्द्रीकृत वेब ब्राउज करने के लिए, एक नया टैब जोड़ें",
     "got_it": "समझ गए",
     "max_tabs_title": "अधिकतम टैब की सीमा पूरी हो गई",
-    "max_tabs_desc": "हम वर्तमान में एक बार में केवल 5 ओपन टैब सपोर्ट करते हैं। कृपया नए टैब जोड़ने से पहले मौजूदा टैब बंद करें।",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "हम उस  ENS नाम को सुलझा नहीं सके",
     "remove_bookmark_title": "पसंदीदा हटाएं",
     "remove_bookmark_msg": "क्या आप वास्तव में इस साइट को अपने पसंदीदा से हटाना चाहते हैं?",
@@ -4181,11 +4191,7 @@
     "enable_device_passcode_android": "डिवाइस के PIN के साथ अनलॉक करें?"
   },
   "authentication": {
-    "auth_prompt_title": "प्रमाणीकरण की जरुरत है",
-    "auth_prompt_desc": "MetaMask के उपयोग के लिए कृपया प्रमाणित करें",
-    "fingerprint_prompt_title": "प्रमाणीकरण की जरुरत है",
-    "fingerprint_prompt_desc": "MetaMask को अनलॉक करने के लिए अपनी फिंगरप्रिंट का उपयोग करें",
-    "fingerprint_prompt_cancel": "रद्द करें"
+    "auth_prompt_desc": "MetaMask के उपयोग के लिए कृपया प्रमाणित करें"
   },
   "accountApproval": {
     "title": "कनेक्ट अनुरोध  ",
@@ -5530,10 +5536,10 @@
     "enable_remember_me_description": "जब रिमेंबर मी चालू रहेगा, आपका फोन एक्सेस करने वाला कोई भी व्यक्ति आपके MetaMask अकाउंट को एक्सेस कर सकता है।"
   },
   "turn_off_remember_me": {
-    "title": "रिमेंबर मी को बंद करने के लिए अपना पासवर्ड दर्ज करें",
-    "placeholder": "पासवर्ड",
-    "description": "अगर आप इस ऑप्शन को बंद करते हैं, तो अब से आपको MetaMask अनलॉक करने के लिए अपने पासवर्ड की ज़रूरत होगी।",
-    "action": "रिमेंबर मी बंद करें"
+    "title": "Turn off Remember Me",
+    "placeholder": "Confirm password",
+    "description": "Once turned off, Remember Me can't be used again. This feature has been discontinued, so you can unlock MetaMask with your password or biometrics instead.",
+    "action": "Turn off Remember Me"
   },
   "dapp_connect": {
     "warning": "इस फीचर का उपयोग करने के लिए, कृपया ऐप को नवीनतम संस्करण में अपडेट करें"
@@ -6435,6 +6441,13 @@
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "आपके ट्रांसेक्शन के प्रोसेस होने के दौरान प्राइस बदलने पर जो न्यूनतम राशि आपको प्राप्त होगी, वह आपके स्लिपेज (slippage) टॉलरेंस पर आधारित है। यह हमारे लिक्विडिटी प्रदाताओं से एक अनुमान है। अंतिम राशि भिन्न हो सकती है।",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Done"
+    },
     "submit": "सबमिट करें",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "cancel": "कैंसिल करें",
@@ -6739,6 +6752,7 @@
     "password_bottomsheet": {
       "title": "पासवर्ड दर्ज करें",
       "description": "कार्ड विवरण देखने के लिए अपना वॉलेट पासवर्ड दर्ज करें।",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "पासवर्ड",
       "confirm": "कन्फर्म करें",
       "cancel": "कैंसिल करें",
@@ -7001,6 +7015,7 @@
       "enable_card_error": "कार्ड चालू नहीं हो पाया। कृपया बाद में फिर से कोशिश करें।",
       "view_card_details_error": "कार्ड विवरण लोड नहीं हो सके। कृपया फिर से प्रयास करें।",
       "biometric_verification_required": "कार्ड विवरण देखने के लिए प्रमाणीकरण आवश्यक है।",
+      "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "warnings": {
         "close_spending_limit": {
           "title": "आप अपनी खर्च सीमा के करीब पहुँच चुके हैं",
@@ -7018,7 +7033,7 @@
         },
         "frozen": {
           "title": "आपका कार्ड फ़्रीज़ कर दिया गया है",
-          "description": "कृपया अपने कार्ड को अनफ़्रीज़ करने के लिए सपोर्ट से संपर्क करें"
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "आपका कार्ड ब्लॉक कर दिया गया है",
@@ -7068,7 +7083,14 @@
         "travel_description": "70% तक की छूट के साथ होटल बुक करें",
         "card_tos_title": "नियम और शर्त",
         "order_metal_card": "मेटल कार्ड",
-        "order_metal_card_description": "अपना भौतिक मेटल कार्ड अभी ऑर्डर करें"
+        "order_metal_card_description": "अपना भौतिक मेटल कार्ड अभी ऑर्डर करें",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {
@@ -7677,5 +7699,16 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "फिर से लोड करें",
     "primary_action_acknowledge": "समझ गए"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs",
+      "import_nfts": "Import NFTs",
+      "import_nfts_description": "Easily add your collectibles"
+    }
   }
 }

@@ -458,7 +458,11 @@
     "reset_wallet_desc_bold": "διαγραφούν οριστικά",
     "reset_wallet_desc_2": "από το MetaMask σε αυτήν τη συσκευή. Η ενέργεια αυτή δεν μπορεί να αναιρεθεί.",
     "reset_wallet_desc_login": "Για να επαναφέρετε το πορτοφόλι σας, μπορείτε να χρησιμοποιήσετε τη Μυστική Φράση Ανάκτησης ή τον κωδικό πρόσβασης του λογαριασμού σας Google ή Apple. Το MetaMask δεν διαθέτει αυτές τις πληροφορίες.",
-    "reset_wallet_desc_srp": "Για να επαναφέρετε το πορτοφόλι σας, βεβαιωθείτε ότι διαθέτετε τη Μυστική Φράση Ανάκτησης. Το MetaMask δεν διαθέτει αυτές τις πληροφορίες."
+    "reset_wallet_desc_srp": "Για να επαναφέρετε το πορτοφόλι σας, βεβαιωθείτε ότι διαθέτετε τη Μυστική Φράση Ανάκτησης. Το MetaMask δεν διαθέτει αυτές τις πληροφορίες.",
+    "biometric_authentication_cancelled": "Biometric authentication cancelled",
+    "biometric_authentication_cancelled_title": "Biometric Setup Failed",
+    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
+    "biometric_authentication_cancelled_button": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "Συνδέστε ένα πορτοφόλι υλικού",
@@ -1040,7 +1044,7 @@
       "title": "Ποσό προς κατάθεση",
       "get_usdc_hyperliquid": "Αποκτήστε USDC • Hyperliquid",
       "insufficient_funds": "Ανεπαρκές ποσό",
-      "no_funds_available": "Δεν υπάρχουν διαθέσιμα κεφάλαια. Παρακαλούμε καταθέστε πρώτα.",
+      "no_funds_available": "Not enough funds available. Deposit funds or select a different payment method",
       "enter_amount": "Εισαγωγή ποσού",
       "fetching_quote": "Λήψη προσφοράς",
       "submitting": "Υποβολή συναλλαγής",
@@ -2051,6 +2055,16 @@
       "referral_code_text": "Χρησιμοποιήστε τον κωδικό παραπομπής μου για να κερδίσετε επιπλέον ανταμοιβές."
     }
   },
+  "market_insights": {
+    "title": "Market insights",
+    "updated_ago": "Updated {{time}}",
+    "disclaimer": "AI insights. Not financial advice.",
+    "whats_driving_price": "What's driving the price?",
+    "what_people_saying": "What people are saying",
+    "trade_button": "Trade",
+    "sources_count": "+{{count}} sources",
+    "sources_title": "Sources"
+  },
   "predict": {
     "title": "Προβλέψεις στο MetaMask",
     "prediction_markets": "Αγορές προβλέψεων",
@@ -2752,6 +2766,9 @@
     "disconnect_all_accounts": "Αποσύνδεση όλων των λογαριασμών",
     "deceptive_site_ahead": "Παραπλανητικός ιστότοπος εν όψει",
     "deceptive_site_desc": "Ο ιστότοπος που προσπαθείτε να επισκεφθείτε δεν είναι ασφαλής. Οι εισβολείς μπορεί να σας εξαπατήσουν για να κάνουν κάτι επικίνδυνο.",
+    "malicious_site_detected": "Malicious site detected",
+    "malicious_site_warning": "If you connect to this site, you could lose all your assets.",
+    "connect_anyway": "Connect Anyway",
     "learn_more": "Μάθετε περισσότερα",
     "advisory_by": "Συμβουλές που παρέχονται από το Ethereum Phishing Detector και PhishFort",
     "potential_threat": "Πιθανές απειλές περιλαμβάνουν",
@@ -2846,7 +2863,10 @@
     "permissions": "Άδειες",
     "card_title": "MetaMask Card",
     "settings": "Ρυθμίσεις",
-    "log_out": "Αποσύνδεση"
+    "log_out": "Αποσύνδεση",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "Ενεργοποίηση ειδοποιήσεων...",
@@ -2870,6 +2890,8 @@
     "state_logs": "Αρχεία καταγραφής κατάστασης",
     "add_network_title": "Προσθήκη δικτύου",
     "auto_lock": "Αυτόματο κλείδωμα",
+    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Επιλέξτε το χρονικό διάστημα πριν κλειδώσει αυτόματα η εφαρμογή.",
     "state_logs_desc": "Αυτό θα βοηθήσει το MetaMask να εντοπίσει προβλήματα που ενδέχεται να αντιμετωπίσετε. Στείλτε τα στην υποστήριξη του MetaMask μέσω του εικονιδίου χάμπουργκερ > Αποστολή Σχολίων ή απαντήστε στο υπάρχον αίτημα υποστήριξης, αν έχετε.",
     "autolock_immediately": "Αμέσως",
@@ -3379,6 +3401,7 @@
     "sell_description": "Πώληση κρυπτονομισμάτων για μετρητά"
   },
   "asset_overview": {
+    "market_closed": "Market closed",
     "send_button": "Αποστολή",
     "buy_button": "Αγορά",
     "cash_buy_button": "Αγορά με μετρητά",
@@ -3399,19 +3422,6 @@
     "bridge": "Διασύνδεση",
     "earn": "Κερδίστε",
     "convert_to_musd": "Μετατροπή σε mUSD",
-    "merkl_rewards": {
-      "annual_bonus": "{{apy}}% μπόνους",
-      "claimable_bonus": "Μπόνους προς εξαργύρωση",
-      "claimable_bonus_tooltip_description": "Τα μπόνους σε mUSD εξαργυρώνονται στο δίκτυο Linea.",
-      "terms_apply": "Ισχύουν όροι.",
-      "ok": "Εντάξει",
-      "claim": "Εξαργύρωση",
-      "processing_claim": "Επεξεργασία αιτήματος…",
-      "claim_on_linea_title": "Εξαργυρώστε τα μπόνους στο Linea",
-      "claim_on_linea_description": "Το μπόνους σας θα πιστωθεί στο Linea, ξεχωριστά από το υπόλοιπό σας σε mUSD στο Ethereum.",
-      "continue": "Συνεχίστε",
-      "unexpected_error": "Απρόσμενο σφάλμα. Παρακαλούμε δοκιμάστε ξανά."
-    },
     "tron": {
       "daily_resource_new_energy": "Νέα ημερήσια ενέργεια",
       "sufficient_to_cover": "Επαρκές για να καλύψει",
@@ -3795,7 +3805,7 @@
     "no_tabs_desc": "Για να περιηγηθείτε στον αποκεντρωμένο ιστό, προσθέστε μια νέα καρτέλα",
     "got_it": "Κατανοητό",
     "max_tabs_title": "Επιτεύχθηκε ο μέγιστος αριθμός καρτελών",
-    "max_tabs_desc": "Προς το παρόν υποστηρίζουμε μόνο 5 ανοιχτές καρτέλες ταυτόχρονα. Κλείστε τις υπάρχουσες καρτέλες πριν προσθέσετε νέες.",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "Δεν μπορέσαμε να επιλύσουμε αυτό το όνομα ENS",
     "remove_bookmark_title": "Αφαίρεση αγαπημένου",
     "remove_bookmark_msg": "Θέλετε πραγματικά να αφαιρέσετε αυτή την ιστοσελίδα από τα αγαπημένα σας;",
@@ -4181,11 +4191,7 @@
     "enable_device_passcode_android": "Ξεκλείδωμα με PIN συσκευής;"
   },
   "authentication": {
-    "auth_prompt_title": "Απαιτείται ταυτοποίηση",
-    "auth_prompt_desc": "Παρακαλούμε κάντε έλεγχο ταυτοποίησης για να χρησιμοποιήσετε το MetaMask",
-    "fingerprint_prompt_title": "Απαιτείται ταυτοποίηση",
-    "fingerprint_prompt_desc": "Χρησιμοποιήστε το δακτυλικό σας αποτύπωμα για να ξεκλειδώσετε το MetaMask",
-    "fingerprint_prompt_cancel": "Άκυρο"
+    "auth_prompt_desc": "Παρακαλούμε κάντε έλεγχο ταυτοποίησης για να χρησιμοποιήσετε το MetaMask"
   },
   "accountApproval": {
     "title": "ΑΙΤΗΜΑ ΣΥΝΔΕΣΗΣ",
@@ -5530,10 +5536,10 @@
     "enable_remember_me_description": "Όταν η λειτουργία «Να με θυμάστε» είναι ενεργοποιημένη, οποιοσδήποτε έχει πρόσβαση στο τηλέφωνό σας μπορεί να αποκτήσει πρόσβαση στον λογαριασμό σας στο MetaMask."
   },
   "turn_off_remember_me": {
-    "title": "Εισαγάγετε τον κωδικό πρόσβασής σας για να απενεργοποιήσετε την λειτουργία «Να με θυμάστε»",
-    "placeholder": "Κωδικός πρόσβασης",
-    "description": "Εάν απενεργοποιήσετε αυτή την επιλογή, από εδώ και πέρα θα χρειάζεστε τον κωδικό πρόσβασής σας για να ξεκλειδώσετε το MetaMask.",
-    "action": "Απενεργοποίηστε την λειτουργία «Να με θυμάστε»"
+    "title": "Turn off Remember Me",
+    "placeholder": "Confirm password",
+    "description": "Once turned off, Remember Me can't be used again. This feature has been discontinued, so you can unlock MetaMask with your password or biometrics instead.",
+    "action": "Turn off Remember Me"
   },
   "dapp_connect": {
     "warning": "Για να χρησιμοποιήσετε αυτή τη λειτουργία, παρακαλούμε ενημερώστε την εφαρμογή στη νεότερη έκδοση"
@@ -6435,6 +6441,13 @@
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "Το ελάχιστο ποσό που θα λάβετε, αν η τιμή αλλάξει όσο η συναλλαγή σας εκτελείται, με βάση την ανοχή σας στην απόκλιση. Πρόκειται για εκτίμηση από τους παρόχους ρευστότητας. Τα τελικά ποσά ενδέχεται να διαφέρουν.",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Done"
+    },
     "submit": "Υποβολή",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "cancel": "Άκυρο",
@@ -6739,6 +6752,7 @@
     "password_bottomsheet": {
       "title": "Πληκτρολογήστε τον κωδικό πρόσβασης",
       "description": "Πληκτρολογήστε τον κωδικό του πορτοφολιού σας για να δείτε τα στοιχεία της κάρτας.",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "Κωδικός πρόσβασης",
       "confirm": "Επιβεβαίωση",
       "cancel": "Ακύρωση",
@@ -7001,6 +7015,7 @@
       "enable_card_error": "Αποτυχία ενεργοποίησης της κάρτας. Προσπαθήστε ξανά αργότερα.",
       "view_card_details_error": "Δεν ήταν δυνατή η φόρτωση των στοιχείων της κάρτας. Παρακαλούμε δοκιμάστε ξανά.",
       "biometric_verification_required": "Απαιτείται έλεγχος ταυτότητας για να δείτε τα στοιχεία της κάρτας.",
+      "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "warnings": {
         "close_spending_limit": {
           "title": "Έχετε σχεδόν φτάσει το όριο δαπανών σας",
@@ -7018,7 +7033,7 @@
         },
         "frozen": {
           "title": "Η κάρτα σας έχει προσωρινά απενεργοποιηθεί",
-          "description": "Επικοινωνήστε με την υποστήριξη για να ενεργοποιήσετε ξανά την κάρτα σας"
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "Η κάρτα σας είναι μπλοκαρισμένη",
@@ -7068,7 +7083,14 @@
         "travel_description": "Κάντε κράτηση σε ξενοδοχεία με έκπτωση έως και 70%",
         "card_tos_title": "Όροι και προϋποθέσεις",
         "order_metal_card": "Metal Card",
-        "order_metal_card_description": "Παραγγείλετε τώρα τη φυσική Metal Card σας"
+        "order_metal_card_description": "Παραγγείλετε τώρα τη φυσική Metal Card σας",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {
@@ -7677,5 +7699,16 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "Επαναφόρτωση",
     "primary_action_acknowledge": "Κατανοητό"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs",
+      "import_nfts": "Import NFTs",
+      "import_nfts_description": "Easily add your collectibles"
+    }
   }
 }

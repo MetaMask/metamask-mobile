@@ -458,7 +458,11 @@
     "reset_wallet_desc_bold": "完全に消去されます",
     "reset_wallet_desc_2": "。この操作は元に戻せません。",
     "reset_wallet_desc_login": "ウォレットの復元には、シークレットリカバリーフレーズか、GoogleまたはAppleアカウントのパスワードを利用できます。MetaMaskはこの情報を保持していません。",
-    "reset_wallet_desc_srp": "ウォレットを復元するには、シークレットリカバリーフレーズがあることを確認してください。MetaMaskはこの情報を保持していません。"
+    "reset_wallet_desc_srp": "ウォレットを復元するには、シークレットリカバリーフレーズがあることを確認してください。MetaMaskはこの情報を保持していません。",
+    "biometric_authentication_cancelled": "Biometric authentication cancelled",
+    "biometric_authentication_cancelled_title": "Biometric Setup Failed",
+    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
+    "biometric_authentication_cancelled_button": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "ハードウェアウォレットの接続",
@@ -1040,7 +1044,7 @@
       "title": "入金額",
       "get_usdc_hyperliquid": "USDCを入手 • Hyperliquid",
       "insufficient_funds": "資金不足",
-      "no_funds_available": "利用可能な資金がありません。はじめにデポジットを行ってください。",
+      "no_funds_available": "Not enough funds available. Deposit funds or select a different payment method",
       "enter_amount": "金額を入力してください",
       "fetching_quote": "クォートを取得中",
       "submitting": "トランザクションを送信中",
@@ -2051,6 +2055,16 @@
       "referral_code_text": "私の紹介コードを使って追加の報酬を獲得しましょう。"
     }
   },
+  "market_insights": {
+    "title": "Market insights",
+    "updated_ago": "Updated {{time}}",
+    "disclaimer": "AI insights. Not financial advice.",
+    "whats_driving_price": "What's driving the price?",
+    "what_people_saying": "What people are saying",
+    "trade_button": "Trade",
+    "sources_count": "+{{count}} sources",
+    "sources_title": "Sources"
+  },
   "predict": {
     "title": "MetaMask 予測",
     "prediction_markets": "予測市場",
@@ -2752,6 +2766,9 @@
     "disconnect_all_accounts": "すべてのアカウントを接続解除",
     "deceptive_site_ahead": "偽装サイトにアクセスしようとしています",
     "deceptive_site_desc": "アクセスしようとしているサイトは安全ではありません。攻撃者が危険な行為に誘導しようとする可能性があります。",
+    "malicious_site_detected": "Malicious site detected",
+    "malicious_site_warning": "If you connect to this site, you could lose all your assets.",
+    "connect_anyway": "Connect Anyway",
     "learn_more": "詳細",
     "advisory_by": "イーサリアムフィッシング検知システムとPhishFortからの忠告",
     "potential_threat": "潜在的な脅威には次のものが含まれます",
@@ -2846,7 +2863,10 @@
     "permissions": "アクセス許可",
     "card_title": "MetaMaskカード",
     "settings": "設定",
-    "log_out": "ログアウト"
+    "log_out": "ログアウト",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "通知を有効にしています...",
@@ -2870,6 +2890,8 @@
     "state_logs": "ステートログ",
     "add_network_title": "ネットワークを追加",
     "auto_lock": "自動ロック",
+    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "アプリケーションが自動的にロックされるまでの時間を選択してください。",
     "state_logs_desc": "これはMetaMaskが問題のデバッグを行ううえで参考になります。「ハンバーガーアイコン」>「フィードバックを送信」から、またはチケットがある場合はそのチケットに返信して、MetaMaskサポートまでお送りください。",
     "autolock_immediately": "すぐに",
@@ -3379,6 +3401,7 @@
     "sell_description": "仮想通貨を売って現金化します"
   },
   "asset_overview": {
+    "market_closed": "Market closed",
     "send_button": "送信",
     "buy_button": "購入",
     "cash_buy_button": "キャッシュ購入",
@@ -3399,19 +3422,6 @@
     "bridge": "ブリッジ",
     "earn": "獲得",
     "convert_to_musd": "mUSDに変換",
-    "merkl_rewards": {
-      "annual_bonus": "{{apy}}%のボーナス",
-      "claimable_bonus": "獲得できるボーナス",
-      "claimable_bonus_tooltip_description": "mUSDボーナスの請求はLinea上で行います。",
-      "terms_apply": "諸条件が適用されます。",
-      "ok": "OK",
-      "claim": "請求",
-      "processing_claim": "請求を処理しています...",
-      "claim_on_linea_title": "Lineaでボーナスを獲得",
-      "claim_on_linea_description": "ボーナスはLinea上で発行され、イーサリアムのmUSD残高とは切り離されます。",
-      "continue": "続行",
-      "unexpected_error": "予期せぬエラーが発生しました。もう一度お試しください。"
-    },
     "tron": {
       "daily_resource_new_energy": "1日の新規エネルギー量",
       "sufficient_to_cover": "カバーできる取引量:",
@@ -3795,7 +3805,7 @@
     "no_tabs_desc": "分散型インターネットを閲覧するには、新規タブを追加してください",
     "got_it": "了解",
     "max_tabs_title": "タブの最大数に達しました",
-    "max_tabs_desc": "現在同時に開けるタブの数は5つまでです。新しいタブを追加する前に、既存のタブを閉じてください。",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "ENS名を解決できませんでした",
     "remove_bookmark_title": "お気に入りを削除",
     "remove_bookmark_msg": "このサイトをお気に入りから削除してよろしいですか？",
@@ -4181,11 +4191,7 @@
     "enable_device_passcode_android": "デバイスの暗証番号でロックを解除しますか？"
   },
   "authentication": {
-    "auth_prompt_title": "認証が必要です",
-    "auth_prompt_desc": "MetaMaskを使用するには認証してください",
-    "fingerprint_prompt_title": "認証が必要です",
-    "fingerprint_prompt_desc": "指紋でMetaMaskのロックを解除してください",
-    "fingerprint_prompt_cancel": "キャンセル"
+    "auth_prompt_desc": "MetaMaskを使用するには認証してください"
   },
   "accountApproval": {
     "title": "接続リクエスト",
@@ -5530,10 +5536,10 @@
     "enable_remember_me_description": "認証情報の保存を有効にすると、携帯にアクセスできる人は誰でもMetaMaskアカウントにアクセスできるようになります。"
   },
   "turn_off_remember_me": {
-    "title": "認証情報の保存を無効にするには、パスワードを入力してください",
-    "placeholder": "パスワード",
-    "description": "このオプションを無効にすると、今後MetaMaskのロックを解除するのにパスワードが必要になります。",
-    "action": "認証情報の保存を無効にする"
+    "title": "Turn off Remember Me",
+    "placeholder": "Confirm password",
+    "description": "Once turned off, Remember Me can't be used again. This feature has been discontinued, so you can unlock MetaMask with your password or biometrics instead.",
+    "action": "Turn off Remember Me"
   },
   "dapp_connect": {
     "warning": "この機能を使うには、アプリを最新のバージョンにアップデートしてください"
@@ -6435,6 +6441,13 @@
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "トランザクションの処理中に価格が変動した場合に、お客様のスリッページ許容値に基づいて受け取る最低額です。これは流動性プロバイダーからの見積もりであり、最終的な金額は異なる場合があります。",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Done"
+    },
     "submit": "送信",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "cancel": "キャンセル",
@@ -6739,6 +6752,7 @@
     "password_bottomsheet": {
       "title": "パスワードを入力してください",
       "description": "カード情報を表示するには、ウォレットのパスワードを入力してください。",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "パスワード",
       "confirm": "確定",
       "cancel": "キャンセル",
@@ -7001,6 +7015,7 @@
       "enable_card_error": "カードを有効化できませんでした。後ほどもう一度お試しください。",
       "view_card_details_error": "カード情報を読み込めません。もう一度お試しください。",
       "biometric_verification_required": "カード情報を表示するには認証が必要です。",
+      "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "warnings": {
         "close_spending_limit": {
           "title": "利用限度額に近づいています",
@@ -7018,7 +7033,7 @@
         },
         "frozen": {
           "title": "カードが凍結されています",
-          "description": "カードの凍結を解除するにはサポートにお問い合わせください"
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "カードがロックされています",
@@ -7068,7 +7083,14 @@
         "travel_description": "最大70%割引でホテルを予約",
         "card_tos_title": "利用規約",
         "order_metal_card": "メタルカード",
-        "order_metal_card_description": "実物のメタルカードを今すぐ注文"
+        "order_metal_card_description": "実物のメタルカードを今すぐ注文",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {
@@ -7677,5 +7699,16 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "再読み込み",
     "primary_action_acknowledge": "了解"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs",
+      "import_nfts": "Import NFTs",
+      "import_nfts_description": "Easily add your collectibles"
+    }
   }
 }

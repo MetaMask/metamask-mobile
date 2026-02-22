@@ -458,7 +458,11 @@
     "reset_wallet_desc_bold": "удалены навсегда",
     "reset_wallet_desc_2": "из MetaMask на этом устройстве. Это нельзя отменить.",
     "reset_wallet_desc_login": "Чтобы восстановить кошелек, вы можете использовать свою секретную фразу восстановления или пароль от аккаунта Google или Apple. У MetaMask нет этой информации.",
-    "reset_wallet_desc_srp": "Чтобы восстановить свой кошелек, убедитесь, что у вас есть ваша секретная фраза для восстановления. У MetaMask нет этой информации."
+    "reset_wallet_desc_srp": "Чтобы восстановить свой кошелек, убедитесь, что у вас есть ваша секретная фраза для восстановления. У MetaMask нет этой информации.",
+    "biometric_authentication_cancelled": "Biometric authentication cancelled",
+    "biometric_authentication_cancelled_title": "Biometric Setup Failed",
+    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
+    "biometric_authentication_cancelled_button": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "Подключить аппаратный кошелек",
@@ -1040,7 +1044,7 @@
       "title": "Сумма депозита",
       "get_usdc_hyperliquid": "Получить USDC • Hyperliquid",
       "insufficient_funds": "Недостаточно средств",
-      "no_funds_available": "Нет доступных средств. Сначала внесите депозит.",
+      "no_funds_available": "Not enough funds available. Deposit funds or select a different payment method",
       "enter_amount": "Укажите сумму",
       "fetching_quote": "Получение котировки",
       "submitting": "Отправка транзакции",
@@ -2051,6 +2055,16 @@
       "referral_code_text": "Использовать мой реферальный код, чтобы получить дополнительные вознаграждения."
     }
   },
+  "market_insights": {
+    "title": "Market insights",
+    "updated_ago": "Updated {{time}}",
+    "disclaimer": "AI insights. Not financial advice.",
+    "whats_driving_price": "What's driving the price?",
+    "what_people_saying": "What people are saying",
+    "trade_button": "Trade",
+    "sources_count": "+{{count}} sources",
+    "sources_title": "Sources"
+  },
   "predict": {
     "title": "Прогнозы MetaMask",
     "prediction_markets": "Рынки прогнозов",
@@ -2752,6 +2766,9 @@
     "disconnect_all_accounts": "Отключить все счета",
     "deceptive_site_ahead": "Впереди моешеннический сайт",
     "deceptive_site_desc": "Сайт, который вы пытаетесь посетить, небезопасен. Злоумышленники могут обманом заставить вас сделать что-то опасное.",
+    "malicious_site_detected": "Malicious site detected",
+    "malicious_site_warning": "If you connect to this site, you could lose all your assets.",
+    "connect_anyway": "Connect Anyway",
     "learn_more": "Узнайте подробнее",
     "advisory_by": "Консультации предоставлены Ethereum Phishing Detector и PhishFort",
     "potential_threat": "Потенциальные угрозы включают",
@@ -2846,7 +2863,10 @@
     "permissions": "Разрешения",
     "card_title": "Карта MetaMask",
     "settings": "Настройки",
-    "log_out": "Выйти"
+    "log_out": "Выйти",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "Включение уведомлений...",
@@ -2870,6 +2890,8 @@
     "state_logs": "Журналы состояния",
     "add_network_title": "Добавить сеть",
     "auto_lock": "Автоблокировка",
+    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Выберите временной интервал до автоблокировки приложения.",
     "state_logs_desc": "Это поможет MetaMask отладить любую проблему, с которой вы можете столкнуться. Отправьте его в службу поддержки MetaMask через значок «гамбургер» > Отправьте отзыв или ответьте на свой существующий запрос о поддержке, если он у вас есть.",
     "autolock_immediately": "Немедленно",
@@ -3379,6 +3401,7 @@
     "sell_description": "Продавайте криптовалюту за деньги"
   },
   "asset_overview": {
+    "market_closed": "Market closed",
     "send_button": "Отправить",
     "buy_button": "Купить",
     "cash_buy_button": "Купить за деньги",
@@ -3399,19 +3422,6 @@
     "bridge": "Мост",
     "earn": "Заработать",
     "convert_to_musd": "Конвертировать в mUSD",
-    "merkl_rewards": {
-      "annual_bonus": "Бонус {{apy}}%",
-      "claimable_bonus": "Встребуемый бонус",
-      "claimable_bonus_tooltip_description": "Бонусы в mUSD востребуются на Linea.",
-      "terms_apply": "Применяются условия.",
-      "ok": "ОК",
-      "claim": "Получить",
-      "processing_claim": "Обработка запроса...",
-      "claim_on_linea_title": "Получить бонусы от Linea",
-      "claim_on_linea_description": "Ваш бонус будет начислен на Linea, отдельно от вашего баланса Ethereum mUSD.",
-      "continue": "Продолжить",
-      "unexpected_error": "Возникла непредвиденная ошибка. Повторите попытку."
-    },
     "tron": {
       "daily_resource_new_energy": "Новая дневная энергия",
       "sufficient_to_cover": "Достаточно для покрытия",
@@ -3795,7 +3805,7 @@
     "no_tabs_desc": "Для просмотра децентрализованной сети добавьте новую вкладку",
     "got_it": "Понятно",
     "max_tabs_title": "Достигнут максимум вкладок",
-    "max_tabs_desc": "Сейчас мы поддерживаем только 5 одновременно открытых вкладок. Закройте текущие вкладки перед добавлением новых.",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "Нам не удалось получить это имя ENS.",
     "remove_bookmark_title": "Удалить из Избранного",
     "remove_bookmark_msg": "Уверены, что хотите удалить этот сайт из черного списка?",
@@ -4181,11 +4191,7 @@
     "enable_device_passcode_android": "Разблокировать с помощью PIN-кода устройства?"
   },
   "authentication": {
-    "auth_prompt_title": "Необходима аутентификация",
-    "auth_prompt_desc": "Авторизуйтесь, чтобы использовать MetaMask",
-    "fingerprint_prompt_title": "Необходима аутентификация",
-    "fingerprint_prompt_desc": "Разблокируйте MetaMask отпечатком пальца",
-    "fingerprint_prompt_cancel": "Отмена"
+    "auth_prompt_desc": "Авторизуйтесь, чтобы использовать MetaMask"
   },
   "accountApproval": {
     "title": "ЗАПРОС НА УСТАНОВЛЕНИЯ СВЯЗИ",
@@ -5530,10 +5536,10 @@
     "enable_remember_me_description": "Когда функция \"Запомнить меня\" включена, любой, у кого есть доступ к вашему телефону, может получить доступ к вашему счету MetaMask."
   },
   "turn_off_remember_me": {
-    "title": "Введите пароль, чтобы отключить \"Запомнить меня\"",
-    "placeholder": "Пароль",
-    "description": "Если вы отключите эту опцию, с этого момента вам потребуется пароль для разблокировки MetaMask.",
-    "action": "Выключить \"Запомнить меня\""
+    "title": "Turn off Remember Me",
+    "placeholder": "Confirm password",
+    "description": "Once turned off, Remember Me can't be used again. This feature has been discontinued, so you can unlock MetaMask with your password or biometrics instead.",
+    "action": "Turn off Remember Me"
   },
   "dapp_connect": {
     "warning": "Чтобы использовать эту функцию, обновите приложение до последней версии"
@@ -6435,6 +6441,13 @@
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "Минимальная сумма, которую вы получите, если цена изменится во время обработки вашей транзакции, рассчитывается исходя из вашей допустимой задержки. Это оценка, предоставленная нашими поставщиками ликвидности. Окончательные суммы могут отличаться.",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Done"
+    },
     "submit": "Отправить",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "cancel": "Отмена",
@@ -6739,6 +6752,7 @@
     "password_bottomsheet": {
       "title": "Введите пароль",
       "description": "Введите пароль от своего кошелька, чтобы просмотреть реквизиты карты.",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "Пароль",
       "confirm": "Подтвердить",
       "cancel": "Отмена",
@@ -7001,6 +7015,7 @@
       "enable_card_error": "Не удалось активировать карту. Попробуйте позже.",
       "view_card_details_error": "Не удалось загрузить реквизиты карты. Повторите попытку.",
       "biometric_verification_required": "Для просмотра реквизитов карты требуется аутентификация.",
+      "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "warnings": {
         "close_spending_limit": {
           "title": "Вы приближаетесь к своему лимиту расходов",
@@ -7018,7 +7033,7 @@
         },
         "frozen": {
           "title": "Ваша карта заблокирована",
-          "description": "Свяжитесь со службой поддержки для ее разблокировки"
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "Ваша карта заблокирована",
@@ -7068,7 +7083,14 @@
         "travel_description": "Бронируйте отели со скидками до 70%",
         "card_tos_title": "Положения и условия",
         "order_metal_card": "Металлическая карта",
-        "order_metal_card_description": "Закажите свою физическую металлическую карту прямо сейчас"
+        "order_metal_card_description": "Закажите свою физическую металлическую карту прямо сейчас",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {
@@ -7677,5 +7699,16 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "Перезагрузить",
     "primary_action_acknowledge": "Понятно"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs",
+      "import_nfts": "Import NFTs",
+      "import_nfts_description": "Easily add your collectibles"
+    }
   }
 }

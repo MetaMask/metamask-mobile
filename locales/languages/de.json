@@ -458,7 +458,11 @@
     "reset_wallet_desc_bold": "dauerhaft",
     "reset_wallet_desc_2": "von MetaMask auf diesem Gerät gelöscht. Dies kann nicht rückgängig gemacht werden.",
     "reset_wallet_desc_login": "Um Ihre Wallet wiederherzustellen, können Sie Ihre geheime Wiederherstellungsphrase oder Ihr Google- oder Apple-Kontopasswort verwenden. MetaMask verfügt nicht über diese Informationen.",
-    "reset_wallet_desc_srp": "Zur Wiederherstellung Ihrer Wallet ist Ihre geheime Wiederherstellungsphrase erforderlich. MetaMask verfügt nicht über diese Informationen."
+    "reset_wallet_desc_srp": "Zur Wiederherstellung Ihrer Wallet ist Ihre geheime Wiederherstellungsphrase erforderlich. MetaMask verfügt nicht über diese Informationen.",
+    "biometric_authentication_cancelled": "Biometric authentication cancelled",
+    "biometric_authentication_cancelled_title": "Biometric Setup Failed",
+    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
+    "biometric_authentication_cancelled_button": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "Verbinden Sie eine Hardware-Wallet",
@@ -1040,7 +1044,7 @@
       "title": "Einzuzahlender Betrag",
       "get_usdc_hyperliquid": "USDC erhalten • Hyperliquid",
       "insufficient_funds": "Unzureichende Gelder",
-      "no_funds_available": "Keine Gelder verfügbar. Bitte tätigen Sie zuerst eine Einzahlung.",
+      "no_funds_available": "Not enough funds available. Deposit funds or select a different payment method",
       "enter_amount": "Betrag eingeben",
       "fetching_quote": "Angebot einholen",
       "submitting": "Übermittlung der Transaktion",
@@ -2051,6 +2055,16 @@
       "referral_code_text": "Verwenden Sie meinen Empfehlungscode und erhalten Sie zusätzliche Belohnungen."
     }
   },
+  "market_insights": {
+    "title": "Market insights",
+    "updated_ago": "Updated {{time}}",
+    "disclaimer": "AI insights. Not financial advice.",
+    "whats_driving_price": "What's driving the price?",
+    "what_people_saying": "What people are saying",
+    "trade_button": "Trade",
+    "sources_count": "+{{count}} sources",
+    "sources_title": "Sources"
+  },
   "predict": {
     "title": "MetaMask Predictions",
     "prediction_markets": "Prognosemärkte",
@@ -2752,6 +2766,9 @@
     "disconnect_all_accounts": "Alle Konten trennen",
     "deceptive_site_ahead": "Täuschende Website voraus",
     "deceptive_site_desc": "Die Website, die Sie besuchen wollen, ist nicht sicher. Angreifer könnten Sie dazu verleiten, etwas Gefährliches zu tun.",
+    "malicious_site_detected": "Malicious site detected",
+    "malicious_site_warning": "If you connect to this site, you could lose all your assets.",
+    "connect_anyway": "Connect Anyway",
     "learn_more": "Mehr erfahren",
     "advisory_by": "Hinweis von Ethereum Phishing-Detektor und PhishFor",
     "potential_threat": "Mögliche Bedrohungen umfassen",
@@ -2846,7 +2863,10 @@
     "permissions": "Genehmigungen",
     "card_title": "MetaMask-Karte",
     "settings": "Einstellungen",
-    "log_out": "Abmelden"
+    "log_out": "Abmelden",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "Benachrichtigungen aktivieren ...",
@@ -2870,6 +2890,8 @@
     "state_logs": "Statusprotokolle",
     "add_network_title": "Ein Netzwerk hinzufügen",
     "auto_lock": "Automatische Sperrung",
+    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Legen Sie den Zeitraum fest, bevor die App automatisch gesperrt wird.",
     "state_logs_desc": "Dies hilft MetaMask dabei, Fehler zu beseitigen, auf die Sie stoßen könnten. Bitte senden Sie Fehler über das Hamburger-Symbol > „Feedback senden“ an den MetaMask-Support oder antworten Sie auf ein existierendes Ticket, falls Sie eines haben.",
     "autolock_immediately": "Sofort",
@@ -3379,6 +3401,7 @@
     "sell_description": "Krypto für Bargeld verkaufen"
   },
   "asset_overview": {
+    "market_closed": "Market closed",
     "send_button": "Senden",
     "buy_button": "Kaufen",
     "cash_buy_button": "Barkauf",
@@ -3399,19 +3422,6 @@
     "bridge": "Bridge",
     "earn": "Verdienen",
     "convert_to_musd": "Zu mUSD konvertieren",
-    "merkl_rewards": {
-      "annual_bonus": "Bonus von {{apy}} %",
-      "claimable_bonus": "Anspruchsberechtigter Bonus",
-      "claimable_bonus_tooltip_description": "mUSD-Boni werden auf Linea eingefordert.",
-      "terms_apply": "Es gelten die Nutzungsbedingungen.",
-      "ok": "OK",
-      "claim": "Einfordern",
-      "processing_claim": "Einforderung in Bearbeitung ...",
-      "claim_on_linea_title": "Boni auf Linea einfordern",
-      "claim_on_linea_description": "Ihr Bonus wird auf Linea ausgegeben, gesondert von Ihrem Ethereum mUSD-Guthaben.",
-      "continue": "Fortfahren",
-      "unexpected_error": "Unerwarteter Fehler. Bitte erneut versuchen."
-    },
     "tron": {
       "daily_resource_new_energy": "Neue tägliche Energie",
       "sufficient_to_cover": "Ausreichend zur Deckung",
@@ -3795,7 +3805,7 @@
     "no_tabs_desc": "Öffnen Sie einen neuen Tab, um im dezentralisieren Web zu surfen.",
     "got_it": "Verstanden",
     "max_tabs_title": "Maximale Anzahl an Tabs erreicht",
-    "max_tabs_desc": "Derzeit können nur fünf Tabs gleichzeitig geöffnet werden. Bitte schließen Sie vorhandene Tabs, bevor Sie neue hinzufügen.",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "Wir konnten diesen ENS-Namen nicht lösen",
     "remove_bookmark_title": "Favoriten entfernen",
     "remove_bookmark_msg": "Möchten Sie diese Seite wirklich aus Ihren Favoriten entfernen?",
@@ -4181,11 +4191,7 @@
     "enable_device_passcode_android": "Mit Geräte-PIN entsperren?"
   },
   "authentication": {
-    "auth_prompt_title": "Authentifizierung benötigt",
-    "auth_prompt_desc": "Bitte Authentifizieren, um MetaMask zu verwenden",
-    "fingerprint_prompt_title": "Authentifizierung benötigt",
-    "fingerprint_prompt_desc": "Benutzen Sie Ihren Fingerabdruck, um MetaMask zu entsperren",
-    "fingerprint_prompt_cancel": "Stornieren"
+    "auth_prompt_desc": "Bitte Authentifizieren, um MetaMask zu verwenden"
   },
   "accountApproval": {
     "title": "VERBINDUNGSANFRAGE",
@@ -5530,10 +5536,10 @@
     "enable_remember_me_description": "Wenn „Angemeldet bleiben“ aktiviert ist, kann jeder, der Zugriff zu Ihrem Handy hat, auf Ihr MetaMask-Konto zugreifen."
   },
   "turn_off_remember_me": {
-    "title": "Geben Sie Ihr Passwort ein, um „Angemeldet bleiben“ zu deaktivieren.",
-    "placeholder": "Passwort",
-    "description": "Wenn Sie diese Option deaktivieren, benötigen Sie von nun an Ihr Passwort, um MetaMask zu entsperren.",
-    "action": "„Angemeldet bleiben“ deaktivieren"
+    "title": "Turn off Remember Me",
+    "placeholder": "Confirm password",
+    "description": "Once turned off, Remember Me can't be used again. This feature has been discontinued, so you can unlock MetaMask with your password or biometrics instead.",
+    "action": "Turn off Remember Me"
   },
   "dapp_connect": {
     "warning": "Um diese Funktion nutzen zu können, aktualisieren Sie bitte die App auf die neueste Version."
@@ -6435,6 +6441,13 @@
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "Der Mindestbetrag, den Sie erhalten, wenn sich der Kurs während der Bearbeitung Ihrer Transaktion entsprechend Ihrer Slippage-Toleranz ändert. Dies ist eine Schätzung unserer Liquiditätsanbieter. Die Endbeträge können abweichen.",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Done"
+    },
     "submit": "Absenden",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "cancel": "Stornieren",
@@ -6739,6 +6752,7 @@
     "password_bottomsheet": {
       "title": "Passwort eingeben",
       "description": "Geben Sie Ihr Wallet-Passwort ein, um die Kartendetails anzuzeigen.",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "Passwort",
       "confirm": "Bestätigen",
       "cancel": "Stornieren",
@@ -7001,6 +7015,7 @@
       "enable_card_error": "Aktivierung der Karte fehlgeschlagen. Bitte versuchen Sie es später erneut.",
       "view_card_details_error": "Kartendaten konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
       "biometric_verification_required": "Zur Anzeige der Kartendetails ist eine Authentifizierung erforderlich.",
+      "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "warnings": {
         "close_spending_limit": {
           "title": "Sie sind Ihrem Ausgabenlimit nahe",
@@ -7018,7 +7033,7 @@
         },
         "frozen": {
           "title": "Ihre Karte ist gesperrt",
-          "description": "Bitte wenden Sie sich an den Support, um Ihre Karte zu entsperren."
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "Ihre Karte ist blockiert",
@@ -7068,7 +7083,14 @@
         "travel_description": "Hotels mit bis zu 70 % Rabatt buchen",
         "card_tos_title": "Geschäftsbedingungen",
         "order_metal_card": "Metallkarte",
-        "order_metal_card_description": "Bestellen Sie jetzt Ihre physische Metallkarte"
+        "order_metal_card_description": "Bestellen Sie jetzt Ihre physische Metallkarte",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {
@@ -7677,5 +7699,16 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "Erneut laden",
     "primary_action_acknowledge": "Verstanden"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs",
+      "import_nfts": "Import NFTs",
+      "import_nfts_description": "Easily add your collectibles"
+    }
   }
 }
