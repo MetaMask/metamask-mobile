@@ -11,9 +11,27 @@ This skill collects all required information from the user and creates a properl
 - `gh` CLI must be installed and authenticated (`gh auth status`)
 - If not authenticated, prompt the user to run `gh auth login` in their terminal
 
+## Duplicate Check
+
+**Before collecting any fields, ask the user for a brief description of the bug, then search for existing issues to avoid duplicates.**
+
+```bash
+gh issue list \
+  --repo MetaMask/metamask-mobile \
+  --label "type-bug" \
+  --search "<keywords from description>" \
+  --state all \
+  --limit 10
+```
+
+- Search using key terms from the description (e.g. "biometric cancel unlock")
+- Present any matching issues to the user and ask if any of them describe the same bug
+- If a duplicate is found, link the user to it and stop — do not create a new issue
+- If no duplicate is found, proceed with collecting the remaining required fields
+
 ## Interactive Information Gathering
 
-**Before creating the issue, collect the following from the user. Ask for any missing fields — do not create the issue until all required fields are provided.**
+**Collect the following from the user. Ask for any missing fields — do not create the issue until all required fields are provided.**
 
 ### Required Fields
 
