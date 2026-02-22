@@ -53,12 +53,13 @@ resolve_ios_udid() {
 
   # Try exact match on booted simulator
   local udid
-  udid=$(xcrun simctl list devices -j | python3 -c "
-import json, sys
+  udid=$(xcrun simctl list devices -j | SIM_NAME="$sim_name" python3 -c "
+import json, os, sys
+target = os.environ['SIM_NAME']
 data = json.load(sys.stdin)
 for runtime, devs in data['devices'].items():
   for d in devs:
-    if d['name'] == '$sim_name' and d['state'] == 'Booted':
+    if d['name'] == target and d['state'] == 'Booted':
       print(d['udid']); sys.exit(0)
 sys.exit(1)
 " 2>/dev/null) && echo "$udid" && return
