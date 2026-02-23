@@ -4054,7 +4054,7 @@ describe('Authentication', () => {
       alertSpy.mockRestore();
     });
 
-    it('skips password validation when skipValidation is true', async () => {
+    it('validates password and stores with BIOMETRIC when password provided', async () => {
       const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
       const verifyPasswordSpy = jest.spyOn(
         Engine.context.KeyringController,
