@@ -40,7 +40,6 @@ import {
   inferTriggerConditionKey,
   isSyntheticOrderCancelable,
 } from '../../utils/orderUtils';
-import { useTheme } from '../../../../../util/theme';
 
 interface OrderDetailsRouteParams {
   order: Order;
@@ -58,7 +57,6 @@ const PerpsOrderDetailsView: React.FC = () => {
     useRoute<RouteProp<{ params: OrderDetailsRouteParams }, 'params'>>();
   const { order } = route.params ?? {};
   const { styles } = useStyles(styleSheet, {});
-  const { colors } = useTheme();
   const { cancelOrder } = usePerpsTrading();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
@@ -341,27 +339,18 @@ const PerpsOrderDetailsView: React.FC = () => {
         <View style={styles.section}>
           <View style={styles.detailsCard}>
             {detailRows.map((detailRow) => (
-              <React.Fragment key={detailRow.key}>
-                <View style={styles.detailRow}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.detailLabel}
-                  >
-                    {detailRow.label}
-                  </Text>
-                  <View style={styles.detailValue}>
-                    <Text variant={TextVariant.BodyMD}>{detailRow.value}</Text>
-                  </View>
+              <View key={detailRow.key} style={styles.detailRow}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  style={styles.detailLabel}
+                >
+                  {detailRow.label}
+                </Text>
+                <View style={styles.detailValue}>
+                  <Text variant={TextVariant.BodyMD}>{detailRow.value}</Text>
                 </View>
-
-                <View
-                  style={[
-                    styles.separator,
-                    { backgroundColor: colors.border.muted },
-                  ]}
-                />
-              </React.Fragment>
+              </View>
             ))}
 
             {/* Status */}
