@@ -47,7 +47,7 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
 import { TraceName, TraceOperation } from '../../util/trace';
-import MetaMetrics from '../Analytics/MetaMetrics';
+import { analytics } from '../../util/analytics/analytics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
@@ -230,15 +230,11 @@ jest.mock('../BackupVault/backupVault', () => ({
   clearAllVaultBackups: jest.fn(),
 }));
 
-jest.mock('../Analytics/MetaMetrics', () => {
-  const mockInstance = {};
-  return {
-    __esModule: true,
-    default: {
-      getInstance: jest.fn(() => mockInstance),
-    },
-  };
-});
+jest.mock('../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn().mockReturnValue(true),
+  },
+}));
 
 jest.mock('../../util/analytics/analyticsDataDeletion', () => ({
   createDataDeletionTask: jest.fn().mockResolvedValue(undefined),
@@ -1309,9 +1305,7 @@ describe('Authentication', () => {
           }),
         } as unknown as ReduxStore);
 
-        jest
-          .spyOn(MetaMetrics, 'getInstance')
-          .mockReturnValue({ isEnabled: () => true } as MetaMetrics);
+        jest.spyOn(analytics, 'isEnabled').mockReturnValue(true);
 
         await Authentication.unlockWallet();
 
@@ -1344,9 +1338,7 @@ describe('Authentication', () => {
           }),
         } as unknown as ReduxStore);
 
-        jest
-          .spyOn(MetaMetrics, 'getInstance')
-          .mockReturnValue({ isEnabled: () => true } as MetaMetrics);
+        jest.spyOn(analytics, 'isEnabled').mockReturnValue(true);
 
         await Authentication.unlockWallet();
 
@@ -1695,10 +1687,7 @@ describe('Authentication', () => {
         }),
       } as unknown as ReduxStore);
 
-      // Mock MetaMetrics.getInstance to return true for isEnabled
-      jest
-        .spyOn(MetaMetrics, 'getInstance')
-        .mockReturnValue({ isEnabled: () => true } as MetaMetrics);
+      jest.spyOn(analytics, 'isEnabled').mockReturnValue(true);
 
       const mockKeyring = {
         getAccounts: jest.fn().mockResolvedValue(['0x1234567890abcdef']),
@@ -2142,10 +2131,7 @@ describe('Authentication', () => {
         getState: jest.fn(() => mockState),
       } as unknown as ReduxStore);
 
-      // Mock MetaMetrics.getInstance to return true for isEnabled
-      jest
-        .spyOn(MetaMetrics, 'getInstance')
-        .mockReturnValue({ isEnabled: () => true } as MetaMetrics);
+      jest.spyOn(analytics, 'isEnabled').mockReturnValue(true);
 
       Engine.context.SeedlessOnboardingController = {
         state: { vault: {} },
@@ -2632,10 +2618,7 @@ describe('Authentication', () => {
         },
       } as unknown as KeyringController;
 
-      // Mock MetaMetrics.getInstance to return true for isEnabled
-      jest
-        .spyOn(MetaMetrics, 'getInstance')
-        .mockReturnValue({ isEnabled: () => true } as MetaMetrics);
+      jest.spyOn(analytics, 'isEnabled').mockReturnValue(true);
     });
 
     it('throw an error if not using seedless onboarding flow', async () => {
@@ -4494,10 +4477,7 @@ describe('Authentication', () => {
     beforeEach(() => {
       // Mock lockApp.
       jest.spyOn(Authentication, 'lockApp').mockResolvedValueOnce(undefined);
-      // Mock MetaMetrics.getInstance to return true for isEnabled.
-      jest
-        .spyOn(MetaMetrics, 'getInstance')
-        .mockReturnValueOnce({ isEnabled: () => true } as MetaMetrics);
+      jest.spyOn(analytics, 'isEnabled').mockReturnValue(true);
 
       const Engine = jest.requireMock('../Engine');
       // Restore the KeyringController mock that may have been replaced by other test suites.
@@ -4590,11 +4570,7 @@ describe('Authentication', () => {
     it('navigates to the optin metrics flow when metrics are not enabled and UI has not been seen', async () => {
       // Mock StorageWrapper.getItem to return null for OPTIN_META_METRICS_UI_SEEN.
       jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(null);
-      // Clear beforeEach mock and set MetaMetrics.getInstance to return false for isEnabled.
-      jest.spyOn(MetaMetrics, 'getInstance').mockReset();
-      jest
-        .spyOn(MetaMetrics, 'getInstance')
-        .mockReturnValue({ isEnabled: () => false } as MetaMetrics);
+      jest.spyOn(analytics, 'isEnabled').mockReturnValue(false);
 
       // Call unlockWallet with a password.
       await Authentication.unlockWallet({ password: passwordToUse });
