@@ -19,8 +19,8 @@ import type {
 import { strings } from '../../../../../../../locales/i18n';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useFormatters } from '../../../../../hooks/useFormatters';
-import QuoteDisplay from './QuoteDisplay';
-import PaymentSelectionAlert from './PaymentSelectionAlert';
+import QuoteDisplay from '../PaymentSelectionModal/QuoteDisplay';
+import PaymentSelectionAlert from '../PaymentSelectionModal/PaymentSelectionAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
 const styles = StyleSheet.create({

@@ -1,8 +1,10 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (_params: { theme: Theme }) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+
+  return StyleSheet.create({
     content: {
       flex: 1,
     },
@@ -28,7 +30,9 @@ const styleSheet = (_params: { theme: Theme }) =>
     },
     poweredByText: {
       textAlign: 'center',
+      color: theme.colors.text.alternative,
     },
   });
+};
 
 export default styleSheet;
