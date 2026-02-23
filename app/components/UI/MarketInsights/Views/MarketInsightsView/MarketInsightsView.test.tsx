@@ -8,6 +8,7 @@ import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 const mockGoBack = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockUseMarketInsights = jest.fn();
+const mockTrendSourcesBottomSheet = jest.fn();
 const mockUseSwapBridgeNavigation = jest.fn((_options: unknown) => ({
   goToSwaps: mockGoToSwaps,
 }));
@@ -105,9 +106,10 @@ jest.mock('../../components/MarketInsightsSourcesFooter', () => {
 
 jest.mock('../../components/MarketInsightsTrendSourcesBottomSheet', () => {
   const { View: MockView } = jest.requireActual('react-native');
-  const TrendSourcesBottomSheet = () => (
-    <MockView testID="market-insights-trend-sources-bottom-sheet" />
-  );
+  const TrendSourcesBottomSheet = (props: unknown) => {
+    mockTrendSourcesBottomSheet(props);
+    return <MockView testID="market-insights-trend-sources-bottom-sheet" />;
+  };
   return TrendSourcesBottomSheet;
 });
 
@@ -221,5 +223,55 @@ describe('MarketInsightsView', () => {
     expect(
       getByTestId('market-insights-trend-sources-bottom-sheet'),
     ).toBeOnTheScreen();
+  });
+
+  it('opens trend sources sheet for tweet-only trend and passes tweet sources', () => {
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH extends gains',
+        summary: 'Momentum improves on macro risk-on signals',
+        trends: [
+          {
+            title: 'On-chain demand',
+            description: 'Exchange balances continue to drop',
+            articles: [],
+            tweets: [
+              {
+                author: 'beta',
+                contentSummary: 'Supply is tightening',
+                date: '2026-02-17T09:00:00.000Z',
+                url: 'https://x.com/user/status/101',
+              },
+            ],
+          },
+        ],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '5m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TREND_ITEM}-0`));
+
+    expect(
+      getByTestId('market-insights-trend-sources-bottom-sheet'),
+    ).toBeOnTheScreen();
+    expect(mockTrendSourcesBottomSheet).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        trendTitle: 'On-chain demand',
+        articles: [],
+        tweets: [
+          expect.objectContaining({
+            author: 'beta',
+            url: 'https://x.com/user/status/101',
+          }),
+        ],
+      }),
+    );
   });
 });

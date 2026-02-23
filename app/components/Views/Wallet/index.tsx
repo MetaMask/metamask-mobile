@@ -1063,7 +1063,7 @@ const Wallet = ({
     /* eslint-disable-next-line */
     // TODO: The need of usage of this chainId as a dependency is not clear, we shouldn't need to refresh the native balances when the chainId changes. Since the pooling is always working in the back. Check with assets team.
     // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
-    [navigation, chainId, evmNetworkConfigurations],
+    [navigation, chainId, evmNetworkConfigurations, selectedInternalAccount],
   );
 
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);

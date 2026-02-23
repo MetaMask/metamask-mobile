@@ -46,14 +46,19 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
   const tw = useTailwind();
   const uniqueSources = useMemo(() => {
     const seen = new Set<string>();
-    return trend.articles
+    const fromArticles = trend.articles
       .filter((article) => {
         if (seen.has(article.source)) return false;
         seen.add(article.source);
         return true;
       })
       .map((article) => article.source);
-  }, [trend.articles]);
+    const hasTweets = (trend.tweets?.length ?? 0) > 0;
+    if (hasTweets && !seen.has('x.com')) {
+      return [...fromArticles, 'x.com'];
+    }
+    return fromArticles;
+  }, [trend.articles, trend.tweets]);
 
   return (
     <Pressable
