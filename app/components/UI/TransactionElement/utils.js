@@ -276,9 +276,10 @@ function getPostQuoteDisplay(tx, currentCurrency) {
     );
     const tokenExchangeRate =
       contractRates?.[toChecksumAddress(metamaskPay.tokenAddress)]?.price;
-    if (tokenExchangeRate) {
-      tokenUsdRate = tokenExchangeRate * nativeUsdRate;
+    if (!tokenExchangeRate) {
+      return undefined;
     }
+    tokenUsdRate = tokenExchangeRate * nativeUsdRate;
   }
 
   const destRate = selectConversionRateByChainId(state, destChainId);
