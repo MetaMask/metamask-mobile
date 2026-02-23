@@ -19,6 +19,7 @@ jest.mock('../../../../../../selectors/currencyRateController', () => ({
 // Mock musd constants to avoid deep import chain issues
 jest.mock('../../../../../UI/Earn/constants/musd', () => ({
   MUSD_CONVERSION_APY: 3,
+  MUSD_TOKEN_ADDRESS: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
 }));
 
 // Mock locales to avoid deep import chain issues

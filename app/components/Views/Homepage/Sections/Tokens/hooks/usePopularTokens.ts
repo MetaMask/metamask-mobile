@@ -3,10 +3,10 @@ import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { handleFetch } from '@metamask/controller-utils';
 import { strings } from '../../../../../../../locales/i18n';
-import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
-
-// mUSD token address on Ethereum Mainnet (checksummed)
-const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+import {
+  MUSD_CONVERSION_APY,
+  MUSD_TOKEN_ADDRESS,
+} from '../../../../../UI/Earn/constants/musd';
 
 /**
  * Popular token metadata with CAIP-19 asset IDs
@@ -27,12 +27,12 @@ const buildIconUrl = (
 const POPULAR_TOKENS = [
   {
     // mUSD on Ethereum Mainnet
-    assetId: `eip155:1/erc20:${MUSD_ADDRESS}`,
+    assetId: `eip155:1/erc20:${MUSD_TOKEN_ADDRESS}`,
     name: 'MetaMask USD',
     symbol: 'mUSD',
     // Description will be added dynamically with localized string
     hasMusdBonus: true,
-    iconUrl: buildIconUrl('eip155', '1', 'erc20', MUSD_ADDRESS),
+    iconUrl: buildIconUrl('eip155', '1', 'erc20', MUSD_TOKEN_ADDRESS),
   },
   {
     // ETH on Ethereum Mainnet (native)
