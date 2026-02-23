@@ -19,6 +19,10 @@ import {
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+const mockCreateEventBuilder = jest.fn();
 
 jest.mock('../../MarketInsights', () => ({
   __esModule: true,
@@ -57,6 +61,13 @@ jest.mock('../hooks/usePerpsActions', () => ({
 
 jest.mock('../../Perps/hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockTrack }),
+}));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 // Use a stable wrapper so jest.restoreAllMocks() (from testSetup.js afterEach)
@@ -148,6 +159,11 @@ describe('AssetOverviewContent', () => {
   describe('Long / Short with perps eligibility', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'market-insights-clicked' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
     });
 
     it('shows geo block modal and tracks event when Long is pressed and user is not eligible', () => {
@@ -262,6 +278,15 @@ describe('AssetOverviewContent', () => {
           tokenChainId: '0x1',
         }),
       );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MARKET_INSIGHTS_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        caip19: 'eip155:1/erc20:0x123',
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({
+        category: 'market-insights-clicked',
+      });
     });
   });
 });
