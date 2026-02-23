@@ -1,7 +1,5 @@
 import AppConstants from '../../../../core/AppConstants';
 
-const DEFAULT_BAANX_API_URL = 'https://dev.api.baanx.com';
-
 /**
  * Returns the Baanx API base URL for the given MetaMask environment.
  * When GITHUB_ACTIONS (and not E2E), uses process.env.BAANX_API_URL (set by builds.yml).
@@ -9,9 +7,9 @@ const DEFAULT_BAANX_API_URL = 'https://dev.api.baanx.com';
  */
 export const getDefaultBaanxApiBaseUrlForMetaMaskEnv = (
   metaMaskEnv: string | undefined,
-) => {
+): string => {
   if (process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true') {
-    return process.env.BAANX_API_URL || DEFAULT_BAANX_API_URL;
+    return process.env.BAANX_API_URL as string;
   }
   switch (metaMaskEnv) {
     case 'e2e':

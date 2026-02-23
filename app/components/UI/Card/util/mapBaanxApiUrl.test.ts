@@ -37,13 +37,6 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
       );
     });
 
-    it('returns default fallback URL when BAANX_API_URL is not set', () => {
-      delete process.env.BAANX_API_URL;
-      const result = getDefaultBaanxApiBaseUrlForMetaMaskEnv('any-env');
-      expect(typeof result).toBe('string');
-      expect(result.length).toBeGreaterThan(0);
-    });
-
     it('ignores metaMaskEnv parameter (URL is set at build time)', () => {
       process.env.BAANX_API_URL = 'https://custom.api';
       expect(getDefaultBaanxApiBaseUrlForMetaMaskEnv('dev')).toBe(
