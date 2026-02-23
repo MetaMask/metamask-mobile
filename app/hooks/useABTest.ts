@@ -150,9 +150,7 @@ export function useABTest<T extends ABTestVariants>(
   variants: T,
   exposureMetadata?: ABTestExposureMetadata<T>,
 ): UseABTestResult<T> {
-  const analytics = useAnalytics();
-  const trackEvent = analytics?.trackEvent;
-  const createEventBuilder = analytics?.createEventBuilder;
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const flags = useSelector(selectRemoteFeatureFlags);
   const flagData = flags?.[flagKey];
 
@@ -188,25 +186,30 @@ export function useABTest<T extends ABTestVariants>(
     if (trackedExposureAssignments.has(assignmentKey)) {
       return;
     }
-    trackedExposureAssignments.add(assignmentKey);
 
     const variationName =
       exposureMetadata?.variationNames?.[
         variationId as Extract<keyof T, string>
       ];
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EXPERIMENT_VIEWED)
-        .addProperties({
-          experiment_id: flagKey,
-          variation_id: variationId,
-          ...(exposureMetadata?.experimentName && {
-            experiment_name: exposureMetadata.experimentName,
-          }),
-          ...(variationName && { variation_name: variationName }),
-        })
-        .build(),
-    );
+    try {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EXPERIMENT_VIEWED)
+          .addProperties({
+            experiment_id: flagKey,
+            variation_id: variationId,
+            ...(exposureMetadata?.experimentName && {
+              experiment_name: exposureMetadata.experimentName,
+            }),
+            ...(variationName && { variation_name: variationName }),
+          })
+          .build(),
+      );
+      trackedExposureAssignments.add(assignmentKey);
+    } catch {
+      // Do not cache failed emits so the hook can retry next evaluation.
+      return;
+    }
   }, [
     createEventBuilder,
     exposureMetadata?.experimentName,
