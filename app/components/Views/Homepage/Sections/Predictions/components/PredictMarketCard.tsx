@@ -123,6 +123,9 @@ const PredictMarketCard: React.FC<PredictMarketCardProps> = ({ market }) => {
 
   // Get top outcomes to display
   const displayOutcomes = useMemo(() => {
+    if (!market.outcomes?.length) {
+      return [];
+    }
     // For markets with multiple outcomes, show top 2
     if (market.outcomes.length > 1) {
       return market.outcomes.slice(0, MAX_OUTCOMES_DISPLAYED);
