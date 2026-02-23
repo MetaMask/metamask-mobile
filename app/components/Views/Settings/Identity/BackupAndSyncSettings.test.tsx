@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 
 import BackupAndSyncSettings from './BackupAndSyncSettings';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { BackupAndSyncSettingsSelectorsIDs } from './BackupAndSyncSettings.testIds';
 import { strings } from '../../../../../locales/i18n';
 
@@ -34,7 +35,7 @@ describe('BackupAndSyncSettings', () => {
 
     expect(
       getByTestId(BackupAndSyncSettingsSelectorsIDs.SAFE_AREA),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('renders HeaderCompactStandard with backup and sync title', () => {
@@ -42,7 +43,9 @@ describe('BackupAndSyncSettings', () => {
       <BackupAndSyncSettings />,
     );
 
-    expect(getByTestId(BackupAndSyncSettingsSelectorsIDs.HEADER)).toBeDefined();
+    expect(
+      getByTestId(BackupAndSyncSettingsSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
     expect(getAllByText(strings('backupAndSync.title')).length).toBeGreaterThan(
       0,
     );
@@ -51,7 +54,7 @@ describe('BackupAndSyncSettings', () => {
   it('navigates back when back button is pressed', () => {
     const { getByTestId } = renderWithProvider(<BackupAndSyncSettings />);
 
-    fireEvent.press(getByTestId(BackupAndSyncSettingsSelectorsIDs.BACK_BUTTON));
+    fireEvent.press(getByTestId(CommonSelectorsIDs.BACK_ARROW_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });

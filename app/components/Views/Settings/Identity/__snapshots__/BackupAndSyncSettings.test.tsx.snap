@@ -104,7 +104,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
                 undefined,
               ]
             }
-            testID="backup-and-sync-settings-back-button"
+            testID="back-arrow-button"
           >
             <SvgMock
               fill="currentColor"

@@ -10,6 +10,7 @@ import BackupAndSyncToggle from '../../../UI/Identity/BackupAndSyncToggle/Backup
 import BackupAndSyncFeaturesToggles from '../../../UI/Identity/BackupAndSyncFeaturesToggles/BackupAndSyncFeaturesToggles';
 import { strings } from '../../../../../locales/i18n';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { BackupAndSyncSettingsSelectorsIDs } from './BackupAndSyncSettings.testIds';
 
 const BackupAndSyncSettings = () => {
@@ -34,7 +35,7 @@ const BackupAndSyncSettings = () => {
         includesTopInset
         testID={BackupAndSyncSettingsSelectorsIDs.HEADER}
         backButtonProps={{
-          testID: BackupAndSyncSettingsSelectorsIDs.BACK_BUTTON,
+          testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
         }}
       />
       <ScrollView style={styles.wrapper}>
