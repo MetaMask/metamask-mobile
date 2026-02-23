@@ -84,6 +84,7 @@ module.exports = function (baseConfig) {
           https: require.resolve('https-browserify'),
           vm: require.resolve('vm-browserify'),
           os: require.resolve('react-native-os'),
+          zlib: require.resolve('browserify-zlib'),
           net: require.resolve('react-native-tcp-socket'),
           fs: require.resolve('react-native-level-fs'),
           images: path.resolve(__dirname, 'app/images'),
@@ -105,6 +106,15 @@ module.exports = function (baseConfig) {
           ) {
             return {
               filePath: require.resolve('axios/dist/browser/axios.cjs'),
+              type: 'sourceFile',
+            };
+          }
+          // Use contentful browser build so Node-only built-ins (tty, zlib, etc.) are never pulled in
+          if (moduleName === 'contentful') {
+            return {
+              filePath: require.resolve(
+                'contentful/dist/contentful.browser.js',
+              ),
               type: 'sourceFile',
             };
           }

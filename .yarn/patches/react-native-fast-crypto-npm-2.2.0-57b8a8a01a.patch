@@ -1,0 +1,28 @@
+diff --git a/android/src/main/cpp/crypto_bridge.cpp b/android/src/main/cpp/crypto_bridge.cpp
+index ddafe67d59f390b72f9c8dd71bcad3d0ea3e2100..46c0c6a7d1e5a9bc31ee880412cd452d49501a35 100644
+--- a/android/src/main/cpp/crypto_bridge.cpp
++++ b/android/src/main/cpp/crypto_bridge.cpp
+@@ -122,8 +122,8 @@ static const unsigned char pr2six[256] =
+ int Base64decode_len(const char *bufcoded)
+ {
+     int nbytesdecoded;
+-    register const unsigned char *bufin;
+-    register int nprbytes;
++const unsigned char *bufin;
++int nprbytes;
+ 
+     bufin = (const unsigned char *) bufcoded;
+     while (pr2six[*(bufin++)] <= 63);
+@@ -137,9 +137,9 @@ int Base64decode_len(const char *bufcoded)
+ int Base64decode(char *bufplain, const char *bufcoded)
+ {
+     int nbytesdecoded;
+-    register const unsigned char *bufin;
+-    register unsigned char *bufout;
+-    register int nprbytes;
++const unsigned char *bufin;
++unsigned char *bufout;
++int nprbytes;
+ 
+     bufin = (const unsigned char *) bufcoded;
+     while (pr2six[*(bufin++)] <= 63);

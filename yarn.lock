@@ -8701,7 +8701,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eslint-config-typescript@npm:^10.0.0":
+"@metamask/eslint-config-typescript@npm:10.0.0":
   version: 10.0.0
   resolution: "@metamask/eslint-config-typescript@npm:10.0.0"
   peerDependencies:
@@ -8711,6 +8711,19 @@ __metadata:
     eslint: ^8.21.0
     typescript: ^4.0.7
   checksum: 10/08c052d3fe034c9712a69fda395975438ea18c10ee73bb573a6758e068d7020e62d9a7347eb2d67e5e7a38275fcd96b8f33e975d4f37363a8631c253d30f7dd9
+  languageName: node
+  linkType: hard
+
+"@metamask/eslint-config-typescript@patch:@metamask/eslint-config-typescript@npm%3A10.0.0#~/.yarn/patches/@metamask-eslint-config-typescript-npm-10.0.0-7263987c81.patch":
+  version: 10.0.0
+  resolution: "@metamask/eslint-config-typescript@patch:@metamask/eslint-config-typescript@npm%3A10.0.0#~/.yarn/patches/@metamask-eslint-config-typescript-npm-10.0.0-7263987c81.patch::version=10.0.0&hash=c3be81"
+  peerDependencies:
+    "@metamask/eslint-config": ^10.0.0
+    "@typescript-eslint/eslint-plugin": ^5.33.0
+    "@typescript-eslint/parser": ^5.33.0
+    eslint: ^8.21.0
+    typescript: ^4.0.7
+  checksum: 10/cb169d831adf2e952a6f352ef2567c832d096d348d74acac74eea2cbb9cd1ee5178404b68f25440c26b4c341dcfbcfeba3220d6d9f8ae3282a8594bb259b6c16
   languageName: node
   linkType: hard
 
@@ -9945,13 +9958,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-native-acm@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@metamask/react-native-acm@npm:1.0.1"
+"@metamask/react-native-acm@npm:1.0.2":
+  version: 1.0.2
+  resolution: "@metamask/react-native-acm@npm:1.0.2"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/75e736dd81ab5d85f2cd4a5ef21fa0b9297556d702576ecc537afb5fc6046bcca62e01c687c76998f7c0e9fab9a6b635013c3ae85b8f5ab29d1718d9a73fb988
+  checksum: 10/70e9d12613f266bf84c025be609fa98765b7da7d0b2fb6fe2573d08c1f1629f131c1db0f5a093778f04039154d5fcc6935b2cc3dc9bcd56e50bcff0fdf6dc026
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-acm@patch:@metamask/react-native-acm@npm%3A1.0.2#~/.yarn/patches/@metamask-react-native-acm-npm-1.0.2-05c439b649.patch":
+  version: 1.0.2
+  resolution: "@metamask/react-native-acm@patch:@metamask/react-native-acm@npm%3A1.0.2#~/.yarn/patches/@metamask-react-native-acm-npm-1.0.2-05c439b649.patch::version=1.0.2&hash=305c8f"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/7df43c3b847826568c299dca71e33d7159a5ce9dfc8785bdeac738fd840b747f07e34904cb4fc49b29d3f45f6df4dd07ce27b6c5bafc05a96bbb98ca386d5c82
   languageName: node
   linkType: hard
 
@@ -9977,17 +10000,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-native-payments@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/react-native-payments@npm:2.0.0"
+"@metamask/react-native-payments@npm:2.0.2":
+  version: 2.0.2
+  resolution: "@metamask/react-native-payments@npm:2.0.2"
   dependencies:
     es6-error: "npm:^4.0.2"
     uuid: "npm:3.3.2"
-    validator: "npm:^7.0.0"
   peerDependencies:
     react: ">=15"
     react-native: ">=0.41"
-  checksum: 10/48d7f9d5a8bfd8f7ffd72881138893b0415e136dd0af65587b59ccfbb0573cfe27026d19b7d8bfe4cf1d50c37bba64a198b937f6a29d0bd749ecd0c9a79427e5
+  checksum: 10/f1b4cc3de0dc4bd61cfcda78704badf21851e6ca192a94510cc6700f258305b57313f30086b9229b800ecc1c56d63f880dbbe4d688fc6df2ac7ccbb801ea951a
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-payments@patch:@metamask/react-native-payments@npm%3A2.0.2#~/.yarn/patches/@metamask-react-native-payments-npm-2.0.2-4ddc5f9862.patch":
+  version: 2.0.2
+  resolution: "@metamask/react-native-payments@patch:@metamask/react-native-payments@npm%3A2.0.2#~/.yarn/patches/@metamask-react-native-payments-npm-2.0.2-4ddc5f9862.patch::version=2.0.2&hash=957118"
+  dependencies:
+    es6-error: "npm:^4.0.2"
+    uuid: "npm:3.3.2"
+  peerDependencies:
+    react: ">=15"
+    react-native: ">=0.41"
+  checksum: 10/1517e00fa5a4babcde5407cb2987de379771fb276bdf72a33679fbd49e2bc5a4775914260114515f1062b439da27aa62ef98fc95a44f3de7b4572d189ffbb7ee
   languageName: node
   linkType: hard
 
@@ -13652,9 +13687,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@segment/analytics-react-native@npm:^2.20.3":
-  version: 2.20.3
-  resolution: "@segment/analytics-react-native@npm:2.20.3"
+"@segment/analytics-react-native@npm:^2.21.4":
+  version: 2.21.4
+  resolution: "@segment/analytics-react-native@npm:2.21.4"
   dependencies:
     "@segment/tsub": "npm:2.0.0"
     "@stdlib/number-float64-base-normalize": "npm:0.0.8"
@@ -13670,7 +13705,7 @@ __metadata:
   peerDependenciesMeta:
     "@react-native-async-storage/async-storage":
       optional: true
-  checksum: 10/7340994cf2ca290f934a9fcba6f97a63f5427c9ffc221a5f12a7de62916d457cc7959673d4cb01fc3a5bafc2691a03326a16b87c21921105122f098c4216433d
+  checksum: 10/b959fd45d1effd0c647e7d50b47c2b0eb055e5024dd0237789234820041e5ff7db837f560dd2bdce30f2f0b59601211ecb173f65f6f4379f812e2142fd86c532
   languageName: node
   linkType: hard
 
@@ -14120,17 +14155,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solana-mobile/mobile-wallet-adapter-protocol@npm:^2.2.0":
-  version: 2.2.2
-  resolution: "@solana-mobile/mobile-wallet-adapter-protocol@npm:2.2.2"
+"@solana-mobile/mobile-wallet-adapter-protocol@npm:^2.2.5":
+  version: 2.2.5
+  resolution: "@solana-mobile/mobile-wallet-adapter-protocol@npm:2.2.5"
   dependencies:
+    "@solana/codecs-strings": "npm:^4.0.0"
     "@solana/wallet-standard": "npm:^1.1.2"
     "@solana/wallet-standard-util": "npm:^1.1.1"
     "@wallet-standard/core": "npm:^1.0.3"
     js-base64: "npm:^3.7.5"
   peerDependencies:
     react-native: ">0.69"
-  checksum: 10/b43713df9fdec050f1d76aa10f859f840a1677ffb3a253e75391e5b751b5576c488b1ca934cb3718dd16eef248910622602d4b728e0671e6b1199109573ec983
+  checksum: 10/bd223d6e99887092204210634b26ddc68a15cf3ad58328880e62799379d98a05c782b11de4d210714bb7b9c737b3d40e1ff0ee25afc4852de6cdabe238e27293
   languageName: node
   linkType: hard
 
@@ -14338,6 +14374,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@solana/codecs-core@npm:4.0.0":
+  version: 4.0.0
+  resolution: "@solana/codecs-core@npm:4.0.0"
+  dependencies:
+    "@solana/errors": "npm:4.0.0"
+  peerDependencies:
+    typescript: ">=5.3.3"
+  checksum: 10/44e1f39a216fa8b8a023f7d42f6be480e3e0ccf79a81a3fec57ca700088303bacf271c57dc49d47bde5cd8d71704ce08f1c832a601267b8215b6b62a65b19f05
+  languageName: node
+  linkType: hard
+
 "@solana/codecs-data-structures@npm:2.0.0-rc.1":
   version: 2.0.0-rc.1
   resolution: "@solana/codecs-data-structures@npm:2.0.0-rc.1"
@@ -14400,6 +14447,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@solana/codecs-numbers@npm:4.0.0":
+  version: 4.0.0
+  resolution: "@solana/codecs-numbers@npm:4.0.0"
+  dependencies:
+    "@solana/codecs-core": "npm:4.0.0"
+    "@solana/errors": "npm:4.0.0"
+  peerDependencies:
+    typescript: ">=5.3.3"
+  checksum: 10/8490e6312981f67a02cc42dbc7718a557df461ba53de988dce8d0b84c1521b1143e0037e0cc86396c3eac360f5d787cae49c61859ae3a95746b7ea97344e1b51
+  languageName: node
+  linkType: hard
+
 "@solana/codecs-strings@npm:2.0.0":
   version: 2.0.0
   resolution: "@solana/codecs-strings@npm:2.0.0"
@@ -14439,6 +14498,20 @@ __metadata:
     fastestsmallesttextencoderdecoder: ^1.0.22
     typescript: ">=5.3.3"
   checksum: 10/7ade3b9342f7adeb28263cced496c24228d81165da14ed4f35923a6452308bb836de154665340931614fc5e842e6d196d05afc59921beb151e56c952d93657ed
+  languageName: node
+  linkType: hard
+
+"@solana/codecs-strings@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@solana/codecs-strings@npm:4.0.0"
+  dependencies:
+    "@solana/codecs-core": "npm:4.0.0"
+    "@solana/codecs-numbers": "npm:4.0.0"
+    "@solana/errors": "npm:4.0.0"
+  peerDependencies:
+    fastestsmallesttextencoderdecoder: ^1.0.22
+    typescript: ">=5.3.3"
+  checksum: 10/808c0a0910ecf65d3d1092e03ea11cc9b20ba35cb78503751d686081544aefe469f55ffb934f68c2b98c027e8377945a240afdb78c91063c287a8a52698111ef
   languageName: node
   linkType: hard
 
@@ -14511,6 +14584,20 @@ __metadata:
   bin:
     errors: bin/cli.mjs
   checksum: 10/afd9290e5e924c68dd98f5d6dd3490b28dc03d94b4063146f33eec83967686c5895d7560bc8b829ee781dfd9221ae732f2ac0cb41551f33d3baffb58efc5f645
+  languageName: node
+  linkType: hard
+
+"@solana/errors@npm:4.0.0":
+  version: 4.0.0
+  resolution: "@solana/errors@npm:4.0.0"
+  dependencies:
+    chalk: "npm:5.6.2"
+    commander: "npm:14.0.1"
+  peerDependencies:
+    typescript: ">=5.3.3"
+  bin:
+    errors: bin/cli.mjs
+  checksum: 10/06b443f827aa9cb06ba91e02198f82d1a2ff9f27d26f1d66d1b4a78100ce2d5b97e90472ba92a029c707d9aa0c3867ef629a5b2e6eea3cc9ecbac9b879e693b4
   languageName: node
   linkType: hard
 
@@ -24635,6 +24722,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chalk@npm:5.6.2, chalk@npm:^5.1.2, chalk@npm:^5.3.0, chalk@npm:^5.4.1":
+  version: 5.6.2
+  resolution: "chalk@npm:5.6.2"
+  checksum: 10/1b2f48f6fba1370670d5610f9cd54c391d6ede28f4b7062dd38244ea5768777af72e5be6b74fb6c6d54cb84c4a2dff3f3afa9b7cb5948f7f022cfd3d087989e0
+  languageName: node
+  linkType: hard
+
 "chalk@npm:^2.0.1, chalk@npm:^2.4.2":
   version: 2.4.2
   resolution: "chalk@npm:2.4.2"
@@ -24643,13 +24737,6 @@ __metadata:
     escape-string-regexp: "npm:^1.0.5"
     supports-color: "npm:^5.3.0"
   checksum: 10/3d1d103433166f6bfe82ac75724951b33769675252d8417317363ef9d54699b7c3b2d46671b772b893a8e50c3ece70c4b933c73c01e81bc60ea4df9b55afa303
-  languageName: node
-  linkType: hard
-
-"chalk@npm:^5.1.2, chalk@npm:^5.3.0, chalk@npm:^5.4.1":
-  version: 5.6.2
-  resolution: "chalk@npm:5.6.2"
-  checksum: 10/1b2f48f6fba1370670d5610f9cd54c391d6ede28f4b7062dd38244ea5768777af72e5be6b74fb6c6d54cb84c4a2dff3f3afa9b7cb5948f7f022cfd3d087989e0
   languageName: node
   linkType: hard
 
@@ -25217,6 +25304,13 @@ __metadata:
   version: 1.2.9
   resolution: "command-exists@npm:1.2.9"
   checksum: 10/46fb3c4d626ca5a9d274f8fe241230817496abc34d12911505370b7411999e183c11adff7078dd8a03ec4cf1391290facda40c6a4faac8203ae38c985eaedd63
+  languageName: node
+  linkType: hard
+
+"commander@npm:14.0.1":
+  version: 14.0.1
+  resolution: "commander@npm:14.0.1"
+  checksum: 10/783115e9403caeca29c0fcbd4e0358f70c67760e4e4933f3453fcdd5ddba2ec44173c8da5213d7ce5e404f51c7e71203a42c548164dbe27b668b32a8981577f1
   languageName: node
   linkType: hard
 
@@ -35809,7 +35903,7 @@ __metadata:
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
     "@metamask/ens-resolver-snap": "npm:^1.1.0"
     "@metamask/error-reporting-service": "npm:^3.0.0"
-    "@metamask/eslint-config-typescript": "npm:^10.0.0"
+    "@metamask/eslint-config-typescript": "patch:@metamask/eslint-config-typescript@npm%3A10.0.0#~/.yarn/patches/@metamask-eslint-config-typescript-npm-10.0.0-7263987c81.patch"
     "@metamask/eslint-plugin-design-tokens": "npm:^1.0.0"
     "@metamask/eth-hd-keyring": "npm:^13.0.0"
     "@metamask/eth-json-rpc-filters": "npm:^9.0.0"
@@ -35860,10 +35954,10 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^27.1.0"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^8.1.0"
-    "@metamask/react-native-acm": "npm:^1.0.1"
+    "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.0.2#~/.yarn/patches/@metamask-react-native-acm-npm-1.0.2-05c439b649.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
-    "@metamask/react-native-payments": "npm:^2.0.0"
+    "@metamask/react-native-payments": "patch:@metamask/react-native-payments@npm%3A2.0.2#~/.yarn/patches/@metamask-react-native-payments-npm-2.0.2-4ddc5f9862.patch"
     "@metamask/react-native-search-api": "npm:1.0.1"
     "@metamask/react-native-webview": "npm:^14.6.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.0.0"
@@ -35930,7 +36024,7 @@ __metadata:
     "@react-navigation/stack": "npm:^5.14.5"
     "@reduxjs/toolkit": "npm:^1.9.7"
     "@reown/walletkit": "npm:^1.4.1"
-    "@segment/analytics-react-native": "npm:^2.20.3"
+    "@segment/analytics-react-native": "npm:^2.21.4"
     "@segment/sovran-react-native": "npm:^1.0.4"
     "@sentry/browser": "npm:~8.54.0"
     "@sentry/core": "npm:~8.54.0"
@@ -36123,7 +36217,7 @@ __metadata:
     react-native-device-info: "npm:^9.0.2"
     react-native-elevated-view: "npm:0.0.6"
     react-native-fade-in-image: "npm:1.4.1"
-    react-native-fast-crypto: "npm:^2.2.0"
+    react-native-fast-crypto: "patch:react-native-fast-crypto@npm%3A2.2.0#~/.yarn/patches/react-native-fast-crypto-npm-2.2.0-57b8a8a01a.patch"
     react-native-fs: "npm:^2.20.0"
     react-native-gesture-handler: "npm:~2.28.0"
     react-native-get-random-values: "npm:^1.8.0"
@@ -36139,9 +36233,9 @@ __metadata:
     react-native-level-fs: "npm:3.0.1"
     react-native-linear-gradient: "npm:^2.8.3"
     react-native-material-textfield: "npm:0.16.1"
-    react-native-mmkv: "npm:^3.2.0"
+    react-native-mmkv: "npm:^4.1.2"
     react-native-modal: "npm:^14.0.0-rc.1"
-    react-native-nitro-modules: "npm:^0.29.6"
+    react-native-nitro-modules: "npm:^0.33.9"
     react-native-os: "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch"
     react-native-pager-view: "npm:6.9.1"
     react-native-performance: "npm:^5.1.2"
@@ -36156,7 +36250,7 @@ __metadata:
     react-native-render-html: "npm:^6.3.4"
     react-native-safe-area-context: "npm:~5.6.0"
     react-native-screens: "npm:~4.16.0"
-    react-native-sensors: "npm:5.3.0"
+    react-native-sensors: "patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch"
     react-native-share: "npm:7.3.7"
     react-native-size-matters: "npm:0.4.0"
     react-native-skeleton-placeholder: "npm:^5.0.0"
@@ -36170,9 +36264,9 @@ __metadata:
     react-native-tcp-socket: "npm:^6.3.0"
     react-native-url-polyfill: "npm:^1.3.0"
     react-native-vector-icons: "npm:10.2.0"
-    react-native-video: "npm:^6.10.1"
+    react-native-video: "npm:^6.19.0"
     react-native-view-shot: "npm:4.0.3"
-    react-native-vision-camera: "npm:^4.6.4"
+    react-native-vision-camera: "npm:^4.7.3"
     react-native-worklets: "npm:^0.7.4"
     react-redux: "npm:^8.1.3"
     react-test-renderer: "npm:19.1.0"
@@ -36189,7 +36283,7 @@ __metadata:
     redux-thunk: "npm:^2.4.2"
     regenerator-runtime: "npm:0.13.9"
     reselect: "npm:^5.1.1"
-    rive-react-native: "patch:rive-react-native@npm%3A9.3.4#~/.yarn/patches/rive-react-native-npm-9.3.4-8082feca90.patch"
+    rive-react-native: "npm:^9.8.0"
     rxjs: "npm:^7.8.1"
     semver: "npm:^7.7.3"
     serve-handler: "npm:^6.1.5"
@@ -40685,8 +40779,8 @@ __metadata:
 
 "react-native-aes-crypto-forked@patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch":
   version: 1.2.1
-  resolution: "react-native-aes-crypto-forked@patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch::version=1.2.1&hash=71a9aa"
-  checksum: 10/907aa90a26c2908f3428bafcb60bf8df8db4b3b5d80ff4efdc30a8d144cb7f0aebac7d8c294aa7257faa5e80e67d95fdb4708d97d61b09dbc0250a0e35009ecf
+  resolution: "react-native-aes-crypto-forked@patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch::version=1.2.1&hash=558cad"
+  checksum: 10/258e9536e29407be56365488568ab415cec8ef7f6dc6058e2f94c27e73f2912ff9f18f2b9407ac778d978069a284f387d7e582fabbd422924a452dc5dec2368a
   languageName: node
   linkType: hard
 
@@ -40839,7 +40933,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-fast-crypto@npm:^2.2.0":
+"react-native-fast-crypto@npm:2.2.0":
   version: 2.2.0
   resolution: "react-native-fast-crypto@npm:2.2.0"
   dependencies:
@@ -40848,6 +40942,18 @@ __metadata:
   peerDependencies:
     react-native: ">=0.47.0 <1.0.0"
   checksum: 10/4818827afe60fdd805af15c4f0a951a605e83c7c39fe3d466dd9577dfaf79ad639efb523f13d3fd011c97388b865da23c80fa999a20daa580ff49ec119d07783
+  languageName: node
+  linkType: hard
+
+"react-native-fast-crypto@patch:react-native-fast-crypto@npm%3A2.2.0#~/.yarn/patches/react-native-fast-crypto-npm-2.2.0-57b8a8a01a.patch":
+  version: 2.2.0
+  resolution: "react-native-fast-crypto@patch:react-native-fast-crypto@npm%3A2.2.0#~/.yarn/patches/react-native-fast-crypto-npm-2.2.0-57b8a8a01a.patch::version=2.2.0&hash=0f36c9"
+  dependencies:
+    buffer: "npm:^5.0.8"
+    rfc4648: "npm:^1.0.0"
+  peerDependencies:
+    react-native: ">=0.47.0 <1.0.0"
+  checksum: 10/1dd3d1705286d189ea5eec0fdcd1b6f1edcec0ed54759456a29d56dfd9bca57f7e3e1c87b47456746fc9bc5b8fa136b8a02f16bdee46f2efffc8ada86061b184
   languageName: node
   linkType: hard
 
@@ -41048,13 +41154,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-mmkv@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "react-native-mmkv@npm:3.2.0"
+"react-native-mmkv@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "react-native-mmkv@npm:4.1.2"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/a024b8d7e1ef6a1934f961cb2505a5b855c261c9ce5bcb4b7e7bd95714a152f3bc10bf5d32cd3ab01324ff6a67c47190b330d3f5bc42a9b3896c706d11cc0598
+    react-native-nitro-modules: "*"
+  checksum: 10/45f990de6d58acc3a76c82fe0dbe8e4922116c12433d0bbd0813cb0d825c9201dfee5f470c9118b017b24fcdede336cbd6eb2a0186292d7fea1c11d4407d5fe0
   languageName: node
   linkType: hard
 
@@ -41091,13 +41198,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-nitro-modules@npm:^0.29.6":
-  version: 0.29.6
-  resolution: "react-native-nitro-modules@npm:0.29.6"
+"react-native-nitro-modules@npm:^0.33.9":
+  version: 0.33.9
+  resolution: "react-native-nitro-modules@npm:0.33.9"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/7118ea18679b5910d01d0b1dbef75f22117e3b61d91a0b97556badf36fe923d1b8780e0fee114d13c3d9e3188ad7f8d26b6c41d3ad18675461ab8897560ee369
+  checksum: 10/4ebf4db46d1e4987a0e52054724081aa9712bcd1d505a6dbdd47aebc6afe72a7abaa0e947651d9f3cc594e4eb3dba47fc6f59db27c5a5ed383946e40d96543a0
   languageName: node
   linkType: hard
 
@@ -41290,6 +41397,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-sensors@patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch":
+  version: 5.3.0
+  resolution: "react-native-sensors@patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch::version=5.3.0&hash=31bdc4"
+  dependencies:
+    rxjs: "npm:>= 6"
+  peerDependencies:
+    prop-types: ^15.6.0
+    react-native: ">=0.39.0"
+  checksum: 10/c9aecd434f96026f9b995b5c3f1a470cda99e57beb89d10262a354c73c8d416577b3e8c852891b74a6e6128060c4d6f5c5f90749dcdb4e8fbe1c59f9cd2d0f9f
+  languageName: node
+  linkType: hard
+
 "react-native-share@npm:7.3.7":
   version: 7.3.7
   resolution: "react-native-share@npm:7.3.7"
@@ -41477,13 +41596,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-video@npm:^6.10.1":
-  version: 6.10.1
-  resolution: "react-native-video@npm:6.10.1"
+"react-native-video@npm:^6.19.0":
+  version: 6.19.0
+  resolution: "react-native-video@npm:6.19.0"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/7bb9d3cf944c4b9e3136fa1cea3268faa2305b25a6b0bb4d8b5b27a91aaed8c0fc308ff48ba8c95c1f6f0e30c6318c47f250f0663d7bba0d2ab6a523e7e47d67
+  checksum: 10/881bf18af4cba5c858f799e45407a23a6b8aba03c6818e759d6f8cefb487718e1b1a244127d92253ea5c694511ce172e2ef1563aed01ddfd3db1c479132de33d
   languageName: node
   linkType: hard
 
@@ -41499,9 +41618,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-vision-camera@npm:^4.6.4":
-  version: 4.6.4
-  resolution: "react-native-vision-camera@npm:4.6.4"
+"react-native-vision-camera@npm:^4.7.3":
+  version: 4.7.3
+  resolution: "react-native-vision-camera@npm:4.7.3"
   peerDependencies:
     "@shopify/react-native-skia": "*"
     react: "*"
@@ -41515,7 +41634,7 @@ __metadata:
       optional: true
     react-native-worklets-core:
       optional: true
-  checksum: 10/9de4166aae94f72d29ab6dc2b04066a8216b5d630508345da7cedfa300196b8c2500dd2b5c0076731357c0b9695961d4e71fe891b2714fffb278a410b081c3b5
+  checksum: 10/2487d3651cb07918820e1f255480e28fec77f936450570b531b429a1861fad573f6bfd4cdb15a78ea7adb471ee45d08e0006cdac81db4fe35949291f3e12d680
   languageName: node
   linkType: hard
 
@@ -42774,23 +42893,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rive-react-native@npm:9.3.4":
-  version: 9.3.4
-  resolution: "rive-react-native@npm:9.3.4"
+"rive-react-native@npm:^9.8.0":
+  version: 9.8.0
+  resolution: "rive-react-native@npm:9.8.0"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/dd8be7921fdb6fa5b72a786417202e4ef7ae279898c82a13e257bbfb9fd9d232b798a4b127914195ee59ee11633568a8d2938a397efe93354e39b78b4368e11b
-  languageName: node
-  linkType: hard
-
-"rive-react-native@patch:rive-react-native@npm%3A9.3.4#~/.yarn/patches/rive-react-native-npm-9.3.4-8082feca90.patch":
-  version: 9.3.4
-  resolution: "rive-react-native@patch:rive-react-native@npm%3A9.3.4#~/.yarn/patches/rive-react-native-npm-9.3.4-8082feca90.patch::version=9.3.4&hash=8583ee"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  checksum: 10/f8aaa7e08d08501bc9995ae4b3bb7bfca5afcc848a3a0d5460a41e3a34a0fbdc24c2e67af0c4284b423f23e781a6f18e9ace6d80d57092cdf93c4c3ab09d3fc8
+  checksum: 10/92ec3fa20347ddd733a662530a33c0f4ff0777ac715706d79c6028ecd08793c0feea9f3cb345ad9aedafc0767dcc8d8a533de39d2380fde9149e32e9028ecbf5
   languageName: node
   linkType: hard
 
@@ -47007,13 +47116,6 @@ __metadata:
   version: 0.13.1
   resolution: "validate.js@npm:0.13.1"
   checksum: 10/9a4cfba50c7500f25f12f018250f72056434ef544803427c397cb177dff8790fbc49b892e8689a250c1940dd67953778f9601933bad7038988e04dcaabaaa1fe
-  languageName: node
-  linkType: hard
-
-"validator@npm:^13.7.0":
-  version: 13.7.0
-  resolution: "validator@npm:13.7.0"
-  checksum: 10/c317ec88358a170d9fe3fa47e7f5367b37f41791a5460227aaaa11580c3c9bd27f16b8e0ce47d558e2d7ab318d7ad4d3980f05e2509f0fdc9f89b2e2ae860150
   languageName: node
   linkType: hard
 
