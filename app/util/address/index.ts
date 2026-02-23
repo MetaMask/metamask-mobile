@@ -339,10 +339,11 @@ export function isEthAddress(address: string): boolean {
 export function getInternalAccountByAddress(
   address: string,
 ): InternalAccount | undefined {
-  const { accounts } = Engine.context.AccountsController.state.internalAccounts;
-  return Object.values(accounts).find((a: InternalAccount) =>
-    areAddressesEqual(a.address, address),
-  );
+  const {
+    internalAccounts: { accounts },
+    accountIdByAddress,
+  } = Engine.context.AccountsController.state;
+  return accounts[accountIdByAddress[address]];
 }
 
 /**
