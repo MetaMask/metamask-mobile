@@ -409,7 +409,6 @@ class ResetPassword extends PureComponent {
     }, 100);
   }
 
-
   componentWillUnmount() {
     this.mounted = false;
   }
