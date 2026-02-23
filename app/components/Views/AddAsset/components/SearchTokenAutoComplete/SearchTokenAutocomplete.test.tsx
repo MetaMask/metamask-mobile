@@ -14,6 +14,7 @@ import {
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { Hex } from '@metamask/utils';
 import { convertTrendingAssetsToImporAssets } from '../../utils/utils';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 // --- Mock variables (hoisted by Jest for use inside jest.mock) ---
 
@@ -154,6 +155,9 @@ const mockInitialState = {
 const mockNavigation = {
   push: jest.fn(),
   navigate: jest.fn(),
+} as unknown as NavigationProp<ParamListBase> & {
+  push: jest.Mock;
+  navigate: jest.Mock;
 };
 
 // --- Helpers ---
@@ -368,13 +372,13 @@ describe('SearchTokenAutocomplete', () => {
     const utils = renderComponent();
     selectTokenAndPressNext(utils);
 
-    expect(mockNavigation.push).toHaveBeenCalledWith(
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
       'ConfirmAddAsset',
       expect.objectContaining({
         selectedAsset: [
           expect.objectContaining({ address: mockImportAset.address }),
         ],
-        chainId: '0x1',
+        addTokenList: expect.any(Function),
       }),
     );
     expect(mockCreateEventBuilder).toHaveBeenCalled();
@@ -387,7 +391,7 @@ describe('SearchTokenAutocomplete', () => {
     const utils = renderComponent();
     selectTokenAndPressNext(utils);
 
-    const [, params] = mockNavigation.push.mock.calls[0];
+    const [, params] = mockNavigation.navigate.mock.calls[0];
     await params.addTokenList();
 
     expect(Engine.context.TokensController.addTokens).toHaveBeenCalledWith(
@@ -440,7 +444,7 @@ describe('SearchTokenAutocomplete', () => {
     const utils = renderComponent({ selectedChainId: solanaChainId });
     selectTokenAndPressNext(utils);
 
-    const [, params] = mockNavigation.push.mock.calls[0];
+    const [, params] = mockNavigation.navigate.mock.calls[0];
     await params.addTokenList();
 
     expect(

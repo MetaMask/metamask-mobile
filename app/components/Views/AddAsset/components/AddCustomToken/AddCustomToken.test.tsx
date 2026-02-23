@@ -169,12 +169,12 @@ describe('AddCustomToken', () => {
     expect(mockPush).toHaveBeenCalledWith(
       'ConfirmAddAsset',
       expect.objectContaining({
-        chainId: '0x1',
+        addTokenList: expect.any(Function),
         selectedAsset: expect.arrayContaining([
           expect.objectContaining({
             address: VALID_ADDRESS,
             symbol: 'WBTC',
-            decimals: '18',
+            decimals: 18,
           }),
         ]),
       }),
