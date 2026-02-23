@@ -2091,7 +2091,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.props = { ...defaultTestProps, loading: false };
     instance.renderLoader = jest.fn();
     instance.renderList = jest.fn();
-    instance.renderUpdateTxEIP1559Gas = jest.fn();
     instance.toggleRetry = jest.fn();
     instance.retry = jest.fn();
 
