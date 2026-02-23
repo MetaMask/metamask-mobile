@@ -71,6 +71,7 @@ export const useSearchRequest = (options: {
   const searchTokensRequest = useCallback(async () => {
     if (!debouncedQuery) {
       setResults([]);
+      setError(null);
       setIsFetching(false);
       return;
     }
