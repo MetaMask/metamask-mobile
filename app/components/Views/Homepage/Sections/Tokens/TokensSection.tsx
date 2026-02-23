@@ -4,11 +4,13 @@ import React, {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import SectionTitle from '../../components/SectionTitle';
+import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
 import { useIsZeroBalanceAccount } from './hooks';
@@ -18,6 +20,11 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { SolScope } from '@metamask/keyring-api';
+import { refreshTokens } from '../../../../UI/Tokens/util/refreshTokens';
 
 const MAX_TOKENS_DISPLAYED = 5;
 
@@ -36,6 +43,15 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const sortedTokenKeys = useSelector(selectSortedAssetsBySelectedAccountGroup);
   const privacyMode = useSelector(selectPrivacyMode);
   const popularTokensListRef = useRef<SectionRefreshHandle>(null);
+  const [hasPopularTokensError, setHasPopularTokensError] = useState(false);
+
+  const evmNetworkConfigurationsByChainId = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const selectedAccountId = useSelector(selectSelectedInternalAccountId);
+  const selectedSolanaAccount =
+    useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
+  const isSolanaSelected = selectedSolanaAccount !== null;
 
   const title = strings('homepage.sections.tokens');
 
@@ -47,9 +63,19 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const refresh = useCallback(async () => {
     if (isZeroBalanceAccount) {
       await popularTokensListRef.current?.refresh();
+    } else {
+      await refreshTokens({
+        isSolanaSelected,
+        evmNetworkConfigurationsByChainId,
+        selectedAccountId,
+      });
     }
-    // TODO: Implement token refresh logic for non-zero balance accounts
-  }, [isZeroBalanceAccount]);
+  }, [
+    isZeroBalanceAccount,
+    isSolanaSelected,
+    evmNetworkConfigurationsByChainId,
+    selectedAccountId,
+  ]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -57,13 +83,30 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
   }, [navigation]);
 
+  const handlePopularTokensRetry = useCallback(async () => {
+    setHasPopularTokensError(false);
+    await popularTokensListRef.current?.refresh();
+  }, []);
+
   return (
     <Box gap={3}>
       <SectionTitle title={title} onPress={handleViewAllTokens} />
       {isZeroBalanceAccount ? (
-        <SectionRow>
-          <PopularTokensList ref={popularTokensListRef} />
-        </SectionRow>
+        hasPopularTokensError ? (
+          <ErrorState
+            title={strings('homepage.error.unable_to_load', {
+              section: title.toLowerCase(),
+            })}
+            onRetry={handlePopularTokensRetry}
+          />
+        ) : (
+          <SectionRow>
+            <PopularTokensList
+              ref={popularTokensListRef}
+              onError={setHasPopularTokensError}
+            />
+          </SectionRow>
+        )
       ) : (
         <SectionRow>
           {displayTokenKeys.map((tokenKey, index) => (
