@@ -8,6 +8,7 @@ import {
   PriceChangeOption,
   SortDirection,
 } from '../../components/TrendingTokensBottomSheet';
+import { RWA_CHAIN_IDS } from '../../utils/trendingNetworksList';
 import { isEqual } from 'lodash';
 
 const useStableReference = <T>(value: T) => {
@@ -47,10 +48,11 @@ const fuseSearch = (
 };
 
 /**
- * Hook for RWA tokens search
+ * Hook for RWA tokens search.
+ * Defaults to Ethereum + BNB when no chainIds are provided.
  *
  * @param opts.searchQuery - Client-side fuse.js query to filter results
- * @param opts.chainIds - Chain IDs to filter by
+ * @param opts.chainIds - Chain IDs to filter by (defaults to RWA_CHAIN_IDS)
  * @param opts.sortTrendingTokensOptions - Sorting options for price change / volume / market cap
  * @returns Search results, loading state, and refetch function for rwa tokens
  */
@@ -74,11 +76,13 @@ export const useRwaTokens = (opts?: {
     },
   } = useStableReference(opts ?? {});
 
+  const effectiveChainIds = chainIds ?? RWA_CHAIN_IDS;
+
   const { results: searchResults, isLoading: isSearchLoading } =
     useSearchRequest({
       query: 'Ondo',
       limit: 100,
-      chainIds: chainIds ?? undefined,
+      chainIds: effectiveChainIds,
       includeMarketData,
     });
 

@@ -8,6 +8,7 @@ import {
 import { useRwaTokens } from '../../hooks/useRwaTokens/useRwaTokens';
 import { useTokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
+import { RWA_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 
 const RWATokensFullView = () => {
   const filters = useTokenListFilters({
@@ -53,6 +54,7 @@ const RWATokensFullView = () => {
       searchResults={searchResults}
       isLoading={isLoading}
       onRefresh={handleRefresh}
+      allowedNetworks={RWA_NETWORKS_LIST}
     />
   );
 };

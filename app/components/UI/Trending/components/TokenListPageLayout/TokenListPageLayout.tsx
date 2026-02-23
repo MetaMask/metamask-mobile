@@ -14,6 +14,7 @@ import {
 } from '../TrendingTokensBottomSheet';
 import { TrendingTokensData } from '../../Views/TrendingTokensFullView/TrendingTokensFullView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import type { TokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
 
 export interface TokenListPageLayoutProps {
@@ -31,6 +32,8 @@ export interface TokenListPageLayoutProps {
   isLoading: boolean;
   /** Callback to trigger data refetch */
   onRefresh: () => void;
+  /** Networks to show in the network filter bottom sheet */
+  allowedNetworks: ProcessedNetwork[];
   /** Optional extra filter buttons (e.g., time filter) */
   extraFilters?: React.ReactNode;
   /** Optional extra bottom sheets rendered at the end */
@@ -53,6 +56,7 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
   searchResults,
   isLoading,
   onRefresh,
+  allowedNetworks,
   extraFilters,
   extraBottomSheets,
 }) => {
@@ -106,6 +110,7 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
         onClose={() => filters.setShowNetworkBottomSheet(false)}
         onNetworkSelect={filters.handleNetworkSelect}
         selectedNetwork={filters.selectedNetwork}
+        networks={allowedNetworks}
       />
       <TrendingTokenPriceChangeBottomSheet
         isVisible={filters.showPriceChangeBottomSheet}

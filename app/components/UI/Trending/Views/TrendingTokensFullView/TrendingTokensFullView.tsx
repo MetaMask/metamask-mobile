@@ -29,6 +29,7 @@ import EmptySearchResultState from '../../../../Views/TrendingView/components/Em
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import { useSearchTracking } from '../../hooks/useSearchTracking/useSearchTracking';
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
+import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 import type { Theme } from '../../../../../util/theme/models';
 
 export interface TrendingTokensDataProps {
@@ -245,6 +246,7 @@ const TrendingTokensFullView = () => {
       searchResults={searchResults}
       isLoading={isLoading}
       onRefresh={handleRefresh}
+      allowedNetworks={TRENDING_NETWORKS_LIST}
       extraFilters={timeFilterButton}
       extraBottomSheets={
         <TrendingTokenTimeBottomSheet
