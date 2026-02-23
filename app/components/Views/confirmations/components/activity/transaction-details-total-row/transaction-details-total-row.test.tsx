@@ -53,7 +53,7 @@ describe('TransactionDetailsTotalRow', () => {
 
   it('renders total from pay metadata', () => {
     const { getByText } = render();
-    expect(getByText(`$${PAY_TOTAL}`)).toBeDefined();
+    expect(getByText(`$${PAY_TOTAL}`)).toBeOnTheScreen();
   });
 
   it('renders total from token amount', () => {
@@ -66,7 +66,7 @@ describe('TransactionDetailsTotalRow', () => {
 
     const { getByText } = render();
 
-    expect(getByText(`$${TOKEN_TOTAL}`)).toBeDefined();
+    expect(getByText(`$${TOKEN_TOTAL}`)).toBeOnTheScreen();
   });
 
   it('renders nothing if no total fiat and type not supported', () => {
@@ -94,7 +94,7 @@ describe('TransactionDetailsTotalRow', () => {
 
     const { getByText } = render();
 
-    expect(getByText('$99.99')).toBeDefined();
+    expect(getByText('$99.99')).toBeOnTheScreen();
   });
 
   it('falls back to totalFiat when targetFiat is missing on receive-type', () => {
@@ -109,7 +109,7 @@ describe('TransactionDetailsTotalRow', () => {
 
     const { getByText } = render();
 
-    expect(getByText(`$${PAY_TOTAL}`)).toBeDefined();
+    expect(getByText(`$${PAY_TOTAL}`)).toBeOnTheScreen();
   });
 
   it('renders total from fiat amount for musdClaim with user currency', () => {
@@ -128,6 +128,6 @@ describe('TransactionDetailsTotalRow', () => {
     const { getByText } = render();
 
     // Uses fiatUnformatted and user's currency formatter
-    expect(getByText('$123.45')).toBeDefined();
+    expect(getByText('$123.45')).toBeOnTheScreen();
   });
 });

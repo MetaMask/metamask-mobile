@@ -32,12 +32,12 @@ describe('TransactionDetailsBridgeFeeRow', () => {
 
   it('renders bridge fee fiat', () => {
     const { getByText } = render();
-    expect(getByText(`$${BRIDGE_FEE_FIAT_MOCK}`)).toBeDefined();
+    expect(getByText(`$${BRIDGE_FEE_FIAT_MOCK}`)).toBeOnTheScreen();
   });
 
   it('renders "Bridge fee" label by default', () => {
     const { getByText } = render();
-    expect(getByText('Bridge fee')).toBeDefined();
+    expect(getByText('Bridge fee')).toBeOnTheScreen();
   });
 
   it('renders "Provider fee" label for predict withdrawals', () => {
@@ -51,7 +51,7 @@ describe('TransactionDetailsBridgeFeeRow', () => {
     });
 
     const { getByText } = render();
-    expect(getByText('Provider fee')).toBeDefined();
+    expect(getByText('Provider fee')).toBeOnTheScreen();
   });
 
   it('renders nothing if no bridge fee fiat', () => {
