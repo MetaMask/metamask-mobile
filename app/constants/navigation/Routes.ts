@@ -177,6 +177,8 @@ const Routes = {
     NOTIFICATIONS: 'NotificationsSettings',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
+    NETWORKS_MANAGEMENT: 'NetworksManagement',
+    NETWORK_DETAILS: 'NetworkDetails',
     BACKUP_AND_SYNC: 'BackupAndSyncSettings',
     REGION_SELECTOR: 'SettingsRegionSelector',
   },
