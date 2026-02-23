@@ -66,15 +66,18 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({}),
-    })),
+jest.mock(
+  '../../../../../../components/hooks/useAnalytics/useAnalytics',
+  () => ({
+    useAnalytics: () => ({
+      trackEvent: jest.fn(),
+      createEventBuilder: jest.fn(() => ({
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({}),
+      })),
+    }),
   }),
-}));
+);
 
 jest.mock('../../../hooks/send/metrics/useAmountSelectionMetrics', () => ({
   useAmountSelectionMetrics: jest.fn(),
