@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
@@ -38,7 +44,9 @@ import {
   getQuoteProviderName,
   getQuoteBuyUserAgent,
 } from '../../types';
+import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import Logger from '../../../../../util/Logger';
+import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
@@ -124,8 +132,32 @@ function BuildQuote() {
 
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
   const [selectedQuoteLoading, setSelectedQuoteLoading] = useState(false);
-  const [widgetUrl, setWidgetUrl] = useState<string | null>(null);
-  const [, setWidgetUrlLoading] = useState(false);
+
+  const isTokenUnavailable = useMemo(
+    () =>
+      !!(
+        selectedProvider &&
+        params?.assetId &&
+        selectedProvider.supportedCryptoCurrencies &&
+        !selectedProvider.supportedCryptoCurrencies[params.assetId]
+      ),
+    [selectedProvider, params?.assetId],
+  );
+
+  const hasShownTokenUnavailableRef = useRef(false);
+
+  useEffect(() => {
+    if (isTokenUnavailable && !hasShownTokenUnavailableRef.current) {
+      hasShownTokenUnavailableRef.current = true;
+      navigation.navigate(
+        ...createTokenNotAvailableModalNavigationDetails({
+          assetId: params?.assetId ?? '',
+        }),
+      );
+    } else if (!isTokenUnavailable) {
+      hasShownTokenUnavailableRef.current = false;
+    }
+  }, [isTokenUnavailable, params?.assetId, navigation]);
 
   const {
     checkExistingToken: transakCheckExistingToken,
@@ -223,14 +255,12 @@ function BuildQuote() {
       debouncedPollingAmount <= 0
     ) {
       setSelectedQuote(null);
-      setWidgetUrl(null);
       return;
     }
 
     let cancelled = false;
     setSelectedQuoteLoading(true);
     setSelectedQuote(null);
-    setWidgetUrl(null);
 
     getQuotes({
       assetId: selectedToken.assetId,
@@ -281,28 +311,6 @@ function BuildQuote() {
     isOnBuildQuoteScreen,
   ]);
 
-  useEffect(() => {
-    const quote = selectedQuote;
-    if (!quote?.quote?.buyURL || isNativeProvider(quote)) {
-      setWidgetUrl(null);
-      setWidgetUrlLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    setWidgetUrlLoading(true);
-    getWidgetUrl(quote).then((url) => {
-      if (!cancelled) {
-        setWidgetUrl(url);
-        setWidgetUrlLoading(false);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedQuote, getWidgetUrl]);
-
   const handleContinuePress = useCallback(async () => {
     if (!selectedQuote) return;
 
@@ -320,7 +328,6 @@ function BuildQuote() {
 
     // Validate payment method context matches
     if (quotePaymentMethod != null) {
-      // Quote requires a payment method - must have one selected and it must match
       if (
         !selectedPaymentMethod ||
         selectedPaymentMethod.id !== quotePaymentMethod
@@ -371,45 +378,54 @@ function BuildQuote() {
       return;
     }
 
-    // Aggregator provider -> needs a widget URL
-    // Use optimistic Continue: if widgetUrl prefetched, navigate immediately; else await fetch
-    let urlToUse = widgetUrl;
-    if (!urlToUse) {
-      setIsContinueLoading(true);
-      try {
-        urlToUse = await getWidgetUrl(selectedQuote);
-      } catch (error) {
-        Logger.error(error as Error, {
-          provider: selectedQuote.provider,
-          message: 'Failed to fetch widget URL',
-        });
-      } finally {
-        setIsContinueLoading(false);
-      }
-    }
+    // V2 aggregator: get widget URL via controller and navigate to checkout
+    try {
+      const fetchedWidgetUrl = await getWidgetUrl(selectedQuote);
 
-    if (urlToUse) {
-      navigation.navigate(
-        ...createCheckoutNavDetails({
-          url: urlToUse,
-          providerName: getQuoteProviderName(selectedQuote),
-          userAgent: getQuoteBuyUserAgent(selectedQuote),
-        }),
-      );
-    } else {
-      Logger.error(
-        new Error('No widget URL available for aggregator provider'),
-        { provider: selectedQuote.provider },
-      );
+      if (fetchedWidgetUrl) {
+        const providerCode = selectedQuote.provider.startsWith('/providers/')
+          ? selectedQuote.provider.split('/')[2] || selectedQuote.provider
+          : selectedQuote.provider;
+        const chainId = selectedToken?.chainId as CaipChainId | undefined;
+        const network = chainId?.includes(':')
+          ? chainId.split(':')[1] || ''
+          : chainId || '';
+
+        navigation.navigate(
+          ...createCheckoutNavDetails({
+            url: fetchedWidgetUrl,
+            providerName:
+              selectedProvider?.name || getQuoteProviderName(selectedQuote),
+            userAgent: getQuoteBuyUserAgent(selectedQuote),
+            providerCode,
+            providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+            walletAddress: walletAddress ?? undefined,
+            network,
+            currency,
+            cryptocurrency: selectedToken?.symbol || '',
+          }),
+        );
+      } else {
+        Logger.error(
+          new Error('No widget URL available for aggregator provider'),
+          { provider: selectedQuote.provider },
+        );
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        provider: selectedQuote.provider,
+        message: 'Failed to fetch widget URL',
+      });
     }
   }, [
     selectedQuote,
-    widgetUrl,
+    selectedProvider,
+    selectedToken,
+    walletAddress,
+    currency,
     navigation,
     getWidgetUrl,
     amountAsNumber,
-    selectedToken,
-    currency,
     selectedPaymentMethod,
     transakCheckExistingToken,
     transakGetBuyQuote,

@@ -5,6 +5,7 @@ import DaimoPayModal from './DaimoPayModal';
 import { DaimoPayModalSelectors } from './DaimoPayModal.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
+import { clearCacheData } from '../../../../../core/redux/slices/card';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -54,8 +55,10 @@ jest.mock('../../sdk', () => ({
   }),
 }));
 
+const mockReduxDispatch = jest.fn();
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => []),
+  useDispatch: () => mockReduxDispatch,
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -154,6 +157,14 @@ jest.mock('../../../../../core/Permissions', () => ({
 
 jest.mock('../../../../../selectors/snaps/permissionController', () => ({
   selectPermissionControllerState: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../../core/redux/slices/card', () => ({
+  selectIsDaimoDemo: jest.fn(),
+  clearCacheData: jest.fn((key: string) => ({
+    type: 'card/clearCacheData',
+    payload: key,
+  })),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -467,6 +478,38 @@ describe('DaimoPayModal', () => {
 
       // In demo mode, paymentCompleted should trigger navigation immediately
       expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    it('clears card-details cache on payment success', async () => {
+      mockGetDaimoEnvironment.mockReturnValue('demo');
+
+      render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
+
+      await act(async () => {
+        if (mockOnMessage) {
+          mockOnMessage({
+            nativeEvent: {
+              data: JSON.stringify({
+                source: 'daimo-pay',
+                version: 1,
+                type: 'paymentCompleted',
+                payload: {
+                  txHash: '0x123',
+                  chainId: 59144,
+                },
+              }),
+            },
+          });
+        }
+      });
+
+      expect(mockReduxDispatch).toHaveBeenCalledWith(
+        clearCacheData('card-details'),
+      );
     });
 
     it('does not navigate on paymentCompleted in production mode - lets polling handle navigation', async () => {
