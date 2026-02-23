@@ -6,6 +6,7 @@ import Routes from '../../../constants/navigation/Routes';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import EngineService from '../../../core/EngineService';
+import { strings } from '../../../../locales/i18n';
 
 const mockReplace = jest.fn();
 const mockDispatch = jest.fn((action) => {
@@ -65,23 +66,25 @@ describe('RestoreWallet', () => {
     it('renders title text', () => {
       const { getByText } = renderWithProvider(<RestoreWallet />);
 
-      expect(getByText('Restore needed')).toBeTruthy();
+      expect(
+        getByText(strings('restore_wallet.restore_needed_title')),
+      ).toBeOnTheScreen();
     });
 
     it('renders description text', () => {
       const { getByText } = renderWithProvider(<RestoreWallet />);
 
       expect(
-        getByText(
-          "Something went wrong, but don't worry! Let's try to restore your wallet.",
-        ),
-      ).toBeTruthy();
+        getByText(strings('restore_wallet.restore_needed_description')),
+      ).toBeOnTheScreen();
     });
 
     it('renders Restore button', () => {
       const { getByText } = renderWithProvider(<RestoreWallet />);
 
-      expect(getByText('Restore wallet')).toBeTruthy();
+      expect(
+        getByText(strings('restore_wallet.restore_needed_action')),
+      ).toBeOnTheScreen();
     });
 
     it('renders device image', () => {
@@ -110,7 +113,9 @@ describe('RestoreWallet', () => {
       });
       const { getByText } = renderWithProvider(<RestoreWallet />);
 
-      fireEvent.press(getByText('Restore wallet'));
+      fireEvent.press(
+        getByText(strings('restore_wallet.restore_needed_action')),
+      );
 
       await waitFor(() => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -131,7 +136,9 @@ describe('RestoreWallet', () => {
       });
       const { getByText } = renderWithProvider(<RestoreWallet />);
 
-      fireEvent.press(getByText('Restore wallet'));
+      fireEvent.press(
+        getByText(strings('restore_wallet.restore_needed_action')),
+      );
 
       await waitFor(() => {
         expect(EngineService.initializeVaultFromBackup).toHaveBeenCalled();
@@ -155,7 +162,9 @@ describe('RestoreWallet', () => {
         <RestoreWallet />,
       );
 
-      fireEvent.press(getByText('Restore wallet'));
+      fireEvent.press(
+        getByText(strings('restore_wallet.restore_needed_action')),
+      );
 
       expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
 
