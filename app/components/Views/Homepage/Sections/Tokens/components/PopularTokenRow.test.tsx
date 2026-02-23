@@ -116,7 +116,8 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      expect(screen.queryByText('%')).not.toBeOnTheScreen();
+      // Use regex to match any text containing a percentage value (e.g. +5.25%, -3.50%)
+      expect(screen.queryByText(/[+-]?\d+\.\d+%/)).toBeNull();
     });
 
     it('renders description instead of price when provided', () => {
