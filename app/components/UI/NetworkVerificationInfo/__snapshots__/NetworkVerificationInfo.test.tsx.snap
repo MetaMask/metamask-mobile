@@ -11,7 +11,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           "alignItems": "center",
           "flexDirection": "row",
           "gap": 16,
-          "height": 56,
+          "minHeight": 56,
         },
         false,
         {
@@ -449,7 +449,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     style={
       {
         "flexDirection": "row",
-        "paddingHorizontal": 8,
+        "paddingHorizontal": 16,
         "paddingVertical": 4,
       }
     }
@@ -550,7 +550,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
           "alignItems": "center",
           "flexDirection": "row",
           "gap": 16,
-          "height": 56,
+          "minHeight": 56,
         },
         false,
         {
@@ -952,7 +952,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
     style={
       {
         "flexDirection": "row",
-        "paddingHorizontal": 8,
+        "paddingHorizontal": 16,
         "paddingVertical": 4,
       }
     }

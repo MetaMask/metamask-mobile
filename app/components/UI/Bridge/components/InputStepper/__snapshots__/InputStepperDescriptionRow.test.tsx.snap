@@ -1,0 +1,756 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`InputStepperDescriptionRow different icon configurations renders with different icon names 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View>
+    <SvgMock
+      fill="currentColor"
+      name="Info"
+      style={
+        [
+          {
+            "color": "#4459ff",
+            "height": 16,
+            "width": 16,
+          },
+          undefined,
+        ]
+      }
+      testID="input-stepper-description-icon"
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#9a6300",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      Info message
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`InputStepperDescriptionRow different icon configurations renders with large icon size 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View>
+    <SvgMock
+      fill="currentColor"
+      name="Danger"
+      style={
+        [
+          {
+            "color": "#ca3542",
+            "height": 24,
+            "width": 24,
+          },
+          undefined,
+        ]
+      }
+      testID="input-stepper-description-icon"
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#ca3542",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      Error with large icon
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`InputStepperDescriptionRow different icon configurations renders with medium icon size 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View>
+    <SvgMock
+      fill="currentColor"
+      name="Danger"
+      style={
+        [
+          {
+            "color": "#ca3542",
+            "height": 20,
+            "width": 20,
+          },
+          undefined,
+        ]
+      }
+      testID="input-stepper-description-icon"
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#ca3542",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      Error with medium icon
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`InputStepperDescriptionRow different icon configurations renders with small icon size 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View>
+    <SvgMock
+      fill="currentColor"
+      name="Warning"
+      style={
+        [
+          {
+            "color": "#9a6300",
+            "height": 16,
+            "width": 16,
+          },
+          undefined,
+        ]
+      }
+      testID="input-stepper-description-icon"
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#9a6300",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      Warning with small icon
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`InputStepperDescriptionRow edge cases renders error without icon 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#ca3542",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      Error message without icon
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`InputStepperDescriptionRow edge cases renders warning without icon 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#9a6300",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      Warning message without icon
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`InputStepperDescriptionRow edge cases renders with very long message 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#9a6300",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      This is a very long warning message that should still render correctly without breaking the layout or causing any issues with the component rendering.
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`InputStepperDescriptionRow layout and structure renders complete component with all props 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View>
+    <SvgMock
+      fill="currentColor"
+      name="Warning"
+      style={
+        [
+          {
+            "color": "#9a6300",
+            "height": 20,
+            "width": 20,
+          },
+          undefined,
+        ]
+      }
+      testID="input-stepper-description-icon"
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#9a6300",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      Complete warning message
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`InputStepperDescriptionRow renders correct icon style based on provided icon config 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View>
+    <SvgMock
+      fill="currentColor"
+      name="Danger"
+      style={
+        [
+          {
+            "color": "#ca3542",
+            "height": 24,
+            "width": 24,
+          },
+          undefined,
+        ]
+      }
+      testID="input-stepper-description-icon"
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#ca3542",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      Error with custom icon
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`InputStepperDescriptionRow renders correct message color based on provided color property: error color 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#ca3542",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      Error message
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`InputStepperDescriptionRow renders correct message color based on provided color property: warning color 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#9a6300",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      Warning message
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`InputStepperDescriptionRow renders correct style when type is ERROR 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View>
+    <SvgMock
+      fill="currentColor"
+      name="Danger"
+      style={
+        [
+          {
+            "color": "#ca3542",
+            "height": 16,
+            "width": 16,
+          },
+          undefined,
+        ]
+      }
+      testID="input-stepper-description-icon"
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#ca3542",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      Error message
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`InputStepperDescriptionRow renders correct style when type is WARNING 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View>
+    <SvgMock
+      fill="currentColor"
+      name="Warning"
+      style={
+        [
+          {
+            "color": "#9a6300",
+            "height": 16,
+            "width": 16,
+          },
+          undefined,
+        ]
+      }
+      testID="input-stepper-description-icon"
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#9a6300",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      Warning message
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`InputStepperDescriptionRow renders icon when provided 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": "auto",
+      "width": "75%",
+    }
+  }
+  testID="input-stepper-description-row"
+>
+  <View>
+    <SvgMock
+      fill="currentColor"
+      name="Warning"
+      style={
+        [
+          {
+            "color": "#9a6300",
+            "height": 20,
+            "width": 20,
+          },
+          undefined,
+        ]
+      }
+      testID="input-stepper-description-icon"
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#9a6300",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          {
+            "textAlign": "center",
+          },
+        ]
+      }
+      testID="input-text-description-message"
+    >
+      Warning with icon
+    </Text>
+  </View>
+</View>
+`;

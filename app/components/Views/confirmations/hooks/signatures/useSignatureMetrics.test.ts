@@ -10,7 +10,7 @@ import {
   ResultType,
   Reason,
   SecurityAlertSource,
-} from '../../../../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
+} from '../../../../../components/Views/confirmations/components/blockaid-banner/BlockaidBanner.types';
 
 const mockTypedSignV4SignatureRequest = typedSignV4SignatureRequest;
 jest.mock('./useSignatureRequest', () => ({
@@ -21,25 +21,18 @@ jest.mock('../../../../../util/address', () => ({
   getAddressAccountType: (str: string) => str,
 }));
 
-const mockTrackEvent = jest.fn().mockImplementation();
-jest.mock('../../../../../core/Analytics', () => ({
-  ...jest.requireActual('../../../../../core/Analytics'),
-  MetaMetrics: {
-    getInstance: () => ({
-      trackEvent: mockTrackEvent,
-      updateDataRecordingFlag: jest.fn(),
-    }),
-  },
-}));
-
+const mockTrackEvent = jest.fn();
 const mockAddProperties = jest
   .fn()
   .mockImplementation(() => ({ build: () => ({}) }));
-jest.mock('../../../../../core/Analytics/MetricsEventBuilder', () => ({
-  ...jest.requireActual('../../../../../core/Analytics/MetricsEventBuilder'),
-  MetricsEventBuilder: {
-    createEventBuilder: () => ({ addProperties: mockAddProperties }),
-  },
+jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: () => ({
+      addProperties: mockAddProperties,
+      build: () => ({}),
+    }),
+  }),
 }));
 
 const SignatureMetrics = {
@@ -101,10 +94,18 @@ describe('useSignatureMetrics', () => {
   });
 
   it('should capture metrics events correctly', async () => {
+    // The key must match messageParams.requestId from typedSignV4SignatureRequest
+    // since useSecurityAlertResponse looks up by requestId first
+    const requestId =
+      typedSignV4SignatureRequest.messageParams.requestId?.toString();
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
-        signatureRequest: { securityAlertResponse },
+        securityAlerts: {
+          alerts: {
+            [requestId as string]: securityAlertResponse,
+          },
+        },
       },
     });
     // first call for 'SIGNATURE_REQUESTED' event
@@ -123,11 +124,15 @@ describe('useSignatureMetrics', () => {
   });
 
   it('captures metrics events correctly with loading security alert response', async () => {
+    const requestId =
+      typedSignV4SignatureRequest.messageParams.requestId?.toString();
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
-        signatureRequest: {
-          securityAlertResponse: securityAlertResponseLoading,
+        securityAlerts: {
+          alerts: {
+            [requestId as string]: securityAlertResponseLoading,
+          },
         },
       },
     });
@@ -147,11 +152,15 @@ describe('useSignatureMetrics', () => {
   });
 
   it('captures metrics events correctly with undefined security alert response', async () => {
+    const requestId =
+      typedSignV4SignatureRequest.messageParams.requestId?.toString();
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
-        signatureRequest: {
-          securityAlertResponse: securityAlertResponseUndefined,
+        securityAlerts: {
+          alerts: {
+            [requestId as string]: securityAlertResponseUndefined,
+          },
         },
       },
     });

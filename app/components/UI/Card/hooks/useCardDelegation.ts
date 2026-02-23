@@ -14,7 +14,8 @@ import { useCardSDK } from '../sdk';
 import { CardNetwork, CardTokenAllowance } from '../types';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { Hex } from '@metamask/utils';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ARBITRARY_ALLOWANCE } from '../constants';
 import { toTokenMinimalUnit } from '../../../../util/number';
 import AppConstants from '../../../../core/AppConstants';
@@ -40,6 +41,7 @@ interface DelegationParams {
   amount: string;
   currency: string;
   network: CardNetwork;
+  faucet?: boolean;
 }
 
 /**
@@ -55,7 +57,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
   const selectAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [state, setState] = useState<DelegationState>({
     isLoading: false,
     error: null,
@@ -230,6 +232,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         delegation_amount: isNaN(Number(params.amount))
           ? 0
           : Number(params.amount),
+        faucet: params.faucet ?? false,
       };
 
       try {

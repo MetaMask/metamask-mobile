@@ -131,7 +131,7 @@ export const ActivityEventRow: React.FC<{
           }
         >
           <Box
-            twClassName="bg-muted rounded-full items-center justify-center size-12"
+            twClassName="bg-muted rounded-full items-center justify-center size-10"
             flexDirection={BoxFlexDirection.Column}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
@@ -172,7 +172,7 @@ export const ActivityEventRow: React.FC<{
               {event.bonus?.bips && (
                 <Text
                   variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
+                  color={TextColor.SuccessDefault}
                   twClassName="ml-1"
                   testID={`${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_BONUS}-${testID}`}
                 >

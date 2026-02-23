@@ -1,0 +1,732 @@
+import { renderHook, act } from '@testing-library/react-native';
+import { RefObject } from 'react';
+import { FlashListRef } from '@shopify/flash-list';
+import { useTransactionAutoScroll } from './useTransactionAutoScroll';
+import Logger from '../../../util/Logger';
+
+// Mock Logger
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
+// Mock setTimeout/clearTimeout for more predictable testing
+jest.useFakeTimers();
+
+describe('useTransactionAutoScroll', () => {
+  // Helper to create a mock FlashList ref
+  const createMockListRef = <T>(): RefObject<FlashListRef<T>> => ({
+    current: {
+      scrollToOffset: jest.fn(),
+    } as unknown as FlashListRef<T>,
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
+  describe('Chain-agnostic scrolling behavior', () => {
+    // The hook is chain-agnostic - it only checks if the first item's ID changed.
+    // These parameterized tests verify consistent behavior across all supported chains.
+    it.each([
+      { chain: 'EVM', prefix: 'evm', txPrefix: 'evm-tx' },
+      { chain: 'Solana', prefix: 'solana', txPrefix: 'sol-tx' },
+      { chain: 'Tron', prefix: 'tron', txPrefix: 'trx-tx' },
+      { chain: 'Bitcoin', prefix: 'btc', txPrefix: 'btc-tx' },
+    ])(
+      'scrolls to top when a new $chain transaction is added',
+      ({ prefix, txPrefix }) => {
+        const listRef = createMockListRef<{ id: string }>();
+        const keyExtractor = jest.fn(
+          (item: { id: string }) => `${prefix}-${item.id}`,
+        );
+
+        const { rerender } = renderHook(
+          ({ data }) =>
+            useTransactionAutoScroll(data, listRef, { keyExtractor }),
+          {
+            initialProps: {
+              data: [{ id: `${txPrefix}-1` }],
+            },
+          },
+        );
+
+        // Add a new transaction at the top
+        rerender({
+          data: [{ id: `${txPrefix}-2` }, { id: `${txPrefix}-1` }],
+        });
+
+        act(() => {
+          jest.advanceTimersByTime(150);
+        });
+
+        expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
+          offset: 0,
+          animated: true,
+        });
+        expect(keyExtractor).toHaveBeenCalled();
+      },
+    );
+
+    it('scrolls to top when a new transaction replaces the first', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Replace the first transaction
+      rerender({ data: [{ id: 'tx-2' }] });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
+        offset: 0,
+        animated: true,
+      });
+    });
+
+    it('does not scroll when no new transaction is added', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Re-render with same data
+      rerender({ data: [{ id: 'tx-1' }] });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      expect(listRef.current?.scrollToOffset).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Mixed chain transactions', () => {
+    it('handles mixed transactions from different chains', () => {
+      const listRef = createMockListRef<{ chain: string; id: string }>();
+      const keyExtractor = jest.fn(
+        (item: { chain: string; id: string }) => `${item.chain}-${item.id}`,
+      );
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [
+              { chain: 'evm', id: 'tx-1' },
+              { chain: 'solana', id: 'tx-2' },
+            ],
+          },
+        },
+      );
+
+      // Add new transaction from different chain at the top
+      rerender({
+        data: [
+          { chain: 'bitcoin', id: 'tx-3' },
+          { chain: 'evm', id: 'tx-1' },
+          { chain: 'solana', id: 'tx-2' },
+        ],
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
+        offset: 0,
+        animated: true,
+      });
+    });
+  });
+
+  describe('User scroll prevention', () => {
+    it('does not auto-scroll when user is actively scrolling', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { result, rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Simulate user scrolling
+      act(() => {
+        result.current.handleScroll();
+      });
+
+      // Add new transaction while user is scrolling
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should not scroll during user interaction
+      expect(listRef.current?.scrollToOffset).not.toHaveBeenCalled();
+    });
+
+    it('resumes auto-scroll after user stops scrolling', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { result, rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Simulate user scrolling
+      act(() => {
+        result.current.handleScroll();
+      });
+
+      // Wait for user scroll debounce to complete (1000ms)
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      // Add new transaction after user stopped scrolling
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should scroll now
+      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
+        offset: 0,
+        animated: true,
+      });
+    });
+  });
+
+  describe('Error handling', () => {
+    it('handles keyExtractor returning null gracefully', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn(() => null);
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Add new transaction
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should not scroll when ID is null
+      expect(listRef.current?.scrollToOffset).not.toHaveBeenCalled();
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('handles keyExtractor throwing an error gracefully', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn(() => {
+        throw new Error('Invalid transaction structure');
+      });
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Add new transaction
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should not crash and log error
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'useTransactionAutoScroll: Failed to extract item ID',
+      );
+    });
+
+    it('handles scrollToOffset failure gracefully', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      // Make scrollToOffset throw an error
+      if (listRef.current) {
+        (listRef.current.scrollToOffset as jest.Mock).mockImplementation(() => {
+          throw new Error('Scroll failed');
+        });
+      }
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Add new transaction
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should catch error and log it
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'useTransactionAutoScroll: Auto-scroll failed',
+      );
+    });
+
+    it('handles empty data array', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [] as { id: string }[],
+          },
+        },
+      );
+
+      // Add transactions to empty array
+      rerender({ data: [{ id: 'tx-1' }] });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should scroll when first transaction is added
+      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
+        offset: 0,
+        animated: true,
+      });
+    });
+
+    it('handles undefined or null items in data array', () => {
+      const listRef = createMockListRef<{ id: string } | null | undefined>();
+      const keyExtractor = jest.fn(
+        (item: { id: string } | null | undefined) => {
+          if (!item) return null;
+          return item.id;
+        },
+      );
+
+      renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [null, undefined, { id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Should not crash with null/undefined items
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Configuration options', () => {
+    it('respects enabled option when set to false', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { rerender } = renderHook(
+        ({ data }) =>
+          useTransactionAutoScroll(data, listRef, {
+            keyExtractor,
+            enabled: false,
+          }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Add new transaction
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should not scroll when disabled
+      expect(listRef.current?.scrollToOffset).not.toHaveBeenCalled();
+    });
+
+    it('clears pending scroll when enabled changes from true to false', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { rerender } = renderHook(
+        ({ data, enabled }) =>
+          useTransactionAutoScroll(data, listRef, {
+            keyExtractor,
+            enabled,
+          }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+            enabled: true,
+          },
+        },
+      );
+
+      // Add new transaction while enabled - this schedules a scroll
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }], enabled: true });
+
+      // Disable before the scroll timeout fires
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }], enabled: false });
+
+      // Advance past the scroll delay
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Pending scroll should have been cleared when disabled
+      expect(listRef.current?.scrollToOffset).not.toHaveBeenCalled();
+    });
+
+    it('respects custom delay option', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { rerender } = renderHook(
+        ({ data }) =>
+          useTransactionAutoScroll(data, listRef, {
+            keyExtractor,
+            delay: 300,
+          }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Add new transaction
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
+
+      // Should not scroll before custom delay
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+      expect(listRef.current?.scrollToOffset).not.toHaveBeenCalled();
+
+      // Should scroll after custom delay
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
+        offset: 0,
+        animated: true,
+      });
+    });
+  });
+
+  describe('Timeout cleanup', () => {
+    it('clears scroll timeout on unmount', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { unmount, rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Add new transaction to trigger scroll timeout
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
+
+      // Unmount before timeout fires
+      unmount();
+
+      // Advance timers
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should not scroll after unmount
+      expect(listRef.current?.scrollToOffset).not.toHaveBeenCalled();
+    });
+
+    it('clears user scroll timeout on unmount', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { result, unmount } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Trigger user scroll
+      act(() => {
+        result.current.handleScroll();
+      });
+
+      // Unmount before user scroll timeout fires
+      unmount();
+
+      // Advance timers - should not cause errors
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      // No errors should be thrown
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('clears pending scroll timeout when new scroll is scheduled', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Add first new transaction
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
+
+      // Immediately add another transaction before first scroll fires
+      rerender({
+        data: [{ id: 'tx-3' }, { id: 'tx-2' }, { id: 'tx-1' }],
+      });
+
+      // Advance timers
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should only scroll once (second timeout should replace first)
+      expect(listRef.current?.scrollToOffset).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('handles list ref being null', () => {
+      const listRef: RefObject<FlashListRef<{ id: string }>> = {
+        current: null,
+      };
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Add new transaction
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should not crash when ref is null
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('handles rapid successive transaction additions', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Rapidly add multiple transactions
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
+      rerender({
+        data: [{ id: 'tx-3' }, { id: 'tx-2' }, { id: 'tx-1' }],
+      });
+      rerender({
+        data: [{ id: 'tx-4' }, { id: 'tx-3' }, { id: 'tx-2' }, { id: 'tx-1' }],
+      });
+
+      // Advance timers
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should handle rapid updates gracefully
+      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
+        offset: 0,
+        animated: true,
+      });
+    });
+
+    it('handles transaction list length decreasing', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-2' }, { id: 'tx-1' }],
+          },
+        },
+      );
+
+      // Remove a transaction
+      rerender({ data: [{ id: 'tx-2' }] });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should not scroll when list decreases
+      expect(listRef.current?.scrollToOffset).not.toHaveBeenCalled();
+    });
+
+    it('handles non-EVM transactions without id using chain-timestamp fallback', () => {
+      // This test verifies that keyExtractor implementations using chain-timestamp fallback
+      // (like the keyExtractor pattern) work correctly for auto-scroll detection
+      interface NonEvmTx {
+        id?: string;
+        chain: string;
+        timestamp?: number;
+      }
+
+      const listRef = createMockListRef<NonEvmTx>();
+      // Simulate the keyExtractor implementation that uses chain-timestamp fallback
+      const keyExtractor = jest.fn((item: NonEvmTx) =>
+        String(item.id ?? `${item.chain}-${item.timestamp ?? '0'}`),
+      );
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ chain: 'solana:mainnet', timestamp: 1000 }],
+          },
+        },
+      );
+
+      // Add a new transaction without id - should use chain-timestamp as fallback ID
+      rerender({
+        data: [
+          { chain: 'solana:mainnet', timestamp: 2000 },
+          { chain: 'solana:mainnet', timestamp: 1000 },
+        ],
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      // Should scroll because the first item's fallback ID changed
+      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
+        offset: 0,
+        animated: true,
+      });
+      // Verify the fallback ID format was used
+      expect(keyExtractor).toHaveBeenCalledWith({
+        chain: 'solana:mainnet',
+        timestamp: 2000,
+      });
+    });
+
+    it('detects new transaction when id is undefined but chain-timestamp differs', () => {
+      // Ensures auto-scroll works for transactions that never have an id property
+      interface NonEvmTx {
+        id?: string;
+        chain: string;
+        timestamp?: number;
+      }
+
+      const listRef = createMockListRef<NonEvmTx>();
+      const keyExtractor = jest.fn((item: NonEvmTx) =>
+        String(item.id ?? `${item.chain}-${item.timestamp ?? '0'}`),
+      );
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ chain: 'bitcoin:mainnet', timestamp: 100 }],
+          },
+        },
+      );
+
+      // Add new Bitcoin transaction without id
+      rerender({
+        data: [
+          { chain: 'bitcoin:mainnet', timestamp: 200 },
+          { chain: 'bitcoin:mainnet', timestamp: 100 },
+        ],
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      expect(listRef.current?.scrollToOffset).toHaveBeenCalledWith({
+        offset: 0,
+        animated: true,
+      });
+    });
+  });
+});

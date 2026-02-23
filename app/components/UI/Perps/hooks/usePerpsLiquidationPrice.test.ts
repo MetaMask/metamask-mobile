@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 import { usePerpsTrading } from './usePerpsTrading';
 
@@ -96,7 +96,7 @@ describe('usePerpsLiquidationPrice', () => {
 
     expect(result.current.isCalculating).toBe(false);
     expect(result.current.liquidationPrice).toBe(
-      PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY,
+      PERPS_CONSTANTS.FallbackPriceDisplay,
     );
     expect(result.current.error).toBe(
       'Invalid leverage: 100x exceeds maximum allowed leverage of 40x',

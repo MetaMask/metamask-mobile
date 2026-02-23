@@ -81,10 +81,6 @@ export const setupBridge = ({
           current: originatorInfo?.title,
         },
         icon: { current: originatorInfo.icon as ImageSourcePropType }, // TODO: Need to change the type at the @metamask/sdk-communication-layer from string to ImageSourcePropType
-        // Bookmarks
-        isHomepage: () => false,
-        // Show autocomplete
-        fromHomepage: { current: false },
         tabId: '',
         isWalletConnect: false,
         analytics: {
@@ -92,8 +88,6 @@ export const setupBridge = ({
           platform:
             originatorInfo?.platform ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
         },
-        toggleUrlModal: () => null,
-        injectHomePageScripts: () => null,
       });
     },
     isMainFrame: true,

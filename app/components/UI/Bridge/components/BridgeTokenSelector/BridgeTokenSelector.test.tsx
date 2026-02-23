@@ -9,6 +9,7 @@ import {
   MOCK_CHAIN_IDS,
 } from '../../testUtils/fixtures';
 import { BridgeTokenSelector } from './BridgeTokenSelector';
+import { tokenToIncludeAsset } from '../../utils/tokenUtils';
 
 let mockBridgeFeatureFlags = {
   chainRanking: [
@@ -17,8 +18,22 @@ let mockBridgeFeatureFlags = {
   ],
 };
 
+interface MockBridgeState {
+  sourceToken: ReturnType<typeof createMockToken> | null;
+  destToken: ReturnType<typeof createMockToken> | null;
+  tokenSelectorNetworkFilter: CaipChainId | undefined;
+  visiblePillChainIds: CaipChainId[] | undefined;
+}
+
+const defaultMockBridgeState: MockBridgeState = {
+  sourceToken: null,
+  destToken: null,
+  tokenSelectorNetworkFilter: undefined,
+  visiblePillChainIds: undefined,
+};
+
 // Create a Redux store with all the state needed by the component
-const createMockStore = () =>
+const createMockStore = (bridgeStateOverrides: Partial<MockBridgeState> = {}) =>
   configureStore({
     reducer: {
       user: () => ({ appTheme: 'light' }),
@@ -45,27 +60,50 @@ const createMockStore = () =>
           },
         },
       }),
-      bridge: () => ({
-        sourceToken: null,
-        destToken: null,
-      }),
+      bridge: (
+        state: MockBridgeState | undefined,
+        action: { type: string; payload?: CaipChainId | CaipChainId[] },
+      ) => {
+        const resolvedState = state ?? {
+          ...defaultMockBridgeState,
+          ...bridgeStateOverrides,
+        };
+
+        if (action.type === 'bridge/setTokenSelectorNetworkFilter') {
+          return {
+            ...resolvedState,
+            tokenSelectorNetworkFilter: action.payload as
+              | CaipChainId
+              | undefined,
+          };
+        }
+        if (action.type === 'bridge/setVisiblePillChainIds') {
+          return {
+            ...resolvedState,
+            visiblePillChainIds: action.payload as CaipChainId[] | undefined,
+          };
+        }
+        return resolvedState;
+      },
     },
   });
 
-const mockStore = createMockStore();
-
 // Helper function to render with Redux Provider
-const renderWithReduxProvider = (component: React.ReactElement) =>
-  render(<Provider store={mockStore}>{component}</Provider>);
+const renderWithReduxProvider = (
+  component: React.ReactElement,
+  store = createMockStore(),
+) => render(<Provider store={store}>{component}</Provider>);
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
+const mockNavigationDispatch = jest.fn();
 let mockRouteParams: { type: 'source' | 'dest' } = { type: 'source' };
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    dispatch: mockNavigationDispatch,
     goBack: jest.fn(),
     setOptions: mockSetOptions,
   }),
@@ -83,22 +121,48 @@ jest.mock('../../../../../selectors/networkController', () => ({
 // Use a getter to access mockBridgeFeatureFlags at runtime (after variable is defined)
 // This is needed because jest.mock is hoisted before variable declarations
 jest.mock('../../../../../core/redux/slices/bridge', () => {
-  // Access the variable from the outer scope via module exports hack
-  const getMockBridgeFeatureFlags = () =>
-    // This is evaluated when the selector is called, not when the mock is defined
-    ({
-      chainRanking: [{ chainId: 'eip155:1' }, { chainId: 'eip155:137' }],
-    });
+  const emptyChainRanking: CaipChainId[] = [];
   return {
-    selectBridgeFeatureFlags: jest.fn(() => getMockBridgeFeatureFlags()),
-    selectSourceChainRanking: jest.fn(
-      () => getMockBridgeFeatureFlags().chainRanking,
+    selectBridgeFeatureFlags: jest.fn(
+      (state: {
+        engine: {
+          backgroundState: {
+            BridgeController: { bridgeState: { bridgeFeatureFlags: unknown } };
+          };
+        };
+      }) =>
+        state.engine.backgroundState.BridgeController.bridgeState
+          .bridgeFeatureFlags,
     ),
-    selectDestChainRanking: jest.fn(
-      () => getMockBridgeFeatureFlags().chainRanking,
+    selectAllowedChainRanking: jest.fn(
+      (state: {
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              bridgeState: {
+                bridgeFeatureFlags?: { chainRanking?: CaipChainId[] };
+              };
+            };
+          };
+        };
+      }) =>
+        state.engine.backgroundState.BridgeController.bridgeState
+          .bridgeFeatureFlags?.chainRanking ?? emptyChainRanking,
     ),
     setIsSelectingToken: jest.fn(() => ({
       type: 'bridge/setIsSelectingToken',
+    })),
+    selectTokenSelectorNetworkFilter: jest.fn(
+      (state: { bridge: { tokenSelectorNetworkFilter?: CaipChainId } }) =>
+        state.bridge.tokenSelectorNetworkFilter,
+    ),
+    setTokenSelectorNetworkFilter: jest.fn((chainId) => ({
+      type: 'bridge/setTokenSelectorNetworkFilter',
+      payload: chainId,
+    })),
+    setVisiblePillChainIds: jest.fn((chainIds) => ({
+      type: 'bridge/setVisiblePillChainIds',
+      payload: chainIds,
     })),
   };
 });
@@ -107,8 +171,9 @@ let mockPopularTokensState = {
   popularTokens: [createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' })],
   isLoading: false,
 };
+const mockUsePopularTokens = jest.fn((_: unknown) => mockPopularTokensState);
 jest.mock('../../hooks/usePopularTokens', () => ({
-  usePopularTokens: () => mockPopularTokensState,
+  usePopularTokens: (params: unknown) => mockUsePopularTokens(params),
 }));
 
 const mockSearchTokens = jest.fn();
@@ -124,25 +189,33 @@ let mockSearchTokensState = {
   debouncedSearch: mockDebouncedSearch,
   resetSearch: mockResetSearch,
 };
+const mockUseSearchTokens = jest.fn((_: unknown) => mockSearchTokensState);
 jest.mock('../../hooks/useSearchTokens', () => ({
-  useSearchTokens: () => mockSearchTokensState,
+  useSearchTokens: (params: unknown) => mockUseSearchTokens(params),
 }));
 
 let mockBalancesByAssetIdState = {
   tokensWithBalance: [] as ReturnType<typeof createMockToken>[],
   balancesByAssetId: {},
 };
+const mockUseBalancesByAssetId = jest.fn(
+  (_: unknown) => mockBalancesByAssetIdState,
+);
 jest.mock('../../hooks/useBalancesByAssetId', () => ({
-  useBalancesByAssetId: () => mockBalancesByAssetIdState,
+  useBalancesByAssetId: (params: unknown) => mockUseBalancesByAssetId(params),
 }));
 
 jest.mock('../../hooks/useTokensWithBalances', () => ({
   useTokensWithBalances: (tokens: Record<string, unknown>[]) =>
-    tokens.map((token) => ({
-      ...token,
-      address: (token as { address?: string }).address ?? '0x1234',
-      chainId: (token as { chainId?: string }).chainId ?? '0x1',
-    })),
+    tokens.map((token) => {
+      const { iconUrl, ...tokenWithoutIconUrl } = token as { iconUrl?: string };
+      return {
+        ...tokenWithoutIconUrl,
+        address: (token as { address?: string }).address ?? '0x1234',
+        chainId: (token as { chainId?: string }).chainId ?? '0x1',
+        image: iconUrl, // Map API's iconUrl to BridgeToken's image
+      };
+    }),
 }));
 
 const mockHandleTokenPress = jest.fn();
@@ -158,9 +231,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 jest.mock(
-  '../../../../../component-library/components-temp/HeaderCenter',
+  '../../../../../component-library/components-temp/HeaderCompactStandard',
   () => ({
-    getHeaderCenterNavbarOptions: jest.fn(() => ({})),
+    getHeaderCompactStandardNavbarOptions: jest.fn(() => ({})),
   }),
 );
 
@@ -189,18 +262,33 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+jest.mock('../../../../../constants/navigation/Routes', () => ({
+  BRIDGE: {
+    MODALS: {
+      ROOT: 'BridgeModals',
+      NETWORK_LIST_MODAL: 'NetworkListModal',
+    },
+  },
+}));
+
+const mockFormatAddressToAssetId = jest.fn<string | null, [string, string]>(
+  () => 'eip155:1/erc20:0x1234',
+);
+const mockIsNonEvmChainId = jest.fn<boolean, [string]>(() => false);
 jest.mock('@metamask/bridge-controller', () => ({
-  formatAddressToAssetId: jest.fn(() => 'eip155:1/erc20:0x1234'),
+  formatAddressToAssetId: (address: string, chainId: string) =>
+    mockFormatAddressToAssetId(address, chainId),
   formatChainIdToCaip: jest.fn(
     (chainId: string) => `eip155:${parseInt(chainId, 16)}`,
   ),
+  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
   UnifiedSwapBridgeEventName: {
     AssetDetailTooltipClicked: 'AssetDetailTooltipClicked',
   },
 }));
 
 jest.mock('../../../../../core/Multichain/utils', () => ({
-  isNonEvmChainId: jest.fn(() => false),
+  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -214,7 +302,27 @@ jest.mock('@metamask/design-system-react-native', () => {
       createElement(TouchableOpacity, { onPress, testID: 'button-icon-info' }),
     ButtonIconSize: { Md: 'Md' },
     IconColor: { IconAlternative: 'IconAlternative' },
-    IconName: { Info: 'Info' },
+    IconName: { Info: 'Info', Check: 'Check' },
+    Icon: 'Icon',
+    IconSize: { Md: 'Md' },
+    TextVariant: {
+      HeadingSm: 'HeadingSm',
+      HeadingMd: 'HeadingMd',
+      HeadingLg: 'HeadingLg',
+      BodyMd: 'BodyMd',
+      BodySm: 'BodySm',
+    },
+    TextColor: {
+      TextDefault: 'text-default',
+      TextAlternative: 'text-alternative',
+      PrimaryInverse: 'text-primary-inverse',
+    },
+    AvatarNetwork: 'AvatarNetwork',
+    AvatarNetworkSize: { Xs: '16', Sm: '24' },
+    AvatarBaseShape: { Circle: 'circle', Square: 'square' },
+    BoxAlignItems: { Center: 'center' },
+    BoxFlexDirection: { Row: 'row' },
+    FontWeight: { Medium: '500' },
   };
 });
 
@@ -236,11 +344,20 @@ jest.mock('../../../../../util/networks', () => ({
 jest.mock('./NetworkPills', () => ({
   NetworkPills: ({
     onChainSelect,
+    onMorePress,
   }: {
     onChainSelect: (chainId?: CaipChainId) => void;
+    onMorePress: () => void;
   }) => {
     const { createElement } = jest.requireActual('react');
-    const { View, TouchableOpacity } = jest.requireActual('react-native');
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    const reactRedux =
+      jest.requireActual<typeof import('react-redux')>('react-redux');
+    const visiblePillChainIds = reactRedux.useSelector(
+      (state: { bridge: { visiblePillChainIds?: CaipChainId[] } }) =>
+        state.bridge.visiblePillChainIds,
+    );
+
     return createElement(
       View,
       { testID: 'network-pills' },
@@ -248,6 +365,19 @@ jest.mock('./NetworkPills', () => ({
         testID: 'select-eth-network',
         onPress: () => onChainSelect(MOCK_CHAIN_IDS.ethereum),
       }),
+      createElement(TouchableOpacity, {
+        testID: 'select-polygon-network',
+        onPress: () => onChainSelect(MOCK_CHAIN_IDS.polygon),
+      }),
+      createElement(TouchableOpacity, {
+        testID: 'open-network-modal',
+        onPress: onMorePress,
+      }),
+      createElement(
+        Text,
+        { testID: 'visible-pill-chain-ids' },
+        JSON.stringify(visiblePillChainIds ?? []),
+      ),
     );
   },
 }));
@@ -262,20 +392,18 @@ jest.mock(
       onChangeText,
       testID,
       value,
-      showClearButton,
       onPressClearButton,
     }: {
       onChangeText: (text: string) => void;
       testID: string;
       value?: string;
-      showClearButton?: boolean;
       onPressClearButton?: () => void;
     }) =>
       createElement(
         View,
         null,
         createElement(TextInput, { onChangeText, testID, value }),
-        showClearButton &&
+        !!value &&
           createElement(TouchableOpacity, {
             testID: 'bridge-token-search-clear-button',
             onPress: onPressClearButton,
@@ -284,7 +412,7 @@ jest.mock(
   },
 );
 
-jest.mock('../BridgeTokenSelectorBase', () => ({
+jest.mock('../SkeletonItem', () => ({
   SkeletonItem: () => {
     const { createElement } = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
@@ -353,7 +481,85 @@ const resetMocks = () => {
   };
   mockBalancesByAssetIdState = { tokensWithBalance: [], balancesByAssetId: {} };
   mockSelectedToken = null;
+  mockFormatAddressToAssetId.mockReturnValue('eip155:1/erc20:0x1234');
+  mockIsNonEvmChainId.mockReturnValue(false);
+  mockNavigationDispatch.mockReset();
+  mockUsePopularTokens.mockClear();
+  mockUseSearchTokens.mockClear();
+  mockUseBalancesByAssetId.mockClear();
 };
+
+describe('tokenToIncludeAsset', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFormatAddressToAssetId.mockReturnValue('eip155:1/erc20:0x1234');
+    mockIsNonEvmChainId.mockReturnValue(false);
+  });
+
+  it('returns null when formatAddressToAssetId returns null', () => {
+    mockFormatAddressToAssetId.mockReturnValue(null);
+    const token = createMockToken();
+
+    const result = tokenToIncludeAsset(token);
+
+    expect(result).toBeNull();
+  });
+
+  it('returns IncludeAsset with lowercase assetId for EVM token', () => {
+    mockFormatAddressToAssetId.mockReturnValue('EIP155:1/ERC20:0xABCD');
+    mockIsNonEvmChainId.mockReturnValue(false);
+    const token = createMockToken({
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+    });
+
+    const result = tokenToIncludeAsset(token);
+
+    expect(result).toEqual({
+      address: '0x1234567890123456789012345678901234567890',
+      assetId: 'eip155:1/erc20:0xabcd',
+      chainId: '0x1',
+      name: 'USD Coin',
+      symbol: 'USDC',
+      decimals: 6,
+    });
+  });
+
+  it('returns IncludeAsset with preserved assetId case for non-EVM token', () => {
+    mockFormatAddressToAssetId.mockReturnValue(
+      'bip122:000000000019d6689c085ae165831e93/slip44:0',
+    );
+    mockIsNonEvmChainId.mockReturnValue(true);
+    const token = createMockToken({
+      address: 'bc1qe0vuqc0338sxdjz3jncel3wfa5xut48m4yv5wv',
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      decimals: 8,
+      chainId: 'bip122:000000000019d6689c085ae165831e93',
+    });
+
+    const result = tokenToIncludeAsset(token);
+
+    expect(result).toEqual({
+      address: 'bc1qe0vuqc0338sxdjz3jncel3wfa5xut48m4yv5wv',
+      assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      chainId: 'bip122:000000000019d6689c085ae165831e93',
+      name: 'Bitcoin',
+      symbol: 'BTC',
+      decimals: 8,
+    });
+  });
+
+  it('uses empty string for undefined token name', () => {
+    const token = createMockToken({ name: undefined });
+
+    const result = tokenToIncludeAsset(token);
+
+    expect(result).not.toBeNull();
+    expect(result?.name).toBe('');
+  });
+});
 
 const createSearchToken = (symbol: string) =>
   createMockPopularToken({
@@ -399,6 +605,7 @@ describe('BridgeTokenSelector', () => {
     });
 
     it('renders noFee tokens for source and dest types', async () => {
+      const store = createMockStore();
       mockPopularTokensState = {
         popularTokens: [
           {
@@ -410,11 +617,12 @@ describe('BridgeTokenSelector', () => {
       };
       const { getByTestId, rerender } = renderWithReduxProvider(
         <BridgeTokenSelector />,
+        store,
       );
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
       mockRouteParams = { type: 'dest' };
       rerender(
-        <Provider store={mockStore}>
+        <Provider store={store}>
           <BridgeTokenSelector />
         </Provider>,
       );
@@ -462,6 +670,59 @@ describe('BridgeTokenSelector', () => {
     });
   });
 
+  describe('picker defaults', () => {
+    it.each([
+      { pickerType: 'source' as const, selectedToken: null },
+      { pickerType: 'dest' as const, selectedToken: null },
+    ])(
+      'uses all allowed chains by default for $pickerType picker',
+      async ({ pickerType, selectedToken }) => {
+        mockRouteParams = { type: pickerType };
+        mockSelectedToken = selectedToken;
+
+        renderWithReduxProvider(<BridgeTokenSelector />);
+
+        await waitFor(() => {
+          expect(mockUseBalancesByAssetId).toHaveBeenCalledWith(
+            expect.objectContaining({
+              chainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
+            }),
+          );
+          expect(mockUsePopularTokens).toHaveBeenCalledWith(
+            expect.objectContaining({
+              chainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
+            }),
+          );
+          expect(mockUseSearchTokens).toHaveBeenCalledWith(
+            expect.objectContaining({
+              chainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
+            }),
+          );
+        });
+      },
+    );
+
+    it('uses selected destination token chain when destination picker opens', async () => {
+      mockRouteParams = { type: 'dest' };
+      mockSelectedToken = createMockToken({ chainId: '0x89' });
+
+      renderWithReduxProvider(<BridgeTokenSelector />);
+
+      await waitFor(() => {
+        expect(mockUseBalancesByAssetId).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
+        expect(mockUsePopularTokens).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
+      });
+    });
+  });
+
   describe('token selection', () => {
     it('calls handleTokenPress when token pressed', async () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
@@ -493,6 +754,78 @@ describe('BridgeTokenSelector', () => {
       mockBridgeFeatureFlags = { chainRanking: undefined as never };
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       expect(getByTestId('bridge-token-search-input')).toBeTruthy();
+    });
+
+    it('scopes token fetch and search to selected chain after network selection', async () => {
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
+      mockSearchTokens.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('select-polygon-network'));
+      });
+
+      expect(mockDebouncedSearch.cancel).toHaveBeenCalled();
+      expect(mockResetSearch).toHaveBeenCalled();
+
+      await waitFor(() => {
+        expect(mockUsePopularTokens).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
+        expect(mockUseSearchTokens).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
+      });
+      await waitFor(() => {
+        expect(mockSearchTokens).toHaveBeenCalledWith('ETH');
+      });
+    });
+  });
+
+  describe('pill order persistence', () => {
+    it('keeps visible pill order while moving between source and destination pickers', async () => {
+      const store = createMockStore();
+      const persistentOrder = [MOCK_CHAIN_IDS.polygon, MOCK_CHAIN_IDS.ethereum];
+      const { getByTestId, rerender } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+        store,
+      );
+
+      await act(async () => {
+        store.dispatch({
+          type: 'bridge/setVisiblePillChainIds',
+          payload: persistentOrder,
+        });
+      });
+
+      expect(getByTestId('visible-pill-chain-ids').props.children).toBe(
+        JSON.stringify(persistentOrder),
+      );
+
+      mockRouteParams = { type: 'dest' };
+      rerender(
+        <Provider store={store}>
+          <BridgeTokenSelector />
+        </Provider>,
+      );
+      expect(getByTestId('visible-pill-chain-ids').props.children).toBe(
+        JSON.stringify(persistentOrder),
+      );
+
+      mockRouteParams = { type: 'source' };
+      rerender(
+        <Provider store={store}>
+          <BridgeTokenSelector />
+        </Provider>,
+      );
+      expect(getByTestId('visible-pill-chain-ids').props.children).toBe(
+        JSON.stringify(persistentOrder),
+      );
     });
   });
 
@@ -572,15 +905,21 @@ describe('BridgeTokenSelector', () => {
       await act(async () => {
         fireEvent.press(getByTestId('button-icon-info'));
       });
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'Asset',
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
-          symbol: 'USDC',
-          name: 'USD Coin',
-          assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
-          chainId: 'eip155:1',
-          decimals: 18,
-          image: 'https://example.com/token.png',
+          type: 'PUSH',
+          payload: expect.objectContaining({
+            name: 'Asset',
+            params: expect.objectContaining({
+              symbol: 'USDC',
+              name: 'USD Coin',
+              assetId:
+                'eip155:1/erc20:0x1234567890123456789012345678901234567890',
+              chainId: '0x1',
+              decimals: 18,
+              image: 'https://example.com/token.png',
+            }),
+          }),
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();

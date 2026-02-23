@@ -85,12 +85,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   const React = jest.requireActual('react');
   const { TextInput } = jest.requireActual('react-native');
 
-  const TextFieldSize = {
-    Sm: 'sm',
-    Md: 'md',
-    Lg: 'lg',
-  };
-
   const MockTextField = ({
     testID,
     onChangeText,
@@ -98,7 +92,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
     value,
     placeholder,
     maxLength,
-    size,
     accessibilityLabel,
     ...props
   }: {
@@ -108,7 +101,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
     value?: string;
     placeholder?: string;
     maxLength?: number;
-    size?: string;
     accessibilityLabel?: string;
   }) =>
     React.createElement(TextInput, {
@@ -122,12 +114,9 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
       ...props,
     });
 
-  MockTextField.Size = TextFieldSize;
-
   return {
     __esModule: true,
     default: MockTextField,
-    TextFieldSize,
   };
 });
 
@@ -278,12 +267,8 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    CARD_VIEWED: 'card_viewed',
-    CARD_BUTTON_CLICKED: 'card_button_clicked',
-  },
-  useMetrics: jest.fn(),
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -317,7 +302,7 @@ import PersonalDetails from './PersonalDetails';
 import useRegisterPersonalDetails from '../../hooks/useRegisterPersonalDetails';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import { useCardSDK } from '../../sdk';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardError, CardErrorType } from '../../types';
 
 // Mock implementations
@@ -384,7 +369,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
   logoutFromProvider: jest.fn(),
 });
 
-(useMetrics as jest.Mock).mockReturnValue({
+(useAnalytics as jest.Mock).mockReturnValue({
   trackEvent: mockTrackEvent,
   createEventBuilder: mockCreateEventBuilder,
 });
@@ -817,6 +802,50 @@ describe('PersonalDetails Component', () => {
 
       const ssnInput = getByTestId('personal-details-ssn-input');
       expect(ssnInput.props.value).toBe('123456789');
+    });
+  });
+
+  describe('Nationality Population from userData', () => {
+    beforeEach(() => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            onboarding: {
+              onboardingId: 'test-onboarding-id',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
+            },
+          },
+        };
+        return selector(mockState);
+      });
+    });
+
+    it('uses countryOfNationality when provided', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'CA',
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByText, queryByText } = render(<PersonalDetails />);
+
+      // The nationality should show Canada (from countryOfNationality)
+      expect(getByText('Canada')).toBeTruthy();
+      expect(queryByText('United States')).toBeNull();
     });
   });
 

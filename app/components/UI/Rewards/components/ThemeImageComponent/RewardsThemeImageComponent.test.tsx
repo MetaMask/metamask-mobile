@@ -73,17 +73,7 @@ describe('RewardsThemeImageComponent', () => {
     mockUseTheme.mockReturnValue(mockTheme);
   });
 
-  it('renders successfully with required props', () => {
-    // Arrange & Act
-    const { getByTestId } = renderWithProvider(
-      <RewardsThemeImageComponent themeImage={mockThemeImage} />,
-    );
-
-    // Assert
-    expect(getByTestId('activity-indicator')).toBeOnTheScreen();
-  });
-
-  it('renders with theme image URLs', () => {
+  it('renders Image and ActivityIndicator on initial render', () => {
     // Arrange & Act
     const { getByTestId } = renderWithProvider(
       <RewardsThemeImageComponent themeImage={mockThemeImage} />,
@@ -91,21 +81,12 @@ describe('RewardsThemeImageComponent', () => {
 
     // Assert
     expect(getByTestId('theme-image')).toBeOnTheScreen();
-  });
-
-  it('shows ActivityIndicator during initial loading state', () => {
-    // Arrange & Act
-    const { getByTestId } = renderWithProvider(
-      <RewardsThemeImageComponent themeImage={mockThemeImage} />,
-    );
-
-    // Assert
     expect(getByTestId('activity-indicator')).toBeOnTheScreen();
   });
 
-  it('shows fallback icon when image fails to load', () => {
+  it('displays fallback icon when image fails to load', () => {
     // Arrange
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <RewardsThemeImageComponent themeImage={mockThemeImage} />,
     );
 
@@ -115,9 +96,11 @@ describe('RewardsThemeImageComponent', () => {
 
     // Assert
     expect(getByTestId('fallback-icon')).toBeOnTheScreen();
+    expect(queryByTestId('theme-image')).toBeNull();
+    expect(queryByTestId('activity-indicator')).toBeNull();
   });
 
-  it('hides loading indicator when image loads successfully', () => {
+  it('hides ActivityIndicator when image loads', () => {
     // Arrange
     const { getByTestId, queryByTestId } = renderWithProvider(
       <RewardsThemeImageComponent themeImage={mockThemeImage} />,
@@ -129,23 +112,10 @@ describe('RewardsThemeImageComponent', () => {
 
     // Assert
     expect(queryByTestId('activity-indicator')).toBeNull();
+    expect(getByTestId('theme-image')).toBeOnTheScreen();
   });
 
-  it('shows loading indicator when image starts loading', () => {
-    // Arrange
-    const { getByTestId } = renderWithProvider(
-      <RewardsThemeImageComponent themeImage={mockThemeImage} />,
-    );
-
-    // Act
-    const image = getByTestId('theme-image');
-    fireEvent(image, 'onLoadStart');
-
-    // Assert
-    expect(getByTestId('activity-indicator')).toBeOnTheScreen();
-  });
-
-  it('uses correct resizeMode for image', () => {
+  it('uses default resizeMode of contain', () => {
     // Arrange & Act
     const { getByTestId } = renderWithProvider(
       <RewardsThemeImageComponent themeImage={mockThemeImage} />,
@@ -156,39 +126,68 @@ describe('RewardsThemeImageComponent', () => {
     expect(image.props.resizeMode).toBe('contain');
   });
 
-  it('handles state transitions correctly from loading to loaded', () => {
+  it('applies custom resizeMode when provided', () => {
+    // Arrange & Act
+    const { getByTestId } = renderWithProvider(
+      <RewardsThemeImageComponent
+        themeImage={mockThemeImage}
+        resizeMode="cover"
+      />,
+    );
+
+    // Assert
+    const image = getByTestId('theme-image');
+    expect(image.props.resizeMode).toBe('cover');
+  });
+
+  it('applies custom style when provided', () => {
+    // Arrange
+    const customStyle = { width: 100, height: 100, borderRadius: 8 };
+
+    // Act
+    const { getByTestId } = renderWithProvider(
+      <RewardsThemeImageComponent
+        themeImage={mockThemeImage}
+        style={customStyle}
+      />,
+    );
+
+    // Assert
+    const image = getByTestId('theme-image');
+    expect(image.props.style).toEqual(customStyle);
+  });
+
+  it('transitions from loading to loaded state', () => {
     // Arrange
     const { getByTestId, queryByTestId } = renderWithProvider(
       <RewardsThemeImageComponent themeImage={mockThemeImage} />,
     );
-
-    // Act - initial loading state
     expect(getByTestId('activity-indicator')).toBeOnTheScreen();
 
-    // Act - image loads
+    // Act
     const image = getByTestId('theme-image');
     fireEvent(image, 'onLoad');
 
     // Assert
     expect(queryByTestId('activity-indicator')).toBeNull();
     expect(queryByTestId('fallback-icon')).toBeNull();
+    expect(getByTestId('theme-image')).toBeOnTheScreen();
   });
 
-  it('handles state transitions correctly from loading to error', () => {
+  it('transitions from loading to error state', () => {
     // Arrange
     const { getByTestId, queryByTestId } = renderWithProvider(
       <RewardsThemeImageComponent themeImage={mockThemeImage} />,
     );
-
-    // Act - initial loading state
     expect(getByTestId('activity-indicator')).toBeOnTheScreen();
 
-    // Act - image fails to load
+    // Act
     const image = getByTestId('theme-image');
     fireEvent(image, 'onError');
 
     // Assert
     expect(queryByTestId('activity-indicator')).toBeNull();
     expect(getByTestId('fallback-icon')).toBeOnTheScreen();
+    expect(queryByTestId('theme-image')).toBeNull();
   });
 });

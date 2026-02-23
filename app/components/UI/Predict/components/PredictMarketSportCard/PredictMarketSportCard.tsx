@@ -17,6 +17,7 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
+import { usePredictEntryPoint } from '../../contexts';
 import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import PredictSportScoreboard from '../PredictSportScoreboard/PredictSportScoreboard';
@@ -28,19 +29,27 @@ interface PredictMarketSportCardProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   onDismiss?: () => void;
+  isCarousel?: boolean;
 }
 
 const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   market,
   testID,
-  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  entryPoint: propEntryPoint,
   onDismiss,
+  isCarousel,
 }) => {
   const tw = useTailwind();
+  const contextEntryPoint = usePredictEntryPoint();
+  const baseEntryPoint =
+    contextEntryPoint ??
+    propEntryPoint ??
+    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
+
   const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
     .isFromTrending
     ? PredictEventValues.ENTRY_POINT.TRENDING
-    : entryPoint;
+    : baseEntryPoint;
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -49,7 +58,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={tw.style('my-[8px]')}
+      style={tw.style(isCarousel ? '' : 'my-[8px]')}
       testID={testID}
       onPress={() => {
         navigation.navigate(Routes.PREDICT.ROOT, {
@@ -63,7 +72,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
         });
       }}
     >
-      <Box twClassName="bg-muted rounded-xl">
+      <Box twClassName="bg-muted rounded-[16px]">
         {onDismiss && (
           <Box twClassName="absolute top-3 right-3 z-10">
             <ButtonIcon
@@ -96,6 +105,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
             market={market}
             entryPoint={resolvedEntryPoint}
             testID={testID ? `${testID}-footer` : undefined}
+            isCarousel={isCarousel}
           />
         </Box>
       </Box>

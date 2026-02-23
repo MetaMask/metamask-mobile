@@ -61,7 +61,7 @@ describe('useReferralDetails', () => {
   const mockReferralDetails = {
     referralCode: 'ABC123',
     totalReferees: 5,
-    referralPoints: 100,
+    referredByCode: 'REFERRER100',
   };
 
   beforeEach(() => {
@@ -141,7 +141,7 @@ describe('useReferralDetails', () => {
       setReferralDetails({
         referralCode: mockReferralDetails.referralCode,
         refereeCount: mockReferralDetails.totalReferees,
-        referralPoints: mockReferralDetails.referralPoints,
+        referredByCode: mockReferralDetails.referredByCode,
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(false));
@@ -255,7 +255,7 @@ describe('useReferralDetails', () => {
       setReferralDetails({
         referralCode: undefined,
         refereeCount: undefined,
-        referralPoints: undefined,
+        referredByCode: undefined,
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(false));

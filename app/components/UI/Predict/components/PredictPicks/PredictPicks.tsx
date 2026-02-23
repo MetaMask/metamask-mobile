@@ -1,7 +1,7 @@
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import React from 'react';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { useLivePositions } from '../../hooks/useLivePositions';
+import { usePredictLivePositions } from '../../hooks/usePredictLivePositions';
 import { PredictEventValues } from '../../constants/eventNames';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -23,16 +23,20 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
   market,
   testID = 'predict-picks',
 }) => {
-  const { positions } = usePredictPositions({
+  const { data: positions = [] } = usePredictPositions({
     marketId: market.id,
-    autoRefreshTimeout: 10000,
+    claimable: false,
+    refetchInterval: 10000,
   });
-  const { livePositions } = useLivePositions(positions);
+  const { data: claimablePositions = [] } = usePredictPositions({
+    marketId: market.id,
+    claimable: true,
+  });
+  const { livePositions } = usePredictLivePositions(positions);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: market.providerId,
     navigation,
   });
 
@@ -53,7 +57,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     );
   };
 
-  if (livePositions.length === 0) {
+  if (livePositions.length === 0 && claimablePositions.length === 0) {
     return null;
   }
 
@@ -63,6 +67,14 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
         {strings('predict.market_details.your_picks')}
       </Text>
       {livePositions.map((position) => (
+        <PredictPickItem
+          key={position.id}
+          position={position}
+          onCashOut={onCashOut}
+          testID={`${testID}-item-${position.id}`}
+        />
+      ))}
+      {claimablePositions.map((position) => (
         <PredictPickItem
           key={position.id}
           position={position}

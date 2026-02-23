@@ -187,6 +187,17 @@ describe('OrderDetails', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
+  it('renders header with back navigation capability on empty order state', async () => {
+    mockUseParamsValues = {
+      ...mockUseParamsDefaultValues,
+      orderId: 'invalid-id',
+    };
+    render(OrderDetails);
+
+    expect(screen.getByTestId('header')).toBeOnTheScreen();
+    expect(screen.getByText('Order details')).toBeOnTheScreen();
+  });
+
   it('redirects to send transaction page when user is redirected back from a provider for a sell order', async () => {
     const testOrder = {
       ...mockOrder,
@@ -454,6 +465,21 @@ describe('OrderDetails', () => {
       expect.any(Function),
       { forced: true },
     );
+  });
+
+  it('renders header with back navigation capability on error state', async () => {
+    const createdOrder = {
+      ...mockOrder,
+      orderType: OrderOrderTypeEnum.Sell,
+      state: FIAT_ORDER_STATES.CREATED,
+    };
+    (processFiatOrder as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('An error occurred');
+    });
+    await waitFor(() => render(OrderDetails, [createdOrder]));
+
+    expect(screen.getByTestId('header')).toBeOnTheScreen();
+    expect(screen.getByText('Order details')).toBeOnTheScreen();
   });
 
   it('renders the support links if the provider has them', async () => {

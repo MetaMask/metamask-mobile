@@ -15,6 +15,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   claimableAmount = 0,
   isLoading = false,
   testID = 'predict-action-buttons',
+  isCarousel,
 }) => {
   const isGameMarket = Boolean(market.game);
   const isMarketOpen = market.status === PredictMarketStatus.OPEN;
@@ -94,6 +95,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
           yesTeamColor={buttonConfig.yesTeamColor}
           noTeamColor={buttonConfig.noTeamColor}
           testID={`${testID}-bet`}
+          isCarousel={isCarousel}
         />
       </Box>
     );

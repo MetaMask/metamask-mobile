@@ -6,14 +6,11 @@ import {
   FontWeight,
   Text,
   TextVariant,
-} from '@metamask/design-system-react-native';
-import Icon, {
+  Icon,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+} from '@metamask/design-system-react-native';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../component-library/components/Form/Label';
 
 import Button, {
@@ -25,12 +22,16 @@ import { useTheme } from '../../../../../util/theme';
 import useCardProviderAuthentication from '../../hooks/useCardProviderAuthentication';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
-import { CardLocation } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { useDispatch } from 'react-redux';
-import { setOnboardingId } from '../../../../../core/redux/slices/card';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  selectUserCardLocation,
+  setOnboardingId,
+  setUserCardLocation,
+} from '../../../../../core/redux/slices/card';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -44,13 +45,14 @@ const autoComplete = Platform.select<TextInputProps['autoComplete']>({
 
 const CardAuthentication = () => {
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
   const [step, setStep] = useState<'login' | 'otp'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [location, setLocation] = useState<CardLocation>('international');
+  const location = useSelector(selectUserCardLocation);
   const [otpData, setOtpData] = useState<{
     userId: string;
     maskedPhoneNumber?: string;
@@ -113,7 +115,6 @@ const CardAuthentication = () => {
         try {
           await sendOtpLogin({
             userId: otpData.userId,
-            location,
           });
           // Reset countdown when OTP is sent
           setResendCooldown(60);
@@ -124,7 +125,7 @@ const CardAuthentication = () => {
 
       sendOtp();
     }
-  }, [step, otpData?.userId, sendOtpLogin, location]);
+  }, [step, otpData?.userId, sendOtpLogin]);
 
   // Cooldown timer effect
   useEffect(() => {
@@ -170,7 +171,6 @@ const CardAuthentication = () => {
       try {
         setLoading(true);
         const loginResponse = await login({
-          location,
           email,
           password,
           ...(otpCode ? { otpCode } : {}),
@@ -213,7 +213,6 @@ const CardAuthentication = () => {
     },
     [
       email,
-      location,
       login,
       password,
       step,
@@ -249,13 +248,12 @@ const CardAuthentication = () => {
     try {
       await sendOtpLogin({
         userId: otpData.userId,
-        location,
       });
       setResendCooldown(60);
     } catch (err) {
       Logger.log('CardAuthentication::Resend OTP failed', err);
     }
-  }, [resendCooldown, otpData?.userId, sendOtpLogin, location, otpLoading]);
+  }, [resendCooldown, otpData?.userId, sendOtpLogin, otpLoading]);
 
   const handleBackToLogin = useCallback(() => {
     setStep('login');
@@ -297,7 +295,6 @@ const CardAuthentication = () => {
               autoCapitalize={'none'}
               onChangeText={handleOtpValueChange}
               numberOfLines={1}
-              size={TextFieldSize.Lg}
               value={confirmCode}
               keyboardType="number-pad"
               textContentType="oneTimeCode"
@@ -363,7 +360,7 @@ const CardAuthentication = () => {
         <>
           <Box twClassName="flex-row justify-between gap-2">
             <TouchableOpacity
-              onPress={() => setLocation('international')}
+              onPress={() => dispatch(setUserCardLocation('international'))}
               style={tw.style(
                 `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'international' ? 'border border-text-default' : ''}`,
               )}
@@ -382,7 +379,7 @@ const CardAuthentication = () => {
               </Box>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setLocation('us')}
+              onPress={() => dispatch(setUserCardLocation('us'))}
               style={tw.style(
                 `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'us' ? 'border border-text-default' : ''}`,
               )}
@@ -406,10 +403,9 @@ const CardAuthentication = () => {
             <Label>{strings('card.card_authentication.email_label')}</Label>
             <TextField
               autoCapitalize={'none'}
-              autoComplete="email"
+              autoComplete="one-time-code"
               onChangeText={handleEmailChange}
               numberOfLines={1}
-              size={TextFieldSize.Lg}
               value={email}
               returnKeyType={'next'}
               keyboardType="email-address"
@@ -425,18 +421,28 @@ const CardAuthentication = () => {
             <TextField
               autoCapitalize={'none'}
               onChangeText={handlePasswordChange}
-              autoComplete="password"
+              autoComplete="one-time-code"
               numberOfLines={1}
-              size={TextFieldSize.Lg}
               value={password}
               maxLength={255}
               returnKeyType={'done'}
               onSubmitEditing={() => performLogin()}
-              secureTextEntry
+              secureTextEntry={!isPasswordVisible}
               accessibilityLabel={strings(
                 'card.card_authentication.password_label',
               )}
               testID="password-field"
+              endAccessory={
+                <TouchableOpacity
+                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                  testID="password-visibility-toggle"
+                >
+                  <Icon
+                    name={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
+                    size={IconSize.Md}
+                  />
+                </TouchableOpacity>
+              }
             />
           </Box>
         </>
@@ -449,7 +455,7 @@ const CardAuthentication = () => {
       handleOtpValueChange,
       handlePasswordChange,
       handleResendOtp,
-      location,
+      isPasswordVisible,
       otpError,
       otpLoading,
       password,
@@ -457,6 +463,8 @@ const CardAuthentication = () => {
       resendCooldown,
       step,
       tw,
+      dispatch,
+      location,
     ],
   );
   const actions = useMemo(

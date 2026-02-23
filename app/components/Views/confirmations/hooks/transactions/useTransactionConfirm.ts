@@ -1,8 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
-import { resetTransaction } from '../../../../../actions/transaction';
 import useApprovalRequest from '../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from '../ui/useFullScreenConfirmation';
@@ -29,7 +27,6 @@ export const GO_BACK_TYPES = [
 
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
-  const dispatch = useDispatch();
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
@@ -128,17 +125,15 @@ export function useTransactionConfirm() {
       log('Error confirming transaction', error);
     }
 
-    if (type === TransactionType.perpsDeposit) {
+    // Perps deposit-and-order: caller handles navigation (e.g. order flow)
+    if (type === TransactionType.perpsDepositAndOrder) {
+      return;
+    } else if (type === TransactionType.perpsDeposit) {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
       });
     } else if (type === TransactionType.musdConversion) {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+      navigation.navigate(Routes.WALLET_VIEW);
     } else if (
       isFullScreenConfirmation &&
       !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
@@ -148,12 +143,9 @@ export function useTransactionConfirm() {
       navigation.goBack();
     }
 
-    // Replace/remove this once we have redesigned send flow
-    dispatch(resetTransaction());
     tryEnableEvmNetwork(chainId);
   }, [
     chainId,
-    dispatch,
     handleGasless7702,
     handleSmartTransaction,
     isFullScreenConfirmation,

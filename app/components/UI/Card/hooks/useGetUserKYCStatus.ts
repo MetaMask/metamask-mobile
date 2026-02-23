@@ -1,12 +1,13 @@
 import { useCallback } from 'react';
 import { useCardSDK } from '../sdk';
 import Logger from '../../../../util/Logger';
-import { CardVerificationState } from '../types';
+import { CardVerificationState, UserResponse } from '../types';
 import { useWrapWithCache } from './useWrapWithCache';
 
 export interface UserKYCStatus {
   verificationState: CardVerificationState | null;
   userId: string | null;
+  userDetails: UserResponse | null;
 }
 
 interface UseGetUserKYCStatusResult {
@@ -39,6 +40,7 @@ const useGetUserKYCStatus = (
       return {
         verificationState: response.verificationState ?? null,
         userId: response.id,
+        userDetails: response,
       };
     } catch (err) {
       const errorMessage =

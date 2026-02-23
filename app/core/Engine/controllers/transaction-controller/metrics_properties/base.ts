@@ -70,6 +70,14 @@ export function getTransactionTypeValue(
     return 'predict_claim';
   }
 
+  if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
+    return 'musd_conversion';
+  }
+
+  if (hasTransactionType(transactionMeta, [TransactionType.musdClaim])) {
+    return 'musd_claim';
+  }
+
   switch (transactionType) {
     case TransactionType.bridgeApproval:
       return 'bridge_approval';
@@ -81,6 +89,8 @@ export function getTransactionTypeValue(
       return 'eth_get_encryption_public_key';
     case TransactionType.perpsDeposit:
       return 'perps_deposit';
+    case TransactionType.perpsDepositAndOrder:
+      return 'perps_deposit_and_order';
     case TransactionType.signTypedData:
       return 'eth_sign_typed_data';
     case TransactionType.relayDeposit:

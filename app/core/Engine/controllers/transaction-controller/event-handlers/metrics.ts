@@ -5,7 +5,6 @@ import { createProjectLogger } from '@metamask/utils';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { IMetaMetricsEvent } from '../../../../Analytics/MetaMetrics.types';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import { generateEvent, retryIfEngineNotInitialized } from '../utils';
 import type {
   TransactionEventHandlerRequest,
@@ -21,6 +20,7 @@ import { getStxMetricsProperties } from '../metrics_properties/stx';
 import { getHashMetricsProperties } from '../metrics_properties/hash';
 import { getBatchMetricsProperties } from '../metrics_properties/batch';
 import { getGasMetricsProperties } from '../metrics_properties/gas';
+import { getSecurityAlertResponseProperties } from '../metrics_properties/security-alert-response';
 
 const log = createProjectLogger('transaction-metrics');
 
@@ -29,6 +29,7 @@ const METRICS_BUILDERS: TransactionMetricsBuilder[] = [
   getBatchMetricsProperties,
   getGasMetricsProperties,
   getMetaMaskPayProperties,
+  getSecurityAlertResponseProperties,
   getSimulationValuesProperties,
   getRPCMetricsProperties,
   getStxMetricsProperties,
@@ -60,10 +61,8 @@ const createTransactionEventHandler =
       const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(
         event.name,
       )
-        .addProperties(event.properties as AnalyticsEventProperties)
-        .addSensitiveProperties(
-          event.sensitiveProperties as AnalyticsEventProperties,
-        )
+        .addProperties(event.properties)
+        .addSensitiveProperties(event.sensitiveProperties)
         .setSaveDataRecording(event.saveDataRecording)
         .build();
 
@@ -125,10 +124,8 @@ export async function handleTransactionFinalizedEventForMetrics(
 
     // Convert ITrackingEvent to AnalyticsTrackingEvent and track
     const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event.name)
-      .addProperties(event.properties as AnalyticsEventProperties)
-      .addSensitiveProperties(
-        event.sensitiveProperties as AnalyticsEventProperties,
-      )
+      .addProperties(event.properties)
+      .addSensitiveProperties(event.sensitiveProperties)
       .setSaveDataRecording(event.saveDataRecording)
       .build();
 

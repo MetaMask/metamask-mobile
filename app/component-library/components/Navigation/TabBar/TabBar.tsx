@@ -27,16 +27,15 @@ import {
   LABEL_BY_TAB_BAR_ICON_KEY,
 } from './TabBar.constants';
 import { selectChainId } from '../../../../selectors/networkController';
-import { selectAssetsTrendingTokensEnabled } from '../../../../selectors/featureFlagController/assetsTrendingTokens';
+import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const chainId = useSelector(selectChainId);
-  const isAssetsTrendingTokensEnabled = useSelector(
-    selectAssetsTrendingTokensEnabled,
-  );
+  const isAccountMenuEnabled = useAccountMenuEnabled();
   const tabBarRef = useRef(null);
+  const previousTabIndexRef = useRef<number>(state.index);
   const tw = useTailwind();
 
   const renderTabBarItem = useCallback(
@@ -54,6 +53,13 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       const labelKey = LABEL_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
       const labelText = labelKey ? strings(labelKey) : '';
       const onPress = () => {
+        // Call onLeave callback for the previous tab before switching
+        if (previousTabIndexRef.current !== index) {
+          const previousRoute = state.routes[previousTabIndexRef.current];
+          const previousOptions = descriptors[previousRoute?.key]?.options;
+          previousOptions?.onLeave?.();
+          previousTabIndexRef.current = index;
+        }
         callback?.();
         switch (rootScreenName) {
           case Routes.WALLET_VIEW:
@@ -90,13 +96,13 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             break;
           case Routes.SETTINGS_VIEW:
             navigation.navigate(Routes.SETTINGS_VIEW, {
-              screen: 'Settings',
+              screen: isAccountMenuEnabled
+                ? Routes.ACCOUNTS_MENU_VIEW
+                : 'Settings',
             });
             break;
           case Routes.TRENDING_VIEW:
-            if (isAssetsTrendingTokensEnabled) {
-              navigation.navigate(Routes.TRENDING_VIEW);
-            }
+            navigation.navigate(Routes.TRENDING_VIEW);
             break;
         }
       };
@@ -129,7 +135,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       trackEvent,
       createEventBuilder,
       tw,
-      isAssetsTrendingTokensEnabled,
+      isAccountMenuEnabled,
     ],
   );
 

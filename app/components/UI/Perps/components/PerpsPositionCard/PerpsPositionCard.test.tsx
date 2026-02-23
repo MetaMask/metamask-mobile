@@ -1,9 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import PerpsPositionCard from './PerpsPositionCard';
-import type { Position } from '../../controllers/types';
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
@@ -382,7 +381,7 @@ describe('PerpsPositionCard', () => {
 
       // Assert - Displays standardized price fallback
       expect(
-        screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
+        screen.getByText(PERPS_CONSTANTS.FallbackPriceDisplay),
       ).toBeOnTheScreen();
     });
   });
@@ -431,7 +430,7 @@ describe('PerpsPositionCard', () => {
 
       // Assert - Empty string gets parsed as NaN and displays fallback
       expect(
-        screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
+        screen.getByText(PERPS_CONSTANTS.FallbackPriceDisplay),
       ).toBeOnTheScreen();
     });
   });

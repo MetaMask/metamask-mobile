@@ -4,7 +4,7 @@ import { ApprovalType } from '@metamask/controller-utils';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { isSignatureRequest } from '../utils/confirm';
 import { useLedgerContext } from '../context/ledger-context';
 import { useQRHardwareContext } from '../context/qr-hardware-context';
@@ -37,16 +37,11 @@ export const useConfirmActions = () => {
         navigation.goBack();
       }
       if (navigateToHome) {
-        navigation.navigate(Routes.WALLET.HOME, {
-          screen: Routes.WALLET.TAB_STACK_FLOW,
-          params: {
-            screen: Routes.WALLET_VIEW,
-          },
-        });
+        navigation.navigate(Routes.WALLET_VIEW);
       }
-      if (isSignatureReq) {
+      if (isSignatureReq && approvalRequest?.id) {
         captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
-        PPOMUtil.clearSignatureSecurityAlertResponse();
+        PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
       }
     },
     [
@@ -55,6 +50,7 @@ export const useConfirmActions = () => {
       navigation,
       onRequestReject,
       isSignatureReq,
+      approvalRequest?.id,
     ],
   );
 
@@ -89,9 +85,9 @@ export const useConfirmActions = () => {
 
     navigation.goBack();
 
-    if (isSignatureReq) {
+    if (isSignatureReq && approvalRequest?.id) {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
-      PPOMUtil.clearSignatureSecurityAlertResponse();
+      PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
     }
   }, [
     ledgerSigningInProgress,
@@ -105,6 +101,7 @@ export const useConfirmActions = () => {
     onTransactionConfirm,
     captureSignatureMetrics,
     approvalType,
+    approvalRequest?.id,
   ]);
 
   return { onConfirm, onReject };

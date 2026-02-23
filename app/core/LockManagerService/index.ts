@@ -7,11 +7,7 @@ import SecureKeychain from '../SecureKeychain';
 import BackgroundTimer from 'react-native-background-timer';
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
-import {
-  lockApp,
-  interruptBiometrics,
-  checkForDeeplink,
-} from '../../actions/user';
+import { lockApp, checkForDeeplink } from '../../actions/user';
 import ReduxService from '../redux';
 
 export class LockManagerService {
@@ -57,13 +53,6 @@ export class LockManagerService {
         }
         this.#appState = nextAppState;
         return;
-      }
-
-      // EDGE CASE
-      // Handles interruptions in the middle of authentication while lock timer is a non-zero value
-      // This is most likely called when the background timer fails to be called while backgrounding the app
-      if (!this.#lockTimer && lockTime !== 0 && nextAppState !== 'active') {
-        ReduxService.store.dispatch(interruptBiometrics());
       }
 
       // Handle lock logic on background.

@@ -30,7 +30,8 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { CardActions, CardScreens } from '../util/metrics';
 
 export type LimitType = 'full' | 'restricted';
@@ -113,7 +114,7 @@ const useSpendingLimit = ({
   const dispatch = useDispatch();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { sdk } = useCardSDK();
 
   // Form state
@@ -123,6 +124,7 @@ const useSpendingLimit = ({
   const [limitType, setLimitType] = useState<LimitType>('full');
   const [customLimit, setCustomLimitState] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const isOnboardingFlow = flow === 'onboarding';
 
@@ -186,32 +188,38 @@ const useSpendingLimit = ({
   );
 
   // Initialize selected token from initial or priority token, fallback to mUSD
+  // Only runs once on mount to avoid overwriting user selections from AssetSelectionBottomSheet
   useEffect(() => {
+    if (hasInitialized) return;
+
     if (initialToken) {
       setSelectedToken(initialToken);
+      setHasInitialized(true);
       return;
     }
 
-    if (!selectedToken && priorityToken) {
+    if (priorityToken) {
       const isPriorityTokenSolana =
         priorityToken?.caipChainId === SolScope.Mainnet ||
         priorityToken?.caipChainId?.startsWith('solana:');
 
       if (!isPriorityTokenSolana) {
         setSelectedToken(priorityToken);
+        setHasInitialized(true);
         return;
       }
     }
 
-    if (!selectedToken && quickSelectTokens.length > 0) {
+    if (quickSelectTokens.length > 0) {
       const musdToken = quickSelectTokens.find(
         (qt) => qt.symbol.toUpperCase() === 'MUSD',
       )?.token;
       if (musdToken) {
         setSelectedToken(musdToken);
+        setHasInitialized(true);
       }
     }
-  }, [initialToken, priorityToken, selectedToken, quickSelectTokens]);
+  }, [hasInitialized, initialToken, priorityToken, quickSelectTokens]);
 
   // Handle returned token from AssetSelectionBottomSheet
   useFocusEffect(
@@ -221,6 +229,7 @@ const useSpendingLimit = ({
         | undefined;
       if (params?.returnedSelectedToken) {
         setSelectedToken(params.returnedSelectedToken);
+        setHasInitialized(true);
         navigation.setParams({
           returnedSelectedToken: undefined,
           selectedToken: undefined,

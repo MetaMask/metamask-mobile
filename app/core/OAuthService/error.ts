@@ -14,6 +14,7 @@ export enum OAuthErrorType {
   GoogleLoginNoCredential = 10013,
   GoogleLoginNoMatchingCredential = 10014,
   GoogleLoginUserDisabledOneTapFeature = 10015,
+  GoogleLoginOneTapFailure = 10016,
 }
 
 export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
@@ -34,12 +35,18 @@ export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
     'Google login has no matching credential',
   [OAuthErrorType.GoogleLoginUserDisabledOneTapFeature]:
     'Google login user disabled one tap feature',
+  [OAuthErrorType.GoogleLoginOneTapFailure]: 'Google login one tap failure',
 } as const;
 
 export class OAuthError extends Error {
   public readonly code: OAuthErrorType;
+  public readonly data: Record<string, unknown>;
 
-  constructor(errMessage: string | Error, code: OAuthErrorType) {
+  constructor(
+    errMessage: string | Error,
+    code: OAuthErrorType,
+    data?: Record<string, unknown>,
+  ) {
     if (errMessage instanceof Error) {
       super(errMessage.message);
       this.stack = errMessage.stack;
@@ -49,5 +56,6 @@ export class OAuthError extends Error {
     }
     this.message = `${OAuthErrorMessages[code]} - ${errMessage}`;
     this.code = code;
+    this.data = data || {};
   }
 }

@@ -93,6 +93,92 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 12,
       flex: 1,
     },
+    // Watchlist section - inline render (not using shared PerpsWatchlistMarkets component)
+    watchlistSection: {
+      marginBottom: 0,
+    },
+    watchlistHeaderStyleNoBalance: {
+      paddingTop: 16,
+      paddingBottom: 4,
+      marginBottom: 0,
+    },
+    watchlistHeaderStyleWithBalance: {
+      paddingTop: 24,
+      paddingBottom: 4,
+      marginBottom: 0,
+    },
+    // Custom explore section styles - isolated from shared components
+    exploreSection: {
+      marginBottom: 0,
+    },
+    // Explore header: at top, no balance - 16px/4px
+    exploreSectionHeaderNoBalance: {
+      paddingTop: 16,
+      paddingBottom: 4,
+      marginBottom: 0,
+    },
+    // Explore header: at top, with balance - 24px/4px
+    exploreSectionHeaderWithBalance: {
+      paddingTop: 24,
+      paddingBottom: 4,
+      marginBottom: 0,
+    },
+    // Explore header: below watchlist - 20px/8px
+    exploreSectionHeaderBelowWatchlist: {
+      paddingTop: 20,
+      paddingBottom: 8,
+      marginBottom: 0,
+    },
+    exploreMarketRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 16,
+    },
+    exploreMarketLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    exploreMarketIcon: {
+      marginRight: 12,
+    },
+    exploreMarketInfo: {
+      flex: 1,
+    },
+    exploreMarketHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    exploreMarketSecondRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 2,
+    },
+    exploreMarketRight: {
+      alignItems: 'flex-end',
+      flex: 1,
+    },
+    exploreMarketPrice: {
+      marginBottom: 2,
+    },
+    exploreMarketChange: {
+      marginTop: 2,
+    },
+    // "See all perps" button at bottom of explore section
+    seeAllButton: {
+      backgroundColor: colors.background.muted,
+      borderRadius: 12,
+      height: 48,
+      paddingHorizontal: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 12,
+      marginBottom: 12,
+      marginHorizontal: 16,
+    },
   });
 };
 

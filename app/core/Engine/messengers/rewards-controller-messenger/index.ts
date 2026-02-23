@@ -34,6 +34,7 @@ import {
   AccountsControllerGetSelectedMultichainAccountAction,
   AccountsControllerListMultichainAccountsAction,
 } from '@metamask/accounts-controller';
+import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import {
   RewardsDataServiceGetOptInStatusAction,
   RewardsDataServiceGetPointsEventsAction,
@@ -44,6 +45,8 @@ import {
   RewardsDataServiceGetDiscoverSeasonsAction,
   RewardsDataServiceGetSeasonMetadataAction,
   RewardsDataServiceGetSeasonOneLineaRewardTokensAction,
+  RewardsDataServiceApplyReferralCodeAction,
+  RewardsDataServiceGetSnapshotsAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -55,6 +58,7 @@ type AllowedActions =
   | AccountsControllerListMultichainAccountsAction
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | KeyringControllerSignPersonalMessageAction
+  | RemoteFeatureFlagControllerGetStateAction
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceGetPointsEventsLastUpdatedAction
@@ -74,7 +78,9 @@ type AllowedActions =
   | RewardsDataServiceClaimRewardAction
   | RewardsDataServiceGetDiscoverSeasonsAction
   | RewardsDataServiceGetSeasonMetadataAction
-  | RewardsDataServiceGetSeasonOneLineaRewardTokensAction;
+  | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
+  | RewardsDataServiceApplyReferralCodeAction
+  | RewardsDataServiceGetSnapshotsAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -107,6 +113,7 @@ export function getRewardsControllerMessenger(
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'AccountsController:listMultichainAccounts',
       'KeyringController:signPersonalMessage',
+      'RemoteFeatureFlagController:getState',
       'RewardsDataService:login',
       'RewardsDataService:getPointsEvents',
       'RewardsDataService:getPointsEventsLastUpdated',
@@ -127,6 +134,8 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getDiscoverSeasons',
       'RewardsDataService:getSeasonMetadata',
       'RewardsDataService:getSeasonOneLineaRewardTokens',
+      'RewardsDataService:applyReferralCode',
+      'RewardsDataService:getSnapshots',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

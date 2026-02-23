@@ -1,9 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Image, useWindowDimensions } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useOptin } from '../../hooks/useOptIn';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import Checkbox from '../../../../../component-library/components/Checkbox';
 import step1Img from '../../../../../images/rewards/rewards-onboarding-step1.png';
 import Step1BgImg from '../../../../../images/rewards/rewards-onboarding-step1-bg.svg';
 import { strings } from '../../../../../../locales/i18n';
@@ -35,39 +36,62 @@ const OnboardingNoActiveSeasonStep: React.FC<
   const navigation = useNavigation();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { optin, optinError, optinLoading } = useOptin();
+  const [bulkLink, setBulkLink] = useState(false);
+
+  const handleBulkLinkToggle = useCallback(() => {
+    setBulkLink((prev) => !prev);
+  }, []);
 
   const handleNext = useCallback(() => {
     if (!canContinue()) {
       return;
     }
 
-    optin({});
-  }, [optin, canContinue]);
+    optin({ bulkLink });
+  }, [optin, canContinue, bulkLink]);
 
   const renderStepInfo = () => (
-    <Box twClassName="flex-col gap-2 min-h-40">
-      {/* Opt in error message */}
-      {optinError && (
-        <RewardsErrorBanner
-          title={strings('rewards.optin_error.title')}
-          description={strings('rewards.optin_error.description')}
-        />
-      )}
+    <>
+      <Box twClassName="flex-col gap-2 min-h-40">
+        {/* Opt in error message */}
+        {optinError && (
+          <RewardsErrorBanner
+            title={strings('rewards.optin_error.title')}
+            description={strings('rewards.optin_error.description')}
+          />
+        )}
 
-      {/* Title and Description */}
-      <Box twClassName="w-full gap-4">
-        <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-          {strings('rewards.onboarding.no_active_season.title')}
-        </Text>
+        {/* Title and Description */}
+        <Box twClassName="w-full gap-4">
+          <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+            {strings('rewards.onboarding.no_active_season.title')}
+          </Text>
 
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="text-center text-alternative"
-        >
-          {strings('rewards.onboarding.no_active_season.description')}
-        </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-center text-alternative"
+          >
+            {strings('rewards.onboarding.no_active_season.description')}
+          </Text>
+        </Box>
       </Box>
-    </Box>
+      {/* Opt-in all accounts checkbox */}
+      <Box twClassName="h-auto flex-col justify-end items-center my-2">
+        <Checkbox
+          isChecked={bulkLink}
+          onPress={handleBulkLinkToggle}
+          isDisabled={optinLoading}
+          label={
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-text-alternative"
+            >
+              {strings('rewards.onboarding.step4_bulk_link_checkbox')}
+            </Text>
+          }
+        />
+      </Box>
+    </>
   );
 
   const renderLegalDisclaimer = () => (

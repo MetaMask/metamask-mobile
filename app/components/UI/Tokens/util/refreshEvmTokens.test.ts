@@ -64,8 +64,29 @@ describe('refreshEvmTokens', () => {
     nativeCurrencies: ['ETH', 'POL'],
   };
 
+  beforeEach(() => {
+    jest.useRealTimers();
+    // Reset mocks to resolved state
+    (
+      Engine.context.TokenDetectionController.detectTokens as jest.Mock
+    ).mockResolvedValue(undefined);
+    (
+      Engine.context.TokenBalancesController.updateBalances as jest.Mock
+    ).mockResolvedValue(undefined);
+    (
+      Engine.context.AccountTrackerController.refresh as jest.Mock
+    ).mockResolvedValue(undefined);
+    (
+      Engine.context.CurrencyRateController.updateExchangeRate as jest.Mock
+    ).mockResolvedValue(undefined);
+    (
+      Engine.context.TokenRatesController.updateExchangeRates as jest.Mock
+    ).mockResolvedValue(undefined);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
+    jest.useRealTimers();
   });
 
   it('should refresh tokens when EVM is selected', async () => {
@@ -119,16 +140,37 @@ describe('refreshEvmTokens', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('should log an error if an exception occurs', async () => {
-    (
-      Engine.context.TokenDetectionController.detectTokens as jest.Mock
-    ).mockRejectedValue(new Error('Failed to detect tokens'));
+  it('should log an error if a timeout occurs', async () => {
+    jest.useFakeTimers();
 
-    await refreshEvmTokens(mockProps);
+    try {
+      // Mock a promise that never resolves to trigger timeout
+      const mockDetectTokens = jest.fn().mockImplementation(
+        () =>
+          new Promise(() => {
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+          }),
+      );
+      (
+        Engine.context.TokenDetectionController.detectTokens as jest.Mock
+      ).mockImplementation(mockDetectTokens);
 
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.any(Error),
-      'Error while refreshing tokens',
-    );
+      const refreshPromise = refreshEvmTokens(mockProps);
+
+      // Advance timers past the 5 second timeout
+      jest.advanceTimersByTime(6000);
+
+      await refreshPromise;
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('timed out'),
+        }),
+        'Error while refreshing tokens',
+      );
+    } finally {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+    }
   });
 });

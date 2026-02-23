@@ -46,6 +46,7 @@ export const useReferralDetails = (): {
         setReferralDetails({
           referralCode: referralDetails?.referralCode,
           refereeCount: referralDetails?.totalReferees,
+          referredByCode: referralDetails?.referredByCode,
           referralPoints: referralDetails?.referralPoints,
         }),
       );

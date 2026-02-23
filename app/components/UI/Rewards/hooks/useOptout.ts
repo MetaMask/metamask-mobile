@@ -14,6 +14,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { useRewardDashboardModals } from './useRewardDashboardModals';
 import { RewardsMetricsButtons } from '../utils';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { useBulkLinkState } from './useBulkLinkState';
 
 interface UseOptoutResult {
   optout: () => Promise<boolean>;
@@ -32,11 +33,15 @@ export const useOptout = (): UseOptoutResult => {
 
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const { cancelBulkLink } = useBulkLinkState();
 
   const optout = useCallback(async (): Promise<boolean> => {
     if (isLoading || !subscriptionId) return false;
 
     setIsLoading(true);
+
+    // Cancel any running bulk link operation to prevent errors during opt-out
+    cancelBulkLink();
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_STARTED).build(),
@@ -106,6 +111,7 @@ export const useOptout = (): UseOptoutResult => {
     RewardsToastOptions,
     dispatch,
     resetAllSessionTrackingForRewardsDashboardModals,
+    cancelBulkLink,
   ]);
 
   const showOptoutBottomSheet = useCallback(

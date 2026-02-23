@@ -4,6 +4,7 @@ import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
+import { ReceiveRow } from '../../rows/receive-row';
 import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
@@ -19,6 +20,8 @@ import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
@@ -28,8 +31,8 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
-  useTransactionPaySourceAmounts,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import Text, {
@@ -68,6 +71,10 @@ export interface CustomAmountInfoProps {
    * When set, automatically hides PayTokenAmount, PayWithRow, and children.
    */
   overrideContent?: (amountHuman: string) => ReactNode;
+  /**
+   * Callback fired when user presses Done after entering an amount.
+   */
+  onAmountSubmit?: () => void;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -76,26 +83,28 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     currency,
     disablePay,
     hasMax,
+    onAmountSubmit,
     overrideContent,
     preferredToken,
     footerText,
   }) => {
     useClearConfirmationOnBackSwipe();
+
+    const { canSelectWithdrawToken } = useTransactionPayWithdraw();
+
     useAutomaticTransactionPayToken({
       disable: disablePay,
       preferredToken,
     });
     useTransactionPayMetrics();
+    useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
-    const availableTokens = useTransactionPayAvailableTokens();
-    const hasTokens = availableTokens.length > 0;
+    const { hasTokens } = useTransactionPayAvailableTokens();
 
-    const isResultReady = useIsResultReady({
-      isKeyboardVisible,
-    });
+    const isResultReady = useIsResultReady({ isKeyboardVisible });
 
     const {
       amountFiat,
@@ -118,7 +127,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount();
       EngineService.flushState();
       setIsKeyboardVisible(false);
-    }, [updateTokenAmount]);
+      onAmountSubmit?.();
+    }, [onAmountSubmit, updateTokenAmount]);
 
     const handleAmountPress = useCallback(() => {
       setIsKeyboardVisible(true);
@@ -155,7 +165,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <Box>
               <BridgeFeeRow />
               <BridgeTimeRow />
-              <TotalRow />
+              {canSelectWithdrawToken ? (
+                <ReceiveRow inputAmountUsd={amountFiat} />
+              ) : (
+                <TotalRow />
+              )}
               <PercentageRow />
             </Box>
           )}
@@ -290,16 +304,7 @@ function useIsResultReady({
 }) {
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
-  const requiredTokens = useTransactionPayRequiredTokens();
-  const sourceAmounts = useTransactionPaySourceAmounts();
-
-  const hasSourceAmount = sourceAmounts?.some((a) =>
-    requiredTokens.some(
-      (rt) =>
-        rt.address.toLowerCase() === a.targetTokenAddress.toLowerCase() &&
-        !rt.skipIfBalance,
-    ),
-  );
+  const hasSourceAmount = useTransactionPayHasSourceAmount();
 
   return (
     !isKeyboardVisible &&

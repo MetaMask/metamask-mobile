@@ -11,7 +11,6 @@ import { PredictPosition } from '../../types';
 import { formatPrice } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
 
 interface PredictPickItemProps {
   position: PredictPosition;
@@ -24,11 +23,7 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
   onCashOut,
   testID,
 }) => {
-  const currentPosition = usePredictOptimisticPositionRefresh({
-    position,
-  });
-
-  const isOptimistic = currentPosition.optimistic ?? false;
+  const isOptimistic = position.optimistic ?? false;
 
   return (
     <Box
@@ -61,17 +56,19 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
           </Text>
         )}
       </Box>
-      <Button
-        variant={ButtonVariant.Secondary}
-        twClassName="py-3 px-4 light:bg-muted/5"
-        onPress={() => onCashOut(currentPosition)}
-        isDisabled={isOptimistic}
-        testID={`predict-picks-cash-out-button-${position.id}`}
-      >
-        <Text variant={TextVariant.BodyMd} twClassName="font-medium">
-          {strings('predict.cash_out')}
-        </Text>
-      </Button>
+      {!position.claimable && (
+        <Button
+          variant={ButtonVariant.Secondary}
+          twClassName="light:bg-muted/5"
+          onPress={() => onCashOut(position)}
+          isDisabled={isOptimistic}
+          testID={`predict-picks-cash-out-button-${position.id}`}
+        >
+          <Text variant={TextVariant.BodyMd} twClassName="font-medium">
+            {strings('predict.cash_out')}
+          </Text>
+        </Button>
+      )}
     </Box>
   );
 };

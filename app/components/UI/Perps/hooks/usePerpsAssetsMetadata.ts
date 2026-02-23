@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getAssetIconUrl } from '../utils/marketUtils';
-import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 
 // Cache for validated asset URLs to prevent repeated HEAD requests
 const assetUrlCache = new Map<
@@ -33,8 +33,7 @@ export const usePerpsAssetMetadata = (assetSymbol: string | undefined) => {
 
     if (
       cached &&
-      now - cached.timestamp <
-        PERFORMANCE_CONFIG.ASSET_METADATA_CACHE_DURATION_MS
+      now - cached.timestamp < PERFORMANCE_CONFIG.AssetMetadataCacheDurationMs
     ) {
       if (cached.valid) {
         setAssetUrl(cached.url);

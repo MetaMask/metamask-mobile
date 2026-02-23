@@ -5,6 +5,19 @@ import type {
 } from '@metamask/analytics-controller';
 
 /**
+ * Properties that may contain undefined values.
+ * Accepted by AnalyticsEventBuilder.addProperties(), addSensitiveProperties(), and by filterUndefinedValues().
+ *
+ * Valid inputs:
+ * - Objects with properties (already filtered or with undefined values)
+ * - null or undefined (treated as empty object)
+ */
+export type AnalyticsUnfilteredProperties =
+  | Record<string, unknown>
+  | null
+  | undefined;
+
+/**
  * Analytics helper type defining the public API
  */
 export interface AnalyticsHelper {

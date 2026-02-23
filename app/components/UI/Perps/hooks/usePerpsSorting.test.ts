@@ -1,11 +1,14 @@
 import { renderHook, act } from '@testing-library/react-native';
-import type { PerpsMarketData } from '../controllers/types';
-import { MARKET_SORTING_CONFIG } from '../constants/perpsConfig';
+import {
+  MARKET_SORTING_CONFIG,
+  sortMarkets,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import { usePerpsSorting } from './usePerpsSorting';
-import { sortMarkets } from '../utils/sortMarkets';
 
 // Mock the sortMarkets utility
-jest.mock('../utils/sortMarkets', () => ({
+jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   sortMarkets: jest.fn((params) => params.markets),
 }));
 
@@ -42,13 +45,13 @@ describe('usePerpsSorting', () => {
       const { result } = renderHook(() => usePerpsSorting());
 
       expect(result.current.selectedOptionId).toBe(
-        MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+        MARKET_SORTING_CONFIG.DefaultSortOptionId,
       );
       expect(result.current.sortBy).toBe(
-        MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
+        MARKET_SORTING_CONFIG.SortFields.Volume,
       );
       expect(result.current.direction).toBe(
-        MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        MARKET_SORTING_CONFIG.DefaultDirection,
       );
     });
 
@@ -120,8 +123,8 @@ describe('usePerpsSorting', () => {
 
       expect(mockSortMarkets).toHaveBeenCalledWith({
         markets: mockMarkets,
-        sortBy: MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        sortBy: MARKET_SORTING_CONFIG.SortFields.Volume,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
       });
     });
 
@@ -204,8 +207,8 @@ describe('usePerpsSorting', () => {
 
       expect(mockSortMarkets).toHaveBeenCalledWith({
         markets: [],
-        sortBy: MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
-        direction: MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        sortBy: MARKET_SORTING_CONFIG.SortFields.Volume,
+        direction: MARKET_SORTING_CONFIG.DefaultDirection,
       });
     });
 
@@ -218,10 +221,10 @@ describe('usePerpsSorting', () => {
 
       expect(result.current.selectedOptionId).toBe('invalid-option');
       expect(result.current.sortBy).toBe(
-        MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
+        MARKET_SORTING_CONFIG.SortFields.Volume,
       );
       expect(result.current.direction).toBe(
-        MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+        MARKET_SORTING_CONFIG.DefaultDirection,
       );
     });
 

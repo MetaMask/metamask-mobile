@@ -1,15 +1,12 @@
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import useAnalytics from './useAnalytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../../util/analytics/analytics';
 
-jest.mock('../../../../core/Analytics', () => ({
-  ...jest.requireActual('../../../../core/Analytics'),
-  MetaMetrics: {
-    getInstance: jest.fn().mockReturnValue({
-      trackEvent: jest.fn(),
-      updateDataRecordingFlag: jest.fn(),
-    }),
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
   },
 }));
 
@@ -35,8 +32,8 @@ describe('useAnalytics', () => {
 
     result.current(testEvent, testEventParams);
 
-    expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents[testEvent])
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents[testEvent])
         .addProperties(testEventParams)
         .build(),
     );

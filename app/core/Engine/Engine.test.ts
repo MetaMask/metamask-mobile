@@ -26,6 +26,8 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
 }));
 
+jest.mock('redux-persist-filesystem-storage');
+
 jest.mock('../BackupVault', () => ({
   backupVault: jest.fn().mockResolvedValue({ success: true, vault: 'vault' }),
 }));
@@ -42,6 +44,9 @@ jest.unmock('./Engine');
 jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(() => ({
+      onboarding: {
+        completedOnboarding: true,
+      },
       engine: {
         backgroundState: {
           RemoteFeatureFlagController: {
@@ -67,8 +72,7 @@ jest.mock('../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
 jest.mock('../../util/phishingDetection', () => ({
-  isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
-  getPhishingTestResult: jest.fn().mockReturnValue({ result: true }),
+  getPhishingTestResultAsync: jest.fn().mockResolvedValue({ result: true }),
 }));
 
 jest.mock('@metamask/assets-controllers', () => {
@@ -156,6 +160,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('RampsController');
     expect(engine.context).toHaveProperty('RampsService');
     expect(engine.context).toHaveProperty('ConnectivityController');
+    expect(engine.context).toHaveProperty('AiDigestController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -971,6 +976,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       const findNetworkClientIdByChainIdSpy = jest
@@ -1017,6 +1023,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1047,6 +1054,7 @@ describe('Engine', () => {
           enabledNetworkMap: {
             [KnownCaipNamespace.Eip155]: {},
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1075,6 +1083,7 @@ describe('Engine', () => {
             string,
             Record<string, boolean>
           >,
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1100,6 +1109,7 @@ describe('Engine', () => {
         .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
         .mockReturnValue({
           enabledNetworkMap: {},
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1133,6 +1143,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1163,6 +1174,7 @@ describe('Engine', () => {
               '0x38': false,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();
@@ -1200,6 +1212,7 @@ describe('Engine', () => {
               '0xa': true,
             },
           },
+          nativeAssetIdentifiers: {},
         });
 
       await engine.lookupEnabledNetworks();

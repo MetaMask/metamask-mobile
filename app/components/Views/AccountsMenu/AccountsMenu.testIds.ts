@@ -1,0 +1,33 @@
+export const AccountsMenuSelectorsText = {
+  // TODO: Add to en.json
+  TITLE: 'Accounts Menu',
+};
+
+export const AccountsMenuSelectorsIDs = {
+  ACCOUNTS_MENU_SCROLL_ID: 'accounts-menu-scroll',
+  BACK_BUTTON: 'accounts-menu-back-button',
+
+  // Quick Actions
+  BUY_BUTTON: 'buy-button',
+  EARN_BUTTON: 'earn-button',
+  NOTIFICATIONS_BUTTON: 'notifications-button',
+
+  // Manage Card
+  MANAGE_CARD: 'manage-card',
+
+  // Settings Link
+  SETTINGS: 'settings-link',
+
+  // Manage Section
+  CONTACTS: 'contacts-menu-item',
+  PERMISSIONS: 'permissions-menu-item',
+  NETWORKS: 'networks-menu-item',
+
+  // Resources Section
+  ABOUT_METAMASK: 'about-metamask-menu-item',
+  REQUEST_FEATURE: 'request-feature-menu-item',
+  SUPPORT: 'support-menu-item',
+
+  // Log Out
+  LOCK: 'lock-menu-item',
+};

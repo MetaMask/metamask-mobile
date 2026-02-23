@@ -14,6 +14,10 @@ const stylesheet = (params: { theme: Theme }) => {
       borderRadius: 12,
       padding: 8,
       alignSelf: 'flex-start',
+      flexShrink: 1,
+    },
+    accountText: {
+      flexShrink: 1,
     },
   });
 };

@@ -1,10 +1,8 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import MusdConversionAssetOverviewCta from '.';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
-import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import Logger from '../../../../../../util/Logger';
@@ -13,14 +11,15 @@ import { TokenI } from '../../../../Tokens/types';
 
 jest.mock('../../../hooks/useMusdConversion');
 jest.mock('../../../../../../util/Logger');
-jest.mock('../../../hooks/useMusdConversionTokens');
-jest.mock('../../../../../hooks/useMetrics');
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../../../../../Views/confirmations/hooks/useNetworkName');
 
-import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { strings } from '../../../../../../../locales/i18n';
+import { MUSD_CONVERSION_APY } from '../../../constants/musd';
 
 const createMockToken = (overrides: Partial<TokenI> = {}): TokenI => ({
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -57,10 +56,10 @@ describe('MusdConversionAssetOverviewCta', () => {
       addProperties: mockAddProperties,
     }));
 
-    (useMetrics as jest.MockedFunction<typeof useMetrics>).mockReturnValue({
+    (useAnalytics as jest.MockedFunction<typeof useAnalytics>).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+    } as unknown as ReturnType<typeof useAnalytics>);
 
     (
       useNetworkName as jest.MockedFunction<typeof useNetworkName>
@@ -70,16 +69,6 @@ describe('MusdConversionAssetOverviewCta', () => {
       initiateConversion: mockInitiateConversion,
       error: null,
       hasSeenConversionEducationScreen: true,
-    });
-
-    jest.mocked(useMusdConversionTokens).mockReturnValue({
-      isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
-      isConversionToken: jest.fn().mockReturnValue(false),
-      tokens: [],
-      filterAllowedTokens: jest.fn(),
-      getMusdOutputChainId: jest
-        .fn()
-        .mockImplementation((chainId) => chainId || CHAIN_IDS.MAINNET),
     });
   });
 
@@ -125,11 +114,14 @@ describe('MusdConversionAssetOverviewCta', () => {
         { state: initialRootState },
       );
 
-      expect(getByText('Boost your stablecoin balance')).toBeOnTheScreen();
       expect(
-        getByText(/Earn a bonus every time you convert stablecoins to/),
+        getByText(`Get ${MUSD_CONVERSION_APY}% on your stablecoins`),
       ).toBeOnTheScreen();
-      expect(getByText('mUSD')).toBeOnTheScreen();
+      expect(
+        getByText(
+          `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% bonus.`,
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('renders close button when onDismiss is provided', () => {
@@ -235,7 +227,6 @@ describe('MusdConversionAssetOverviewCta', () => {
 
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
-          outputChainId: CHAIN_IDS.MAINNET,
           preferredPaymentToken: {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
@@ -382,14 +373,16 @@ describe('MusdConversionAssetOverviewCta', () => {
 
       const asset = createMockToken();
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={asset} />,
         { state: initialRootState },
       );
 
       // Act
       await act(async () => {
-        fireEvent.press(getByText('mUSD'));
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
       });
 
       // Assert
@@ -425,14 +418,16 @@ describe('MusdConversionAssetOverviewCta', () => {
 
       const asset = createMockToken();
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={asset} />,
         { state: initialRootState },
       );
 
       // Act
       await act(async () => {
-        fireEvent.press(getByText('mUSD'));
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
       });
 
       // Assert

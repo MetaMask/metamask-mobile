@@ -15,6 +15,10 @@ import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 
+/**
+ * Row component that displays the total cost for deposit/payment transactions.
+ * For withdrawal transactions, use ReceiveRow instead.
+ */
 export function TotalRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
@@ -22,7 +26,6 @@ export function TotalRow() {
 
   const totalUsd = useMemo(() => {
     if (!totals?.total) return '';
-
     return formatFiat(new BigNumber(totals.total.usd));
   }, [totals, formatFiat]);
 

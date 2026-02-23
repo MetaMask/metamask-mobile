@@ -18,6 +18,10 @@ const styleSheet = (params: { theme: Theme; vars: StyleSheetVars }) =>
       paddingTop: 24,
       paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
+    footerTextContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+    },
   });
 
 export default styleSheet;

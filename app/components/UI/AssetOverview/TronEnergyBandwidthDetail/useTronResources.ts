@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
-import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
+import { safeParseBigNumber } from '../../../../util/number/bignumber';
 
 export interface TronResource {
   type: 'energy' | 'bandwidth';
@@ -21,19 +21,17 @@ function createResource(
   max: number,
 ): TronResource {
   const currentBN = new BigNumber(current);
-  // Use max of 1 only for percentage calculation to avoid division by zero
-  const divisor = new BigNumber(Math.max(1, max));
-  const percentageBN = currentBN.dividedBy(divisor).multipliedBy(100);
 
-  const percentage = BigNumber.min(
+  const divisor = Math.max(1, max);
+  const percentage = Math.min(
     100,
-    BigNumber.max(0, percentageBN),
-  ).toNumber();
+    Math.max(0, currentBN.div(divisor).multipliedBy(100).toNumber()),
+  );
 
   return {
     type,
     current,
-    max, // Keep actual max for display (can be 0)
+    max,
     percentage,
   };
 }
@@ -50,47 +48,17 @@ export const useTronResources = (): {
   energy: TronResource;
   bandwidth: TronResource;
 } => {
-  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
+  const { energy, bandwidth, maxEnergy, maxBandwidth } = useSelector(
+    selectTronResourcesBySelectedAccountGroup,
+  );
 
   return useMemo(() => {
-    let energy;
-    let bandwidth;
-    let maxEnergy;
-    let maxBandwidth;
-
-    // Extract the different Tron resource entries from the flat list.
-    for (const asset of tronResources) {
-      switch (asset.symbol?.toLowerCase()) {
-        case TRON_RESOURCE.ENERGY:
-          energy = asset;
-          break;
-        case TRON_RESOURCE.BANDWIDTH:
-          bandwidth = asset;
-          break;
-        case TRON_RESOURCE.MAX_ENERGY:
-          maxEnergy = asset;
-          break;
-        case TRON_RESOURCE.MAX_BANDWIDTH:
-          maxBandwidth = asset;
-          break;
-        default:
-          break;
-      }
-    }
-
-    const parseValue = (value?: string | number): number => {
-      if (value === undefined || value === null) return 0;
-      // Remove commas from string values before parsing
-      const cleanValue =
-        typeof value === 'string' ? value.replace(/,/g, '') : value;
-      const num = Number(cleanValue);
-      return Number.isNaN(num) ? 0 : num;
-    };
-
-    const energyCurrent = parseValue(energy?.balance);
-    const bandwidthCurrent = parseValue(bandwidth?.balance);
-    const maxEnergyValue = parseValue(maxEnergy?.balance);
-    const maxBandwidthValue = parseValue(maxBandwidth?.balance);
+    const energyCurrent = safeParseBigNumber(energy?.balance).toNumber();
+    const bandwidthCurrent = safeParseBigNumber(bandwidth?.balance).toNumber();
+    const maxEnergyValue = safeParseBigNumber(maxEnergy?.balance).toNumber();
+    const maxBandwidthValue = safeParseBigNumber(
+      maxBandwidth?.balance,
+    ).toNumber();
 
     return {
       energy: createResource('energy', energyCurrent, maxEnergyValue),
@@ -100,5 +68,5 @@ export const useTronResources = (): {
         maxBandwidthValue,
       ),
     };
-  }, [tronResources]);
+  }, [energy, bandwidth, maxEnergy, maxBandwidth]);
 };

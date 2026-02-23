@@ -1,6 +1,6 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { useExploreSearch } from './useExploreSearch';
-import { SECTIONS_ARRAY } from '../sections.config';
+import type { SectionId } from '../sections.config';
 
 const mockTrendingTokens = [
   { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
@@ -90,6 +90,22 @@ jest.mock('../../../UI/Sites/hooks/useSiteData/useSitesData', () => ({
     refetch: jest.fn(),
   }),
 }));
+
+// Mock useSectionsArray to return all sections for testing
+const mockSectionsArray: { id: SectionId }[] = [
+  { id: 'tokens' },
+  { id: 'perps' },
+  { id: 'predictions' },
+  { id: 'sites' },
+];
+
+jest.mock('../sections.config', () => {
+  const actual = jest.requireActual('../sections.config');
+  return {
+    ...actual,
+    useSectionsArray: () => mockSectionsArray,
+  };
+});
 
 describe('useExploreSearch', () => {
   beforeEach(() => {
@@ -217,9 +233,35 @@ describe('useExploreSearch', () => {
   it('processes all sections defined in config', () => {
     const { result } = renderHook(() => useExploreSearch(''));
 
-    SECTIONS_ARRAY.forEach((section) => {
+    mockSectionsArray.forEach((section) => {
       expect(result.current.data[section.id]).toBeDefined();
       expect(result.current.isLoading[section.id]).toBeDefined();
     });
+  });
+
+  it('returns default sectionsOrder when no options provided', () => {
+    const { result } = renderHook(() => useExploreSearch(''));
+
+    expect(result.current.sectionsOrder).toEqual(
+      mockSectionsArray.map((s) => s.id),
+    );
+  });
+
+  it('returns custom sectionsOrder when provided in options', () => {
+    const customOrder = ['sites', 'tokens', 'perps', 'predictions'] as const;
+    const { result } = renderHook(() =>
+      useExploreSearch('', { sectionsOrder: [...customOrder] }),
+    );
+
+    expect(result.current.sectionsOrder).toEqual(customOrder);
+  });
+
+  it('maintains backward compatibility - works without options parameter', () => {
+    const { result } = renderHook(() => useExploreSearch('test'));
+
+    // Should not throw and should return expected structure
+    expect(result.current.data).toBeDefined();
+    expect(result.current.isLoading).toBeDefined();
+    expect(result.current.sectionsOrder).toBeDefined();
   });
 });

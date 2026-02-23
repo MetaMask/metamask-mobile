@@ -218,16 +218,6 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
     carouselBanners: false,
   },
   {
-    confirmation_redesign: {
-      staking_confirmations: true,
-      transfer: true,
-      approve: true,
-      contract_deployment: true,
-      contract_interaction: true,
-      signatures: true,
-    },
-  },
-  {
     rewards: false,
   },
   {
@@ -257,6 +247,18 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
       enabled: true,
       featureVersion: '2',
       minimumVersion: '7.53.0',
+    },
+  },
+  {
+    tronAccounts: {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    },
+  },
+  {
+    bitcoinAccounts: {
+      enabled: true,
+      minimumVersion: '0.0.0',
     },
   },
   {
@@ -309,7 +311,7 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
 
 /**
  * Creates a remote feature flags mock with custom overrides
- * @param flagOverrides - Object containing flag overrides (e.g., { rewards: true, confirmation_redesign: { signatures: true } })
+ * @param flagOverrides - Object containing flag overrides (e.g., { rewards: true })
  * @param distribution - Distribution type (main, flask)
  * @returns Mock configuration object with array response format matching real API
  */
@@ -341,7 +343,7 @@ export const createRemoteFeatureFlagsMock = (
         !Array.isArray(existingFlag) &&
         !Array.isArray(flagValue)
       ) {
-        // Deep merge for nested objects like confirmation_redesign
+        // Deep merge for nested objects
         existingObj[flagName] = deepMerge(
           existingFlag as Record<string, unknown>,
           flagValue as Record<string, unknown>,

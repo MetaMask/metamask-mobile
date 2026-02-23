@@ -71,10 +71,12 @@ enum EVENT_NAME {
 
   // Wallet
   WALLET_OPENED = 'Wallet Opened',
+  ADDRESS_COPIED = 'Address Copied',
   TOKEN_ADDED = 'Token Added',
   COLLECTIBLE_ADDED = 'Collectible Added',
   NFT_DETAILS_OPENED = 'NFT Details Opened',
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
+  TOKEN_DETAILS_OPENED = 'Token Details Opened',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
   VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
@@ -177,6 +179,10 @@ enum EVENT_NAME {
   SETTINGS_VIEWED = 'Settings Viewed',
   SETTINGS_UPDATED = 'Settings Updated',
   CURRENCY_CHANGED = 'Selected Currency Changed',
+  SETTINGS_ABOUT = 'About MetaMask',
+  NAVIGATION_TAPS_GET_HELP = 'Get Help',
+  NAVIGATION_TAPS_SEND_FEEDBACK = 'Send Feedback',
+  NAVIGATION_TAPS_LOGOUT = 'Logout',
 
   // Reveal SRP
   REVEAL_SRP_CTA = 'Clicks Reveal Secret Recovery Phrase',
@@ -478,9 +484,6 @@ enum EVENT_NAME {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
-  // Smart account opt in
-  SMART_ACCOUNT_OPT_IN = 'Smart Account Opt In',
-
   // Dismiss smart account upgrade suggestion
   DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED = 'Dismiss smart account suggestion enabled',
 
@@ -511,10 +514,11 @@ enum EVENT_NAME {
   // NETWORK CONNECTION BANNER
   NETWORK_CONNECTION_BANNER_SHOWN = 'Network Connection Banner Shown',
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED = 'Network Connection Banner Update RPC Clicked',
+  NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED = 'Network Connection Banner Switch To MetaMask Default RPC Clicked',
   NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
 
   // Deep Link Analytics - Consolidated Event
-  DEEP_LINK_USED = 'Deep link Used',
+  DEEP_LINK_USED = 'Deep Link Used',
 
   // What's New Link Clicked
   WHATS_NEW_LINK_CLICKED = "What's New Link Clicked",
@@ -537,14 +541,21 @@ enum EVENT_NAME {
   CARD_ADD_FUNDS_CLICKED = 'Card Add Funds Clicked',
   CARD_ADD_FUNDS_SWAPS_CLICKED = 'Card Add Funds Swaps Clicked',
   CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
-  CARD_ADVANCED_CARD_MANAGEMENT_CLICKED = 'Card Advanced Card Management Clicked',
   CARD_VIEWED = 'Card Viewed',
   CARD_BUTTON_CLICKED = 'Card Button Clicked',
   CARD_DELEGATION_PROCESS_STARTED = 'Card Delegation Process Started',
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
   CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
-  CARD_DEEPLINK_HANDLED = 'Card Deeplink Handled',
+  CARD_PUSH_PROVISIONING_STARTED = 'Card Push Provisioning Started',
+  CARD_PUSH_PROVISIONING_COMPLETED = 'Card Push Provisioning Completed',
+  CARD_PUSH_PROVISIONING_FAILED = 'Card Push Provisioning Failed',
+  CARD_PUSH_PROVISIONING_CANCELED = 'Card Push Provisioning Canceled',
+  CARD_METAL_CHECKOUT_VIEWED = 'Card Metal Checkout Viewed',
+  CARD_METAL_CHECKOUT_STARTED = 'Card Metal Checkout Started',
+  CARD_METAL_CHECKOUT_COMPLETED = 'Card Metal Checkout Completed',
+  CARD_METAL_CHECKOUT_FAILED = 'Card Metal Checkout Failed',
+  CARD_METAL_CHECKOUT_USER_CANCELED = 'Card Metal Checkout User Canceled',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -594,6 +605,11 @@ enum EVENT_NAME {
   MUSD_FULLSCREEN_ANNOUNCEMENT_DISPLAYED = 'mUSD Fullscreen Announcement Displayed',
   MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED = 'mUSD Fullscreen Announcement Button Clicked',
   MUSD_CONVERSION_STATUS_UPDATED = 'mUSD Conversion Status Updated',
+  MUSD_CLAIM_BONUS_BUTTON_CLICKED = 'mUSD Claim Bonus Button Clicked',
+  MUSD_CLAIM_BONUS_STATUS_UPDATED = 'mUSD Claim Bonus Status Updated',
+
+  // Assets
+  ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
 }
 
 export enum HARDWARE_WALLET_BUTTON_TYPE {
@@ -645,6 +661,7 @@ enum ACTIONS {
   PERMISSION_NEW_ACCOUNT = 'Connected new account(s)',
   PERMISSION_REVOKE_ACCOUNT = 'Revoked account(s)',
   STAKE = 'Stake',
+  ASSETS = 'Assets',
   // Notifications
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
   SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
@@ -708,6 +725,7 @@ const events = {
   PROCEED_ANYWAY_CLICKED: generateOpt(EVENT_NAME.PROCEED_ANYWAY_CLICKED),
 
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
+  ADDRESS_COPIED: generateOpt(EVENT_NAME.ADDRESS_COPIED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
   NFT_DETAILS_OPENED: generateOpt(EVENT_NAME.NFT_DETAILS_OPENED),
@@ -1152,9 +1170,6 @@ const events = {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
 
-  // User opt in for smart account upgrade
-  SMART_ACCOUNT_OPT_IN: generateOpt(EVENT_NAME.SMART_ACCOUNT_OPT_IN),
-
   // Dismiss smart account upgrade suggestion
   DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED: generateOpt(
     EVENT_NAME.DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED,
@@ -1350,7 +1365,7 @@ const events = {
   EARN_TOKEN_LIST_ITEM_CLICKED: generateOpt(
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
-  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_CLICKED),
+  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
@@ -1365,6 +1380,9 @@ const events = {
   ),
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED: generateOpt(
     EVENT_NAME.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
+  ),
+  NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED: generateOpt(
+    EVENT_NAME.NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED,
   ),
   NetworkConnectionBannerRpcUpdated: generateOpt(
     EVENT_NAME.NetworkConnectionBannerRpcUpdated,
@@ -1416,9 +1434,6 @@ const events = {
   CARD_ADD_FUNDS_DEPOSIT_CLICKED: generateOpt(
     EVENT_NAME.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
   ),
-  CARD_ADVANCED_CARD_MANAGEMENT_CLICKED: generateOpt(
-    EVENT_NAME.CARD_ADVANCED_CARD_MANAGEMENT_CLICKED,
-  ),
   CARD_VIEWED: generateOpt(EVENT_NAME.CARD_VIEWED),
   CARD_BUTTON_CLICKED: generateOpt(EVENT_NAME.CARD_BUTTON_CLICKED),
   CARD_DELEGATION_PROCESS_STARTED: generateOpt(
@@ -1433,7 +1448,33 @@ const events = {
   CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
   ),
-  CARD_DEEPLINK_HANDLED: generateOpt(EVENT_NAME.CARD_DEEPLINK_HANDLED),
+  CARD_PUSH_PROVISIONING_STARTED: generateOpt(
+    EVENT_NAME.CARD_PUSH_PROVISIONING_STARTED,
+  ),
+  CARD_PUSH_PROVISIONING_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_PUSH_PROVISIONING_COMPLETED,
+  ),
+  CARD_PUSH_PROVISIONING_FAILED: generateOpt(
+    EVENT_NAME.CARD_PUSH_PROVISIONING_FAILED,
+  ),
+  CARD_PUSH_PROVISIONING_CANCELED: generateOpt(
+    EVENT_NAME.CARD_PUSH_PROVISIONING_CANCELED,
+  ),
+  CARD_METAL_CHECKOUT_VIEWED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_VIEWED,
+  ),
+  CARD_METAL_CHECKOUT_STARTED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_STARTED,
+  ),
+  CARD_METAL_CHECKOUT_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_COMPLETED,
+  ),
+  CARD_METAL_CHECKOUT_FAILED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_FAILED,
+  ),
+  CARD_METAL_CHECKOUT_USER_CANCELED: generateOpt(
+    EVENT_NAME.CARD_METAL_CHECKOUT_USER_CANCELED,
+  ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,
@@ -1516,6 +1557,12 @@ const events = {
   MUSD_CONVERSION_STATUS_UPDATED: generateOpt(
     EVENT_NAME.MUSD_CONVERSION_STATUS_UPDATED,
   ),
+  MUSD_CLAIM_BONUS_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
+  ),
+  MUSD_CLAIM_BONUS_STATUS_UPDATED: generateOpt(
+    EVENT_NAME.MUSD_CLAIM_BONUS_STATUS_UPDATED,
+  ),
 };
 
 /**
@@ -1542,6 +1589,9 @@ enum DESCRIPTION {
   DAPP_HOME = 'Home',
   DAPP_ADD_TO_FAVORITE = 'Add to Favorites',
   DAPP_OPEN_IN_BROWSER = 'Open in Browser',
+  BROWSER_SWIPE_BACK = 'Browser Swipe Back',
+  BROWSER_SWIPE_FORWARD = 'Browser Swipe Forward',
+  BROWSER_PULL_REFRESH = 'Browser Pull Refresh',
   // Wallet
   WALLET_TOKENS = 'Tokens',
   WALLET_COLLECTIBLES = 'Collectibles',
@@ -1588,6 +1638,7 @@ enum DESCRIPTION {
   SWAPS = 'Swaps',
   BRIDGE = 'Bridge',
   STAKE = 'Stake',
+  ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
   NOTIFICATIONS = 'Notifications',
 }
 
@@ -1678,6 +1729,21 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.DAPP_VIEW,
     ACTIONS.DAPP_VIEW,
     DESCRIPTION.DAPP_OPEN_IN_BROWSER,
+  ),
+  BROWSER_SWIPE_BACK: generateOpt(
+    EVENT_NAME.DAPP_VIEW,
+    ACTIONS.DAPP_VIEW,
+    DESCRIPTION.BROWSER_SWIPE_BACK,
+  ),
+  BROWSER_SWIPE_FORWARD: generateOpt(
+    EVENT_NAME.DAPP_VIEW,
+    ACTIONS.DAPP_VIEW,
+    DESCRIPTION.BROWSER_SWIPE_FORWARD,
+  ),
+  BROWSER_PULL_REFRESH: generateOpt(
+    EVENT_NAME.DAPP_VIEW,
+    ACTIONS.DAPP_VIEW,
+    DESCRIPTION.BROWSER_PULL_REFRESH,
   ),
   // Wallet
   WALLET_TOKENS: generateOpt(
@@ -1937,6 +2003,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.STAKE_BUTTON_CLICKED,
     ACTIONS.STAKE,
     DESCRIPTION.STAKE,
+  ),
+  ASSETS_FIRST_INIT_FETCH_COMPLETED: generateOpt(
+    EVENT_NAME.ASSETS_FIRST_INIT_FETCH_COMPLETED,
+    ACTIONS.ASSETS,
+    DESCRIPTION.ASSETS_FIRST_INIT_FETCH_COMPLETED,
   ),
 };
 

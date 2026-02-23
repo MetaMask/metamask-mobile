@@ -62,7 +62,6 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: market.providerId,
     navigation,
   });
 
@@ -103,7 +102,6 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
         });
       },
       {
-        checkBalance: true,
         attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
       },
     );

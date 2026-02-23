@@ -555,6 +555,7 @@ describe('useBridgeQuoteRequest', () => {
         amount: '5.5',
         token: testState.bridge.sourceToken,
         latestAtomicBalance: BigNumber.from('10000000000000000000'),
+        ignoreGasFees: true,
       });
     });
 

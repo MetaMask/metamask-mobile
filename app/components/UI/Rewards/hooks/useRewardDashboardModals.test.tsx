@@ -10,6 +10,7 @@ import { useLinkAccountGroup } from './useLinkAccountGroup';
 import { isHardwareAccount } from '../../../../util/address';
 import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectBulkLinkIsRunning } from '../../../../reducers/rewards/selectors';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -35,6 +36,10 @@ jest.mock('../../../../reducers/rewards', () => ({
   })),
 }));
 
+jest.mock('../../../../reducers/rewards/selectors', () => ({
+  selectBulkLinkIsRunning: jest.fn(),
+}));
+
 jest.mock('./useLinkAccountGroup', () => ({
   useLinkAccountGroup: jest.fn(),
 }));
@@ -43,15 +48,15 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
       'rewards.dashboard_modal_info.multiple_unlinked_accounts.title':
-        'Start earning rewards',
+        "Don't miss out",
       'rewards.dashboard_modal_info.multiple_unlinked_accounts.description':
-        'Link your accounts to start earning',
+        'Add your accounts to Rewards.',
       'rewards.dashboard_modal_info.multiple_unlinked_accounts.confirm':
-        'Go to Settings',
+        'Add accounts',
       'rewards.dashboard_modal_info.active_account.title': "Don't miss out",
       'rewards.dashboard_modal_info.active_account.description':
-        'Link this account to earn rewards',
-      'rewards.dashboard_modal_info.active_account.confirm': 'Link Account',
+        'Add your account to Rewards.',
+      'rewards.dashboard_modal_info.active_account.confirm': 'Add account',
       'rewards.dashboard_modal_info.account_not_supported.title':
         'Account not supported',
       'rewards.dashboard_modal_info.account_not_supported.description_hardware':
@@ -116,6 +121,9 @@ describe('useRewardDashboardModals', () => {
       if (selector === selectSelectedAccountGroup) {
         return mockSelectedAccountGroup;
       }
+      if (selector === selectBulkLinkIsRunning) {
+        return false; // Default to not running
+      }
       return mockSelectedAccountGroup; // fallback
     });
     (useLinkAccountGroup as jest.Mock).mockReturnValue({
@@ -144,11 +152,11 @@ describe('useRewardDashboardModals', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
         {
-          title: 'Start earning rewards',
-          description: 'Link your accounts to start earning',
+          title: "Don't miss out",
+          description: 'Add your accounts to Rewards.',
           customIcon: expect.any(Object),
           confirmAction: {
-            label: 'Go to Settings',
+            label: 'Add accounts',
             onPress: expect.any(Function),
             variant: 'Primary',
           },
@@ -187,6 +195,9 @@ describe('useRewardDashboardModals', () => {
         }
         if (selector === selectSelectedAccountGroup) {
           return null;
+        }
+        if (selector === selectBulkLinkIsRunning) {
+          return false;
         }
         return null;
       });
@@ -261,6 +272,75 @@ describe('useRewardDashboardModals', () => {
       });
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
     });
+
+    it('does not show modal when bulk link is running', () => {
+      // Arrange
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectInternalAccountsByGroupId) {
+          return (_groupId: string) => mockAccounts;
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return mockSelectedAccountGroup;
+        }
+        if (selector === selectBulkLinkIsRunning) {
+          return true; // Bulk link is running
+        }
+        return mockSelectedAccountGroup;
+      });
+
+      // Reset session tracker to ensure modal can be shown
+      const { result: resetResult } = renderHook(() =>
+        useRewardDashboardModals(),
+      );
+      resetResult.current.resetSessionTracking();
+
+      const { result } = renderHook(() => useRewardDashboardModals());
+
+      // Act
+      act(() => {
+        result.current.showUnlinkedAccountsModal();
+      });
+
+      // Assert
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('shows modal when bulk link is not running', () => {
+      // Arrange
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectInternalAccountsByGroupId) {
+          return (_groupId: string) => mockAccounts;
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return mockSelectedAccountGroup;
+        }
+        if (selector === selectBulkLinkIsRunning) {
+          return false; // Bulk link is not running
+        }
+        return mockSelectedAccountGroup;
+      });
+
+      // Reset session tracker to ensure modal can be shown
+      const { result: resetResult } = renderHook(() =>
+        useRewardDashboardModals(),
+      );
+      resetResult.current.resetSessionTracking();
+
+      const { result } = renderHook(() => useRewardDashboardModals());
+
+      // Act
+      act(() => {
+        result.current.showUnlinkedAccountsModal();
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          title: "Don't miss out",
+        }),
+      );
+    });
   });
 
   describe('showNotOptedInModal', () => {
@@ -284,10 +364,10 @@ describe('useRewardDashboardModals', () => {
         Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
         {
           title: "Don't miss out",
-          description: 'Link this account to earn rewards',
+          description: 'Add your account to Rewards.',
           customIcon: expect.any(Object),
           confirmAction: {
-            label: 'Link Account',
+            label: 'Add account',
             loadOnPress: true,
             onPress: expect.any(Function),
             variant: 'Primary',

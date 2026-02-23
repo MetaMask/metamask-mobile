@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import { HYPERLIQUID_ASSET_CONFIGS } from '../constants/hyperLiquidConfig';
-import { WITHDRAWAL_CONSTANTS } from '../constants/perpsConfig';
+import {
+  HYPERLIQUID_ASSET_CONFIGS,
+  WITHDRAWAL_CONSTANTS,
+} from '@metamask/perps-controller';
 import { parseCurrencyString } from '../utils/formatUtils';
 import { usePerpsNetwork } from './index';
 import { usePerpsLiveAccount } from './stream';
@@ -38,8 +40,8 @@ export const useWithdrawValidation = ({
 
     // Find USDC route
     const usdcAssetId = isTestnet
-      ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
-      : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+      ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
+      : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
 
     return routes.find((route) => route.assetId === usdcAssetId);
   }, [isTestnet]);
@@ -56,7 +58,7 @@ export const useWithdrawValidation = ({
     if (!withdrawAmount) return false;
     const minAmount = Number.parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
-        WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
+        WITHDRAWAL_CONSTANTS.DefaultMinAmount,
     );
     return Number.parseFloat(withdrawAmount) < minAmount;
   }, [withdrawAmount, withdrawalRoute]);
@@ -70,7 +72,7 @@ export const useWithdrawValidation = ({
     if (isBelowMinimum) {
       const minAmount = Number.parseFloat(
         withdrawalRoute?.constraints?.minAmount ||
-          WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
+          WITHDRAWAL_CONSTANTS.DefaultMinAmount,
       );
       return strings('perps.withdrawal.minimum_amount_error', {
         amount: minAmount,
@@ -85,7 +87,7 @@ export const useWithdrawValidation = ({
   const getMinimumAmount = () =>
     Number.parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
-        WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
+        WITHDRAWAL_CONSTANTS.DefaultMinAmount,
     );
 
   return {

@@ -1,4 +1,4 @@
-import { PerpsControllerMessenger } from '../../../../components/UI/Perps/controllers/PerpsController';
+import { PerpsControllerMessenger } from '@metamask/perps-controller';
 import { RootExtendedMessenger, RootMessenger } from '../../types';
 import {
   Messenger,
@@ -29,12 +29,19 @@ export function getPerpsControllerMessenger(
       'NetworkController:getState',
       'AuthenticationController:getBearerToken',
       'RemoteFeatureFlagController:getState',
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      'KeyringController:getState',
+      'KeyringController:signTypedMessage',
+      'NetworkController:getNetworkClientById',
+      'NetworkController:findNetworkClientIdByChainId',
+      'TransactionController:addTransaction',
     ],
     events: [
       'TransactionController:transactionSubmitted',
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionFailed',
       'RemoteFeatureFlagController:stateChange',
+      'AccountTreeController:selectedAccountGroupChange',
     ],
     messenger,
   });

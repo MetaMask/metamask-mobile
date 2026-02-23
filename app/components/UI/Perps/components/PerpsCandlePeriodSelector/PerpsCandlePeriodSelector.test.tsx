@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import PerpsCandlePeriodSelector from './PerpsCandlePeriodSelector';
-import { CandlePeriod } from '../../constants/chartConfig';
+import { CandlePeriod } from '@metamask/perps-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 const mockOnPeriodChange = jest.fn();
@@ -16,7 +16,7 @@ describe('PerpsCandlePeriodSelector', () => {
     // Arrange & Act
     const { getByText } = renderWithProvider(
       <PerpsCandlePeriodSelector
-        selectedPeriod={CandlePeriod.ONE_MINUTE}
+        selectedPeriod={CandlePeriod.OneMinute}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
       />,
@@ -34,7 +34,7 @@ describe('PerpsCandlePeriodSelector', () => {
     // Arrange
     const { getByText } = renderWithProvider(
       <PerpsCandlePeriodSelector
-        selectedPeriod={CandlePeriod.ONE_MINUTE}
+        selectedPeriod={CandlePeriod.OneMinute}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
       />,
@@ -45,7 +45,7 @@ describe('PerpsCandlePeriodSelector', () => {
     fireEvent.press(getByText('3min'));
 
     // Assert
-    expect(mockOnPeriodChange).toHaveBeenCalledWith(CandlePeriod.THREE_MINUTES);
+    expect(mockOnPeriodChange).toHaveBeenCalledWith(CandlePeriod.ThreeMinutes);
   });
 
   it('calls onMorePress when more button is pressed', () => {
@@ -53,7 +53,7 @@ describe('PerpsCandlePeriodSelector', () => {
     const testID = 'test-candle-selector';
     const { getByTestId } = renderWithProvider(
       <PerpsCandlePeriodSelector
-        selectedPeriod={CandlePeriod.ONE_MINUTE}
+        selectedPeriod={CandlePeriod.OneMinute}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
         testID={testID}
@@ -70,7 +70,7 @@ describe('PerpsCandlePeriodSelector', () => {
 
   it('displays selected period label in more button when non-default period is selected', () => {
     // Arrange
-    const customPeriod = CandlePeriod.ONE_HOUR;
+    const customPeriod = CandlePeriod.OneHour;
 
     // Act
     const { getByText } = renderWithProvider(

@@ -10,7 +10,8 @@ import Text from '../../../../../component-library/components/Texts/Text';
 import AnimatedQRCode from '../../../../UI/QRHardware/AnimatedQRCode';
 import AnimatedQRScannerModal from '../../../../UI/QRHardware/AnimatedQRScanner';
 import Alert, { AlertType } from '../../../../Base/Alert';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
@@ -25,7 +26,7 @@ const QRInfo = () => {
     setRequestCompleted,
     setScannerVisible,
   } = useQRHardwareContext();
-  const { createEventBuilder, trackEvent } = useMetrics();
+  const { createEventBuilder, trackEvent } = useAnalytics();
   const { styles } = useStyles(styleSheet, {});
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [shouldPause, setShouldPause] = useState(false);

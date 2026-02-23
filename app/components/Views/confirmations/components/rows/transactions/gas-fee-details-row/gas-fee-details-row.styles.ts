@@ -24,8 +24,6 @@ const styleSheet = (params: { theme: Theme }) => {
     editButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      // Intentional padding to increase touchable area
-      padding: 6,
       paddingRight: 0,
     },
     editIcon: {
@@ -52,6 +50,9 @@ const styleSheet = (params: { theme: Theme }) => {
       minHeight: 24,
       paddingBottom: 8,
       paddingHorizontal: 8,
+    },
+    gasFeesSponsoredContainer: {
+      height: 24,
     },
   });
 };

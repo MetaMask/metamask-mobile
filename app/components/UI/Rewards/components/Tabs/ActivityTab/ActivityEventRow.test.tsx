@@ -309,15 +309,15 @@ describe('ActivityEventRow', () => {
 
   const mockActivityTypes: SeasonActivityTypeDto[] = [
     {
+      id: 'activity-swap',
       type: 'SWAP',
       title: 'Swap',
-      description: 'Swap desc',
       icon: 'SwapVertical',
     },
     {
+      id: 'activity-card',
       type: 'CARD',
       title: 'Card spend',
-      description: 'Spend',
       icon: 'Card',
     },
   ];

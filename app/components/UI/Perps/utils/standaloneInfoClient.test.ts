@@ -1,6 +1,8 @@
 import { HttpTransport, InfoClient } from '@nktkas/hyperliquid';
-import { createStandaloneInfoClient } from './standaloneInfoClient';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import {
+  createStandaloneInfoClient,
+  PERPS_CONSTANTS,
+} from '@metamask/perps-controller';
 
 // Mock the hyperliquid library
 jest.mock('@nktkas/hyperliquid', () => ({
@@ -22,7 +24,7 @@ describe('createStandaloneInfoClient', () => {
 
     expect(HttpTransport).toHaveBeenCalledWith({
       isTestnet: false,
-      timeout: PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS,
+      timeout: PERPS_CONSTANTS.ConnectionTimeoutMs,
     });
     expect(InfoClient).toHaveBeenCalled();
   });
@@ -32,7 +34,7 @@ describe('createStandaloneInfoClient', () => {
 
     expect(HttpTransport).toHaveBeenCalledWith({
       isTestnet: true,
-      timeout: PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS,
+      timeout: PERPS_CONSTANTS.ConnectionTimeoutMs,
     });
   });
 
@@ -41,7 +43,7 @@ describe('createStandaloneInfoClient', () => {
 
     expect(HttpTransport).toHaveBeenCalledWith(
       expect.objectContaining({
-        timeout: PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS,
+        timeout: PERPS_CONSTANTS.ConnectionTimeoutMs,
       }),
     );
   });
@@ -70,7 +72,7 @@ describe('createStandaloneInfoClient', () => {
       transport: expect.objectContaining({
         config: {
           isTestnet: false,
-          timeout: PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS,
+          timeout: PERPS_CONSTANTS.ConnectionTimeoutMs,
         },
       }),
     });

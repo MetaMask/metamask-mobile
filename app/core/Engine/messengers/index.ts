@@ -79,6 +79,10 @@ import {
 import { getTokenSearchDiscoveryDataControllerMessenger } from './token-search-discovery-data-controller-messenger';
 import { getAssetsContractControllerMessenger } from './assets-contract-controller-messenger';
 import {
+  getAssetsControllerMessenger,
+  getAssetsControllerInitMessenger,
+} from './assets-controller';
+import {
   getTokensControllerInitMessenger,
   getTokensControllerMessenger,
 } from './tokens-controller-messenger';
@@ -86,7 +90,6 @@ import {
   getTokenListControllerInitMessenger,
   getTokenListControllerMessenger,
 } from './token-list-controller-messenger';
-import { getTokenSearchDiscoveryControllerMessenger } from './token-search-discovery-controller-messenger';
 import {
   getTokenDetectionControllerInitMessenger,
   getTokenDetectionControllerMessenger,
@@ -124,6 +127,7 @@ import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import { getRampsControllerMessenger } from './ramps-controller-messenger';
 import { getRampsServiceMessenger } from './ramps-service-messenger';
+import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 import { getConnectivityControllerMessenger } from './connectivity-controller-messenger';
@@ -141,6 +145,7 @@ import {
 } from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
+import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -173,6 +178,10 @@ export const CONTROLLER_MESSENGERS = {
   AssetsContractController: {
     getMessenger: getAssetsContractControllerMessenger,
     getInitMessenger: noop,
+  },
+  AssetsController: {
+    getMessenger: getAssetsControllerMessenger,
+    getInitMessenger: getAssetsControllerInitMessenger,
   },
   EarnController: {
     getMessenger: getEarnControllerMessenger,
@@ -396,6 +405,10 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getRampsServiceMessenger,
     getInitMessenger: noop,
   },
+  TransakService: {
+    getMessenger: getTransakServiceMessenger,
+    getInitMessenger: noop,
+  },
   TokenBalancesController: {
     getMessenger: getTokenBalancesControllerMessenger,
     getInitMessenger: getTokenBalancesControllerInitMessenger,
@@ -406,10 +419,6 @@ export const CONTROLLER_MESSENGERS = {
   },
   TokenRatesController: {
     getMessenger: getTokenRatesControllerMessenger,
-    getInitMessenger: noop,
-  },
-  TokenSearchDiscoveryController: {
-    getMessenger: getTokenSearchDiscoveryControllerMessenger,
     getInitMessenger: noop,
   },
   TokenSearchDiscoveryDataController: {
@@ -442,6 +451,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   AnalyticsController: {
     getMessenger: getAnalyticsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  AiDigestController: {
+    getMessenger: getAiDigestControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;

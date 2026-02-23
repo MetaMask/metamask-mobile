@@ -19,6 +19,7 @@ import Engine from '../Engine';
 import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
 import {
+  checkActiveAccountAndChainId,
   getRpcMethodMiddleware,
   getRpcMethodMiddlewareHooks,
 } from './RPCMethodMiddleware';
@@ -185,11 +186,6 @@ function getMinimalOptions() {
     url: { current: '' },
     title: { current: '' },
     icon: { current: undefined },
-    // Bookmarks
-    isHomepage: jest.fn(),
-    // Show autocomplete
-    fromHomepage: { current: false },
-    toggleUrlModal: jest.fn(),
     // For the browser
     tabId: '' as const,
     // For WalletConnect
@@ -199,7 +195,6 @@ function getMinimalOptions() {
     getApprovedHosts: jest.fn(),
     setApprovedHosts: jest.fn(),
     approveHost: jest.fn(),
-    injectHomePageScripts: jest.fn(),
     analytics: {},
   };
 }
@@ -1729,6 +1724,111 @@ describe('getRpcMethodMiddleware', () => {
       const spy = jest.spyOn(PPOMUtil, 'validateRequest');
       await sendRequest();
       expect(spy).toBeCalledTimes(1);
+    });
+  });
+});
+
+describe('checkActiveAccountAndChainId', () => {
+  const mockGetNetworkConfigurationByNetworkClientId = jest.mocked(
+    Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId,
+  );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetPermittedAccounts.mockReturnValue([]);
+  });
+
+  describe('chainId validation', () => {
+    it('validates when networkClientId chainId matches request hex chainId', async () => {
+      const networkConfig = { chainId: '0x1' };
+      mockGetNetworkConfigurationByNetworkClientId.mockReturnValue(
+        networkConfig as ReturnType<
+          typeof mockGetNetworkConfigurationByNetworkClientId
+        >,
+      );
+
+      await expect(
+        checkActiveAccountAndChainId({
+          hostname: 'test.com',
+          isWalletConnect: false,
+          chainId: '0x1',
+          networkClientId: 'mainnet',
+        }),
+      ).resolves.not.toThrow();
+
+      expect(mockGetNetworkConfigurationByNetworkClientId).toHaveBeenCalledWith(
+        'mainnet',
+      );
+    });
+
+    it('validates when networkClientId chainId matches request decimal chainId', async () => {
+      const networkConfig = { chainId: '0x89' };
+      mockGetNetworkConfigurationByNetworkClientId.mockReturnValue(
+        networkConfig as ReturnType<
+          typeof mockGetNetworkConfigurationByNetworkClientId
+        >,
+      );
+
+      await expect(
+        checkActiveAccountAndChainId({
+          hostname: 'test.com',
+          isWalletConnect: false,
+          chainId: 137,
+          networkClientId: 'polygon',
+        }),
+      ).resolves.not.toThrow();
+    });
+
+    it('throws internal error when network configuration is not found', async () => {
+      mockGetNetworkConfigurationByNetworkClientId.mockReturnValue(undefined);
+
+      await expect(
+        checkActiveAccountAndChainId({
+          hostname: 'test.com',
+          isWalletConnect: false,
+          chainId: 1,
+          networkClientId: 'unknown-network',
+        }),
+      ).rejects.toMatchObject({
+        code: -32603,
+        message: 'Failed to get active chainId.',
+      });
+    });
+
+    it('throws invalidParams error when chainIds do not match', async () => {
+      const networkConfig = { chainId: '0x1' };
+      mockGetNetworkConfigurationByNetworkClientId.mockReturnValue(
+        networkConfig as ReturnType<
+          typeof mockGetNetworkConfigurationByNetworkClientId
+        >,
+      );
+
+      await expect(
+        checkActiveAccountAndChainId({
+          hostname: 'test.com',
+          isWalletConnect: false,
+          chainId: 137,
+          networkClientId: 'mainnet',
+        }),
+      ).rejects.toMatchObject({
+        code: -32602,
+        message:
+          'Invalid parameters: active chainId is different than the one provided.',
+      });
+    });
+
+    it('skips chainId validation when chainId is not provided', async () => {
+      await expect(
+        checkActiveAccountAndChainId({
+          hostname: 'test.com',
+          isWalletConnect: false,
+          networkClientId: 'mainnet',
+        }),
+      ).resolves.not.toThrow();
+
+      expect(
+        mockGetNetworkConfigurationByNetworkClientId,
+      ).not.toHaveBeenCalled();
     });
   });
 });

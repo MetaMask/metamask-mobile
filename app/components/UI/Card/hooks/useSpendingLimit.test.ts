@@ -13,7 +13,7 @@ import { useCardSDK } from '../sdk';
 import { AllowanceState, CardTokenAllowance } from '../types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
 import { clearCacheData } from '../../../../core/redux/slices/card';
@@ -62,12 +62,8 @@ jest.mock('../../../../util/theme', () => ({
   useTheme: jest.fn(() => mockTheme),
 }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_VIEWED: 'CARD_VIEWED',
-    CARD_BUTTON_CLICKED: 'CARD_BUTTON_CLICKED',
-  },
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -94,7 +90,9 @@ const mockUseCardDelegation = useCardDelegation as jest.MockedFunction<
   typeof useCardDelegation
 >;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+  typeof useAnalytics
+>;
 const mockCreateAssetSelectionModalNavigationDetails =
   createAssetSelectionModalNavigationDetails as jest.MockedFunction<
     typeof createAssetSelectionModalNavigationDetails
@@ -203,7 +201,7 @@ describe('useSpendingLimit', () => {
       addProperties: mockAddProperties,
     });
     mockTrackEvent = jest.fn();
-    mockUseMetrics.mockReturnValue({
+    mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     } as never);
@@ -923,6 +921,58 @@ describe('useSpendingLimit', () => {
         returnedSelectedToken: undefined,
         selectedToken: undefined,
       });
+    });
+
+    it('does not overwrite user selection when quickSelectTokens loads after returning from bottom sheet', () => {
+      const userSelectedToken = createMockToken({
+        symbol: 'ETH',
+        caipChainId: LINEA_CAIP_CHAIN_ID,
+      });
+
+      // Store the focus callback
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        focusCallback = callback;
+      });
+
+      // Start with empty allTokens (simulating async loading)
+      const { result, rerender } = renderHook(
+        (props: UseSpendingLimitParams) => useSpendingLimit(props),
+        {
+          initialProps: createDefaultParams({
+            allTokens: [],
+            delegationSettings: null,
+            routeParams: { returnedSelectedToken: userSelectedToken },
+          }),
+        },
+      );
+
+      // Simulate user returning from bottom sheet with their selection
+      act(() => {
+        if (focusCallback) {
+          focusCallback();
+        }
+      });
+
+      // Verify user's selection is set
+      expect(result.current.selectedToken).toEqual(userSelectedToken);
+
+      // Now simulate quickSelectTokens loading with mUSD available
+      const loadedTokens = [
+        createMockToken({ symbol: 'mUSD' }),
+        createMockToken({ symbol: 'USDC' }),
+      ];
+
+      rerender(
+        createDefaultParams({
+          allTokens: loadedTokens,
+          delegationSettings: createMockDelegationSettings(),
+          routeParams: {},
+        }),
+      );
+
+      // User's selection should NOT be overwritten by mUSD fallback
+      expect(result.current.selectedToken).toEqual(userSelectedToken);
     });
   });
 

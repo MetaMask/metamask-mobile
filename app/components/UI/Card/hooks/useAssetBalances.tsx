@@ -23,6 +23,47 @@ const extractTrailingCurrencyCode = (value: string): string | undefined => {
   return match ? match[1].toUpperCase() : undefined;
 };
 
+/**
+ * Parses a locale-formatted currency string to a number.
+ * Handles both formats:
+ * - US/UK: "1,234.56" (comma as thousands separator, dot as decimal)
+ * - EU/BR: "1.234,56" or "0,55" (dot as thousands separator, comma as decimal)
+ */
+const parseLocaleFiatString = (value: string): number => {
+  // Remove everything except digits, dots, and commas
+  const cleaned = value.replace(/[^0-9.,-]/g, '');
+
+  const hasComma = cleaned.includes(',');
+  const hasDot = cleaned.includes('.');
+
+  if (hasComma && hasDot) {
+    // Both separators present - the last one is the decimal separator
+    const lastCommaIndex = cleaned.lastIndexOf(',');
+    const lastDotIndex = cleaned.lastIndexOf('.');
+
+    if (lastDotIndex > lastCommaIndex) {
+      // Format: 1,234.56 - comma is thousands, dot is decimal
+      return parseFloat(cleaned.replace(/,/g, ''));
+    }
+    // Format: 1.234,56 - dot is thousands, comma is decimal
+    return parseFloat(cleaned.replace(/\./g, '').replace(',', '.'));
+  }
+
+  if (hasComma && !hasDot) {
+    // Only comma - check if it's decimal separator (followed by 1-2 digits at end)
+    const commaMatch = cleaned.match(/,(\d{1,2})$/);
+    if (commaMatch) {
+      // Format: 0,55 or 1234,56 - comma is decimal separator
+      return parseFloat(cleaned.replace(',', '.'));
+    }
+    // Format: 1,234 - comma is thousands separator
+    return parseFloat(cleaned.replace(/,/g, ''));
+  }
+
+  // Only dot or no separators - standard parsing
+  return parseFloat(cleaned);
+};
+
 export interface AssetBalanceInfo {
   asset: TokenI | undefined;
   balanceFiat: string;
@@ -389,9 +430,8 @@ export const useAssetBalances = (
         }
 
         // Parse the numeric value and reformat it properly
-        const rawFiatNumber = parseFloat(
-          filteredToken.balanceFiat.replace(/[^0-9.-]/g, ''),
-        );
+        // Handle locale-formatted numbers (e.g., "US$ 0,55" or "$1,234.56")
+        const rawFiatNumber = parseLocaleFiatString(filteredToken.balanceFiat);
 
         if (!isNaN(rawFiatNumber)) {
           const originalCurrencyCode = extractTrailingCurrencyCode(
@@ -441,9 +481,8 @@ export const useAssetBalances = (
         }
 
         // Parse the numeric value and reformat it properly
-        const rawFiatNumber = parseFloat(
-          walletAsset.balanceFiat.replace(/[^0-9.-]/g, ''),
-        );
+        // Handle locale-formatted numbers (e.g., "US$ 0,55" or "$1,234.56")
+        const rawFiatNumber = parseLocaleFiatString(walletAsset.balanceFiat);
 
         if (!isNaN(rawFiatNumber)) {
           const originalCurrencyCode = extractTrailingCurrencyCode(

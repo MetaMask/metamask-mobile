@@ -12,8 +12,6 @@ import {
   createMockSnapInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
 import { TokenOverviewSelectorsIDs } from './TokenOverview.testIds';
-// eslint-disable-next-line import/no-namespace
-import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
@@ -32,25 +30,10 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { handleFetch } from '@metamask/controller-utils';
 
-jest.mock('../../../selectors/accountsController', () => ({
-  ...jest.requireActual('../../../selectors/accountsController'),
-  selectSelectedInternalAccount: jest.fn(),
-}));
-
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
   handleFetch: jest.fn(),
 }));
-
-jest.mock(
-  '../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    ...jest.requireActual(
-      '../../../selectors/multichainAccounts/accountTreeController',
-    ),
-    selectSelectedAccountGroup: jest.fn(),
-  }),
-);
 
 jest.mock('./Balance', () => {
   /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
@@ -88,16 +71,6 @@ jest.mock('./Balance', () => {
     ),
   };
 });
-
-jest.mock('../../../selectors/assets/assets-list', () => ({
-  ...jest.requireActual('../../../selectors/assets/assets-list'),
-  selectTronResourcesBySelectedAccountGroup: jest.fn().mockReturnValue([]),
-}));
-
-jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
-  ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
-  selectSelectedInternalAccountByScope: jest.fn(),
-}));
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -223,8 +196,8 @@ jest.mock('../../../core/Engine', () => ({
     MultichainNetworkController: {
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
     },
-    SwapsController: {
-      fetchTokenWithCache: jest.fn().mockResolvedValue(undefined),
+    BridgeController: {
+      setLocation: jest.fn(),
     },
   },
 }));
@@ -241,31 +214,18 @@ jest.mock('../../hooks/useSendNonEvmAsset', () => ({
   useSendNonEvmAsset: jest.fn(),
 }));
 
-// Mock useMetrics hook
+// Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
-jest.mock('../../../components/hooks/useMetrics', () => {
-  const actualMetrics = jest.requireActual(
-    '../../../components/hooks/useMetrics',
-  );
-  return {
-    ...actualMetrics,
-    useMetrics: jest.fn(() => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    })),
-  };
-});
-
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  })),
+}));
 
 const mockAddPopularNetwork = jest
   .fn()
@@ -301,17 +261,57 @@ jest.mock('../Ramp/hooks/useRampTokens', () => ({
   useRampTokens: () => mockUseRampTokens(),
 }));
 
-// Only mock the new hook added in this branch: useScrollToMerklRewards
-// This hook uses useRoute/useNavigation which need proper test setup
-jest.mock('./hooks/useScrollToMerklRewards', () => ({
-  useScrollToMerklRewards: jest.fn(() => ({
-    hasScrolledRef: { current: false },
-  })),
-}));
-
 jest.mock('../../Views/confirmations/hooks/useSendNavigation', () => ({
   useSendNavigation: jest.fn(),
 }));
+
+// Perps Discovery Banner mocks
+const mockUsePerpsMarketForAsset = jest.fn();
+jest.mock('../Perps/hooks/usePerpsMarketForAsset', () => ({
+  usePerpsMarketForAsset: () => mockUsePerpsMarketForAsset(),
+}));
+
+const mockSelectPerpsEnabledFlag = jest.fn();
+jest.mock('../Perps', () => ({
+  selectPerpsEnabledFlag: () => mockSelectPerpsEnabledFlag(),
+}));
+
+const mockSelectSelectedInternalAccount = jest.fn();
+jest.mock('../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../selectors/accountsController'),
+  selectSelectedInternalAccount: () => mockSelectSelectedInternalAccount(),
+}));
+
+const mockSelectSelectedInternalAccountByScope = jest.fn();
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
+  selectSelectedInternalAccountByScope: () =>
+    mockSelectSelectedInternalAccountByScope,
+}));
+
+jest.mock('../../../selectors/assets/assets-list', () => ({
+  ...jest.requireActual('../../../selectors/assets/assets-list'),
+  selectTronResourcesBySelectedAccountGroup: jest.fn().mockReturnValue({
+    energy: undefined,
+    bandwidth: undefined,
+    maxEnergy: undefined,
+    maxBandwidth: undefined,
+    stakedTrxForEnergy: undefined,
+    stakedTrxForBandwidth: undefined,
+    totalStakedTrx: 0,
+  }),
+}));
+
+const mockSelectSelectedAccountGroup = jest.fn();
+jest.mock(
+  '../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroup: () => mockSelectSelectedAccountGroup(),
+  }),
+);
 
 const asset = {
   balance: '400',
@@ -355,23 +355,29 @@ describe('AssetOverview', () => {
       isNonEvmAccount: false,
     });
 
-    // Default selected internal account to an EVM account so token balance flow uses EVM path
-    const { selectSelectedInternalAccount } = jest.requireMock(
-      '../../../selectors/accountsController',
-    );
-    selectSelectedInternalAccount.mockReturnValue({
+    mockSelectSelectedInternalAccount.mockReturnValue({
       address: MOCK_ADDRESS_2,
       type: 'eip155:eoa',
     });
 
-    // Default mock for selectSelectedInternalAccountByScope
-    const { selectSelectedInternalAccountByScope } = jest.requireMock(
-      '../../../selectors/multichainAccounts/accounts',
-    );
-    const mockGetAccountByScope = jest.fn().mockReturnValue({
+    mockSelectSelectedInternalAccountByScope.mockReturnValue({
       address: MOCK_ADDRESS_2,
+      type: 'eip155:eoa',
     });
-    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
+
+    // Default mock for tron resources
+    const { selectTronResourcesBySelectedAccountGroup } = jest.requireMock(
+      '../../../selectors/assets/assets-list',
+    );
+    selectTronResourcesBySelectedAccountGroup.mockReturnValue({
+      energy: undefined,
+      bandwidth: undefined,
+      maxEnergy: undefined,
+      maxBandwidth: undefined,
+      stakedTrxForEnergy: undefined,
+      stakedTrxForBandwidth: undefined,
+      totalStakedTrx: 0,
+    });
 
     // Default mock for unified V1 flag - disabled
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
@@ -401,10 +407,52 @@ describe('AssetOverview', () => {
         mockNavigate('Send', params);
       }),
     });
+
+    // Default Perps mock - disabled and no market exists (banner won't show)
+    mockSelectPerpsEnabledFlag.mockReturnValue(false);
+    mockUsePerpsMarketForAsset.mockReturnValue({
+      hasPerpsMarket: false,
+      marketData: null,
+    });
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('hides buy button when token is not supported in ramp tokens', () => {
+    mockUseRampTokens.mockReturnValue({
+      allTokens: [],
+      topTokens: [],
+      isLoading: false,
+      error: null,
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeNull();
+  });
+
+  it('shows buy button when token is supported in ramp tokens', () => {
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).not.toBeNull();
   });
 
   it('should handle buy button press', async () => {
@@ -653,8 +701,6 @@ describe('AssetOverview', () => {
   });
 
   it('should handle send button press for native asset when isETH is false', async () => {
-    const spyOnGetEther = jest.spyOn(transactions, 'getEther');
-
     const nativeAsset = {
       balance: '400',
       balanceFiat: '1500',
@@ -717,8 +763,13 @@ describe('AssetOverview', () => {
     // Wait for async operations to complete
     await Promise.resolve();
 
-    expect(navigate.mock.calls[1][0]).toEqual('Send');
-    expect(spyOnGetEther).toHaveBeenCalledWith('BNB');
+    // onSend now navigates to home first, then calls navigateToSendPage
+    expect(navigate).toHaveBeenCalledWith(
+      Routes.WALLET.HOME,
+      expect.objectContaining({
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+      }),
+    );
   });
 
   it('should handle swap button press', async () => {
@@ -741,27 +792,11 @@ describe('AssetOverview', () => {
   });
 
   it('should handle receive button press for EVM asset with EVM address', async () => {
-    // Arrange - Mock the selectors directly to ensure conditions are met
-    const { selectSelectedInternalAccount } = jest.requireMock(
-      '../../../selectors/accountsController',
-    );
-    const { selectSelectedAccountGroup } = jest.requireMock(
-      '../../../selectors/multichainAccounts/accountTreeController',
-    );
-    const { selectSelectedInternalAccountByScope } = jest.requireMock(
-      '../../../selectors/multichainAccounts/accounts',
-    );
+    mockSelectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
 
-    selectSelectedInternalAccount.mockReturnValue({
-      address: MOCK_ADDRESS_2,
-      type: 'eip155:eoa',
-    });
-    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
-
-    const mockGetAccountByScope = jest.fn().mockReturnValue({
+    mockSelectSelectedInternalAccountByScope.mockReturnValue({
       address: MOCK_ADDRESS_2,
     });
-    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
 
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -792,23 +827,14 @@ describe('AssetOverview', () => {
         }),
       },
     );
-
-    // Cleanup mocks for isolation
-    selectSelectedInternalAccount.mockReset();
-    selectSelectedAccountGroup.mockReset();
-    selectSelectedInternalAccountByScope.mockReset();
   });
 
   it('should track receive button click analytics with correct properties', async () => {
     // Arrange - Mock the selectors directly to ensure conditions are met
-    const { selectSelectedInternalAccount } = jest.requireMock(
-      '../../../selectors/accountsController',
-    );
-    const { selectSelectedAccountGroup } = jest.requireMock(
-      '../../../selectors/multichainAccounts/accountTreeController',
-    );
-    selectSelectedInternalAccount.mockReturnValue({ address: MOCK_ADDRESS_2 });
-    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
+    mockSelectSelectedInternalAccount.mockReturnValue({
+      address: MOCK_ADDRESS_2,
+    });
+    mockSelectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
 
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -842,37 +868,18 @@ describe('AssetOverview', () => {
 
     // Verify trackEvent was called with the built event
     expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
-
-    // Cleanup mocks for isolation
-    selectSelectedInternalAccount.mockReset();
-    selectSelectedAccountGroup.mockReset();
   });
 
   it('should handle receive button press for Solana asset with Solana address', async () => {
     const SOLANA_ADDRESS = 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH';
     const SOLANA_CHAIN_ID = SolScope.Mainnet;
 
-    const { selectSelectedInternalAccount } = jest.requireMock(
-      '../../../selectors/accountsController',
-    );
-    const { selectSelectedAccountGroup } = jest.requireMock(
-      '../../../selectors/multichainAccounts/accountTreeController',
-    );
-    const { selectSelectedInternalAccountByScope } = jest.requireMock(
-      '../../../selectors/multichainAccounts/accounts',
-    );
+    mockSelectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
 
-    selectSelectedInternalAccount.mockReturnValue({
-      address: MOCK_ADDRESS_2,
-      type: 'eip155:eoa',
-    });
-    selectSelectedAccountGroup.mockReturnValue({ id: 'group-id-123' });
-
-    const mockGetAccountByScope = jest.fn().mockReturnValue({
+    mockSelectSelectedInternalAccountByScope.mockReturnValue({
       address: SOLANA_ADDRESS,
       type: SolAccountType.DataAccount,
     });
-    selectSelectedInternalAccountByScope.mockReturnValue(mockGetAccountByScope);
 
     const solanaAsset = {
       ...asset,
@@ -910,11 +917,9 @@ describe('AssetOverview', () => {
       },
     );
 
-    expect(mockGetAccountByScope).toHaveBeenCalledWith(SOLANA_CHAIN_ID);
-
-    selectSelectedInternalAccount.mockReset();
-    selectSelectedAccountGroup.mockReset();
-    selectSelectedInternalAccountByScope.mockReset();
+    expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalledWith(
+      SOLANA_CHAIN_ID,
+    );
   });
 
   it('should not render swap button if displaySwapsButton is false', async () => {
@@ -1045,10 +1050,15 @@ describe('AssetOverview', () => {
       '../../../selectors/assets/assets-list',
     );
 
-    selectTronResourcesBySelectedAccountGroup.mockReturnValue([
-      { symbol: 'strx-energy', balance: '10' },
-      { symbol: 'strx-bandwidth', balance: '20' },
-    ]);
+    selectTronResourcesBySelectedAccountGroup.mockReturnValue({
+      energy: undefined,
+      bandwidth: undefined,
+      maxEnergy: undefined,
+      maxBandwidth: undefined,
+      stakedTrxForEnergy: { symbol: 'strx-energy', balance: '10' },
+      stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '20' },
+      totalStakedTrx: 30,
+    });
 
     const tronAsset = {
       address: 'tron:mainnet/slip44:195',
@@ -1604,36 +1614,49 @@ describe('AssetOverview', () => {
 
       const secondaryBalance = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
 
-      // Should display formatted Solana balance
-      expect(secondaryBalance.props.children).toBe('123.45679 SOL');
+      // Should display the balance directly (no truncation)
+      expect(secondaryBalance.props.children).toBe('123.456789 SOL');
     });
   });
 
   it('should not render Balance component when balance is undefined', () => {
-    // Given an asset with undefined balance
-    const assetWithNoBalance = {
+    // Asset on a chain (0x999) that has no account data in AccountTrackerController
+    const assetOnUnknownChain = {
       ...asset,
       balance: undefined as unknown as string,
+      chainId: '0x999', // Chain not in AccountTrackerController.accountsByChainId
+      isETH: false,
+      isNative: false,
     };
 
-    // Override the mock to enable state2 so balance stays undefined
-    const mockModule = jest.requireMock(
-      '../../../selectors/featureFlagController/multichainAccounts',
-    );
-    const originalMock = mockModule.selectMultichainAccountsState2Enabled;
-    mockModule.selectMultichainAccountsState2Enabled = jest
-      .fn()
-      .mockReturnValue(true);
+    // State without any account data for chain 0x999
+    const stateWithNoChainData = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              // No data for 0x999
+            },
+          },
+          TokenBalancesController: {
+            tokenBalances: {
+              // No token balances for this account/chain
+            },
+          },
+        },
+      },
+    };
 
     const { queryByTestId } = renderWithProvider(
-      <AssetOverview asset={assetWithNoBalance} />,
-      { state: mockInitialState },
+      <AssetOverview asset={assetOnUnknownChain} />,
+      { state: stateWithNoChainData },
     );
 
+    // Balance component should not render when balance cannot be determined
     expect(queryByTestId(BALANCE_TEST_ID)).toBeNull();
-
-    // Restore original mock
-    mockModule.selectMultichainAccountsState2Enabled = originalMock;
   });
 
   describe('Exchange Rate Fetching', () => {
@@ -1710,7 +1733,7 @@ describe('AssetOverview', () => {
         [testTokenAddress.toLowerCase()]: { price: 0.0005 },
       });
 
-      const { findByText } = renderWithProvider(
+      const { findAllByText } = renderWithProvider(
         <AssetOverview asset={testToken} />,
         {
           state: {
@@ -1728,7 +1751,9 @@ describe('AssetOverview', () => {
         },
       );
 
-      await findByText(testToken.name);
+      // Name appears in multiple places (Price header and Balance section) after Stock badge changes
+      const nameElements = await findAllByText(testToken.name);
+      expect(nameElements.length).toBeGreaterThanOrEqual(1);
       expect(handleFetch).toHaveBeenCalledWith(
         expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
       );
@@ -1840,15 +1865,150 @@ describe('AssetOverview', () => {
         [SOLANA_ASSET_ID]: { price: 0.431111 },
       });
 
-      const { findByText } = renderWithProvider(
+      const { findAllByText } = renderWithProvider(
         <AssetOverview asset={solanaToken} />,
         { state: createSolanaState() },
       );
 
-      await findByText(solanaToken.name);
+      // Name appears in multiple places (Price header and Balance section) after Stock badge changes
+      const nameElements = await findAllByText(solanaToken.name);
+      expect(nameElements.length).toBeGreaterThanOrEqual(1);
       expect(handleFetch).toHaveBeenCalledWith(
         expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
       );
+    });
+  });
+
+  describe('Perps Discovery Banner Token Trust Validation', () => {
+    const mockMarketData = {
+      symbol: 'ETH',
+      maxLeverage: 50,
+    };
+
+    beforeEach(() => {
+      // Reset Perps mocks before each test
+      mockSelectPerpsEnabledFlag.mockReset();
+      mockUsePerpsMarketForAsset.mockReset();
+    });
+
+    it('does NOT render Perps banner for token with insufficient aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const tokenWithNoAggregators = {
+        ...asset,
+        aggregators: [], // No aggregators - not trustworthy
+        isETH: false,
+        isNative: false,
+      };
+
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverview asset={tokenWithNoAggregators} />,
+        { state: mockInitialState },
+      );
+
+      // Banner NOT rendered
+      expect(queryByTestId('perps-discovery-banner')).toBeNull();
+    });
+
+    it('renders Perps banner for native token regardless of aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const nativeToken = {
+        ...asset,
+        aggregators: [], // No aggregators, but native token is always trusted
+        isNative: true,
+        isETH: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={nativeToken} />,
+        { state: mockInitialState },
+      );
+
+      // Banner rendered for native tokens
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
+    });
+
+    it('renders Perps banner for ETH token regardless of aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const ethToken = {
+        ...asset,
+        aggregators: [], // No aggregators, but ETH is always trusted
+        isETH: true,
+        isNative: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={ethToken} />,
+        { state: mockInitialState },
+      );
+
+      // Banner rendered for ETH tokens
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
+    });
+
+    it('renders Perps banner for token with sufficient aggregators', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const tokenWithAggregators = {
+        ...asset,
+        aggregators: ['CoinGecko', 'CoinMarketCap'], // 2 aggregators - trustworthy
+        isETH: false,
+        isNative: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={tokenWithAggregators} />,
+        { state: mockInitialState },
+      );
+
+      // Banner rendered for tokens with sufficient aggregators
+      expect(getByTestId('perps-discovery-banner')).toBeOnTheScreen();
+    });
+
+    it('does NOT render Perps banner for token with only 1 aggregator', () => {
+      // Mock: Perps enabled and market exists
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: true,
+        marketData: mockMarketData,
+      });
+
+      const tokenWithOneAggregator = {
+        ...asset,
+        aggregators: ['CoinGecko'], // Only 1 aggregator - not enough
+        isETH: false,
+        isNative: false,
+      };
+
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverview asset={tokenWithOneAggregator} />,
+        { state: mockInitialState },
+      );
+
+      // Banner NOT rendered - 1 aggregator is not enough
+      expect(queryByTestId('perps-discovery-banner')).toBeNull();
     });
   });
 });

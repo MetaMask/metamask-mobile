@@ -1,4 +1,4 @@
-import type { OrderBookLevel } from '../hooks/stream/usePerpsLiveOrderBook';
+import { type OrderBookLevel } from '@metamask/perps-controller';
 
 /**
  * Maximum API levels to request from Hyperliquid L2Book API.
@@ -17,13 +17,18 @@ export interface AggregationParams {
 /**
  * Calculate nSigFigs and mantissa based on grouping and price.
  * These parameters match Hyperliquid's L2Book API aggregation:
- * - nSigFigs: 5, mantissa: 2 → finest granularity (~$1-2 for BTC)
+ * - nSigFigs: 5 (no mantissa) → finest granularity (~$1 for BTC)
+ * - nSigFigs: 5, mantissa: 2 → ~$2 increments for BTC
  * - nSigFigs: 5, mantissa: 5 → ~$5 increments for BTC
  * - nSigFigs: 4 → ~$10 increments for BTC
  * - nSigFigs: 3 → ~$100 increments for BTC
  * - nSigFigs: 2 → ~$1000 increments for BTC (widest range)
  *
  * mantissa is only applicable when nSigFigs is 5.
+ *
+ * @param grouping - The price grouping increment
+ * @param price - The current mid price
+ * @returns Aggregation parameters for the API
  */
 export function calculateAggregationParams(
   grouping: number,
@@ -39,9 +44,10 @@ export function calculateAggregationParams(
   const baseNSigFigs = magnitude - groupingMagnitude + 1;
 
   if (baseNSigFigs >= 5) {
-    // Finest granularity needs mantissa
-    // Derive mantissa from the first digit of grouping
     const firstDigit = Math.floor(grouping / Math.pow(10, groupingMagnitude));
+    if (firstDigit <= 1) {
+      return { nSigFigs: 5 };
+    }
     const mantissa = firstDigit <= 2 ? 2 : 5;
     return { nSigFigs: 5, mantissa };
   }
@@ -59,6 +65,8 @@ export function calculateAggregationParams(
  * Calculate dynamic grouping options based on asset's mid price.
  * Uses "1-2-5 per decade" scale anchored to price magnitude.
  *
+ * @param midPrice - The current mid price of the asset
+ * @returns Array of grouping options suitable for the price magnitude
  * @example
  * calculateGroupingOptions(87000) → [1, 2, 5, 10, 100, 1000]           // BTC
  * calculateGroupingOptions(33)    → [0.001, 0.002, 0.005, 0.01, 0.1, 1] // HYPE
@@ -77,7 +85,10 @@ export function calculateGroupingOptions(midPrice: number): number[] {
 }
 
 /**
- * Format grouping value for display (e.g., "0.001", "1", "100")
+ * Format grouping value for display (e.g., "0.001", "1", "100").
+ *
+ * @param value - The grouping value to format
+ * @returns Formatted string representation
  */
 export function formatGroupingLabel(value: number): string {
   if (value >= 1) {
@@ -91,6 +102,9 @@ export function formatGroupingLabel(value: number): string {
 /**
  * Select a sensible default grouping option.
  * Picks a middle option that gives reasonable granularity.
+ *
+ * @param options - Array of available grouping options
+ * @returns The recommended default grouping value
  */
 export function selectDefaultGrouping(options: number[]): number {
   // Pick the 4th option (index 3) which is typically a good balance

@@ -4,7 +4,7 @@ import type {
 } from '@metamask/transaction-controller';
 
 import Engine from '../../core/Engine';
-import { ResultType } from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
+import { ResultType } from '../../components/Views/confirmations/components/blockaid-banner/BlockaidBanner.types';
 
 interface TransactionSecurityAlertResponseType {
   securityAlertResponses: Record<string, SecurityAlertResponse>;

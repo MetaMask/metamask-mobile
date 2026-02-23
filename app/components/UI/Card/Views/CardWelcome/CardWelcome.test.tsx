@@ -6,7 +6,7 @@ import CardWelcome from './CardWelcome';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 // Mocks
 const mockNavigate = jest.fn();
@@ -29,15 +29,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
-  MetaMetricsEvents: {
-    CARD_VIEWED: 'Card Viewed',
-    CARD_BUTTON_CLICKED: 'Card Button Clicked',
-  },
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -53,7 +49,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../../../../images/mm-card-welcome.png', () => 1);
+jest.mock('../../../../../images/stacked-cards.png', () => 1);
 
 jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({ colors: { background: { default: '#fff' } } }),
@@ -99,7 +95,7 @@ describe('CardWelcome', () => {
       expect(
         getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
       ).toBeTruthy();
-      expect(getByTestId('predict-gtm-not-now-button')).toBeTruthy();
+      expect(getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON)).toBeTruthy();
     });
 
     it('displays correct title and description', () => {
@@ -140,7 +136,7 @@ describe('CardWelcome', () => {
         </Provider>,
       );
 
-      fireEvent.press(getByTestId('predict-gtm-not-now-button'));
+      fireEvent.press(getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON));
 
       expect(mockGoBack).toHaveBeenCalled();
     });

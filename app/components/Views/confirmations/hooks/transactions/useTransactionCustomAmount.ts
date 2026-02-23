@@ -17,6 +17,7 @@ import {
   useTransactionPayIsMaxAmount,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
+import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 import Engine from '../../../../../core/Engine';
 
@@ -32,7 +33,9 @@ export function useTransactionCustomAmount({
   const [hasInput, setHasInput] = useState(false);
   const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
   const totals = useTransactionPayTotals();
+  const hasSourceAmount = useTransactionPayHasSourceAmount();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
+  const [isTokenAmountUpdated, setIsTokenAmountUpdated] = useState(false);
 
   const debounceSetAmountDelayed = useMemo(
     () =>
@@ -89,7 +92,9 @@ export function useTransactionCustomAmount({
     (value: boolean) => {
       const { TransactionPayController } = Engine.context;
 
-      TransactionPayController.setIsMaxAmount(transactionId, value);
+      TransactionPayController.setTransactionConfig(transactionId, (config) => {
+        config.isMaxAmount = value;
+      });
     },
     [transactionId],
   );
@@ -152,7 +157,19 @@ export function useTransactionCustomAmount({
 
   const updateTokenAmount = useCallback(() => {
     updateTokenAmountCallback(amountHuman);
+    setIsTokenAmountUpdated(true);
   }, [amountHuman, updateTokenAmountCallback]);
+
+  useEffect(() => {
+    if (isTokenAmountUpdated && hasSourceAmount) {
+      setConfirmationMetric({
+        properties: {
+          mm_pay_quote_requested: true,
+        },
+      });
+      setIsTokenAmountUpdated(false);
+    }
+  }, [hasSourceAmount, isTokenAmountUpdated, setConfirmationMetric]);
 
   return {
     amountFiat,
@@ -175,9 +192,7 @@ function useTokenBalance(tokenUsdRate: number) {
     payToken?.balanceUsd ?? 0,
   ).toNumber();
 
-  const { balance: predictBalanceHuman } = usePredictBalance({
-    loadOnMount: true,
-  });
+  const { data: predictBalanceHuman = 0 } = usePredictBalance();
 
   const predictBalanceUsd = new BigNumber(predictBalanceHuman ?? '0')
     .multipliedBy(tokenUsdRate)

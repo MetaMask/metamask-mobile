@@ -5,8 +5,10 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
 import { usePerpsPrices } from './usePerpsPrices';
-import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
-import type { PriceUpdate } from '../controllers/types';
+import {
+  VALIDATION_THRESHOLDS,
+  type PriceUpdate,
+} from '@metamask/perps-controller';
 
 jest.mock('./usePerpsPrices');
 
@@ -311,7 +313,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
   });
 
   it('uses correct threshold from VALIDATION_THRESHOLDS', () => {
-    const threshold = VALIDATION_THRESHOLDS.PRICE_DEVIATION;
+    const threshold = VALIDATION_THRESHOLDS.PriceDeviation;
 
     // Test with price exactly at threshold + epsilon
     const spotPrice = 100;

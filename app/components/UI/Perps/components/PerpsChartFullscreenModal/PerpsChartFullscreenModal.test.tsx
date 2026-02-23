@@ -7,8 +7,7 @@ import {
   unlockAsync,
   OrientationLock,
 } from 'expo-screen-orientation';
-import { CandlePeriod } from '../../constants/chartConfig';
-import type { CandleData } from '../../types/perps-types';
+import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
 import type { TPSLLines } from '../TradingViewChart/TradingViewChart';
 import {
   PerpsChartFullscreenModalSelectorsIDs,
@@ -162,14 +161,14 @@ describe('PerpsChartFullscreenModal', () => {
   const defaultProps = {
     isVisible: false,
     candleData: null,
-    selectedInterval: CandlePeriod.ONE_HOUR,
+    selectedInterval: CandlePeriod.OneHour,
     onClose: mockOnClose,
     onIntervalChange: mockOnIntervalChange,
   };
 
   const mockCandleData: CandleData = {
     symbol: 'BTC',
-    interval: CandlePeriod.ONE_HOUR,
+    interval: CandlePeriod.OneHour,
     candles: [
       {
         time: 1234567890,

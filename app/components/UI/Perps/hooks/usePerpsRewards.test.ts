@@ -6,8 +6,8 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 // Mock the development config
 jest.mock('../constants/perpsConfig', () => ({
   DEVELOPMENT_CONFIG: {
-    SIMULATE_REWARDS_ERROR_AMOUNT: 42,
-    SIMULATE_REWARDS_LOADING_AMOUNT: 43,
+    SimulateRewardsErrorAmount: 42,
+    SimulateRewardsLoadingAmount: 43,
   },
 }));
 

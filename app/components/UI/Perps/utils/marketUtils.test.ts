@@ -1,8 +1,6 @@
 import {
   calculateFundingCountdown,
   calculate24hHighLow,
-  getAssetIconUrl,
-  getAssetIconUrls,
   escapeRegex,
   compileMarketPattern,
   matchesMarketPattern,
@@ -10,16 +8,21 @@ import {
   validateMarketPattern,
   getPerpsDisplaySymbol,
   filterMarketsByQuery,
-} from './marketUtils';
-import type { CandleData } from '../types/perps-types';
-import type { PerpsMarketData } from '../controllers/types';
-import { CandlePeriod } from '../constants/chartConfig';
+  CandlePeriod,
+  type CandleData,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import { getAssetIconUrl, getAssetIconUrls } from './marketUtils';
 
-jest.mock('../constants/hyperLiquidConfig', () => ({
-  HYPERLIQUID_ASSET_ICONS_BASE_URL: 'https://app.hyperliquid.xyz/coins/',
-  METAMASK_PERPS_ICONS_BASE_URL:
-    'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/',
-}));
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual('@metamask/perps-controller');
+  return {
+    ...actual,
+    HYPERLIQUID_ASSET_ICONS_BASE_URL: 'https://app.hyperliquid.xyz/coins/',
+    METAMASK_PERPS_ICONS_BASE_URL:
+      'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/',
+  };
+});
 
 describe('marketUtils', () => {
   describe('calculateFundingCountdown', () => {
@@ -228,7 +231,7 @@ describe('marketUtils', () => {
 
     const mockCandleData: CandleData = {
       symbol: 'BTC',
-      interval: CandlePeriod.ONE_HOUR,
+      interval: CandlePeriod.OneHour,
       candles: [
         {
           time: fortyEightHoursAgo,
@@ -281,7 +284,7 @@ describe('marketUtils', () => {
     it('should handle empty candles array', () => {
       const emptyData: CandleData = {
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
+        interval: CandlePeriod.OneHour,
         candles: [],
       };
       const result = calculate24hHighLow(emptyData);
@@ -291,7 +294,7 @@ describe('marketUtils', () => {
     it('should use all candles if none are within 24h', () => {
       const oldCandleData: CandleData = {
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
+        interval: CandlePeriod.OneHour,
         candles: [
           {
             time: fortyEightHoursAgo,
@@ -310,7 +313,7 @@ describe('marketUtils', () => {
     it('should handle candles with string values', () => {
       const stringCandleData: CandleData = {
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
+        interval: CandlePeriod.OneHour,
         candles: [
           {
             time: oneHourAgo,
@@ -329,7 +332,7 @@ describe('marketUtils', () => {
     it('should handle single candle within 24h', () => {
       const singleCandleData: CandleData = {
         symbol: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
+        interval: CandlePeriod.OneHour,
         candles: [
           {
             time: oneHourAgo,

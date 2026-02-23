@@ -6,12 +6,14 @@ export interface SecurityState {
   allowLoginWithRememberMe: boolean;
   dataCollectionForMarketing: boolean | null;
   isNFTAutoDetectionModalViewed: boolean;
+  osAuthEnabled: boolean;
 }
 
 export const initialState: Readonly<SecuritySettingsState> = {
   allowLoginWithRememberMe: false,
   dataCollectionForMarketing: null,
   isNFTAutoDetectionModalViewed: false,
+  osAuthEnabled: true, // Default to enabled (biometric-first)
 };
 
 const securityReducer = (
@@ -33,6 +35,11 @@ const securityReducer = (
       return {
         ...state,
         dataCollectionForMarketing: action.enabled,
+      };
+    case ActionType.SET_OS_AUTH_ENABLED:
+      return {
+        ...state,
+        osAuthEnabled: action.enabled,
       };
     default:
       return state;

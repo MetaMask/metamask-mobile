@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { usePerpsPrices } from './usePerpsPrices';
-import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
+import { VALIDATION_THRESHOLDS } from '@metamask/perps-controller';
 
 /**
  * Return type for useIsPriceDeviatedAboveThreshold hook
@@ -69,7 +69,7 @@ export const useIsPriceDeviatedAboveThreshold = (
 
     const deviation = Math.abs((perpsPrice - spotPrice) / spotPrice);
 
-    const threshold = VALIDATION_THRESHOLDS.PRICE_DEVIATION;
+    const threshold = VALIDATION_THRESHOLDS.PriceDeviation;
 
     return deviation > threshold;
   }, [symbol, priceUpdate?.price, priceUpdate?.markPrice]);

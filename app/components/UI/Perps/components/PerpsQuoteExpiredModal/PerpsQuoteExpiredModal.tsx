@@ -16,13 +16,13 @@ import {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './PerpsQuoteExpiredModal.styles';
-import { DEPOSIT_CONFIG } from '../../constants/hyperLiquidConfig';
+import { DEPOSIT_CONFIG } from '@metamask/perps-controller';
 
 const PerpsQuoteExpiredModal = () => {
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(createStyles, {});
-  const refreshRate = DEPOSIT_CONFIG.refreshRate / 1000; // Convert to seconds
+  const refreshRate = DEPOSIT_CONFIG.RefreshRate / 1000; // Convert to seconds
 
   const handleClose = () => {
     navigation.goBack();

@@ -2,7 +2,7 @@
  * Shared provider mocks for Perps tests
  * Provides reusable mock implementations for HyperLiquidProvider and related interfaces
  */
-import { type HyperLiquidProvider } from '../controllers/providers/HyperLiquidProvider';
+import { type HyperLiquidProvider } from '@metamask/perps-controller';
 
 export const createMockHyperLiquidProvider =
   (): jest.Mocked<HyperLiquidProvider> =>
@@ -52,6 +52,10 @@ export const createMockHyperLiquidProvider =
       subscribeToOrders: jest.fn(),
       subscribeToAccount: jest.fn(),
       setUserFeeDiscount: jest.fn(),
+      // WebSocket connection state methods
+      getWebSocketConnectionState: jest.fn(),
+      subscribeToConnectionState: jest.fn().mockReturnValue(() => undefined),
+      reconnect: jest.fn().mockResolvedValue(undefined),
     }) as unknown as jest.Mocked<HyperLiquidProvider>;
 
 export const createMockOrderResult = () => ({

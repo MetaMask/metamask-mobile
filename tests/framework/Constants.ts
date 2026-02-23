@@ -1,6 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
 import path from 'path';
-import { GanacheHardfork } from './types.ts';
+import { GanacheHardfork, RampsRegion } from './types.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 
 // The RPC URL for the local node
@@ -60,6 +60,15 @@ export const DEFAULT_SOLANA_TEST_DAPP_PATH = path.join(
   'dist',
 );
 
+export const DEFAULT_BROWSER_PLAYGROUND_PATH = path.join(
+  '..',
+  '..',
+  'node_modules',
+  '@metamask',
+  'browser-playground',
+  'build',
+);
+
 /**
  * The schemes for the E2E deep links.
  * @enum {string}
@@ -85,6 +94,7 @@ export enum DappVariants {
   TEST_DAPP = 'test-dapp',
   MULTICHAIN_TEST_DAPP = 'multichain-test-dapp',
   SOLANA_TEST_DAPP = 'solana-test-dapp',
+  BROWSER_PLAYGROUND = 'browser-playground',
 }
 
 export const TestDapps = {
@@ -97,6 +107,9 @@ export const TestDapps = {
   [DappVariants.SOLANA_TEST_DAPP]: {
     dappPath: path.resolve(__dirname, DEFAULT_SOLANA_TEST_DAPP_PATH),
   },
+  [DappVariants.BROWSER_PLAYGROUND]: {
+    dappPath: path.resolve(__dirname, DEFAULT_BROWSER_PLAYGROUND_PATH),
+  },
 };
 
 export enum RampsRegionsEnum {
@@ -106,12 +119,14 @@ export enum RampsRegionsEnum {
   SPAIN = 'spain',
 }
 
-export const RampsRegions = {
+export const RampsRegions: Record<RampsRegionsEnum, RampsRegion> = {
   [RampsRegionsEnum.SAINT_LUCIA]: {
     currencies: ['/currencies/fiat/xcd'],
     emoji: '🇱🇨',
     id: '/regions/lc',
     name: 'Saint Lucia',
+    countryName: 'Saint Lucia',
+    countryIsoCode: 'LC',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,
@@ -122,6 +137,8 @@ export const RampsRegions = {
     emoji: '🇫🇷',
     id: '/regions/fr',
     name: 'France',
+    countryName: 'France',
+    countryIsoCode: 'FR',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,
@@ -132,6 +149,10 @@ export const RampsRegions = {
     emoji: '🇺🇸',
     id: '/regions/us-ca',
     name: 'California',
+    countryName: 'United States',
+    countryIsoCode: 'US',
+    stateName: 'California',
+    stateIsoCode: 'CA',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,
@@ -142,6 +163,8 @@ export const RampsRegions = {
     emoji: '🇪🇸',
     id: '/regions/es',
     name: 'Spain',
+    countryName: 'Spain',
+    countryIsoCode: 'ES',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,

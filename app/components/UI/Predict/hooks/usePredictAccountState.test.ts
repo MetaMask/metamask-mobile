@@ -25,6 +25,18 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+
+const mockDevLoggerLog = DevLogger.log as jest.Mock;
+
+// Mock usePredictNetworkManagement
+const mockEnsurePolygonNetworkExists = jest.fn().mockResolvedValue(undefined);
+jest.mock('./usePredictNetworkManagement', () => ({
+  usePredictNetworkManagement: () => ({
+    ensurePolygonNetworkExists: mockEnsurePolygonNetworkExists,
+  }),
+}));
+
 import { useFocusEffect } from '@react-navigation/native';
 
 const mockGetAccountState = Engine.context.PredictController
@@ -40,12 +52,11 @@ describe('usePredictAccountState', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset useFocusEffect to do nothing by default
     mockUseFocusEffect.mockImplementation(() => {
       // Default no-op implementation
     });
-    // Provide a default resolved value to prevent crashes
     mockGetAccountState.mockResolvedValue(mockAccountState);
+    mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -78,9 +89,7 @@ describe('usePredictAccountState', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(mockGetAccountState).toHaveBeenCalledWith({
-        providerId: 'polymarket',
-      });
+      expect(mockGetAccountState).toHaveBeenCalledWith({});
       expect(result.current.address).toEqual(mockAccountState.address);
     });
 
@@ -118,23 +127,19 @@ describe('usePredictAccountState', () => {
       });
 
       // Assert
-      expect(mockGetAccountState).toHaveBeenCalledWith({
-        providerId: 'polymarket',
-      });
+      expect(mockGetAccountState).toHaveBeenCalledWith({});
       expect(result.current.address).toEqual(mockAccountState.address);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
-    it('uses custom providerId when specified', async () => {
+    it('loads account state when requested', async () => {
       // Arrange
       mockGetAccountState.mockResolvedValue(mockAccountState);
-      const customProviderId = 'custom-provider';
 
       // Act
       const { result } = renderHook(() =>
         usePredictAccountState({
-          providerId: customProviderId,
           loadOnMount: false,
         }),
       );
@@ -144,9 +149,7 @@ describe('usePredictAccountState', () => {
       });
 
       // Assert
-      expect(mockGetAccountState).toHaveBeenCalledWith({
-        providerId: customProviderId,
-      });
+      expect(mockGetAccountState).toHaveBeenCalledWith({});
     });
 
     it('handles errors when loading account state', async () => {
@@ -245,6 +248,67 @@ describe('usePredictAccountState', () => {
       expect(result.current.error).toBeNull();
       expect(result.current.address).toEqual(mockAccountState.address);
     });
+
+    it('calls ensurePolygonNetworkExists before loading account state', async () => {
+      // Arrange
+      mockGetAccountState.mockResolvedValue(mockAccountState);
+
+      // Act
+      const { result } = renderHook(() =>
+        usePredictAccountState({ loadOnMount: false }),
+      );
+
+      await act(async () => {
+        await result.current.loadAccountState();
+      });
+
+      // Assert
+      expect(mockEnsurePolygonNetworkExists).toHaveBeenCalledTimes(1);
+      expect(mockGetAccountState).toHaveBeenCalled();
+    });
+
+    it('continues loading account state when ensurePolygonNetworkExists fails', async () => {
+      // Arrange
+      const networkError = new Error('Failed to add Polygon network');
+      mockEnsurePolygonNetworkExists.mockRejectedValue(networkError);
+      mockGetAccountState.mockResolvedValue(mockAccountState);
+
+      // Act
+      const { result } = renderHook(() =>
+        usePredictAccountState({ loadOnMount: false }),
+      );
+
+      await act(async () => {
+        await result.current.loadAccountState();
+      });
+
+      // Assert - account state should still be loaded despite network error
+      expect(result.current.address).toEqual(mockAccountState.address);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBeNull();
+    });
+
+    it('logs error when ensurePolygonNetworkExists fails', async () => {
+      // Arrange
+      const networkError = new Error('Failed to add Polygon network');
+      mockEnsurePolygonNetworkExists.mockRejectedValue(networkError);
+      mockGetAccountState.mockResolvedValue(mockAccountState);
+
+      // Act
+      const { result } = renderHook(() =>
+        usePredictAccountState({ loadOnMount: false }),
+      );
+
+      await act(async () => {
+        await result.current.loadAccountState();
+      });
+
+      // Assert - DevLogger should have been called with network error
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        'usePredictAccountState: Failed to ensure Polygon network exists',
+        networkError,
+      );
+    });
   });
 
   describe('refresh functionality', () => {
@@ -308,9 +372,9 @@ describe('usePredictAccountState', () => {
       expect(focusCallback).not.toBeNull();
 
       // Simulate screen focus
-      await act(async () => {
+      act(() => {
         if (focusCallback) {
-          await focusCallback();
+          focusCallback();
         }
       });
 
@@ -319,7 +383,7 @@ describe('usePredictAccountState', () => {
       });
     });
 
-    it('does not refresh on focus when refreshOnFocus is false', async () => {
+    it('does not refresh on focus when refreshOnFocus is false', () => {
       // Arrange
       mockGetAccountState.mockResolvedValue(mockAccountState);
       let focusCallback: (() => void) | null = null;
@@ -344,9 +408,9 @@ describe('usePredictAccountState', () => {
       expect(mockUseFocusEffect).toHaveBeenCalledTimes(1);
 
       // Simulate screen focus if callback was provided
-      await act(async () => {
+      act(() => {
         if (focusCallback) {
-          await focusCallback();
+          focusCallback();
         }
       });
 
@@ -558,7 +622,7 @@ describe('usePredictAccountState', () => {
   });
 
   describe('default parameters', () => {
-    it('uses polymarket as default providerId', async () => {
+    it('uses empty options object by default', async () => {
       // Arrange
       mockGetAccountState.mockResolvedValue(mockAccountState);
 
@@ -572,9 +636,7 @@ describe('usePredictAccountState', () => {
       });
 
       // Assert
-      expect(mockGetAccountState).toHaveBeenCalledWith({
-        providerId: 'polymarket',
-      });
+      expect(mockGetAccountState).toHaveBeenCalledWith({});
     });
 
     it('uses true as default for loadOnMount', async () => {

@@ -9,6 +9,7 @@ tailwind.config.js                   @MetaMask/design-system-engineers
 .github/                                                    @MetaMask/mobile-platform
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
 patches/                                                    @MetaMask/mobile-platform
+.github/actions/configure-signing/action.yml                @MetaMask/mobile-platform
 app/core/Analytics/index.ts                                 @MetaMask/mobile-platform
 app/core/Analytics/MetaMetrics.constants.ts                 @MetaMask/mobile-platform
 app/core/Analytics/MetaMetrics.test.ts                      @MetaMask/mobile-platform
@@ -50,6 +51,9 @@ certs/certificate.pem                                       @MetaMask/mobile-adm
 ios/fastlane/                                               @MetaMask/mobile-admins
 scripts/setup-app-store-connect-api-key.sh                  @MetaMask/mobile-admins
 scripts/upload-to-testflight.sh                             @MetaMask/mobile-admins
+scripts/set-secrets-from-config.js                          @MetaMask/mobile-admins
+builds.yml                                                  @MetaMask/mobile-admins
+
 
 # Platform & Snaps Code Fencing File
 metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
@@ -61,6 +65,9 @@ app/core/Engine/controllers/ramps-controller           @MetaMask/ramp
 app/core/Engine/messengers/ramps-controller-messenger  @MetaMask/ramp
 app/core/Engine/messengers/ramps-service-messenger     @MetaMask/ramp
 app/selectors/rampsController                          @MetaMask/ramp
+**/Ramp/**                                              @MetaMask/ramp
+**/ramp/**                                              @MetaMask/ramp
+**/ramps/**                                             @MetaMask/ramp
 
 # Card Team
 app/components/UI/Card/              @MetaMask/card
@@ -123,10 +130,6 @@ app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
 ses.cjs                              @MetaMask/supply-chain
 patches/react-native+0.*.patch       @MetaMask/supply-chain
 
-# Portfolio Team
-app/components/hooks/useTokenSearchDiscovery @MetaMask/portfolio
-app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
-
 # Core Platform Team
 **/snaps/**                          @MetaMask/core-platform
 **/Snaps/**                          @MetaMask/core-platform
@@ -187,6 +190,7 @@ app/components/UI/CollectibleOverview @MetaMask/metamask-assets
 app/components/UI/ConfirmAddAsset @MetaMask/metamask-assets
 app/components/UI/DeFiPositions @MetaMask/metamask-assets
 app/components/UI/Tokens @MetaMask/metamask-assets
+app/components/UI/TokenDetails @MetaMask/metamask-assets
 app/components/Views/AddAsset @MetaMask/metamask-assets
 app/components/Views/Asset @MetaMask/metamask-assets
 app/components/Views/AssetDetails @MetaMask/metamask-assets
@@ -217,6 +221,7 @@ app/components/Views/Settings                    @MetaMask/mobile-core-ux
 app/components/Views/TermsAndConditions          @MetaMask/mobile-core-ux
 app/components/Views/MultichainTransactionsView  @MetaMask/mobile-core-ux
 app/components/Views/UnifiedTransactionsView     @MetaMask/mobile-core-ux
+app/components/Views/AccountsMenu                @MetaMask/mobile-core-ux
 app/components/UI/MultichainTransactionListItem  @MetaMask/mobile-core-ux
 app/components/UI/TransactionActionModal         @MetaMask/mobile-core-ux
 app/components/UI/TransactionElement             @MetaMask/mobile-core-ux
@@ -245,11 +250,11 @@ app/core/Engine/messengers/gator-permissions-controller-messenger     @MetaMask/
 
 # QA Team - E2E Framework
 tests/api-mocking/                             @MetaMask/qa
-e2e/fixtures/                                @MetaMask/qa
 tests/framework/                               @MetaMask/qa
-e2e/pages/                                   @MetaMask/qa
-e2e/utils/                                   @MetaMask/qa
-e2e/viewHelper.ts                            @MetaMask/qa
+tests/page-objects/                            @MetaMask/qa
+tests/flows/                                   @MetaMask/qa
+# Note: Test builds (main-test, flask-test) in build/builds.yml are owned by QA team
+# but the file itself is protected by mobile-platform for consistency
 
 # Co-owned by Swaps and Ramps teams
 app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/ramp
