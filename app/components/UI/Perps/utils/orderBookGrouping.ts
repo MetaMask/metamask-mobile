@@ -17,7 +17,8 @@ export interface AggregationParams {
 /**
  * Calculate nSigFigs and mantissa based on grouping and price.
  * These parameters match Hyperliquid's L2Book API aggregation:
- * - nSigFigs: 5, mantissa: 2 → finest granularity (~$1-2 for BTC)
+ * - nSigFigs: 5 (no mantissa) → finest granularity (~$1 for BTC)
+ * - nSigFigs: 5, mantissa: 2 → ~$2 increments for BTC
  * - nSigFigs: 5, mantissa: 5 → ~$5 increments for BTC
  * - nSigFigs: 4 → ~$10 increments for BTC
  * - nSigFigs: 3 → ~$100 increments for BTC
@@ -43,9 +44,10 @@ export function calculateAggregationParams(
   const baseNSigFigs = magnitude - groupingMagnitude + 1;
 
   if (baseNSigFigs >= 5) {
-    // Finest granularity needs mantissa
-    // Derive mantissa from the first digit of grouping
     const firstDigit = Math.floor(grouping / Math.pow(10, groupingMagnitude));
+    if (firstDigit <= 1) {
+      return { nSigFigs: 5 };
+    }
     const mantissa = firstDigit <= 2 ? 2 : 5;
     return { nSigFigs: 5, mantissa };
   }
