@@ -23,7 +23,7 @@ export interface PayPostQuoteConfig {
 
 export interface PayPostQuoteFlags {
   default: PayPostQuoteConfig;
-  override?: Record<string, PayPostQuoteConfig>;
+  overrides?: Record<string, PayPostQuoteConfig>;
 }
 
 export interface GasFeeTokenFlags {
@@ -76,7 +76,7 @@ const PAY_POST_QUOTE_DEFAULT: PayPostQuoteConfig = {
 
 interface RawPayPostQuoteFlag {
   default?: PayPostQuoteConfig;
-  override?: Record<string, PayPostQuoteConfig>;
+  overrides?: Record<string, PayPostQuoteConfig>;
 }
 
 export const selectPayPostQuoteFlags = createSelector(
@@ -93,7 +93,7 @@ export const selectPayPostQuoteFlags = createSelector(
 
     return {
       default: defaultConfig,
-      override: raw?.override,
+      overrides: raw?.overrides,
     };
   },
 );
@@ -110,7 +110,7 @@ export function resolvePayPostQuoteConfig(
     return PAY_POST_QUOTE_DEFAULT;
   }
 
-  const override = overrideKey ? flags.override?.[overrideKey] : undefined;
+  const override = overrideKey ? flags.overrides?.[overrideKey] : undefined;
 
   if (!override) {
     return flags.default;

@@ -264,7 +264,7 @@ describe('selectPayPostQuoteFlags', () => {
     const result = selectPayPostQuoteFlags(mockedEmptyFlagsState);
 
     expect(result.default).toEqual({ enabled: false, tokens: undefined });
-    expect(result.override).toBeUndefined();
+    expect(result.overrides).toBeUndefined();
   });
 
   it('returns default config from feature flag', () => {
@@ -292,16 +292,16 @@ describe('selectPayPostQuoteFlags', () => {
         '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       ],
     });
-    expect(result.override).toBeUndefined();
+    expect(result.overrides).toBeUndefined();
   });
 
-  it('returns override configs from feature flag', () => {
+  it('returns overrides configs from feature flag', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
         confirmations_pay_post_quote: {
           default: { enabled: true },
-          override: {
+          overrides: {
             predictWithdraw: {
               enabled: true,
               tokens: {
@@ -316,25 +316,24 @@ describe('selectPayPostQuoteFlags', () => {
       };
 
     const result = selectPayPostQuoteFlags(state);
-    expect(result.override?.predictWithdraw).toEqual({
+    expect(result.overrides?.predictWithdraw).toEqual({
       enabled: true,
       tokens: {
         '0x89': ['0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'],
       },
     });
-    expect(result.override?.perpsWithdraw).toEqual({
+    expect(result.overrides?.perpsWithdraw).toEqual({
       enabled: false,
-      tokens: undefined,
     });
   });
 
-  it('preserves undefined enabled in override when omitted from remote config', () => {
+  it('preserves undefined enabled in overrides when omitted from remote config', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
         confirmations_pay_post_quote: {
           default: { enabled: true },
-          override: {
+          overrides: {
             predictWithdraw: {
               tokens: {
                 '0x1': ['0xaaa'],
@@ -345,8 +344,8 @@ describe('selectPayPostQuoteFlags', () => {
       };
 
     const result = selectPayPostQuoteFlags(state);
-    expect(result.override?.predictWithdraw.enabled).toBeUndefined();
-    expect(result.override?.predictWithdraw.tokens).toEqual({
+    expect(result.overrides?.predictWithdraw.enabled).toBeUndefined();
+    expect(result.overrides?.predictWithdraw.tokens).toEqual({
       '0x1': ['0xaaa'],
     });
   });
@@ -360,7 +359,7 @@ describe('resolvePayPostQuoteConfig', () => {
         '0x1': ['0xaaa' as Hex],
       },
     },
-    override: {
+    overrides: {
       predictWithdraw: {
         enabled: true,
         tokens: {
@@ -401,7 +400,7 @@ describe('resolvePayPostQuoteConfig', () => {
         enabled: true,
         tokens: { '0x1': ['0xaaa' as Hex] },
       },
-      override: {
+      overrides: {
         predictWithdraw: {
           tokens: { '0x89': ['0xbbb' as Hex] },
         },
