@@ -217,24 +217,18 @@ jest.mock('../../hooks/useSendNonEvmAsset', () => ({
   useSendNonEvmAsset: jest.fn(),
 }));
 
-// Mock useMetrics hook
+// Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
-jest.mock('../../../components/hooks/useMetrics', () => {
-  const actualMetrics = jest.requireActual(
-    '../../../components/hooks/useMetrics',
-  );
-  return {
-    ...actualMetrics,
-    useMetrics: jest.fn(() => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    })),
-  };
-});
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  })),
+}));
 
 const mockAddPopularNetwork = jest
   .fn()
