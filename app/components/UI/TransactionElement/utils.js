@@ -274,7 +274,8 @@ function getPostQuoteDisplay(tx, currentCurrency) {
       state,
       destChainId,
     );
-    const tokenExchangeRate = contractRates?.[metamaskPay.tokenAddress]?.price;
+    const tokenExchangeRate =
+      contractRates?.[toChecksumAddress(metamaskPay.tokenAddress)]?.price;
     if (tokenExchangeRate) {
       tokenUsdRate = tokenExchangeRate * nativeUsdRate;
     }
