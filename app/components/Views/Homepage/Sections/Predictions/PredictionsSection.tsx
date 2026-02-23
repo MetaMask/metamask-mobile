@@ -33,7 +33,7 @@ import {
   PredictPositionRowSkeleton,
   ViewMoreCard,
 } from './components';
-import { colorWithOpacity } from './utils';
+import { colorWithOpacity } from '../../../../../util/colors';
 import type { PredictPosition } from '../../../../UI/Predict/types';
 import type { PredictNavigationParamList } from '../../../../UI/Predict/types/navigation';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';

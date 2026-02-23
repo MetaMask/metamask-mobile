@@ -1,6 +1,10 @@
 /**
  * Converts any color format to RGBA with specified opacity.
- * Handles: 6-char hex, 8-char hex, 3-char hex, RGB, RGBA
+ * Handles: 6-char hex, 8-char hex, 3-char hex, 4-char hex, RGB, RGBA
+ *
+ * @param color - Color string in any supported format
+ * @param opacity - Opacity value between 0 and 1
+ * @returns RGBA color string
  */
 export const colorWithOpacity = (color: string, opacity: number): string => {
   const trimmedColor = color.trim();
