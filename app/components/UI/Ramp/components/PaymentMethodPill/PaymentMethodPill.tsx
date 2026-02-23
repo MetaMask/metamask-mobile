@@ -31,14 +31,21 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
   isLoading = false,
   testID = 'payment-method-pill',
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet);
   const { colors } = useTheme();
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]} testID={testID}>
+        <ActivityIndicator size="small" color={colors.icon.inverse} />
+      </View>
+    );
+  }
 
   return (
     <TouchableOpacity
       style={styles.container}
-      onPress={isLoading ? undefined : onPress}
-      disabled={isLoading}
+      onPress={onPress}
       testID={testID}
       activeOpacity={0.7}
     >
@@ -53,15 +60,11 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
         {label}
       </Text>
       <View style={styles.arrowWrapper}>
-        {isLoading ? (
-          <ActivityIndicator size="small" color={colors.icon.default} />
-        ) : (
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Sm}
-            color={IconColor.Default}
-          />
-        )}
+        <Icon
+          name={IconName.ArrowDown}
+          size={IconSize.Sm}
+          color={IconColor.Default}
+        />
       </View>
     </TouchableOpacity>
   );
