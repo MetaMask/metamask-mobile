@@ -16,7 +16,7 @@ jest.mock('../../framework/logger.ts', () => ({
 
 import fs from 'fs';
 import { JsonReportGenerator } from './JsonReportGenerator';
-import type { ReportData, MetricsEntry } from '../types';
+import type { ReportData, MetricsEntry, FailedTestEntry } from '../types';
 
 const mockWriteFileSync = fs.writeFileSync as jest.Mock;
 
@@ -131,7 +131,7 @@ describe('JsonReportGenerator', () => {
               qualityGates: {
                 passed: false,
                 hasThresholds: true,
-              } as MetricsEntry['qualityGates'],
+              } as FailedTestEntry['qualityGates'],
               failureReason: 'test_error',
             },
           ],
