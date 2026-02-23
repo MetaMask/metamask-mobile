@@ -93,6 +93,16 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   />
   <Screen
     component={[Function]}
+    name="RWATokensFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="Webview"
   />
   <Screen
@@ -450,6 +460,16 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   />
   <Screen
     component={[Function]}
+    name="RWATokensFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="Webview"
   />
   <Screen
@@ -798,6 +818,16 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="TrendingTokensFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="RWATokensFullView"
     options={
       {
         "animationEnabled": true,

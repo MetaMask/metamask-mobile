@@ -35,8 +35,9 @@ import type { TrendingFilterContext } from '../../UI/Trending/components/Trendin
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
+import { useRwaTokens } from '../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
 
-export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
+export type SectionId = 'predictions' | 'tokens' | 'perps' | 'stocks' | 'sites';
 
 interface SectionData {
   data: unknown[];
@@ -253,6 +254,34 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       };
     },
   },
+  stocks: {
+    id: 'stocks',
+    title: strings('trending.stocks'),
+    icon: IconName.Ethereum, // TODO juan
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW);
+    },
+    RowItem: ({ item, index }) => (
+      <TrendingTokenRowItem
+        token={item as TrendingAsset}
+        position={index}
+        filterContext={DEFAULT_TOKENS_FILTER_CONTEXT}
+      />
+    ),
+    OverrideRowItemSearch: ({ item, index }) => (
+      <TrendingTokenRowItem
+        token={item as TrendingAsset}
+        position={index}
+        filterContext={SEARCH_TOKENS_FILTER_CONTEXT}
+      />
+    ),
+    Skeleton: TrendingTokensSkeleton,
+    Section: SectionCard,
+    useSectionData: () => {
+      const { data, isLoading, refetch } = useRwaTokens();
+      return { data, isLoading, refetch };
+    },
+  },
   predictions: {
     id: 'predictions',
     title: strings('wallet.predict'),
@@ -319,6 +348,7 @@ const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
+  SECTIONS_CONFIG.stocks,
   SECTIONS_CONFIG.sites,
 ];
 
@@ -326,6 +356,7 @@ const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
 const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
+  SECTIONS_CONFIG.stocks,
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.sites,
 ];
@@ -371,6 +402,9 @@ export const useSectionsData = (
   const { data: perpsMarkets, isLoading: isPerpsLoading } =
     SECTIONS_CONFIG.perps.useSectionData(searchQuery);
 
+  const { data: stocks, isLoading: isStocksLoading } =
+    SECTIONS_CONFIG.stocks.useSectionData();
+
   const { data: predictionMarkets, isLoading: isPredictionsLoading } =
     SECTIONS_CONFIG.predictions.useSectionData(searchQuery);
 
@@ -379,12 +413,19 @@ export const useSectionsData = (
 
   return {
     tokens: {
-      data: trendingTokens,
+      data: trendingTokens.filter((item) => !(item as TrendingAsset).rwaData),
       isLoading: isTokensLoading,
     },
     perps: {
       data: perpsMarkets,
       isLoading: isPerpsLoading,
+    },
+    stocks: {
+      // Avoids making 2 API calls to the search endpoint when searching on the main search
+      data: searchQuery
+        ? trendingTokens.filter((item) => (item as TrendingAsset).rwaData)
+        : stocks,
+      isLoading: searchQuery ? isTokensLoading : isStocksLoading,
     },
     predictions: {
       data: predictionMarkets,

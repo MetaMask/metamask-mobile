@@ -5,35 +5,29 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import {
-  Platform,
-  StyleSheet,
-  View,
-  TouchableOpacity,
-  RefreshControl,
-} from 'react-native';
+import { Platform, View, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useAppThemeFromContext } from '../../../../util/theme';
-import { Theme } from '../../../../util/theme/models';
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useAppThemeFromContext } from '../../../../../util/theme';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import Icon, {
   IconName,
   IconColor,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../locales/i18n';
-import { TrendingListHeader } from '../../../UI/Trending/components/TrendingListHeader';
+} from '../../../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../../../locales/i18n';
+import { TrendingListHeader } from '../../components/TrendingListHeader';
 import TrendingTokensList, {
   TrendingFilterContext,
-} from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
-import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
+} from '../../components/TrendingTokensList/TrendingTokensList';
+import TrendingTokensSkeleton from '../../components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import {
   SortTrendingBy,
   type TrendingAsset,
 } from '@metamask/assets-controllers';
 import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
-import { PopularList } from '../../../../util/networks/customNetworks';
-import Text from '../../../../component-library/components/Texts/Text';
+import { PopularList } from '../../../../../util/networks/customNetworks';
+import Text from '../../../../../component-library/components/Texts/Text';
 import {
   TrendingTokenTimeBottomSheet,
   TrendingTokenNetworkBottomSheet,
@@ -41,93 +35,18 @@ import {
   PriceChangeOption,
   SortDirection,
   TimeOption,
-} from '../../../UI/Trending/components/TrendingTokensBottomSheet';
-import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
-import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
-import EmptyErrorTrendingState from '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
-import EmptySearchResultState from '../../TrendingView/components/EmptyErrorState/EmptySearchResultState';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import TrendingFeedSessionManager from '../../../UI/Trending/services/TrendingFeedSessionManager';
-import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
+} from '../../components/TrendingTokensBottomSheet';
+import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
+import { useTrendingSearch } from '../../hooks/useTrendingSearch/useTrendingSearch';
+import EmptyErrorTrendingState from '../../../../Views/TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
+import EmptySearchResultState from '../../../../Views/TrendingView/components/EmptyErrorState/EmptySearchResultState';
+import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
+import { useSearchTracking } from '../../hooks/useSearchTracking/useSearchTracking';
+import type { Theme } from '../../../../../util/theme/models';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
 }
-
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      backgroundColor: theme.colors.background.default,
-    },
-    headerContainer: {
-      backgroundColor: theme.colors.background.default,
-    },
-    cardContainer: {
-      margin: 16,
-      borderRadius: 16,
-      backgroundColor: theme.colors.background.muted,
-      padding: 16,
-    },
-    controlBarWrapper: {
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      flexGrow: 0,
-    },
-    controlButtonOuterWrapper: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    controlButtonInnerWrapper: {
-      flexDirection: 'row',
-      gap: 8,
-      alignItems: 'center',
-      flexShrink: 1,
-      marginLeft: 8,
-      minWidth: 0,
-    },
-    controlButton: {
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      alignItems: 'center',
-      borderRadius: 8,
-      backgroundColor: theme.colors.background.muted,
-    },
-    controlButtonRight: {
-      padding: 8,
-      alignItems: 'center',
-      borderRadius: 8,
-      backgroundColor: theme.colors.background.muted,
-      flexShrink: 1,
-      minWidth: 0,
-    },
-    controlButtonRightFixed: {
-      padding: 8,
-      alignItems: 'center',
-      borderRadius: 8,
-      backgroundColor: theme.colors.background.muted,
-      flexShrink: 0,
-    },
-    controlButtonContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 4,
-    },
-    controlButtonText: {
-      color: theme.colors.text.default,
-      fontSize: 14,
-      fontWeight: '600',
-      lineHeight: 19.6, // 140% of 14px
-      fontStyle: 'normal',
-      flexShrink: 1,
-      minWidth: 0,
-    },
-    controlButtonDisabled: {
-      opacity: 0.5,
-    },
-  });
 
 export interface TrendingTokensDataProps {
   isLoading: boolean;
@@ -205,8 +124,8 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
 const TrendingTokensFullView = () => {
   const navigation =
     useNavigation<StackNavigationProp<TrendingTokensNavigationParamList>>();
+  const tw = useTailwind();
   const theme = useAppThemeFromContext();
-  const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const sessionManager = TrendingFeedSessionManager.getInstance();
   const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(undefined);
@@ -311,14 +230,12 @@ const TrendingTokensFullView = () => {
     }
 
     // Sort using the shared utility function
-    const sorted = sortTrendingTokens(
+    return sortTrendingTokens(
       searchResults,
       selectedPriceChangeOption,
       priceChangeSortDirection,
       selectedTimeOption,
     );
-
-    return sorted;
   }, [
     searchResults,
     searchQuery,
@@ -489,19 +406,12 @@ const TrendingTokensFullView = () => {
 
   return (
     <SafeAreaView
-      style={styles.safeArea}
+      style={tw`flex-1 bg-default`}
       edges={
         Platform.OS === 'ios' ? ['left', 'right'] : ['left', 'right', 'bottom']
       }
     >
-      <View
-        style={[
-          styles.headerContainer,
-          {
-            paddingTop: insets.top,
-          },
-        ]}
-      >
+      <View style={tw.style('bg-default', { paddingTop: insets.top })}>
         <TrendingListHeader
           title={strings('trending.trending_tokens')}
           isSearchVisible={isSearchVisible}
@@ -513,20 +423,22 @@ const TrendingTokensFullView = () => {
         />
       </View>
       {!isSearchVisible ? (
-        <View style={styles.controlBarWrapper}>
-          <View style={styles.controlButtonOuterWrapper}>
+        <View style={tw`flex-grow-0 p-4`}>
+          <View style={tw`flex-row items-center justify-between`}>
             <TouchableOpacity
               testID="price-change-button"
               onPress={handlePriceChangePress}
-              style={[
-                styles.controlButton,
-                searchResults.length === 0 && styles.controlButtonDisabled,
-              ]}
+              style={tw.style(
+                'items-center rounded-lg bg-muted py-2 px-3',
+                searchResults.length === 0 && 'opacity-50',
+              )}
               activeOpacity={0.2}
               disabled={searchResults.length === 0}
             >
-              <View style={styles.controlButtonContent}>
-                <Text style={styles.controlButtonText}>
+              <View style={tw`flex-row items-center justify-center gap-1`}>
+                <Text
+                  style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}
+                >
                   {priceChangeButtonText}
                 </Text>
                 <Icon
@@ -536,16 +448,16 @@ const TrendingTokensFullView = () => {
                 />
               </View>
             </TouchableOpacity>
-            <View style={styles.controlButtonInnerWrapper}>
+            <View style={tw`ml-2 min-w-0 shrink flex-row items-center gap-2`}>
               <TouchableOpacity
                 testID="all-networks-button"
                 onPress={handleAllNetworksPress}
-                style={styles.controlButtonRight}
+                style={tw`min-w-0 shrink items-center rounded-lg bg-muted p-2`}
                 activeOpacity={0.2}
               >
-                <View style={styles.controlButtonContent}>
+                <View style={tw`flex-row items-center justify-center gap-1`}>
                   <Text
-                    style={styles.controlButtonText}
+                    style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}
                     numberOfLines={1}
                     ellipsizeMode="tail"
                   >
@@ -561,15 +473,17 @@ const TrendingTokensFullView = () => {
               <TouchableOpacity
                 testID="24h-button"
                 onPress={handle24hPress}
-                style={[
-                  styles.controlButtonRightFixed,
-                  searchQuery?.trim() && styles.controlButtonDisabled,
-                ]}
+                style={tw.style(
+                  'shrink-0 items-center rounded-lg bg-muted p-2',
+                  searchQuery?.trim() && 'opacity-50',
+                )}
                 activeOpacity={0.2}
                 disabled={!!searchQuery?.trim()}
               >
-                <View style={styles.controlButtonContent}>
-                  <Text style={styles.controlButtonText}>
+                <View style={tw`flex-row items-center justify-center gap-1`}>
+                  <Text
+                    style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}
+                  >
                     {selectedTimeOption}
                   </Text>
                   <Icon
