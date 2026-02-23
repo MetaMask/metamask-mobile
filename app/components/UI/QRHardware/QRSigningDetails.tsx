@@ -1,16 +1,6 @@
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import Engine from '../../../core/Engine';
-import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  // eslint-disable-next-line react-native/split-platform-components
-  PermissionsAndroid,
-  Linking,
-  AppState,
-  AppStateStatus,
-} from 'react-native';
+import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AnimatedQRCode from './AnimatedQRCode';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
@@ -25,7 +15,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
-import Device from '../../../util/device';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
 
@@ -39,7 +28,6 @@ interface IQRSigningDetails {
   tighten?: boolean;
   showHint?: boolean;
   shouldStartAnimated?: boolean;
-  bypassAndroidCameraAccessCheck?: boolean;
   fromAddress: string;
 }
 
@@ -120,7 +108,6 @@ const QRSigningDetails = ({
   tighten = false,
   showHint = true,
   shouldStartAnimated = true,
-  bypassAndroidCameraAccessCheck = true,
   fromAddress,
 }: IQRSigningDetails) => {
   const { colors } = useTheme();
@@ -130,63 +117,6 @@ const QRSigningDetails = ({
   const [scannerVisible, setScannerVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [shouldPause, setShouldPause] = useState(false);
-  const [cameraError, setCameraError] = useState('');
-
-  // ios handled camera perfectly in this situation, we just need to check permission with android.
-  const [hasCameraPermission, setCameraPermission] = useState(
-    Device.isIos() || bypassAndroidCameraAccessCheck,
-  );
-
-  const checkAndroidCamera = useCallback(async () => {
-    if (!Device.isAndroid() || hasCameraPermission) {
-      return;
-    }
-
-    const alreadyGranted = await PermissionsAndroid.check(
-      PermissionsAndroid.PERMISSIONS.CAMERA,
-    );
-
-    if (alreadyGranted) {
-      setCameraPermission(true);
-      setCameraError('');
-      return;
-    }
-
-    const requestResult = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.CAMERA,
-    );
-    const granted = requestResult === PermissionsAndroid.RESULTS.GRANTED;
-
-    setCameraPermission(granted);
-    if (!granted) {
-      setCameraError(strings('transaction.no_camera_permission_android'));
-    } else {
-      setCameraError('');
-    }
-  }, [hasCameraPermission]);
-
-  const handleAppState = useCallback(
-    (appState: AppStateStatus) => {
-      if (appState === 'active') {
-        checkAndroidCamera();
-      }
-    },
-    [checkAndroidCamera],
-  );
-
-  useEffect(() => {
-    checkAndroidCamera();
-  }, [checkAndroidCamera]);
-
-  useEffect(() => {
-    const appStateListener = AppState.addEventListener(
-      'change',
-      handleAppState,
-    );
-    return () => {
-      appStateListener.remove();
-    };
-  }, [handleAppState]);
 
   const [hasSentOrCanceled, setSentOrCanceled] = useState(false);
 
@@ -282,23 +212,12 @@ const QRSigningDetails = ({
       </Alert>
     );
 
-  const renderCameraAlert = () =>
-    cameraError !== '' && (
-      <Alert
-        type={AlertType.Error}
-        style={styles.alert}
-        onPress={Linking.openSettings}
-      >
-        <Text style={styles.errorText}>{cameraError}</Text>
-      </Alert>
-    );
-
   return (
     <Fragment>
       {pendingScanRequest?.request && (
         <ScrollView contentContainerStyle={styles.wrapper}>
           <ActionView
-            confirmDisabled={!hasCameraPermission}
+            confirmDisabled={false}
             showCancelButton={showCancelButton}
             confirmButtonMode={confirmButtonMode}
             cancelText={strings('transaction.reject')}
@@ -319,7 +238,6 @@ const QRSigningDetails = ({
                 />
               </View>
               {renderAlert()}
-              {renderCameraAlert()}
               <View
                 style={[
                   styles.title,
