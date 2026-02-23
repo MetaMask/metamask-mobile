@@ -13,6 +13,7 @@ import {
   isEthAppNotOpenErrorMessage,
   isDisconnectError,
 } from '../../../core/Ledger/ledgerErrors';
+import loadBleTransport from './loadBleTransport';
 
 class LedgerError extends Error {
   public readonly code: LedgerCommunicationErrors;
@@ -85,12 +86,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
 
     if (!transportRef.current && deviceId) {
       try {
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const BluetoothTransport: any = await import(
-          '@ledgerhq/react-native-hw-transport-ble'
-        );
-        transportRef.current = await BluetoothTransport.default.open(deviceId);
+        transportRef.current = await loadBleTransport(deviceId);
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         transportRef.current?.on('disconnect', () => {

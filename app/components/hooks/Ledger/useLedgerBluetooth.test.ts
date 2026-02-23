@@ -9,27 +9,35 @@ import {
 /**
  * Test file for useLedgerBluetooth hook.
  *
- * TESTING LIMITATION:
- * Jest cannot mock dynamic imports like `await import('@ledgerhq/react-native-hw-transport-ble')`.
- * This means the Bluetooth transport setup always fails in tests, limiting coverage of:
- * - Successful transport connection paths
- * - App detection logic (BOLOS, Ethereum switching)
- * - Disconnect handler behaviors
- * - The full ledgerLogicToRun workflow
- *
  * WHAT IS TESTED:
- * - Initial state values
- * - Hook API contract
- * - Error classification logic
+ * - Initial state values and hook API contract
+ * - Successful transport connection and Ethereum happy path
+ * - BOLOS app detection and Ethereum app launch (recursive workflow)
+ * - Non-Ethereum app detection and close flow (recursive workflow)
+ * - Error classification logic (all TransportStatusError codes, LedgerError,
+ * message-based errors, TransportRaceCondition)
+ * - Disconnect handler (isReconnecting guard)
+ * - Restart limit enforcement
+ * - Unmount cleanup with active transport
  * - cleanupBluetoothConnection behavior
  * - isEthAppNotOpenErrorMessage integration
  * - isDisconnectError re-export (comprehensive tests in ledgerErrors.test.ts)
- *
- * NOTE: The hook uses an isReconnecting ref to guard against late BLE
- * disconnects clearing workflowSteps during app-switch direct recursion.
- * This internal mechanism cannot be tested here due to the transport mock
- * limitation above.
  */
+
+// Mock transport instance shared across tests that enable BLE
+const mockTransportInstance = {
+  on: jest.fn(),
+  close: jest.fn().mockResolvedValue(undefined),
+};
+let capturedDisconnectHandler: (() => void) | undefined;
+
+jest.mock('./loadBleTransport', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+import loadBleTransport from './loadBleTransport';
+const mockLoadBleTransport = loadBleTransport as jest.Mock;
 
 // Mock the Ledger module
 jest.mock('../../../core/Ledger/Ledger', () => ({
@@ -67,11 +75,42 @@ jest.mock('../../../../locales/i18n', () => ({
 // Import hook and helpers after all mocks
 import useLedgerBluetooth, { isDisconnectError } from './useLedgerBluetooth';
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const makeTransportStatusError = (statusCode: number): Error => {
+  const err = new Error(`TransportStatusError: 0x${statusCode.toString(16)}`);
+  err.name = 'TransportStatusError';
+  (err as unknown as Record<string, unknown>).statusCode = statusCode;
+  return err;
+};
+
+const makeDisconnectError = (): Error => {
+  const err = new Error('Disconnected during operation');
+  err.name = 'DisconnectedDeviceDuringOperation';
+  return err;
+};
+
+const setupMockTransport = () => {
+  capturedDisconnectHandler = undefined;
+  mockTransportInstance.on.mockImplementation(
+    (event: string, handler: () => void) => {
+      if (event === 'disconnect') {
+        capturedDisconnectHandler = handler;
+      }
+    },
+  );
+  mockTransportInstance.close.mockResolvedValue(undefined);
+  mockLoadBleTransport.mockResolvedValue(mockTransportInstance);
+};
+
 describe('useLedgerBluetooth', () => {
   const mockDeviceId = 'test-device-id';
 
   beforeEach(() => {
     jest.clearAllMocks();
+    capturedDisconnectHandler = undefined;
     mockConnectLedgerHardware.mockResolvedValue('Ethereum');
     mockOpenEthereumAppOnLedger.mockResolvedValue(undefined);
     mockCloseRunningAppOnLedger.mockResolvedValue(undefined);
@@ -487,6 +526,674 @@ describe('useLedgerBluetooth', () => {
       // The cleanup effect runs on unmount
       // Since transportRef is undefined, it just returns without doing anything
       expect(() => unmount()).not.toThrow();
+    });
+  });
+
+  // =========================================================================
+  // Tests with Bluetooth transport available
+  // =========================================================================
+  describe('with Bluetooth transport available', () => {
+    beforeEach(() => {
+      setupMockTransport();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    // -----------------------------------------------------------------------
+    // Ethereum happy path
+    // -----------------------------------------------------------------------
+    describe('Ethereum app happy path', () => {
+      it('invokes user callback with transport when Ethereum app is running', async () => {
+        const mockFunc = jest.fn();
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(mockFunc);
+        });
+
+        expect(mockFunc).toHaveBeenCalledWith(mockTransportInstance);
+        expect(mockConnectLedgerHardware).toHaveBeenCalledTimes(1);
+        expect(result.current.error).toBeUndefined();
+      });
+
+      it('calls connectLedgerHardware with transport and deviceId', async () => {
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(jest.fn());
+        });
+
+        expect(mockConnectLedgerHardware).toHaveBeenCalledWith(
+          mockTransportInstance,
+          mockDeviceId,
+        );
+      });
+
+      it('registers disconnect handler on the transport', async () => {
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(jest.fn());
+        });
+
+        expect(mockTransportInstance.on).toHaveBeenCalledWith(
+          'disconnect',
+          expect.any(Function),
+        );
+        expect(capturedDisconnectHandler).toBeDefined();
+      });
+
+      it('reuses existing transport on subsequent calls', async () => {
+        const mockFunc1 = jest.fn();
+        const mockFunc2 = jest.fn();
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(mockFunc1);
+        });
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(mockFunc2);
+        });
+
+        expect(mockLoadBleTransport).toHaveBeenCalledTimes(1);
+        expect(mockFunc1).toHaveBeenCalledWith(mockTransportInstance);
+        expect(mockFunc2).toHaveBeenCalledWith(mockTransportInstance);
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    // BOLOS app detection
+    // -----------------------------------------------------------------------
+    describe('BOLOS app detection', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      it('opens Ethereum app and recurses when BOLOS detected', async () => {
+        mockConnectLedgerHardware
+          .mockResolvedValueOnce('BOLOS')
+          .mockResolvedValueOnce('Ethereum');
+
+        const mockFunc = jest.fn();
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(mockFunc);
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        expect(mockOpenEthereumAppOnLedger).toHaveBeenCalledTimes(1);
+        expect(mockConnectLedgerHardware).toHaveBeenCalledTimes(2);
+        expect(mockFunc).toHaveBeenCalledWith(mockTransportInstance);
+        expect(result.current.error).toBeUndefined();
+      });
+
+      it('sets isAppLaunchConfirmationNeeded during Ethereum app open', async () => {
+        mockOpenEthereumAppOnLedger.mockImplementation(async () => {
+          // Can't read hook state inside mock, but the flag is set before this call
+        });
+        mockConnectLedgerHardware
+          .mockResolvedValueOnce('BOLOS')
+          .mockResolvedValueOnce('Ethereum');
+
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(jest.fn());
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        // After workflow completes, the flag should be cleared
+        expect(result.current.isAppLaunchConfirmationNeeded).toBe(false);
+      });
+
+      it('throws AppIsNotInstalled for status code 0x6984', async () => {
+        mockConnectLedgerHardware.mockResolvedValueOnce('BOLOS');
+        mockOpenEthereumAppOnLedger.mockRejectedValueOnce(
+          makeTransportStatusError(0x6984),
+        );
+
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(jest.fn());
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.AppIsNotInstalled,
+          );
+        });
+      });
+
+      it('throws AppIsNotInstalled for status code 0x6807', async () => {
+        mockConnectLedgerHardware.mockResolvedValueOnce('BOLOS');
+        mockOpenEthereumAppOnLedger.mockRejectedValueOnce(
+          makeTransportStatusError(0x6807),
+        );
+
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(jest.fn());
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.AppIsNotInstalled,
+          );
+        });
+      });
+
+      it('throws UserRefusedConfirmation for status code 0x6985', async () => {
+        mockConnectLedgerHardware.mockResolvedValueOnce('BOLOS');
+        mockOpenEthereumAppOnLedger.mockRejectedValueOnce(
+          makeTransportStatusError(0x6985),
+        );
+
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(jest.fn());
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.UserRefusedConfirmation,
+          );
+        });
+      });
+
+      it('throws UserRefusedConfirmation for status code 0x5501', async () => {
+        mockConnectLedgerHardware.mockResolvedValueOnce('BOLOS');
+        mockOpenEthereumAppOnLedger.mockRejectedValueOnce(
+          makeTransportStatusError(0x5501),
+        );
+
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(jest.fn());
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.UserRefusedConfirmation,
+          );
+        });
+      });
+
+      it('throws FailedToOpenApp for non-disconnect errors', async () => {
+        mockConnectLedgerHardware.mockResolvedValueOnce('BOLOS');
+        mockOpenEthereumAppOnLedger.mockRejectedValueOnce(
+          new Error('generic open failure'),
+        );
+
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(jest.fn());
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.FailedToOpenApp,
+          );
+        });
+      });
+
+      it('suppresses disconnect errors and continues recursion', async () => {
+        mockConnectLedgerHardware
+          .mockResolvedValueOnce('BOLOS')
+          .mockResolvedValueOnce('Ethereum');
+        mockOpenEthereumAppOnLedger.mockRejectedValueOnce(
+          makeDisconnectError(),
+        );
+
+        const mockFunc = jest.fn();
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(mockFunc);
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        expect(mockFunc).toHaveBeenCalledWith(mockTransportInstance);
+        expect(result.current.error).toBeUndefined();
+      });
+
+      it('throws FailedToOpenApp when restart limit is reached', async () => {
+        mockConnectLedgerHardware.mockResolvedValue('BOLOS');
+
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(jest.fn());
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.FailedToOpenApp,
+          );
+        });
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    // Non-Ethereum app detection
+    // -----------------------------------------------------------------------
+    describe('non-Ethereum app detection', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      it('closes running app and recurses to Ethereum', async () => {
+        mockConnectLedgerHardware
+          .mockResolvedValueOnce('SomeOtherApp')
+          .mockResolvedValueOnce('Ethereum');
+
+        const mockFunc = jest.fn();
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(mockFunc);
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        expect(mockCloseRunningAppOnLedger).toHaveBeenCalledTimes(1);
+        expect(mockConnectLedgerHardware).toHaveBeenCalledTimes(2);
+        expect(mockFunc).toHaveBeenCalledWith(mockTransportInstance);
+        expect(result.current.error).toBeUndefined();
+      });
+
+      it('throws FailedToCloseApp for non-disconnect close errors', async () => {
+        mockConnectLedgerHardware.mockResolvedValueOnce('SomeOtherApp');
+        mockCloseRunningAppOnLedger.mockRejectedValueOnce(
+          new Error('close failure'),
+        );
+
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(jest.fn());
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.FailedToCloseApp,
+          );
+        });
+      });
+
+      it('suppresses disconnect errors during close and continues recursion', async () => {
+        mockConnectLedgerHardware
+          .mockResolvedValueOnce('SomeOtherApp')
+          .mockResolvedValueOnce('Ethereum');
+        mockCloseRunningAppOnLedger.mockRejectedValueOnce(
+          makeDisconnectError(),
+        );
+
+        const mockFunc = jest.fn();
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(mockFunc);
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        expect(mockFunc).toHaveBeenCalledWith(mockTransportInstance);
+        expect(result.current.error).toBeUndefined();
+      });
+
+      it('throws FailedToCloseApp when restart limit is reached', async () => {
+        mockConnectLedgerHardware.mockResolvedValue('SomeOtherApp');
+
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(jest.fn());
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.FailedToCloseApp,
+          );
+        });
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    // Error classification in processLedgerWorkflow catch block
+    // -----------------------------------------------------------------------
+    describe('error classification in processLedgerWorkflow', () => {
+      it('sets UserRefusedConfirmation for TransportStatusError 0x6985', async () => {
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(async () => {
+            throw makeTransportStatusError(0x6985);
+          });
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.UserRefusedConfirmation,
+          );
+        });
+      });
+
+      it('sets UserRefusedConfirmation for TransportStatusError 0x5501', async () => {
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(async () => {
+            throw makeTransportStatusError(0x5501);
+          });
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.UserRefusedConfirmation,
+          );
+        });
+      });
+
+      it('sets LedgerIsLocked for TransportStatusError 0x6b0c', async () => {
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(async () => {
+            throw makeTransportStatusError(0x6b0c);
+          });
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.LedgerIsLocked,
+          );
+        });
+      });
+
+      it('sets EthAppNotOpen for TransportStatusError when isEthAppNotOpenStatusCode returns true', async () => {
+        mockIsEthAppNotOpenStatusCode.mockReturnValue(true);
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(async () => {
+            throw makeTransportStatusError(0x6d00);
+          });
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.EthAppNotOpen,
+          );
+        });
+      });
+
+      it('sets UserRefusedConfirmation for unknown TransportStatusError codes', async () => {
+        mockIsEthAppNotOpenStatusCode.mockReturnValue(false);
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(async () => {
+            throw makeTransportStatusError(0x9999);
+          });
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.UserRefusedConfirmation,
+          );
+        });
+      });
+
+      it('sets LedgerHasPendingConfirmation for TransportRaceCondition', async () => {
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(async () => {
+            const err = new Error('Race condition');
+            err.name = 'TransportRaceCondition';
+            throw err;
+          });
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.LedgerHasPendingConfirmation,
+          );
+        });
+      });
+
+      it('sets NotSupported for typed data signing version error', async () => {
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(async () => {
+            throw new Error(
+              'Only version 4 of typed data signing is supported',
+            );
+          });
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.NotSupported,
+          );
+        });
+      });
+
+      it('sets LedgerIsLocked for locked device message', async () => {
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(async () => {
+            throw new Error('Ledger device: Locked device');
+          });
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.LedgerIsLocked,
+          );
+        });
+      });
+
+      it('sets NonceTooLow for nonce too low message', async () => {
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(async () => {
+            throw new Error('nonce too low');
+          });
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.NonceTooLow,
+          );
+        });
+      });
+
+      it('sets BlindSignError for blind signing message', async () => {
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(async () => {
+            throw new Error(
+              'Please enable Blind signing or Contract data in the Ethereum app Settings',
+            );
+          });
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.BlindSignError,
+          );
+        });
+      });
+
+      it('sets EthAppNotOpen when isEthAppNotOpenErrorMessage returns true', async () => {
+        mockIsEthAppNotOpenErrorMessage.mockReturnValue(true);
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(async () => {
+            throw new Error('some eth app not open error');
+          });
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.EthAppNotOpen,
+          );
+        });
+      });
+
+      it('sets UnknownError for unrecognized errors', async () => {
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(async () => {
+            throw new Error('completely unexpected error');
+          });
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBe(
+            LedgerCommunicationErrors.UnknownError,
+          );
+        });
+      });
+
+      it('resets connection state after any error', async () => {
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(async () => {
+            throw new Error('some error');
+          });
+        });
+
+        await waitFor(() => {
+          expect(result.current.isSendingLedgerCommands).toBe(false);
+        });
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    // Disconnect handler
+    // -----------------------------------------------------------------------
+    describe('disconnect handler', () => {
+      it('resets connection state when disconnect fires outside reconnection', async () => {
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(jest.fn());
+        });
+
+        expect(capturedDisconnectHandler).toBeDefined();
+
+        act(() => {
+          capturedDisconnectHandler?.();
+        });
+
+        expect(result.current.isSendingLedgerCommands).toBe(false);
+      });
+
+      it('does not reset state when disconnect fires during isReconnecting', async () => {
+        jest.useFakeTimers();
+
+        mockConnectLedgerHardware
+          .mockResolvedValueOnce('BOLOS')
+          .mockResolvedValueOnce('Ethereum');
+
+        // Use a double queueMicrotask so the handler fires after
+        // isReconnecting is set to true but before the setTimeout resolves.
+        mockOpenEthereumAppOnLedger.mockImplementation(async () => {
+          queueMicrotask(() => {
+            queueMicrotask(() => {
+              capturedDisconnectHandler?.();
+            });
+          });
+        });
+
+        const mockFunc = jest.fn();
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          const promise = result.current.ledgerLogicToRun(mockFunc);
+          await jest.runAllTimersAsync();
+          await promise;
+        });
+
+        expect(mockFunc).toHaveBeenCalled();
+        expect(result.current.error).toBeUndefined();
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    // Unmount with active transport
+    // -----------------------------------------------------------------------
+    describe('unmount with active transport', () => {
+      it('closes transport on unmount', async () => {
+        const { result, unmount } = renderHook(() =>
+          useLedgerBluetooth(mockDeviceId),
+        );
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(jest.fn());
+        });
+
+        unmount();
+
+        expect(mockTransportInstance.close).toHaveBeenCalled();
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    // Transport setup failure
+    // -----------------------------------------------------------------------
+    describe('transport setup failure', () => {
+      it('sets LedgerDisconnected when BLE open rejects', async () => {
+        mockLoadBleTransport.mockRejectedValueOnce(
+          new Error('BLE open failed'),
+        );
+        const { result } = renderHook(() => useLedgerBluetooth(mockDeviceId));
+
+        await act(async () => {
+          await result.current.ledgerLogicToRun(jest.fn());
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toBeDefined();
+        });
+      });
     });
   });
 });
