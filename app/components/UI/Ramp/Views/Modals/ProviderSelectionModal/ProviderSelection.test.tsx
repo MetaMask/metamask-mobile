@@ -3,7 +3,11 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import ProviderSelection from './ProviderSelection';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import type { Provider, Quote } from '@metamask/ramps-controller';
+import type {
+  Provider,
+  Quote,
+  QuotesResponse,
+} from '@metamask/ramps-controller';
 import {
   useRampsController,
   type UseRampsControllerResult,
@@ -99,12 +103,7 @@ const mockOnBack = jest.fn();
 interface RenderOptions {
   providers?: Provider[];
   selectedProvider?: Provider | null;
-  quotes?: {
-    success: Quote[];
-    sorted: unknown[];
-    error: unknown[];
-    customActions: unknown[];
-  } | null;
+  quotes?: QuotesResponse | null;
   quotesLoading?: boolean;
   quotesError?: string | null;
 }

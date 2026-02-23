@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import ProviderSelectionModal from './ProviderSelectionModal';
+import ProviderSelectionModal, {
+  type ProviderSelectionModalParams,
+} from './ProviderSelectionModal';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -30,7 +32,9 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
 }));
 
-const mockUseParams = jest.fn(() => ({ amount: 100 }));
+const mockUseParams = jest.fn<() => ProviderSelectionModalParams>(() => ({
+  amount: 100,
+}));
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails: jest.fn(),
   useParams: () => mockUseParams(),

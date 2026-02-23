@@ -2,7 +2,7 @@ import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
-import { useRampsQuotes } from './useRampsQuotes';
+import { useRampsQuotes, type GetQuotesOptions } from './useRampsQuotes';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 
@@ -177,10 +177,13 @@ describe('useRampsQuotes', () => {
       );
 
       const { result, rerender } = renderHook(
-        ({ params }) => useRampsQuotes(params),
+        ({ params }: { params: GetQuotesOptions | null }) =>
+          useRampsQuotes(params),
         {
           wrapper: wrapper(store),
-          initialProps: { params: options },
+          initialProps: { params: options } as {
+            params: GetQuotesOptions | null;
+          },
         },
       );
 
@@ -209,10 +212,13 @@ describe('useRampsQuotes', () => {
       );
 
       const { result, rerender } = renderHook(
-        ({ params }) => useRampsQuotes(params),
+        ({ params }: { params: GetQuotesOptions | null }) =>
+          useRampsQuotes(params),
         {
           wrapper: wrapper(store),
-          initialProps: { params: options },
+          initialProps: { params: options } as {
+            params: GetQuotesOptions | null;
+          },
         },
       );
 
@@ -250,10 +256,13 @@ describe('useRampsQuotes', () => {
       );
 
       const { result, rerender } = renderHook(
-        ({ params }) => useRampsQuotes(params),
+        ({ params }: { params: GetQuotesOptions | null }) =>
+          useRampsQuotes(params),
         {
           wrapper: wrapper(store),
-          initialProps: { params: options },
+          initialProps: { params: options } as {
+            params: GetQuotesOptions | null;
+          },
         },
       );
 
