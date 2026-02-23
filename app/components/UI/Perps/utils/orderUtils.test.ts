@@ -452,6 +452,40 @@ describe('orderUtils', () => {
         labelKey: 'perps.order.limit_price',
       });
     });
+
+    it('returns limit price value when non-trigger limit has both trigger and order prices', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        isTrigger: false,
+        reduceOnly: false,
+        orderType: 'limit',
+        detailedOrderType: 'Limit',
+        triggerPrice: '51000',
+        price: '48000',
+      });
+
+      expect(result).toEqual({
+        priceValue: 48000,
+        labelKey: 'perps.order.limit_price',
+      });
+    });
+
+    it('returns market label with order price when non-trigger market has both trigger and order prices', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        isTrigger: false,
+        reduceOnly: false,
+        orderType: 'market',
+        detailedOrderType: 'Market',
+        triggerPrice: '51000',
+        price: '47000',
+      });
+
+      expect(result).toEqual({
+        priceValue: 47000,
+        labelKey: 'perps.order.market_price',
+      });
+    });
   });
 
   describe('order display association helpers', () => {

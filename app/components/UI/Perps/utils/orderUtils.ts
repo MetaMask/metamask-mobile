@@ -57,24 +57,23 @@ export const resolveOrderDisplayPriceAndLabel = (
   );
   const validTriggerPrice = getValidTriggerPrice(order);
   const validOrderPrice = getValidOrderPrice(order);
-  const priceValue = validTriggerPrice ?? validOrderPrice;
 
   if (isTriggerOrder && validTriggerPrice !== null) {
     return {
-      priceValue,
+      priceValue: validTriggerPrice,
       labelKey: 'perps.order.trigger_price',
     };
   }
 
   if (isLimitOrder && validOrderPrice !== null) {
     return {
-      priceValue,
+      priceValue: validOrderPrice,
       labelKey: 'perps.order.limit_price',
     };
   }
 
   return {
-    priceValue,
+    priceValue: validOrderPrice,
     labelKey: 'perps.order.market_price',
   };
 };
