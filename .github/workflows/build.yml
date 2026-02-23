@@ -160,25 +160,17 @@ jobs:
           fi
           echo "✅ Setup verification passed"
 
+      # Do NOT pack ios/Pods or ios/*.xcconfig: CocoaPods outputs embed absolute paths
+      # and machine-specific details; restoring on a different runner causes Xcode failures.
+      # The build job runs pod install on the build runner instead.
       - name: Create tarball with node_modules (preserves symlinks)
         run: |
           echo "📦 Creating tarball to preserve symlinks..."
-          if [ "${{ matrix.platform }}" = "ios" ]; then
-            tar -czf node-modules-${{ matrix.platform }}.tar.gz \
-              node_modules \
-              app/util/termsOfUse/termsOfUseContent.ts \
-              app/core/InpageBridgeWeb3.js \
-              scripts/inpage-bridge/dist \
-              ios/debug.xcconfig \
-              ios/release.xcconfig \
-              ios/Pods
-          else
-            tar -czf node-modules-${{ matrix.platform }}.tar.gz \
-              node_modules \
-              app/util/termsOfUse/termsOfUseContent.ts \
-              app/core/InpageBridgeWeb3.js \
-              scripts/inpage-bridge/dist
-          fi
+          tar -czf node-modules-${{ matrix.platform }}.tar.gz \
+            node_modules \
+            app/util/termsOfUse/termsOfUseContent.ts \
+            app/core/InpageBridgeWeb3.js \
+            scripts/inpage-bridge/dist
           echo "✅ Tarball created: $(du -h node-modules-${{ matrix.platform }}.tar.gz)"
 
       - name: Upload node_modules tarball
@@ -193,7 +185,7 @@ jobs:
   # Build
   build:
     needs: [prepare, setup-dependencies]
-    timeout-minutes: 120  # Must allow build step (115min) + setup; comment at Build step documents this
+    timeout-minutes: 120 # Must allow build step (115min) + setup; comment at Build step documents this
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
@@ -246,27 +238,6 @@ jobs:
           fi
           echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
 
-          # iOS: Verify xcconfig files and Pods required by Xcode project
-          if [ "${{ matrix.platform }}" = "ios" ]; then
-            echo "🔍 Checking iOS xcconfig files..."
-            if [ ! -f "ios/debug.xcconfig" ]; then
-              echo "❌ ios/debug.xcconfig not found"
-              exit 1
-            fi
-            if [ ! -f "ios/release.xcconfig" ]; then
-              echo "❌ ios/release.xcconfig not found"
-              exit 1
-            fi
-            echo "✅ iOS xcconfig files found"
-            
-            echo "🔍 Checking iOS Pods..."
-            if [ ! -d "ios/Pods" ]; then
-              echo "❌ ios/Pods not found"
-              exit 1
-            fi
-            echo "✅ iOS Pods found"
-          fi
-
           # Verify symlinks in .bin directory
           echo "🔍 Checking .bin symlinks..."
           if [ -e "node_modules/.bin/react-native" ]; then
@@ -295,6 +266,20 @@ jobs:
           eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
           # 2. Persist env vars to GITHUB_ENV so LATER steps inherit them (build, signing, etc.)
           node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+
+      # iOS: Regenerate Pods and xcconfig on this runner so paths are correct (not from artifact).
+      - name: Install CocoaPods dependencies (iOS)
+        if: matrix.platform == 'ios'
+        env:
+          BUNDLE_GEMFILE: ios/Gemfile
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            node -e "require('fs').writeFileSync('ios/debug.xcconfig',''); require('fs').writeFileSync('ios/release.xcconfig','');"
+            yarn pod:install
 
       - name: Set secrets
         env:
