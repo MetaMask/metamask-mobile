@@ -20,6 +20,7 @@ import {
   getNativeTokenAddress,
   TokenListState,
 } from '@metamask/assets-controllers';
+import { isNativeAddress } from '@metamask/bridge-controller';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
@@ -163,15 +164,9 @@ export function getAvailableTokens({
     });
 }
 
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-
 export interface BuildAllowlistDeps {
   tokensChainsCache?: TokenListState['tokensChainsCache'];
   networkConfigs?: Record<string, NetworkConfiguration>;
-}
-
-function isNativeAddress(address: string): boolean {
-  return address.toLowerCase() === ZERO_ADDRESS;
 }
 
 function findHeldToken(
