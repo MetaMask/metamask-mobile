@@ -6,6 +6,7 @@ import React, {
   useState,
   useRef,
 } from 'react';
+import { addBreadcrumb } from '@sentry/react-native';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
 import { isE2E } from '../../../../util/test/utils';
@@ -103,8 +104,12 @@ export const PerpsConnectionProvider: React.FC<
       await PerpsConnectionManager.connect();
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsConnectionProvider.connect'), {
-        message: 'PerpsConnectionProvider: Error during connect',
-        context: 'PerpsConnectionProvider.connect',
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'PerpsConnectionManager',
+          action: 'connection_connection',
+        },
+        context: { name: 'PerpsConnectionProvider.connect' },
       });
     }
     // Always update state after connect attempt
@@ -193,9 +198,12 @@ export const PerpsConnectionProvider: React.FC<
         Logger.error(
           ensureError(err, 'PerpsConnectionProvider.lifecycle.onConnect'),
           {
-            message: 'PerpsConnectionProvider: Error in lifecycle onConnect',
-            context:
-              'PerpsConnectionProvider.usePerpsConnectionLifecycle.onConnect',
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'PerpsConnectionManager',
+              action: 'connection_connection',
+            },
+            context: { name: 'PerpsConnectionProvider.lifecycle.onConnect' },
           },
         );
       }
@@ -258,6 +266,17 @@ export const PerpsConnectionProvider: React.FC<
     // Also show it after retry attempts for other contexts
     const shouldShowBackButton = isFullScreen || retryAttempts > 0;
 
+    // Sentry breadcrumb: makes error screen appearance visible in issue timelines
+    addBreadcrumb({
+      category: 'perps.connection',
+      message: 'PerpsConnectionErrorView shown',
+      level: 'error',
+      data: {
+        errorCode: connectionState.error,
+        retryAttempts,
+      },
+    });
+
     const handleRetry = async () => {
       // Increment retry attempts first to ensure back button shows immediately
       setRetryAttempts((prev) => prev + 1);
@@ -293,6 +312,7 @@ export const PerpsConnectionProvider: React.FC<
       <PerpsConnectionContext.Provider value={contextValue}>
         <PerpsConnectionErrorView
           error={connectionState.error}
+          errorCode={connectionState.error}
           onRetry={handleRetry}
           isRetrying={connectionState.isConnecting}
           showBackButton={shouldShowBackButton}

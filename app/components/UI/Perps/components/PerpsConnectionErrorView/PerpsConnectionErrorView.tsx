@@ -28,6 +28,7 @@ import styleSheet from './PerpsConnectionErrorView.styles';
 
 interface PerpsConnectionErrorViewProps {
   error: string | Error;
+  errorCode?: string;
   onRetry: () => void;
   isRetrying?: boolean;
   showBackButton?: boolean;
@@ -36,6 +37,7 @@ interface PerpsConnectionErrorViewProps {
 
 const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
   error,
+  errorCode,
   onRetry,
   isRetrying = false,
   showBackButton,
@@ -45,11 +47,16 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
   const navigation = useNavigation();
   const { track } = usePerpsEventTracking();
 
-  // Track error screen view
+  // Track error screen view with error context
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.ERROR,
+      [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+        PERPS_EVENT_VALUE.SCREEN_NAME.CONNECTION_ERROR,
+      [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.NETWORK,
+      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorCode ?? 'unknown',
+      [PERPS_EVENT_PROPERTY.RETRY_ATTEMPTS]: retryAttempts,
     },
   });
 
@@ -122,6 +129,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
               [PERPS_EVENT_PROPERTY.ACTION]:
                 PERPS_EVENT_VALUE.ACTION.CONNECTION_RETRY,
               [PERPS_EVENT_PROPERTY.ATTEMPT_NUMBER]: retryAttempts + 1,
+              [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorCode ?? 'unknown',
             });
             onRetry();
           }}
@@ -135,7 +143,16 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label={strings('perps.errors.connectionFailed.go_back')}
-            onPress={handleGoBack}
+            onPress={() => {
+              track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+                [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+                  PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+                [PERPS_EVENT_PROPERTY.ACTION]: 'connection_go_back',
+                [PERPS_EVENT_PROPERTY.ATTEMPT_NUMBER]: retryAttempts,
+                [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorCode ?? 'unknown',
+              });
+              handleGoBack();
+            }}
             style={styles.backButton}
           />
         )}

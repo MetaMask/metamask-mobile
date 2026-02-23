@@ -1,4 +1,4 @@
-import { captureException, setMeasurement } from '@sentry/react-native';
+import { setMeasurement } from '@sentry/react-native';
 import BackgroundTimer from 'react-native-background-timer';
 import performance from 'react-native-performance';
 import { v4 as uuidv4 } from 'uuid';
@@ -596,25 +596,6 @@ class PerpsConnectionManagerClass {
 
         // Clear connection timeout on error
         this.clearConnectionTimeout();
-
-        // Capture exception with connection context
-        captureException(ensureError(error, 'PerpsConnectionManager.connect'), {
-          tags: {
-            component: 'PerpsConnectionManager',
-            action: 'connection_connection',
-            operation: 'connection_management',
-            provider: 'hyperliquid',
-          },
-          extra: {
-            connectionContext: {
-              provider: 'hyperliquid',
-              timestamp: new Date().toISOString(),
-              isTestnet:
-                Engine.context.PerpsController?.getCurrentNetwork?.() ===
-                'testnet',
-            },
-          },
-        });
 
         traceData = {
           success: false,
