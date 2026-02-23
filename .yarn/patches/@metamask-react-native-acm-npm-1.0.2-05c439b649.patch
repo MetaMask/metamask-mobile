@@ -1,0 +1,22 @@
+diff --git a/android/src/main/java/com/googleacm/GoogleAcmModule.kt b/android/src/main/java/com/googleacm/GoogleAcmModule.kt
+index e91d1c0fe7c0840449084eefe78f78c31ff5dc5d..d4da3c2e95f243e1b9163363a72507de3dbe44f5 100644
+--- a/android/src/main/java/com/googleacm/GoogleAcmModule.kt
++++ b/android/src/main/java/com/googleacm/GoogleAcmModule.kt
+@@ -57,7 +57,7 @@ class GoogleAcmModule(reactContext: ReactApplicationContext) :
+     promise: Promise
+   ) {
+ 
+-    val activity: Activity? = currentActivity
++    val activity: Activity? = reactApplicationContext.currentActivity
+     if (activity == null) {
+         promise.reject("E_NO_ACTIVITY", "Current activity is null, cannot launch UI.")
+         return
+@@ -166,7 +166,7 @@ class GoogleAcmModule(reactContext: ReactApplicationContext) :
+   }
+ 
+   suspend fun handleSignOut() {
+-    val activity: Activity? = currentActivity
++    val activity: Activity? = reactApplicationContext.currentActivity
+     if (activity == null) {
+       throw Exception()
+       //promise.reject("E_NO_ACTIVITY", "Current activity is null, cannot launch UI.")

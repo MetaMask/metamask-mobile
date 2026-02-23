@@ -1,0 +1,32 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index 0d066bd15543931e4029146f627a5902f244d4ee..db6528a8db0b21634c3eb0ca7aabc2405b89818c 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -1,12 +1,12 @@
+ apply plugin: 'com.android.library'
+ 
+ android {
+-    compileSdkVersion 28
+-    buildToolsVersion "28.0.3"
++    compileSdkVersion 36
++    buildToolsVersion "36.0.0"
+ 
+     defaultConfig {
+         minSdkVersion 21
+-        targetSdkVersion 28
++        targetSdkVersion 36
+         versionCode 1
+         versionName "1.0"
+         ndk {
+diff --git a/android/src/main/java/com/reactnativepayments/ReactNativePaymentsModule.java b/android/src/main/java/com/reactnativepayments/ReactNativePaymentsModule.java
+index f26dd586ec397f5259c00ba147974a58825a03fe..e671afcc3faf5368e7987e2d9b8d1797d4249a29 100644
+--- a/android/src/main/java/com/reactnativepayments/ReactNativePaymentsModule.java
++++ b/android/src/main/java/com/reactnativepayments/ReactNativePaymentsModule.java
+@@ -13,7 +13,6 @@ import androidx.annotation.RequiresPermission;
+ import android.util.Log;
+ 
+ import com.facebook.react.bridge.Callback;
+-import com.facebook.react.bridge.ReactBridge;
+ import com.facebook.react.bridge.ReadableArray;
+ import com.facebook.react.bridge.ReadableMapKeySetIterator;
+ import com.google.android.gms.common.api.GoogleApiClient;
