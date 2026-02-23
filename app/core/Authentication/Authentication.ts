@@ -816,6 +816,10 @@ class AuthenticationService {
         );
       }
 
+      if (error instanceof Error) {
+        // Track unlockWallet error as analytics.
+        trackErrorAsAnalytics('Unlock Wallet Error', error.message);
+      }
       throw error;
     } finally {
       // Wipe sensitive data.
