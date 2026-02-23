@@ -299,10 +299,6 @@ describe('Confirm', () => {
   });
 
   it('displays loading spinner when no approval request exists', () => {
-    jest.mocked(useFullScreenConfirmation).mockReturnValue({
-      isFullScreenConfirmation: true,
-    });
-
     const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
     stateWithoutRequest.engine.backgroundState.ApprovalController = {
       pendingApprovals: {},
@@ -319,10 +315,6 @@ describe('Confirm', () => {
   });
 
   it('displays alternate loader if specified', () => {
-    jest.mocked(useFullScreenConfirmation).mockReturnValue({
-      isFullScreenConfirmation: true,
-    });
-
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.CustomAmount,
     });
@@ -343,10 +335,6 @@ describe('Confirm', () => {
   });
 
   it('displays PredictClaim loader when specified', () => {
-    jest.mocked(useFullScreenConfirmation).mockReturnValue({
-      isFullScreenConfirmation: true,
-    });
-
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.PredictClaim,
     });
@@ -367,10 +355,6 @@ describe('Confirm', () => {
   });
 
   it('displays Transfer loader when specified', () => {
-    jest.mocked(useFullScreenConfirmation).mockReturnValue({
-      isFullScreenConfirmation: true,
-    });
-
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.Transfer,
     });
@@ -391,10 +375,6 @@ describe('Confirm', () => {
   });
 
   it('renders InfoLoader with SafeAreaView for CustomAmount loader', () => {
-    jest.mocked(useFullScreenConfirmation).mockReturnValue({
-      isFullScreenConfirmation: true,
-    });
-
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.CustomAmount,
     });
@@ -422,10 +402,6 @@ describe('Confirm', () => {
   });
 
   it('renders InfoLoader with SafeAreaView for PredictClaim loader', () => {
-    jest.mocked(useFullScreenConfirmation).mockReturnValue({
-      isFullScreenConfirmation: true,
-    });
-
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.PredictClaim,
     });
@@ -453,10 +429,6 @@ describe('Confirm', () => {
   });
 
   it('renders InfoLoader with SafeAreaView for Transfer loader', () => {
-    jest.mocked(useFullScreenConfirmation).mockReturnValue({
-      isFullScreenConfirmation: true,
-    });
-
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.Transfer,
     });
@@ -484,10 +456,6 @@ describe('Confirm', () => {
   });
 
   it('defaults to Default loader when no loader param is provided', () => {
-    jest.mocked(useFullScreenConfirmation).mockReturnValue({
-      isFullScreenConfirmation: true,
-    });
-
     useParamsMock.mockReturnValue({});
 
     const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
@@ -506,10 +474,6 @@ describe('Confirm', () => {
   });
 
   it('defaults to Default loader when loader param is undefined', () => {
-    jest.mocked(useFullScreenConfirmation).mockReturnValue({
-      isFullScreenConfirmation: true,
-    });
-
     useParamsMock.mockReturnValue({
       loader: undefined,
     });
