@@ -581,5 +581,35 @@ describe('useABTest', () => {
         },
       });
     });
+
+    it('evicts the oldest assignment when exposure cache reaches capacity', async () => {
+      const evictionVariants = {
+        control: { buttons: [25] },
+      };
+      const flagKeys = Array.from(
+        { length: 501 },
+        (_, index) => `${experimentFlagKey}Eviction${index}`,
+      );
+
+      flagKeys.forEach((flagKey) => {
+        mockUseSelector.mockReturnValue({
+          [flagKey]: { name: 'control' },
+        });
+        renderHook(() => useABTest(flagKey, evictionVariants));
+      });
+
+      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(501), {
+        timeout: 4000,
+      });
+
+      mockUseSelector.mockReturnValue({
+        [flagKeys[0]]: { name: 'control' },
+      });
+      renderHook(() => useABTest(flagKeys[0], evictionVariants));
+
+      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(502), {
+        timeout: 4000,
+      });
+    });
   });
 });
