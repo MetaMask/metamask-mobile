@@ -409,7 +409,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     undefined,
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="ramp-settings-back-button"
                               >
                                 <SvgMock
                                   fill="currentColor"
@@ -1684,7 +1684,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     undefined,
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="ramp-settings-back-button"
                               >
                                 <SvgMock
                                   fill="currentColor"
@@ -2517,7 +2517,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                     undefined,
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="ramp-settings-back-button"
                               >
                                 <SvgMock
                                   fill="currentColor"
@@ -3181,7 +3181,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                     undefined,
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="ramp-settings-back-button"
                               >
                                 <SvgMock
                                   fill="currentColor"
@@ -3883,7 +3883,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                     undefined,
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="ramp-settings-back-button"
                               >
                                 <SvgMock
                                   fill="currentColor"
@@ -4583,7 +4583,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                     undefined,
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="ramp-settings-back-button"
                               >
                                 <SvgMock
                                   fill="currentColor"
@@ -5283,7 +5283,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                     undefined,
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="ramp-settings-back-button"
                               >
                                 <SvgMock
                                   fill="currentColor"
@@ -5983,7 +5983,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                     undefined,
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="ramp-settings-back-button"
                               >
                                 <SvgMock
                                   fill="currentColor"
@@ -6683,7 +6683,7 @@ exports[`Settings renders correctly 1`] = `
                                     undefined,
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="ramp-settings-back-button"
                               >
                                 <SvgMock
                                   fill="currentColor"
@@ -7383,7 +7383,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     undefined,
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="ramp-settings-back-button"
                               >
                                 <SvgMock
                                   fill="currentColor"

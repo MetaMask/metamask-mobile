@@ -409,7 +409,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     undefined,
                                   ]
                                 }
-                                testID="button-icon"
+                                testID="activation-key-form-back-button"
                               >
                                 <SvgMock
                                   fill="currentColor"
@@ -528,20 +528,6 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 ]
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 18,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Add activation key
-                              </Text>
                               <View
                                 style={
                                   [

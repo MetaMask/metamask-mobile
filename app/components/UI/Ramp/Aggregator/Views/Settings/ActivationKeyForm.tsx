@@ -6,9 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // External dependencies
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import TextField from '../../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../../component-library/components/Form/Label';
 import Button, {
@@ -29,6 +26,8 @@ import { regex } from '../../../../../../util/regex';
 import styles from './Settings.styles';
 
 export const ACTIVATION_KEY_FORM_HEADER_TEST_ID = 'activation-key-form-header';
+export const ACTIVATION_KEY_FORM_BACK_BUTTON_TEST_ID =
+  'activation-key-form-back-button';
 
 interface ActivationKeyFormParams {
   onSubmit: (key: string, label: string, active: boolean) => void;
@@ -80,16 +79,11 @@ function ActivationKeyForm() {
         testID={ACTIVATION_KEY_FORM_HEADER_TEST_ID}
         title={title}
         onBack={handleBack}
+        backButtonProps={{ testID: ACTIVATION_KEY_FORM_BACK_BUTTON_TEST_ID }}
       />
       <ScreenLayout>
         <ScreenLayout.Body>
           <ScreenLayout.Content>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {key
-                ? strings('app_settings.fiat_on_ramp.edit_activation_key')
-                : strings('app_settings.fiat_on_ramp.add_activation_key')}
-            </Text>
-
             <Row>
               <Label>{strings('app_settings.fiat_on_ramp.label')}</Label>
               <TextField

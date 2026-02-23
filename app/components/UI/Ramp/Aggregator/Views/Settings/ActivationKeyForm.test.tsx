@@ -1,4 +1,5 @@
 import ActivationKeyForm, {
+  ACTIVATION_KEY_FORM_BACK_BUTTON_TEST_ID,
   ACTIVATION_KEY_FORM_HEADER_TEST_ID,
 } from './ActivationKeyForm';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
@@ -80,8 +81,9 @@ describe('AddActivationKey', () => {
 
   it('navigates back when header back button is pressed', () => {
     render(ActivationKeyForm);
-    const header = screen.getByTestId(ACTIVATION_KEY_FORM_HEADER_TEST_ID);
-    const backButton = within(header).getByTestId('button-icon');
+    const backButton = screen.getByTestId(
+      ACTIVATION_KEY_FORM_BACK_BUTTON_TEST_ID,
+    );
     fireEvent.press(backButton);
     expect(mockGoBack).toHaveBeenCalled();
   });

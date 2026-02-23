@@ -30,6 +30,7 @@ import ListItemColumn from '../../../../../../component-library/components/List/
 import styles from './Settings.styles';
 
 export const RAMP_SETTINGS_HEADER_TEST_ID = 'ramp-settings-header';
+export const RAMP_SETTINGS_BACK_BUTTON_TEST_ID = 'ramp-settings-back-button';
 
 function Settings() {
   const navigation = useNavigation();
@@ -60,6 +61,7 @@ function Settings() {
         testID={RAMP_SETTINGS_HEADER_TEST_ID}
         title={strings('app_settings.fiat_on_ramp.title')}
         onBack={handleBack}
+        backButtonProps={{ testID: RAMP_SETTINGS_BACK_BUTTON_TEST_ID }}
       />
       <KeyboardAvoidingView
         style={style.container}

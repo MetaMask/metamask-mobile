@@ -1,6 +1,9 @@
 import React from 'react';
-import { fireEvent, screen, within } from '@testing-library/react-native';
-import Settings, { RAMP_SETTINGS_HEADER_TEST_ID } from './Settings';
+import { fireEvent, screen } from '@testing-library/react-native';
+import Settings, {
+  RAMP_SETTINGS_BACK_BUTTON_TEST_ID,
+  RAMP_SETTINGS_HEADER_TEST_ID,
+} from './Settings';
 import useActivationKeys from '../../hooks/useActivationKeys';
 import { RampSDK, withRampSDK } from '../../sdk';
 import { ActivationKey } from '../../../../../../reducers/fiatOrders/types';
@@ -208,8 +211,7 @@ describe('Settings', () => {
 
   it('navigates back when header back button is pressed', () => {
     render(Settings);
-    const header = screen.getByTestId(RAMP_SETTINGS_HEADER_TEST_ID);
-    const backButton = within(header).getByTestId('button-icon');
+    const backButton = screen.getByTestId(RAMP_SETTINGS_BACK_BUTTON_TEST_ID);
     fireEvent.press(backButton);
     expect(mockGoBack).toHaveBeenCalled();
   });
