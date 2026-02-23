@@ -41,8 +41,17 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
       async () => {
         try {
           await loginToApp();
-        } catch {
-          // The assertions inside may fail due to the ongoing test.
+        } catch (error) {
+          // loginToApp may fail if the onStart snap dialog appears before
+          // the wallet view becomes visible. Only swallow errors caused by
+          // this expected interruption; re-throw anything else so genuine
+          // login failures are not silently hidden.
+          if (
+            !(error instanceof Error) ||
+            !error.message.includes('Wallet container')
+          ) {
+            throw error;
+          }
         }
 
         await Assertions.checkIfTextIsDisplayed(
