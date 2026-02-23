@@ -16,7 +16,6 @@ import { useSelector } from 'react-redux';
 import { FORMATTED_NETWORK_NAMES } from '../../../../../constants/on-ramp';
 import NotificationManager from '../../../../../core/NotificationManager';
 import { useTheme } from '../../../../../util/theme';
-import { selectEvmTicker } from '../../../../../selectors/networkController';
 import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../../../util/networks';
@@ -59,14 +58,13 @@ import {
   convertTrendingAssetsToImporAssets,
   ImportAsset,
 } from '../../utils/utils';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 interface Props {
   /**
 	/* navigation object required to push new views
 	*/
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  navigation: NavigationProp<ParamListBase>;
   tabLabel: string;
 
   /**
@@ -113,7 +111,6 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   const { colors, themeAppearance } = useTheme();
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
-  const ticker = useSelector(selectEvmTicker);
 
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
@@ -326,11 +323,9 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   const networkName = useSelector(selectNetworkName);
 
   const goToConfirmAddToken = () => {
-    navigation.push('ConfirmAddAsset', {
+    navigation.navigate('ConfirmAddAsset', {
       selectedAsset: selectedAssets,
       networkName,
-      chainId: selectedChainId,
-      ticker,
       addTokenList,
     });
 
