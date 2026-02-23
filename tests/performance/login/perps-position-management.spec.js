@@ -42,6 +42,7 @@ async function screensSetup(device) {
 
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC + Open Position + Close Position */
 test.describe(PerformancePreps, () => {
+  test.use({ srpCount: 3 });
   test(
     'Perps open position and close it',
     { tag: '@mm-perps-engineering-team' },

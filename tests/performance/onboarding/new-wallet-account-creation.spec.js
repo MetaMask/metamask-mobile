@@ -22,6 +22,7 @@ import {
 
 /* Scenario 2: Account creation after fresh install */
 test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
+  test.use({ srpCount: 0 });
   test(
     'Account creation after fresh install',
     { tag: '@metamask-onboarding-team' },

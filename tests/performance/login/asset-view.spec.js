@@ -28,6 +28,7 @@ import {
 
 /* Scenario 8: Asset View, SRP 1 + SRP 2 + SRP 3 */
 test.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
+  test.use({ srpCount: 3 });
   test(
     'Asset View, SRP 1 + SRP 2 + SRP 3',
     { tag: '@assets-dev-team' },

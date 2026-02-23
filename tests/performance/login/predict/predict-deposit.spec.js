@@ -29,6 +29,7 @@ import { PerformancePredict } from '../../../tags.performance.js';
  * 6. Time to verify deposit info (fees, amount) appears
  */
 test.describe(PerformancePredict, () => {
+  test.use({ srpCount: 3 });
   test(
     'Predict Deposit - Complete Flow Performance',
     { tag: '@team-predict' },

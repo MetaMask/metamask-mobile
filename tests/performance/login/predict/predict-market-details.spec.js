@@ -24,6 +24,7 @@ import { PerformancePredict } from '../../../tags.performance.js';
  * 5. Time to load and verify Outcomes tab content
  */
 test.describe(PerformancePredict, () => {
+  test.use({ srpCount: 3 });
   test(
     'Predict Market Details - Load Time Performance',
     { tag: '@team-predict' },

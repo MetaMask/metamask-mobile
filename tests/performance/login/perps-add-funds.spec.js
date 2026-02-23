@@ -30,6 +30,7 @@ async function screensSetup(device) {
 
 /* Scenario 5: Perps add funds */
 test.describe(PerformancePreps, () => {
+  test.use({ srpCount: 3 });
   test(
     'Perps add funds',
     { tag: '@mm-perps-engineering-team' },

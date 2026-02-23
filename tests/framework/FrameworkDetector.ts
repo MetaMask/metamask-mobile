@@ -6,6 +6,7 @@ import { createLogger, Logger, LogLevel } from './logger.ts';
 export enum TestFramework {
   DETOX = 'detox',
   APPIUM = 'appium',
+  APPWRIGHT = 'appwright',
 }
 
 // Declare globals that may exist at runtime
@@ -63,10 +64,12 @@ export class FrameworkDetector {
    * Detect current framework based on available globals
    *
    * Priority order:
-   * 1. Cached framework (if already detected)
+   * 1. Cached framework (if already detected or manually set via setFramework)
    * 2. Appium/WebdriverIO globals (driver/browser)
    * 3. Detox globals (device)
    * 4. Default to Detox for backwards compatibility
+   *
+   * For Appwright, call setFramework(TestFramework.APPWRIGHT) before detection.
    */
   static detect(): TestFramework {
     if (this.framework) {
@@ -120,5 +123,12 @@ export class FrameworkDetector {
    */
   static isAppium(): boolean {
     return this.detect() === TestFramework.APPIUM;
+  }
+
+  /**
+   * Check if currently running on Appwright (Playwright-based)
+   */
+  static isAppwright(): boolean {
+    return this.detect() === TestFramework.APPWRIGHT;
   }
 }

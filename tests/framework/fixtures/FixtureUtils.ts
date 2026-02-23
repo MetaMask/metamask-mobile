@@ -181,7 +181,7 @@ async function setupAndroidPortForwarding(
 
     // Get device ID to target specific device (important for CI with multiple devices)
     // In Detox: use device.id for multi-device support
-    // In Appium/Playwright: skip device flag (single emulator assumption)
+    // In Appium/Appwright: skip device flag (single emulator assumption)
     let deviceFlag = '';
     if (FrameworkDetector.isDetox()) {
       const deviceId = device.id || '';

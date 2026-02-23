@@ -99,9 +99,9 @@ module.exports = {
     },
   ],
   env: {
-    production: {
-      plugins: ['transform-remove-console'],
-    },
+    // production: {
+    //   plugins: ['transform-remove-console'],
+    // },
   },
   comments: false,
   compact: true,

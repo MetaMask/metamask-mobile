@@ -22,6 +22,7 @@ import { PerformanceOnboarding } from '../../tags.performance.js';
 
 /* Scenario 4: Imported wallet with +50 accounts */
 test.describe(PerformanceOnboarding, () => {
+  test.use({ srpCount: 0 });
   test.setTimeout(240000);
   test(
     'Onboarding Import SRP with +50 accounts, SRP 3',

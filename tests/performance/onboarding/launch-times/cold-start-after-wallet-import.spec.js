@@ -29,6 +29,7 @@ import {
 } from '../../../tags.performance.js';
 
 test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
+  test.use({ srpCount: 0 });
   test(
     'Cold Start after importing a wallet',
     { tag: '@metamask-mobile-platform' },

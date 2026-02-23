@@ -7,6 +7,7 @@ import {
 } from '../../../tags.performance.js';
 
 test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
+  test.use({ srpCount: 0 });
   test(
     'Measure Cold Start To Onboarding Screen',
     { tag: '@metamask-mobile-platform' },

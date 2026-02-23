@@ -16,6 +16,7 @@ import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
 
 /* Scenario 7: Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3 */
 test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
+  test.use({ srpCount: 3 });
   test(
     'Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },
