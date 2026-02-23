@@ -91,8 +91,8 @@ describe('MultichainAccountSelectorList', () => {
       fireEvent.changeText(searchInput, searchTerm);
     });
 
-    // Wait for debounce to complete and filtering to occur
-    // Check both visible and hidden items to ensure filtering has completed
+    // Wait for debounce (1s) to complete and filtering to occur. Use a
+    // generous timeout so CI has time for debounce + re-render + list update.
     await waitFor(
       () => {
         expectedVisible.forEach((text) => {
@@ -102,7 +102,7 @@ describe('MultichainAccountSelectorList', () => {
           expect(queryByText(text)).toBeFalsy();
         });
       },
-      { timeout: 500 },
+      { timeout: 1000 },
     );
   };
 
