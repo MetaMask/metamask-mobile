@@ -15,19 +15,34 @@ import {
 import { parseErrorByType, createHardwareWalletError } from './errors';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 
+/** Options for the {@link useDeviceEventHandlers} hook. */
 export interface UseDeviceEventHandlersOptions {
+  /** Mutable refs shared across the hardware wallet system. */
   refs: HardwareWalletRefs;
+  /** State setter functions for connection state, device ID, etc. */
   setters: HardwareWalletStateSetters;
+  /** Current wallet type, used for error parsing context. */
   walletType: HardwareWalletType | null;
 }
 
+/** Return value of the {@link useDeviceEventHandlers} hook. */
 export interface DeviceEventHandlersResult {
+  /** Directly sets the connection state (no dedup — callers control when to update). */
   updateConnectionState: (newState: HardwareWalletConnectionState) => void;
+  /** Routes a device event payload to the appropriate state transition. */
   handleDeviceEvent: (payload: DeviceEventPayload) => void;
+  /** Parses an error into a HardwareWalletError and transitions to ErrorState. */
   handleError: (error: unknown) => void;
+  /** Clears the current error, returning to Disconnected if in ErrorState. */
   clearError: () => void;
 }
 
+/**
+ * Hook that provides device event handlers for the hardware wallet state machine.
+ *
+ * Translates raw device events (Connected, Disconnected, AppOpened, etc.) into
+ * connection state transitions and handles error parsing/normalization.
+ */
 export const useDeviceEventHandlers = ({
   refs,
   setters,
@@ -49,7 +64,9 @@ export const useDeviceEventHandlers = ({
       } else {
         hwError = parseErrorByType(
           error,
-          walletType ?? HardwareWalletType.Ledger,
+          walletType ??
+            refs.adapterRef.current?.walletType ??
+            HardwareWalletType.Ledger,
         );
       }
 
@@ -120,7 +137,9 @@ export const useDeviceEventHandlers = ({
           } else {
             const lockedError = createHardwareWalletError(
               ErrorCode.AuthenticationDeviceLocked,
-              walletType ?? HardwareWalletType.Ledger,
+              walletType ??
+                refs.adapterRef.current?.walletType ??
+                HardwareWalletType.Ledger,
             );
             updateConnectionState({
               status: ConnectionStatus.ErrorState,

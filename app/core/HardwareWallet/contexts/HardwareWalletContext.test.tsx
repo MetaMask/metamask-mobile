@@ -18,7 +18,7 @@ const defaultDeviceSelection = {
 const noop = () => {};
 const asyncFalse = async () => false;
 
-const createMockValue = (
+const createMockContextValue = (
   overrides: Partial<HardwareWalletContextValue> = {},
 ): HardwareWalletContextValue => ({
   walletType: null,
@@ -36,7 +36,7 @@ const createMockValue = (
 describe('HardwareWalletContext', () => {
   describe('HardwareWalletContext.Provider', () => {
     it('provides value to useHardwareWallet', () => {
-      const value = createMockValue({
+      const value = createMockContextValue({
         walletType: HardwareWalletType.Ledger,
         deviceId: 'device-123',
         connectionState: {
@@ -71,7 +71,7 @@ describe('HardwareWalletContext', () => {
 
     it('provides actions via useHardwareWallet', () => {
       const ensureDeviceReadyMock = jest.fn();
-      const value = createMockValue({
+      const value = createMockContextValue({
         ensureDeviceReady: ensureDeviceReadyMock,
       });
 

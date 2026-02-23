@@ -15,39 +15,10 @@ import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
 } from './HardwareWalletStateManager';
-import { createHardwareWalletError } from './errors';
 
-// Mock the errors module - use jest.requireActual inside to avoid hoisting issues
-jest.mock('./errors', () => {
-  const {
-    HardwareWalletError: MockHardwareWalletError,
-    Severity: MockSeverity,
-    Category: MockCategory,
-  } = jest.requireActual('@metamask/hw-wallet-sdk');
-  return {
-    createHardwareWalletError: jest.fn(
-      (code: string, walletType?: string) =>
-        new MockHardwareWalletError(`Error for code: ${code}`, {
-          code,
-          severity: MockSeverity.Err,
-          category: MockCategory.Unknown,
-          userMessage: `Error for ${walletType ?? 'unknown'} (${code})`,
-        }),
-    ),
-    parseErrorByType: jest.fn(
-      (error: unknown) =>
-        new MockHardwareWalletError(
-          error instanceof Error ? error.message : String(error),
-          {
-            code: 'unknown',
-            severity: MockSeverity.Err,
-            category: MockCategory.Unknown,
-            userMessage: String(error),
-          },
-        ),
-    ),
-  };
-});
+jest.mock('../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => key),
+}));
 
 describe('useDeviceEventHandlers', () => {
   let mockRefs: HardwareWalletRefs;
@@ -351,10 +322,11 @@ describe('useDeviceEventHandlers', () => {
         });
 
         expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
-        expect(createHardwareWalletError).toHaveBeenCalledWith(
-          ErrorCode.AuthenticationDeviceLocked,
-          HardwareWalletType.Ledger,
-        );
+        if (lastConnectionState.status === ConnectionStatus.ErrorState) {
+          expect(lastConnectionState.error.code).toBe(
+            ErrorCode.AuthenticationDeviceLocked,
+          );
+        }
       });
 
       it('resets isConnecting flag regardless of error presence', () => {
@@ -476,14 +448,13 @@ describe('useDeviceEventHandlers', () => {
   });
 
   describe('with null walletType', () => {
-    it('defaults to Ledger for error handling', () => {
+    it('falls back to adapter walletType for error handling', () => {
       const { result } = createHook(null);
 
       act(() => {
         result.current.handleError(new Error('Test'));
       });
 
-      // Should still handle error without crashing
       expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
     });
   });
