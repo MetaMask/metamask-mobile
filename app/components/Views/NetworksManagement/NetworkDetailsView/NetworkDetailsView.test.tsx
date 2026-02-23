@@ -310,5 +310,120 @@ describe('NetworkDetailsView', () => {
       );
       expect(chainInput.props.editable).toBe(false);
     });
+
+    it('shows RPC warning banner when warningRpcUrl is set', () => {
+      mockValidation.mockReturnValue({
+        ...createMockValidation(),
+        warningRpcUrl: 'Invalid RPC URL',
+      });
+
+      const { getByTestId } = render(<NetworkDetailsView />);
+
+      expect(
+        getByTestId(NetworkDetailsViewSelectorsIDs.RPC_WARNING_BANNER),
+      ).toBeTruthy();
+    });
+
+    it('shows failover tag when failover RPC URLs exist and flag is enabled', () => {
+      jest.requireMock('react-redux').useSelector.mockReturnValue(true);
+
+      mockFormHook.mockReturnValue(
+        createMockFormHook({
+          addMode: false,
+          nickname: 'Polygon',
+          chainId: '0x89',
+          ticker: 'MATIC',
+          rpcUrl: 'https://polygon-rpc.com',
+          rpcName: 'Polygon RPC',
+          failoverRpcUrls: ['https://failover.polygon.com'],
+          rpcUrls: [
+            {
+              url: 'https://polygon-rpc.com',
+              name: 'Polygon RPC',
+              type: 'custom',
+            },
+          ],
+          blockExplorerUrl: 'https://polygonscan.com',
+          blockExplorerUrls: ['https://polygonscan.com'],
+          editable: true,
+        }),
+      );
+
+      const { getByText } = render(<NetworkDetailsView />);
+
+      expect(getByText(strings('app_settings.failover'))).toBeTruthy();
+    });
+  });
+
+  describe('validation warnings', () => {
+    it('shows chain ID warning text', () => {
+      mockValidation.mockReturnValue({
+        ...createMockValidation(),
+        warningChainId: 'Invalid chain ID',
+      });
+
+      const { getByText } = render(<NetworkDetailsView />);
+
+      expect(getByText('Invalid chain ID')).toBeTruthy();
+    });
+
+    it('shows symbol warning with suggested ticker', () => {
+      mockValidation.mockReturnValue({
+        ...createMockValidation(),
+        warningSymbol: 'MATIC',
+      });
+
+      const { getByText } = render(<NetworkDetailsView />);
+
+      expect(getByText('MATIC')).toBeTruthy();
+      expect(
+        getByText(strings('wallet.suggested_token_symbol'), { exact: false }),
+      ).toBeTruthy();
+    });
+
+    it('shows name warning with suggested name', () => {
+      mockValidation.mockReturnValue({
+        ...createMockValidation(),
+        warningName: 'Polygon Mainnet',
+      });
+
+      const { getByText } = render(<NetworkDetailsView />);
+
+      expect(getByText('Polygon Mainnet')).toBeTruthy();
+      expect(
+        getByText(strings('wallet.suggested_name'), { exact: false }),
+      ).toBeTruthy();
+    });
+  });
+
+  it('disables save button when validation disables chain ID', () => {
+    mockValidation.mockReturnValue({
+      ...createMockValidation(),
+      disabledByChainId: jest.fn(() => true),
+    });
+
+    const { getByTestId } = render(<NetworkDetailsView />);
+
+    const saveButton = getByTestId(
+      NetworkDetailsViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
+    );
+    expect(saveButton.props.disabled).toBe(true);
+  });
+
+  it('shows warning modal when showWarningModal is true', () => {
+    mockFormHook.mockReturnValue({
+      ...createMockFormHook(),
+      modals: {
+        showMultiRpcAddModal: false,
+        rpcModalShowForm: false,
+        showMultiBlockExplorerAddModal: false,
+        blockExplorerModalShowForm: false,
+        showWarningModal: true,
+      },
+    });
+
+    const { getByText } = render(<NetworkDetailsView />);
+
+    expect(getByText(strings('networks.network_warning_title'))).toBeTruthy();
   });
 });
