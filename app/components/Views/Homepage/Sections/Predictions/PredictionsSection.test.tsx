@@ -49,9 +49,22 @@ describe('PredictionsSection', () => {
       .requireMock('../../../../UI/Predict/selectors/featureFlags')
       .selectPredictEnabledFlag.mockReturnValue(true);
 
-    // Reset hooks to default state
+    // Reset hooks to default state - include a market so the section renders
     mockUsePredictMarketsForHomepage.mockReturnValue({
-      markets: [],
+      markets: [
+        {
+          id: 'default-market',
+          title: 'Default Market',
+          endDate: '2026-06-01',
+          outcomes: [
+            {
+              id: 'outcome-1',
+              title: 'Yes',
+              tokens: [{ title: 'Yes', price: 0.5 }],
+            },
+          ],
+        },
+      ],
       isLoading: false,
       error: null,
       refresh: jest.fn(),
@@ -211,6 +224,25 @@ describe('PredictionsSection', () => {
 
       // Should still show the title
       expect(screen.getByText('Predictions')).toBeOnTheScreen();
+    });
+
+    it('returns null when markets are empty and not loading', () => {
+      mockUsePredictPositionsForHomepage.mockReturnValue({
+        positions: [],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      const { toJSON } = renderWithProvider(<PredictionsSection />);
+
+      expect(toJSON()).toBeNull();
     });
   });
 

@@ -222,6 +222,11 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     );
   }
 
+  // Don't render if no markets and not loading (avoids showing ViewMoreCard alone)
+  if (!isLoadingMarkets && markets.length === 0) {
+    return null;
+  }
+
   // Render trending markets if no positions
   return (
     <Box gap={3}>
