@@ -14,7 +14,7 @@ import { HardwareWalletAdapter } from './types';
 export interface HardwareWalletManagedState {
   /** Current connection state (discriminated union keyed on status). */
   connectionState: HardwareWalletConnectionState;
-  /** BLE device ID of the connected hardware wallet, or null if none. */
+  /** Device ID of the connected hardware wallet, or null if none. */
   deviceId: string | null;
   /** Wallet type derived from the currently selected account, or null for non-HW accounts. */
   walletType: HardwareWalletType | null;
@@ -122,6 +122,7 @@ export const useHardwareWalletStateManager =
       setDeviceId(null);
       setTargetWalletType(null);
       isConnectingRef.current = false;
+      adapterRef.current = null;
 
       abortControllerRef.current?.abort();
       abortControllerRef.current = null;

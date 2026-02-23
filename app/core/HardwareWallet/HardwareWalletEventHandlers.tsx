@@ -187,6 +187,7 @@ export const useDeviceEventHandlers = ({
           if (payload.error) {
             handleError(payload.error);
           }
+          refs.isConnectingRef.current = false;
           break;
 
         case DeviceEvent.PermissionChanged:

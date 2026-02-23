@@ -292,6 +292,7 @@ describe('useHardwareWalletStateManager', () => {
 
       act(() => {
         result.current.refs.isConnectingRef.current = true;
+        result.current.refs.adapterRef.current = {} as never;
         result.current.refs.abortControllerRef.current = new AbortController();
       });
       act(() => {
@@ -299,6 +300,7 @@ describe('useHardwareWalletStateManager', () => {
       });
 
       expect(result.current.refs.isConnectingRef.current).toBe(false);
+      expect(result.current.refs.adapterRef.current).toBeNull();
       expect(result.current.refs.abortControllerRef.current).toBeNull();
     });
   });

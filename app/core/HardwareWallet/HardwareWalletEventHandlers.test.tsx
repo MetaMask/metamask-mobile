@@ -524,12 +524,23 @@ describe('useDeviceEventHandlers', () => {
       act(() => {
         result.current.handleDeviceEvent({
           event: DeviceEvent.OperationTimeout,
-          // No error provided
         });
       });
 
-      // State should remain connected since no error to handle
       expect(lastConnectionState.status).toBe(ConnectionStatus.Connected);
+    });
+
+    it('resets isConnecting flag regardless of error presence', () => {
+      mockRefs.isConnectingRef.current = true;
+      const { result } = createHook();
+
+      act(() => {
+        result.current.handleDeviceEvent({
+          event: DeviceEvent.OperationTimeout,
+        });
+      });
+
+      expect(mockRefs.isConnectingRef.current).toBe(false);
     });
   });
 
