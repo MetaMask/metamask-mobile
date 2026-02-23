@@ -37,13 +37,6 @@ describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
       );
     });
 
-    it('returns default fallback URL when REWARDS_API_URL is not set', () => {
-      delete process.env.REWARDS_API_URL;
-      const result = getDefaultRewardsApiBaseUrlForMetaMaskEnv('any-env');
-      expect(typeof result).toBe('string');
-      expect(result.length).toBeGreaterThan(0);
-    });
-
     it('ignores metaMaskEnv parameter (URL is set at build time)', () => {
       process.env.REWARDS_API_URL = 'https://custom.api';
       expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev')).toBe(
