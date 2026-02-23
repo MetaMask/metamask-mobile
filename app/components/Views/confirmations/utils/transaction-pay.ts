@@ -238,7 +238,7 @@ export function buildAllowlistTokens(
             image: '',
             logo: undefined,
             balance: '0',
-            isETH: true,
+            isETH: networkConfig.nativeCurrency === 'ETH',
             isNative: true,
             standard: TokenStandard.ERC20,
           } as AssetType);
