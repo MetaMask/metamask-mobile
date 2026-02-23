@@ -89,9 +89,24 @@ export const useBridgeQuoteData = ({
   const activeQuote =
     isExpired && !willRefresh && !isSubmittingTx ? undefined : bestQuote;
 
+  // Validate that the quote's source asset matches the selected source token
+  // This prevents showing stale quote data when user changes source token on the same chain
+  const isQuoteSourceTokenMatch = useMemo(() => {
+    if (!activeQuote || !sourceToken) return false;
+
+    const { srcAsset } = activeQuote.quote;
+
+    const quoteSourceAddress = isNonEvmChainId(sourceToken.chainId)
+      ? (srcAsset.assetId ?? srcAsset.address)
+      : srcAsset.address;
+
+    const selectedSourceAddress = sourceToken.address;
+    return areAddressesEqual(quoteSourceAddress, selectedSourceAddress);
+  }, [activeQuote, sourceToken]);
+
   // Validate that the quote's destination asset matches the selected destination token
   // This prevents showing stale quote data (with wrong decimals) when user changes destination token
-  const isQuoteDestTokenMatch = (() => {
+  const isQuoteDestTokenMatch = useMemo(() => {
     if (!activeQuote || !destToken) return false;
 
     const { destAsset } = activeQuote.quote;
@@ -107,18 +122,15 @@ export const useBridgeQuoteData = ({
 
     const selectedDestAddress = destToken.address;
     return areAddressesEqual(quoteDestAddress, selectedDestAddress);
-  })();
+  }, [activeQuote, destToken]);
 
   const destTokenAmount =
-    activeQuote && destToken && isQuoteDestTokenMatch
+    activeQuote && destToken && isQuoteSourceTokenMatch && isQuoteDestTokenMatch
       ? fromTokenMinimalUnit(
           activeQuote.quote.destTokenAmount,
           destToken.decimals,
         )
       : undefined;
-  const formattedDestTokenAmount = destTokenAmount
-    ? Number(destTokenAmount).toString()
-    : undefined;
 
   const quoteRate =
     Number(sourceAmount) === 0
@@ -283,7 +295,7 @@ export const useBridgeQuoteData = ({
     quoteFetchError,
     activeQuote,
     quotesLoadingStatus,
-    destTokenAmount: formattedDestTokenAmount,
+    destTokenAmount,
     isLoading,
     formattedQuoteData,
     isNoQuotesAvailable,
