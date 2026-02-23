@@ -83,9 +83,8 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
   }, [navigation]);
 
-  const handlePopularTokensRetry = useCallback(async () => {
+  const handlePopularTokensRetry = useCallback(() => {
     setHasPopularTokensError(false);
-    await popularTokensListRef.current?.refresh();
   }, []);
 
   return (
