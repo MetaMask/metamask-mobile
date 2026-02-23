@@ -65,6 +65,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
   const resetConnectionState = () => {
     restartConnectionState.current.restartCount = 0;
     workflowSteps.current = [];
+    isReconnecting.current = false;
     setIsSendingLedgerCommands(false);
   };
 
@@ -127,6 +128,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
 
       // BOLOS is the Ledger main screen app
       if (appName === 'BOLOS') {
+        isReconnecting.current = true;
         try {
           setIsAppLaunchConfirmationNeeded(true);
           await openEthereumAppOnLedger();
@@ -160,12 +162,10 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
           setIsAppLaunchConfirmationNeeded(false);
         }
 
-        // Whether openEthereumAppOnLedger succeeded (BLE stayed connected)
-        // or threw a disconnect error (transport already gone), the Ledger
-        // is now switching to the Ethereum app. Guard against a late BLE
-        // disconnect clearing our workflowSteps, wait for the app to load,
-        // then re-enter processLedgerWorkflow directly.
-        isReconnecting.current = true;
+        // The Ledger is now switching to the Ethereum app. Wait for it to
+        // load, then re-enter processLedgerWorkflow directly.
+        // isReconnecting was set true before the disconnect-causing op so
+        // the BLE disconnect handler won't clear workflowSteps mid-switch.
         await new Promise((r) => setTimeout(r, 1000));
         isReconnecting.current = false;
 
@@ -179,6 +179,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
 
         return await processLedgerWorkflow();
       } else if (appName !== 'Ethereum') {
+        isReconnecting.current = true;
         try {
           await closeRunningAppOnLedger();
         } catch (e) {
@@ -190,7 +191,6 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
           }
         }
 
-        isReconnecting.current = true;
         await new Promise((r) => setTimeout(r, 1000));
         isReconnecting.current = false;
 
