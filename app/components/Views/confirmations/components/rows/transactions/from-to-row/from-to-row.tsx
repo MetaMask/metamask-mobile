@@ -25,22 +25,18 @@ import styleSheet from './from-to-row.styles';
 
 interface AddressDisplayProps {
   address: string;
-  chainId: string;
+  displayText: string;
+  image?: string;
   label: React.ReactNode;
 }
 
-const AddressDisplay = ({ address, chainId, label }: AddressDisplayProps) => {
+const AddressDisplay = ({
+  address,
+  displayText,
+  image,
+  label,
+}: AddressDisplayProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { name, image, variant } = useDisplayName({
-    type: NameType.EthereumAddress,
-    value: address,
-    variation: chainId,
-  });
-
-  const displayText =
-    variant === DisplayNameVariant.Unknown
-      ? toFormattedAddress(address)
-      : name || address;
 
   return (
     <View style={styles.addressRow}>
@@ -72,13 +68,23 @@ const FromToRow = () => {
   const toAddress = transferRecipient ?? '';
   const chainId = transactionMetadata?.chainId ?? '';
 
-  const { subtitle: fromWalletName } = useDisplayName({
+  const {
+    name: fromName,
+    image: fromImage,
+    subtitle: fromWalletName,
+    variant: fromVariant,
+  } = useDisplayName({
     type: NameType.EthereumAddress,
     value: fromAddress,
     variation: chainId,
   });
 
-  const { subtitle: toWalletName } = useDisplayName({
+  const {
+    name: toName,
+    image: toImage,
+    subtitle: toWalletName,
+    variant: toVariant,
+  } = useDisplayName({
     type: NameType.EthereumAddress,
     value: toAddress,
     variation: chainId,
@@ -87,6 +93,16 @@ const FromToRow = () => {
   if (!transactionMetadata) {
     return null;
   }
+
+  const fromDisplayText =
+    fromVariant === DisplayNameVariant.Unknown
+      ? toFormattedAddress(fromAddress)
+      : fromName || fromAddress;
+
+  const toDisplayText =
+    toVariant === DisplayNameVariant.Unknown
+      ? toFormattedAddress(toAddress)
+      : toName || toAddress;
 
   const fromLabel = fromWalletName
     ? `${strings('transaction.from')} ${fromWalletName}`
@@ -102,7 +118,8 @@ const FromToRow = () => {
         <View style={styles.row}>
           <AddressDisplay
             address={fromAddress}
-            chainId={chainId}
+            displayText={fromDisplayText}
+            image={fromImage}
             label={
               <Text
                 variant={TextVariant.BodyMD}
@@ -118,7 +135,8 @@ const FromToRow = () => {
         <View style={[styles.row, styles.rowSeparator]}>
           <AddressDisplay
             address={toAddress as string}
-            chainId={chainId}
+            displayText={toDisplayText}
+            image={toImage}
             label={
               <View style={styles.labelRow}>
                 <AlertRow
