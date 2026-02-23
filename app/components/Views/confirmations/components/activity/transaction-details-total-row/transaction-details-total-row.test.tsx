@@ -81,6 +81,37 @@ describe('TransactionDetailsTotalRow', () => {
     expect(toJSON()).toBeNull();
   });
 
+  it('renders targetFiat instead of totalFiat for receive-type transactions', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        type: TransactionType.predictWithdraw,
+        metamaskPay: {
+          totalFiat: PAY_TOTAL,
+          targetFiat: '99.99',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+
+    expect(getByText('$99.99')).toBeDefined();
+  });
+
+  it('falls back to totalFiat when targetFiat is missing on receive-type', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        type: TransactionType.predictWithdraw,
+        metamaskPay: {
+          totalFiat: PAY_TOTAL,
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+
+    expect(getByText(`$${PAY_TOTAL}`)).toBeDefined();
+  });
+
   it('renders total from fiat amount for musdClaim with user currency', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
