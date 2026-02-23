@@ -69,6 +69,10 @@ export const usePredictMarketsForHomepage = (
   // Track current request to prevent stale responses
   const requestIdRef = useRef(0);
 
+  // Use ref for limit to keep fetchMarkets callback stable
+  const limitRef = useRef(limit);
+  limitRef.current = limit;
+
   const [state, setState] = useState<{
     markets: PredictMarket[];
     isLoading: boolean;
@@ -95,6 +99,8 @@ export const usePredictMarketsForHomepage = (
   });
 
   const fetchMarkets = useCallback(async () => {
+    const currentLimit = limitRef.current;
+
     if (!isPredictEnabled) {
       setState({
         markets: [],
@@ -111,11 +117,11 @@ export const usePredictMarketsForHomepage = (
     if (
       marketsCache &&
       Date.now() - marketsCache.timestamp < CACHE_TTL_MS &&
-      marketsCache.limit >= limit
+      marketsCache.limit >= currentLimit
     ) {
       if (isMountedRef.current) {
         setState({
-          markets: marketsCache.markets.slice(0, limit),
+          markets: marketsCache.markets.slice(0, currentLimit),
           isLoading: false,
           error: null,
         });
@@ -137,7 +143,7 @@ export const usePredictMarketsForHomepage = (
 
       const markets = await controller.getMarkets({
         category: 'trending',
-        limit,
+        limit: currentLimit,
       });
 
       // Verify this response matches current request
@@ -158,11 +164,11 @@ export const usePredictMarketsForHomepage = (
       marketsCache = {
         markets,
         timestamp: Date.now(),
-        limit,
+        limit: currentLimit,
       };
 
       setState({
-        markets: markets.slice(0, limit),
+        markets: markets.slice(0, currentLimit),
         isLoading: false,
         error: null,
       });
@@ -181,7 +187,7 @@ export const usePredictMarketsForHomepage = (
             : 'Failed to fetch prediction markets',
       });
     }
-  }, [isPredictEnabled, limit]);
+  }, [isPredictEnabled]);
 
   // Refresh function that bypasses cache
   const refresh = useCallback(async () => {

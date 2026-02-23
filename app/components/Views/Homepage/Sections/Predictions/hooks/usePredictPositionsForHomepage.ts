@@ -60,6 +60,10 @@ export const usePredictPositionsForHomepage = (
   const isMountedRef = useRef(true);
   const requestIdRef = useRef(0);
 
+  // Use ref for maxPositions to keep fetchPositions callback stable
+  const maxPositionsRef = useRef(maxPositions);
+  maxPositionsRef.current = maxPositions;
+
   const cacheKey = userAddress ? `predict_positions_${userAddress}` : null;
 
   const [state, setState] = useState<{
@@ -85,6 +89,8 @@ export const usePredictPositionsForHomepage = (
   });
 
   const fetchPositions = useCallback(async () => {
+    const currentMaxPositions = maxPositionsRef.current;
+
     if (!isPredictEnabled || !cacheKey || !userAddress) {
       setState({ positions: [], isLoading: false, error: null });
       return;
@@ -97,7 +103,7 @@ export const usePredictPositionsForHomepage = (
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       if (isMountedRef.current) {
         setState({
-          positions: cached.positions.slice(0, maxPositions),
+          positions: cached.positions.slice(0, currentMaxPositions),
           isLoading: false,
           error: null,
         });
@@ -130,7 +136,7 @@ export const usePredictPositionsForHomepage = (
       cleanExpiredCache();
 
       setState({
-        positions: validPositions.slice(0, maxPositions),
+        positions: validPositions.slice(0, currentMaxPositions),
         isLoading: false,
         error: null,
       });
@@ -145,7 +151,7 @@ export const usePredictPositionsForHomepage = (
         error: err instanceof Error ? err.message : 'Failed to fetch positions',
       });
     }
-  }, [isPredictEnabled, cacheKey, userAddress, maxPositions]);
+  }, [isPredictEnabled, cacheKey, userAddress]);
 
   const refresh = useCallback(async () => {
     // Clear cache and refetch
