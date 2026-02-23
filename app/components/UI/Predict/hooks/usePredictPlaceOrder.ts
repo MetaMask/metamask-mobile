@@ -159,7 +159,7 @@ export function usePredictPlaceOrder(
       // Check if user has sufficient balance for the bet amount
       if (side === Side.BUY && balance < totalAmount) {
         await deposit({
-          amountUsd: maxAmountSpent,
+          amountUsd: totalAmount,
           analyticsProperties: {
             ...orderParams.analyticsProperties,
             marketId: orderParams.preview.marketId,
