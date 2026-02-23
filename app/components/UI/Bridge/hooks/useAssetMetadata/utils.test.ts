@@ -116,7 +116,7 @@ describe('asset-utils', () => {
       const result = await fetchAssetMetadata(mockAddress, mockHexChainId);
 
       expect(handleFetch).toHaveBeenCalledWith(
-        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}`,
+        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}&includeIconUrl=true&includeRwaData=true`,
       );
 
       expect(result).toStrictEqual({
@@ -128,6 +128,7 @@ describe('asset-utils', () => {
         address: mockAddress,
         chainId: mockHexChainId,
         name: 'Test Token',
+        rwaData: undefined,
       });
     });
 
@@ -156,6 +157,7 @@ describe('asset-utils', () => {
         assetId: solanaAssetId,
         address: solanaAddress,
         chainId: solanaChainId,
+        rwaData: undefined,
       });
     });
 
@@ -174,7 +176,7 @@ describe('asset-utils', () => {
       expect(toEvmCaipChainId).not.toHaveBeenCalled();
 
       expect(handleFetch).toHaveBeenCalledWith(
-        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}`,
+        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}&includeIconUrl=true&includeRwaData=true`,
       );
 
       expect(result).toStrictEqual({
@@ -186,6 +188,7 @@ describe('asset-utils', () => {
         assetId: mockAssetId,
         address: mockAddress,
         chainId: mockHexChainId,
+        rwaData: undefined,
       });
     });
 
@@ -204,7 +207,7 @@ describe('asset-utils', () => {
       expect(toEvmCaipChainId).toHaveBeenCalledWith(mockHexChainId);
 
       expect(handleFetch).toHaveBeenCalledWith(
-        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}`,
+        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}&includeIconUrl=true&includeRwaData=true`,
       );
 
       expect(result).toStrictEqual({
@@ -216,6 +219,7 @@ describe('asset-utils', () => {
         assetId: mockAssetId,
         address: mockAddress,
         chainId: mockHexChainId,
+        rwaData: undefined,
       });
     });
 
@@ -248,7 +252,7 @@ describe('asset-utils', () => {
       const result = await fetchAssetMetadata(mockAddress, mockHexChainId);
 
       expect(handleFetch).toHaveBeenCalledWith(
-        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}`,
+        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}&includeIconUrl=true&includeRwaData=true`,
       );
 
       expect(result).toStrictEqual({
@@ -260,6 +264,7 @@ describe('asset-utils', () => {
         assetId: mockAssetId,
         address: mockAddress,
         chainId: mockHexChainId,
+        rwaData: undefined,
       });
     });
   });

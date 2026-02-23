@@ -383,7 +383,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={29}
+              handlerTag={33}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2189,7 +2189,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={31}
+              handlerTag={35}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -3995,7 +3995,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={33}
+              handlerTag={37}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5801,7 +5801,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={20}
+              handlerTag={24}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7546,7 +7546,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={19}
+              handlerTag={23}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -26970,7 +26970,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={21}
+              handlerTag={25}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}

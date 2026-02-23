@@ -13,7 +13,7 @@ import { useCardSDK } from '../sdk';
 import { AllowanceState, CardTokenAllowance } from '../types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
 import { clearCacheData } from '../../../../core/redux/slices/card';
@@ -62,12 +62,8 @@ jest.mock('../../../../util/theme', () => ({
   useTheme: jest.fn(() => mockTheme),
 }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_VIEWED: 'CARD_VIEWED',
-    CARD_BUTTON_CLICKED: 'CARD_BUTTON_CLICKED',
-  },
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -94,7 +90,9 @@ const mockUseCardDelegation = useCardDelegation as jest.MockedFunction<
   typeof useCardDelegation
 >;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+  typeof useAnalytics
+>;
 const mockCreateAssetSelectionModalNavigationDetails =
   createAssetSelectionModalNavigationDetails as jest.MockedFunction<
     typeof createAssetSelectionModalNavigationDetails
@@ -203,7 +201,7 @@ describe('useSpendingLimit', () => {
       addProperties: mockAddProperties,
     });
     mockTrackEvent = jest.fn();
-    mockUseMetrics.mockReturnValue({
+    mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     } as never);

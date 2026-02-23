@@ -15,13 +15,14 @@ import { SettingsViewSelectorsIDs } from './SettingsView.testIds';
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
 import { TextColor } from '../../../component-library/components/Texts/Text';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -34,7 +35,7 @@ const createStyles = (colors: Colors) =>
 
 const Settings = () => {
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,6 +48,7 @@ const Settings = () => {
   );
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isAccountMenuEnabled = useAccountMenuEnabled();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -254,7 +256,7 @@ const Settings = () => {
             testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
           />
         )}
-        {isPermissionsSettingsV1Enabled && (
+        {!isAccountMenuEnabled && isPermissionsSettingsV1Enabled && (
           <SettingsDrawer
             description={strings('app_settings.permissions_desc')}
             onPress={goToManagePermissions}
@@ -262,7 +264,7 @@ const Settings = () => {
             testID={SettingsViewSelectorsIDs.PERMISSIONS}
           />
         )}
-        {isEvmSelected && (
+        {!isAccountMenuEnabled && isEvmSelected && (
           <SettingsDrawer
             description={strings('app_settings.contacts_desc')}
             onPress={onPressContacts}
@@ -312,11 +314,13 @@ const Settings = () => {
             />
           )
         }
-        <SettingsDrawer
-          title={aboutMetaMaskTitle}
-          onPress={onPressInfo}
-          testID={SettingsViewSelectorsIDs.ABOUT_METAMASK}
-        />
+        {!isAccountMenuEnabled && (
+          <SettingsDrawer
+            title={aboutMetaMaskTitle}
+            onPress={onPressInfo}
+            testID={SettingsViewSelectorsIDs.ABOUT_METAMASK}
+          />
+        )}
         {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
           <SettingsDrawer
             title={strings('app_settings.developer_options.title')}
@@ -332,25 +336,31 @@ const Settings = () => {
             onPress={onPressFeatureFlagOverride}
           />
         )}
-        <SettingsDrawer
-          title={strings('app_settings.request_feature')}
-          onPress={submitFeedback}
-          renderArrowRight={false}
-          testID={SettingsViewSelectorsIDs.REQUEST}
-        />
-        <SettingsDrawer
-          title={strings('app_settings.contact_support')}
-          onPress={showHelp}
-          renderArrowRight={false}
-          testID={SettingsViewSelectorsIDs.CONTACT}
-        />
-        <SettingsDrawer
-          title={strings('drawer.lock')}
-          onPress={lock}
-          renderArrowRight={false}
-          testID={SettingsViewSelectorsIDs.LOCK}
-          titleColor={TextColor.Primary}
-        />
+        {!isAccountMenuEnabled && (
+          <SettingsDrawer
+            title={strings('app_settings.request_feature')}
+            onPress={submitFeedback}
+            renderArrowRight={false}
+            testID={SettingsViewSelectorsIDs.REQUEST}
+          />
+        )}
+        {!isAccountMenuEnabled && (
+          <SettingsDrawer
+            title={strings('app_settings.contact_support')}
+            onPress={showHelp}
+            renderArrowRight={false}
+            testID={SettingsViewSelectorsIDs.CONTACT}
+          />
+        )}
+        {!isAccountMenuEnabled && (
+          <SettingsDrawer
+            title={strings('drawer.lock')}
+            onPress={lock}
+            renderArrowRight={false}
+            testID={SettingsViewSelectorsIDs.LOCK}
+            titleColor={TextColor.Primary}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );

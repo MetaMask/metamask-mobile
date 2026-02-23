@@ -46,7 +46,6 @@ export const TRANSFER_TRANSACTION_TYPES = [
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
-  TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
@@ -74,7 +73,16 @@ export const EARN_CONTRACT_INTERACTION_TYPES = [
 export const HIDE_NETWORK_FILTER_TYPES = [TransactionType.perpsDepositAndOrder];
 
 /**
+ * Post-quote transaction types that use a "Receive as" token picker
+ * instead of "Pay with" for selecting the destination token.
+ */
+export const POST_QUOTE_TRANSACTION_TYPES = [
+  TransactionType.predictWithdraw,
+  // TransactionType.perpsWithdraw, // Add when implementing for Perps
+] as const;
+
+/**
  * Transaction types that use user's currency instead of USD for display.
  * mUSD is a stablecoin pegged to USD, so we convert to user's local currency.
  */
-export const USER_CURRENCY_TYPES = [TransactionType.musdClaim];
+export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;

@@ -6,21 +6,21 @@
  * without requiring real network calls or testnet funds.
  */
 
-import type {
-  AccountState,
-  Position,
-  Order,
-  OrderFill,
-  OrderParams,
-  OrderResult,
-  PriceUpdate,
-  PerpsMarketData,
-  WithdrawParams,
-  WithdrawResult,
-  Funding,
-  UpdatePositionTPSLParams,
-  UserHistoryItem,
-} from '../../../../app/components/UI/Perps/controllers/types';
+import {
+  type AccountState,
+  type Position,
+  type Order,
+  type OrderFill,
+  type OrderParams,
+  type OrderResult,
+  type PriceUpdate,
+  type PerpsMarketData,
+  type WithdrawParams,
+  type WithdrawResult,
+  type Funding,
+  type UpdatePositionTPSLParams,
+  type UserHistoryItem,
+} from '@metamask/perps-controller';
 
 export class PerpsE2EMockService {
   private static instance: PerpsE2EMockService;

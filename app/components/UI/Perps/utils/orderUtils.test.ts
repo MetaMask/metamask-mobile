@@ -5,7 +5,7 @@ import {
   willFlipPosition,
   determineMakerStatus,
 } from './orderUtils';
-import { Order, OrderParams } from '../controllers/types';
+import { Order, OrderParams } from '@metamask/perps-controller';
 import { Position } from '../hooks';
 
 // Mock DevLogger

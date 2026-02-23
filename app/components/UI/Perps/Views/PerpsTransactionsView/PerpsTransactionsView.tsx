@@ -23,13 +23,22 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
-import { formatAccountToCaipAccountId } from '../../utils/rewardsUtils';
+import {
+  formatAccountToCaipAccountId,
+  PERPS_TRANSACTIONS_HISTORY_CONSTANTS,
+} from '@metamask/perps-controller';
 
 // Import PerpsController hooks
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
 import PerpsTransactionsSkeleton from '../../components/PerpsTransactionsSkeleton';
-import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
 import { usePerpsConnection, usePerpsTransactionHistory } from '../../hooks';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../../../core/Analytics/events/transactions';
+import { PERPS_BALANCE_CHAIN_ID } from '../../constants/perpsConfig';
 import {
   FilterTab,
   ListItem,
@@ -242,7 +251,23 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     [activeFilter],
   );
 
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
   const handleTransactionPress = (transaction: PerpsTransaction) => {
+    trackEvent(
+      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+        .addProperties({
+          transaction_type: `perps_${transaction.type}`,
+          transaction_status:
+            transaction.depositWithdrawal?.status ?? 'confirmed',
+          location: TransactionDetailLocation.Home,
+          chain_id_source: PERPS_BALANCE_CHAIN_ID,
+          chain_id_destination: PERPS_BALANCE_CHAIN_ID,
+          monetized_primitive: MonetizedPrimitive.Perps,
+        })
+        .build(),
+    );
+
     switch (transaction.type) {
       case 'trade':
         navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {

@@ -8,18 +8,20 @@ jest.mock('../../../../util/intl', () => ({
 const mockGetIntlNumberFormatter =
   getIntlNumberFormatter as jest.MockedFunction<typeof getIntlNumberFormatter>;
 
+const createMockFormatter = () =>
+  ({
+    format: (value: number | bigint) => {
+      const parts = value.toString().split('.');
+      const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return parts[1] !== undefined
+        ? `${integerPart}.${parts[1]}`
+        : integerPart;
+    },
+  }) as unknown as Intl.NumberFormat;
+
 describe('formatAmountWithLocaleSeparators', () => {
   beforeEach(() => {
-    // Mock default en number formatter
-    mockGetIntlNumberFormatter.mockReturnValue({
-      format: (value: number) => {
-        const parts = value.toString().split('.');
-        const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        return parts[1] !== undefined
-          ? `${integerPart}.${parts[1]}`
-          : integerPart;
-      },
-    } as Intl.NumberFormat);
+    mockGetIntlNumberFormatter.mockReturnValue(createMockFormatter());
   });
 
   afterEach(() => {
@@ -74,43 +76,24 @@ describe('formatAmountWithLocaleSeparators', () => {
 
       expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
         useGrouping: true,
-        minimumFractionDigits: 0,
         maximumFractionDigits: 0,
       });
       expect(result).toBe('5,000');
     });
 
-    it('preserves one decimal place', () => {
+    it('preserves decimal digits exactly as typed', () => {
       const result = formatAmountWithLocaleSeparators('100.50');
-
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
-        useGrouping: true,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-      expect(result).toBe('100.5');
+      expect(result).toBe('100.50');
     });
 
     it('preserves six decimal places', () => {
       const result = formatAmountWithLocaleSeparators('1.123456');
-
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
-        useGrouping: true,
-        minimumFractionDigits: 6,
-        maximumFractionDigits: 6,
-      });
       expect(result).toBe('1.123456');
     });
 
-    it('handles trailing zeros in decimals', () => {
+    it('preserves trailing zeros in decimals', () => {
       const result = formatAmountWithLocaleSeparators('10.00');
-
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
-        useGrouping: true,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-      expect(result).toBe('10');
+      expect(result).toBe('10.00');
     });
   });
 
@@ -140,16 +123,9 @@ describe('formatAmountWithLocaleSeparators', () => {
       expect(result).toBe('0.5');
     });
 
-    it('handles trailing decimal point', () => {
+    it('preserves trailing decimal point', () => {
       const result = formatAmountWithLocaleSeparators('100.');
-
-      // parseFloat('100.') = 100, no decimal places
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
-        useGrouping: true,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      });
-      expect(result).toBe('100');
+      expect(result).toBe('100.');
     });
 
     it('handles negative numbers', () => {
@@ -157,20 +133,13 @@ describe('formatAmountWithLocaleSeparators', () => {
       expect(result).toBe('-1,234.56');
     });
 
-    it('handles zero with decimals', () => {
+    it('preserves zero with decimal places', () => {
       const result = formatAmountWithLocaleSeparators('0.00');
-
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
-        useGrouping: true,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-      expect(result).toBe('0');
+      expect(result).toBe('0.00');
     });
 
     it('handles numbers with leading zeros', () => {
       const result = formatAmountWithLocaleSeparators('0001234');
-      // parseFloat removes leading zeros
       expect(result).toBe('1,234');
     });
   });
@@ -209,7 +178,6 @@ describe('formatAmountWithLocaleSeparators', () => {
 
       const result = formatAmountWithLocaleSeparators('1234.56');
 
-      // Should fallback to original value
       expect(result).toBe('1234.56');
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Number formatting error:',
@@ -230,13 +198,12 @@ describe('formatAmountWithLocaleSeparators', () => {
       );
     });
 
-    it('calls formatter with correct options', () => {
+    it('calls integer formatter with grouping and zero fraction digits', () => {
       formatAmountWithLocaleSeparators('1000.123');
 
       expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en', {
         useGrouping: true,
-        minimumFractionDigits: 3,
-        maximumFractionDigits: 3,
+        maximumFractionDigits: 0,
       });
     });
 
@@ -251,7 +218,6 @@ describe('formatAmountWithLocaleSeparators', () => {
   describe('special number formats', () => {
     it('handles scientific notation input', () => {
       const result = formatAmountWithLocaleSeparators('1e3');
-      // parseFloat('1e3') = 1000
       expect(result).toBe('1,000');
     });
 
@@ -260,9 +226,14 @@ describe('formatAmountWithLocaleSeparators', () => {
       expect(result).toBe('1,234');
     });
 
-    it('handles very precise decimals', () => {
+    it('handles very precise decimals without rounding', () => {
       const result = formatAmountWithLocaleSeparators('0.123456789012345');
       expect(result).toBe('0.123456789012345');
+    });
+
+    it('handles 18-decimal precision without rounding', () => {
+      const result = formatAmountWithLocaleSeparators('0.003979676960045669');
+      expect(result).toBe('0.003979676960045669');
     });
   });
 
@@ -284,7 +255,6 @@ describe('formatAmountWithLocaleSeparators', () => {
 
     it('handles decimal point only', () => {
       const result = formatAmountWithLocaleSeparators('.');
-      // parseFloat('.') = NaN
       expect(result).toBe('.');
     });
   });

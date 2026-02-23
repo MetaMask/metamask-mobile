@@ -1,4 +1,5 @@
 import { useCallback, useContext, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
@@ -12,14 +13,14 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { PlaceOrderParams } from '../providers/types';
-import { Side, type Result } from '../types';
+import { PlaceOrderParams, Side, type Result } from '../types';
 import { usePredictTrading } from './usePredictTrading';
 import { strings } from '../../../../../locales/i18n';
 import { formatPrice } from '../utils/format';
 import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { usePredictBalance } from './usePredictBalance';
+import { predictQueries } from '../queries';
 import { usePredictDeposit } from './usePredictDeposit';
 import { PredictEventValues } from '../constants/eventNames';
 
@@ -38,8 +39,26 @@ interface UsePredictPlaceOrderReturn {
   error?: string;
   isLoading: boolean;
   result: Result | null;
-  placeOrder: (params: PlaceOrderParams) => Promise<void>;
+  placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
+  isOrderNotFilled: boolean;
+  resetOrderNotFilled: () => void;
 }
+
+export type PlaceOrderOutcome =
+  | {
+      status: 'success';
+      result: Result;
+    }
+  | {
+      status: 'deposit_required';
+    }
+  | {
+      status: 'order_not_filled';
+    }
+  | {
+      status: 'error';
+      error: string;
+    };
 
 /**
  * Hook for placing Predict orders with loading states and error handling
@@ -55,8 +74,10 @@ export function usePredictPlaceOrder(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<Result | null>(null);
+  const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
   const { toastRef } = useContext(ToastContext);
-  const { balance } = usePredictBalance({ loadOnMount: false });
+  const queryClient = useQueryClient();
+  const { data: balance = 0 } = usePredictBalance();
   const { deposit } = usePredictDeposit();
 
   const showCashedOutToast = useCallback(
@@ -128,7 +149,7 @@ export function usePredictPlaceOrder(
   }, [toastRef]);
 
   const placeOrder = useCallback(
-    async (orderParams: PlaceOrderParams) => {
+    async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
       const {
         preview: { minAmountReceived, side, maxAmountSpent },
       } = orderParams;
@@ -144,11 +165,12 @@ export function usePredictPlaceOrder(
             entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
           },
         });
-        return;
+        return { status: 'deposit_required' };
       }
 
       try {
         setIsLoading(true);
+
         // Place order using Predict controller
         const orderResult = await controllerPlaceOrder(orderParams);
 
@@ -159,6 +181,14 @@ export function usePredictPlaceOrder(
 
         setResult(orderResult);
 
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.balance.keys.all(),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.positions.keys.all(),
+        });
+
         if (side === Side.BUY) {
           showOrderPlacedToast();
         } else {
@@ -168,6 +198,7 @@ export function usePredictPlaceOrder(
         }
 
         DevLogger.log('usePredictPlaceOrder: Order placed successfully');
+        return { status: 'success', result: orderResult };
       } catch (err) {
         const parsedErrorMessage = parseErrorMessage({
           error: err,
@@ -190,7 +221,6 @@ export function usePredictPlaceOrder(
               method: 'placeOrder',
               action: 'order_placement',
               operation: 'order_management',
-              providerId: orderParams.providerId,
               side: orderParams.preview?.side,
               marketId: orderParams.analyticsProperties?.marketId,
               transactionType: orderParams.analyticsProperties?.transactionType,
@@ -198,8 +228,19 @@ export function usePredictPlaceOrder(
           },
         });
 
+        const rawMessage = err instanceof Error ? err.message : String(err);
+        const isNotFilled =
+          rawMessage === PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED ||
+          rawMessage === PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED;
+
+        if (isNotFilled) {
+          setIsOrderNotFilled(true);
+          return { status: 'order_not_filled' };
+        }
+
         setError(parsedErrorMessage);
         onError?.(parsedErrorMessage);
+        return { status: 'error', error: parsedErrorMessage };
       } finally {
         setIsLoading(false);
       }
@@ -208,6 +249,7 @@ export function usePredictPlaceOrder(
       balance,
       deposit,
       controllerPlaceOrder,
+      queryClient,
       onComplete,
       showOrderPlacedToast,
       showCashedOutToast,
@@ -215,10 +257,17 @@ export function usePredictPlaceOrder(
     ],
   );
 
+  const resetOrderNotFilled = useCallback(() => {
+    setIsOrderNotFilled(false);
+    setError(undefined);
+  }, []);
+
   return {
     error,
     isLoading,
     result,
     placeOrder,
+    isOrderNotFilled,
+    resetOrderNotFilled,
   };
 }

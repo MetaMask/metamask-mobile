@@ -9,9 +9,9 @@ import {
   selectSelectedCountry,
   selectUserCardLocation,
   selectCardGeoLocation,
+  selectAlwaysShowCardButton,
 } from '../../../../redux/slices/card';
 import {
-  selectCardExperimentalSwitch,
   selectCardSupportedCountries,
   selectDisplayCardButtonFeatureFlag,
   selectCardFeatureFlag,
@@ -76,9 +76,7 @@ describe('handleCardKycNotification', () => {
       'international',
     );
     (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue('US');
-    (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
-      false,
-    );
+    (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(false);
     (
       selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
     ).mockReturnValue(false);
@@ -114,8 +112,8 @@ describe('handleCardKycNotification', () => {
       );
     });
 
-    it('enables navigation when cardExperimentalSwitch is enabled', async () => {
-      (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
+    it('enables navigation when alwaysShowCardButton is enabled', async () => {
+      (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(
         true,
       );
 
@@ -142,7 +140,7 @@ describe('handleCardKycNotification', () => {
 
   describe('onboarding flow', () => {
     beforeEach(() => {
-      (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
+      (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(
         true,
       );
       (selectOnboardingId as unknown as jest.Mock).mockReturnValue(
@@ -336,7 +334,7 @@ describe('handleCardKycNotification', () => {
 
   describe('authenticated flow', () => {
     beforeEach(() => {
-      (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
+      (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(
         true,
       );
       (selectOnboardingId as unknown as jest.Mock).mockReturnValue(null);
@@ -488,7 +486,7 @@ describe('handleCardKycNotification', () => {
 
   describe('fallback behavior', () => {
     beforeEach(() => {
-      (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
+      (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(
         true,
       );
       (selectOnboardingId as unknown as jest.Mock).mockReturnValue(null);
@@ -519,7 +517,7 @@ describe('handleCardKycNotification', () => {
 
   describe('error handling', () => {
     beforeEach(() => {
-      (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
+      (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(
         true,
       );
     });
@@ -643,7 +641,7 @@ describe('handleCardKycNotification', () => {
 
   describe('logging', () => {
     beforeEach(() => {
-      (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
+      (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(
         true,
       );
     });

@@ -4,10 +4,8 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { usePerpsBalanceTokenFilter } from './usePerpsBalanceTokenFilter';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
-import {
-  PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-  PERPS_CONSTANTS,
-} from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { PERPS_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/perpsConfig';
 import type { AssetType } from '../../../Views/confirmations/types/token';
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -53,6 +51,9 @@ describe('usePerpsBalanceTokenFilter', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector.name === 'selectPerpsAccountState') {
         return { availableBalance: '1500.00' };
+      }
+      if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets') {
+        return [];
       }
       return undefined;
     });
@@ -152,7 +153,12 @@ describe('usePerpsBalanceTokenFilter', () => {
     });
 
     it('uses zero balance when perps account is null', () => {
-      mockUseSelector.mockReturnValue(null);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.name === 'selectPerpsAccountState') return null;
+        if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
+          return [];
+        return undefined;
+      });
       const inputTokens: AssetType[] = [];
 
       const { result } = renderHook(() => usePerpsBalanceTokenFilter());
@@ -163,6 +169,13 @@ describe('usePerpsBalanceTokenFilter', () => {
     });
 
     it('clears isSelected on other tokens when perps balance is selected', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.name === 'selectPerpsAccountState')
+          return { availableBalance: '1500.00' };
+        if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
+          return [];
+        return undefined;
+      });
       mockUseIsPerpsBalanceSelected.mockReturnValue(true);
       const inputTokens: AssetType[] = [
         {
@@ -187,6 +200,13 @@ describe('usePerpsBalanceTokenFilter', () => {
     });
 
     it('keeps token isSelected when perps balance is not selected', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.name === 'selectPerpsAccountState')
+          return { availableBalance: '1500.00' };
+        if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
+          return [];
+        return undefined;
+      });
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
       const inputTokens: AssetType[] = [
         {
@@ -201,6 +221,41 @@ describe('usePerpsBalanceTokenFilter', () => {
       const output = result.current(inputTokens);
 
       expect(output[1].isSelected).toBe(true);
+    });
+
+    it('filters to only allowlisted tokens when allowlist is set', () => {
+      const allowlistKey = `${chainId}.0xusdc`.toLowerCase();
+      let selectorCallIndex = 0;
+      mockUseSelector.mockImplementation(() => {
+        selectorCallIndex += 1;
+        if (selectorCallIndex === 1) return { availableBalance: '100.00' };
+        if (selectorCallIndex === 2) return [allowlistKey];
+        return [];
+      });
+      const inputTokens: AssetType[] = [
+        {
+          address: '0xusdc',
+          chainId,
+          symbol: 'USDC',
+          name: 'USD Coin',
+          balance: '500',
+        } as AssetType,
+        {
+          address: '0xother',
+          chainId,
+          symbol: 'OTHER',
+          name: 'Other',
+          balance: '100',
+        } as AssetType,
+      ];
+
+      const { result } = renderHook(() => usePerpsBalanceTokenFilter());
+      const output = result.current(inputTokens);
+
+      expect(output).toHaveLength(2);
+      expect(output[0].address).toBe(PERPS_BALANCE_PLACEHOLDER_ADDRESS);
+      expect(output[1].address).toBe('0xusdc');
+      expect(output[1].symbol).toBe('USDC');
     });
   });
 });

@@ -1,5 +1,6 @@
 import { Dimensions } from 'react-native';
 import { PredictSeries, Recurrence } from '../types';
+import { formatSubscriptNotation } from '../../../../util/number/subscriptNotation';
 
 /**
  * Formats a percentage value
@@ -61,24 +62,6 @@ export const formatPercentage = (
 
   return `${formatted}%`;
 };
-
-/**
- * Subscript digits for formatting small prices
- */
-const SUBSCRIPT_DIGITS = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉'];
-
-/**
- * Converts a number to subscript notation
- * @param num - Number to convert
- * @returns String with subscript digits
- * @example toSubscript(6) => "₆"
- * @example toSubscript(12) => "₁₂"
- */
-const toSubscript = (num: number): string =>
-  String(num)
-    .split('')
-    .map((digit) => SUBSCRIPT_DIGITS[parseInt(digit, 10)])
-    .join('');
 
 /**
  * Formats a price value as USD currency with rounding up to nearest cent
@@ -151,20 +134,9 @@ export const formatPriceWithSubscriptNotation = (
     return '—';
   }
 
-  // Handle very small values with subscript notation (e.g., 0.00000614 → $0.0₅614)
-  if (num > 0 && num < 0.0001) {
-    const priceStr = num.toFixed(20);
-    const match = priceStr.match(/^0\.0*([1-9]\d*)/);
-
-    if (match) {
-      const leadingZeros = priceStr.indexOf(match[1]) - 2;
-
-      if (leadingZeros >= 4) {
-        const significantDigits =
-          match[1].slice(0, 4).replace(/0+$/, '') || match[1].slice(0, 2);
-        return `$0.0${toSubscript(leadingZeros)}${significantDigits}`;
-      }
-    }
+  const subscript = formatSubscriptNotation(num);
+  if (subscript) {
+    return `$${subscript}`;
   }
 
   return formatPrice(num, { minimumDecimals: 2, maximumDecimals: 4 });

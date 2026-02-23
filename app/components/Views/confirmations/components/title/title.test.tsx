@@ -285,6 +285,44 @@ describe('Confirm Title', () => {
     });
   });
 
+  it('renders correct title and subtitle for musdClaim', () => {
+    const musdClaimState = merge({}, generateContractInteractionState, {
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [
+              {
+                type: TransactionType.musdClaim,
+                chainId: '0xe708',
+              },
+            ],
+          },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0xe708': {
+                name: 'Linea Mainnet',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'linea-mainnet',
+                    url: 'https://linea-mainnet.infura.io/v3/test',
+                    name: 'Linea Mainnet',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+              },
+            },
+          },
+        },
+      },
+    });
+    const { getByText } = renderWithProvider(<Title />, {
+      state: musdClaimState,
+    });
+    expect(getByText('Claim bonus')).toBeTruthy();
+    expect(getByText('Bonus will be paid out on Linea Mainnet.')).toBeTruthy();
+  });
+
   it.each([TransactionType.lendingDeposit, TransactionType.lendingWithdraw])(
     'does not render subtitle for %s',
     (transactionType) => {

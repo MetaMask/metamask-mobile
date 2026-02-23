@@ -23,8 +23,6 @@ import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import Authentication from '../../core/Authentication';
-import { MetaMetrics } from '../../core/Analytics';
-import Logger from '../../util/Logger';
 import AppConstants from '../../core/AppConstants';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 
@@ -57,9 +55,7 @@ jest.mock('../../core/AppStateEventListener', () => ({
 jest.mock('../../core/Analytics', () => ({
   __esModule: true,
   MetaMetrics: {
-    getInstance: jest.fn().mockReturnValue({
-      configure: jest.fn().mockResolvedValue(true),
-    }),
+    getInstance: jest.fn().mockReturnValue({}),
   },
 }));
 
@@ -385,32 +381,6 @@ describe('startAppServices', () => {
     // Verify services are started
     expect(EngineService.start).toHaveBeenCalled();
     expect(AppStateEventProcessor.start).toHaveBeenCalled();
-    expect(MetaMetrics.getInstance().configure).toHaveBeenCalled();
-  });
-
-  it('logs error when MetaMetrics.configure fails', async () => {
-    MetaMetrics.getInstance().configure = jest
-      .fn()
-      .mockRejectedValueOnce(new Error('Failed to configure MetaMetrics'));
-
-    await expectSaga(startAppServices)
-      .withState({
-        onboarding: { completedOnboarding: false },
-        user: { existingUser: true },
-      })
-      // Dispatch both required actions
-      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
-      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
-      .run();
-
-    // Verify services are started
-    expect(EngineService.start).toHaveBeenCalled();
-    expect(AppStateEventProcessor.start).toHaveBeenCalled();
-    expect(MetaMetrics.getInstance().configure).toHaveBeenCalled();
-    expect(Logger.error).toHaveBeenCalledWith(
-      new Error('Failed to configure MetaMetrics'),
-      'Error configuring MetaMetrics',
-    );
   });
 
   it('does not start app services if persisted data is not loaded', async () => {
@@ -424,12 +394,9 @@ describe('startAppServices', () => {
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
     expect(WC2Manager.init).not.toHaveBeenCalled();
     expect(SDKConnect.init).not.toHaveBeenCalled();
-    expect(MetaMetrics.getInstance().configure).not.toHaveBeenCalled();
   });
 
   it('requests authentication on app start', async () => {
-    MetaMetrics.getInstance().configure = jest.fn().mockResolvedValueOnce(true);
-
     await expectSaga(startAppServices)
       .withState({
         onboarding: { completedOnboarding: false },

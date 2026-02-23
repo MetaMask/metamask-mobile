@@ -15,7 +15,6 @@ import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { act } from '@testing-library/react-native';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { useAccounts } from '../../hooks/useAccounts';
@@ -70,13 +69,13 @@ jest.mock('../../UI/Tabs', () => ({
   }),
 }));
 
-const mockTabs = [
-  { id: 1, url: 'about:blank', image: '', isArchived: false },
-  { id: 2, url: 'about:blank', image: '', isArchived: false },
-  { id: 3, url: 'about:blank', image: '', isArchived: false },
-  { id: 4, url: 'about:blank', image: '', isArchived: false },
-  { id: 5, url: 'about:blank', image: '', isArchived: false },
-];
+const mockTabs = Array.from({ length: 20 }, (_, i) => ({
+  id: i + 1,
+  url: 'about:blank',
+  image: '',
+  isArchived: false,
+  lastActiveAt: Date.now() - i * 1000,
+}));
 
 const mockInitialState = {
   engine: {
@@ -407,56 +406,15 @@ describe('Browser - Rendering and Initialization', () => {
     // Does not navigate to the max browser tabs modal
     expect(navigationSpy).not.toHaveBeenCalled();
 
-    // Dpes not create a new tab
+    // Does not create a new tab
     expect(mockCreateNewTab).not.toHaveBeenCalled();
 
     // Updates the active tab with the new URL
     expect(mockUpdateTab).toHaveBeenCalledWith(1, {
       url: newSiteUrl,
-      isArchived: false,
     });
 
     navigationSpy.mockRestore();
-  });
-
-  it('marks a tab as archived if it has been idle for too long', async () => {
-    const mockTabsForIdling = [
-      { id: 1, url: 'about:blank', image: '', isArchived: false },
-      { id: 2, url: 'about:blank', image: '', isArchived: false },
-    ];
-
-    jest.useFakeTimers();
-    const mockUpdateTab = jest.fn();
-
-    renderWithProvider(
-      <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
-          <Stack.Navigator>
-            <Stack.Screen name="Browser">
-              {() => (
-                <Browser
-                  route={{ params: {} }}
-                  tabs={mockTabsForIdling}
-                  activeTab={1}
-                  navigation={mockNavigation}
-                  createNewTab={jest.fn}
-                  closeTab={jest.fn}
-                  setActiveTab={jest.fn}
-                  updateTab={mockUpdateTab}
-                />
-              )}
-            </Stack.Screen>
-          </Stack.Navigator>
-        </NavigationContainer>
-      </Provider>,
-    );
-
-    // Wrap the timer advancement in act
-    await act(async () => {
-      jest.advanceTimersByTime(1000 * 60 * 5);
-    });
-
-    expect(mockUpdateTab).toHaveBeenCalledWith(2, { isArchived: true });
   });
 
   it('shows active account toast when visiting a site with permitted accounts', () => {

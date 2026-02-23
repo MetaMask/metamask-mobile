@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { selectQuotes } from '../../../../selectors/rampsController';
-import { type Quote, type QuotesResponse } from '@metamask/ramps-controller';
+import { type QuotesResponse } from '@metamask/ramps-controller';
+import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 
 /**
@@ -23,6 +24,22 @@ export interface StartQuotePollingOptions {
 }
 
 /**
+ * Options for fetching quotes (matches RampsController.getQuotes).
+ */
+export interface GetQuotesOptions {
+  region?: string;
+  fiat?: string;
+  assetId?: string;
+  amount: number;
+  walletAddress: string;
+  paymentMethods?: string[];
+  providers?: string[];
+  redirectUrl?: string;
+  forceRefresh?: boolean;
+  ttl?: number;
+}
+
+/**
  * Result returned by the useRampsQuotes hook.
  */
 export interface UseRampsQuotesResult {
@@ -35,6 +52,14 @@ export interface UseRampsQuotesResult {
    */
   selectedQuote: Quote | null;
   /**
+   * Fetches quotes and updates controller state. Returns the response.
+   */
+  getQuotes: (options: GetQuotesOptions) => Promise<QuotesResponse>;
+  /**
+   * Sets the currently selected quote.
+   */
+  setSelectedQuote: (quote: Quote | null) => void;
+  /**
    * Starts automatic quote polling with a 15-second refresh interval.
    * @param options - Parameters for fetching quotes.
    */
@@ -43,6 +68,13 @@ export interface UseRampsQuotesResult {
    * Stops automatic quote polling.
    */
   stopQuotePolling: () => void;
+  /**
+   * Fetches the widget URL from a quote for redirect providers.
+   * Makes a request to the buyURL endpoint to get the actual provider widget URL.
+   * @param quote - The quote to fetch the widget URL from.
+   * @returns Promise resolving to the widget URL string, or null if not available.
+   */
+  getWidgetUrl: (quote: Quote) => Promise<string | null>;
   /**
    * Whether the quotes request is currently loading.
    */
@@ -78,11 +110,31 @@ export function useRampsQuotes(): UseRampsQuotesResult {
     [],
   );
 
+  const getQuotes = useCallback(
+    (options: GetQuotesOptions) =>
+      Engine.context.RampsController.getQuotes(options),
+    [],
+  );
+
+  const setSelectedQuote = useCallback(
+    (quote: Quote | null) =>
+      Engine.context.RampsController.setSelectedQuote(quote),
+    [],
+  );
+
+  const getWidgetUrl = useCallback(
+    (quote: Quote) => Engine.context.RampsController.getWidgetUrl(quote),
+    [],
+  );
+
   return {
     quotes,
     selectedQuote,
+    getQuotes,
+    setSelectedQuote,
     startQuotePolling,
     stopQuotePolling,
+    getWidgetUrl,
     isLoading,
     error,
   };

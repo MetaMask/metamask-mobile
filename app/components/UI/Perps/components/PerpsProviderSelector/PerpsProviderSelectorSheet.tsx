@@ -19,7 +19,7 @@ import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import type { PerpsProviderSelectorSheetProps } from './PerpsProviderSelector.types';
 import { PROVIDER_DISPLAY_INFO } from './PerpsProviderSelector.constants';
 import { styleSheet } from './PerpsProviderSelector.styles';
-import type { PerpsProviderType } from '../../controllers/types';
+import type { PerpsProviderType } from '@metamask/perps-controller';
 
 /**
  * PerpsProviderSelectorSheet Component

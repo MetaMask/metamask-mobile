@@ -282,9 +282,14 @@ const ChoosePassword = () => {
 
   const handleWalletCreation = useCallback(
     async (authType: AuthData, previous_screen: string | undefined) => {
+      // Ask user to allow biometrics access control
+      authType.currentAuthType =
+        await Authentication.requestBiometricsAccessControlForIOS(
+          authType.currentAuthType,
+        );
+
       if (previous_screen?.toLowerCase() === ONBOARDING.toLowerCase()) {
         await Authentication.newWalletAndKeychain(password, authType);
-
         keyringControllerPasswordSet.current = true;
         dispatch(seedphraseNotBackedUp());
       } else {

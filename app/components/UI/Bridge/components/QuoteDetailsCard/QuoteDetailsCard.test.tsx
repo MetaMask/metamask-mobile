@@ -237,13 +237,6 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
   selectInternalAccounts: () => [],
@@ -500,7 +493,6 @@ describe('QuoteDetailsCard', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
       params: {
-        bottomPadding: 64,
         title: strings('bridge.network_fee_info_title'),
         tooltip: strings('bridge.network_fee_info_content_sponsored', {
           nativeToken: 'ETH',
@@ -589,7 +581,6 @@ describe('QuoteDetailsCard', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
       params: {
-        bottomPadding: 64,
         title: strings('bridge.quote_info_title'),
         tooltip: strings('bridge.quote_info_content'),
         footerText: undefined,

@@ -1,10 +1,8 @@
 import { MetaMetricsEvents } from '../../core/Analytics';
 import {
   IMetaMetricsEvent,
-  ITrackingEvent,
   JsonMap,
 } from '../../core/Analytics/MetaMetrics.types';
-import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 
 export enum ActionLocation {
   HOME = 'home',
@@ -46,15 +44,22 @@ export interface ActionButtonProperties extends JsonMap {
 }
 
 /**
- * Track action button click with new consolidated event
+ * Track action button click with new consolidated event.
+ * Generic over the event type so callers using either MetricsEventBuilder
+ * (ITrackingEvent) or AnalyticsEventBuilder (AnalyticsTrackingEvent) are
+ * both accepted without a lossy union parameter.
  *
- * @param trackEvent - MetaMetrics trackEvent function
- * @param createEventBuilder - MetaMetrics createEventBuilder function
+ * @param trackEvent - trackEvent function (MetaMetrics or useAnalytics)
+ * @param createEventBuilder - createEventBuilder function (MetricsEventBuilder or AnalyticsEventBuilder)
  * @param properties - Button properties
  */
-export const trackActionButtonClick = (
-  trackEvent: (event: ITrackingEvent) => void,
-  createEventBuilder: (event: IMetaMetricsEvent) => MetricsEventBuilder,
+export const trackActionButtonClick = <TEvent>(
+  trackEvent: (event: TEvent) => void,
+  createEventBuilder: (event: IMetaMetricsEvent) => {
+    addProperties: (properties: ActionButtonProperties) => {
+      build: () => TEvent;
+    };
+  },
   properties: ActionButtonProperties,
 ) => {
   trackEvent(

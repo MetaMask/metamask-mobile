@@ -18,8 +18,6 @@ const mockNavigate = jest.fn();
 let mockSetSmartTransactionsOptInStatus: jest.Mock<any, any>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockDismissSmartAccountSuggestionEnabled: jest.Mock<any, any>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let mockSmartAccountOptIn: jest.Mock<any, any>;
 
 beforeEach(() => {
   initialState = {
@@ -50,7 +48,6 @@ const mockEngine = Engine;
 jest.mock('../../../../core/Engine', () => {
   mockSetSmartTransactionsOptInStatus = jest.fn();
   mockDismissSmartAccountSuggestionEnabled = jest.fn();
-  mockSmartAccountOptIn = jest.fn();
   return {
     init: () => mockEngine.init(''),
     context: {
@@ -58,11 +55,34 @@ jest.mock('../../../../core/Engine', () => {
         setSmartTransactionsOptInStatus: mockSetSmartTransactionsOptInStatus,
         setDismissSmartAccountSuggestionEnabled:
           mockDismissSmartAccountSuggestionEnabled,
-        setSmartAccountOptIn: mockSmartAccountOptIn,
       },
     },
   };
 });
+
+// HOC mock must inject metrics; mock factory runs before imports so React is not in scope (hence require).
+jest.mock(
+  '../../../../components/hooks/useAnalytics/withAnalyticsAwareness',
+  () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- hoisted mock factory
+    const ReactModule = require('react');
+    return {
+      withAnalyticsAwareness:
+        (Component: unknown) => (props: Record<string, unknown>) =>
+          ReactModule.createElement(Component, {
+            ...props,
+            analytics: {
+              trackEvent: jest.fn(),
+              createEventBuilder: jest.fn(() => ({
+                addProperties: jest.fn().mockReturnThis(),
+                build: jest.fn(),
+              })),
+              addTraitsToUser: jest.fn(),
+            },
+          }),
+    };
+  },
+);
 
 describe('AdvancedSettings', () => {
   it('should render correctly', () => {
@@ -118,25 +138,6 @@ describe('AdvancedSettings', () => {
       fireEvent(switchElement, 'onValueChange', false);
 
       expect(mockDismissSmartAccountSuggestionEnabled).toHaveBeenCalled();
-    });
-
-    it('should update smartAccountOptIn when dismiss upgrade opt in pressed', async () => {
-      const { findByLabelText } = renderWithProvider(
-        <AdvancedSettings
-          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
-        />,
-        {
-          state: initialState,
-        },
-      );
-
-      const switchElement = await findByLabelText(
-        strings('app_settings.use_smart_account_heading'),
-      );
-
-      fireEvent(switchElement, 'onValueChange', false);
-
-      expect(mockSmartAccountOptIn).toHaveBeenCalled();
     });
 
     it('should render smart transactions opt in switch on by default', async () => {
