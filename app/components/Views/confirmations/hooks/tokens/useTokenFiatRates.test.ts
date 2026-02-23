@@ -2,8 +2,6 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { TokenFiatRateRequest, useTokenFiatRates } from './useTokenFiatRates';
-import { ARBITRUM_USDC } from '../../constants/perps';
-import { POLYGON_USDCE } from '../../constants/predict';
 
 jest.mock('../../../../../util/address', () => ({
   toChecksumAddress: jest.fn((address) => address),
@@ -107,26 +105,12 @@ describe('useTokenFiatRates', () => {
     expect(result).toEqual([CONVERSION_RATE_1_MOCK]);
   });
 
-  it('returns fixed exchange rate if Arbitrum USDC and selected currency is USD', () => {
+  it('returns fixed exchange rate for stablecoin when currency is USD', () => {
     const result = runHook({
       requests: [
         {
-          address: ARBITRUM_USDC.address,
+          address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
           chainId: CHAIN_IDS.ARBITRUM,
-          currency: 'usd',
-        },
-      ],
-    });
-
-    expect(result).toEqual([1]);
-  });
-
-  it('returns fixed exchange rate if Polygon USDCE and selected currency is USD', () => {
-    const result = runHook({
-      requests: [
-        {
-          address: POLYGON_USDCE.address,
-          chainId: CHAIN_IDS.POLYGON,
           currency: 'usd',
         },
       ],

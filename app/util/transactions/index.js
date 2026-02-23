@@ -219,6 +219,9 @@ const actionKeys = {
   [TransactionType.perpsDeposit]: strings(
     'transactions.tx_review_perps_deposit',
   ),
+  [TransactionType.perpsDepositAndOrder]: strings(
+    'transactions.tx_review_perps_deposit',
+  ),
   [TransactionType.predictDeposit]: strings(
     'transactions.tx_review_predict_deposit',
   ),
@@ -569,6 +572,7 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.lendingDeposit,
       TransactionType.lendingWithdraw,
       TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
       TransactionType.musdConversion,
       TransactionType.musdClaim,
     ].includes(type)
