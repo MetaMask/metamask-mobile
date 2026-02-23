@@ -220,16 +220,17 @@ describe('LendingLearnMoreModal', () => {
   });
 
   describe('route params handling', () => {
-    it('renders with asset from route params', async () => {
-      const { toJSON } = renderWithProvider(
+    it('renders modal header and footer buttons with asset from route params', async () => {
+      const { getByText } = renderWithProvider(
         <SafeAreaProvider initialMetrics={initialMetrics}>
           <LendingLearnMoreModal route={createMockRoute()} />
         </SafeAreaProvider>,
         { state: mockInitialState },
       );
 
-      // Component should render without errors when asset is provided via route params
-      expect(toJSON()).toBeTruthy();
+      expect(getByText(strings('earn.how_it_works'))).toBeOnTheScreen();
+      expect(getByText(strings('stake.learn_more'))).toBeOnTheScreen();
+      expect(getByText(strings('stake.got_it'))).toBeOnTheScreen();
     });
   });
 });
