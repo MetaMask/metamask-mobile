@@ -38,24 +38,19 @@ import { retryWithExponentialDelay } from '../../util/exponential-retry';
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import {
-  convertMnemonicToWordlistIndices,
-  uint8ArrayToMnemonic,
-} from '../../util/mnemonic';
+import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import OAuthService from '../OAuthService/OAuthService';
 import {
   AccountImportStrategy,
-  KeyringMetadata,
   KeyringTypes,
 } from '@metamask/keyring-controller';
 import {
   SecretType,
   SeedlessOnboardingControllerErrorMessage,
 } from '@metamask/seedless-onboarding-controller';
-import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import {
   SeedlessOnboardingControllerError,
@@ -78,6 +73,7 @@ import { Alert, Platform } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { IconName } from '../../component-library/components/Icons/Icon';
+import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { AuthCapabilities, ReauthenticateErrorType } from './types';
 import {
   isEnrolledAsync,
@@ -181,25 +177,29 @@ class AuthenticationService {
   /**
    * This method creates a new vault and restores with seed phrase and existing user data
    * @param password - password provided by user, biometric, pincode
-   * @param parsedSeed - provided seed
+   * @param seed - provided seed
    * @param clearEngine - clear the engine state before restoring vault
    */
   private newWalletVaultAndRestore = async (
     password: string,
-    parsedSeed: string,
+    seed: string,
     clearEngine: boolean,
   ): Promise<void> => {
     // Restore vault with user entered password
-    const { KeyringController } = Engine.context;
     if (clearEngine) await Engine.resetState();
-    const parsedSeedUint8Array = mnemonicPhraseToBytes(parsedSeed);
-    await KeyringController.createNewVaultAndRestore(
+
+    const { MultichainAccountService } = Engine.context;
+
+    const mnemonic = mnemonicPhraseToBytes(seed);
+
+    await MultichainAccountService.createMultichainAccountWallet({
+      type: 'restore',
       password,
-      parsedSeedUint8Array,
-    );
+      mnemonic,
+    });
 
     password = this.wipeSensitiveData();
-    parsedSeed = this.wipeSensitiveData();
+    seed = this.wipeSensitiveData();
   };
 
   private retryAccountDiscovery = async (discovery: () => Promise<void>) => {
@@ -257,11 +257,14 @@ class AuthenticationService {
   private createWalletVaultAndKeychain = async (
     password: string,
   ): Promise<void> => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { KeyringController }: any = Engine.context;
     await Engine.resetState();
-    await KeyringController.createNewVaultAndKeychain(password);
+
+    const { MultichainAccountService } = Engine.context;
+
+    await MultichainAccountService.createMultichainAccountWallet({
+      type: 'create',
+      password,
+    });
 
     password = this.wipeSensitiveData();
   };
@@ -984,12 +987,12 @@ class AuthenticationService {
             const mnemonicToRestore = encodedSrp;
 
             // import the new mnemonic to the current vault
-            const keyringMetadata =
+            const entropySource =
               await this.importSeedlessMnemonicToVault(mnemonicToRestore);
 
             // discover multichain accounts from imported srp
             // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-            this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
+            this.attemptMultichainAccountWalletDiscovery(entropySource);
           } else {
             Logger.error(
               new Error('SeedlessOnboardingController: Unknown secret type'),
@@ -1009,52 +1012,52 @@ class AuthenticationService {
   };
 
   importSeedlessMnemonicToVault = async (
-    mnemonic: string,
-  ): Promise<KeyringMetadata> => {
+    seed: string,
+  ): Promise<EntropySourceId> => {
     const isSeedlessOnboardingFlow =
       Engine.context.SeedlessOnboardingController.state.vault != null;
 
     if (!isSeedlessOnboardingFlow) {
       throw new Error('Not in seedless onboarding flow');
     }
-    const { KeyringController, SeedlessOnboardingController } = Engine.context;
+    const {
+      KeyringController,
+      SeedlessOnboardingController,
+      MultichainAccountService,
+    } = Engine.context;
 
-    const keyringMetadata = await KeyringController.addNewKeyring(
-      KeyringTypes.hd,
+    const mnemonic = mnemonicPhraseToBytes(seed);
+
+    const wallet = await MultichainAccountService.createMultichainAccountWallet(
       {
+        type: 'import',
         mnemonic,
-        numberOfAccounts: 1,
       },
     );
-
-    const id = keyringMetadata.id;
+    const entropySource = wallet.entropySource;
 
     const [newAccountAddress] = await KeyringController.withKeyring(
-      { id },
+      { id: entropySource },
       async ({ keyring }) => keyring.getAccounts(),
     );
 
     // if social backup is requested, add the seed phrase backup
-    const seedPhraseAsBuffer = Buffer.from(mnemonic, 'utf8');
-    const seedPhraseAsUint8Array = convertMnemonicToWordlistIndices(
-      seedPhraseAsBuffer,
-      wordlist,
-    );
-
     try {
       SeedlessOnboardingController.updateBackupMetadataState({
-        keyringId: id,
-        data: seedPhraseAsUint8Array,
+        keyringId: entropySource,
+        data: mnemonic,
         type: SecretType.Mnemonic,
       });
     } catch (error) {
       // handle seedless controller import error by reverting keyring controller mnemonic import
-      // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
-      await KeyringController.removeAccount(newAccountAddress);
+      await MultichainAccountService.removeMultichainAccountWallet(
+        entropySource,
+        newAccountAddress,
+      );
       throw error;
     }
 
-    return keyringMetadata;
+    return entropySource;
   };
 
   addNewPrivateKeyBackup = async (
@@ -1183,7 +1186,7 @@ class AuthenticationService {
 
         await this.newWalletVaultAndRestore(password, seedPhrase, false);
         // add in more srps
-        const keyringMetadataList: KeyringMetadata[] = [];
+        const entropySources: EntropySourceId[] = [];
         if (restOfSeedPhrases.length > 0) {
           for (const item of restOfSeedPhrases) {
             try {
@@ -1195,9 +1198,9 @@ class AuthenticationService {
                 });
               } else if (item.type === SecretType.Mnemonic) {
                 const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
-                const keyringMetadata =
+                const entropySource =
                   await this.importSeedlessMnemonicToVault(mnemonic);
-                keyringMetadataList.push(keyringMetadata);
+                entropySources.push(entropySource);
               } else {
                 Logger.error(
                   new Error(
@@ -1217,9 +1220,9 @@ class AuthenticationService {
         }
         await this.syncKeyringEncryptionKey();
 
-        for (const { id } of keyringMetadataList) {
+        for (const entropySource of entropySources) {
           // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-          this.attemptMultichainAccountWalletDiscovery(id);
+          this.attemptMultichainAccountWalletDiscovery(entropySource);
         }
         this.dispatchOauthReset();
         ReduxService.store.dispatch(setExistingUser(true));
