@@ -32,7 +32,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
 }));
 
-const mockUseParams = jest.fn<() => ProviderSelectionModalParams>(() => ({
+const mockUseParams = jest.fn<ProviderSelectionModalParams, []>(() => ({
   amount: 100,
 }));
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
