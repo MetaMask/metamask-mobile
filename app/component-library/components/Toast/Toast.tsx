@@ -5,7 +5,6 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import {
@@ -15,7 +14,6 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   cancelAnimation,
   runOnJS,
@@ -52,8 +50,6 @@ const visibilityDuration = 2750;
 const animationDuration = 250;
 const bottomPadding = 36;
 const screenHeight = Dimensions.get('window').height;
-const SWIPE_DISMISS_THRESHOLD = 50;
-const SWIPE_ACTIVE_OFFSET_X = 15;
 
 const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const { styles } = useStyles(styleSheet, {});
@@ -62,7 +58,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   );
   const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
   const translateYProgress = useSharedValue(screenHeight);
-  const closeToastRef = useRef<() => void>(() => undefined);
   const customOffset = toastOptions?.customBottomOffset ?? 0;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -100,26 +95,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       },
     );
   };
-
-  closeToastRef.current = closeToast;
-
-  const dismissToastFromSwipe = useMemo(
-    () => () => closeToastRef.current?.(),
-    [],
-  );
-
-  const swipeToDismissGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .activeOffsetX([-SWIPE_ACTIVE_OFFSET_X, SWIPE_ACTIVE_OFFSET_X])
-        .onEnd((e) => {
-          'worklet';
-          if (Math.abs(e.translationX) > SWIPE_DISMISS_THRESHOLD) {
-            runOnJS(dismissToastFromSwipe)();
-          }
-        }),
-    [dismissToastFromSwipe],
-  );
 
   useImperativeHandle(ref, () => ({
     showToast,
@@ -301,18 +276,10 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     return null;
   }
 
-  const toastContent = (
+  return (
     <Animated.View onLayout={onAnimatedViewLayout} style={baseStyle}>
       {renderToastContent(toastOptions)}
     </Animated.View>
-  );
-
-  return toastOptions.hasNoTimeout ? (
-    <GestureDetector gesture={swipeToDismissGesture}>
-      {toastContent}
-    </GestureDetector>
-  ) : (
-    toastContent
   );
 });
 
