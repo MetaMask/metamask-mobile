@@ -11,14 +11,14 @@ import {
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Logger from '../../../../../util/Logger';
-import AuthenticationError from '../../../../../core/Authentication/AuthenticationError';
-import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../../../constants/error';
 import { useStyles } from '../../../../hooks/useStyles';
 import useAuthCapabilities from '../../../../../core/Authentication/hooks/useAuthCapabilities';
 import { createTurnOffRememberMeModalNavDetails } from '../../../../UI/TurnOffRememberMeModal/TurnOffRememberMeModal';
 import { useAuthentication } from '../../../../../core/Authentication';
 import { Linking } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { containsErrorMessage } from '../../../../../util/errorHandling';
+import { ReauthenticateErrorType } from '../../../../../core/Authentication/types';
 
 interface DeviceSecurityToggleProps {
   /**
@@ -96,9 +96,7 @@ const DeviceSecurityToggle = ({
       } catch (error) {
         // Check if error is "password required" - navigate to password entry
         const isPasswordRequiredError =
-          error instanceof AuthenticationError &&
-          error.customErrorMessage ===
-            AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
+          containsErrorMessage(error as Error, ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS);
 
         if (isPasswordRequiredError) {
           // Navigate to password entry - keep optimistic value until callback completes
