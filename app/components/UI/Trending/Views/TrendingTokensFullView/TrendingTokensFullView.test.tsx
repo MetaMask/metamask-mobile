@@ -42,14 +42,14 @@ jest.mock('@react-navigation/native', () => ({
   createNavigatorFactory: () => ({}),
 }));
 
-jest.mock('../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest');
+jest.mock('../../hooks/useTrendingRequest/useTrendingRequest');
 const mockUseTrendingRequest = jest.mocked(useTrendingRequest);
 
-jest.mock('../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch');
+jest.mock('../../hooks/useTrendingSearch/useTrendingSearch');
 const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
 
 jest.mock(
-  '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList',
+  '../../components/TrendingTokensList/TrendingTokensList',
   (): typeof TrendingTokensList => {
     const { View, Text, ScrollView } = jest.requireActual('react-native');
     return ({ trendingTokens, refreshControl }) => (

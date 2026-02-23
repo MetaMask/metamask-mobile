@@ -31,11 +31,11 @@ jest.mock('@react-navigation/native', () => ({
   createNavigatorFactory: () => ({}),
 }));
 
-jest.mock('../../TrendingView/hooks/useRwaTokens');
+jest.mock('../../hooks/useRwaTokens/useRwaTokens');
 const mockUseRwaTokens = jest.mocked(useRwaTokens);
 
 jest.mock(
-  '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList',
+  '../../components/TrendingTokensList/TrendingTokensList',
   (): typeof TrendingTokensList => {
     const { View, Text, ScrollView } = jest.requireActual('react-native');
     return ({ trendingTokens, refreshControl }) => (

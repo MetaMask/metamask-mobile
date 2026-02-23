@@ -1,22 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-import { Platform, View, TouchableOpacity, RefreshControl } from 'react-native';
-import { useSelector } from 'react-redux';
+import { View, TouchableOpacity, RefreshControl } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useAppThemeFromContext } from '../../../../../util/theme';
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
-import Icon, {
-  IconName,
-  IconColor,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
-import { TrendingListHeader } from '../../components/TrendingListHeader';
 import TrendingTokensList, {
   TrendingFilterContext,
 } from '../../components/TrendingTokensList/TrendingTokensList';
@@ -25,28 +10,26 @@ import {
   SortTrendingBy,
   type TrendingAsset,
 } from '@metamask/assets-controllers';
-import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
-import { PopularList } from '../../../../../util/networks/customNetworks';
+import Icon, {
+  IconName,
+  IconColor,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../component-library/components/Texts/Text';
 import {
   TrendingTokenTimeBottomSheet,
-  TrendingTokenNetworkBottomSheet,
-  TrendingTokenPriceChangeBottomSheet,
   PriceChangeOption,
-  SortDirection,
   TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
 import { useTrendingSearch } from '../../hooks/useTrendingSearch/useTrendingSearch';
+import { useTokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
 import EmptyErrorTrendingState from '../../../../Views/TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
 import EmptySearchResultState from '../../../../Views/TrendingView/components/EmptyErrorState/EmptySearchResultState';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import { useSearchTracking } from '../../hooks/useSearchTracking/useSearchTracking';
+import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
 import type { Theme } from '../../../../../util/theme/models';
-
-interface TrendingTokensNavigationParamList {
-  [key: string]: undefined | object;
-}
 
 export interface TrendingTokensDataProps {
   isLoading: boolean;
@@ -80,7 +63,6 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
   const isSearching = search.searchQuery.trim().length > 0;
   const hasSearchResults = search.searchResults.length > 0;
 
-  // Loading - show skeleton
   if (isLoading) {
     return (
       <View style={tw`flex-1 px-4`} testID="trending-tokens-skeleton">
@@ -91,17 +73,14 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
     );
   }
 
-  // Show empty trending search results
   if (isSearching && !hasSearchResults) {
     return <EmptySearchResultState />;
   }
 
-  // Show error if no results found
   if (!isSearching && !hasSearchResults) {
     return <EmptyErrorTrendingState onRetry={handleRefresh} />;
   }
 
-  // Show trending tokens list
   return (
     <View style={tw`flex-1 px-4`}>
       <TrendingTokensList
@@ -122,228 +101,69 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
 };
 
 const TrendingTokensFullView = () => {
-  const navigation =
-    useNavigation<StackNavigationProp<TrendingTokensNavigationParamList>>();
   const tw = useTailwind();
-  const theme = useAppThemeFromContext();
-  const insets = useSafeAreaInsets();
   const sessionManager = TrendingFeedSessionManager.getInstance();
+  const filters = useTokenListFilters();
+
   const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(undefined);
-  const [selectedTimeOption, setSelectedTimeOption] = useState<TimeOption>(
-    TimeOption.TwentyFourHours,
-  );
-  const [selectedNetwork, setSelectedNetwork] = useState<CaipChainId[] | null>(
-    null,
-  );
-  const [selectedPriceChangeOption, setSelectedPriceChangeOption] = useState<
-    PriceChangeOption | undefined
-  >(PriceChangeOption.PriceChange);
-  const [priceChangeSortDirection, setPriceChangeSortDirection] =
-    useState<SortDirection>(SortDirection.Descending);
   const [showTimeBottomSheet, setShowTimeBottomSheet] = useState(false);
-  const [showNetworkBottomSheet, setShowNetworkBottomSheet] = useState(false);
-  const [showPriceChangeBottomSheet, setShowPriceChangeBottomSheet] =
-    useState(false);
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
 
-  const handleBackPress = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  const handleSearchToggle = useCallback(() => {
-    setIsSearchVisible((prev) => !prev);
-    if (isSearchVisible) {
-      setSearchQuery('');
-    }
-  }, [isSearchVisible]);
-
-  const handleSearchQueryChange = useCallback((query: string) => {
-    setSearchQuery(query);
-  }, []);
-
-  const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
-
-  // Derive network name from selectedNetwork chain IDs
-  const selectedNetworkName = useMemo(() => {
-    if (!selectedNetwork || selectedNetwork.length === 0) {
-      return strings('trending.all_networks');
-    }
-    const selectedNetworkChainId = selectedNetwork[0];
-
-    // First check if network is in user's configurations
-    const networkConfig = networkConfigurations[selectedNetworkChainId];
-    if (networkConfig?.name) {
-      return networkConfig.name;
-    }
-
-    // If not found, check PopularList
-    try {
-      const { namespace, reference } = parseCaipChainId(selectedNetworkChainId);
-      if (namespace === 'eip155') {
-        const hexChainId = `0x${Number(reference).toString(16)}` as Hex;
-        const popularNetwork = PopularList.find(
-          (network) => network.chainId === hexChainId,
-        );
-        if (popularNetwork?.nickname) {
-          return popularNetwork.nickname;
-        }
-      }
-    } catch {
-      // If parsing fails, fall through to default
-    }
-
-    return strings('trending.all_networks');
-  }, [selectedNetwork, networkConfigurations]);
-
-  // Use tokens section data as the single source of truth:
-  // - When no search query: returns trending results from useTrendingRequest
-  // - When search query exists: returns merged trending + search results
   const {
     data: searchResults,
     isLoading,
     refetch: refetchTokensSection,
   } = useTrendingSearch({
-    searchQuery: searchQuery || undefined,
+    searchQuery: filters.searchQuery || undefined,
     sortBy,
-    chainIds: selectedNetwork,
+    chainIds: filters.selectedNetwork,
   });
 
-  // Sort and display tokens based on selected option and direction
   const trendingTokens = useMemo(() => {
-    // Early return if no results
     if (searchResults.length === 0) {
       return [];
     }
 
-    // When searching, return results in relevance order (no sorting)
-    if (searchQuery?.trim()) {
+    if (filters.searchQuery?.trim()) {
       return searchResults;
     }
 
-    // When browsing (no search), apply sorting if option is selected
-    if (!selectedPriceChangeOption) {
+    if (!filters.selectedPriceChangeOption) {
       return searchResults;
     }
 
-    // Sort using the shared utility function
     return sortTrendingTokens(
       searchResults,
-      selectedPriceChangeOption,
-      priceChangeSortDirection,
-      selectedTimeOption,
+      filters.selectedPriceChangeOption,
+      filters.priceChangeSortDirection,
+      filters.selectedTimeOption,
     );
   }, [
     searchResults,
-    searchQuery,
-    selectedPriceChangeOption,
-    priceChangeSortDirection,
-    selectedTimeOption,
+    filters.searchQuery,
+    filters.selectedPriceChangeOption,
+    filters.priceChangeSortDirection,
+    filters.selectedTimeOption,
   ]);
 
-  // Compute filter context for analytics tracking
-  const filterContext: TrendingFilterContext = useMemo(
-    () => ({
-      timeFilter: selectedTimeOption,
-      sortOption: selectedPriceChangeOption,
-      networkFilter:
-        selectedNetwork && selectedNetwork.length > 0
-          ? selectedNetwork[0]
-          : 'all',
-      isSearchResult: Boolean(searchQuery?.trim()),
-    }),
-    [
-      selectedTimeOption,
-      selectedPriceChangeOption,
-      selectedNetwork,
-      searchQuery,
-    ],
-  );
-
-  // Track search events with debounce
   useSearchTracking({
-    searchQuery,
+    searchQuery: filters.searchQuery,
     resultsCount: trendingTokens.length,
     isLoading,
-    timeFilter: selectedTimeOption,
-    sortOption: selectedPriceChangeOption || PriceChangeOption.PriceChange,
+    timeFilter: filters.selectedTimeOption,
+    sortOption:
+      filters.selectedPriceChangeOption || PriceChangeOption.PriceChange,
     networkFilter:
-      selectedNetwork && selectedNetwork.length > 0
-        ? selectedNetwork[0]
+      filters.selectedNetwork && filters.selectedNetwork.length > 0
+        ? filters.selectedNetwork[0]
         : 'all',
   });
 
-  const handlePriceChangeSelect = useCallback(
-    (option: PriceChangeOption, sortDirection: SortDirection) => {
-      const previousValue =
-        selectedPriceChangeOption || PriceChangeOption.PriceChange;
-      setSelectedPriceChangeOption(option);
-      setPriceChangeSortDirection(sortDirection);
-
-      // Track filter change if value actually changed
-      if (option !== previousValue) {
-        sessionManager.trackFilterChange({
-          filter_type: 'sort',
-          previous_value: previousValue,
-          new_value: option,
-          time_filter: selectedTimeOption,
-          sort_option: option,
-          network_filter:
-            selectedNetwork && selectedNetwork.length > 0
-              ? selectedNetwork[0]
-              : 'all',
-        });
-      }
-    },
-    [
-      selectedPriceChangeOption,
-      selectedTimeOption,
-      selectedNetwork,
-      sessionManager,
-    ],
-  );
-
-  const handlePriceChangePress = useCallback(() => {
-    setShowPriceChangeBottomSheet(true);
-  }, []);
-
-  const handleNetworkSelect = useCallback(
-    (chainIds: CaipChainId[] | null) => {
-      const previousValue =
-        selectedNetwork && selectedNetwork.length > 0
-          ? selectedNetwork[0]
-          : 'all';
-      const newValue = chainIds && chainIds.length > 0 ? chainIds[0] : 'all';
-
-      setSelectedNetwork(chainIds);
-
-      // Track filter change if value actually changed
-      if (newValue !== previousValue) {
-        sessionManager.trackFilterChange({
-          filter_type: 'network',
-          previous_value: previousValue,
-          new_value: newValue,
-          time_filter: selectedTimeOption,
-          sort_option:
-            selectedPriceChangeOption || PriceChangeOption.PriceChange,
-          network_filter: newValue,
-        });
-      }
-    },
-    [
-      selectedNetwork,
-      selectedTimeOption,
-      selectedPriceChangeOption,
-      sessionManager,
-    ],
-  );
-
-  const handleAllNetworksPress = useCallback(() => {
-    setShowNetworkBottomSheet(true);
-  }, []);
+  const {
+    selectedTimeOption,
+    selectedPriceChangeOption,
+    selectedNetwork,
+    setSelectedTimeOption,
+  } = filters;
 
   const handleTimeSelect = useCallback(
     (selectedSortBy: SortTrendingBy, timeOption: TimeOption) => {
@@ -351,7 +171,6 @@ const TrendingTokensFullView = () => {
       setSortBy(selectedSortBy);
       setSelectedTimeOption(timeOption);
 
-      // Track filter change if value actually changed
       if (timeOption !== previousValue) {
         sessionManager.trackFilterChange({
           filter_type: 'time',
@@ -371,6 +190,7 @@ const TrendingTokensFullView = () => {
       selectedTimeOption,
       selectedPriceChangeOption,
       selectedNetwork,
+      setSelectedTimeOption,
       sessionManager,
     ],
   );
@@ -379,7 +199,8 @@ const TrendingTokensFullView = () => {
     setShowTimeBottomSheet(true);
   }, []);
 
-  // Handle pull-to-refresh
+  const { setRefreshing } = filters;
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -389,146 +210,51 @@ const TrendingTokensFullView = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [refetchTokensSection]);
+  }, [refetchTokensSection, setRefreshing]);
 
-  // Get the button text based on selected price change option
-  const priceChangeButtonText = useMemo(() => {
-    switch (selectedPriceChangeOption) {
-      case PriceChangeOption.Volume:
-        return strings('trending.volume');
-      case PriceChangeOption.MarketCap:
-        return strings('trending.market_cap');
-      case PriceChangeOption.PriceChange:
-      default:
-        return strings('trending.price_change');
-    }
-  }, [selectedPriceChangeOption]);
-
-  return (
-    <SafeAreaView
-      style={tw`flex-1 bg-default`}
-      edges={
-        Platform.OS === 'ios' ? ['left', 'right'] : ['left', 'right', 'bottom']
-      }
+  const timeFilterButton = (
+    <TouchableOpacity
+      testID="24h-button"
+      onPress={handle24hPress}
+      style={tw.style(
+        'shrink-0 items-center rounded-lg bg-muted p-2',
+        filters.searchQuery?.trim() && 'opacity-50',
+      )}
+      activeOpacity={0.2}
+      disabled={!!filters.searchQuery?.trim()}
     >
-      <View style={tw.style('bg-default', { paddingTop: insets.top })}>
-        <TrendingListHeader
-          title={strings('trending.trending_tokens')}
-          isSearchVisible={isSearchVisible}
-          searchQuery={searchQuery}
-          onSearchQueryChange={handleSearchQueryChange}
-          onBack={handleBackPress}
-          onSearchToggle={handleSearchToggle}
-          testID="trending-tokens-header"
+      <View style={tw`flex-row items-center justify-center gap-1`}>
+        <Text style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}>
+          {filters.selectedTimeOption}
+        </Text>
+        <Icon
+          name={IconName.ArrowDown}
+          color={IconColor.Alternative}
+          size={IconSize.Xs}
         />
       </View>
-      {!isSearchVisible ? (
-        <View style={tw`flex-grow-0 p-4`}>
-          <View style={tw`flex-row items-center justify-between`}>
-            <TouchableOpacity
-              testID="price-change-button"
-              onPress={handlePriceChangePress}
-              style={tw.style(
-                'items-center rounded-lg bg-muted py-2 px-3',
-                searchResults.length === 0 && 'opacity-50',
-              )}
-              activeOpacity={0.2}
-              disabled={searchResults.length === 0}
-            >
-              <View style={tw`flex-row items-center justify-center gap-1`}>
-                <Text
-                  style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}
-                >
-                  {priceChangeButtonText}
-                </Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  color={IconColor.Alternative}
-                  size={IconSize.Xs}
-                />
-              </View>
-            </TouchableOpacity>
-            <View style={tw`ml-2 min-w-0 shrink flex-row items-center gap-2`}>
-              <TouchableOpacity
-                testID="all-networks-button"
-                onPress={handleAllNetworksPress}
-                style={tw`min-w-0 shrink items-center rounded-lg bg-muted p-2`}
-                activeOpacity={0.2}
-              >
-                <View style={tw`flex-row items-center justify-center gap-1`}>
-                  <Text
-                    style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {selectedNetworkName}
-                  </Text>
-                  <Icon
-                    name={IconName.ArrowDown}
-                    color={IconColor.Alternative}
-                    size={IconSize.Xs}
-                  />
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                testID="24h-button"
-                onPress={handle24hPress}
-                style={tw.style(
-                  'shrink-0 items-center rounded-lg bg-muted p-2',
-                  searchQuery?.trim() && 'opacity-50',
-                )}
-                activeOpacity={0.2}
-                disabled={!!searchQuery?.trim()}
-              >
-                <View style={tw`flex-row items-center justify-center gap-1`}>
-                  <Text
-                    style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}
-                  >
-                    {selectedTimeOption}
-                  </Text>
-                  <Icon
-                    name={IconName.ArrowDown}
-                    color={IconColor.Alternative}
-                    size={IconSize.Xs}
-                  />
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      ) : null}
+    </TouchableOpacity>
+  );
 
-      <TrendingTokensData
-        isLoading={isLoading}
-        refreshing={refreshing}
-        trendingTokens={trendingTokens}
-        search={{ searchResults, searchQuery }}
-        handleRefresh={handleRefresh}
-        selectedTimeOption={selectedTimeOption}
-        filterContext={filterContext}
-        theme={theme}
-      />
-
-      <TrendingTokenTimeBottomSheet
-        isVisible={showTimeBottomSheet}
-        onClose={() => setShowTimeBottomSheet(false)}
-        onTimeSelect={handleTimeSelect}
-        selectedTime={selectedTimeOption}
-      />
-      <TrendingTokenNetworkBottomSheet
-        isVisible={showNetworkBottomSheet}
-        onClose={() => setShowNetworkBottomSheet(false)}
-        onNetworkSelect={handleNetworkSelect}
-        selectedNetwork={selectedNetwork}
-      />
-      <TrendingTokenPriceChangeBottomSheet
-        isVisible={showPriceChangeBottomSheet}
-        onClose={() => setShowPriceChangeBottomSheet(false)}
-        onPriceChangeSelect={handlePriceChangeSelect}
-        selectedOption={selectedPriceChangeOption}
-        sortDirection={priceChangeSortDirection}
-      />
-    </SafeAreaView>
+  return (
+    <TokenListPageLayout
+      title={strings('trending.trending_tokens')}
+      testID="trending-tokens-header"
+      filters={filters}
+      tokens={trendingTokens}
+      searchResults={searchResults}
+      isLoading={isLoading}
+      onRefresh={handleRefresh}
+      extraFilters={timeFilterButton}
+      extraBottomSheets={
+        <TrendingTokenTimeBottomSheet
+          isVisible={showTimeBottomSheet}
+          onClose={() => setShowTimeBottomSheet(false)}
+          onTimeSelect={handleTimeSelect}
+          selectedTime={filters.selectedTimeOption}
+        />
+      }
+    />
   );
 };
 
