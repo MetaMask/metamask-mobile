@@ -9,12 +9,10 @@ import {
   CLEAR_BROWSER_HISTORY_SECTION,
   CLEAR_PRIVACY_SECTION,
   DELETE_METRICS_BUTTON,
-  LOGIN_OPTIONS,
   META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
   SDK_SECTION,
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
-  TURN_ON_REMEMBER_ME,
 } from './SecuritySettings.constants';
 import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
@@ -83,6 +81,23 @@ jest.mock(
   }),
 );
 
+// DeviceSecurityToggle uses useAuthCapabilities; mock so it renders the toggle instead of null
+jest.mock('../../../../core/Authentication/hooks/useAuthCapabilities', () => ({
+  __esModule: true,
+  default: () => ({
+    isLoading: false,
+    capabilities: {
+      isBiometricsAvailable: true,
+      passcodeAvailable: true,
+      authLabel: 'Face ID',
+      osAuthEnabled: false,
+      allowLoginWithRememberMe: false,
+      authType: 'biometrics',
+      deviceAuthRequiresSettings: false,
+    },
+  }),
+}));
+
 jest.mock(
   '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled',
   () => ({
@@ -149,8 +164,9 @@ describe('SecuritySettings', () => {
       getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
     ).toBeTruthy();
     expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
-    expect(getByTestId(LOGIN_OPTIONS)).toBeTruthy();
-    expect(getByTestId(TURN_ON_REMEMBER_ME)).toBeTruthy();
+    expect(
+      getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+    ).toBeTruthy();
     expect(getByTestId(SDK_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();
@@ -174,8 +190,9 @@ describe('SecuritySettings', () => {
       getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
     ).toBeTruthy();
     expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
-    expect(getByTestId(LOGIN_OPTIONS)).toBeTruthy();
-    expect(getByTestId(TURN_ON_REMEMBER_ME)).toBeTruthy();
+    expect(
+      getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+    ).toBeTruthy();
     expect(queryByTestId(SDK_SECTION)).toBeNull();
     expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();

@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../../../util/theme/models';
+import type { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors: Colors) =>
+const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
