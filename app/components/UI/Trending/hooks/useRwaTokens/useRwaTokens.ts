@@ -83,8 +83,8 @@ export const useRwaTokens = (opts?: {
     isLoading: isSearchLoading,
     search: refetch,
   } = useSearchRequest({
-    query: 'Ondo',
-    limit: 100,
+    query: '(Ondo Tokenized)',
+    limit: 500,
     chainIds: effectiveChainIds,
     includeMarketData,
   });
