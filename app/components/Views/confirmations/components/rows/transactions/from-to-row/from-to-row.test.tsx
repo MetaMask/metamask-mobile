@@ -106,7 +106,7 @@ describe('FromToRow', () => {
     expect(getByText(/^0x97cb1/)).toBeOnTheScreen();
   });
 
-  it('displays wallet name when subtitle is returned', async () => {
+  it('displays wallet name next to labels when subtitle is returned', async () => {
     mockUseDisplayName.mockReturnValue({
       variant: DisplayNameVariant.Saved,
       name: 'Account 1',
@@ -116,14 +116,15 @@ describe('FromToRow', () => {
       isAccount: true,
     });
 
-    const { getAllByText } = renderWithProvider(<FromToRow />, {
+    const { getByText } = renderWithProvider(<FromToRow />, {
       state: nativeTransferState,
     });
 
-    expect(getAllByText('Wallet 1')).toHaveLength(2);
+    expect(getByText('From Wallet 1')).toBeOnTheScreen();
+    expect(getByText('To Wallet 1')).toBeOnTheScreen();
   });
 
-  it('does not display wallet name when subtitle is undefined', async () => {
+  it('displays plain labels when subtitle is undefined', async () => {
     mockUseDisplayName.mockReturnValue({
       variant: DisplayNameVariant.Unknown,
       name: undefined,
@@ -133,10 +134,12 @@ describe('FromToRow', () => {
       isAccount: false,
     });
 
-    const { queryByText } = renderWithProvider(<FromToRow />, {
+    const { getByText, queryByText } = renderWithProvider(<FromToRow />, {
       state: nativeTransferState,
     });
 
-    expect(queryByText('Wallet 1')).not.toBeOnTheScreen();
+    expect(getByText('From')).toBeOnTheScreen();
+    expect(getByText('To')).toBeOnTheScreen();
+    expect(queryByText(/Wallet/)).not.toBeOnTheScreen();
   });
 });

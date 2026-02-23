@@ -31,7 +31,7 @@ interface AddressDisplayProps {
 
 const AddressDisplay = ({ address, chainId, label }: AddressDisplayProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { name, image, subtitle, variant } = useDisplayName({
+  const { name, image, variant } = useDisplayName({
     type: NameType.EthereumAddress,
     value: address,
     variation: chainId,
@@ -53,15 +53,6 @@ const AddressDisplay = ({ address, chainId, label }: AddressDisplayProps) => {
         >
           {displayText}
         </Text>
-        {subtitle && (
-          <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
-            numberOfLines={1}
-          >
-            {subtitle}
-          </Text>
-        )}
       </View>
       <Identicon
         address={address}
@@ -77,15 +68,33 @@ const FromToRow = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
 
+  const fromAddress = (transactionMetadata?.txParams?.from as string) ?? '';
+  const toAddress = transferRecipient ?? '';
+  const chainId = transactionMetadata?.chainId ?? '';
+
+  const { subtitle: fromWalletName } = useDisplayName({
+    type: NameType.EthereumAddress,
+    value: fromAddress,
+    variation: chainId,
+  });
+
+  const { subtitle: toWalletName } = useDisplayName({
+    type: NameType.EthereumAddress,
+    value: toAddress,
+    variation: chainId,
+  });
+
   if (!transactionMetadata) {
     return null;
   }
 
-  const { chainId, txParams } = transactionMetadata;
-  const { from } = txParams;
+  const fromLabel = fromWalletName
+    ? `${strings('transaction.from')} ${fromWalletName}`
+    : strings('transaction.from');
 
-  const fromAddress = from as string;
-  const toAddress = transferRecipient;
+  const toLabel = toWalletName
+    ? `${strings('send.to')} ${toWalletName}`
+    : strings('send.to');
 
   return (
     <InfoSection testID={ConfirmationRowComponentIDs.FROM_TO}>
@@ -100,7 +109,7 @@ const FromToRow = () => {
                 color={TextColor.Alternative}
                 style={styles.label}
               >
-                {strings('transaction.from')}
+                {fromLabel}
               </Text>
             }
           />
@@ -114,7 +123,7 @@ const FromToRow = () => {
               <View style={styles.labelRow}>
                 <AlertRow
                   alertField={RowAlertKey.FromToAddress}
-                  label={strings('send.to')}
+                  label={toLabel}
                 />
               </View>
             }
