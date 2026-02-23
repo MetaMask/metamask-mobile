@@ -6,6 +6,18 @@ import { KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
+import Engine from '../../../../../core/Engine';
+import {
+  InputAmountPreset,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
+
+const PERCENTAGE_TO_PRESET: Record<number, InputAmountPreset> = {
+  25: InputAmountPreset.PERCENT_25,
+  50: InputAmountPreset.PERCENT_50,
+  75: InputAmountPreset.PERCENT_75,
+  90: InputAmountPreset.PERCENT_90,
+};
 
 interface GaslessQuickPickOptionsProps {
   token?: BridgeToken;
@@ -26,6 +38,17 @@ export const GaslessQuickPickOptions = ({
     chainId: token?.chainId,
   });
 
+  const trackInputAmountPreset = useCallback((preset: InputAmountPreset) => {
+    Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+      UnifiedSwapBridgeEventName.InputChanged,
+      {
+        input: 'token_amount_source',
+        input_value: '',
+        input_amount_preset: preset,
+      },
+    );
+  }, []);
+
   const onQuickOptionPress = useCallback(
     (percentage: number) => () => {
       if (!tokenBalance?.displayBalance) return '0';
@@ -40,8 +63,13 @@ export const GaslessQuickPickOptions = ({
         valueAsNumber: Number(amount),
         pressedKey: Keys.Initial,
       });
+
+      const preset = PERCENTAGE_TO_PRESET[percentage];
+      if (preset) {
+        trackInputAmountPreset(preset);
+      }
     },
-    [tokenBalance, onChange, token?.decimals],
+    [tokenBalance, onChange, token?.decimals, trackInputAmountPreset],
   );
 
   const standardQuickPickOptions = useMemo(
@@ -67,6 +95,11 @@ export const GaslessQuickPickOptions = ({
     [onQuickOptionPress],
   );
 
+  const handleMaxPress = useCallback(() => {
+    onMaxPress();
+    trackInputAmountPreset(InputAmountPreset.MAX);
+  }, [onMaxPress, trackInputAmountPreset]);
+
   const gasslessQuickPickOptions = useMemo(
     () =>
       [
@@ -84,10 +117,10 @@ export const GaslessQuickPickOptions = ({
         },
         {
           label: 'Max',
-          onPress: onMaxPress,
+          onPress: handleMaxPress,
         },
       ] satisfies QuickPickButtonOption[],
-    [onMaxPress, onQuickOptionPress],
+    [handleMaxPress, onQuickOptionPress],
   );
 
   const shouldRenderMaxOption = useShouldRenderMaxOption(
