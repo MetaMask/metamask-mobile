@@ -23,6 +23,8 @@ import { EARN_EMPTY_STATE_CTA_TEST_ID } from '../EmptyStateCta';
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 
 const mockNavigate = jest.fn();
 const mockDaiMainnet: EarnTokenDetails = {
@@ -108,6 +110,9 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../hooks/useEarnings', () => ({
   __esModule: true,
@@ -199,8 +204,15 @@ describe('EarnLendingBalance', () => {
   };
   let mockShouldShowAssetOverviewCta: jest.Mock;
 
+  const useAnalyticsMock = jest.mocked(useAnalytics);
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    useAnalyticsMock.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    } as unknown as ReturnType<typeof useAnalytics>);
 
     mockUseStakingEligibility.mockReturnValue({
       isEligible: true,
@@ -437,6 +449,7 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(false),
       tokens: [],
@@ -551,6 +564,104 @@ describe('EarnLendingBalance', () => {
     });
   });
 
+  it('tracks EARN_LENDING_DEPOSIT_MORE_BUTTON_CLICKED when deposit more is pressed', async () => {
+    (
+      earnSelectors.selectEarnToken as jest.MockedFunction<
+        typeof earnSelectors.selectEarnToken
+      >
+    ).mockReturnValue(mockDaiMainnet);
+
+    (
+      earnSelectors.selectEarnOutputToken as jest.MockedFunction<
+        typeof earnSelectors.selectEarnOutputToken
+      >
+    ).mockReturnValue(undefined);
+
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      outputToken: mockADAIMainnet,
+      earnToken: mockDaiMainnet,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingBalance asset={mockDaiMainnet} />,
+      { state: mockInitialState },
+    );
+
+    const depositButton = getByTestId(
+      EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(depositButton);
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Earn Lending Deposit More Button Clicked',
+        properties: expect.objectContaining({
+          action_type: 'deposit',
+          token: 'DAI',
+          user_earn_token_balance: '76.04796 DAI',
+          user_receipt_token_balance: '32.05 ADAI',
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        }),
+      }),
+    );
+  });
+
+  it('tracks EARN_LENDING_WITHDRAW_BUTTON_CLICKED when withdraw is pressed', async () => {
+    (
+      earnSelectors.selectEarnToken as jest.MockedFunction<
+        typeof earnSelectors.selectEarnToken
+      >
+    ).mockReturnValue(mockDaiMainnet);
+
+    (
+      earnSelectors.selectEarnOutputToken as jest.MockedFunction<
+        typeof earnSelectors.selectEarnOutputToken
+      >
+    ).mockReturnValue(mockADAIMainnet);
+
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      outputToken: mockADAIMainnet,
+      earnToken: mockDaiMainnet,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingBalance asset={mockDaiMainnet} />,
+      { state: mockInitialState },
+    );
+
+    const withdrawButton = getByTestId(
+      EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(withdrawButton);
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Earn Lending Withdraw Button Clicked',
+        properties: expect.objectContaining({
+          action_type: 'withdrawal',
+          token: 'DAI',
+          user_earn_token_balance: '76.04796 DAI',
+          user_receipt_token_balance: '32.05 ADAI',
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        }),
+      }),
+    );
+  });
+
   it('does renders earnings for output tokens', () => {
     (
       earnSelectors.selectEarnToken as jest.MockedFunction<
@@ -594,6 +705,7 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
@@ -622,6 +734,7 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
@@ -656,6 +769,7 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
@@ -693,6 +807,7 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],
@@ -751,6 +866,7 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(true),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
       filterAllowedTokens: jest.fn().mockReturnValue([]),
       isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
       tokens: [],

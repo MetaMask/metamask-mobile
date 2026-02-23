@@ -42,6 +42,21 @@ describe('PaymentMethodPill', () => {
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
+  it('does not call onPress when isLoading is true', () => {
+    const mockOnPress = jest.fn();
+    const { getByTestId } = renderWithTheme(
+      <PaymentMethodPill
+        label="Select payment method"
+        onPress={mockOnPress}
+        isLoading
+      />,
+    );
+
+    fireEvent.press(getByTestId('payment-method-pill'));
+
+    expect(mockOnPress).not.toHaveBeenCalled();
+  });
+
   it('renders without onPress handler', () => {
     const { getByTestId } = renderWithTheme(
       <PaymentMethodPill label="Debit card" />,
@@ -53,6 +68,14 @@ describe('PaymentMethodPill', () => {
   it('matches snapshot', () => {
     const { toJSON } = renderWithTheme(
       <PaymentMethodPill label="Debit card" />,
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches snapshot when loading', () => {
+    const { toJSON } = renderWithTheme(
+      <PaymentMethodPill label="Select payment method" isLoading />,
     );
 
     expect(toJSON()).toMatchSnapshot();

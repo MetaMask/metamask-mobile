@@ -9,9 +9,11 @@ import { selectBasicFunctionalityEnabled } from '../../settings';
 
 export const BITCOIN_REWARDS_FLAG_NAME = 'rewardsBitcoinEnabled';
 export const TRON_REWARDS_FLAG_NAME = 'rewardsTronEnabled';
+export const SNAPSHOTS_REWARDS_FLAG_NAME = 'rewardsSnapshotsEnabled';
 
 const DEFAULT_BITCOIN_REWARDS_ENABLED = false;
 const DEFAULT_TRON_REWARDS_ENABLED = false;
+const DEFAULT_SNAPSHOTS_REWARDS_ENABLED = false;
 
 /**
  * Selector for the raw Bitcoin rewards enabled remote flag value.
@@ -82,5 +84,41 @@ export const selectTronRewardsEnabledFlag = createSelector(
       return false;
     }
     return tronRewardsEnabledRawFlag;
+  },
+);
+
+/**
+ * Selector for the raw Snapshots rewards enabled remote flag value.
+ * Returns the flag value without considering basic functionality.
+ */
+export const selectSnapshotsRewardsEnabledRawFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    if (!hasProperty(remoteFeatureFlags, SNAPSHOTS_REWARDS_FLAG_NAME)) {
+      return DEFAULT_SNAPSHOTS_REWARDS_ENABLED;
+    }
+    const remoteFlag = remoteFeatureFlags[
+      SNAPSHOTS_REWARDS_FLAG_NAME
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ??
+      DEFAULT_SNAPSHOTS_REWARDS_ENABLED
+    );
+  },
+);
+
+/**
+ * Selector for the Snapshots rewards enabled flag.
+ * Returns false if basic functionality is disabled, otherwise returns the remote flag value.
+ */
+export const selectSnapshotsRewardsEnabledFlag = createSelector(
+  selectBasicFunctionalityEnabled,
+  selectSnapshotsRewardsEnabledRawFlag,
+  (isBasicFunctionalityEnabled, snapshotsRewardsEnabledRawFlag) => {
+    if (!isBasicFunctionalityEnabled) {
+      return false;
+    }
+    return snapshotsRewardsEnabledRawFlag;
   },
 );

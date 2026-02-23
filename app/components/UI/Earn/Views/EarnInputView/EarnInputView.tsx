@@ -42,9 +42,10 @@ import { selectContractExchangeRatesByChainId } from '../../../../../selectors/t
 import { getDecimalChainId } from '../../../../../util/networks';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
 import Keypad from '../../../../Base/Keypad';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useStyles } from '../../../../hooks/useStyles';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { IconName } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
@@ -126,7 +127,7 @@ const EarnInputView = () => {
 
   // other hooks
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const { getEarnToken } = useEarnTokens();
 
@@ -1001,7 +1002,7 @@ const EarnInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
-      <HeaderCenter
+      <HeaderCompactStandard
         title={headerTitle}
         onBack={handleBackPress}
         endButtonIconProps={

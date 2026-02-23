@@ -1,10 +1,11 @@
-import React, { forwardRef, useImperativeHandle, useRef, useMemo } from 'react';
+import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import {
   StyleSheet,
   ImageSourcePropType,
   TextInput,
   StyleProp,
   ViewStyle,
+  Platform,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -32,9 +33,7 @@ import { useNavigation } from '@react-navigation/native';
 import {
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
-  selectIsGaslessSwapEnabled,
 } from '../../../../../core/redux/slices/bridge';
-import { RootState } from '../../../../../reducers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
@@ -46,12 +45,12 @@ import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import { isNativeAddress } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
-import parseAmount from '../../../../../util/parseAmount';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
-import { calculateInputFontSize } from '../../utils/calculateInputFontSize';
+import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
+import { useAutoSizingFont } from '../../hooks/useAutoSizingFont';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
+import { useTokenInputAreaFormattedBalance } from '../../hooks/useTokenInputAreaFormattedBalance';
 
-const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
 
 const createStyles = ({
@@ -78,6 +77,7 @@ const createStyles = ({
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
+      paddingVertical: Platform.OS === 'ios' ? 2 : 1,
     },
     currencyContainer: {
       flex: 1,
@@ -105,38 +105,14 @@ const formatAddress = (address?: string) => {
   return renderShortAddress(address, 4);
 };
 
-export const getDisplayAmount = (
-  amount?: string,
-  tokenType?: TokenInputAreaType,
-  isMaxAmount?: boolean,
-) => {
-  if (amount === undefined) return amount;
-
-  // Only truncate for display when:
-  // 1. Amount came from Max button (isMaxAmount = true), OR
-  // 2. Destination token (always truncate)
-  const shouldTruncate =
-    tokenType === TokenInputAreaType.Destination || isMaxAmount;
-
-  const displayAmount = shouldTruncate
-    ? parseAmount(amount, MAX_DECIMALS)
-    : amount;
-
-  // Format with locale-appropriate separators
-  if (displayAmount && displayAmount !== '0') {
-    return formatAmountWithLocaleSeparators(displayAmount);
-  }
-
-  return displayAmount;
-};
-
 export interface TokenInputAreaRef {
   blur: () => void;
+  focus: () => void;
+  isFocused: () => boolean;
 }
 
 interface TokenInputAreaProps {
   amount?: string;
-  isMaxAmount?: boolean;
   token?: BridgeToken;
   tokenBalance?: string;
   networkImageSource?: ImageSourcePropType;
@@ -162,7 +138,6 @@ export const TokenInputArea = forwardRef<
   (
     {
       amount,
-      isMaxAmount = false,
       token,
       tokenBalance,
       networkImageSource,
@@ -184,10 +159,6 @@ export const TokenInputArea = forwardRef<
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
 
-    const isGaslessSwapEnabled = useSelector((state: RootState) =>
-      token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
-    );
-
     // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
       token,
@@ -207,6 +178,13 @@ export const TokenInputArea = forwardRef<
           onBlur?.();
         }
       },
+      focus: () => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          onFocus?.();
+        }
+      },
+      isFocused: () => !!inputRef.current?.isFocused(),
     }));
 
     const navigation = useNavigation();
@@ -251,26 +229,21 @@ export const TokenInputArea = forwardRef<
       nonEvmMultichainAssetRates,
     });
 
-    // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
-    const parsedTokenBalance = parseFloat(tokenBalance || '0');
-    const roundedTokenBalance =
-      Math.floor(parsedTokenBalance * 100000) / 100000;
-    const formattedBalance =
-      token?.symbol && tokenBalance
-        ? `${roundedTokenBalance.toFixed(5).replace(/\.?0+$/, '')} ${
-            token?.symbol
-          }`
-        : undefined;
+    const formattedBalance = useTokenInputAreaFormattedBalance(
+      tokenBalance,
+      token,
+    );
 
     const tokenAddress = useTokenAddress(token);
 
     const isNativeAsset = isNativeAddress(tokenAddress);
 
-    // Show max button for native tokens if gasless swap is enabled OR quote is sponsored
-    const shouldShowMaxButton = useMemo(() => {
-      if (!isNativeAsset) return true; // Always show for non-native tokens
-      return isGaslessSwapEnabled || isQuoteSponsored;
-    }, [isNativeAsset, isGaslessSwapEnabled, isQuoteSponsored]);
+    const shouldShowMaxButton = useShouldRenderMaxOption(
+      token,
+      tokenBalance,
+      isQuoteSponsored,
+    );
+
     const formattedAddress =
       tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
 
@@ -279,8 +252,17 @@ export const TokenInputArea = forwardRef<
         ? formattedBalance
         : formattedAddress;
 
-    const displayedAmount = getDisplayAmount(amount, tokenType, isMaxAmount);
-    const fontSize = calculateInputFontSize(displayedAmount?.length ?? 0);
+    const displayedAmount = useMemo(
+      () =>
+        amount && amount !== '0'
+          ? formatAmountWithLocaleSeparators(amount)
+          : amount,
+      [amount],
+    );
+
+    const { fontSize, onContainerLayout } = useAutoSizingFont({
+      text: displayedAmount || '0',
+    });
     const { styles } = useStyles(createStyles, { fontSize, hidden: !subtitle });
 
     let tokenButtonText = 'bridge.swap_to';
@@ -292,7 +274,7 @@ export const TokenInputArea = forwardRef<
       <Box style={style}>
         <Box style={styles.content} gap={4}>
           <Box style={styles.row}>
-            <Box style={styles.amountContainer}>
+            <Box style={styles.amountContainer} onLayout={onContainerLayout}>
               {isLoading ? (
                 <Skeleton width="50%" height="80%" style={styles.input} />
               ) : (
@@ -307,6 +289,9 @@ export const TokenInputArea = forwardRef<
                   autoFocus
                   placeholder="0"
                   testID={`${testID}-input`}
+                  onPressIn={() => {
+                    onInputPress?.();
+                  }}
                   onFocus={() => {
                     onFocus?.();
                     onInputPress?.();
@@ -359,7 +344,6 @@ export const TokenInputArea = forwardRef<
                 <Box
                   flexDirection={
                     tokenType === TokenInputAreaType.Source &&
-                    tokenBalance &&
                     onMaxPress &&
                     shouldShowMaxButton
                       ? FlexDirection.Row

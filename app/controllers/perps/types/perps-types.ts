@@ -1,0 +1,122 @@
+/**
+ * Test result states for SDK validation
+ */
+import { OrderType } from '.';
+import { CandlePeriod } from '../constants/chartConfig';
+
+export type TestResultStatus =
+  | 'idle'
+  | 'loading'
+  | 'success'
+  | 'warning'
+  | 'error';
+
+/**
+ * Test result data structure
+ */
+export type TestResult = {
+  status: TestResultStatus;
+  message: string;
+  data?: Record<string, unknown>;
+};
+
+/**
+ * SDK test types
+ */
+export type SDKTestType = 'connection' | 'asset-listing' | 'websocket';
+
+/**
+ * Hyperliquid asset interface (basic structure)
+ */
+export type HyperliquidAsset = {
+  name: string;
+  [key: string]: unknown;
+};
+
+/**
+ * Represents a single candlestick data point
+ */
+export type CandleStick = {
+  time: number;
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  volume: string;
+};
+
+/**
+ * Represents historical candlestick data for a specific symbol and interval
+ */
+export type CandleData = {
+  /** Asset identifier (e.g., 'BTC', 'ETH'). Protocol-agnostic terminology for multi-provider support. */
+  symbol: string;
+  interval: CandlePeriod;
+  candles: CandleStick[];
+};
+
+// Export all configuration types directly
+export type * from './config';
+export type * from './token';
+
+/**
+ * Order form state for the Perps order view
+ */
+export type OrderFormState = {
+  asset: string;
+  direction: 'long' | 'short';
+  amount: string;
+  leverage: number;
+  balancePercent: number;
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
+  limitPrice?: string;
+  type: OrderType;
+};
+
+export type OrderDirection = 'long' | 'short';
+
+/**
+ * Options for reconnecting the Perps connection
+ */
+export type ReconnectOptions = {
+  /**
+   * If true, forces immediate disconnect and cancels all pending operations.
+   * Use for user-initiated retry actions.
+   * If false (default), waits for pending operations to complete.
+   * Use for automatic reconnections like account switches.
+   */
+  force?: boolean;
+};
+
+/**
+ * Extended asset metadata including Growth Mode fields not in SDK types.
+ * The HyperLiquid API returns these fields but the SDK doesn't type them.
+ *
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees#fee-formula-for-developers
+ */
+export type ExtendedAssetMeta = {
+  name: string;
+  szDecimals: number;
+  maxLeverage: number;
+  /** Per-asset Growth Mode status - "enabled" means 90% fee reduction */
+  growthMode?: 'enabled' | null;
+  /** ISO timestamp of last Growth Mode change */
+  lastGrowthModeChangeTime?: string;
+};
+
+/**
+ * Extended perp DEX info including fee scale fields not in SDK types.
+ * The HyperLiquid API returns these fields but the SDK doesn't type them.
+ *
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees#fee-formula-for-developers
+ */
+export type ExtendedPerpDex = {
+  name: string;
+  fullName?: string;
+  deployer?: string;
+  /** DEX-level fee scale (e.g., "1.0" for xyz DEX) - determines HIP-3 multiplier */
+  deployerFeeScale?: string;
+  /** ISO timestamp of last fee scale change */
+  lastDeployerFeeScaleChangeTime?: string;
+};

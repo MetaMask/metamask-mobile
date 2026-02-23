@@ -12,24 +12,6 @@ import type { SmartTransactionsControllerInitMessenger } from '../messengers/sma
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { trace } from '../../../util/trace';
 import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTransactions';
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
-
-/**
- * Filter out undefined values from an object to make it compatible with AnalyticsEventProperties.
- *
- * @param obj - The object to filter.
- * @returns A new object without undefined values.
- */
-function filterUndefinedValues(
-  obj: Record<string, unknown> | undefined,
-): AnalyticsEventProperties {
-  if (!obj) {
-    return {};
-  }
-  return Object.fromEntries(
-    Object.entries(obj).filter(([, value]) => value !== undefined),
-  ) as AnalyticsEventProperties;
-}
 
 /**
  * Initialize the smart transactions controller.
@@ -53,10 +35,8 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
   }) => {
     try {
       const event = AnalyticsEventBuilder.createEventBuilder(params.event)
-        .addProperties(filterUndefinedValues(params.properties))
-        .addSensitiveProperties(
-          filterUndefinedValues(params.sensitiveProperties),
-        )
+        .addProperties(params.properties)
+        .addSensitiveProperties(params.sensitiveProperties)
         .build();
 
       initMessenger.call('AnalyticsController:trackEvent', event);

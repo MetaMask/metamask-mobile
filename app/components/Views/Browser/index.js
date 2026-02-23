@@ -16,7 +16,6 @@ import { strings } from '../../../../locales/i18n';
 import { selectPermissionControllerState } from '../../../selectors/snaps';
 import { BrowserViewSelectorsIDs } from '../BrowserTab/BrowserView.testIds';
 import {
-  closeAllTabs,
   closeTab,
   createNewTab,
   setActiveTab,
@@ -44,20 +43,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
-import {
-  THUMB_WIDTH,
-  THUMB_HEIGHT,
-  IDLE_TIME_CALC_INTERVAL,
-  IDLE_TIME_MAX,
-} from './constants';
+import { THUMB_WIDTH, THUMB_HEIGHT } from '../../UI/Tabs/Tabs.constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
+import { MAX_BROWSER_TABS, MAX_MOUNTED_TABS } from './constants';
+import { getMountedTabIds } from './utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import DiscoveryTab from '../DiscoveryTab/DiscoveryTab';
 ///: END:ONLY_INCLUDE_IF
-
-const MAX_BROWSER_TABS = 5;
 
 /**
  * Component that wraps all the browser
@@ -68,7 +62,6 @@ export const BrowserPure = (props) => {
     route,
     navigation,
     createNewTab,
-    closeAllTabs: triggerCloseAllTabs,
     closeTab: triggerCloseTab,
     setActiveTab,
     updateTab,
@@ -84,8 +77,13 @@ export const BrowserPure = (props) => {
   const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
   const { accounts, ensByAccountAddress } = useAccounts();
-  const [_tabIdleTimes, setTabIdleTimes] = useState({});
   const [shouldShowTabs, setShouldShowTabs] = useState(false);
+
+  // Compute which tabs should be mounted (live WebView) based on recency
+  const mountedTabIds = useMemo(
+    () => getMountedTabIds(tabs, activeTabId, MAX_MOUNTED_TABS),
+    [tabs, activeTabId],
+  );
 
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
@@ -109,21 +107,21 @@ export const BrowserPure = (props) => {
           // If replaceActiveIfMax is true and a URL was provided, open it in the active tab
           updateTab(activeTab.id, {
             url,
-            isArchived: false,
           });
           setCurrentUrl(url);
           setShouldShowTabs(false);
-        } else {
-          // If replaceActiveIfMax is false or no URL was provided, show the max browser tabs modal
-          navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+          return true; // Tab was updated successfully
         }
-      } else {
-        const newTabUrl = isTokenDiscoveryBrowserEnabled()
-          ? undefined
-          : url || homePageUrl();
-        // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-        createNewTab(newTabUrl, linkType);
+        // If replaceActiveIfMax is false or no URL was provided, show the max browser tabs modal
+        navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+        return false; // No tab was created, modal shown instead
       }
+      const newTabUrl = isTokenDiscoveryBrowserEnabled()
+        ? undefined
+        : url || homePageUrl();
+      // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
+      createNewTab(newTabUrl, linkType);
+      return true; // Tab was created successfully
     },
     [
       tabs,
@@ -151,65 +149,74 @@ export const BrowserPure = (props) => {
     [setShouldShowTabs, setCurrentUrl],
   );
 
+  const takeScreenshot = useCallback(
+    (url, tabID) =>
+      new Promise((resolve, reject) => {
+        captureScreen({
+          format: 'jpg',
+          quality: 0.2,
+          THUMB_WIDTH,
+          THUMB_HEIGHT,
+        }).then(
+          (uri) => {
+            updateTab(tabID, {
+              url,
+              image: uri,
+            });
+            resolve(true);
+          },
+          (error) => {
+            Logger.error(error, `Error saving tab ${url}`);
+            reject(error);
+          },
+        );
+      }),
+    [updateTab],
+  );
+
+  const activeTabUrl = useMemo(
+    () => tabs.find((tab) => tab.id === activeTabId)?.url,
+    [tabs, activeTabId],
+  );
+
   const switchToTab = useCallback(
-    (tab) => {
+    async (tab) => {
+      // Capture screenshot of the current active tab before switching away.
+      // Skip when the Tabs grid is visible because captureScreen would capture
+      // the grid overlay, not the tab content. A correct screenshot was already
+      // taken when the user opened the Tabs view (in showTabsView).
+      if (
+        activeTabId &&
+        activeTabUrl &&
+        tab.id !== activeTabId &&
+        !shouldShowTabs
+      ) {
+        try {
+          await takeScreenshot(activeTabUrl, activeTabId);
+        } catch (e) {
+          Logger.error(e, 'Error capturing tab screenshot before switch');
+        }
+      }
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.BROWSER_SWITCH_TAB).build(),
       );
       setActiveTab(tab.id);
       hideTabsAndUpdateUrl(tab.url);
-      updateTabInfo(tab.id, {
-        url: tab.url,
-        isArchived: false,
-      });
     },
     [
+      activeTabId,
+      activeTabUrl,
+      shouldShowTabs,
+      takeScreenshot,
       trackEvent,
       createEventBuilder,
       setActiveTab,
       hideTabsAndUpdateUrl,
-      updateTabInfo,
     ],
   );
 
   const hasAccounts = useRef(Boolean(accounts.length));
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // every so often calc each tab's idle time
-      setTabIdleTimes((prevIdleTimes) => {
-        const newIdleTimes = { ...prevIdleTimes };
-        // for each existing tab
-        tabs.forEach((tab) => {
-          // if it isn't the active tab
-          if (tab.id !== activeTabId) {
-            // add idle time for each non-active tab
-            newIdleTimes[tab.id] =
-              (newIdleTimes[tab.id] || 0) + IDLE_TIME_CALC_INTERVAL;
-            // if the tab has surpassed the maximum
-            if (newIdleTimes[tab.id] > IDLE_TIME_MAX) {
-              // then "archive" it
-              updateTab(tab.id, {
-                isArchived: true,
-              });
-            }
-          } else {
-            // set any active tab as NOT "archived"
-            // this can mean "unarchiving" a tab so that, for example,
-            // the actual browser tab window is mounted again
-            updateTab(tab.id, {
-              isArchived: false,
-            });
-            // also set new tab idle time back to zero
-            newIdleTimes[tab.id] = 0;
-          }
-        });
-        return newIdleTimes;
-      });
-    }, IDLE_TIME_CALC_INTERVAL);
-
-    return () => clearInterval(interval);
-  }, [tabs, activeTabId, updateTab]);
 
   useEffect(() => {
     const checkIfActiveAccountChanged = (hostnameForToastCheck) => {
@@ -355,36 +362,6 @@ export const BrowserPure = (props) => {
     ],
   );
 
-  const takeScreenshot = useCallback(
-    (url, tabID) =>
-      new Promise((resolve, reject) => {
-        captureScreen({
-          format: 'jpg',
-          quality: 0.2,
-          THUMB_WIDTH,
-          THUMB_HEIGHT,
-        }).then(
-          (uri) => {
-            updateTab(tabID, {
-              url,
-              image: uri,
-            });
-            resolve(true);
-          },
-          (error) => {
-            Logger.error(error, `Error saving tab ${url}`);
-            reject(error);
-          },
-        );
-      }),
-    [updateTab],
-  );
-
-  const activeTabUrl = useMemo(
-    () => tabs.find((tab) => tab.id === activeTabId)?.url,
-    [tabs, activeTabId],
-  );
-
   const showTabsView = useCallback(async () => {
     try {
       if (!activeTabUrl) {
@@ -397,13 +374,6 @@ export const BrowserPure = (props) => {
 
     setShouldShowTabs(true);
   }, [activeTabUrl, activeTabId, takeScreenshot]);
-
-  const closeAllTabs = useCallback(() => {
-    if (tabs.length) {
-      triggerCloseAllTabs();
-      setCurrentUrl(null);
-    }
-  }, [tabs, triggerCloseAllTabs, setCurrentUrl]);
 
   const closeTab = useCallback(
     (tab) => {
@@ -434,11 +404,19 @@ export const BrowserPure = (props) => {
 
   const closeTabsView = useCallback(() => {
     setShouldShowTabs(false);
-    // If no tabs left, navigate away from browser
-    if (tabs.length === 0) {
-      navigation.goBack();
+
+    // Check if the active tab still exists in the tabs list
+    const activeTabExists = tabs.some((tab) => tab.id === activeTabId);
+
+    // Navigate to Explore if:
+    // 1. No tabs exist, OR
+    // 2. Active tab was closed (activeTabId not in tabs)
+    if (tabs.length === 0 || !activeTabExists) {
+      navigation.navigate(Routes.TRENDING_VIEW, {
+        screen: Routes.TRENDING_FEED,
+      });
     }
-  }, [tabs, setShouldShowTabs, navigation]);
+  }, [tabs, activeTabId, setShouldShowTabs, navigation]);
 
   const renderTabList = useCallback(() => {
     if (shouldShowTabs) {
@@ -450,7 +428,6 @@ export const BrowserPure = (props) => {
           newTab={newTab}
           closeTab={closeTab}
           closeTabsView={closeTabsView}
-          closeAllTabs={closeAllTabs}
         />
       );
     }
@@ -463,19 +440,14 @@ export const BrowserPure = (props) => {
     newTab,
     closeTab,
     closeTabsView,
-    closeAllTabs,
   ]);
 
   const renderBrowserTabWindows = useCallback(
     () =>
       tabs
-        .filter((tab) => !tab.isArchived)
-        .map((tab) => {
-          // If the tab is not the active tab, don't render it
-          if (activeTabId !== tab.id) return null;
-
-          // If the tab is the active tab, render it
-          return tab.url || !isTokenDiscoveryBrowserEnabled() ? (
+        .filter((tab) => mountedTabIds.has(tab.id))
+        .map((tab) =>
+          tab.url || !isTokenDiscoveryBrowserEnabled() ? (
             <BrowserTab
               key={`tab_${tab.id}`}
               id={tab.id}
@@ -497,16 +469,16 @@ export const BrowserPure = (props) => {
               newTab={newTab}
               updateTabInfo={updateTabInfo}
             />
-          );
-        }),
+          ),
+        ),
     [
       tabs,
+      mountedTabIds,
       shouldShowTabs,
       newTab,
       homePageUrl,
       updateTabInfo,
       showTabsView,
-      activeTabId,
       route.params?.fromTrending,
       route.params?.fromPerps,
     ],
@@ -534,7 +506,6 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   createNewTab: (url, linkType) => dispatch(createNewTab(url, linkType)),
-  closeAllTabs: () => dispatch(closeAllTabs()),
   closeTab: (id) => dispatch(closeTab(id)),
   setActiveTab: (id) => dispatch(setActiveTab(id)),
   updateTab: (id, url) => dispatch(updateTab(id, url)),
@@ -549,10 +520,6 @@ BrowserPure.propTypes = {
    * Function to create a new tab
    */
   createNewTab: PropTypes.func,
-  /**
-   * Function to close all the existing tabs
-   */
-  closeAllTabs: PropTypes.func,
   /**
    * Function to close a specific tab
    */

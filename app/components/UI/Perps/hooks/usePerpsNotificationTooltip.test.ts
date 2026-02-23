@@ -41,7 +41,8 @@ jest.mock('../../../../selectors/notifications', () => ({
   selectIsMetaMaskPushNotificationsEnabled: jest.fn(),
 }));
 
-jest.mock('../controllers/selectors', () => ({
+jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   selectHasPlacedFirstOrder: jest.fn(),
 }));
 
@@ -82,7 +83,8 @@ describe('usePerpsNotificationTooltip', () => {
       (selector: (state: RootState) => unknown) => {
         if (
           selector ===
-          jest.requireMock('../controllers/selectors').selectHasPlacedFirstOrder
+          jest.requireMock('@metamask/perps-controller')
+            .selectHasPlacedFirstOrder
         ) {
           return hasPlacedFirstOrder;
         }

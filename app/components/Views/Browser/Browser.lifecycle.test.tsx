@@ -15,7 +15,6 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { act } from '@testing-library/react-native';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import BrowserTab from '../BrowserTab/BrowserTab';
@@ -195,7 +194,6 @@ describe('Browser - Lifecycle and Callbacks', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -238,7 +236,6 @@ describe('Browser - Lifecycle and Callbacks', () => {
                     activeTab={null}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -280,7 +277,6 @@ describe('Browser - Lifecycle and Callbacks', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -318,7 +314,6 @@ describe('Browser - Lifecycle and Callbacks', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -353,7 +348,6 @@ describe('Browser - Lifecycle and Callbacks', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={mockUpdateTab}
@@ -396,7 +390,6 @@ describe('Browser - Lifecycle and Callbacks', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -422,109 +415,8 @@ describe('Browser - Lifecycle and Callbacks', () => {
     });
   });
 
-  describe('tab archiving logic', () => {
-    it('unarchives active tab when it becomes active', async () => {
-      const tabs = [
-        { id: 1, url: 'https://tab1.com', image: '', isArchived: true },
-        { id: 2, url: 'https://tab2.com', image: '', isArchived: false },
-      ];
-      const mockUpdateTab = jest.fn();
-
-      renderWithProvider(
-        <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
-            <Stack.Navigator>
-              <Stack.Screen name={Routes.BROWSER.VIEW}>
-                {() => (
-                  <Browser
-                    route={routeMock}
-                    tabs={tabs}
-                    activeTab={1}
-                    navigation={mockNavigation}
-                    createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
-                    closeTab={jest.fn()}
-                    setActiveTab={jest.fn()}
-                    updateTab={mockUpdateTab}
-                  />
-                )}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>
-        </Provider>,
-        {
-          state: {
-            ...mockInitialState,
-            browser: {
-              tabs,
-              activeTab: 1,
-            },
-          },
-        },
-      );
-
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      // Active tab should be unarchived (may also include url if switchToTab was called)
-      expect(mockUpdateTab).toHaveBeenCalledWith(
-        1,
-        expect.objectContaining({ isArchived: false }),
-      );
-    });
-
-    it('resets idle time for active tab', async () => {
-      const tabs = [
-        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
-        { id: 2, url: 'https://tab2.com', image: '', isArchived: false },
-      ];
-      const mockUpdateTab = jest.fn();
-
-      renderWithProvider(
-        <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
-            <Stack.Navigator>
-              <Stack.Screen name={Routes.BROWSER.VIEW}>
-                {() => (
-                  <Browser
-                    route={routeMock}
-                    tabs={tabs}
-                    activeTab={1}
-                    navigation={mockNavigation}
-                    createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
-                    closeTab={jest.fn()}
-                    setActiveTab={jest.fn()}
-                    updateTab={mockUpdateTab}
-                  />
-                )}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>
-        </Provider>,
-        {
-          state: {
-            ...mockInitialState,
-            browser: {
-              tabs,
-              activeTab: 1,
-            },
-          },
-        },
-      );
-
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      // Active tab should be unarchived (idle time reset)
-      expect(mockUpdateTab).toHaveBeenCalledWith(
-        1,
-        expect.objectContaining({ isArchived: false }),
-      );
-    });
-  });
+  // Note: idle timer archiving logic has been removed in favor of
+  // recency-based mounting (lastActiveAt). See getMountedTabIds utility.
 
   describe('component initialization', () => {
     it('resumes active tab when component mounts with existing active tab', () => {
@@ -546,7 +438,6 @@ describe('Browser - Lifecycle and Callbacks', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={mockUpdateTab}
@@ -592,7 +483,6 @@ describe('Browser - Lifecycle and Callbacks', () => {
                     activeTab={null}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -639,7 +529,6 @@ describe('Browser - Lifecycle and Callbacks', () => {
                     activeTab={null}
                     navigation={mockNavigation}
                     createNewTab={mockCreateNewTab}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -670,7 +559,6 @@ describe('Browser - Lifecycle and Callbacks', () => {
                     activeTab={null}
                     navigation={mockNavigation}
                     createNewTab={mockCreateNewTab}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -706,7 +594,6 @@ describe('Browser - Lifecycle and Callbacks', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={mockCreateNewTab}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -764,7 +651,6 @@ describe('Browser - Lifecycle and Callbacks', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={mockUpdateTab}
@@ -817,7 +703,6 @@ describe('Browser - Lifecycle and Callbacks', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={mockCreateNewTab}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}

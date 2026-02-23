@@ -49,6 +49,8 @@ import {
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
+import { usePredictTabs, type FeedTab } from '../../hooks/usePredictTabs';
+import { usePredictSearch } from '../../hooks/usePredictSearch';
 import {
   PredictCategory,
   PredictMarket as PredictMarketType,
@@ -72,12 +74,7 @@ import {
   TabItem,
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
-
-interface FeedTab {
-  key: PredictCategory;
-  label: string;
-}
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
@@ -212,6 +209,7 @@ interface PredictTabContentProps {
   headerHeight: number;
   tabBarHeight: number;
   headerHidden: boolean;
+  customQueryParams?: string;
 }
 
 const PredictTabContent: React.FC<PredictTabContentProps> = ({
@@ -221,6 +219,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   headerHeight,
   tabBarHeight,
   headerHidden,
+  customQueryParams,
 }) => {
   const tw = useTailwind();
   const listRef = useRef<PredictFlashListRef>(null);
@@ -240,7 +239,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     refetch,
     fetchMore,
     isFetchingMore,
-  } = usePredictMarketData({ category, pageSize: 20 });
+  } = usePredictMarketData({ category, pageSize: 20, customQueryParams });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -383,6 +382,8 @@ interface PredictFeedTabsProps {
   headerHeight: number;
   tabBarHeight: number;
   headerHidden: boolean;
+  hotTabQueryParams?: string;
+  initialPage: number;
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
@@ -393,6 +394,8 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   headerHeight,
   tabBarHeight,
   headerHidden,
+  hotTabQueryParams,
+  initialPage,
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
@@ -412,7 +415,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
     <PagerView
       ref={pagerRef}
       style={tw.style('flex-1')}
-      initialPage={0}
+      initialPage={initialPage}
       onPageSelected={handlePageSelected}
       testID="predict-feed-pager"
     >
@@ -430,6 +433,9 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
             headerHidden={headerHidden}
+            customQueryParams={
+              tab.key === 'hot' ? hotTabQueryParams : undefined
+            }
           />
         </View>
       ))}
@@ -439,6 +445,8 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
 
 interface PredictSearchOverlayProps {
   isVisible: boolean;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
   onClose: () => void;
 }
 
@@ -446,12 +454,13 @@ const SEARCH_DEBOUNCE_MS = 200;
 
 const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   isVisible,
+  searchQuery,
+  onSearchChange,
   onClose,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebouncedValue(
     searchQuery,
     SEARCH_DEBOUNCE_MS,
@@ -465,15 +474,6 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   });
 
   const isSearchLoading = isDebouncing || isFetching;
-
-  const handleSearch = useCallback((text: string) => {
-    setSearchQuery(text);
-  }, []);
-
-  const handleCancel = useCallback(() => {
-    setSearchQuery('');
-    onClose();
-  }, [onClose]);
 
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (
@@ -520,12 +520,12 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
             placeholder={strings('predict.search_placeholder')}
             placeholderTextColor={colors.text.muted}
             value={searchQuery}
-            onChangeText={handleSearch}
+            onChangeText={onSearchChange}
             style={tw.style('flex-1 text-base text-default')}
             autoFocus
           />
           {searchQuery.length > 0 && (
-            <Pressable testID="clear-button" onPress={() => handleSearch('')}>
+            <Pressable testID="clear-button" onPress={() => onSearchChange('')}>
               <Icon
                 name={IconName.CircleX}
                 size={IconSize.Md}
@@ -534,7 +534,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
             </Pressable>
           )}
         </Box>
-        <Pressable onPress={handleCancel}>
+        <Pressable onPress={onClose}>
           <Text variant={TextVariant.BodyMd} style={tw.style('font-medium')}>
             {strings('predict.search_cancel')}
           </Text>
@@ -574,18 +574,13 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 };
 
 const PredictFeed: React.FC = () => {
-  // This can't be a constant at the top of the file because it would not
-  // react to locale changes in the app.
-  const tabs: FeedTab[] = useMemo(
-    () => [
-      { key: 'trending', label: strings('predict.category.trending') },
-      { key: 'new', label: strings('predict.category.new') },
-      { key: 'sports', label: strings('predict.category.sports') },
-      { key: 'crypto', label: strings('predict.category.crypto') },
-      { key: 'politics', label: strings('predict.category.politics') },
-    ],
-    [],
-  );
+  const {
+    tabs,
+    activeIndex,
+    setActiveIndex,
+    initialTabKey,
+    hotTabQueryParams,
+  } = usePredictTabs();
 
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -597,7 +592,13 @@ const PredictFeed: React.FC = () => {
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
 
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const {
+    isSearchVisible,
+    searchQuery,
+    setSearchQuery,
+    showSearch,
+    clearSearchAndClose,
+  } = usePredictSearch();
 
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -628,13 +629,13 @@ const PredictFeed: React.FC = () => {
 
   useEffect(() => {
     sessionManager.enableAppStateListener();
-    sessionManager.startSession(route.params?.entryPoint, 'trending');
+    sessionManager.startSession(route.params?.entryPoint, initialTabKey);
 
     return () => {
       sessionManager.endSession();
       sessionManager.disableAppStateListener();
     };
-  }, [route.params?.entryPoint, sessionManager]);
+  }, [route.params?.entryPoint, sessionManager, initialTabKey]);
 
   useFocusEffect(
     useCallback(() => {
@@ -648,29 +649,32 @@ const PredictFeed: React.FC = () => {
     headerHeight,
     tabBarHeight,
     layoutReady,
-    activeIndex,
-    setActiveIndex,
+    onTabSwitch,
     scrollHandler,
     onHeaderLayout,
     onTabBarLayout,
-  } = useFeedScrollManager({ headerRef, tabBarRef });
+  } = useFeedScrollManager({
+    headerRef,
+    tabBarRef,
+    setActiveIndex,
+  });
 
   const handleTabPress = useCallback(
     (index: number) => {
-      setActiveIndex(index);
+      onTabSwitch(index);
     },
-    [setActiveIndex],
+    [onTabSwitch],
   );
 
   const handlePageChange = useCallback(
     (index: number) => {
-      setActiveIndex(index);
+      onTabSwitch(index);
       const category = tabs[index]?.key;
       if (category) {
         sessionManager.trackTabChange(category);
       }
     },
-    [setActiveIndex, sessionManager, tabs],
+    [onTabSwitch, sessionManager, tabs],
   );
 
   return (
@@ -685,7 +689,7 @@ const PredictFeed: React.FC = () => {
           paddingTop: insets.top,
         })}
       >
-        <HeaderCenter
+        <HeaderCompactStandard
           title={strings('wallet.predict')}
           onBack={handleBackPress}
           backButtonProps={{
@@ -694,7 +698,7 @@ const PredictFeed: React.FC = () => {
           endButtonIconProps={[
             {
               iconName: IconName.Search,
-              onPress: () => setIsSearchVisible(true),
+              onPress: showSearch,
               testID: 'predict-search-button',
             },
           ]}
@@ -723,13 +727,17 @@ const PredictFeed: React.FC = () => {
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight + 6}
             headerHidden={headerHidden}
+            hotTabQueryParams={hotTabQueryParams}
+            initialPage={activeIndex}
           />
         )}
       </Box>
 
       <PredictSearchOverlay
         isVisible={isSearchVisible}
-        onClose={() => setIsSearchVisible(false)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onClose={clearSearchAndClose}
       />
     </Box>
   );

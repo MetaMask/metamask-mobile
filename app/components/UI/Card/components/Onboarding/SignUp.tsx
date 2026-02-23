@@ -14,9 +14,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -26,6 +24,7 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import {
+  selectCardGeoLocation,
   selectSelectedCountry,
   setContactVerificationId,
   setSelectedCountry,
@@ -33,7 +32,8 @@ import {
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import { validatePassword } from '../../util/validatePassword';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { TouchableOpacity } from 'react-native';
 import {
@@ -43,6 +43,7 @@ import {
   setOnValueChange,
 } from './RegionSelectorModal';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
+import SelectField from './SelectField';
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -55,8 +56,9 @@ const SignUp = () => {
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const selectedCountry = useSelector(selectSelectedCountry);
+  const geoLocation = useSelector(selectCardGeoLocation);
   const { data: registrationSettings } = useRegistrationSettings();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   useEffect(() => {
     trackEvent(
@@ -93,6 +95,22 @@ const SignUp = () => {
         areaCode: country.callingCode,
       }));
   }, [registrationSettings]);
+
+  useEffect(() => {
+    if (selectedCountry || !regions.length || geoLocation === 'UNKNOWN') {
+      return;
+    }
+
+    const matchedRegion = regions.find((region) => region.key === geoLocation);
+    if (matchedRegion) {
+      dispatch(setSelectedCountry(matchedRegion));
+      dispatch(
+        setUserCardLocation(
+          matchedRegion.key === 'US' ? 'us' : 'international',
+        ),
+      );
+    }
+  }, [regions, geoLocation, selectedCountry, dispatch]);
 
   useEffect(() => {
     if (!debouncedEmail) {
@@ -221,17 +239,11 @@ const SignUp = () => {
     <>
       <Box>
         <Label>{strings('card.card_onboarding.sign_up.country_label')}</Label>
-        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
-          <TouchableOpacity
-            onPress={handleCountrySelect}
-            testID="signup-country-select"
-          >
-            <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
-              <Text variant={TextVariant.BodyMd}>{selectedCountry?.name}</Text>
-              <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
-            </Box>
-          </TouchableOpacity>
-        </Box>
+        <SelectField
+          value={selectedCountry?.name}
+          onPress={handleCountrySelect}
+          testID="signup-country-select"
+        />
       </Box>
 
       <Box>
@@ -241,7 +253,6 @@ const SignUp = () => {
           autoComplete="one-time-code"
           onChangeText={handleEmailChange}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           value={email}
           keyboardType="email-address"
           maxLength={255}
@@ -276,7 +287,6 @@ const SignUp = () => {
           autoCapitalize={'none'}
           onChangeText={handlePasswordChange}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           value={password}
           maxLength={255}
           secureTextEntry={!isPasswordVisible}

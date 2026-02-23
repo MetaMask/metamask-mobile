@@ -12,6 +12,7 @@ import {
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { initialState } from '../../../../../UI/Bridge/_mocks_/initialState';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import {
   CHAIN_IDS,
   TransactionType,
@@ -25,14 +26,33 @@ import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
+import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../utils/transaction-pay');
+jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
+jest.mock('../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter');
 
-jest.mock('../../../hooks/send/useAccountTokens', () => ({
-  useAccountTokens: () => [],
+jest.mock('../../../hooks/send/useAccountTokens', () => {
+  // Return a stable reference to avoid infinite re-render loops.
+  // Returning `[]` inline creates a new array on every call, which makes
+  // `useSendTokens` → `Asset.tokens` → `NetworkFilter` effect fire in a
+  // loop when the tokenFilter is an identity function (withdraw mode).
+  const stableEmptyTokens: never[] = [];
+  return { useAccountTokens: () => stableEmptyTokens };
+});
+
+jest.mock('../../../hooks/send/metrics/useAssetSelectionMetrics', () => ({
+  useAssetSelectionMetrics: () => ({
+    captureAssetSelected: jest.fn(),
+    setAssetListSize: jest.fn(),
+    setNoneAssetFilterMethod: jest.fn(),
+    setSearchAssetFilterMethod: jest.fn(),
+  }),
 }));
 
 const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET as Hex;
@@ -158,7 +178,9 @@ function render({ minimumFiatBalance }: { minimumFiatBalance?: number } = {}) {
 
 describe('PayWithModal', () => {
   const setPayTokenMock = jest.fn();
+  const onPerpsPaymentTokenChangeMock = jest.fn();
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
   const getAvailableTokensMock = jest.mocked(getAvailableTokens);
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
@@ -166,9 +188,18 @@ describe('PayWithModal', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const usePerpsPaymentTokenMock = jest.mocked(usePerpsPaymentToken);
+  const usePerpsBalanceTokenFilterMock = jest.mocked(
+    usePerpsBalanceTokenFilter,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: false,
+      canSelectWithdrawToken: false,
+    });
 
     getAvailableTokensMock.mockReturnValue(TOKENS_MOCK);
     useTransactionPayRequiredTokensMock.mockReturnValue(REQUIRED_TOKENS_MOCK);
@@ -189,6 +220,14 @@ describe('PayWithModal', () => {
       },
       type: TransactionType.simpleSend,
     } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+    usePerpsPaymentTokenMock.mockReturnValue({
+      onPaymentTokenChange: onPerpsPaymentTokenChangeMock,
+    } as unknown as ReturnType<typeof usePerpsPaymentToken>);
+
+    usePerpsBalanceTokenFilterMock.mockReturnValue(
+      jest.fn((tokens: AssetType[]) => tokens),
+    );
   });
 
   it('renders tokens', async () => {
@@ -215,6 +254,82 @@ describe('PayWithModal', () => {
         address: TOKENS_MOCK[1].address,
         chainId: TOKENS_MOCK[1].chainId,
       });
+    });
+
+    it('calls onPerpsPaymentTokenChange via close callback when type is perpsDepositAndOrder', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_1_MOCK,
+        networkClientId: '',
+        status: TransactionStatus.unapproved,
+        time: 0,
+        txParams: { from: EMPTY_ADDRESS },
+        type: TransactionType.perpsDepositAndOrder,
+      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+      const { getByText } = render();
+
+      await waitFor(() => {
+        fireEvent.press(getByText('Test Token 1'));
+      });
+
+      expect(onPerpsPaymentTokenChangeMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: TOKENS_MOCK[1].address,
+          chainId: TOKENS_MOCK[1].chainId,
+        }),
+      );
+    });
+  });
+
+  it('uses perpsBalanceTokenFilter when transaction type is perpsDepositAndOrder', () => {
+    const perpsFilterFn = jest.fn((tokens: AssetType[]) => tokens);
+    usePerpsBalanceTokenFilterMock.mockReturnValue(perpsFilterFn);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      chainId: CHAIN_ID_1_MOCK,
+      networkClientId: '',
+      status: TransactionStatus.unapproved,
+      time: 0,
+      txParams: { from: EMPTY_ADDRESS },
+      type: TransactionType.perpsDepositAndOrder,
+    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+    render();
+
+    expect(perpsFilterFn).toHaveBeenCalledWith(TOKENS_MOCK);
+  });
+
+  describe('withdraw mode', () => {
+    beforeEach(() => {
+      useTransactionPayWithdrawMock.mockReturnValue({
+        isWithdraw: true,
+        canSelectWithdrawToken: true,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_1_MOCK,
+        networkClientId: '',
+        status: TransactionStatus.unapproved,
+        time: 0,
+        txParams: { from: EMPTY_ADDRESS },
+        type: TransactionType.predictWithdraw,
+        nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+    });
+
+    it('shows "Select receive token" title for withdrawal transactions', () => {
+      const { getByText } = render();
+      expect(getByText('Select receive token')).toBeDefined();
+    });
+
+    it('bypasses token filtering for withdrawal transactions', () => {
+      render();
+      // For withdrawals, getAvailableTokens should NOT be called since
+      // the filter early-returns all tokens for withdraw types
+      expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
   });
 });

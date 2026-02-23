@@ -34,26 +34,29 @@ jest.mock('../../../component-library/components/Texts/Text', () => {
   };
 });
 
-jest.mock('../../../component-library/components-temp/HeaderCenter', () => {
-  const ReactActual = jest.requireActual('react');
-  const {
-    View: ReactNativeView,
-    Text: ReactNativeText,
-    Pressable: ReactNativePressable,
-  } = jest.requireActual('react-native');
+jest.mock(
+  '../../../component-library/components-temp/HeaderCompactStandard',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const {
+      View: ReactNativeView,
+      Text: ReactNativeText,
+      Pressable: ReactNativePressable,
+    } = jest.requireActual('react-native');
 
-  return (props: { title: string; onClose: () => void }) =>
-    ReactActual.createElement(
-      ReactNativeView,
-      { testID: 'tooltip-modal-header' },
-      ReactActual.createElement(ReactNativeText, {}, props.title),
+    return (props: { title: string; onClose: () => void }) =>
       ReactActual.createElement(
-        ReactNativePressable,
-        { testID: 'tooltip-modal-close', onPress: props.onClose },
-        ReactActual.createElement(ReactNativeText, {}, 'close'),
-      ),
-    );
-});
+        ReactNativeView,
+        { testID: 'tooltip-modal-header' },
+        ReactActual.createElement(ReactNativeText, {}, props.title),
+        ReactActual.createElement(
+          ReactNativePressable,
+          { testID: 'tooltip-modal-close', onPress: props.onClose },
+          ReactActual.createElement(ReactNativeText, {}, 'close'),
+        ),
+      );
+  },
+);
 
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',

@@ -168,7 +168,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -188,8 +188,8 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]
@@ -602,7 +602,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -622,8 +622,8 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]
@@ -1084,7 +1084,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -1104,8 +1104,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]
@@ -1460,7 +1460,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                   }
                                 }
                               >
-                                peer1
+                                topic1
                               </Text>
                               <Text
                                 style={
@@ -1574,7 +1574,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                   }
                                 }
                               >
-                                peer2
+                                topic2
                               </Text>
                               <Text
                                 style={

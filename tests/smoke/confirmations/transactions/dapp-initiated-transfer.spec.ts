@@ -1,0 +1,303 @@
+import { SmokeConfirmations } from '../../../tags';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../flows/browser.flow';
+import Browser from '../../../page-objects/Browser/BrowserView';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import ConfirmationUITypes from '../../../page-objects/Browser/Confirmations/ConfirmationUITypes';
+import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
+import Assertions from '../../../framework/Assertions';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents';
+import {
+  SEND_ETH_SIMULATION_MOCK,
+  SIMULATION_ENABLED_NETWORKS_MOCK,
+} from '../../../api-mocking/mock-responses/simulations';
+import TestDApp from '../../../page-objects/Browser/TestDApp';
+import { DappVariants } from '../../../framework/Constants';
+import {
+  EventPayload,
+  getEventsPayloads,
+} from '../../../helpers/analytics/helpers';
+import SoftAssert from '../../../framework/SoftAssert';
+import { Mockttp } from 'mockttp';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+} from '../../../api-mocking/helpers/mockHelpers';
+import Gestures from '../../../framework/Gestures';
+import {
+  SECURITY_ALERTS_BENIGN_RESPONSE,
+  SECURITY_ALERTS_REQUEST_BODY,
+  securityAlertsUrl,
+} from '../../../api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { DEFAULT_ANVIL_PORT } from '../../../seeder/anvil-manager';
+import { commonTransactionPropertiesAndTypes } from '../../../helpers/analytics/common-transaction-properties';
+
+const expectedEvents = {
+  TRANSACTION_ADDED: 'Transaction Added',
+  TRANSACTION_SUBMITTED: 'Transaction Submitted',
+  TRANSACTION_APPROVED: 'Transaction Approved',
+  TRANSACTION_FINALIZED: 'Transaction Finalized',
+};
+
+const expectedEventNames = [
+  expectedEvents.TRANSACTION_ADDED,
+  expectedEvents.TRANSACTION_SUBMITTED,
+  expectedEvents.TRANSACTION_APPROVED,
+  expectedEvents.TRANSACTION_FINALIZED,
+];
+
+describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    await setupMockPostRequest(
+      mockServer,
+      securityAlertsUrl('0x539'),
+      SECURITY_ALERTS_REQUEST_BODY,
+      SECURITY_ALERTS_BENIGN_RESPONSE,
+      {
+        statusCode: 201,
+        ignoreFields: [
+          'networkClientId',
+          'id',
+          'toNative',
+          'origin',
+          'params[0].to',
+          'params[0].gas',
+          'params[0].gasPrice',
+        ],
+      },
+    );
+
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+      response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
+      responseCode: 200,
+    });
+
+    const {
+      urlEndpoint: simulationEndpoint,
+      requestBody,
+      response: simulationResponse,
+      ignoreFields,
+    } = SEND_ETH_SIMULATION_MOCK;
+
+    await setupMockPostRequest(
+      mockServer,
+      simulationEndpoint,
+      requestBody,
+      simulationResponse,
+      {
+        statusCode: 200,
+        ignoreFields,
+      },
+    );
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      Object.assign({}, ...confirmationFeatureFlags),
+    );
+  };
+  let eventsToCheck: EventPayload[];
+
+  beforeAll(async () => {
+    jest.setTimeout(2500000);
+  });
+
+  it('sends native asset', async () => {
+    await withFixtures(
+      {
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
+        fixture: new FixtureBuilder()
+          .withNetworkController({
+            providerConfig: {
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
+            },
+          })
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
+          .withMetaMetricsOptIn()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
+          .build(),
+        restartDevice: true,
+        testSpecificMock,
+        endTestfn: async ({ mockServer }) => {
+          eventsToCheck = await getEventsPayloads(
+            mockServer,
+            expectedEventNames,
+          );
+        },
+      },
+      async () => {
+        await loginToApp();
+
+        await navigateToBrowserView();
+        await Browser.navigateToTestDApp();
+        await TestDApp.tapSendEIP1559Button();
+
+        // Check all expected elements are visible
+        await Assertions.expectElementToBeVisible(
+          ConfirmationUITypes.ModalConfirmationContainer,
+        );
+        await Assertions.expectElementToBeVisible(RowComponents.TokenHero);
+        await Assertions.expectTextDisplayed('0 ETH');
+        await Assertions.expectElementToBeVisible(RowComponents.FromTo);
+        await Assertions.expectElementToBeVisible(
+          RowComponents.SimulationDetails,
+        );
+        await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
+
+        // Scroll to Advanced Details section on Android
+        if (device.getPlatform() === 'android') {
+          await Gestures.swipe(RowComponents.GasFeesDetails, 'up');
+        }
+
+        await Assertions.expectElementToBeVisible(
+          RowComponents.AdvancedDetails,
+        );
+
+        // Accept confirmation
+        await FooterActions.tapConfirmButton();
+
+        // Close browser to reveal app tab bar, then check activity
+        await Browser.tapCloseBrowserButton();
+        await TabBarComponent.tapActivity();
+        await Assertions.expectTextDisplayed('Confirmed');
+      },
+    );
+  });
+
+  it('validates the segment events from the dapp initiated transfer', async () => {
+    if (!eventsToCheck) {
+      throw new Error('Events to check are not defined');
+    }
+
+    const softAssert = new SoftAssert();
+
+    // Transaction Added
+    const transactionAddedEvent = eventsToCheck.find(
+      (event) => event.event === expectedEvents.TRANSACTION_ADDED,
+    );
+    await softAssert.checkAndCollect(
+      () => Assertions.checkIfValueIsDefined(transactionAddedEvent),
+      'Transaction Added: Should be defined',
+    );
+    await softAssert.checkAndCollect(
+      () =>
+        Assertions.checkIfObjectHasKeysAndValidValues(
+          transactionAddedEvent?.properties ?? {},
+          {
+            ...commonTransactionPropertiesAndTypes,
+          },
+        ),
+      'Transaction Added: Should have the correct properties',
+    );
+
+    // Transaction Submitted
+    const transactionSubmittedEvent = eventsToCheck.find(
+      (event) => event.event === expectedEvents.TRANSACTION_SUBMITTED,
+    );
+    await softAssert.checkAndCollect(
+      () => Assertions.checkIfValueIsDefined(transactionSubmittedEvent),
+      'Transaction Submitted: Should be defined',
+    );
+    await softAssert.checkAndCollect(
+      () =>
+        Assertions.checkIfObjectHasKeysAndValidValues(
+          transactionSubmittedEvent?.properties ?? {},
+          {
+            ...commonTransactionPropertiesAndTypes,
+            simulation_response: 'string',
+            simulation_latency: 'number',
+            simulation_receiving_assets_quantity: 'number',
+            simulation_receiving_assets_type: 'array',
+            simulation_receiving_assets_value: 'array',
+            simulation_sending_assets_quantity: 'number',
+            simulation_sending_assets_type: 'array',
+            simulation_sending_assets_value: 'array',
+            asset_type: 'string',
+            simulation_receiving_assets_total_value: 'number',
+            simulation_sending_assets_total_value: 'number',
+          },
+        ),
+      'Transaction Submitted: Should have the correct properties',
+    );
+
+    // Transaction Approved
+    const transactionApprovedEvent = eventsToCheck.find(
+      (event) => event.event === expectedEvents.TRANSACTION_APPROVED,
+    );
+    await softAssert.checkAndCollect(
+      () => Assertions.checkIfValueIsDefined(transactionApprovedEvent),
+      'Transaction Approved: Should be defined',
+    );
+    await softAssert.checkAndCollect(
+      () =>
+        Assertions.checkIfObjectHasKeysAndValidValues(
+          transactionApprovedEvent?.properties ?? {},
+          {
+            ...commonTransactionPropertiesAndTypes,
+            simulation_response: 'string',
+            simulation_latency: 'number',
+            simulation_receiving_assets_quantity: 'number',
+            simulation_receiving_assets_type: 'array',
+            simulation_receiving_assets_value: 'array',
+            simulation_sending_assets_quantity: 'number',
+            simulation_sending_assets_type: 'array',
+            simulation_sending_assets_value: 'array',
+            asset_type: 'string',
+            simulation_receiving_assets_total_value: 'number',
+            simulation_sending_assets_total_value: 'number',
+          },
+        ),
+      'Transaction Approved: Should have the correct properties',
+    );
+
+    // Transaction Finalized
+    const transactionFinalizedEvent = eventsToCheck.find(
+      (event) => event.event === expectedEvents.TRANSACTION_FINALIZED,
+    );
+    await softAssert.checkAndCollect(
+      () => Assertions.checkIfValueIsDefined(transactionFinalizedEvent),
+      'Transaction Finalized: Should be defined',
+    );
+    await softAssert.checkAndCollect(
+      () =>
+        Assertions.checkIfObjectHasKeysAndValidValues(
+          transactionFinalizedEvent?.properties ?? {},
+          {
+            ...commonTransactionPropertiesAndTypes,
+            simulation_response: 'string',
+            simulation_latency: 'number',
+            simulation_receiving_assets_quantity: 'number',
+            simulation_receiving_assets_type: 'array',
+            simulation_receiving_assets_value: 'array',
+            simulation_sending_assets_quantity: 'number',
+            simulation_sending_assets_type: 'array',
+            simulation_sending_assets_value: 'array',
+            asset_type: 'string',
+            rpc_domain: 'string',
+            simulation_receiving_assets_total_value: 'number',
+            simulation_sending_assets_total_value: 'number',
+          },
+        ),
+      'Transaction Finalized: Should have the correct properties',
+    );
+
+    softAssert.throwIfErrors();
+  });
+});

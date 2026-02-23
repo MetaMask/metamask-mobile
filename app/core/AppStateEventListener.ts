@@ -93,7 +93,7 @@ export class AppStateEventListener {
           `AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attribution.attributionId}`,
           utmParams,
         );
-        appOpenedEventBuilder.addProperties({ ...attribution });
+        appOpenedEventBuilder.addProperties(attribution);
       }
       analytics.trackEvent(appOpenedEventBuilder.build());
     } catch (error) {

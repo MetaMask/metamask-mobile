@@ -4,7 +4,7 @@ import { useStyles } from '../../../hooks/useStyles';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCenter from '../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import Text, {
   TextColor,
   TextVariant,
@@ -46,7 +46,8 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import useEarnToken from '../hooks/useEarnToken';
 import { Hex } from 'viem';
@@ -144,7 +145,7 @@ export const LendingLearnMoreModal = () => {
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -287,7 +288,7 @@ export const LendingLearnMoreModal = () => {
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
-      <HeaderCenter
+      <HeaderCompactStandard
         title={strings('earn.how_it_works')}
         onClose={handleClose}
       />

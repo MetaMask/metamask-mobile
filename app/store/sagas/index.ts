@@ -30,8 +30,8 @@ import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
+import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
-import { MetaMetrics } from '../../core/Analytics';
 import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 
@@ -45,6 +45,26 @@ function appStateListenerChannel() {
       appStateListener.remove();
     };
   });
+}
+
+/**
+ * Checks seedless password status and performs the correct auth flow.
+ */
+async function tryBiometricUnlock(): Promise<void> {
+  if (await Authentication.checkIsSeedlessPasswordOutdated()) {
+    NavigationService.navigation?.reset({
+      routes: [
+        {
+          name: Routes.ONBOARDING.REHYDRATE,
+          params: { isSeedlessPasswordOutdated: true },
+        },
+      ],
+    });
+    return;
+  }
+
+  // Prompt authentication.
+  await Authentication.unlockWallet();
 }
 
 /**
@@ -63,8 +83,7 @@ export function* appStateListenerTask() {
         yield call(async () => {
           // This is in a try catch since errors are not propogated in event channels.
           try {
-            // Prompt authentication.
-            await Authentication.unlockWallet();
+            await tryBiometricUnlock();
           } catch (error) {
             // Navigate to login.
             NavigationService.navigation?.reset({
@@ -103,7 +122,7 @@ export function* appLockStateMachine() {
  */
 export function* requestAuthOnAppStart() {
   try {
-    yield call(Authentication.unlockWallet);
+    yield call(tryBiometricUnlock);
   } catch (_) {
     // If authentication fails, navigate to login screen
     // TODO: Consolidate error handling in future PRs. For now, we'll rely on the Login screen to handle triaging specific errors.
@@ -282,13 +301,6 @@ export function* startAppServices() {
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
 
-  // Configure MetaMetrics
-  try {
-    yield call(MetaMetrics.getInstance().configure);
-  } catch (err) {
-    Logger.error(err as Error, 'Error configuring MetaMetrics');
-  }
-
   // Apply vault initialization
   yield call(applyVaultInitialization);
 
@@ -310,6 +322,7 @@ export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
+  yield fork(rewardsBulkLinkSaga);
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   yield fork(handleSnapsRegistry);
   ///: END:ONLY_INCLUDE_IF

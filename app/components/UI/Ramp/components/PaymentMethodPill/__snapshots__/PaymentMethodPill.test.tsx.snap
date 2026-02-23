@@ -3,6 +3,7 @@
 exports[`PaymentMethodPill matches snapshot 1`] = `
 <TouchableOpacity
   activeOpacity={0.7}
+  disabled={false}
   style={
     {
       "alignItems": "center",
@@ -71,6 +72,74 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
         }
       }
       width={16}
+    />
+  </View>
+</TouchableOpacity>
+`;
+
+exports[`PaymentMethodPill matches snapshot when loading 1`] = `
+<TouchableOpacity
+  activeOpacity={0.7}
+  disabled={true}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "center",
+      "backgroundColor": "#3c4d9d0f",
+      "borderRadius": 100,
+      "flexDirection": "row",
+      "padding": 8,
+    }
+  }
+  testID="payment-method-pill"
+>
+  <View
+    style={
+      {
+        "padding": 4,
+      }
+    }
+  >
+    <SvgMock
+      color="#121314"
+      fill="currentColor"
+      height={16}
+      name="Card"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist-Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "marginLeft": 8,
+        "marginRight": 4,
+      }
+    }
+  >
+    Select payment method
+  </Text>
+  <View
+    style={
+      {
+        "padding": 4,
+      }
+    }
+  >
+    <ActivityIndicator
+      color="#121314"
+      size="small"
     />
   </View>
 </TouchableOpacity>

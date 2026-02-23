@@ -59,6 +59,11 @@ on:
         description: 'Branch name to use for build names (defaults to auto-detection)'
         required: false
         type: string
+      build_variant:
+        description: 'Build variant for Bitrise (rc = release, exp = experimental)'
+        required: false
+        type: string
+        default: 'rc'
 
 permissions:
   contents: read
@@ -66,8 +71,12 @@ permissions:
   actions: write
 
 concurrency:
-  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  # Include build_variant so experimental (exp) and release/direct (rc) don't share the same
+  # queue — avoids "Build Apps" (direct/release) and experimental runs canceling each other.
+  # Note: GitHub allows at most 1 running + 1 pending per group; a 3rd run cancels the pending one.
+  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}-${{ inputs.build_variant || 'rc' }}
+  # Do not cancel in-progress runs; pending runs can still be replaced by a newer trigger.
+  cancel-in-progress: false
 
 env:
   BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
@@ -130,7 +139,7 @@ jobs:
         env:
           BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
         run: |
-          FILE="appwright/device-matrix.json"
+          FILE="tests/performance/device-matrix.json"
 
           # Push to main or release branches: Use only "low" category devices
           # Schedule and workflow_dispatch: Use all devices
@@ -181,6 +190,7 @@ jobs:
     if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      build_variant: ${{ inputs.build_variant || 'rc' }}
     secrets: inherit
 
   trigger-ios-dual-versions:
@@ -190,6 +200,7 @@ jobs:
     if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      build_variant: ${{ inputs.build_variant || 'rc' }}
     secrets: inherit
 
   # =============================================================================
@@ -285,6 +296,28 @@ jobs:
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
     secrets: inherit
 
+  run-android-mm-connect-tests:
+    name: Run Android MM-Connect Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs:
+      [
+        read-device-matrix,
+        trigger-android-dual-versions,
+        wait-for-onboarding-completion,
+        set-build-names,
+        determine-branch-name,
+      ]
+    if: always() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.result == 'success')
+    with:
+      platform: android
+      build_type: mm-connect
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
+    secrets: inherit
+
   aggregate-results:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest
@@ -292,6 +325,7 @@ jobs:
       [
         run-android-imported-wallet-tests,
         run-android-onboarding-tests,
+        run-android-mm-connect-tests,
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
         wait-for-onboarding-completion,
@@ -312,6 +346,7 @@ jobs:
       - name: Run aggregation script
         env:
           BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
+          BUILD_VARIANT: ${{ inputs.build_variant || 'rc' }}
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."
@@ -323,7 +358,7 @@ jobs:
         with:
           name: aggregated-reports
           path: |
-            appwright/aggregated-reports/
+            tests/aggregated-reports/
           if-no-files-found: ignore
           retention-days: 30
 
@@ -334,6 +369,7 @@ jobs:
       [
         run-android-imported-wallet-tests,
         run-android-onboarding-tests,
+        run-android-mm-connect-tests,
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
         aggregate-results,

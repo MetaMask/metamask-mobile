@@ -25,8 +25,6 @@ import BrowserTab from '../BrowserTab/BrowserTab';
 
 const Browser = BrowserComponent as ComponentType<BrowserComponentProps>;
 
-jest.useFakeTimers();
-
 jest.mock('../../hooks/useAccounts', () => ({
   useAccounts: jest.fn().mockReturnValue({
     evmAccounts: [],
@@ -64,13 +62,13 @@ jest.mock('../../UI/Tabs', () => ({
   }),
 }));
 
-const mockTabs = [
-  { id: 1, url: 'about:blank', image: '', isArchived: false },
-  { id: 2, url: 'about:blank', image: '', isArchived: false },
-  { id: 3, url: 'about:blank', image: '', isArchived: false },
-  { id: 4, url: 'about:blank', image: '', isArchived: false },
-  { id: 5, url: 'about:blank', image: '', isArchived: false },
-];
+const mockTabs = Array.from({ length: 20 }, (_, i) => ({
+  id: i + 1,
+  url: 'about:blank',
+  image: '',
+  isArchived: false,
+  lastActiveAt: Date.now() - i * 1000,
+}));
 
 const mockInitialState = {
   engine: {
@@ -219,7 +217,6 @@ describe('Browser - Tab Operations', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -241,7 +238,6 @@ describe('Browser - Tab Operations', () => {
       const TabsMock = jest.mocked(Tabs);
       const BrowserTabMock = jest.mocked(BrowserTab);
       let closeTabsViewCallback: (() => void) | undefined;
-      const mockCloseAllTabs = jest.fn();
       const mockCaptureScreen = captureScreen as jest.Mock;
       mockCaptureScreen.mockResolvedValue('data:image/png;base64,test');
 
@@ -290,7 +286,6 @@ describe('Browser - Tab Operations', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={mockCloseAllTabs}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -331,7 +326,6 @@ describe('Browser - Tab Operations', () => {
                     activeTab={null}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={mockCloseAllTabs}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -363,8 +357,13 @@ describe('Browser - Tab Operations', () => {
         }
       });
 
-      // closeTabsView should call navigation.goBack when tabs.length === 0
-      expect(mockNavigation.goBack).toHaveBeenCalled();
+      // closeTabsView should navigate to Explore when tabs.length === 0
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.TRENDING_VIEW,
+        {
+          screen: Routes.TRENDING_FEED,
+        },
+      );
     });
 
     it('hides tabs view when closing tabs view with tabs remaining', () => {
@@ -396,7 +395,6 @@ describe('Browser - Tab Operations', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -417,11 +415,6 @@ describe('Browser - Tab Operations', () => {
         },
       );
 
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
-
       // Call closeTabsView to test the behavior
       if (closeTabsViewCallback) {
         closeTabsViewCallback();
@@ -439,11 +432,12 @@ describe('Browser - Tab Operations', () => {
     });
 
     it('navigates to max browser tabs modal when tabs.length equals MAX_BROWSER_TABS', () => {
-      const tabsAtMax = Array.from({ length: 5 }, (_, i) => ({
+      const tabsAtMax = Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
         url: 'about:blank',
         image: '',
         isArchived: false,
+        lastActiveAt: Date.now() - i * 1000,
       }));
 
       const mockCreateNewTab = jest.fn();
@@ -460,7 +454,6 @@ describe('Browser - Tab Operations', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={mockCreateNewTab}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -480,11 +473,6 @@ describe('Browser - Tab Operations', () => {
           },
         },
       );
-
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
 
       // Access the component instance to call newTab
       // Since newTab is internal, we test it indirectly through component behavior
@@ -510,7 +498,6 @@ describe('Browser - Tab Operations', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={mockCreateNewTab}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -530,11 +517,6 @@ describe('Browser - Tab Operations', () => {
           },
         },
       );
-
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
 
       // Component should render without navigating to modal
       expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
@@ -563,7 +545,6 @@ describe('Browser - Tab Operations', () => {
                     activeTab={null}
                     navigation={mockNavigation}
                     createNewTab={mockCreateNewTab}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -575,11 +556,6 @@ describe('Browser - Tab Operations', () => {
         </Provider>,
         { state: mockInitialState },
       );
-
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
 
       expect(mockCreateNewTab).toHaveBeenCalledWith(undefined, undefined);
       jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(false);
@@ -607,7 +583,6 @@ describe('Browser - Tab Operations', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={jest.fn()}
                     setActiveTab={mockSetActiveTab}
                     updateTab={mockUpdateTab}
@@ -627,11 +602,6 @@ describe('Browser - Tab Operations', () => {
           },
         },
       );
-
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
 
       // switchToTab is called internally when component mounts with activeTab
       // We verify analytics tracking happens
@@ -663,7 +633,6 @@ describe('Browser - Tab Operations', () => {
                     activeTab={2}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={mockCloseTab}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -683,11 +652,6 @@ describe('Browser - Tab Operations', () => {
           },
         },
       );
-
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
 
       // Component renders successfully
       expect(mockCloseTab).toBeDefined();
@@ -713,7 +677,6 @@ describe('Browser - Tab Operations', () => {
                     activeTab={2}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={mockCloseTab}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -733,11 +696,6 @@ describe('Browser - Tab Operations', () => {
           },
         },
       );
-
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
 
       // Component renders successfully
       expect(mockSetActiveTab).toBeDefined();
@@ -761,7 +719,6 @@ describe('Browser - Tab Operations', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={mockCloseTab}
                     setActiveTab={jest.fn()}
                     updateTab={jest.fn()}
@@ -781,11 +738,6 @@ describe('Browser - Tab Operations', () => {
           },
         },
       );
-
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
 
       expect(mockCloseTab).toBeDefined();
     });
@@ -810,7 +762,6 @@ describe('Browser - Tab Operations', () => {
                     activeTab={1}
                     navigation={mockNavigation}
                     createNewTab={jest.fn()}
-                    closeAllTabs={jest.fn()}
                     closeTab={mockCloseTab}
                     setActiveTab={mockSetActiveTab}
                     updateTab={jest.fn()}
@@ -831,110 +782,8 @@ describe('Browser - Tab Operations', () => {
         },
       );
 
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
-
       // Component renders successfully
       expect(mockCloseTab).toBeDefined();
     });
   });
-
-  describe('closeAllTabs function', () => {
-    it('calls triggerCloseAllTabs when tabs exist', () => {
-      const tabs = [
-        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
-        { id: 2, url: 'https://tab2.com', image: '', isArchived: false },
-      ];
-      const mockCloseAllTabs = jest.fn();
-
-      renderWithProvider(
-        <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
-            <Stack.Navigator>
-              <Stack.Screen name={Routes.BROWSER.VIEW}>
-                {() => (
-                  <Browser
-                    route={routeMock}
-                    tabs={tabs}
-                    activeTab={1}
-                    navigation={mockNavigation}
-                    createNewTab={jest.fn()}
-                    closeAllTabs={mockCloseAllTabs}
-                    closeTab={jest.fn()}
-                    setActiveTab={jest.fn()}
-                    updateTab={jest.fn()}
-                  />
-                )}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>
-        </Provider>,
-        {
-          state: {
-            ...mockInitialState,
-            browser: {
-              tabs,
-              activeTab: 1,
-            },
-          },
-        },
-      );
-
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
-
-      expect(mockCloseAllTabs).toBeDefined();
-    });
-
-    it('does not call triggerCloseAllTabs when no tabs exist', () => {
-      const mockCloseAllTabs = jest.fn();
-
-      renderWithProvider(
-        <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
-            <Stack.Navigator>
-              <Stack.Screen name={Routes.BROWSER.VIEW}>
-                {() => (
-                  <Browser
-                    route={routeMock}
-                    tabs={[]}
-                    activeTab={null}
-                    navigation={mockNavigation}
-                    createNewTab={jest.fn()}
-                    closeAllTabs={mockCloseAllTabs}
-                    closeTab={jest.fn()}
-                    setActiveTab={jest.fn()}
-                    updateTab={jest.fn()}
-                  />
-                )}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>
-        </Provider>,
-        {
-          state: {
-            ...mockInitialState,
-            browser: {
-              tabs: [],
-              activeTab: null,
-            },
-          },
-        },
-      );
-
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
-
-      // Component renders without calling closeAllTabs
-      expect(mockCloseAllTabs).not.toHaveBeenCalled();
-    });
-  });
 });
-
-jest.useRealTimers();

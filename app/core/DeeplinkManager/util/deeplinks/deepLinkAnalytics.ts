@@ -13,7 +13,6 @@ import {
   BranchParams,
 } from '../../types/deepLinkAnalytics.types';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import { SupportedAction } from '../../types/deepLink.types';
 import { ACTIONS } from '../../../../constants/deeplinks';
@@ -308,6 +307,19 @@ const extractHomeProperties = (
 };
 
 /**
+ * Extract properties specific to ASSET route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractAssetProperties = (
+  urlParams: UrlParamValues,
+  sensitiveProps: Record<string, string>,
+): void => {
+  const assetValue = getStringValue(urlParams, 'assetId');
+  addPropertyIfExists(sensitiveProps, 'asset', assetValue);
+};
+
+/**
  * Extract properties for DAPP route
  * DAPP routes may contain sensitive URLs, so we don't extract them
  * @param urlParams - URL parameters
@@ -484,6 +496,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.BUY]: extractBuyProperties,
   [DeepLinkRoute.SELL]: extractSellProperties,
   [DeepLinkRoute.HOME]: extractHomeProperties,
+  [DeepLinkRoute.ASSET]: extractAssetProperties,
   [DeepLinkRoute.DAPP]: extractDappProperties,
   [DeepLinkRoute.WC]: extractWcProperties,
   [DeepLinkRoute.REWARDS]: extractRewardsProperties,
@@ -606,6 +619,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SELL;
     case ACTIONS.HOME:
       return DeepLinkRoute.HOME;
+    case ACTIONS.ASSET:
+      return DeepLinkRoute.ASSET;
     case ACTIONS.DAPP:
       return DeepLinkRoute.DAPP;
     case ACTIONS.WC:
@@ -660,6 +675,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.SELL;
       case 'home':
         return DeepLinkRoute.HOME;
+      case 'asset':
+        return DeepLinkRoute.ASSET;
       case 'dapp':
         return DeepLinkRoute.DAPP;
       case 'wc':
@@ -720,9 +737,11 @@ export const createDeepLinkUsedEventBuilder = async (
   // Determine interstitial state
   const interstitial = determineInterstitialState(context);
 
-  // Build the event properties, filtering out undefined values
-  const eventProperties = Object.fromEntries(
-    Object.entries({
+  // Create the AnalyticsEventBuilder with all deep link properties
+  const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
+    MetaMetricsEvents.DEEP_LINK_USED,
+  )
+    .addProperties({
       route: route.toString(),
       was_app_installed: wasAppInstalled,
       signature: signatureStatus,
@@ -734,14 +753,7 @@ export const createDeepLinkUsedEventBuilder = async (
       utm_term: context.urlParams.utm_term,
       utm_content: context.urlParams.utm_content,
       target: route === DeepLinkRoute.INVALID ? url : undefined,
-    }).filter(([_, value]) => value !== undefined),
-  ) as AnalyticsEventProperties;
-
-  // Create the AnalyticsEventBuilder with all deep link properties
-  const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
-    MetaMetricsEvents.DEEP_LINK_USED,
-  )
-    .addProperties(eventProperties)
+    })
     .addSensitiveProperties(sensitiveProperties);
 
   return eventBuilder;

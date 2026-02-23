@@ -5,18 +5,19 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import type { Position } from '../../controllers/types';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type Position,
+} from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import PerpsModifyActionSheet, {
   type ModifyAction,
 } from '../../components/PerpsModifyActionSheet';
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 interface PerpsSelectModifyActionViewProps {
   sheetRef?: React.RefObject<BottomSheetRef>;
@@ -36,7 +37,7 @@ const PerpsSelectModifyActionView: React.FC<
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsSelectModifyAction'>>();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Support both props and route params
   const position = positionProp || route.params?.position;
@@ -52,11 +53,11 @@ const PerpsSelectModifyActionView: React.FC<
       const getInteractionType = () => {
         switch (action) {
           case 'add_to_position':
-            return PerpsEventValues.INTERACTION_TYPE.INCREASE_EXPOSURE;
+            return PERPS_EVENT_VALUE.INTERACTION_TYPE.INCREASE_EXPOSURE;
           case 'reduce_position':
-            return PerpsEventValues.INTERACTION_TYPE.REDUCE_EXPOSURE;
+            return PERPS_EVENT_VALUE.INTERACTION_TYPE.REDUCE_EXPOSURE;
           case 'flip_position':
-            return PerpsEventValues.INTERACTION_TYPE.FLIP_POSITION;
+            return PERPS_EVENT_VALUE.INTERACTION_TYPE.FLIP_POSITION;
           default:
             return null;
         }
@@ -67,14 +68,14 @@ const PerpsSelectModifyActionView: React.FC<
         trackEvent(
           createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
             .addProperties({
-              [PerpsEventProperties.INTERACTION_TYPE]: interactionType,
-              [PerpsEventProperties.ASSET]: position.symbol,
-              [PerpsEventProperties.SOURCE]:
-                PerpsEventValues.SOURCE.POSITION_SCREEN,
-              [PerpsEventProperties.DIRECTION]:
+              [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: interactionType,
+              [PERPS_EVENT_PROPERTY.ASSET]: position.symbol,
+              [PERPS_EVENT_PROPERTY.SOURCE]:
+                PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+              [PERPS_EVENT_PROPERTY.DIRECTION]:
                 parseFloat(position.size) > 0
-                  ? PerpsEventValues.DIRECTION.LONG
-                  : PerpsEventValues.DIRECTION.SHORT,
+                  ? PERPS_EVENT_VALUE.DIRECTION.LONG
+                  : PERPS_EVENT_VALUE.DIRECTION.SHORT,
             })
             .build(),
         );

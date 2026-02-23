@@ -24,14 +24,13 @@ import {
 } from 'react-native-keyboard-controller';
 import { isTest } from '../../../util/test/utils';
 import AppConstants from '../../../core/AppConstants';
-import Device from '../../../util/device';
 import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
   parseSeedPhrase,
   parseVaultValue,
 } from '../../../util/validators';
-import Logger from '../../../util/Logger';
+import { captureException } from '@sentry/react-native';
 import {
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
@@ -73,14 +72,8 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { CommonActions } from '@react-navigation/native';
-import {
-  SRP_LENGTHS,
-  SPACE_CHAR,
-  PASSCODE_NOT_SET_ERROR,
-  IOS_REJECTED_BIOMETRICS_ERROR,
-} from './constant';
+import { SRP_LENGTHS, SPACE_CHAR, PASSCODE_NOT_SET_ERROR } from './constant';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
@@ -304,28 +297,6 @@ const ImportFromSecretRecoveryPhrase = ({
     [],
   );
 
-  /**
-   * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
-   * If this occurs we will create the wallet automatically with password as the login method
-   */
-  const handleRejectedOsBiometricPrompt = async (parsedSeed) => {
-    const newAuthData = await Authentication.componentAuthenticationType(
-      false,
-      false,
-    );
-    try {
-      await Authentication.newWalletAndRestore(
-        password,
-        newAuthData,
-        parsedSeed,
-        true,
-      );
-    } catch (err) {
-      this.setState({ loading: false, error: err.toString() });
-    }
-    setBiometryType(newAuthData.availableBiometryType);
-  };
-
   const onPasswordChange = (value) => {
     setPassword(value);
     if (value === '') {
@@ -463,18 +434,20 @@ const ImportFromSecretRecoveryPhrase = ({
           false,
         );
 
-        try {
-          await Authentication.newWalletAndRestore(
-            password,
-            authData,
-            parsedSeed,
-            true,
+        // Ask user to allow biometrics access control
+        authData.currentAuthType =
+          await Authentication.requestBiometricsAccessControlForIOS(
+            authData.currentAuthType,
           );
-        } catch (err) {
-          // retry faceID if the user cancels the
-          if (Device.isIos && err.toString() === IOS_REJECTED_BIOMETRICS_ERROR)
-            await handleRejectedOsBiometricPrompt(parsedSeed);
-        }
+
+        await Authentication.newWalletAndRestore(
+          password,
+          authData,
+          parsedSeed,
+          true,
+        );
+
+        setBiometryType(authData.availableBiometryType);
         setLoading(false);
         passwordSet();
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
@@ -514,18 +487,8 @@ const ImportFromSecretRecoveryPhrase = ({
           });
         }
       } catch (error) {
-        // Should we force people to enable passcode / biometrics?
-        if (error.toString() === PASSCODE_NOT_SET_ERROR) {
-          Alert.alert(
-            'Security Alert',
-            'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)',
-          );
-          setLoading(false);
-        } else {
-          setLoading(false);
-          setError(error.message);
-          Logger.log('Error with seed phrase import', error.message);
-        }
+        setLoading(false);
+
         track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'import',
           error_type: error.toString(),
@@ -541,6 +504,39 @@ const ImportFromSecretRecoveryPhrase = ({
           });
           endTrace({ name: TraceName.OnboardingPasswordSetupError });
         }
+
+        if (error.toString() === PASSCODE_NOT_SET_ERROR) {
+          Alert.alert(
+            'Security Alert',
+            'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)',
+          );
+          return;
+        }
+
+        // For errors, report to Sentry if metrics enabled and navigate to error screen
+        const metricsEnabled = isMetricsEnabled();
+
+        if (metricsEnabled) {
+          captureException(error, {
+            tags: {
+              view: 'ImportFromSecretRecoveryPhrase',
+              context: 'Wallet import failed - auto reported',
+            },
+          });
+        }
+
+        // Navigate to error screen based on metrics consent
+        navigation.reset({
+          routes: [
+            {
+              name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
+              params: {
+                metricsEnabled,
+                error,
+              },
+            },
+          ],
+        });
       }
     }
   };
@@ -661,7 +657,6 @@ const ImportFromSecretRecoveryPhrase = ({
                   {strings('import_from_seed.create_new_password')}
                 </Label>
                 <TextField
-                  size={TextFieldSize.Lg}
                   value={password}
                   onChangeText={onPasswordChange}
                   onFocus={() => setIsPasswordFieldFocused(true)}
@@ -671,10 +666,8 @@ const ImportFromSecretRecoveryPhrase = ({
                   autoCapitalize="none"
                   autoComplete="new-password"
                   keyboardAppearance={themeAppearance || 'light'}
-                  placeholderTextColor={colors.text.muted}
                   onSubmitEditing={jumpToConfirmPassword}
                   isError={isPasswordTooShort}
-                  style={isPasswordTooShort ? styles.errorBorder : undefined}
                   endAccessory={
                     <Icon
                       name={
@@ -714,14 +707,12 @@ const ImportFromSecretRecoveryPhrase = ({
                 </Label>
                 <TextField
                   ref={confirmPasswordInput}
-                  size={TextFieldSize.Lg}
                   onChangeText={onPasswordConfirmChange}
                   secureTextEntry={showPasswordIndex.includes(1)}
                   autoComplete="new-password"
                   returnKeyType={'next'}
                   autoCapitalize="none"
                   value={confirmPassword}
-                  placeholderTextColor={colors.text.muted}
                   isError={isError}
                   keyboardAppearance={themeAppearance || 'light'}
                   endAccessory={

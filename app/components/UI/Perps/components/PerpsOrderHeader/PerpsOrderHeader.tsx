@@ -15,8 +15,11 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import type { OrderType } from '../../controllers/types';
+import {
+  PERPS_CONSTANTS,
+  getPerpsDisplaySymbol,
+  type OrderType,
+} from '@metamask/perps-controller';
 import {
   formatPercentage,
   formatPerpsFiat,
@@ -24,7 +27,6 @@ import {
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsOrderHeader.styles';
 import { strings } from '../../../../../../locales/i18n';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 interface PerpsOrderHeaderProps {
   asset: string;

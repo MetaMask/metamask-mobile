@@ -42,7 +42,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -110,7 +110,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -128,8 +128,8 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -240,7 +240,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -258,8 +258,8 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -383,7 +383,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={29}
+              handlerTag={33}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -522,6 +522,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -1847,7 +1848,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -1915,7 +1916,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -1933,8 +1934,8 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -2045,7 +2046,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -2063,8 +2064,8 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -2188,7 +2189,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={31}
+              handlerTag={35}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2327,6 +2328,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -3652,7 +3654,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -3720,7 +3722,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -3738,8 +3740,8 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -3850,7 +3852,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -3868,8 +3870,8 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -3993,7 +3995,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={33}
+              handlerTag={37}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4132,6 +4134,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -5457,7 +5460,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -5525,7 +5528,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -5543,8 +5546,8 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -5655,7 +5658,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -5673,8 +5676,8 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -5798,7 +5801,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={20}
+              handlerTag={24}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5937,6 +5940,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -7201,7 +7205,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -7269,7 +7273,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -7287,8 +7291,8 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -7399,7 +7403,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -7417,8 +7421,8 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -7542,7 +7546,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={19}
+              handlerTag={23}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7681,6 +7685,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -8944,7 +8949,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -9012,7 +9017,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -9030,8 +9035,8 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -9142,7 +9147,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -9160,8 +9165,8 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -9424,6 +9429,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -10688,7 +10694,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -10756,7 +10762,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -10774,8 +10780,8 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -10886,7 +10892,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -10904,8 +10910,8 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -11168,6 +11174,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -12525,7 +12532,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -12593,7 +12600,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -12611,8 +12618,8 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -12723,7 +12730,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -12741,8 +12748,8 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -13005,6 +13012,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -14224,7 +14232,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -14292,7 +14300,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -14310,8 +14318,8 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -14422,7 +14430,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -14440,8 +14448,8 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -14704,6 +14712,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -15968,7 +15977,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -16036,7 +16045,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -16054,8 +16063,8 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -16166,7 +16175,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -16184,8 +16193,8 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -16448,6 +16457,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -17712,7 +17722,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -17780,7 +17790,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -17798,8 +17808,8 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -17910,7 +17920,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -17928,8 +17938,8 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -18192,6 +18202,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -19456,7 +19467,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -19524,7 +19535,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -19542,8 +19553,8 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -19654,7 +19665,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -19672,8 +19683,8 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -19936,6 +19947,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -21200,7 +21212,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -21268,7 +21280,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -21286,8 +21298,8 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -21398,7 +21410,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -21416,8 +21428,8 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -21680,6 +21692,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -23037,7 +23050,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -23105,7 +23118,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -23123,8 +23136,8 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -23235,7 +23248,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -23253,8 +23266,8 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -23517,6 +23530,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -24779,7 +24793,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -24847,7 +24861,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -24865,8 +24879,8 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -24977,7 +24991,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -24995,8 +25009,8 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -25259,6 +25273,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -26614,7 +26629,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -26682,7 +26697,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -26700,8 +26715,8 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -26812,7 +26827,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -26830,8 +26845,8 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -26955,7 +26970,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={21}
+              handlerTag={25}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -27094,6 +27109,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,
@@ -28451,7 +28467,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -28519,7 +28535,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -28537,8 +28553,8 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -28649,7 +28665,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -28667,8 +28683,8 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 20,
-                          "width": 20,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
@@ -28931,6 +28947,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                     "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
+                                    "flexShrink": 1,
                                     "gap": 10,
                                     "justifyContent": "space-between",
                                     "padding": 8,

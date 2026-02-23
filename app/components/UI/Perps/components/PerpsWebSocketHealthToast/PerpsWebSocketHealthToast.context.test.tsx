@@ -11,7 +11,7 @@ import {
   useWebSocketHealthToastContext,
   WebSocketHealthToastContext,
 } from './PerpsWebSocketHealthToast.context';
-import { WebSocketConnectionState } from '../../controllers/types';
+import { WebSocketConnectionState } from '@metamask/perps-controller';
 
 describe('PerpsWebSocketHealthToast.context', () => {
   describe('WebSocketHealthToastProvider', () => {
@@ -159,6 +159,49 @@ describe('PerpsWebSocketHealthToast.context', () => {
         );
         expect(result.current.state.reconnectionAttempt).toBe(2);
         expect(result.current.state.isVisible).toBe(false);
+      });
+
+      it('when hide({ userDismissed: true }), subsequent Disconnected is suppressed but Connecting and Connected show again', () => {
+        const { result } = renderHook(() => useWebSocketHealthToastContext(), {
+          wrapper,
+        });
+
+        act(() => {
+          result.current.show(WebSocketConnectionState.Disconnected, 1);
+        });
+        expect(result.current.state.isVisible).toBe(true);
+
+        act(() => {
+          result.current.hide({ userDismissed: true });
+        });
+        expect(result.current.state.isVisible).toBe(false);
+
+        // Showing Disconnected again should not show (user dismissed offline)
+        act(() => {
+          result.current.show(WebSocketConnectionState.Disconnected, 2);
+        });
+        expect(result.current.state.isVisible).toBe(false);
+
+        // Showing Connecting should show (user sees reconnection progress)
+        act(() => {
+          result.current.show(WebSocketConnectionState.Connecting, 3);
+        });
+        expect(result.current.state.isVisible).toBe(true);
+
+        // Showing Connected shows "online" toast and clears userDismissed
+        act(() => {
+          result.current.show(WebSocketConnectionState.Connected, 0);
+        });
+        expect(result.current.state.isVisible).toBe(true);
+
+        act(() => {
+          result.current.hide();
+        });
+        // Next Disconnected will show again (userDismissed was cleared)
+        act(() => {
+          result.current.show(WebSocketConnectionState.Disconnected, 4);
+        });
+        expect(result.current.state.isVisible).toBe(true);
       });
     });
 

@@ -74,6 +74,109 @@ export interface ApplyReferralDto {
   referralCode: string;
 }
 
+/**
+ * DTO for snapshot data from the backend
+ */
+export interface SnapshotDto {
+  /**
+   * The unique identifier of the snapshot
+   * @example '01974010-377f-7553-a365-0c33c8130980'
+   */
+  id: string;
+
+  /**
+   * The season ID this snapshot belongs to
+   * @example '7444682d-9050-43b8-9038-28a6a62d6264'
+   */
+  seasonId: string;
+
+  /**
+   * The name of the snapshot/airdrop
+   * @example 'Monad Airdrop'
+   */
+  name: string;
+
+  /**
+   * Optional description of the snapshot
+   * @example 'Earn Monad tokens by participating in the airdrop'
+   */
+  description?: string;
+
+  /**
+   * The token symbol being distributed
+   * @example 'MONAD'
+   */
+  tokenSymbol: string;
+
+  /**
+   * The token amount as a serialized bigint string
+   * @example '50000000000000000000000'
+   */
+  tokenAmount: string;
+
+  /**
+   * The chain ID as a serialized bigint string
+   * @example '1'
+   */
+  tokenChainId: string;
+
+  /**
+   * Optional token contract address
+   * @example '0x1234567890abcdef1234567890abcdef12345678'
+   */
+  tokenAddress?: string;
+
+  /**
+   * The blockchain where tokens will be distributed
+   * @example 'Ethereum'
+   */
+  receivingBlockchain: string;
+
+  /**
+   * When the snapshot opens (ISO date string)
+   * @example '2025-03-01T00:00:00.000Z'
+   */
+  opensAt: string;
+
+  /**
+   * When the snapshot closes (ISO date string)
+   * @example '2025-03-15T00:00:00.000Z'
+   */
+  closesAt: string;
+
+  /**
+   * When results were calculated (ISO date string)
+   * @example '2025-03-16T00:00:00.000Z'
+   */
+  calculatedAt?: string;
+
+  /**
+   * When tokens were distributed (ISO date string)
+   * @example '2025-03-20T00:00:00.000Z'
+   */
+  distributedAt?: string;
+
+  /**
+   * Background image for the snapshot tile
+   */
+  backgroundImage: ThemeImage;
+}
+
+/**
+ * Snapshot status derived from dates
+ * - upcoming: now < opensAt
+ * - live: opensAt <= now < closesAt
+ * - calculating: closesAt <= now && !calculatedAt
+ * - distributing: calculatedAt && !distributedAt
+ * - complete: distributedAt is set
+ */
+export type SnapshotStatus =
+  | 'upcoming'
+  | 'live'
+  | 'calculating'
+  | 'distributing'
+  | 'complete';
+
 export interface EstimateAssetDto {
   /**
    * Asset identifier in CAIP-19 format
@@ -510,6 +613,7 @@ export interface SeasonDto {
   endDate: Date;
   tiers: SeasonTierDto[];
   activityTypes: SeasonActivityTypeDto[];
+  waysToEarn: SeasonWayToEarnDto[];
   shouldInstallNewVersion?: string | undefined;
 }
 
@@ -647,6 +751,7 @@ export type SeasonDtoState = {
   endDate: number; // timestamp
   tiers: SeasonTierDtoState[];
   activityTypes: SeasonActivityTypeDto[];
+  waysToEarn: SeasonWayToEarnDto[];
   lastFetched?: number;
   shouldInstallNewVersion?: string | undefined;
 };
@@ -659,7 +764,7 @@ export type SeasonStatusBalanceDtoState = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonTierState = {
-  currentTier: SeasonTierDtoState;
+  currentTier: SeasonTierDtoState | null;
   nextTier: SeasonTierDtoState | null;
   nextTierPointsNeeded: number | null;
 };
@@ -701,6 +806,30 @@ export type UnlockedRewardsState = {
       rewardId: string;
       accountId: string; // Changed from bigint to string for JSON serialization
       data: RewardClaimData;
+    };
+  }[];
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SnapshotsState = {
+  snapshots: {
+    id: string;
+    seasonId: string;
+    name: string;
+    description?: string;
+    tokenSymbol: string;
+    tokenAmount: string;
+    tokenChainId: string;
+    tokenAddress?: string;
+    receivingBlockchain: string;
+    opensAt: string;
+    closesAt: string;
+    calculatedAt?: string;
+    distributedAt?: string;
+    backgroundImage: {
+      lightModeUrl: string;
+      darkModeUrl: string;
     };
   }[];
   lastFetched: number;
@@ -1038,6 +1167,7 @@ export type RewardsControllerState = {
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
+  snapshots: { [seasonId: string]: SnapshotsState };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1308,7 +1438,10 @@ export interface RewardsControllerGetFirstSubscriptionIdAction {
  */
 export interface RewardsControllerLinkAccountToSubscriptionAction {
   type: 'RewardsController:linkAccountToSubscriptionCandidate';
-  handler: (account: InternalAccount) => Promise<boolean>;
+  handler: (
+    account: InternalAccount,
+    invalidateRelatedData?: boolean,
+  ) => Promise<boolean>;
 }
 
 /**
@@ -1354,6 +1487,14 @@ export interface RewardsControllerGetActivePointsBoostsAction {
 export interface RewardsControllerGetUnlockedRewardsAction {
   type: 'RewardsController:getUnlockedRewards';
   handler: (seasonId: string, subscriptionId: string) => Promise<RewardDto[]>;
+}
+
+/**
+ * Action for getting snapshots for a season
+ */
+export interface RewardsControllerGetSnapshotsAction {
+  type: 'RewardsController:getSnapshots';
+  handler: (seasonId: string, subscriptionId: string) => Promise<SnapshotDto[]>;
 }
 
 /**
@@ -1420,6 +1561,7 @@ export type RewardsControllerActions =
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
+  | RewardsControllerGetSnapshotsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction
@@ -1550,6 +1692,11 @@ export interface SeasonMetadataDto {
   activityTypes: SeasonActivityTypeDto[];
 
   /**
+   * Ways to earn for the season
+   */
+  waysToEarn: SeasonWayToEarnDto[];
+
+  /**
    * Optional version requirements for mobile and extension
    */
   shouldInstallNewVersion?: {
@@ -1582,7 +1729,67 @@ export interface SeasonStateDto {
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SeasonActivityTypeDto = {
+export type SeasonWayToEarnButtonActionDto = {
+  /**
+   * Route for in-app navigation
+   * @example { root: 'RewardsView', screen: 'RewardsReferralView' }
+   */
+  route?: {
+    root: string;
+    screen: string;
+  };
+
+  /**
+   * Deep link URL
+   * @example 'metamask://swap'
+   */
+  deeplink?: string;
+
+  /**
+   * External URL
+   * @example 'https://metamask.io'
+   */
+  url?: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonWayToEarnSpecificSwapDto = {
+  /**
+   * Title for the supported networks section
+   * @example 'Supported Networks'
+   */
+  supportedNetworksTitle: string;
+
+  /**
+   * List of supported networks
+   * @example [{ chainId: '1', name: 'Ethereum', boost: '2x' }]
+   */
+  supportedNetworks: { chainId: string; name: string; boost?: string }[];
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonWayToEarnSpecificReferralDto = {
+  /**
+   * Title for the referral points section
+   * @example 'Referral Points'
+   */
+  referralPointsTitle: string;
+
+  /**
+   * Title for the total referrals section
+   * @example 'Total Referrals'
+   */
+  totalReferralsTitle: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonWayToEarnDto = {
+  /**
+   * The unique identifier of the way to earn
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
+  id: string;
+
   /**
    * The activity type
    * @example 'SWAP'
@@ -1596,10 +1803,73 @@ export type SeasonActivityTypeDto = {
   title: string;
 
   /**
-   * The description of the activity type
-   * @example 'Stake your M$D to earn points'
+   * The icon for the activity type
+   * @example 'Rocket'
+   */
+  icon: string;
+
+  /**
+   * Short description of the way to earn
+   * @example 'Earn points by swapping tokens'
+   */
+  shortDescription: string;
+
+  /**
+   * Title for the bottom sheet
+   * @example 'How to earn points'
+   */
+  bottomSheetTitle: string;
+
+  /**
+   * Rule for earning points
+   * @example '1 point per $1 swapped'
+   */
+  pointsEarningRule: string;
+
+  /**
+   * Detailed description
+   * @example 'Swap tokens on any supported network to earn points'
    */
   description: string;
+
+  /**
+   * Label for the action button
+   * @example 'Start Swapping'
+   */
+  buttonLabel: string;
+
+  /**
+   * Button action configuration
+   */
+  buttonAction?: SeasonWayToEarnButtonActionDto;
+
+  /**
+   * Specific content for swap or referral ways to earn
+   */
+  specificContent?:
+    | SeasonWayToEarnSpecificSwapDto
+    | SeasonWayToEarnSpecificReferralDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonActivityTypeDto = {
+  /**
+   * The unique identifier of the activity type
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
+  id: string;
+
+  /**
+   * The activity type
+   * @example 'SWAP'
+   */
+  type: string;
+
+  /**
+   * The name of the activity type
+   * @example 'Swap'
+   */
+  title: string;
 
   /**
    * The icon for the activity type

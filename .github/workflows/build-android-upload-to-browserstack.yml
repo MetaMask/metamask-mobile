@@ -19,6 +19,11 @@ on:
         required: false
         type: string
         description: 'Branch name to use for builds (defaults to github.ref_name)'
+      build_variant:
+        required: false
+        type: string
+        description: 'Build variant for Bitrise (rc = release, exp = experimental)'
+        default: 'rc'
     outputs:
       with-srp-browserstack-url:
         description: 'BrowserStack URL for with-SRP version'
@@ -81,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [check-builds-needed]
     env:
-      METAMASK_WORKFLOW: build_android_main_rc
+      METAMASK_WORKFLOW: ${{ inputs.build_variant == 'exp' && 'build_android_main_exp' || 'build_android_main_rc' }}
     outputs:
       build-id: ${{ steps.trigger-build.outputs.build-id }}
       build-slug: ${{ steps.trigger-build.outputs.build-slug }}
@@ -218,7 +223,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [check-builds-needed]
     env:
-      METAMASK_WORKFLOW: build_android_main_rc
+      METAMASK_WORKFLOW: ${{ inputs.build_variant == 'exp' && 'build_android_main_exp' || 'build_android_main_rc' }}
     outputs:
       build-id: ${{ steps.trigger-build.outputs.build-id }}
       build-slug: ${{ steps.trigger-build.outputs.build-slug }}

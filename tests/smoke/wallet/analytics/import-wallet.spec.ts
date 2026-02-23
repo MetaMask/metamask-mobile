@@ -1,7 +1,7 @@
 'use strict';
-import { SmokeWalletPlatform } from '../../../../e2e/tags';
-import { importWalletWithRecoveryPhrase } from '../../../../e2e/viewHelper';
-import TestHelpers from '../../../../e2e/helpers';
+import { SmokeWalletPlatform } from '../../../tags';
+import { importWalletWithRecoveryPhrase } from '../../../flows/wallet.flow';
+import TestHelpers from '../../../helpers';
 import Assertions from '../../../framework/Assertions';
 import {
   EventPayload,
@@ -12,7 +12,7 @@ import {
 import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
-} from '../../../../e2e/specs/identity/utils/constants';
+} from '../../identity/utils/constants';
 import SoftAssert from '../../../framework/SoftAssert';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';

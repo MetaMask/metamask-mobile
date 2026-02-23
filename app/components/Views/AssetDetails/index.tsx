@@ -52,18 +52,19 @@ import {
 import { selectAllTokens } from '../../../selectors/tokensController';
 import { selectTokenMarketDataByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { RootState } from 'app/reducers';
 import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
 import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
 import { TokenI } from '../../UI/Tokens/types';
+import { isMusdToken } from '../../UI/Earn/constants/musd';
 import { areAddressesEqual } from '../../../util/address';
 // Perps Discovery Banner imports
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarketForAsset } from '../../UI/Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../../UI/Perps/components/PerpsDiscoveryBanner';
-import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { isTokenTrustworthyForPerps } from '../../UI/Perps/constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 
@@ -157,7 +158,7 @@ const AssetDetails = (props: InnerProps) => {
   const { address, chainId: networkId, asset } = props.route.params;
   const { token } = props;
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { toastRef } = useContext(ToastContext);
@@ -207,7 +208,7 @@ const AssetDetails = (props: InnerProps) => {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: marketData,
-          source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
         },
       });
     }
@@ -465,7 +466,7 @@ const AssetDetails = (props: InnerProps) => {
             {renderSectionDescription(aggregators.join(', '))}
           </>
         )}
-        {renderHideButton()}
+        {!isMusdToken(address) && renderHideButton()}
       </ScrollView>
     </View>
   );

@@ -1,133 +1,135 @@
-import { PredictController } from './PredictController';
+import {
+  MOCK_ANY_NAMESPACE,
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 
-// Mock Engine AccountsController for selected address
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    AccountsController: {
-      getSelectedAccount: jest.fn(() => ({ address: '0xselected' })),
-    },
-    AccountTreeController: {
-      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
-        {
-          address: '0xselected',
-          id: 'mock-account-id',
-          type: 'eip155:eoa',
-          options: {},
-          metadata: {
-            name: 'Test Account',
-            importTime: Date.now(),
-            keyring: { type: 'HD Key Tree' },
-          },
-          scopes: ['eip155:1'],
-          methods: ['eth_sendTransaction'],
-        },
-      ]),
-    },
-  },
-}));
+import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import type { PredictActivity } from '../types';
+import {
+  PredictController,
+  type PredictControllerMessenger,
+} from './PredictController';
 
-interface ActivityEntry {
-  id: string;
-  providerId: string;
-  entry: { type: string; timestamp: number; amount: number };
-}
+jest.mock('../providers/polymarket/PolymarketProvider');
 
-interface Provider {
-  getActivity: jest.Mock<Promise<ActivityEntry[]>, [{ address: string }]>;
+type AllPredictControllerMessengerActions =
+  MessengerActions<PredictControllerMessenger>;
+
+type AllPredictControllerMessengerEvents =
+  MessengerEvents<PredictControllerMessenger>;
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  AllPredictControllerMessengerActions,
+  AllPredictControllerMessengerEvents
+>;
+
+function getRootMessenger(): RootMessenger {
+  return new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 }
 
 describe('PredictController.getActivity', () => {
-  // Create a type-safe mock controller interface
-  interface MockPredictController {
-    providers: Map<string, Provider>;
-    update: jest.Mock;
-    getActivity: (params: {
-      address?: string;
-      providerId?: string;
-    }) => Promise<ActivityEntry[]>;
-  }
+  const mockPolymarketProvider = {
+    getActivity: jest.fn<Promise<PredictActivity[]>, [{ address: string }]>(),
+    isEligible: jest.fn().mockResolvedValue({ isEligible: false }),
+  } as unknown as jest.Mocked<PolymarketProvider>;
 
-  const makeController = (
-    providers: Record<string, Provider>,
-  ): MockPredictController => {
-    const controller = Object.create(
-      PredictController.prototype,
-    ) as MockPredictController;
-    controller.providers = new Map(Object.entries(providers));
-    controller.update = jest.fn();
-    return controller;
+  const createController = () => {
+    const rootMessenger = getRootMessenger();
+
+    rootMessenger.registerActionHandler(
+      'AccountsController:getSelectedAccount',
+      jest.fn().mockReturnValue({
+        id: 'mock-account-id',
+        address: '0xselected',
+        metadata: { name: 'Test Account' },
+      }),
+    );
+
+    rootMessenger.registerActionHandler(
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      jest.fn().mockReturnValue([
+        {
+          id: 'mock-account-id',
+          address: '0xselected',
+          type: 'eip155:eoa',
+          metadata: {},
+        },
+      ]),
+    );
+
+    const messenger = new Messenger<
+      'PredictController',
+      AllPredictControllerMessengerActions,
+      AllPredictControllerMessengerEvents,
+      RootMessenger
+    >({
+      namespace: 'PredictController',
+      parent: rootMessenger,
+    });
+
+    rootMessenger.delegate({
+      actions: [
+        'AccountsController:getSelectedAccount',
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ],
+      events: ['TransactionController:transactionStatusUpdated'],
+      messenger,
+    });
+
+    return new PredictController({ messenger });
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    (
+      PolymarketProvider as unknown as jest.MockedClass<
+        typeof PolymarketProvider
+      >
+    ).mockImplementation(() => mockPolymarketProvider);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('fetches activity from a specific provider and passes selected address', async () => {
-    const stubProvider: Provider = {
-      getActivity: jest.fn(
-        async ({ address: _address }: { address: string }) => [
-          {
-            id: 'a1',
-            providerId: 'stub',
-            entry: { type: 'claimWinnings', timestamp: 1, amount: 10 },
-          },
-        ],
-      ),
-    };
-
-    const controller = makeController({ stub: stubProvider });
-
-    const result = await controller.getActivity({ providerId: 'stub' });
-
-    expect(stubProvider.getActivity).toHaveBeenCalledWith({
-      address: '0xselected',
-    });
-    expect(Array.isArray(result)).toBe(true);
-    expect(result[0].id).toBe('a1');
-  });
-
-  it('merges activity from all providers when providerId is not specified', async () => {
-    const providerA: Provider = {
-      getActivity: jest.fn(
-        async ({ address: _address }: { address: string }) => [
-          {
-            id: 'a',
-            providerId: 'A',
-            entry: { type: 'claimWinnings', timestamp: 1, amount: 1 },
-          },
-        ],
-      ),
-    };
-    const providerB: Provider = {
-      getActivity: jest.fn(
-        async ({ address: _address }: { address: string }) => [
-          {
-            id: 'b',
-            providerId: 'B',
-            entry: { type: 'claimWinnings', timestamp: 2, amount: 2 },
-          },
-        ],
-      ),
-    };
-
-    const controller = makeController({ A: providerA, B: providerB });
+  it('fetches activity from provider with selected address', async () => {
+    const stubActivity: PredictActivity[] = [
+      {
+        id: 'a1',
+        providerId: 'stub',
+        entry: { type: 'claimWinnings', timestamp: 1, amount: 10 },
+      },
+    ];
+    mockPolymarketProvider.getActivity.mockResolvedValue(stubActivity);
+    const controller = createController();
 
     const result = await controller.getActivity({});
 
-    expect(providerA.getActivity).toHaveBeenCalled();
-    expect(providerB.getActivity).toHaveBeenCalled();
-    expect(result.map((r) => r.id).sort()).toEqual(['a', 'b']);
+    expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
+      address: '0xselected',
+    });
+    expect(result).toEqual(stubActivity);
   });
 
-  it('throws when providerId is not available', async () => {
-    const controller = makeController({});
+  it('fetches activity with explicit address', async () => {
+    const stubActivity: PredictActivity[] = [
+      {
+        id: 'a',
+        providerId: 'stub',
+        entry: { type: 'claimWinnings', timestamp: 2, amount: 2 },
+      },
+    ];
+    mockPolymarketProvider.getActivity.mockResolvedValue(stubActivity);
+    const controller = createController();
 
-    await expect(
-      controller.getActivity({ providerId: 'missing' }),
-    ).rejects.toThrow();
+    const result = await controller.getActivity({ address: '0xcustom' });
+
+    expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
+      address: '0xcustom',
+    });
+    expect(result).toEqual(stubActivity);
   });
 });

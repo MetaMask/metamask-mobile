@@ -30,7 +30,6 @@ export const useGasFeeEstimateLevelOptions = ({
   ) as {
     gasFeeEstimates: GasFeeEstimates;
   };
-
   const { gasFeeEstimates, id, userFeeLevel } = transactionMeta;
 
   const transactionGasFeeEstimates =

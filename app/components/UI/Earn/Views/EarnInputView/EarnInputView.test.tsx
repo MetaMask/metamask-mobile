@@ -12,7 +12,7 @@ import { BigNumber as EthersBigNumber, Contract } from 'ethers';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { RootState } from '../../../../../reducers';
 
 import { toWei, weiToFiatNumber } from '../../../../../util/number';
@@ -26,7 +26,7 @@ import {
   renderScreen,
 } from '../../../../../util/test/renderWithProvider';
 import { flushPromises } from '../../../../../util/test/utils';
-import useMetrics from '../../../../hooks/useMetrics/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_VAULT_RESPONSE,
@@ -113,7 +113,10 @@ jest.mock('../../hooks/useEarnTokens', () => ({
   })),
 }));
 
-jest.mock('../../../../hooks/useMetrics/useMetrics');
+const mockUseAnalyticsFn = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: (...args: unknown[]) => mockUseAnalyticsFn(...args),
+}));
 
 const mockGoBack = jest.fn();
 
@@ -359,7 +362,6 @@ describe('EarnInputView', () => {
     },
   };
   const mockTrackEvent = jest.fn();
-  const useMetricsMock = jest.mocked(useMetrics);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -369,10 +371,10 @@ describe('EarnInputView', () => {
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
     });
-    useMetricsMock.mockReturnValue({
+    mockUseAnalyticsFn.mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    } as unknown as ReturnType<typeof useAnalytics>);
 
     selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
 
@@ -525,7 +527,7 @@ describe('EarnInputView', () => {
         name: 'params',
       });
 
-      // Verify the title is rendered in the HeaderCenter component
+      // Verify the title is rendered in the HeaderCompactStandard component
       expect(getByText('Supply USDC')).toBeTruthy();
 
       // "0" in the input display and on the keypad
@@ -1200,7 +1202,7 @@ describe('EarnInputView', () => {
       // Default mock returns ETH with POOLED_STAKING experience
       const { getByText } = renderComponent();
 
-      // Verify the title is rendered in the HeaderCenter component
+      // Verify the title is rendered in the HeaderCompactStandard component
       expect(getByText('Stake ETH')).toBeTruthy();
     });
   });
@@ -1843,7 +1845,7 @@ describe('EarnInputView', () => {
     });
   });
 
-  describe('HeaderCenter interactions', () => {
+  describe('HeaderCompactStandard interactions', () => {
     it('tracks STAKE_CANCEL_CLICKED event with token property when back button is pressed for staking', async () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
 

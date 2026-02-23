@@ -461,6 +461,12 @@ describe('PreviousSeasonUnlockedRewards', () => {
     },
   };
 
+  const mockOthersideUnlockedRewardWithoutUrl: RewardDto = {
+    id: 'reward-otherside-without-url',
+    seasonRewardId: 'season-reward-otherside',
+    claimStatus: RewardClaimStatus.UNCLAIMED,
+  };
+
   const mockSeasonTiers = [
     {
       id: 'tier-1',
@@ -1032,5 +1038,73 @@ describe('PreviousSeasonUnlockedRewards', () => {
     const rewardItem = getByTestId('reward-item-reward-otherside-with-url');
     // OTHERSIDE requires manual claim, so isLocked is false
     expect(rewardItem.props.accessibilityLabel).toContain('isLocked:false');
+  });
+
+  it('passes isLocked=true for OTHERSIDE reward without URL', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockOthersideUnlockedRewardWithoutUrl];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-otherside-without-url');
+    // OTHERSIDE without URL is locked since there's no URL to claim and it's not a redeemable reward
+    expect(rewardItem.props.accessibilityLabel).toContain('isLocked:true');
+  });
+
+  it('navigates to end of season claim sheet when OTHERSIDE reward without URL is pressed', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards)
+        return [mockOthersideUnlockedRewardWithoutUrl];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      return undefined;
+    });
+
+    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+
+    const rewardItem = getByTestId('reward-item-reward-otherside-without-url');
+    rewardItem.props.onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith('EndOfSeasonClaimBottomSheet', {
+      rewardId: mockOthersideUnlockedRewardWithoutUrl.id,
+      seasonRewardId: 'season-reward-otherside',
+      title: 'Otherside Reward',
+      description: 'Otherside long unlocked',
+      url: undefined,
+      rewardType: SeasonRewardType.OTHERSIDE,
+    });
+  });
+
+  it('shows no rewards message when currentTier has no pointsNeeded and empty unlocked rewards', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards) return [];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 0 };
+      return undefined;
+    });
+
+    const { getByTestId, getByText } = render(
+      <PreviousSeasonUnlockedRewards />,
+    );
+
+    expect(
+      getByTestId('rewards-season-ended-no-unlocked-rewards-image'),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        "You didn't earn rewards this season, but there's always next time.",
+      ),
+    ).toBeOnTheScreen();
   });
 });

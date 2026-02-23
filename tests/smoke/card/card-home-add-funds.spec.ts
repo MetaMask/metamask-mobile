@@ -1,7 +1,7 @@
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import { SmokeCard } from '../../../e2e/tags';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { SmokeCard } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { testSpecificMock } from '../../api-mocking/mock-responses/cardholder-mocks';
@@ -9,7 +9,7 @@ import {
   EventPayload,
   getEventsPayloads,
 } from '../../helpers/analytics/helpers';
-import CardHomeView from '../../../e2e/pages/Card/CardHomeView';
+import CardHomeView from '../../page-objects/Card/CardHomeView';
 import SoftAssert from '../../framework/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
 

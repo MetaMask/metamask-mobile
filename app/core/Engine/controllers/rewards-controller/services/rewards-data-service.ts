@@ -24,6 +24,7 @@ import type {
   SeasonStateDto,
   LineaTokenRewardDto,
   ApplyReferralDto,
+  SnapshotDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -190,6 +191,11 @@ export interface RewardsDataServiceApplyReferralCodeAction {
   handler: RewardsDataService['applyReferralCode'];
 }
 
+export interface RewardsDataServiceGetSnapshotsAction {
+  type: `${typeof SERVICE_NAME}:getSnapshots`;
+  handler: RewardsDataService['getSnapshots'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -211,7 +217,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetDiscoverSeasonsAction
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
-  | RewardsDataServiceApplyReferralCodeAction;
+  | RewardsDataServiceApplyReferralCodeAction
+  | RewardsDataServiceGetSnapshotsAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -337,6 +344,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:applyReferralCode`,
       this.applyReferralCode.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSnapshots`,
+      this.getSnapshots.bind(this),
     );
   }
 
@@ -1093,5 +1104,30 @@ export class RewardsDataService {
 
       throw new Error(errorMessage);
     }
+  }
+
+  /**
+   * Get snapshots for a specific season.
+   * @param seasonId - The ID of the season to get snapshots for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The list of snapshots for the season.
+   */
+  async getSnapshots(
+    seasonId: string,
+    subscriptionId: string,
+  ): Promise<SnapshotDto[]> {
+    const response = await this.makeRequest(
+      `/v1/seasons/${seasonId}/snapshots`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get snapshots failed: ${response.status}`);
+    }
+
+    return (await response.json()) as SnapshotDto[];
   }
 }

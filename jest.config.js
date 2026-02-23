@@ -29,7 +29,7 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
-    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|react-native-nitro-modules|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@nktkas/hyperliquid|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native|@metamask/native-utils|@metamask/smart-transactions-controller|@tommasini/react-native-scrollable-tab-view))',
+    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|react-native-nitro-modules|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@nktkas/hyperliquid|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native|@metamask/native-utils|@metamask/smart-transactions-controller|@tommasini/react-native-scrollable-tab-view|@veriff/react-native-sdk))',
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
@@ -51,7 +51,8 @@ const config = {
     '<rootDir>/app/features/SampleFeature/e2e/',
   ],
   testPathIgnorePatterns: [
-    '.*/e2e/specs/.*\\.spec\\.(ts|js)$',
+    '.*/tests/(smoke|regression)/.*\\.spec\\.(ts|js)$',
+    '.*/e2e/.*\\.spec\\.(ts|js)$',
     '.*/e2e/pages/',
     '.*/e2e/selectors/',
   ],
@@ -66,11 +67,16 @@ const config = {
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
     '^@metamask/native-utils$':
       '<rootDir>/app/__mocks__/@metamask/native-utils.js',
+    '^@metamask/perps-controller$': '<rootDir>/app/controllers/perps',
+    '^@metamask/perps-controller(/.*)?$': '<rootDir>/app/controllers/perps$1',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
+    '^@myx-trade/sdk(/.*)?$': '<rootDir>/app/__mocks__/@myx-trade/sdk.js',
     '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',
     '^expo-apple-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-apple-authentication.js',
     '^expo-haptics(/.*)?$': '<rootDir>/app/__mocks__/expo-haptics.js',
+    '^expo-local-authentication(/.*)?$':
+      '<rootDir>/app/__mocks__/expo-local-authentication.ts',
     '^expo-screen-orientation(/.*)?$':
       '<rootDir>/app/__mocks__/expo-screen-orientation.js',
     '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',

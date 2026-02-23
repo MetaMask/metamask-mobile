@@ -1,6 +1,7 @@
 // Core hooks (direct controller access)
 export { usePerpsMarkets } from './usePerpsMarkets';
 export { usePerpsNetwork } from './usePerpsNetwork';
+export { usePerpsProvider } from './usePerpsProvider';
 export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
 export { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 export { usePerpsTrading } from './usePerpsTrading';
@@ -43,6 +44,12 @@ export { useWithdrawValidation } from './useWithdrawValidation';
 
 // Payment tokens hook
 export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
+export { usePerpsPaymentToken } from './usePerpsPaymentToken';
+export {
+  PERPS_BALANCE_CHAIN_ID,
+  PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+} from '../constants/perpsConfig';
+export { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 
 // Margin adjustment hook
 export { usePerpsAdjustMarginData } from './usePerpsAdjustMarginData';
@@ -95,6 +102,10 @@ export { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';
 
 // Utility hooks
 export { useStableArray } from './useStableArray';
+
+// Discovery hooks (for use outside perps screens)
+export { usePerpsMarketForAsset } from './usePerpsMarketForAsset';
+export { usePerpsPositionForAsset } from './usePerpsPositionForAsset';
 
 // Tab view hooks
 export { usePerpsTabExploreData } from './usePerpsTabExploreData';

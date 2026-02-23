@@ -70,6 +70,7 @@ import {
   PerpsStreamProvider,
 } from '../../providers/PerpsStreamManager';
 import { usePerpsOrderContext } from '../../contexts/PerpsOrderContext';
+import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import PerpsOrderView from './PerpsOrderView';
 
 jest.mock('@react-navigation/native', () => {
@@ -230,6 +231,7 @@ jest.mock('../../hooks', () => ({
     handleMaxAmount: jest.fn(),
     optimizeOrderAmount: jest.fn(),
     maxPossibleAmount: 1000,
+    balanceForValidation: 1000,
     calculations: {
       marginRequired: 11,
       positionSize: 0.0037,
@@ -333,6 +335,18 @@ jest.mock('../../hooks', () => ({
 }));
 
 // Mock direct hook imports (when imported from specific file paths)
+jest.mock('../../hooks/usePerpsConnection', () => ({
+  usePerpsConnection: jest.fn(() => ({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/usePerpsPaymentTokens', () => ({
   usePerpsPaymentTokens: jest.fn(() => [
     {
@@ -496,35 +510,12 @@ jest.mock('../../../../../util/trace', () => ({
   },
 }));
 
-// Mock useMetrics hook
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 }));
-jest.mock('../../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-  MetaMetricsEvents: {
-    PERPS_TRADING_SCREEN_VIEWED: 'PERPS_TRADING_SCREEN_VIEWED',
-    PERPS_TRADE_TRANSACTION_EXECUTED: 'PERPS_TRADE_TRANSACTION_EXECUTED',
-    PERPS_LEVERAGE_CHANGED: 'PERPS_LEVERAGE_CHANGED',
-    PERPS_ORDER_SIZE_CHANGED: 'PERPS_ORDER_SIZE_CHANGED',
-    PERPS_ORDER_PREVIEW_SHOWN: 'PERPS_ORDER_PREVIEW_SHOWN',
-    PERPS_ORDER_SUBMIT_CLICKED: 'PERPS_ORDER_SUBMIT_CLICKED',
-    PERPS_TRADE_TRANSACTION_FAILED: 'PERPS_TRADE_TRANSACTION_FAILED',
-    PERPS_PAYMENT_TOKEN_SELECTED: 'PERPS_PAYMENT_TOKEN_SELECTED',
-    PERPS_STOP_LOSS_SET: 'PERPS_STOP_LOSS_SET',
-    PERPS_TAKE_PROFIT_SET: 'PERPS_TAKE_PROFIT_SET',
-    PERPS_ORDER_TYPE_CHANGED: 'PERPS_ORDER_TYPE_CHANGED',
-    PERPS_ORDER_TYPE_VIEWED: 'PERPS_ORDER_TYPE_VIEWED',
-    PERPS_TRADE_TRANSACTION_INITIATED: 'PERPS_TRADE_TRANSACTION_INITIATED',
-    PERPS_TRADE_TRANSACTION_SUBMITTED: 'PERPS_TRADE_TRANSACTION_SUBMITTED',
-    PERPS_ERROR: 'PERPS_ERROR',
-  },
-}));
+jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics');
 
 // Mock Engine context to prevent accessing real PerpsController
 jest.mock('../../../../../core/Engine', () => ({
@@ -636,16 +627,16 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () =>
 jest.mock(
   '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount',
   () => {
-    const React = jest.requireActual('react');
+    const ReactActual = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
     return {
       __esModule: true,
       default: ({ account }: { account?: unknown }) =>
         account
-          ? React.createElement(
+          ? ReactActual.createElement(
               View,
               { testID: 'add-rewards-account' },
-              React.createElement(Text, {}, 'Add Rewards Account'),
+              ReactActual.createElement(Text, {}, 'Add Rewards Account'),
             )
           : null,
     };
@@ -678,6 +669,7 @@ const defaultMockHooks = {
     placeOrder: jest.fn(),
     depositWithConfirmation: jest.fn().mockResolvedValue(undefined),
     withdrawWithConfirmation: jest.fn(),
+    subscribeToPrices: jest.fn(() => jest.fn()),
     getMarkets: jest.fn().mockResolvedValue([
       {
         name: 'ETH',
@@ -737,6 +729,7 @@ const defaultMockHooks = {
     handleMinAmount: jest.fn(),
     optimizeOrderAmount: jest.fn(),
     maxPossibleAmount: 1000,
+    balanceForValidation: 1000,
   },
 };
 
@@ -841,6 +834,11 @@ describe('PerpsOrderView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    jest.mocked(useAnalytics).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as unknown as ReturnType<typeof useAnalytics>);
+
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       goBack: mockGoBack,
@@ -924,6 +922,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
         positionSize: '0.0037',
@@ -1020,6 +1019,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
         positionSize: '0.0037',
@@ -1064,6 +1064,69 @@ describe('PerpsOrderView', () => {
     // Since our mock setup already has valid values, we can just verify the mock was set up
     expect(mockPlaceOrder).toBeDefined();
     expect(mockGetPositions).toBeDefined();
+  });
+
+  it('shows submitted toast when order execution hook invokes onSubmitted', async () => {
+    const mockShowToast = jest.fn();
+    const submittedToast = { id: 'order-submitted-toast' };
+    (usePerpsToasts as jest.Mock).mockReturnValue({
+      showToast: mockShowToast,
+      PerpsToastOptions: {
+        formValidation: {
+          orderForm: {
+            limitPriceRequired: {},
+            validationError: jest.fn(),
+          },
+        },
+        orderManagement: {
+          market: {
+            submitted: jest.fn(() => submittedToast),
+            confirmed: jest.fn(),
+            creationFailed: jest.fn(),
+          },
+          limit: {
+            submitted: jest.fn(),
+            confirmed: jest.fn(),
+            creationFailed: jest.fn(),
+          },
+        },
+        positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
+        dataFetching: {
+          market: { error: { marketDataUnavailable: jest.fn() } },
+        },
+        accountManagement: {
+          deposit: {
+            inProgress: jest.fn(),
+            takingLonger: {},
+            tradeCanceled: {},
+            error: {},
+          },
+        },
+      },
+    });
+
+    (usePerpsOrderExecution as jest.Mock).mockImplementation(
+      (options: { onSubmitted?: () => void }) => ({
+        placeOrder: jest.fn().mockImplementation(async () => {
+          options?.onSubmitted?.();
+          return { success: true };
+        }),
+        isPlacing: false,
+      }),
+    );
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalledWith(submittedToast);
+    });
   });
 
   it('handles failed order placement', async () => {
@@ -1227,6 +1290,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
         positionSize: '0.0037',
@@ -1273,6 +1337,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
         positionSize: '0.0037',
@@ -1585,6 +1650,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
           positionSize: '0.033',
@@ -1637,6 +1703,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
           positionSize: '0.033',
@@ -1689,6 +1756,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
           positionSize: '0.033',
@@ -1744,6 +1812,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
           positionSize: '0.033',
@@ -1799,6 +1868,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
           positionSize: '0.033',
@@ -1853,6 +1923,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
           positionSize: '0.033',
@@ -1932,6 +2003,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
           positionSize: '0.0333',
@@ -1962,6 +2034,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
           positionSize: '0.0333',
@@ -2071,6 +2144,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
           positionSize: '0.0333',
@@ -2101,6 +2175,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
           positionSize: '0.0333',
@@ -2448,6 +2523,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '0',
           positionSize: '0',
@@ -2488,6 +2564,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
           positionSize: '0.0333',
@@ -2608,6 +2685,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '20.00', // Truthy value - triggers formatPrice path
           positionSize: '0.02',
@@ -2647,6 +2725,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '', // Falsy value - triggers fallback path
           positionSize: '',
@@ -2686,6 +2765,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '16.67',
           positionSize: '0.0167',
@@ -2728,6 +2808,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '0',
           positionSize: '0',
@@ -2780,6 +2861,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '6.25',
           positionSize: '0.0083',
@@ -2911,6 +2993,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '11',
           positionSize: '0.0037',
@@ -3020,6 +3103,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
         calculations: {
           marginRequired: '11',
           positionSize: '0.0002',
@@ -3128,7 +3212,9 @@ describe('PerpsOrderView', () => {
 
       // Assert - Should NOT show "No funds available" warning while loading
       expect(
-        queryByText('No funds available. Please deposit first.'),
+        queryByText(
+          'Not enough funds available. Deposit funds or select a different payment method',
+        ),
       ).toBeNull();
     });
 

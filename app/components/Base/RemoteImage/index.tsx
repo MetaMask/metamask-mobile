@@ -51,7 +51,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
   const [error, setError] = useState<string | undefined>(undefined);
   const source = resolveAssetSource(props.source);
   const ipfsGateway = useIpfsGateway();
-  const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState<string | false>(false);
+  const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState<string | false>();
 
   const uri =
     resolvedIpfsUrl ||
@@ -140,6 +140,10 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
 
   if (error && props.address) {
     return <Identicon address={props.address} customStyle={props.style} />;
+  }
+
+  if (resolvedIpfsUrl === undefined && !uri) {
+    return null;
   }
 
   const defaultImage = (

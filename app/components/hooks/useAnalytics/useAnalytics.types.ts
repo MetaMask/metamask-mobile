@@ -2,6 +2,8 @@ import {
   DataDeleteDate,
   IDeleteRegulationResponse,
   IDeleteRegulationStatus,
+  type IMetaMetricsEvent,
+  type ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
 import {
   AnalyticsEventBuilder,
@@ -37,6 +39,6 @@ export interface UseAnalyticsHook {
   isDataRecorded(): boolean;
   getAnalyticsId(): Promise<string | undefined>;
   createEventBuilder(
-    event: string | AnalyticsTrackingEvent,
+    event: string | IMetaMetricsEvent | ITrackingEvent | AnalyticsTrackingEvent,
   ): AnalyticsEventBuilderType;
 }

@@ -159,23 +159,66 @@ checkParameters(){
 	#TODO: Add check for valid METAMASK_BUILD_TYPE once commands are fully refactored
 }
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Load build configuration from builds.yml
+# Used when GITHUB_ACTIONS is set (workflow already set secrets; this fills CONFIGURATION, IS_SIM_BUILD, etc.)
+# ─────────────────────────────────────────────────────────────────────────────
+loadBuildConfig() {
+	local build_type="$1"
+	local environment="$2"
+
+	# Normalize environment name (production -> prod for build name)
+	local normalized_env="$environment"
+	case "$environment" in
+		production) normalized_env="prod" ;;
+	esac
+
+	# Construct build name (e.g., main-prod, flask-dev)
+	local build_name="${build_type}-${normalized_env}"
+
+	echo ""
+	echo "📦 Loading configuration from builds.yml for '${build_name}'..."
+	echo ""
+
+	# Load config using apply-build-config.js
+	local config_output
+	config_output=$(node "${__DIRNAME__}/apply-build-config.js" "${build_name}" --export 2>&1)
+	local exit_code=$?
+
+	if [ $exit_code -ne 0 ]; then
+		echo "❌ Failed to load build configuration"
+		echo ""
+		echo "Error: ${config_output}"
+		echo ""
+		echo "Available builds can be found in builds.yml"
+		echo "Run 'node scripts/validate-build-config.js' to check config validity."
+		return 1
+	fi
+
+	# Apply the configuration (exports environment variables)
+	eval "$config_output"
+
+	echo "✅ Configuration loaded from builds.yml"
+	echo "   Build: ${build_name}"
+	echo ""
+
+	return 0
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Legacy env remapping (Bitrise). Used only when GITHUB_ACTIONS is not set.
+# GitHub Actions uses loadBuildConfig + builds.yml; secrets are set with canonical names.
+# ─────────────────────────────────────────────────────────────────────────────
 remapEnvVariable() {
-    # Get the old and new variable names
-    old_var_name=$1
-    new_var_name=$2
-
-    # Check if the old variable exists
-    if [ -z "${!old_var_name}" ]; then
-        echo "Error: $old_var_name does not exist in the environment."
-        return 1
-    fi
-
-    # Remap the variable
-    export $new_var_name="${!old_var_name}"
-
-    unset $old_var_name
-
-    echo "Successfully remapped $old_var_name to $new_var_name."
+	local old_var_name="$1"
+	local new_var_name="$2"
+	if [ -z "${!old_var_name}" ]; then
+		echo "Error: $old_var_name does not exist in the environment."
+		return 1
+	fi
+	export $new_var_name="${!old_var_name}"
+	unset $old_var_name
+	echo "Successfully remapped $old_var_name to $new_var_name."
 }
 
 # Mapping for Main env variables in the dev environment
@@ -935,40 +978,52 @@ checkParameters "$@"
 
 printTitle
 
-# Map environment variables based on mode.
-# TODO: MODE should be renamed to TARGET
-# Skip environment variable remapping for expo-update platform
+# ─────────────────────────────────────────────────────────────────────────────
+# Load build configuration: GitHub Actions uses builds.yml; Bitrise uses legacy remap.
+# Both paths supported until Bitrise is deprecated.
+# ─────────────────────────────────────────────────────────────────────────────
 if [ "$PLATFORM" != "expo-update" ]; then
+	# Set flags for main builds
 	if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
 		export GENERATE_BUNDLE=true # Used only for Android
 		export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
-		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
-			remapMainProdEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
-			remapMainBetaEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "rc" ]; then
-			remapMainReleaseCandidateEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "exp" ]; then
-			remapMainExperimentalEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
-			remapMainTestEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-			remapMainE2EEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "dev" ]; then
-			remapMainDevEnvVariables
+	fi
+
+	if [ -n "${GITHUB_ACTIONS:-}" ]; then
+		# GitHub Actions: config from builds.yml (Apply build config step sets env; loadBuildConfig fills any gaps)
+		if ! loadBuildConfig "$METAMASK_BUILD_TYPE" "$METAMASK_ENVIRONMENT"; then
+			echo "❌ Build configuration failed. Exiting."
+			exit 1
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
-		# TODO: Map environment variables based on environment
-		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
-			remapFlaskProdEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
-			remapFlaskTestEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-			remapFlaskE2EEnvVariables
+	else
+		# Bitrise (or local): legacy env remapping (Bitrise secrets use per-env names, e.g. SEGMENT_WRITE_KEY_PROD)
+		if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
+			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+				remapMainProdEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
+				remapMainBetaEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "rc" ]; then
+				remapMainReleaseCandidateEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "exp" ]; then
+				remapMainExperimentalEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
+				remapMainTestEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
+				remapMainE2EEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "dev" ]; then
+				remapMainDevEnvVariables
+			fi
+		elif [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
+			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+				remapFlaskProdEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
+				remapFlaskTestEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
+				remapFlaskE2EEnvVariables
+			fi
+		elif [ "$METAMASK_BUILD_TYPE" == "qa" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
+			remapEnvVariableQA
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "qa" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
-		# TODO: Map environment variables based on environment
-		remapEnvVariableQA
 	fi
 fi
 

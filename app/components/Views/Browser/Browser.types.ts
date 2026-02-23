@@ -16,8 +16,11 @@ export interface BrowserTab {
   id: number;
   url?: string;
   image?: string;
+  /** @deprecated Use lastActiveAt-based mounting instead. */
   isArchived?: boolean;
   linkType?: string;
+  /** Timestamp (Date.now()) of when the user last activated this tab (switched to it or created it). */
+  lastActiveAt?: number;
 }
 
 export interface BrowserNavigation {
@@ -34,7 +37,6 @@ export interface BrowserRoute {
 export interface BrowserComponentProps {
   navigation: BrowserNavigation;
   createNewTab: (url?: string, linkType?: string) => void;
-  closeAllTabs: () => void;
   closeTab: (id: number) => void;
   setActiveTab: (id: number) => void;
   updateTab: (id: number, data: Record<string, unknown>) => void;

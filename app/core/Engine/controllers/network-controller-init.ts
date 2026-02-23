@@ -18,7 +18,6 @@ import {
 import { Hex, Json } from '@metamask/utils';
 import Logger from '../../../util/Logger';
 import { buildAndTrackEvent } from '../utils/analytics';
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import { CONNECTIVITY_STATUSES } from '@metamask/connectivity-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -209,11 +208,7 @@ export const networkControllerInit: ControllerInitFunction<
         infuraProjectId,
         error,
         trackEvent: ({ event, properties }) => {
-          buildAndTrackEvent(
-            initMessenger,
-            event,
-            properties as AnalyticsEventProperties | null | undefined,
-          );
+          buildAndTrackEvent(initMessenger, event, properties);
         },
         metaMetricsId: analyticsId ?? '',
       });
@@ -226,24 +221,22 @@ export const networkControllerInit: ControllerInitFunction<
       chainId,
       endpointUrl,
       error,
-    }: {
-      chainId: Hex;
-      endpointUrl: string;
-      error: unknown;
+      rpcMethodName,
+      type,
+      retryReason,
     }) => {
       onRpcEndpointDegraded({
         chainId,
         endpointUrl,
         error,
         infuraProjectId,
+        retryReason,
+        rpcMethodName,
         trackEvent: ({ event, properties }) => {
-          buildAndTrackEvent(
-            initMessenger,
-            event,
-            properties as AnalyticsEventProperties | null | undefined,
-          );
+          buildAndTrackEvent(initMessenger, event, properties);
         },
         metaMetricsId: analyticsId ?? '',
+        type,
       });
     },
   );

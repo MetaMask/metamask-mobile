@@ -34,9 +34,10 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { ChooseYourCardSelectors } from '../../../../../../e2e/selectors/Card/ChooseYourCard.selectors';
+import { ChooseYourCardSelectors } from './ChooseYourCard.testIds';
 import { CardType, CardStatus } from '../../types';
 import CardImage from '../../components/CardImage/CardImage';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -62,7 +63,7 @@ const ItemSeparator = ({ width }: { width: number }) => (
 
 const ChooseYourCard = () => {
   const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
   const { width: screenWidth } = useWindowDimensions();
   const flatListRef = useRef<FlatList>(null);

@@ -68,6 +68,20 @@ jest.mock('./OverviewTab/WaysToEarn/WaysToEarn', () => ({
   },
 }));
 
+// Mock SnapshotsSection component to avoid Redux provider requirements
+jest.mock('./OverviewTab/SnapshotsSection', () => ({
+  __esModule: true,
+  default: () => {
+    const ReactActual = jest.requireActual('react');
+    const { View, Text } = jest.requireActual('react-native');
+    return ReactActual.createElement(
+      View,
+      { testID: 'snapshots-section-mock' },
+      ReactActual.createElement(Text, null, 'SnapshotsSection Mock'),
+    );
+  },
+}));
+
 // Mock useTailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
