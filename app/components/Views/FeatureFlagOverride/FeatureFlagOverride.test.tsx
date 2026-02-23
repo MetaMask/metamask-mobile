@@ -337,27 +337,50 @@ describe('FeatureFlagOverride', () => {
     it('renders screen inside SafeAreaView', () => {
       renderWithProviders();
 
-      expect(screen.getByTestId('feature-flag-override-screen')).toBeTruthy();
+      expect(
+        screen.getByTestId('feature-flag-override-screen'),
+      ).toBeOnTheScreen();
     });
 
     it('renders HeaderCompactStandard with title', () => {
       renderWithProviders();
 
-      expect(screen.getByTestId('feature-flag-override-header')).toBeTruthy();
-      expect(screen.getByText('Feature Flag Override')).toBeTruthy();
+      expect(
+        screen.getByTestId('feature-flag-override-header'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Feature Flag Override')).toBeOnTheScreen();
     });
 
-    it('renders header back button and navigates back on press', () => {
+    it('renders header back button', () => {
+      renderWithProviders();
+
+      expect(
+        screen.getByTestId('feature-flag-override-header-back'),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates back when header back button is pressed', () => {
       renderWithProviders();
 
       const backButton = screen.getByTestId(
         'feature-flag-override-header-back',
       );
-      expect(backButton).toBeTruthy();
-
       fireEvent.press(backButton);
 
       expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders stats section and list below inline header', () => {
+      renderWithProviders();
+
+      expect(
+        screen.getByTestId('feature-flag-override-header'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Feature Flag Statistics')).toBeOnTheScreen();
+      expect(
+        screen.getByPlaceholderText('Search feature flags...'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('booleanFlag')).toBeOnTheScreen();
     });
   });
 
@@ -792,23 +815,12 @@ describe('FeatureFlagOverride', () => {
 
   describe('A/B Test Flag Handling', () => {
     it('renders text display for A/B test flags in store', () => {
-      // Render with an A/B test flag
-      const storeWithAbTest = createMockStore(
+      renderWithProviders(
         { abTestFlag: { name: 'control', value: { variant: 'A' } } },
         {},
       );
 
-      render(
-        <Provider store={storeWithAbTest}>
-          <ToastContext.Provider value={mockToastContext}>
-            <FeatureFlagOverrideProvider>
-              <FeatureFlagOverride />
-            </FeatureFlagOverrideProvider>
-          </ToastContext.Provider>
-        </Provider>,
-      );
-
-      expect(screen.getByText('abTestFlag')).toBeTruthy();
+      expect(screen.getByText('abTestFlag')).toBeOnTheScreen();
     });
   });
 
