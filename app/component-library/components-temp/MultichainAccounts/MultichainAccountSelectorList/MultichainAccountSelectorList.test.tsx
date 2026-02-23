@@ -817,15 +817,17 @@ describe('MultichainAccountSelectorList', () => {
         if (testCase.shouldShowError) {
           expect(
             getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID),
-          ).toBeTruthy();
+          ).toBeOnTheScreen();
         } else {
           expect(
             queryByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID),
-          ).toBeNull();
+          ).not.toBeOnTheScreen();
         }
 
-        expect(queryByText('Account 1')).toBeFalsy();
-        expect(getByTestId('external-account-cell-touchable')).toBeTruthy();
+        expect(queryByText('Account 1')).not.toBeOnTheScreen();
+        expect(
+          getByTestId('external-account-cell-touchable'),
+        ).toBeOnTheScreen();
       });
 
       if (testCase.shouldSelectExternal) {
