@@ -6,9 +6,10 @@
  * This script aggregates performance test results from multiple test runs
  * and creates a combined report structure.
  * 
- * Handles both:
+ * Handles:
  * - Imported Wallet Tests: *-imported-wallet-test-results-*
  * - Onboarding Tests: *-onboarding-flow-test-results-*
+ * - MM-Connect Tests: *-mm-connect-test-results-*
  */
 
 import fs from 'fs';
@@ -102,29 +103,39 @@ function extractPlatformScenarioAndDevice(filePath) {
     scenario = 'onboarding';
     scenarioKey = 'Onboarding';
     console.log(`✅ Detected iOS Onboarding test`);
+  } else if (fullPath.includes('android-mm-connect-test-results')) {
+    platform = 'android';
+    platformKey = 'Android';
+    scenario = 'mm-connect';
+    scenarioKey = 'MMConnect';
+    console.log(`✅ Detected Android MM-Connect test`);
+  } else if (fullPath.includes('ios-mm-connect-test-results')) {
+    platform = 'ios';
+    platformKey = 'iOS';
+    scenario = 'mm-connect';
+    scenarioKey = 'MMConnect';
+    console.log(`✅ Detected iOS MM-Connect test`);
   } else {
     console.log(`⚠️ Could not determine platform/scenario from path`);
     console.log(`🔍 Full path: ${filePath}`);
   }
   
   // Extract device info from path
-  const deviceMatch = pathParts.find(part => 
-    part.includes('-imported-wallet-test-results-') || 
-    part.includes('-onboarding-flow-test-results-')
+  const deviceMatch = pathParts.find(part =>
+    part.includes('-imported-wallet-test-results-') ||
+    part.includes('-onboarding-flow-test-results-') ||
+    part.includes('-mm-connect-test-results-')
   );
-  
+
   if (deviceMatch) {
     console.log(`✅ Found device match: ${deviceMatch}`);
     const parts = deviceMatch.split('-');
     console.log(`📝 Device parts:`, parts);
-    
-    // Handle both imported-wallet and onboarding patterns
-    // Pattern: android-imported-wallet-test-results-DeviceName-OSVersion
-    // Pattern: android-onboarding-flow-test-results-DeviceName-OSVersion
-    let deviceInfoStart = 5; // Skip: android-imported-wallet-test-results (5 parts)
-    if (deviceMatch.includes('-onboarding-flow-test-results-')) {
-      deviceInfoStart = 5; // Skip: android-onboarding-flow-test-results (5 parts)
-    }
+
+    // Pattern: android-imported-wallet-test-results-DeviceName-OSVersion (5 parts)
+    // Pattern: android-onboarding-flow-test-results-DeviceName-OSVersion (5 parts)
+    // Pattern: android-mm-connect-test-results-DeviceName-OSVersion (5 parts)
+    const deviceInfoStart = 5;
     
     if (parts.length >= deviceInfoStart + 1) {
       const deviceInfo = parts.slice(deviceInfoStart).join('-');
@@ -144,7 +155,9 @@ function extractPlatformScenarioAndDevice(filePath) {
     }
   } else {
     console.log(`⚠️ No device match found in path parts`);
-    console.log(`🔍 Looking for patterns: -imported-wallet-test-results- or -onboarding-flow-test-results-`);
+    console.log(
+      `🔍 Looking for patterns: -imported-wallet-test-results-, -onboarding-flow-test-results-, or -mm-connect-test-results-`
+    );
     console.log(`🔍 Available parts:`, pathParts);
   }
   

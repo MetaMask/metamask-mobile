@@ -464,7 +464,7 @@
   "AssetsController": {
     "assetPreferences": {},
     "assetsBalance": {},
-    "assetsMetadata": {},
+    "assetsInfo": {},
     "assetsPrice": {},
     "customAssets": {}
   },
@@ -767,6 +767,9 @@
     "withdrawTransaction": null,
     "accountMeta": {}
   },
+  "AiDigestController": {
+    "marketInsights": {}
+  },
   "RampsController": {
     "userRegion": null,
     "countries": {
@@ -794,6 +797,35 @@
       "error": null
     },
     "quotes": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "nativeProviders": {
+      "transak": {
+        "buyQuote": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        },
+        "isAuthenticated": false,
+        "kycRequirement": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        },
+        "userDetails": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        }
+      }
+    },
+    "widgetUrl": {
       "data": null,
       "selected": null,
       "isLoading": false,

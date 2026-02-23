@@ -14,6 +14,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import { useMusdConversionFlowData } from '../../hooks/useMusdConversionFlowData';
@@ -68,16 +69,12 @@ jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => {
-  const actual = jest.requireActual('../../../../hooks/useMetrics');
-  return {
-    ...actual,
-    useMetrics: () => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    }),
-  };
-});
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -501,10 +498,6 @@ describe('EarnMusdConversionEducationView', () => {
         isMusdBuyableOnAnyChain: false,
       });
 
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
-
       const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -667,10 +660,6 @@ describe('EarnMusdConversionEducationView', () => {
 
   describe('MetaMetrics', () => {
     it('tracks fullscreen announcement displayed event once per visit', () => {
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
-
       const { unmount } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -713,10 +702,6 @@ describe('EarnMusdConversionEducationView', () => {
     });
 
     it('tracks fullscreen announcement button clicked event when continue button is pressed', async () => {
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
-
       const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -757,10 +742,6 @@ describe('EarnMusdConversionEducationView', () => {
     });
 
     it('tracks fullscreen announcement button clicked event when go back button is pressed', () => {
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
-
       const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -813,10 +794,6 @@ describe('EarnMusdConversionEducationView', () => {
         isMusdBuyableOnChain: {},
         isMusdBuyableOnAnyChain: false,
       });
-
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
 
       const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,

@@ -6298,19 +6298,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "Chuyển",
       "switchBack": "Chuyển trở lại",
-      "splashpage": {
-        "accept": "Có",
-        "betterTransaction": "Giao dịch nhanh hơn, phí thấp hơn",
-        "betterTransactionDescription": "Tiết kiệm thời gian và chi phí bằng cách xử lý nhiều giao dịch cùng lúc.",
-        "featuresDescription": "Giữ nguyên địa chỉ tài khoản và bạn có thể chuyển lại bất cứ lúc nào.",
-        "payToken": "Thanh toán bằng bất kỳ token nào, bất cứ lúc nào",
-        "payTokenDescription": "Sử dụng các token bạn đã có để thanh toán phí mạng.",
-        "reject": "Không",
-        "sameAccount": "Cùng tài khoản, tính năng thông minh hơn.",
-        "splashTitle": "Sử dụng tài khoản thông minh?"
-      },
       "includes_transaction": "Bao gồm {{transactionCount}} giao dịch",
-      "useSmartAccount": "Sử dụng tài khoản thông minh",
       "successful": "Thành công",
       "success_message": "Tài khoản của bạn sẽ được nâng cấp thành tài khoản thông minh từ giao dịch tiếp theo."
     },

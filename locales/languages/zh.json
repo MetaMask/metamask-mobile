@@ -6298,19 +6298,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "切换",
       "switchBack": "切换回",
-      "splashpage": {
-        "accept": "是",
-        "betterTransaction": "更迅捷的交易体验，更低的费用",
-        "betterTransactionDescription": "批量处理交易以节省时间和金钱。",
-        "featuresDescription": "账户地址保持不变，您可以随时切换回旧账户。",
-        "payToken": "随时以任何代币支付",
-        "payTokenDescription": "用您现有的代币来支付网络费用。",
-        "reject": "否",
-        "sameAccount": "账户不变，功能更加智能。",
-        "splashTitle": "使用智能账户?"
-      },
       "includes_transaction": "包含 {{transactionCount}} 笔交易",
-      "useSmartAccount": "使用智能账户",
       "successful": "成功",
       "success_message": "您的账户将在下次交易时升级为智能账户。"
     },
