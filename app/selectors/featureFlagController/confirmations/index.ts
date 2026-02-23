@@ -74,38 +74,26 @@ const PAY_POST_QUOTE_DEFAULT: PayPostQuoteConfig = {
   enabled: false,
 };
 
+interface RawPayPostQuoteFlag {
+  default?: PayPostQuoteConfig;
+  override?: Record<string, PayPostQuoteConfig>;
+}
+
 export const selectPayPostQuoteFlags = createSelector(
   selectRemoteFeatureFlags,
   (featureFlags): PayPostQuoteFlags => {
     const raw = featureFlags?.confirmations_pay_post_quote as
-      | Record<string, Json>
-      | undefined;
-
-    const rawDefault = raw?.default as Record<string, Json> | undefined;
-    const rawOverride = raw?.override as
-      | Record<string, Record<string, Json>>
+      | RawPayPostQuoteFlag
       | undefined;
 
     const defaultConfig: PayPostQuoteConfig = {
-      enabled: (rawDefault?.enabled as boolean) ?? false,
-      tokens: rawDefault?.tokens as Record<Hex, Hex[]> | undefined,
+      enabled: raw?.default?.enabled ?? false,
+      tokens: raw?.default?.tokens,
     };
-
-    const override = rawOverride
-      ? Object.fromEntries(
-          Object.entries(rawOverride).map(([key, value]) => [
-            key,
-            {
-              enabled: value?.enabled as boolean | undefined,
-              tokens: value?.tokens as Record<Hex, Hex[]> | undefined,
-            },
-          ]),
-        )
-      : undefined;
 
     return {
       default: defaultConfig,
-      override,
+      override: raw?.override,
     };
   },
 );
