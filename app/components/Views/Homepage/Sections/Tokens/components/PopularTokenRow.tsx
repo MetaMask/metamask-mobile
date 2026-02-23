@@ -151,6 +151,9 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
       token.assetId,
     );
 
+    // Don't navigate with invalid params from an unparseable asset ID
+    if (!chainId) return;
+
     navigation.navigate('Asset', {
       chainId,
       address,

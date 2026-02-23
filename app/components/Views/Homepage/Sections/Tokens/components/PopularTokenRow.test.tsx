@@ -198,7 +198,7 @@ describe('PopularTokenRow', () => {
       });
     });
 
-    it('navigates with empty values for invalid CAIP-19 format', () => {
+    it('does not navigate for invalid CAIP-19 format', () => {
       const token = createMockToken({
         assetId: 'invalid-asset-id',
         symbol: 'INVALID',
@@ -206,14 +206,9 @@ describe('PopularTokenRow', () => {
 
       renderWithProvider(<PopularTokenRow token={token} />);
 
-      fireEvent.press(screen.getByText('Test Token').parent?.parent as never);
+      fireEvent.press(screen.getByText('Test Token'));
 
-      expect(mockNavigate).toHaveBeenCalledWith('Asset', {
-        chainId: '',
-        address: '',
-        symbol: 'INVALID',
-        isNative: false,
-      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
