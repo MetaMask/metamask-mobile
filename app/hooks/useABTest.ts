@@ -22,8 +22,11 @@
  * ```
  */
 
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
+import { MetaMetricsEvents } from '../core/Analytics';
+import { useAnalytics } from '../components/hooks/useAnalytics/useAnalytics';
 
 /**
  * Type constraint for variants object - must include a 'control' key
@@ -42,6 +45,21 @@ export interface UseABTestResult<T extends ABTestVariants> {
   /** Whether the A/B test is active (flag is set and matches a valid variant) */
   isActive: boolean;
 }
+
+/**
+ * Optional metadata for experiment exposure tracking.
+ */
+export interface ABTestExposureMetadata<T extends ABTestVariants> {
+  /** Human-readable experiment name */
+  experimentName?: string;
+  /** Optional map from variant id to human-readable variant name */
+  variationNames?: Partial<Record<Extract<keyof T, string>, string>>;
+}
+
+const trackedExposureAssignments = new Set<string>();
+
+const getExposureCacheKey = (experimentId: string, variationId: string) =>
+  `${experimentId}::${variationId}`;
 
 /**
  * Generic hook for A/B testing in React components
@@ -112,7 +130,11 @@ export interface UseABTestResult<T extends ABTestVariants> {
 export function useABTest<T extends ABTestVariants>(
   flagKey: string,
   variants: T,
+  exposureMetadata?: ABTestExposureMetadata<T>,
 ): UseABTestResult<T> {
+  const analytics = useAnalytics();
+  const trackEvent = analytics?.trackEvent;
+  const createEventBuilder = analytics?.createEventBuilder;
   const flags = useSelector(selectRemoteFeatureFlags);
   const flagData = flags?.[flagKey];
 
@@ -135,6 +157,47 @@ export function useABTest<T extends ABTestVariants>(
 
   // Check if the test is active (flag is set AND matches a valid variant)
   const isActive = Boolean(flagValue && hasVariant(flagValue));
+
+  useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
+    const variationId = String(variantName);
+    const assignmentKey = getExposureCacheKey(flagKey, variationId);
+
+    // Emit one exposure per experiment assignment per app session.
+    if (trackedExposureAssignments.has(assignmentKey)) {
+      return;
+    }
+    trackedExposureAssignments.add(assignmentKey);
+
+    const variationName =
+      exposureMetadata?.variationNames?.[
+        variationId as Extract<keyof T, string>
+      ];
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EXPERIMENT_VIEWED)
+        .addProperties({
+          experiment_id: flagKey,
+          variation_id: variationId,
+          ...(exposureMetadata?.experimentName && {
+            experiment_name: exposureMetadata.experimentName,
+          }),
+          ...(variationName && { variation_name: variationName }),
+        })
+        .build(),
+    );
+  }, [
+    createEventBuilder,
+    exposureMetadata?.experimentName,
+    exposureMetadata?.variationNames,
+    flagKey,
+    isActive,
+    trackEvent,
+    variantName,
+  ]);
 
   return {
     variant: variants[variantName as keyof T],

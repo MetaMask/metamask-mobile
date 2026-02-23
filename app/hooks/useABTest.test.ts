@@ -1,6 +1,8 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useABTest } from './useABTest';
+import { useAnalytics } from '../components/hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../core/Analytics';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -12,7 +14,15 @@ jest.mock('../selectors/featureFlagController', () => ({
   selectRemoteFeatureFlags: jest.fn((state) => state?.featureFlags),
 }));
 
+jest.mock('../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+  typeof useAnalytics
+>;
+const mockTrackEvent = jest.fn();
 
 describe('useABTest', () => {
   // Test variants configuration
@@ -28,6 +38,24 @@ describe('useABTest', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: (event) => ({
+        addProperties: (properties: Record<string, unknown>) => ({
+          build: () => ({
+            name:
+              typeof event === 'string'
+                ? event
+                : 'category' in event
+                  ? event.category
+                  : event.name,
+            properties,
+            sensitiveProperties: {},
+            saveDataRecording: true,
+          }),
+        }),
+      }),
+    } as unknown as ReturnType<typeof useAnalytics>);
   });
 
   afterEach(() => {
@@ -460,6 +488,95 @@ describe('useABTest', () => {
       rerender(undefined);
 
       expect(result.current.variantName).toBe('monochrome');
+    });
+  });
+
+  describe('experiment exposure tracking', () => {
+    const experimentFlagKey = 'testExperimentFlag';
+    const experimentVariants = {
+      control: { buttons: [25, 50, 75, 'MAX'] },
+      treatment: { buttons: [50, 75, 90, 'MAX'] },
+    };
+
+    it('emits Experiment Viewed with required fields for treatment', async () => {
+      const flagKey = `${experimentFlagKey}Treatment`;
+      mockUseSelector.mockReturnValue({
+        [flagKey]: { name: 'treatment' },
+      });
+
+      renderHook(() => useABTest(flagKey, experimentVariants));
+
+      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(1));
+      expect(mockTrackEvent.mock.calls[0][0]).toMatchObject({
+        name: MetaMetricsEvents.EXPERIMENT_VIEWED.category,
+        properties: {
+          experiment_id: flagKey,
+          variation_id: 'treatment',
+        },
+      });
+    });
+
+    it('emits Experiment Viewed with required fields for control', async () => {
+      const flagKey = `${experimentFlagKey}Control`;
+      mockUseSelector.mockReturnValue({
+        [flagKey]: { name: 'control' },
+      });
+
+      renderHook(() => useABTest(flagKey, experimentVariants));
+
+      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(1));
+      expect(mockTrackEvent.mock.calls[0][0]).toMatchObject({
+        properties: {
+          experiment_id: flagKey,
+          variation_id: 'control',
+        },
+      });
+    });
+
+    it('does not emit Experiment Viewed when assignment is inactive', () => {
+      const flagKey = `${experimentFlagKey}Inactive`;
+      mockUseSelector.mockReturnValue({
+        [flagKey]: { name: 'unknown_variant' },
+      });
+
+      renderHook(() => useABTest(flagKey, experimentVariants));
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('emits once per experiment/variation assignment across multiple mounts', async () => {
+      const flagKey = `${experimentFlagKey}MultiMount`;
+      mockUseSelector.mockReturnValue({
+        [flagKey]: { name: 'control' },
+      });
+
+      renderHook(() => useABTest(flagKey, experimentVariants));
+      renderHook(() => useABTest(flagKey, experimentVariants));
+
+      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(1));
+    });
+
+    it('emits separate exposure events when variation changes', async () => {
+      const flagKey = `${experimentFlagKey}VariationChange`;
+      let flags = { [flagKey]: { name: 'control' } };
+      mockUseSelector.mockImplementation(() => flags);
+
+      const { rerender } = renderHook(() =>
+        useABTest(flagKey, experimentVariants),
+      );
+
+      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(1));
+
+      flags = { [flagKey]: { name: 'treatment' } };
+      rerender(undefined);
+
+      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(2));
+      expect(mockTrackEvent.mock.calls[1][0]).toMatchObject({
+        properties: {
+          experiment_id: flagKey,
+          variation_id: 'treatment',
+        },
+      });
     });
   });
 });
