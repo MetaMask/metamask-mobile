@@ -1323,6 +1323,7 @@
       "funds_are_available_to_trade": "Funds are available to trade",
       "close_order_still_active": "Close order still active",
       "order_submitted": "Order submitted",
+      "submitting_your_trade": "Submitting your trade",
       "order_filled": "Order filled",
       "order_placed": "Order placed",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
