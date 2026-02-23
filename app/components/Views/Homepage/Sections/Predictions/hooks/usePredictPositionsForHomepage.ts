@@ -125,7 +125,7 @@ export const usePredictPositionsForHomepage = (
         return;
       }
 
-      const validPositions = positionsData || [];
+      const validPositions = Array.isArray(positionsData) ? positionsData : [];
 
       // Update cache
       positionsCache.set(cacheKey, {
