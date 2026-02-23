@@ -23,6 +23,7 @@ export interface UsePredictMarketsForHomepageResult {
 interface CacheEntry {
   markets: PredictMarket[];
   timestamp: number;
+  limit: number;
 }
 
 let marketsCache: CacheEntry | null = null;
@@ -73,8 +74,12 @@ export const usePredictMarketsForHomepage = (
     isLoading: boolean;
     error: string | null;
   }>(() => {
-    // Initialize from cache if available
-    if (marketsCache && Date.now() - marketsCache.timestamp < CACHE_TTL_MS) {
+    // Initialize from cache if available and limit is satisfied
+    if (
+      marketsCache &&
+      Date.now() - marketsCache.timestamp < CACHE_TTL_MS &&
+      marketsCache.limit >= limit
+    ) {
       return {
         markets: marketsCache.markets.slice(0, limit),
         isLoading: false,
@@ -102,8 +107,12 @@ export const usePredictMarketsForHomepage = (
     // Capture current request ID to detect stale responses
     const currentRequestId = ++requestIdRef.current;
 
-    // Check cache first
-    if (marketsCache && Date.now() - marketsCache.timestamp < CACHE_TTL_MS) {
+    // Check cache first (only valid if limit is satisfied)
+    if (
+      marketsCache &&
+      Date.now() - marketsCache.timestamp < CACHE_TTL_MS &&
+      marketsCache.limit >= limit
+    ) {
       if (isMountedRef.current) {
         setState({
           markets: marketsCache.markets.slice(0, limit),
@@ -145,10 +154,11 @@ export const usePredictMarketsForHomepage = (
         return;
       }
 
-      // Cache the result
+      // Cache the result with the limit used for the API call
       marketsCache = {
         markets,
         timestamp: Date.now(),
+        limit,
       };
 
       setState({
