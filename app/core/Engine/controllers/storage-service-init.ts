@@ -11,10 +11,6 @@ import {
 } from '@metamask/storage-service';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
-import {
-  encodeStorageKey,
-  decodeStorageKey,
-} from '../utils/storage-service-utils';
 
 /**
  * Mobile-specific storage adapter using FilesystemStorage.
@@ -34,11 +30,8 @@ const mobileStorageAdapter: StorageAdapter = {
    */
   async getItem(namespace: string, key: string): Promise<StorageGetResult> {
     try {
-      // Build full key: storageService:encodedNamespace:encodedKey
-      const encodedNamespace = encodeStorageKey(namespace);
-      const encodedKey = encodeStorageKey(key);
-      const fullKey = `${STORAGE_KEY_PREFIX}${encodedNamespace}:${encodedKey}`;
-
+      // Build full key: storageService:namespace:key
+      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
       const serialized = await FilesystemStorage.getItem(fullKey);
 
       // Key not found - return empty object
@@ -66,10 +59,8 @@ const mobileStorageAdapter: StorageAdapter = {
    */
   async setItem(namespace: string, key: string, value: Json): Promise<void> {
     try {
-      // Build full key: storageService:encodedNamespace:encodedKey
-      const encodedNamespace = encodeStorageKey(namespace);
-      const encodedKey = encodeStorageKey(key);
-      const fullKey = `${STORAGE_KEY_PREFIX}${encodedNamespace}:${encodedKey}`;
+      // Build full key: storageService:namespace:key
+      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
 
       await FilesystemStorage.setItem(
         fullKey,
@@ -92,11 +83,8 @@ const mobileStorageAdapter: StorageAdapter = {
    */
   async removeItem(namespace: string, key: string): Promise<void> {
     try {
-      // Build full key: storageService:encodedNamespace:encodedKey
-      const encodedNamespace = encodeStorageKey(namespace);
-      const encodedKey = encodeStorageKey(key);
-      const fullKey = `${STORAGE_KEY_PREFIX}${encodedNamespace}:${encodedKey}`;
-
+      // Build full key: storageService:namespace:key
+      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
       await FilesystemStorage.removeItem(fullKey);
     } catch (error) {
       Logger.error(error as Error, {
@@ -121,19 +109,11 @@ const mobileStorageAdapter: StorageAdapter = {
         return [];
       }
 
-      // Encode namespace to match how keys were stored
-      const encodedNamespace = encodeStorageKey(namespace);
-      const prefix = `${STORAGE_KEY_PREFIX}${encodedNamespace}:`;
+      const prefix = `${STORAGE_KEY_PREFIX}${namespace}:`;
 
-      const filteredKeys = allKeys
-        .filter((rawKey) => rawKey.startsWith(prefix))
-        .map((rawKey) => {
-          // Extract the encoded key part and decode it
-          const encodedKeyPart = rawKey.slice(prefix.length);
-          return decodeStorageKey(encodedKeyPart);
-        });
-
-      return filteredKeys;
+      return allKeys
+        .filter((key) => key.startsWith(prefix))
+        .map((key) => key.slice(prefix.length));
     } catch (error) {
       Logger.error(error as Error, {
         message: `StorageService: Failed to get keys for ${namespace}`,
@@ -155,18 +135,11 @@ const mobileStorageAdapter: StorageAdapter = {
         return;
       }
 
-      // Encode namespace to match how keys were stored
-      const encodedNamespace = encodeStorageKey(namespace);
-      const prefix = `${STORAGE_KEY_PREFIX}${encodedNamespace}:`;
+      const prefix = `${STORAGE_KEY_PREFIX}${namespace}:`;
+      const keysToDelete = allKeys.filter((key) => key.startsWith(prefix));
 
-      const keysToDelete = allKeys.filter((rawKey) =>
-        rawKey.startsWith(prefix),
-      );
-
-      // For deletion, we pass the raw key as returned by getAllKeys.
-      // FilesystemStorage.removeItem will apply toFileName to find the file.
       await Promise.all(
-        keysToDelete.map((rawKey) => FilesystemStorage.removeItem(rawKey)),
+        keysToDelete.map((key) => FilesystemStorage.removeItem(key)),
       );
 
       Logger.log(

@@ -1,10 +1,10 @@
-import { BrowserStackAPI } from '../framework/services/providers/browserstack/BrowserStackAPI.ts';
+import axios from 'axios';
+import { BrowserStackCredentials } from '../framework/utils/BrowserStackCredentials.js';
 
 export class PerformanceTracker {
   constructor() {
     this.timers = [];
     this.teamInfo = null;
-    this.api = new BrowserStackAPI();
   }
 
   /**
@@ -52,17 +52,20 @@ export class PerformanceTracker {
         console.log(
           `🎯 === ATTEMPT ${attempt}/${maxRetries} === Time: ${new Date().toISOString()}`,
         );
+        const credentials = BrowserStackCredentials.getCredentials();
+        const response = await axios.get(
+          `https://api-cloud.browserstack.com/app-automate/sessions/${sessionId}.json`,
+          {
+            auth: {
+              username: credentials.username,
+              password: credentials.accessKey,
+            },
+            timeout: 8000, // 8 second timeout per request
+          },
+        );
 
-        const response = await this.api.getSession(sessionId);
-
-        if (!response) {
-          console.error(
-            '🚫 No response from BrowserStack API (missing credentials?)',
-          );
-          return null;
-        }
-
-        const buildId = response.build_hashed_id;
+        const sessionData = response.data.automation_session;
+        const buildId = sessionData.build_hashed_id;
 
         if (buildId) {
           // Construct the route to the session video without using the auth token
@@ -78,7 +81,7 @@ export class PerformanceTracker {
           `Build ID not found in session data for attempt ${attempt}`,
         );
       } catch (error) {
-        const status = error.status;
+        const status = error.response?.status;
         const elapsedTime = (Date.now() - startTime) / 1000;
 
         console.log(
@@ -86,7 +89,7 @@ export class PerformanceTracker {
           {
             status,
             message: error.message,
-            data: error.body || null,
+            data: error.response?.data,
           },
         );
 
@@ -108,7 +111,7 @@ export class PerformanceTracker {
         // For non-404 errors or last attempt, log and exit
         console.error(
           `🚫 FINAL ERROR after ${attempt} attempts (${elapsedTime}s):`,
-          error.message,
+          error.response?.data || error.message,
         );
         return null;
       }

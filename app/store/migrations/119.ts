@@ -5,7 +5,6 @@ import { getErrorMessage, hasProperty, isObject } from '@metamask/utils';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { STORAGE_KEY_PREFIX } from '@metamask/storage-service';
 import Device from '../../util/device';
-import { encodeStorageKey } from '../../core/Engine/utils/storage-service-utils';
 
 export const migrationVersion = 119;
 
@@ -90,9 +89,7 @@ async function transformState(state: ValidState) {
     ).map(async (snap) => {
       const sourceCode = snap.sourceCode as string;
 
-      // Encode the snap ID to handle special characters (e.g., slashes and hyphens in npm:@metamask/bip32-keyring-snap)
-      const encodedSnapId = encodeStorageKey(snap.id as string);
-      const fullKey = `${STORAGE_KEY_PREFIX}SnapController:${encodedSnapId}`;
+      const fullKey = `${STORAGE_KEY_PREFIX}SnapController:${snap.id}`;
 
       await FilesystemStorage.setItem(
         fullKey,

@@ -18,7 +18,6 @@ import {
   PULL_THRESHOLD,
   SCROLL_TOP_THRESHOLD,
   PULL_ACTIVATION_ZONE,
-  PULL_MOVE_ACTIVATION,
 } from './constants';
 import {
   GestureWebViewWrapper,
@@ -29,8 +28,6 @@ import {
 type GestureCallback = (...args: unknown[]) => void;
 const capturedCallbacks: {
   onTouchesDown?: GestureCallback;
-  onTouchesMove?: GestureCallback;
-  onTouchesUp?: GestureCallback;
   onUpdate?: GestureCallback;
   onEnd?: GestureCallback;
   onFinalize?: GestureCallback;
@@ -41,8 +38,6 @@ const capturedCallbacks: {
 interface MockPanGestureType {
   manualActivation: jest.Mock;
   onTouchesDown: jest.Mock;
-  onTouchesMove: jest.Mock;
-  onTouchesUp: jest.Mock;
   onUpdate: jest.Mock;
   onEnd: jest.Mock;
   onFinalize: jest.Mock;
@@ -57,20 +52,6 @@ const mockPanGesture: MockPanGestureType = {
     callback: GestureCallback,
   ) {
     capturedCallbacks.onTouchesDown = callback;
-    return this;
-  }),
-  onTouchesMove: jest.fn(function (
-    this: MockPanGestureType,
-    callback: GestureCallback,
-  ) {
-    capturedCallbacks.onTouchesMove = callback;
-    return this;
-  }),
-  onTouchesUp: jest.fn(function (
-    this: MockPanGestureType,
-    callback: GestureCallback,
-  ) {
-    capturedCallbacks.onTouchesUp = callback;
     return this;
   }),
   onUpdate: jest.fn(function (
@@ -101,8 +82,6 @@ jest.mock('react-native-gesture-handler', () => ({
     Pan: jest.fn(() => mockPanGesture),
     Native: jest.fn(() => ({})),
     Race: jest.fn((...gestures) => gestures[0]),
-    Exclusive: jest.fn((...gestures) => gestures[0]),
-    Simultaneous: jest.fn((...gestures) => gestures[0]),
   },
   GestureDetector: ({ children }: { children: React.ReactNode }) => children,
 }));
@@ -161,15 +140,15 @@ jest.mock('../../../util/theme', () => ({
   }),
 }));
 
-// Mock useAnalytics
+// Mock useMetrics
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+jest.mock('../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -280,30 +259,18 @@ describe('GestureWebViewWrapper', () => {
       expect(Gesture.Native).toHaveBeenCalled();
     });
 
-    it('combines gestures with Simultaneous', () => {
+    it('combines gestures with Race', () => {
       const { Gesture } = jest.requireMock('react-native-gesture-handler');
 
       renderComponent();
 
-      expect(Gesture.Simultaneous).toHaveBeenCalled();
+      expect(Gesture.Race).toHaveBeenCalled();
     });
 
     it('sets up onTouchesDown handler', () => {
       renderComponent();
 
       expect(mockPanGesture.onTouchesDown).toHaveBeenCalled();
-    });
-
-    it('sets up onTouchesMove handler', () => {
-      renderComponent();
-
-      expect(mockPanGesture.onTouchesMove).toHaveBeenCalled();
-    });
-
-    it('sets up onTouchesUp handler', () => {
-      renderComponent();
-
-      expect(mockPanGesture.onTouchesUp).toHaveBeenCalled();
     });
 
     it('sets up onUpdate handler', () => {
@@ -410,8 +377,6 @@ describe('GestureWebViewWrapper', () => {
     beforeEach(() => {
       // Clear captured callbacks before each test
       capturedCallbacks.onTouchesDown = undefined;
-      capturedCallbacks.onTouchesMove = undefined;
-      capturedCallbacks.onTouchesUp = undefined;
       capturedCallbacks.onUpdate = undefined;
       capturedCallbacks.onEnd = undefined;
       capturedCallbacks.onFinalize = undefined;
@@ -542,8 +507,8 @@ describe('GestureWebViewWrapper', () => {
       });
     });
 
-    describe('pull-to-refresh touch (deferred activation)', () => {
-      it('defers activation for top zone touch when at scroll top (pending_refresh)', () => {
+    describe('pull-to-refresh touch', () => {
+      it('calls stateManager.activate for top zone touch when at scroll top', () => {
         const scrollY = mockSharedValue(0);
         const isRefreshing = mockSharedValue(false);
         renderComponent({ scrollY, isRefreshing });
@@ -552,107 +517,7 @@ describe('GestureWebViewWrapper', () => {
 
         capturedCallbacks.onTouchesDown?.(event, stateManager);
 
-        expect(stateManager.activate).not.toHaveBeenCalled();
-        expect(stateManager.fail).not.toHaveBeenCalled();
-      });
-
-      it('activates after sufficient downward movement in onTouchesMove', () => {
-        const scrollY = mockSharedValue(0);
-        const isRefreshing = mockSharedValue(false);
-        renderComponent({ scrollY, isRefreshing });
-        const stateManager = createStateManager();
-
-        capturedCallbacks.onTouchesDown?.(
-          createTouchEvent(200, 25),
-          stateManager,
-        );
-        expect(stateManager.activate).not.toHaveBeenCalled();
-
-        const moveEvent = {
-          allTouches: [{ x: 200, y: 25 + PULL_MOVE_ACTIVATION + 5 }],
-        };
-        capturedCallbacks.onTouchesMove?.(moveEvent, stateManager);
-
         expect(stateManager.activate).toHaveBeenCalled();
-      });
-
-      it('fails on tap (finger lifts without significant movement)', () => {
-        const scrollY = mockSharedValue(0);
-        const isRefreshing = mockSharedValue(false);
-        renderComponent({ scrollY, isRefreshing });
-        const stateManager = createStateManager();
-
-        capturedCallbacks.onTouchesDown?.(
-          createTouchEvent(200, 25),
-          stateManager,
-        );
-        expect(stateManager.activate).not.toHaveBeenCalled();
-        expect(stateManager.fail).not.toHaveBeenCalled();
-
-        capturedCallbacks.onTouchesUp?.({}, stateManager);
-
-        expect(stateManager.fail).toHaveBeenCalled();
-        expect(stateManager.activate).not.toHaveBeenCalled();
-      });
-
-      it('fails on horizontal movement (not a pull)', () => {
-        const scrollY = mockSharedValue(0);
-        const isRefreshing = mockSharedValue(false);
-        renderComponent({ scrollY, isRefreshing });
-        const stateManager = createStateManager();
-
-        capturedCallbacks.onTouchesDown?.(
-          createTouchEvent(200, 25),
-          stateManager,
-        );
-
-        const moveEvent = {
-          allTouches: [{ x: 200 + PULL_MOVE_ACTIVATION + 5, y: 25 }],
-        };
-        capturedCallbacks.onTouchesMove?.(moveEvent, stateManager);
-
-        expect(stateManager.fail).toHaveBeenCalled();
-        expect(stateManager.activate).not.toHaveBeenCalled();
-      });
-
-      it('fails on upward movement (not a pull-down)', () => {
-        const scrollY = mockSharedValue(0);
-        const isRefreshing = mockSharedValue(false);
-        renderComponent({ scrollY, isRefreshing });
-        const stateManager = createStateManager();
-
-        capturedCallbacks.onTouchesDown?.(
-          createTouchEvent(200, 25),
-          stateManager,
-        );
-
-        const moveEvent = {
-          allTouches: [{ x: 200, y: 25 - PULL_MOVE_ACTIVATION - 5 }],
-        };
-        capturedCallbacks.onTouchesMove?.(moveEvent, stateManager);
-
-        expect(stateManager.fail).toHaveBeenCalled();
-        expect(stateManager.activate).not.toHaveBeenCalled();
-      });
-
-      it('keeps waiting when movement is below threshold', () => {
-        const scrollY = mockSharedValue(0);
-        const isRefreshing = mockSharedValue(false);
-        renderComponent({ scrollY, isRefreshing });
-        const stateManager = createStateManager();
-
-        capturedCallbacks.onTouchesDown?.(
-          createTouchEvent(200, 25),
-          stateManager,
-        );
-
-        const moveEvent = {
-          allTouches: [{ x: 202, y: 28 }],
-        };
-        capturedCallbacks.onTouchesMove?.(moveEvent, stateManager);
-
-        expect(stateManager.activate).not.toHaveBeenCalled();
-        expect(stateManager.fail).not.toHaveBeenCalled();
       });
 
       it('calls stateManager.fail for top zone touch when already refreshing', () => {
@@ -689,42 +554,6 @@ describe('GestureWebViewWrapper', () => {
         capturedCallbacks.onTouchesDown?.(event, stateManager);
 
         expect(stateManager.fail).toHaveBeenCalled();
-      });
-
-      it('fails in onTouchesMove when no touches in event', () => {
-        const scrollY = mockSharedValue(0);
-        const isRefreshing = mockSharedValue(false);
-        renderComponent({ scrollY, isRefreshing });
-        const stateManager = createStateManager();
-
-        capturedCallbacks.onTouchesDown?.(
-          createTouchEvent(200, 25),
-          stateManager,
-        );
-
-        const moveEvent = { allTouches: [] };
-        capturedCallbacks.onTouchesMove?.(moveEvent, stateManager);
-
-        expect(stateManager.fail).toHaveBeenCalled();
-      });
-
-      it('onTouchesMove returns early when gestureType is not pending_refresh', () => {
-        renderComponent({ backEnabled: true });
-        const stateManager = createStateManager();
-
-        capturedCallbacks.onTouchesDown?.(
-          createTouchEvent(10, 200),
-          stateManager,
-        );
-        expect(stateManager.activate).toHaveBeenCalled();
-
-        stateManager.activate.mockClear();
-        stateManager.fail.mockClear();
-        const moveEvent = { allTouches: [{ x: 10, y: 220 }] };
-        capturedCallbacks.onTouchesMove?.(moveEvent, stateManager);
-
-        expect(stateManager.activate).not.toHaveBeenCalled();
-        expect(stateManager.fail).not.toHaveBeenCalled();
       });
     });
 
@@ -845,25 +674,18 @@ describe('GestureWebViewWrapper', () => {
         capturedCallbacks.onFinalize?.();
       });
 
-      it('completes refresh gesture flow: touchDown -> touchesMove -> update -> end', () => {
+      it('completes refresh gesture flow: touchDown -> update -> end', () => {
         const scrollY = mockSharedValue(0);
         const isRefreshing = mockSharedValue(false);
         const onReload = jest.fn();
         renderComponent({ scrollY, isRefreshing, onReload });
         const stateManager = createStateManager();
 
-        // Touch down in pull zone (deferred)
+        // Touch down in pull zone
         capturedCallbacks.onTouchesDown?.(
           createTouchEvent(200, 25),
           stateManager,
         );
-        expect(stateManager.activate).not.toHaveBeenCalled();
-
-        // Move down to activate
-        const moveEvent = {
-          allTouches: [{ x: 200, y: 25 + PULL_MOVE_ACTIVATION + 5 }],
-        };
-        capturedCallbacks.onTouchesMove?.(moveEvent, stateManager);
         expect(stateManager.activate).toHaveBeenCalled();
 
         // Update with positive Y translation (pulling down)
@@ -922,13 +744,6 @@ describe('GestureWebViewWrapper', () => {
           createTouchEvent(200, 25),
           stateManager,
         );
-
-        // Move down to activate first
-        const moveEvent = {
-          allTouches: [{ x: 200, y: 25 + PULL_MOVE_ACTIVATION + 5 }],
-        };
-        capturedCallbacks.onTouchesMove?.(moveEvent, stateManager);
-
         capturedCallbacks.onUpdate?.(createUpdateEvent(0, 30)); // Small pull
         capturedCallbacks.onEnd?.(createEndEvent(0, 30)); // Below threshold
       });
@@ -984,11 +799,6 @@ describe('GestureWebViewWrapper', () => {
           createTouchEvent(200, 25),
           stateManager,
         );
-        // Activate via onTouchesMove first
-        const moveEvent = {
-          allTouches: [{ x: 200, y: 25 + PULL_MOVE_ACTIVATION + 5 }],
-        };
-        capturedCallbacks.onTouchesMove?.(moveEvent, stateManager);
         capturedCallbacks.onUpdate?.(createUpdateEvent(0, -10)); // Upward movement
       });
 
@@ -1002,11 +812,6 @@ describe('GestureWebViewWrapper', () => {
           createTouchEvent(200, 25),
           stateManager,
         );
-        // Activate via onTouchesMove first
-        const moveEvent = {
-          allTouches: [{ x: 200, y: 25 + PULL_MOVE_ACTIVATION + 5 }],
-        };
-        capturedCallbacks.onTouchesMove?.(moveEvent, stateManager);
         capturedCallbacks.onUpdate?.(createUpdateEvent(0, 150)); // Large pull (1.5x threshold)
       });
     });
@@ -1068,24 +873,17 @@ describe('GestureWebViewWrapper', () => {
     });
 
     describe('handleRefresh callback', () => {
-      it('executes refresh flow without errors (with deferred activation)', () => {
+      it('executes refresh flow without errors', () => {
         const scrollY = mockSharedValue(0);
         const isRefreshing = mockSharedValue(false);
         renderComponent({ scrollY, isRefreshing });
         const stateManager = createStateManager();
 
-        // Touch down in pull zone (deferred)
+        // Touch down in pull zone
         capturedCallbacks.onTouchesDown?.(
           createTouchEvent(200, 25),
           stateManager,
         );
-        expect(stateManager.activate).not.toHaveBeenCalled();
-
-        // Move down to activate
-        const moveEvent = {
-          allTouches: [{ x: 200, y: 25 + PULL_MOVE_ACTIVATION + 5 }],
-        };
-        capturedCallbacks.onTouchesMove?.(moveEvent, stateManager);
         expect(stateManager.activate).toHaveBeenCalled();
 
         // Pull down enough to trigger refresh (threshold is 80px)
@@ -1280,17 +1078,6 @@ describe('GestureWebViewWrapper constants', () => {
 
     it('uses 50 pixels as pull activation zone', () => {
       expect(PULL_ACTIVATION_ZONE).toBe(50);
-    });
-  });
-
-  describe('PULL_MOVE_ACTIVATION', () => {
-    it('returns positive pixel value for pull movement threshold', () => {
-      expect(PULL_MOVE_ACTIVATION).toBeGreaterThan(0);
-      expect(typeof PULL_MOVE_ACTIVATION).toBe('number');
-    });
-
-    it('uses 10 pixels as pull movement activation threshold', () => {
-      expect(PULL_MOVE_ACTIVATION).toBe(10);
     });
   });
 });

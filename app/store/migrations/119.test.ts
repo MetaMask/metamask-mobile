@@ -130,24 +130,23 @@ describe(`migration #${migrationVersion}`, () => {
 
     const migratedState = await migrate(oldState);
 
-    // Snap IDs are encoded: hyphens become %2D
     expect(FilesystemStorage.setItem).toHaveBeenNthCalledWith(
       1,
-      `${STORAGE_KEY_PREFIX}SnapController:mock%2Dsnap%2Did`,
+      `${STORAGE_KEY_PREFIX}SnapController:mock-snap-id`,
       '{"sourceCode":"sourceCode"}',
       true,
     );
 
     expect(FilesystemStorage.setItem).toHaveBeenNthCalledWith(
       2,
-      `${STORAGE_KEY_PREFIX}SnapController:foo%2Dsnap%2Did`,
+      `${STORAGE_KEY_PREFIX}SnapController:foo-snap-id`,
       '{"sourceCode":"sourceCode2"}',
       true,
     );
 
     expect(FilesystemStorage.setItem).toHaveBeenNthCalledWith(
       3,
-      `${STORAGE_KEY_PREFIX}SnapController:bar%2Dsnap%2Did`,
+      `${STORAGE_KEY_PREFIX}SnapController:bar-snap-id`,
       '{"sourceCode":"sourceCode3 "}',
       true,
     );
