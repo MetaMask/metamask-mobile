@@ -65,7 +65,7 @@ describe('RestoreWallet', () => {
     it('renders title text', () => {
       const { getByText } = renderWithProvider(<RestoreWallet />);
 
-      expect(getByText('Wallet restore needed')).toBeTruthy();
+      expect(getByText('Restore needed')).toBeTruthy();
     });
 
     it('renders description text', () => {
@@ -73,7 +73,7 @@ describe('RestoreWallet', () => {
 
       expect(
         getByText(
-          "Something unexpected happened. Don't worry, your wallet is safe. Sit tight while we restore it.",
+          "Something went wrong, but don't worry! Let's try to restore your wallet.",
         ),
       ).toBeTruthy();
     });
@@ -81,7 +81,7 @@ describe('RestoreWallet', () => {
     it('renders Restore button', () => {
       const { getByText } = renderWithProvider(<RestoreWallet />);
 
-      expect(getByText("Let's restore it")).toBeTruthy();
+      expect(getByText('Restore wallet')).toBeTruthy();
     });
 
     it('renders device image', () => {
@@ -110,7 +110,7 @@ describe('RestoreWallet', () => {
       });
       const { getByText } = renderWithProvider(<RestoreWallet />);
 
-      fireEvent.press(getByText("Let's restore it"));
+      fireEvent.press(getByText('Restore wallet'));
 
       await waitFor(() => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -131,7 +131,7 @@ describe('RestoreWallet', () => {
       });
       const { getByText } = renderWithProvider(<RestoreWallet />);
 
-      fireEvent.press(getByText("Let's restore it"));
+      fireEvent.press(getByText('Restore wallet'));
 
       await waitFor(() => {
         expect(EngineService.initializeVaultFromBackup).toHaveBeenCalled();
@@ -155,7 +155,7 @@ describe('RestoreWallet', () => {
         <RestoreWallet />,
       );
 
-      fireEvent.press(getByText("Let's restore it"));
+      fireEvent.press(getByText('Restore wallet'));
 
       expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
 

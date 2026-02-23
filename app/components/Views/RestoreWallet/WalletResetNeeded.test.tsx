@@ -49,9 +49,7 @@ describe('WalletResetNeeded', () => {
     it('renders title text', () => {
       const { getByText } = renderWithProvider(<WalletResetNeeded />);
 
-      expect(
-        getByText('Unable to recover your wallet automatically'),
-      ).toBeTruthy();
+      expect(getByText('New wallet needed')).toBeTruthy();
     });
 
     it('renders description text', () => {
@@ -59,7 +57,7 @@ describe('WalletResetNeeded', () => {
 
       expect(
         getByText(
-          "We couldn't recover your wallet, but you might still be able to access your funds.",
+          "Something's wrong with your wallet, and you'll need to create a new one. Because your accounts are on the blockchain, they're still safe. Only the preferences, saved networks, account names, and related data saved on your device are gone.",
         ),
       ).toBeTruthy();
     });
@@ -67,7 +65,7 @@ describe('WalletResetNeeded', () => {
     it('renders Try again button', () => {
       const { getByText } = renderWithProvider(<WalletResetNeeded />);
 
-      expect(getByText('Try again')).toBeTruthy();
+      expect(getByText('Try recovering wallet')).toBeTruthy();
     });
 
     it('renders Create new wallet button', () => {
@@ -115,7 +113,7 @@ describe('WalletResetNeeded', () => {
     it('tracks button pressed event and navigates to restore wallet using dispatch', () => {
       const { getByText } = renderWithProvider(<WalletResetNeeded />);
 
-      fireEvent.press(getByText('Try again'));
+      fireEvent.press(getByText('Try recovering wallet'));
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_TRY_AGAIN_BUTTON_PRESSED,
