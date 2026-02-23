@@ -16,7 +16,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { OrderCompletedSelectors } from './OrderCompleted.testIds';
 import MM_METAL_CARD from '../../../../../images/metal-card.png';
@@ -29,7 +30,7 @@ export interface OrderCompletedParams {
 }
 
 const OrderCompleted: React.FC = () => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { navigate } = useNavigation();
   const tw = useTailwind();
   const { fromUpgrade } = useParams<OrderCompletedParams>();

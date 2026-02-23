@@ -1,3 +1,4 @@
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../../core/Engine';
 import { findEvmAccount } from '@metamask/perps-controller';
 
@@ -33,7 +34,7 @@ export function isCacheForCurrentAccount(controller: {
     const { AccountTreeController } = Engine.context;
     const accounts =
       AccountTreeController.getAccountsFromSelectedAccountGroup();
-    const evmAccount = findEvmAccount(accounts);
+    const evmAccount = findEvmAccount(accounts as InternalAccount[]);
     if (!evmAccount?.address) return true; // Can't determine current account
     return cachedAddr.toLowerCase() === evmAccount.address.toLowerCase();
   } catch {
