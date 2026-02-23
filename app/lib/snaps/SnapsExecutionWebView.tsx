@@ -128,6 +128,113 @@ export const buildE2EProxyPatchScript = ({
               console.log('[SNAPS E2E PROXY] Failed to copy XHR properties', error);
             }
           }
+
+          try {
+            const OriginalWebSocket = targetWindow.WebSocket;
+            if (typeof OriginalWebSocket === 'function') {
+              targetWindow.WebSocket = function PatchedWebSocket(url, protocols) {
+                if (!/solana.*infura\\.io/i.test(url)) {
+                  if (protocols !== undefined) {
+                    return new OriginalWebSocket(url, protocols);
+                  }
+                  return new OriginalWebSocket(url);
+                }
+
+                console.log('[SNAPS E2E WS_MOCK] Intercepting WebSocket: ' + url);
+
+                var _listeners = {};
+                var _subIdCounter = 8648699534240963;
+
+                function dispatch(type, detail) {
+                  var evt = { type: type, data: detail, target: ws, currentTarget: ws };
+                  var arr = _listeners[type] || [];
+                  for (var i = 0; i < arr.length; i++) {
+                    try { arr[i](evt); } catch (e) {}
+                  }
+                  if (typeof ws['on' + type] === 'function') {
+                    try { ws['on' + type](evt); } catch (e) {}
+                  }
+                }
+
+                var ws = {
+                  url: url,
+                  readyState: 0,
+                  protocol: '',
+                  extensions: '',
+                  bufferedAmount: 0,
+                  binaryType: 'blob',
+                  CONNECTING: 0, OPEN: 1, CLOSING: 2, CLOSED: 3,
+                  onopen: null, onclose: null, onmessage: null, onerror: null,
+                  addEventListener: function(type, fn) {
+                    if (!_listeners[type]) _listeners[type] = [];
+                    _listeners[type].push(fn);
+                  },
+                  removeEventListener: function(type, fn) {
+                    if (_listeners[type]) {
+                      _listeners[type] = _listeners[type].filter(function(l) { return l !== fn; });
+                    }
+                  },
+                  dispatchEvent: function(evt) { dispatch(evt.type, evt.data); return true; },
+                  send: function(data) {
+                    try {
+                      var msg = JSON.parse(data);
+                      var method = msg.method;
+                      var reqId = msg.id;
+                      console.log('[SNAPS E2E WS_MOCK] WS send: method=' + method + ' id=' + reqId);
+
+                      if (method === 'signatureSubscribe') {
+                        var subId = _subIdCounter++;
+                        setTimeout(function() {
+                          dispatch('message', JSON.stringify({ jsonrpc: '2.0', result: subId, id: reqId }));
+                        }, 300);
+                        setTimeout(function() {
+                          dispatch('message', JSON.stringify({
+                            jsonrpc: '2.0',
+                            method: 'signatureNotification',
+                            params: {
+                              result: { context: { slot: 342840492 }, value: { err: null } },
+                              subscription: subId,
+                            },
+                          }));
+                        }, 1500);
+                      } else if (method === 'accountSubscribe' || method === 'programSubscribe') {
+                        var subId2 = _subIdCounter++;
+                        setTimeout(function() {
+                          dispatch('message', JSON.stringify({ jsonrpc: '2.0', result: subId2, id: reqId }));
+                        }, 300);
+                      } else if (reqId !== undefined) {
+                        setTimeout(function() {
+                          dispatch('message', JSON.stringify({ jsonrpc: '2.0', result: true, id: reqId }));
+                        }, 300);
+                      }
+                    } catch (e) {
+                      console.log('[SNAPS E2E WS_MOCK] send error: ' + e.message);
+                    }
+                  },
+                  close: function() {
+                    ws.readyState = 3;
+                    dispatch('close', undefined);
+                  },
+                };
+
+                setTimeout(function() {
+                  ws.readyState = 1;
+                  dispatch('open', undefined);
+                }, 100);
+
+                return ws;
+              };
+              try {
+                Object.setPrototypeOf(targetWindow.WebSocket, OriginalWebSocket);
+                targetWindow.WebSocket.CONNECTING = 0;
+                targetWindow.WebSocket.OPEN = 1;
+                targetWindow.WebSocket.CLOSING = 2;
+                targetWindow.WebSocket.CLOSED = 3;
+              } catch (e) {}
+            }
+          } catch (wsError) {
+            console.log('[SNAPS E2E WS_MOCK] WebSocket patch failed: ' + wsError.message);
+          }
         };
 
         const patchIframeElement = (iframe) => {

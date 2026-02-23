@@ -81,7 +81,7 @@ describe(SmokeTrade('Swap on Solana'), () => {
     jest.setTimeout(240000);
   });
 
-  it.only('completes SOL to USDC swap with mocked Solana tx execution', async () => {
+  it('completes SOL to USDC swap with mocked Solana tx execution', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -91,7 +91,6 @@ describe(SmokeTrade('Swap on Solana'), () => {
       async () => {
         await loginToApp();
         await device.disableSynchronization();
-
         await openSwapFromSolanaToken();
         await selectDestinationTokenOnSolana(USDC_SYMBOL);
         await setSourceAmount('1');

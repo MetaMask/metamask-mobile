@@ -2,6 +2,9 @@ import { Mockttp } from 'mockttp';
 import { TestSpecificMock } from '../../framework';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
+const BRIDGE_TX_STATUS_URL_REGEX =
+  /^https:\/\/bridge\.(api|dev-api)\.cx\.metamask\.io\/getTxStatus/i;
+
 const SOLANA_CHAIN_ID = 1151111081099710;
 const SOLANA_CAIP = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 const SOLANA_RPC_URL_REGEX =
@@ -12,9 +15,10 @@ const SECURITY_ALERTS_SOLANA_SWAP_URL_REGEX =
 const SOLANA_SWAP_SIGNATURE =
   '2m8z8uPZyoZwQpissDbhSfW5XDTFmpc7cSFithc5e1w8iCwFcvVkxHeaVhgFSdgUPb5cebbKGjuu48JMLPjfEATr';
 
-// Real serialized trade payload from extension Solana swap mocks.
+// Serialized trade payload with fee payer set to mobile test wallet (CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd).
+// Based on extension's Solana swap mock trade, re-encoded with the mobile fixture account as fee payer (static account key 0).
 const SOLANA_SWAP_TRADE_B64 =
-  'AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAFCTmygAPBLRe3kUHSV8mUto3dI7jXb1Ec0ljkAzmT+/9X6jvO1TG5marlA0p7CAy19kIAOiRh/g7lgPr5va20zjPKjOfUDZs+r0xrnU9RhdULXG0GslfAdb6VzLrDvHYsty5AEdneOs48d43qxNCcoYWjVItgsopQRMMI+vGRP94ZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAAoPQ3SgjVP7wrjsOIn03zYnKJm+xfd+PfLfM775OvcVd7TKbS7j3uPy12fc9IgbDFO3W+/9IjTapzlv884ileDteNKFOK8c0hpDuH1r13u1lU4QKNtqrhgsFBgc73APBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPIhbUg9Dagd9kbUso7TAyLLKvv3R6gyTY0Vh4+4cEfNBgQACQOghgEAAAAAAAQABQJ/GgYABQIPBgkAs3QYo39Z6gAHBgABEBESCBAvPpusg80lyVBGFTsAAAAABxwREggAEwcUFQcHAAECEBYUFwwNDg8YFwkKCw8YhQH4xp6R4XWHyAIAAAAlc2nez8aRUOkdj/hBG8ul3jVlousziZMLDcbPOcuzdappXA1qcDzSNL8MAanx41Ji758zFH9Oqugz01qvQFjCAc/r9hYAAAAAuQAAAB8CAAAAA6GU/rAOQizbAyp2zrsCHROKUEYVOwAAAAAD1Q8pCAAAAAAyAAAACAIAAwwCAAAAsIOFAAAAAAADpYT8M/1YgEevM7B7IxKo7BojNrNZru8plWwhku8NV3UACgRiBggMAgdjQrH47VuAcecxlOIwYH4dYzC0X6Dp6hla+BgRRf1xr1LFewPo7OsAU0uKZnzlsA9HVI6xTTDnh5e7UxZgNF2N+CgMgVgPvHoD6uvtAA==';
+  'AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAFCabfQGKLeFzC5i9tUg4HLIIV1Pa2+kJ8c2cENe2frl1q6jvO1TG5marlA0p7CAy19kIAOiRh/g7lgPr5va20zjPKjOfUDZs+r0xrnU9RhdULXG0GslfAdb6VzLrDvHYsty5AEdneOs48d43qxNCcoYWjVItgsopQRMMI+vGRP94ZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAAoPQ3SgjVP7wrjsOIn03zYnKJm+xfd+PfLfM775OvcVd7TKbS7j3uPy12fc9IgbDFO3W+/9IjTapzlv884ileDteNKFOK8c0hpDuH1r13u1lU4QKNtqrhgsFBgc73APBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPIhbUg9Dagd9kbUso7TAyLLKvv3R6gyTY0Vh4+4cEfNBgQACQOghgEAAAAAAAQABQJ/GgYABQIPBgkAs3QYo39Z6gAHBgABEBESCBAvPpusg80lyVBGFTsAAAAABxwREggAEwcUFQcHAAECEBYUFwwNDg8YFwkKCw8YhQH4xp6R4XWHyAIAAAAlc2nez8aRUOkdj/hBG8ul3jVlousziZMLDcbPOcuzdappXA1qcDzSNL8MAanx41Ji758zFH9Oqugz01qvQFjCAc/r9hYAAAAAuQAAAB8CAAAAA6GU/rAOQizbAyp2zrsCHROKUEYVOwAAAAAD1Q8pCAAAAAAyAAAACAIAAwwCAAAAsIOFAAAAAAADpYT8M/1YgEevM7B7IxKo7BojNrNZru8plWwhku8NV3UACgRiBggMAgdjQrH47VuAcecxlOIwYH4dYzC0X6Dp6hla+BgRRf1xr1LFewPo7OsAU0uKZnzlsA9HVI6xTTDnh5e7UxZgNF2N+CgMgVgPvHoD6uvtAA==';
 
 const SOLANA_TOKENS_RESPONSE = [
   {
@@ -94,8 +98,8 @@ const quoteSolToUsdcResponse = [
       destTokenAmount: '136908757',
       minDestTokenAmount: '136224213',
       destAsset: SOLANA_TOKENS_RESPONSE[2],
-      walletAddress: '4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer',
-      destWalletAddress: '4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer',
+      walletAddress: 'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd',
+      destWalletAddress: 'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd',
       feeData: {
         metabridge: {
           amount: '8750000',
@@ -149,8 +153,8 @@ const quoteUsdcToSolResponse = [
       destTokenAmount: '5836864',
       minDestTokenAmount: '5807689',
       destAsset: SOLANA_TOKENS_RESPONSE[0],
-      walletAddress: '4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer',
-      destWalletAddress: '4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer',
+      walletAddress: 'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd',
+      destWalletAddress: 'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd',
       feeData: {
         metabridge: {
           amount: '8750',
@@ -222,7 +226,7 @@ const buildSuccessfulTransactionResponse = (signature: string) =>
     slot: 343287088,
     transaction: {
       message: {
-        accountKeys: ['4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer'],
+        accountKeys: ['CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd'],
         header: {
           numReadonlySignedAccounts: 0,
           numReadonlyUnsignedAccounts: 0,
@@ -235,6 +239,86 @@ const buildSuccessfulTransactionResponse = (signature: string) =>
     },
     version: 0,
   });
+
+const SOL_TOKEN_INFO = {
+  address: '0x0000000000000000000000000000000000000000',
+  chainId: SOLANA_CHAIN_ID,
+  symbol: 'SOL',
+  decimals: 9,
+  name: 'SOL',
+  coinKey: 'SOL',
+  logoURI: '',
+  priceUSD: '168.88',
+};
+
+const USDC_TOKEN_INFO = {
+  address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  chainId: SOLANA_CHAIN_ID,
+  symbol: 'USDC',
+  decimals: 6,
+  name: 'USD Coin',
+  coinKey: 'USDC',
+  logoURI: '',
+  priceUSD: '1.0',
+};
+
+const buildBridgeTxStatusResponse = (
+  direction: 'sol-to-usdc' | 'usdc-to-sol',
+) => {
+  const isSolToUsdc = direction === 'sol-to-usdc';
+  return {
+    status: 'COMPLETE',
+    isExpectedToken: true,
+    bridge: 'lifi',
+    srcChain: {
+      chainId: SOLANA_CHAIN_ID,
+      txHash: SOLANA_SWAP_SIGNATURE,
+      amount: isSolToUsdc ? '1000000000' : '991250',
+      token: isSolToUsdc ? SOL_TOKEN_INFO : USDC_TOKEN_INFO,
+    },
+    destChain: {
+      chainId: SOLANA_CHAIN_ID,
+      txHash: '',
+      amount: isSolToUsdc ? '136908757' : '5836864',
+      token: isSolToUsdc ? USDC_TOKEN_INFO : SOL_TOKEN_INFO,
+    },
+  };
+};
+
+const NUM_ALT_ADDRESSES = 247;
+const buildAltAddresses = () => {
+  const addresses: string[] = [];
+  for (let i = 0; i < NUM_ALT_ADDRESSES; i++) {
+    const buf = Buffer.alloc(32);
+    buf[0] = (i + 1) % 256;
+    buf[1] = Math.floor((i + 1) / 256) % 256;
+    buf[31] = 1;
+    addresses.push(buf.toString('base64'));
+  }
+  return addresses;
+};
+
+const ALT_ACCOUNT_ENTRY = {
+  data: {
+    parsed: {
+      info: {
+        addresses: buildAltAddresses(),
+        authority: '9RAufBfjGQjDfrwxeyKmZWPADHSb8HcoqCdrmpqvCr1g',
+        deactivationSlot: '18446744073709551615',
+        lastExtendedSlot: '330440295',
+        lastExtendedSlotStartIndex: 0,
+      },
+      type: 'lookupTable',
+    },
+    program: 'address-lookup-table',
+    space: 56 + NUM_ALT_ADDRESSES * 32,
+  },
+  executable: false,
+  lamports: 58296960,
+  owner: 'AddressLookupTab1e1111111111111111111111111',
+  rentEpoch: '18446744073709551615',
+  space: 56 + NUM_ALT_ADDRESSES * 32,
+};
 
 export type SolanaSwapScenario = 'sol-to-usdc' | 'usdc-to-sol' | 'no-quotes';
 
@@ -313,6 +397,15 @@ export const buildSolanaSwapTestSpecificMock =
       responseCode: 200,
     });
 
+    if (scenario !== 'no-quotes') {
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: BRIDGE_TX_STATUS_URL_REGEX,
+        response: buildBridgeTxStatusResponse(scenario),
+        responseCode: 200,
+      });
+    }
+
     const solanaRpcCorsHeaders = {
       'access-control-allow-origin': '*',
       'access-control-allow-methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
@@ -320,6 +413,7 @@ export const buildSolanaSwapTestSpecificMock =
     };
 
     let transactionSubmitted = false;
+    let actualSwapSignature = SOLANA_SWAP_SIGNATURE;
 
     await mockServer
       .forPost('/proxy')
@@ -411,7 +505,7 @@ export const buildSolanaSwapTestSpecificMock =
                       confirmationStatus: 'finalized',
                       err: null,
                       memo: null,
-                      signature: SOLANA_SWAP_SIGNATURE,
+                      signature: actualSwapSignature,
                       slot: 342840492,
                     },
                   ],
@@ -419,11 +513,27 @@ export const buildSolanaSwapTestSpecificMock =
                 )
               : buildJsonRpcResponse([], id);
             break;
-          case 'getTransaction':
-            rpcResponse = buildSuccessfulTransactionResponse(
-              SOLANA_SWAP_SIGNATURE,
-            );
+          case 'getTransaction': {
+            const txParams =
+              typeof requestBody === 'object' &&
+              requestBody !== null &&
+              'params' in requestBody
+                ? (requestBody as { params?: unknown[] }).params
+                : undefined;
+            const queriedSig =
+              Array.isArray(txParams) && typeof txParams[0] === 'string'
+                ? txParams[0]
+                : actualSwapSignature;
+            if (transactionSubmitted && queriedSig !== SOLANA_SWAP_SIGNATURE) {
+              actualSwapSignature = queriedSig;
+              // eslint-disable-next-line no-console
+              console.log(
+                `[SOLANA_RPC_MOCK] Captured actual swap signature: ${queriedSig.slice(0, 20)}...`,
+              );
+            }
+            rpcResponse = buildSuccessfulTransactionResponse(queriedSig);
             break;
+          }
           case 'getTokenAccountsByOwner':
             rpcResponse = buildJsonRpcResponse(
               {
@@ -437,7 +547,7 @@ export const buildSolanaSwapTestSpecificMock =
                             isNative: false,
                             mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
                             owner:
-                              '4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer',
+                              'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd',
                             state: 'initialized',
                             tokenAmount: {
                               amount: '12660400',
@@ -480,15 +590,23 @@ export const buildSolanaSwapTestSpecificMock =
               id,
             );
             break;
-          case 'getMultipleAccounts':
+          case 'getMultipleAccounts': {
+            const params =
+              typeof requestBody === 'object' &&
+              requestBody !== null &&
+              'params' in requestBody
+                ? (requestBody as { params?: [string[]] }).params
+                : undefined;
+            const requestedAccounts = params?.[0] ?? [];
             rpcResponse = buildJsonRpcResponse(
               {
                 context: { apiVersion: '2.1.21', slot: 341693911 },
-                value: [],
+                value: requestedAccounts.map(() => ALT_ACCOUNT_ENTRY),
               },
               id,
             );
             break;
+          }
           default:
             rpcResponse = buildJsonRpcResponse(null, id);
             break;

@@ -21,6 +21,8 @@ export const ALLOWLISTED_HOSTS = [
   'mainnet.infura.io',
   'linea-sepolia.infura.io',
   'linea-mainnet.infura.io',
+  'tron-mainnet.infura.io',
+  'tokens.api.cx.metamask.io',
 ];
 
 export const ALLOWLISTED_URLS = [
@@ -54,4 +56,5 @@ export const ALLOWLISTED_URLS = [
   'https://price.api.cx.metamask.io/v1/exchange-rates?baseCurrency=usd',
   'https://api.hyperliquid.xyz/exchange',
   'https://api.hyperliquid.xyz/info',
+  'https://price.api.cx.metamask.io/v1/spot-prices/bitcoin?vsCurrency=usd',
 ];
