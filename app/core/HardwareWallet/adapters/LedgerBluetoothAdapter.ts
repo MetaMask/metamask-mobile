@@ -19,6 +19,7 @@ import {
   openEthereumAppOnLedger,
   closeRunningAppOnLedger,
 } from '../../Ledger/Ledger';
+import { isDisconnectError } from '../../Ledger/ledgerErrors';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 const DEVICE_LOCKED_STATUS_CODE = 0x6b0c;
@@ -337,10 +338,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       try {
         return await this.#doEnsureDeviceReady(deviceId);
       } catch (error) {
-        if (
-          this.#isDisconnectError(error) &&
-          attempt < MAX_DISCONNECT_RETRIES
-        ) {
+        if (isDisconnectError(error) && attempt < MAX_DISCONNECT_RETRIES) {
           DevLogger.log(
             `[LedgerBluetoothAdapter] Disconnect during check (attempt ${attempt}/${MAX_DISCONNECT_RETRIES}), retrying...`,
           );
@@ -433,7 +431,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         verifyError,
       );
 
-      if (this.#isDisconnectError(verifyError)) {
+      if (isDisconnectError(verifyError)) {
         throw verifyError;
       }
 
@@ -638,17 +636,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         );
       }
     }
-  }
-
-  /**
-   * Check if error indicates a Ledger transport disconnect (so caller can retry).
-   */
-  #isDisconnectError(error: unknown): boolean {
-    return (
-      error instanceof Error &&
-      (error.name === 'DisconnectedDevice' ||
-        error.name === 'DisconnectedDeviceDuringOperation')
-    );
   }
 
   /**

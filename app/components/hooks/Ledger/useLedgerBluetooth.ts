@@ -11,6 +11,7 @@ import {
   LedgerCommunicationErrors,
   isEthAppNotOpenStatusCode,
   isEthAppNotOpenErrorMessage,
+  isDisconnectError,
 } from '../../../core/Ledger/ledgerErrors';
 
 class LedgerError extends Error {
@@ -32,18 +33,9 @@ interface UseLedgerBluetoothHook {
   cleanupBluetoothConnection: () => void;
 }
 
+export { isDisconnectError };
+
 const RESTART_LIMIT = 5;
-
-const DISCONNECT_ERROR_NAMES = [
-  'DisconnectedDeviceDuringOperation',
-  'DisconnectedDevice',
-];
-
-export const isDisconnectError = (e: unknown): boolean =>
-  e !== null &&
-  typeof e === 'object' &&
-  'name' in e &&
-  DISCONNECT_ERROR_NAMES.includes((e as { name: string }).name);
 
 // Assumptions
 // 1. One big code block - logic all encapsulated in logicToRun
@@ -58,10 +50,8 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
 
   const transportRef = useRef<BluetoothInterface>();
   const restartConnectionState = useRef<{
-    shouldRestartConnection: boolean;
     restartCount: number;
   }>({
-    shouldRestartConnection: false,
     restartCount: 0,
   });
 
@@ -73,7 +63,6 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
 
   const resetConnectionState = () => {
     restartConnectionState.current.restartCount = 0;
-    restartConnectionState.current.shouldRestartConnection = false;
     workflowSteps.current = [];
     setIsSendingLedgerCommands(false);
   };
@@ -113,28 +102,6 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
             return;
           }
 
-          // Restart connection if more code is to be run
-          if (
-            workflowSteps.current.length > 0 &&
-            restartConnectionState.current.restartCount < RESTART_LIMIT &&
-            restartConnectionState.current.shouldRestartConnection
-          ) {
-            restartConnectionState.current.restartCount += 1;
-
-            const funcAfterDisconnect = workflowSteps.current.pop();
-            if (!funcAfterDisconnect) {
-              return setLedgerError(LedgerCommunicationErrors.UnknownError);
-            }
-
-            return funcAfterDisconnect();
-          }
-
-          // In case we somehow end up in an infinite loop or bluetooth connection is faulty
-          if (restartConnectionState.current.restartCount === RESTART_LIMIT) {
-            setLedgerError(LedgerCommunicationErrors.LedgerDisconnected);
-          }
-
-          // Reset all connection states
           resetConnectionState();
         });
 
