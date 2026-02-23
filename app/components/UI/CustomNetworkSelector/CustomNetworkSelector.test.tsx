@@ -120,13 +120,6 @@ jest.mock('../../../selectors/networkController', () => ({
   createProviderConfig: jest.fn(),
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(),
-  }),
-);
-
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   Provider: jest.requireActual('react-redux').Provider,
