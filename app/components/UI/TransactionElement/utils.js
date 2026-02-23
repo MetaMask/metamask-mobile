@@ -287,7 +287,7 @@ function getPostQuoteDisplay(tx, currentCurrency) {
     destRate && nativeUsdRate ? fiatUsd * (destRate / nativeUsdRate) : fiatUsd;
 
   return {
-    value: `${receivedAmount.toPrecision(4)} ${destSymbol}`,
+    value: `${receivedAmount >= 1 ? receivedAmount.toFixed(2) : receivedAmount.toPrecision(4)} ${destSymbol}`,
     fiatValue: addCurrencySymbol(userFiat.toFixed(2), currentCurrency),
   };
 }
