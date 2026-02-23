@@ -16,12 +16,7 @@ import { isTestNet } from '../../../../util/networks';
 import { store } from '../../../../store';
 import { selectGasFeeTokenFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
-import {
-  getNativeTokenAddress,
-  TokenListState,
-} from '@metamask/assets-controllers';
-import { isNativeAddress } from '@metamask/bridge-controller';
-import { NetworkConfiguration } from '@metamask/network-controller';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
 
@@ -162,109 +157,6 @@ export function getAvailableTokens({
         isSelected,
       };
     });
-}
-
-export interface BuildAllowlistDeps {
-  tokensChainsCache?: TokenListState['tokensChainsCache'];
-  networkConfigs?: Record<string, NetworkConfiguration>;
-}
-
-function findHeldToken(
-  heldByKey: Map<string, AssetType>,
-  chainId: string,
-  address: string,
-  nativeTokenAddress: Hex,
-): AssetType | undefined {
-  const chainLower = chainId.toLowerCase();
-  const addrLower = address.toLowerCase();
-
-  const direct = heldByKey.get(`${chainLower}:${addrLower}`);
-  if (direct) {
-    return direct;
-  }
-
-  // Native token in the allowlist may use 0x000...000 while held tokens use
-  // the chain-specific native address (e.g. 0x...1010 on Polygon).
-  if (isNativeAddress(address)) {
-    return heldByKey.get(`${chainLower}:${nativeTokenAddress.toLowerCase()}`);
-  }
-
-  return undefined;
-}
-
-/**
- * Builds a token list from an allowlist, using held tokens when available and
- * falling back to the token catalog for tokens the user doesn't hold.
- * Native tokens (0x000...000) are resolved via getNativeTokenAddress and
- * network config metadata.
- */
-export function buildAllowlistTokens(
-  heldTokens: AssetType[],
-  allowlist: Record<Hex, Hex[]>,
-  deps: BuildAllowlistDeps,
-): AssetType[] {
-  const heldByKey = new Map<string, AssetType>();
-  for (const token of heldTokens) {
-    if (!token.address || !token.chainId) {
-      continue;
-    }
-    const key = `${(token.chainId as string).toLowerCase()}:${token.address.toLowerCase()}`;
-    heldByKey.set(key, token);
-  }
-
-  const result: AssetType[] = [];
-
-  for (const [chainId, addresses] of Object.entries(allowlist)) {
-    const cacheData = deps.tokensChainsCache?.[chainId as Hex]?.data;
-    const nativeAddr = getNativeTokenAddress(chainId as Hex);
-
-    for (const address of addresses) {
-      const held = findHeldToken(heldByKey, chainId, address, nativeAddr);
-
-      if (held) {
-        result.push(held);
-        continue;
-      }
-
-      if (isNativeAddress(address)) {
-        const networkConfig = deps.networkConfigs?.[chainId];
-        if (networkConfig) {
-          result.push({
-            address: nativeAddr,
-            chainId: chainId as Hex,
-            name: networkConfig.nativeCurrency,
-            symbol: networkConfig.nativeCurrency,
-            decimals: 18,
-            image: '',
-            logo: undefined,
-            balance: '0',
-            isETH: networkConfig.nativeCurrency === 'ETH',
-            isNative: true,
-            standard: TokenStandard.ERC20,
-          } as AssetType);
-        }
-        continue;
-      }
-
-      const catalogEntry = cacheData?.[address.toLowerCase()];
-      if (catalogEntry) {
-        result.push({
-          address: catalogEntry.address,
-          chainId: chainId as Hex,
-          name: catalogEntry.name,
-          symbol: catalogEntry.symbol,
-          decimals: catalogEntry.decimals,
-          image: catalogEntry.iconUrl,
-          logo: catalogEntry.iconUrl,
-          balance: '0',
-          isETH: false,
-          standard: TokenStandard.ERC20,
-        } as AssetType);
-      }
-    }
-  }
-
-  return result;
 }
 
 function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {

@@ -8,6 +8,9 @@ import { otherControllersMock } from '../../__mocks__/controllers/other-controll
 import { TransactionType } from '@metamask/transaction-controller';
 import { AssetType, TokenStandard } from '../../types/token';
 import { EthAccountType } from '@metamask/keyring-api';
+import { useSendTokens } from '../send/useSendTokens';
+
+jest.mock('../send/useSendTokens');
 
 const STATE_MOCK = merge(
   {},
@@ -16,7 +19,7 @@ const STATE_MOCK = merge(
   otherControllersMock,
 ) as unknown as RootState;
 
-const TOKENS_MOCK = [
+const ALL_TOKENS_MOCK = [
   {
     accountType: EthAccountType.Eoa,
     address: '0xaaa',
@@ -50,46 +53,40 @@ const TOKENS_MOCK = [
     standard: TokenStandard.ERC20,
     symbol: 'TKNC',
   },
+  {
+    accountType: EthAccountType.Eoa,
+    address: '0xDDD',
+    balance: '0',
+    balanceInSelectedCurrency: '$0.00',
+    chainId: '0x1',
+    decimals: 18,
+    name: 'Catalog Token',
+    standard: TokenStandard.ERC20,
+    symbol: 'CTK',
+  },
+  {
+    accountType: EthAccountType.Eoa,
+    address: '0x0000000000000000000000000000000000000000',
+    balance: '0',
+    balanceInSelectedCurrency: '$0.00',
+    chainId: '0x1',
+    decimals: 18,
+    name: 'Ether',
+    standard: TokenStandard.ERC20,
+    symbol: 'ETH',
+    isNative: true,
+    isETH: true,
+  },
 ] as AssetType[];
 
-const TOKEN_CATALOG_MOCK = {
-  '0x1': {
-    timestamp: 0,
-    data: {
-      '0xddd': {
-        name: 'Catalog Token',
-        symbol: 'CTK',
-        decimals: 18,
-        address: '0xDDD',
-        iconUrl: 'https://example.com/ctk.png',
-        occurrences: 1,
-        aggregators: [],
-      },
-    },
-  },
-};
-
-const NETWORK_CONFIGS_MOCK = {
-  '0x1': {
-    chainId: '0x1',
-    name: 'Ethereum Mainnet',
-    nativeCurrency: 'ETH',
-    rpcEndpoints: [],
-    defaultRpcEndpointIndex: 0,
-    blockExplorerUrls: [],
-  },
-};
+const mockUseSendTokens = jest.mocked(useSendTokens);
 
 function runHook({
   type,
   postQuoteFlags,
-  tokensChainsCache,
-  networkConfigs,
 }: {
   type?: TransactionType;
   postQuoteFlags?: Record<string, unknown>;
-  tokensChainsCache?: Record<string, unknown>;
-  networkConfigs?: Record<string, unknown>;
 } = {}) {
   const mockState = cloneDeep(STATE_MOCK);
 
@@ -107,32 +104,23 @@ function runHook({
     },
   } as never;
 
-  if (tokensChainsCache) {
-    mockState.engine.backgroundState.TokenListController = {
-      ...mockState.engine.backgroundState.TokenListController,
-      tokensChainsCache,
-    } as never;
-  }
-
-  if (networkConfigs) {
-    mockState.engine.backgroundState.NetworkController = {
-      ...mockState.engine.backgroundState.NetworkController,
-      networkConfigurationsByChainId: networkConfigs,
-    } as never;
-  }
-
   return renderHookWithProvider(useWithdrawTokenFilter, {
     state: mockState,
   });
 }
 
 describe('useWithdrawTokenFilter', () => {
-  it('returns tokens unchanged for non-withdraw transaction types', () => {
-    const { result } = runHook({ type: TransactionType.simpleSend });
-    expect(result.current(TOKENS_MOCK)).toBe(TOKENS_MOCK);
+  beforeEach(() => {
+    mockUseSendTokens.mockReturnValue(ALL_TOKENS_MOCK);
   });
 
-  it('returns tokens unchanged when no allowlist is configured', () => {
+  it('returns passed-in tokens unchanged for non-withdraw transaction types', () => {
+    const { result } = runHook({ type: TransactionType.simpleSend });
+    const input = [ALL_TOKENS_MOCK[0]];
+    expect(result.current(input)).toBe(input);
+  });
+
+  it('returns passed-in tokens unchanged when no allowlist is configured', () => {
     const { result } = runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {
@@ -140,10 +128,11 @@ describe('useWithdrawTokenFilter', () => {
       },
     });
 
-    expect(result.current(TOKENS_MOCK)).toBe(TOKENS_MOCK);
+    const input = [ALL_TOKENS_MOCK[0]];
+    expect(result.current(input)).toBe(input);
   });
 
-  it('returns held tokens that match the allowlist', () => {
+  it('filters useSendTokens result to only those matching the allowlist', () => {
     const { result } = runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {
@@ -154,14 +143,14 @@ describe('useWithdrawTokenFilter', () => {
       },
     });
 
-    const filtered = result.current(TOKENS_MOCK);
+    const filtered = result.current([]);
 
     expect(filtered).toHaveLength(1);
     expect(filtered[0].address).toBe('0xaaa');
     expect(filtered[0].balance).toBe('1.0');
   });
 
-  it('includes tokens from the catalog that the user does not hold', () => {
+  it('includes zero-balance tokens from useSendTokens that match the allowlist', () => {
     const { result } = runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {
@@ -170,16 +159,14 @@ describe('useWithdrawTokenFilter', () => {
           tokens: { '0x1': ['0xaaa', '0xddd'] },
         },
       },
-      tokensChainsCache: TOKEN_CATALOG_MOCK,
     });
 
-    const filtered = result.current(TOKENS_MOCK);
+    const filtered = result.current([]);
 
     expect(filtered).toHaveLength(2);
     expect(filtered[0].address).toBe('0xaaa');
     expect(filtered[1].address).toBe('0xDDD');
     expect(filtered[1].name).toBe('Catalog Token');
-    expect(filtered[1].symbol).toBe('CTK');
     expect(filtered[1].balance).toBe('0');
   });
 
@@ -191,7 +178,7 @@ describe('useWithdrawTokenFilter', () => {
           enabled: true,
           tokens: { '0x1': ['0xaaa'] },
         },
-        override: {
+        overrides: {
           predictWithdraw: {
             enabled: true,
             tokens: { '0x1': ['0xbbb'] },
@@ -200,7 +187,7 @@ describe('useWithdrawTokenFilter', () => {
       },
     });
 
-    const filtered = result.current(TOKENS_MOCK);
+    const filtered = result.current([]);
 
     expect(filtered).toHaveLength(1);
     expect(filtered[0].address).toBe('0xbbb');
@@ -214,7 +201,7 @@ describe('useWithdrawTokenFilter', () => {
           enabled: true,
           tokens: { '0x1': ['0xaaa'], '0x89': ['0xccc'] },
         },
-        override: {
+        overrides: {
           predictWithdraw: {
             enabled: true,
             tokens: { '0x89': ['0xccc'] },
@@ -223,7 +210,7 @@ describe('useWithdrawTokenFilter', () => {
       },
     });
 
-    const filtered = result.current(TOKENS_MOCK);
+    const filtered = result.current([]);
 
     expect(filtered).toHaveLength(1);
     expect(filtered[0].address).toBe('0xccc');
@@ -238,25 +225,19 @@ describe('useWithdrawTokenFilter', () => {
           enabled: true,
           tokens: { '0x1': ['0xaaa'] },
         },
-        override: {
+        overrides: {
           predictWithdraw: { enabled: false },
         },
       },
     });
 
-    const filtered = result.current(TOKENS_MOCK);
+    const filtered = result.current([]);
 
     expect(filtered).toHaveLength(1);
     expect(filtered[0].address).toBe('0xaaa');
   });
 
-  it('returns an empty array unchanged', () => {
-    const { result } = runHook({ type: TransactionType.predictWithdraw });
-    const empty: AssetType[] = [];
-    expect(result.current(empty)).toBe(empty);
-  });
-
-  it('includes native token from network config when not held by user', () => {
+  it('matches native token via zero address in allowlist', () => {
     const { result } = runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {
@@ -267,19 +248,17 @@ describe('useWithdrawTokenFilter', () => {
           },
         },
       },
-      networkConfigs: NETWORK_CONFIGS_MOCK,
     });
 
-    const filtered = result.current(TOKENS_MOCK);
+    const filtered = result.current([]);
 
     expect(filtered).toHaveLength(2);
-    expect(filtered[0].symbol).toBe('ETH');
-    expect(filtered[0].isNative).toBe(true);
-    expect(filtered[0].balance).toBe('0');
-    expect(filtered[1].address).toBe('0xaaa');
+    expect(filtered[0].address).toBe('0xaaa');
+    expect(filtered[1].isNative).toBe(true);
+    expect(filtered[1].symbol).toBe('ETH');
   });
 
-  it('skips allowlisted tokens not in catalog and not held by user', () => {
+  it('excludes tokens not in allowlist', () => {
     const { result } = runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {
@@ -290,9 +269,39 @@ describe('useWithdrawTokenFilter', () => {
       },
     });
 
-    const filtered = result.current(TOKENS_MOCK);
+    const filtered = result.current([]);
 
     expect(filtered).toHaveLength(1);
     expect(filtered[0].address).toBe('0xaaa');
+  });
+
+  it('matches chain ID case-insensitively', () => {
+    const { result } = runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: {
+          enabled: true,
+          tokens: { '0x89': ['0xccc'] },
+        },
+      },
+    });
+
+    const filtered = result.current([]);
+
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].address).toBe('0xccc');
+  });
+
+  it('calls useSendTokens with includeNoBalance true', () => {
+    runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: { enabled: true, tokens: { '0x1': ['0xaaa'] } },
+      },
+    });
+
+    expect(mockUseSendTokens).toHaveBeenCalledWith({
+      includeNoBalance: true,
+    });
   });
 });
