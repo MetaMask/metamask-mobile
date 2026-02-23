@@ -127,11 +127,15 @@ const RevealPrivateCredential = ({
 
   useEffect(() => {
     if (Device.isAndroid()) {
-      Device.getDeviceAPILevel().then((apiLevel) => {
-        setClipboardEnabled(
-          apiLevel >= AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL,
-        );
-      });
+      Device.getDeviceAPILevel()
+        .then((apiLevel) => {
+          setClipboardEnabled(
+            apiLevel >= AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL,
+          );
+        })
+        .catch(() => {
+          setClipboardEnabled(true);
+        });
     } else {
       setClipboardEnabled(true);
     }
@@ -168,13 +172,17 @@ const RevealPrivateCredential = ({
   }, [trackEvent, createEventBuilder, navigateBack]);
 
   const handleLearnMoreClick = useCallback(() => {
-    navigation?.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: SRP_GUIDE_URL,
-      },
-    });
-  }, [navigation]);
+    if (hasNavigation) {
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          url: SRP_GUIDE_URL,
+        },
+      });
+    } else {
+      Linking.openURL(SRP_GUIDE_URL);
+    }
+  }, [hasNavigation, navigation]);
 
   const onTabBarChange = useCallback(
     (event: { i: number }) => {

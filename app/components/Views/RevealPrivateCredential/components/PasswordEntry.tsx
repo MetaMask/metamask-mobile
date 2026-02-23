@@ -34,7 +34,7 @@ const PasswordEntry = ({
         keyboardAppearance={themeAppearance}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
         returnKeyType="done"
-        autoComplete="new-password"
+        autoComplete="password"
         endAccessory={
           <ButtonIcon
             iconName={showPassword ? IconName.Eye : IconName.EyeSlash}

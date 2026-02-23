@@ -1208,6 +1208,45 @@ describe('RevealPrivateCredential', () => {
         ).not.toBeNull();
       });
     });
+
+    it('enables clipboard when getDeviceAPILevel rejects on Android', async () => {
+      (Device.isAndroid as jest.Mock).mockReturnValue(true);
+      (Device.getDeviceAPILevel as jest.Mock).mockRejectedValue(
+        new Error('Native module failure'),
+      );
+      mockReauthenticate.mockResolvedValue({ password: 'test-password' });
+      mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
+
+      const { getByTestId, queryByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      await completeSecurityQuiz(getByTestId);
+
+      await waitFor(() => {
+        expect(mockRevealSRP).toHaveBeenCalled();
+      });
+
+      const blurButton = queryByTestId(
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
+      );
+      if (blurButton) {
+        fireEvent.press(blurButton);
+      }
+
+      // Rejection is handled by enabling clipboard so user is not blocked
+      await waitFor(() => {
+        expect(
+          queryByTestId(
+            RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
+          ),
+        ).not.toBeNull();
+      });
+    });
   });
 
   describe('modal interactions', () => {
