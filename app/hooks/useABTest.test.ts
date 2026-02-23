@@ -11,7 +11,9 @@ jest.mock('react-redux', () => ({
 
 // Mock the selector module
 jest.mock('../selectors/featureFlagController', () => ({
-  selectRemoteFeatureFlags: jest.fn((state) => state?.featureFlags),
+  selectRemoteFeatureFlags: jest.fn(
+    (state: { featureFlags?: unknown }) => state?.featureFlags,
+  ),
 }));
 
 jest.mock('../components/hooks/useAnalytics/useAnalytics', () => ({
@@ -23,6 +25,7 @@ const mockUseAnalytics = useAnalytics as jest.MockedFunction<
   typeof useAnalytics
 >;
 const mockTrackEvent = jest.fn();
+type MockEvent = string | { category: string } | { name: string };
 
 describe('useABTest', () => {
   // Test variants configuration
@@ -40,7 +43,7 @@ describe('useABTest', () => {
     jest.clearAllMocks();
     mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: (event) => ({
+      createEventBuilder: (event: MockEvent) => ({
         addProperties: (properties: Record<string, unknown>) => ({
           build: () => ({
             name:

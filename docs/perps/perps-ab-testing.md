@@ -2,8 +2,6 @@
 
 ## Overview
 
-> **Important:** For new cross-team A/B instrumentation standards, follow [A/B Testing Framework](../ab-testing.md). The current global standard is automatic `Experiment Viewed` exposure tracking plus `active_ab_tests` on business events. Avoid adding new `ab_tests` properties.
-
 Simplified A/B testing framework for Perps that leverages LaunchDarkly for user identification, variant assignment, and persistence. The implementation focuses on reading variants and applying them in UI, while LaunchDarkly handles all complex logic.
 
 **Key Design Principles:**
@@ -819,8 +817,6 @@ Mobile sends user context to LaunchDarkly for per-user A/B testing via the `Remo
 ---
 
 ## LaunchDarkly Configuration
-
-> **Naming override for new tests:** Use `{team name}{ticket ID}Abtest{test name}` (for example, `swapsSWAPS4135AbtestButtonColor`). Do not create new keys using `perps-abtest-{test-name}`.
 
 ### Backend Team Setup
 
