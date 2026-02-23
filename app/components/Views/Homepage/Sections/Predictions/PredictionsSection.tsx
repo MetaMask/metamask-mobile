@@ -143,6 +143,13 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
       const { contentOffset, contentSize, layoutMeasurement } =
         event.nativeEvent;
       const scrollableWidth = contentSize.width - layoutMeasurement.width;
+
+      // No scrollable content — hide fade
+      if (scrollableWidth <= 0) {
+        setFadeOpacity(0);
+        return;
+      }
+
       const distanceFromEnd = scrollableWidth - contentOffset.x;
 
       // Fade out the overlay as we approach the end (within 100px)
