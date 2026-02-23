@@ -20,53 +20,52 @@ export const useCamera = (isSigningQRObject: boolean) => {
   // ios handled camera perfectly in this situation, we just need to check permission with android.
   const [hasCameraPermission, setCameraPermission] = useState(Device.isIos());
 
-  const checkAndroidCamera = useCallback(() => {
-    if (Device.isAndroid() && !hasCameraPermission) {
-      PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA).then(
-        (_hasPermission) => {
-          trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.HARDWARE_WALLET_PERMISSION_REQUEST,
-            )
-              .addProperties({
-                permission: PERMISSION_TYPE.CAMERA,
-                result: _hasPermission
-                  ? PERMISSION_RESULT.GRANTED
-                  : PERMISSION_RESULT.DENIED,
-                device_type: HardwareDeviceTypes.QR,
-              })
-              .build(),
-          );
-          setCameraPermission(_hasPermission);
-          if (!_hasPermission) {
-            trackEvent(
-              createEventBuilder(
-                MetaMetricsEvents.HARDWARE_WALLET_PERMISSION_REQUEST,
-              )
-                .addProperties({
-                  permission: PERMISSION_TYPE.CAMERA,
-                  result: PERMISSION_RESULT.LIMITED,
-                  device_type: HardwareDeviceTypes.QR,
-                })
-                .build(),
-            );
-            setCameraError(strings('transaction.no_camera_permission_android'));
-          } else {
-            trackEvent(
-              createEventBuilder(
-                MetaMetricsEvents.HARDWARE_WALLET_PERMISSION_REQUEST,
-              )
-                .addProperties({
-                  permission: PERMISSION_TYPE.CAMERA,
-                  result: PERMISSION_RESULT.UNAVAILABLE,
-                  device_type: HardwareDeviceTypes.QR,
-                })
-                .build(),
-            );
-            setCameraError(undefined);
-          }
-        },
+  const checkAndroidCamera = useCallback(async () => {
+    if (!Device.isAndroid() || hasCameraPermission) {
+      return;
+    }
+
+    const alreadyGranted = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+    );
+
+    if (alreadyGranted) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_PERMISSION_REQUEST)
+          .addProperties({
+            permission: PERMISSION_TYPE.CAMERA,
+            result: PERMISSION_RESULT.GRANTED,
+            device_type: HardwareDeviceTypes.QR,
+          })
+          .build(),
       );
+      setCameraPermission(true);
+      setCameraError(undefined);
+      return;
+    }
+
+    const requestResult = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+    );
+    const granted = requestResult === PermissionsAndroid.RESULTS.GRANTED;
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_PERMISSION_REQUEST)
+        .addProperties({
+          permission: PERMISSION_TYPE.CAMERA,
+          result: granted
+            ? PERMISSION_RESULT.GRANTED
+            : PERMISSION_RESULT.DENIED,
+          device_type: HardwareDeviceTypes.QR,
+        })
+        .build(),
+    );
+
+    setCameraPermission(granted);
+    if (!granted) {
+      setCameraError(strings('transaction.no_camera_permission_android'));
+    } else {
+      setCameraError(undefined);
     }
   }, [hasCameraPermission, trackEvent, createEventBuilder]);
 

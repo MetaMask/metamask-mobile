@@ -137,18 +137,31 @@ const QRSigningDetails = ({
     Device.isIos() || bypassAndroidCameraAccessCheck,
   );
 
-  const checkAndroidCamera = useCallback(() => {
-    if (Device.isAndroid() && !hasCameraPermission) {
-      PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA).then(
-        (_hasPermission) => {
-          setCameraPermission(_hasPermission);
-          if (!_hasPermission) {
-            setCameraError(strings('transaction.no_camera_permission_android'));
-          } else {
-            setCameraError('');
-          }
-        },
-      );
+  const checkAndroidCamera = useCallback(async () => {
+    if (!Device.isAndroid() || hasCameraPermission) {
+      return;
+    }
+
+    const alreadyGranted = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+    );
+
+    if (alreadyGranted) {
+      setCameraPermission(true);
+      setCameraError('');
+      return;
+    }
+
+    const requestResult = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+    );
+    const granted = requestResult === PermissionsAndroid.RESULTS.GRANTED;
+
+    setCameraPermission(granted);
+    if (!granted) {
+      setCameraError(strings('transaction.no_camera_permission_android'));
+    } else {
+      setCameraError('');
     }
   }, [hasCameraPermission]);
 
