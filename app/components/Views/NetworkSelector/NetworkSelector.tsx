@@ -9,7 +9,8 @@ import {
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
-import { useNavigation, RouteProp } from '@react-navigation/native';
+import { useNavigation, type RouteProp } from '@react-navigation/native';
+import type { RootStackParamList } from '../../../core/NavigationService/types';
 
 // External dependencies.
 import Cell, {
@@ -58,6 +59,7 @@ import {
 
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
+import { ShowConfirmDeleteModalState, infuraNetwork } from './types';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import InfoModal from '../../Base/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -109,13 +111,8 @@ import TagColored, {
   TagColor,
 } from '../../../component-library/components-temp/TagColored';
 
-interface NetworkSelectorParamList {
-  NetworkSelector: NetworkSelectorParams;
-  [key: string]: object | undefined;
-}
-
 interface NetworkSelectorProps {
-  route: RouteProp<NetworkSelectorParamList, 'NetworkSelector'>;
+  route: RouteProp<RootStackParamList, 'NetworkSelector'>;
 }
 
 const NetworkSelector = ({ route }: NetworkSelectorProps) => {
