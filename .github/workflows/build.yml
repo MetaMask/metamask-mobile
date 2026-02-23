@@ -193,7 +193,7 @@ jobs:
   # Build
   build:
     needs: [prepare, setup-dependencies]
-    timeout-minutes: 60
+    timeout-minutes: 120  # Must allow build step (115min) + setup; comment at Build step documents this
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
