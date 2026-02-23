@@ -46,7 +46,14 @@ const readOptionalOrderId = (value: unknown): string | undefined => {
   return undefined;
 };
 
-const getParentTpslMetadata = (rawOrder: FrontendOrderWithParentTpsl) => ({
+const getParentTpslMetadata = (
+  rawOrder: FrontendOrderWithParentTpsl,
+): {
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
+  takeProfitOrderId?: string;
+  stopLossOrderId?: string;
+} => ({
   takeProfitPrice: readOptionalString(rawOrder.takeProfitPrice),
   stopLossPrice: readOptionalString(rawOrder.stopLossPrice),
   takeProfitOrderId: readOptionalOrderId(rawOrder.takeProfitOrderId),
@@ -193,16 +200,19 @@ export function adaptOrderFromSDK(
   }
 
   // Fallback: preserve parent-level TP/SL metadata when children are absent.
-  if (!takeProfitPrice && parentTpslMetadata.takeProfitPrice) {
+  if (takeProfitPrice === undefined && parentTpslMetadata.takeProfitPrice) {
     takeProfitPrice = parentTpslMetadata.takeProfitPrice;
   }
-  if (!stopLossPrice && parentTpslMetadata.stopLossPrice) {
+  if (stopLossPrice === undefined && parentTpslMetadata.stopLossPrice) {
     stopLossPrice = parentTpslMetadata.stopLossPrice;
   }
-  if (!takeProfitOrderId && parentTpslMetadata.takeProfitOrderId) {
+  if (
+    takeProfitOrderId === undefined &&
+    parentTpslMetadata.takeProfitOrderId
+  ) {
     takeProfitOrderId = parentTpslMetadata.takeProfitOrderId;
   }
-  if (!stopLossOrderId && parentTpslMetadata.stopLossOrderId) {
+  if (stopLossOrderId === undefined && parentTpslMetadata.stopLossOrderId) {
     stopLossOrderId = parentTpslMetadata.stopLossOrderId;
   }
 
