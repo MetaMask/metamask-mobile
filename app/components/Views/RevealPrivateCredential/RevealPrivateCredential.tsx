@@ -2,7 +2,6 @@
 import React, { useEffect, useState, useCallback, useContext } from 'react';
 import { Linking, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
@@ -56,7 +55,6 @@ const RevealPrivateCredential = ({
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showSeedPhrase, setShowSeedPhrase] = useState<boolean>(false);
 
-  const { navigate } = useNavigation();
   const { toastRef } = useContext(ToastContext);
 
   const checkSummedAddress = useSelector(
@@ -170,13 +168,13 @@ const RevealPrivateCredential = ({
   }, [trackEvent, createEventBuilder, navigateBack]);
 
   const handleLearnMoreClick = useCallback(() => {
-    navigate(Routes.WEBVIEW.MAIN, {
+    navigation?.navigate(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {
         url: SRP_GUIDE_URL,
       },
     });
-  }, [navigate]);
+  }, [navigation]);
 
   const onTabBarChange = useCallback(
     (event: { i: number }) => {
