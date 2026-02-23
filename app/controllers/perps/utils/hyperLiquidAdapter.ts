@@ -200,18 +200,10 @@ export function adaptOrderFromSDK(
   }
 
   // Fallback: preserve parent-level TP/SL metadata when children are absent.
-  if (takeProfitPrice === undefined && parentTpslMetadata.takeProfitPrice) {
-    takeProfitPrice = parentTpslMetadata.takeProfitPrice;
-  }
-  if (stopLossPrice === undefined && parentTpslMetadata.stopLossPrice) {
-    stopLossPrice = parentTpslMetadata.stopLossPrice;
-  }
-  if (takeProfitOrderId === undefined && parentTpslMetadata.takeProfitOrderId) {
-    takeProfitOrderId = parentTpslMetadata.takeProfitOrderId;
-  }
-  if (stopLossOrderId === undefined && parentTpslMetadata.stopLossOrderId) {
-    stopLossOrderId = parentTpslMetadata.stopLossOrderId;
-  }
+  takeProfitPrice ??= parentTpslMetadata.takeProfitPrice;
+  stopLossPrice ??= parentTpslMetadata.stopLossPrice;
+  takeProfitOrderId ??= parentTpslMetadata.takeProfitOrderId;
+  stopLossOrderId ??= parentTpslMetadata.stopLossOrderId;
 
   // Build the order object
   const order: Order = {
