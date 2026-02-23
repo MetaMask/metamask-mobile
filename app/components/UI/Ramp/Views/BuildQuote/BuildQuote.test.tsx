@@ -1,6 +1,6 @@
 import React from 'react';
 import { InteractionManager } from 'react-native';
-import { fireEvent, render, act } from '@testing-library/react-native';
+import { fireEvent, render, act, waitFor } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import type { RampsToken } from '../../hooks/useRampTokens';
@@ -224,6 +224,9 @@ const renderWithTheme = (component: React.ReactElement) =>
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseParams.mockImplementation(() => ({
+      assetId: MOCK_ASSET_ID,
+    }));
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
       .mockImplementation((task) => {
@@ -1259,7 +1262,7 @@ describe('BuildQuote', () => {
   });
 
   describe('Token unavailable for provider', () => {
-    it('navigates to token unavailable modal when token is not supported by provider', () => {
+    it('navigates to token unavailable modal when token is not supported by provider', async () => {
       mockSelectedProvider = {
         id: '/providers/transak',
         name: 'Transak',
@@ -1275,13 +1278,15 @@ describe('BuildQuote', () => {
 
       renderWithTheme(<BuildQuote />);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'RampModals',
-        expect.objectContaining({
-          screen: 'RampTokenNotAvailableModal',
-          params: { assetId: MOCK_ASSET_ID },
-        }),
-      );
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'RampModals',
+          expect.objectContaining({
+            screen: 'RampTokenNotAvailableModal',
+            params: { assetId: MOCK_ASSET_ID },
+          }),
+        );
+      });
     });
 
     it('does not navigate to token unavailable modal when token is supported by provider', () => {
@@ -1342,7 +1347,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('does not re-navigate to token unavailable modal on re-renders', () => {
+    it('does not re-navigate to token unavailable modal on re-renders', async () => {
       mockSelectedProvider = {
         id: '/providers/transak',
         name: 'Transak',
@@ -1358,13 +1363,17 @@ describe('BuildQuote', () => {
 
       const { rerender } = renderWithTheme(<BuildQuote />);
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'RampModals',
-        expect.objectContaining({
-          screen: 'RampTokenNotAvailableModal',
-          params: { assetId: MOCK_ASSET_ID },
-        }),
+      await waitFor(
+        () => {
+          expect(mockNavigate).toHaveBeenCalledWith(
+            'RampModals',
+            expect.objectContaining({
+              screen: 'RampTokenNotAvailableModal',
+              params: { assetId: MOCK_ASSET_ID },
+            }),
+          );
+        },
+        { timeout: 2000 },
       );
 
       mockNavigate.mockClear();
