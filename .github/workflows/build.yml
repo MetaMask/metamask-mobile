@@ -242,10 +242,10 @@ jobs:
           echo "🔍 Checking .bin symlinks..."
           if [ -e "node_modules/.bin/react-native" ]; then
             echo "✅ react-native symlink exists and target is valid"
-            ls -la node_modules/.bin/react-native
+            find node_modules/.bin -maxdepth 1 -name 'react-native' -ls
           else
             echo "❌ react-native symlink missing or broken"
-            ls -la node_modules/.bin/ | head -10
+            find node_modules/.bin -maxdepth 1 -ls | head -10
             exit 1
           fi
 
