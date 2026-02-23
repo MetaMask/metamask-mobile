@@ -51,6 +51,7 @@ const createStyles = ({ colors }: Theme) =>
     gasFeesSponsoredContainer: {
       height: 22,
     },
+    rateValue: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   });
 
 export default createStyles;

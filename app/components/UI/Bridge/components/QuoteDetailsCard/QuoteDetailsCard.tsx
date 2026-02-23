@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, Platform, UIManager } from 'react-native';
+import { TouchableOpacity, Platform, UIManager, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -128,6 +128,10 @@ const QuoteDetailsCard: React.FC = () => {
     });
   };
 
+  const handleRatePress = () => {
+    navigation.navigate(Routes.BRIDGE.QUOTE_SELECTOR_VIEW);
+  };
+
   // Early return for invalid states
   if (
     !sourceToken?.chainId ||
@@ -177,15 +181,22 @@ const QuoteDetailsCard: React.FC = () => {
           }}
           value={{
             label: (
-              <Text
-                variant={TextVariant.BodyMD}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.8}
-                color={TextColor.Alternative}
-              >
-                {rate}
-              </Text>
+              <Pressable style={styles.rateValue} onPress={handleRatePress}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.8}
+                  color={TextColor.Alternative}
+                >
+                  {rate}
+                </Text>
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Sm}
+                  color={IconColor.Alternative}
+                />
+              </Pressable>
             ),
           }}
         />
