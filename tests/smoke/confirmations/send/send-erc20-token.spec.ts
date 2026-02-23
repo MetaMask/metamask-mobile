@@ -1,11 +1,11 @@
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
-import SendView from '../../../../e2e/pages/Send/RedesignedSendView';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
+import SendView from '../../../page-objects/Send/RedesignedSendView';
+import WalletView from '../../../page-objects/wallet/WalletView';
 import { DappVariants } from '../../../framework/Constants';
-import { SmokeConfirmations } from '../../../../e2e/tags';
+import { SmokeConfirmations } from '../../../tags';
 import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
-import { loginToApp } from '../../../../e2e/viewHelper';
+import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { AnvilManager } from '../../../seeder/anvil-manager';
 

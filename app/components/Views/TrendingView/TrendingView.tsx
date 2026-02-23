@@ -32,6 +32,23 @@ import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedS
 import Section, { RefreshConfig } from './components/Sections/Section';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 
+const curriedSetSectionState =
+  (setState: (updater: (prev: Set<SectionId>) => Set<SectionId>) => void) =>
+  (sectionId: SectionId) =>
+  (isActive: boolean): void => {
+    setState((prev) => {
+      const newSet = new Set(prev);
+
+      if (isActive) {
+        newSet.add(sectionId);
+      } else {
+        newSet.delete(sectionId);
+      }
+
+      return newSet;
+    });
+  };
+
 /**
  * Custom hook to track boolean state for each section
  * Returns the Set of sections with that state and callbacks to update them
@@ -48,23 +65,9 @@ const useSectionStateTracker = (
 
   const callbacks = useMemo(() => {
     const result = {} as Record<SectionId, (isActive: boolean) => void>;
-
-    sections.forEach((section) => {
-      result[section.id] = (isActive: boolean) => {
-        setActiveSections((currentSections) => {
-          const updatedSections = new Set(currentSections);
-
-          if (isActive) {
-            updatedSections.add(section.id);
-          } else {
-            updatedSections.delete(section.id);
-          }
-
-          return updatedSections;
-        });
-      };
+    sections.forEach((s) => {
+      result[s.id] = curriedSetSectionState(setActiveSections)(s.id);
     });
-
     return result;
   }, [sections]);
 

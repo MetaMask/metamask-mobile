@@ -35,12 +35,17 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
-import type { InputMethod, OrderType, Position } from '../../controllers/types';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   DECIMAL_PRECISION_CONFIG,
   ORDER_SLIPPAGE_CONFIG,
-} from '../../constants/perpsConfig';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  getPerpsDisplaySymbol,
+  type InputMethod,
+  type OrderType,
+  type Position,
+} from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   useMinimumOrderAmount,
   usePerpsClosePosition,
@@ -68,18 +73,13 @@ import {
   formatCloseAmountUSD,
 } from '../../utils/positionCalculations';
 import { createStyles } from './PerpsClosePositionView.styles';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { TraceName } from '../../../../../util/trace';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();

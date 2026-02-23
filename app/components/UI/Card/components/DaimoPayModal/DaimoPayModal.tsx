@@ -11,13 +11,14 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { isEqual } from 'lodash';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
 import DaimoPayService, {
   DaimoPayEvent,
@@ -35,7 +36,10 @@ import AppConstants from '../../../../../core/AppConstants';
 import { getPermittedEvmAddressesByHostname } from '../../../../../core/Permissions';
 import { selectPermissionControllerState } from '../../../../../selectors/snaps/permissionController';
 import type { RootState } from '../../../../../reducers';
-import { selectIsDaimoDemo } from '../../../../../core/redux/slices/card';
+import {
+  selectIsDaimoDemo,
+  clearCacheData,
+} from '../../../../../core/redux/slices/card';
 import { getDaimoEnvironment } from '../../util/getDaimoEnvironment';
 
 const POLLING_INTERVAL_MS = 5000;
@@ -74,7 +78,8 @@ const DaimoPayModal: React.FC = () => {
   const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
 
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const dispatch = useDispatch();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { payId, fromUpgrade, orderId } = useParams<DaimoPayModalParams>();
   const tw = useTailwind();
   const [error, setError] = useState<string | null>(null);
@@ -165,6 +170,8 @@ const DaimoPayModal: React.FC = () => {
         pollingIntervalRef.current = null;
       }
 
+      dispatch(clearCacheData('card-details'));
+
       const parentNavigator = navigation.dangerouslyGetParent();
       if (parentNavigator) {
         parentNavigator.dispatch(
@@ -202,7 +209,7 @@ const DaimoPayModal: React.FC = () => {
         );
       }
     },
-    [trackEvent, createEventBuilder, navigation, fromUpgrade],
+    [trackEvent, createEventBuilder, navigation, fromUpgrade, dispatch],
   );
 
   const handlePaymentBounced = useCallback(
@@ -254,11 +261,7 @@ const DaimoPayModal: React.FC = () => {
               url: urlRef,
               title: titleRef,
               icon: iconRef,
-              isHomepage: () => false,
-              fromHomepage: { current: false },
-              toggleUrlModal: () => null,
               tabId: '',
-              injectHomePageScripts: () => null,
               isWalletConnect: false,
               isMMSDK: false,
               analytics: {},
@@ -620,7 +623,7 @@ const DaimoPayModal: React.FC = () => {
 
   return (
     <View
-      style={[baseStyles.absoluteFill, tw.style('bg-transparent')]}
+      style={[baseStyles.absoluteFill, tw.style('bg-black/40')]}
       testID={DaimoPayModalSelectors.CONTAINER}
     >
       <WebView

@@ -6,9 +6,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -25,7 +23,8 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 const CODE_LENGTH = 6;
@@ -37,7 +36,7 @@ const ConfirmEmail = () => {
   const [resendCooldown, setResendCooldown] = useState(60);
   const selectedCountry = useSelector(selectSelectedCountry);
   const contactVerificationId = useSelector(selectContactVerificationId);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
@@ -232,7 +231,6 @@ const ConfirmEmail = () => {
           autoCapitalize={'none'}
           onChangeText={handleConfirmCodeChange}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           value={confirmCode}
           keyboardType="number-pad"
           autoComplete="one-time-code"

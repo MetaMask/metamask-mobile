@@ -7,6 +7,10 @@ import {
   type RampsToken,
   type TokensResponse,
   type ResourceState,
+  type Quote,
+  type QuotesResponse,
+  type BuyWidget,
+  type TransakState,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
 
@@ -85,4 +89,38 @@ export const selectPaymentMethods = createSelector(
   ): ResourceState<PaymentMethod[], PaymentMethod | null> =>
     rampsControllerState?.paymentMethods ??
     createDefaultResourceState<PaymentMethod[], PaymentMethod | null>([], null),
+);
+
+/**
+ * Selects the quotes resource state (data, selected, isLoading, error).
+ */
+export const selectQuotes = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): ResourceState<QuotesResponse | null, Quote | null> =>
+    rampsControllerState?.quotes ??
+    createDefaultResourceState<QuotesResponse | null, Quote | null>(null, null),
+);
+
+/**
+ * Selects the widget URL resource state (data, isLoading, error).
+ */
+export const selectWidgetUrl = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): ResourceState<BuyWidget | null> =>
+    rampsControllerState?.widgetUrl ??
+    createDefaultResourceState<BuyWidget | null>(null),
+);
+
+/**
+ * Selects the transak native provider state (isAuthenticated, userDetails, buyQuote, kycRequirement).
+ */
+export const selectTransak = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): TransakState =>
+    rampsControllerState?.nativeProviders?.transak ?? {
+      isAuthenticated: false,
+      userDetails: createDefaultResourceState(null),
+      buyQuote: createDefaultResourceState(null),
+      kycRequirement: createDefaultResourceState(null),
+    },
 );

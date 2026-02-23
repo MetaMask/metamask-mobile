@@ -16,6 +16,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const runAfterInteractionsCallbacks: (() => void)[] = [];
 const mockRunAfterInteractions = jest.spyOn(
   InteractionManager,
@@ -184,22 +185,19 @@ jest.mock('../../hooks/usePredictPriceHistory', () => ({
 
 jest.mock('../../hooks/usePredictPositions', () => ({
   usePredictPositions: jest.fn(() => ({
-    positions: [],
+    data: [],
     isLoading: false,
-    isRefreshing: false,
+    isRefetching: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
   })),
 }));
 
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: jest.fn(() => ({
-    balance: 100,
-    hasNoBalance: false,
+    data: 100,
     isLoading: false,
-    isRefreshing: false,
     error: null,
-    loadBalance: jest.fn(),
   })),
 }));
 
@@ -322,7 +320,7 @@ function createMockMarket(overrides = {}) {
     title: 'Will Bitcoin reach $100k by end of 2024?',
     image: 'https://example.com/bitcoin.png',
     endDate: '2024-12-31T23:59:59Z',
-    providerId: 'polymarket',
+    providerId: POLYMARKET_PROVIDER_ID,
     status: 'open',
     tags: [],
     outcomes: [
@@ -411,11 +409,11 @@ function createMockMarket(overrides = {}) {
 type HookOverrideShape = Record<string, unknown>;
 
 interface PredictPositionsHookResultMock {
-  positions: Record<string, unknown>[];
+  data: Record<string, unknown>[];
   isLoading: boolean;
-  isRefreshing: boolean;
+  isRefetching: boolean;
   error: unknown;
-  loadPositions: jest.Mock;
+  refetch: jest.Mock;
 }
 
 interface SplitPositionsOverrides {
@@ -532,20 +530,20 @@ function setupPredictMarketDetailsTest(
   }
 
   const activePositionsHook: PredictPositionsHookResultMock = {
-    positions: [],
+    data: [],
     isLoading: false,
-    isRefreshing: false,
+    isRefetching: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
     ...activeOverride,
   };
 
   const claimablePositionsHook: PredictPositionsHookResultMock = {
-    positions: [],
+    data: [],
     isLoading: false,
-    isRefreshing: false,
+    isRefetching: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
     ...claimableOverride,
   };
 
@@ -558,7 +556,7 @@ function setupPredictMarketDetailsTest(
   mockUsePredictOrderPreview.mockImplementation(
     (params: { outcomeId: string }) => {
       // Find the position matching this outcomeId from active positions
-      const position = activePositionsHook.positions.find(
+      const position = activePositionsHook.data.find(
         (p: Record<string, unknown>) => p.outcomeId === params.outcomeId,
       ) as { currentValue?: number } | undefined;
 
@@ -587,7 +585,17 @@ function setupPredictMarketDetailsTest(
     },
   );
 
-  const result = renderWithProvider(<PredictMarketDetails />);
+  const result = renderWithProvider(<PredictMarketDetails />, {
+    state: {
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            privacyMode: false,
+          },
+        },
+      },
+    },
+  });
 
   return {
     ...result,
@@ -1313,7 +1321,7 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -1425,7 +1433,7 @@ describe('PredictMarketDetails', () => {
     it('triggers market, price history, and active positions refresh', async () => {
       const mockRefetchMarket = jest.fn(() => Promise.resolve());
       const mockRefetchPriceHistory = jest.fn(() => Promise.resolve());
-      const mockLoadActivePositions = jest.fn(() => Promise.resolve());
+      const mockRefetchActivePositions = jest.fn(() => Promise.resolve());
 
       setupPredictMarketDetailsTest(
         {},
@@ -1433,7 +1441,7 @@ describe('PredictMarketDetails', () => {
         {
           market: { refetch: mockRefetchMarket },
           priceHistory: { refetch: mockRefetchPriceHistory },
-          positions: { loadPositions: mockLoadActivePositions },
+          positions: { refetch: mockRefetchActivePositions },
         },
       );
 
@@ -1448,10 +1456,7 @@ describe('PredictMarketDetails', () => {
       await waitFor(() => {
         expect(mockRefetchMarket).toHaveBeenCalledTimes(1);
         expect(mockRefetchPriceHistory).toHaveBeenCalledTimes(1);
-        expect(mockLoadActivePositions).toHaveBeenCalled();
-        expect(mockLoadActivePositions).toHaveBeenCalledWith({
-          isRefresh: true,
-        });
+        expect(mockRefetchActivePositions).toHaveBeenCalled();
       });
     });
   });
@@ -1474,7 +1479,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -1509,7 +1514,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -1654,7 +1659,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         mockMarket,
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -1687,7 +1692,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -1720,7 +1725,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -1851,7 +1856,7 @@ describe('PredictMarketDetails', () => {
         {
           positions: {
             claimable: {
-              positions: [
+              data: [
                 {
                   id: 'position-1',
                   outcomeId: 'outcome-1',
@@ -1900,7 +1905,7 @@ describe('PredictMarketDetails', () => {
         {
           positions: {
             claimable: {
-              positions: [
+              data: [
                 {
                   id: 'position-1',
                   outcomeId: 'outcome-1',
@@ -2087,7 +2092,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -2389,7 +2394,8 @@ describe('PredictMarketDetails', () => {
         '../../hooks/usePredictBalance',
       );
       usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
+        data: undefined,
+        isLoading: false,
       });
 
       const singleOutcomeMarket = createMockMarket({
@@ -2433,7 +2439,8 @@ describe('PredictMarketDetails', () => {
         '../../hooks/usePredictBalance',
       );
       usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
+        data: undefined,
+        isLoading: false,
       });
 
       const singleOutcomeMarket = createMockMarket({
@@ -2539,7 +2546,7 @@ describe('PredictMarketDetails', () => {
         {},
         {
           positions: {
-            positions: [
+            data: [
               {
                 id: 'position-1',
                 outcomeId: 'outcome-1',
@@ -2564,11 +2571,11 @@ describe('PredictMarketDetails', () => {
         '../../hooks/usePredictPositions',
       );
       usePredictPositions.mockReturnValue({
-        positions: [],
+        data: [],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
-        loadPositions: jest.fn(),
+        refetch: jest.fn(),
       });
 
       rerender(<PredictMarketDetails />);
@@ -3155,7 +3162,7 @@ describe('PredictMarketDetails', () => {
       expect(usePredictPrices).toHaveBeenCalled();
     });
 
-    it('uses usePredictPrices hook with providerId', () => {
+    it('uses usePredictPrices hook for live pricing', () => {
       const { usePredictPrices } = jest.requireMock(
         '../../hooks/usePredictPrices',
       );
@@ -3164,7 +3171,7 @@ describe('PredictMarketDetails', () => {
 
       expect(usePredictPrices).toHaveBeenCalledWith(
         expect.objectContaining({
-          providerId: 'polymarket',
+          queries: expect.any(Array),
         }),
       );
     });

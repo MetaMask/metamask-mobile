@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 
 // Mock navigation
@@ -116,8 +116,8 @@ jest.mock('../../hooks/stream', () => ({
 
 // Use real BigNumber library - mocking it causes issues with module initialization
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn((props: Record<string, unknown>) => ({
@@ -126,11 +126,6 @@ jest.mock('../../../../hooks/useMetrics', () => ({
       build: jest.fn(() => ({})),
     })),
   }),
-  MetaMetricsEvents: {
-    NAVIGATION_TAPS_GET_HELP: 'NAVIGATION_TAPS_GET_HELP',
-    PERPS_SCREEN_VIEWED: 'PERPS_SCREEN_VIEWED',
-    PERPS_UI_INTERACTION: 'PERPS_UI_INTERACTION',
-  },
 }));
 
 // Mock design system
@@ -220,7 +215,7 @@ jest.mock('../../../../../util/trace', () => ({
   },
 }));
 
-jest.mock('../../constants/eventNames', () => ({
+jest.mock('@metamask/perps-controller', () => ({
   PERPS_EVENT_PROPERTY: {
     SCREEN_TYPE: 'screen_type',
     SOURCE: 'source',
@@ -254,6 +249,17 @@ jest.mock('../../constants/eventNames', () => ({
       BUTTON_CLICKED: 'button_clicked',
       CONTACT_SUPPORT: 'contact_support',
     },
+  },
+  DECIMAL_PRECISION_CONFIG: {
+    MaxPriceDecimals: 6,
+    MaxSignificantFigures: 5,
+    FallbackSizeDecimals: 6,
+  },
+  PERPS_CONSTANTS: {
+    FeatureFlagKey: 'perpsEnabled',
+    FeatureName: 'perps',
+    PerpsBalanceTokenDescription: 'perps-balance',
+    PerpsBalanceTokenSymbol: 'USD',
   },
 }));
 

@@ -237,8 +237,8 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=4096'
-          METRO_MAX_WORKERS: '4'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          METRO_MAX_WORKERS: '2'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'

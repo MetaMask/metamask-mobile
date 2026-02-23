@@ -6,7 +6,10 @@ import getAggregatorAnalyticsPayload from '../Aggregator/utils/getAggregatorAnal
 
 function getOrderAnalyticsPayload(updatedOrder: FiatOrder, state: RootState) {
   let event, params;
-  if (updatedOrder.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR) {
+  if (
+    updatedOrder.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR ||
+    updatedOrder.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+  ) {
     return getAggregatorAnalyticsPayload(updatedOrder);
   } else if (updatedOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
     return getDepositAnalyticsPayload(updatedOrder, state);

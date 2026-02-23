@@ -16,7 +16,7 @@ import { PREDICT_CURRENCY } from '../../../constants/predict';
 export function PredictWithdrawBalance() {
   const { styles } = useStyles(styleSheet, {});
   const formatFiat = useFiatFormatter({ currency: PREDICT_CURRENCY });
-  const { balance } = usePredictBalance({ loadOnMount: true });
+  const { data: balance = 0 } = usePredictBalance();
 
   const balanceFormatted = useMemo(
     () => formatFiat(new BigNumber(balance)),

@@ -325,6 +325,297 @@ export const GET_QUOTE_ETH_DAI_RESPONSE = [
   },
 ];
 
+export const GET_QUOTE_USDC_ETH_RESPONSE = [
+  {
+    quote: {
+      requestId:
+        '0x88b106334de08844fb771bbfc68f4918e553ca0655009091d7d1a7cd0b11fe6c',
+      bridgeId: '1inch',
+      srcChainId: 1,
+      destChainId: 1,
+      aggregator: '1inch',
+      aggregatorType: 'AGG',
+      srcAsset: {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: 1,
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+        decimals: 6,
+        name: 'USDC',
+        coingeckoId: 'usd-coin',
+        aggregators: [
+          'metamask',
+          'oneInch',
+          'liFi',
+          'socket',
+          'squid',
+          'rango',
+          'sonarwatch',
+          'sushiSwap',
+          'pmm',
+          'bancor',
+        ],
+        occurrences: 10,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+        metadata: {
+          storage: {
+            balance: 9,
+            approval: 10,
+          },
+        },
+      },
+      srcTokenAmount: '10000000',
+      destAsset: {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: 1,
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        decimals: 18,
+        name: 'Ether',
+        coingeckoId: 'ethereum',
+        aggregators: [],
+        occurrences: 100,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+        metadata: {},
+      },
+      destTokenAmount: '5127563656405647',
+      minDestTokenAmount: '5025012383277534',
+      walletAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      destWalletAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      feeData: {
+        metabridge: {
+          amount: '45262226475207',
+          asset: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: 1,
+            assetId: 'eip155:1/slip44:60',
+            symbol: 'ETH',
+            decimals: 18,
+            name: 'Ether',
+            coingeckoId: 'ethereum',
+            aggregators: [],
+            occurrences: 100,
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+            metadata: {},
+          },
+          quoteBpsFee: 87.5,
+          baseBpsFee: 87.5,
+        },
+      },
+      bridges: ['1inch'],
+      protocols: ['1inch'],
+      steps: [],
+      slippage: 2,
+      gasSponsored: false,
+      gasIncluded7702: false,
+      priceData: {
+        totalFromAmountUsd: '9.99811',
+        totalToAmountUsd: '9.882661088809988',
+        priceImpact: '0.002821763950462437',
+        totalFeeAmountUsd: '0.08723660481925495',
+      },
+    },
+    approval: {
+      chainId: 1,
+      to: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      from: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      value: '0x0',
+      data: '0x095ea7b3000000000000000000000000881d40237659c251811cec9c364ef91dc08d300c0000000000000000000000000000000000000000000000000000000000989680',
+      gasLimit: 36019,
+      effectiveGas: 35658,
+    },
+    trade: {
+      chainId: 1,
+      to: '0x881D40237659C251811CEC9c364ef91dC08D300C',
+      from: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      value: '0x0',
+      data: '0x5f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000000098968000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563646656544796e616d69630000000000000000000000000000000000000000000000000000000000000000000000000000000000000003c0000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009896800000000000000000000000000000000000000000000000000011da38de18e1de00000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000292a6eee48c7000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f19150000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000028807ed2379000000000000000000000000990636ecb3ff04d33d92e970d3d588bf5cd8d086000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee000000000000000000000000990636ecb3ff04d33d92e970d3d588bf5cd8d08600000000000000000000000074de5d4fcbf63e00296fd95d33236b9794016631000000000000000000000000000000000000000000000000000000000098968000000000000000000000000000000000000000000000000000120290883fd74400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000013900000000000000000000000000000000000000011b0001050000c900004e00a0744c8c09a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4890cbe4bdd538d6e9b379bff5fe72c3d67a521de50000000000000000000000000000000000000000000000000000000000000bb80c20a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48b4e16d0168e52d35cacd2c6185b44281ec28c9dc6ae4071198002dc6c0b4e16d0168e52d35cacd2c6185b44281ec28c9dc00000000000000000000000000000000000000000000000000120290883fd744a0b86991c6218b36c1d19d4a2e9eb0ce3606eb484101c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200042e1a7d4d0000000000000000000000000000000000000000000000000000000000000000c061111111125421ca6dc452d289314280a0f8842a65000000000000007dcbea7c000000000000000000000000000000000000000000000000fc',
+      gasLimit: 328695,
+      effectiveGas: 251145,
+    },
+    estimatedProcessingTimeInSeconds: 0,
+  },
+];
+
+const WETH_MAINNET = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
+
+export const GET_QUOTE_ETH_WETH_RESPONSE = [
+  {
+    quote: {
+      requestId:
+        '0x468df970fff02f84d7e1a2f5bec56b0d0c121755610a52ae0325a8364753fdae',
+      bridgeId: 'wrapped_native',
+      srcChainId: 1,
+      srcTokenAmount: '1000000000000000000',
+      srcAsset: {
+        chainId: 1,
+        assetId: 'eip155:1/slip44:60',
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        name: 'Ether',
+        decimals: 18,
+      },
+      destChainId: 1,
+      destTokenAmount: '1000000000000000000',
+      minDestTokenAmount: '1000000000000000000',
+      destAsset: {
+        address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+        chainId: 1,
+        assetId: 'eip155:1/erc20:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+        symbol: 'WETH',
+        decimals: 18,
+        name: 'Wrapped Ether',
+        coingeckoId: 'weth',
+        aggregators: [
+          'metamask',
+          'oneInch',
+          'liFi',
+          'socket',
+          'squid',
+          'rango',
+          'sonarwatch',
+          'sushiSwap',
+          'pmm',
+        ],
+        occurrences: 9,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png',
+        metadata: {
+          storage: {
+            balance: 3,
+            approval: 4,
+          },
+        },
+      },
+      feeData: {
+        metabridge: {
+          amount: '0',
+          asset: {
+            chainId: 1,
+            assetId: 'eip155:1/slip44:60',
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'ETH',
+            name: 'Ether',
+            decimals: 18,
+          },
+          quoteBpsFee: 0,
+          baseBpsFee: 0,
+        },
+      },
+      aggregator: 'wrapped_native',
+      bridges: [],
+      protocols: [],
+      steps: [],
+      aggregatorType: 'WRAPPED',
+      walletAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      destWalletAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      gasSponsored: false,
+      gasIncluded7702: false,
+    },
+    trade: {
+      chainId: 1,
+      to: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+      from: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      value: '0xde0b6b3a7640000',
+      data: '0xd0e30db075',
+      gasLimit: 49960,
+      effectiveGas: 45038,
+    },
+    estimatedProcessingTimeInSeconds: 0,
+  },
+];
+
+/**
+ * Same-chain WETH -> ETH (unwrap) for local E2E. Trade calls WETH.withdraw() so it
+ * succeeds on Anvil with the WETH contract from loadState.
+ */
+export const GET_QUOTE_WETH_ETH_SAME_CHAIN_RESPONSE = [
+  {
+    quote: {
+      requestId:
+        '0x88b106334de08844fb771bbfc68f4918e553ca0655009091d7d1a7cd0b11fe6d',
+      bridgeId: 'wrapped_native',
+      aggregator: 'wrapped_native',
+      aggregatorType: 'WRAPPED',
+      srcChainId: 1,
+      destChainId: 1,
+      srcAsset: {
+        address: WETH_MAINNET,
+        chainId: 1,
+        assetId: 'eip155:1/erc20:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+        symbol: 'WETH',
+        decimals: 18,
+        name: 'Wrapped Ether',
+        coingeckoId: 'weth',
+        aggregators: ['metamask', 'oneInch'],
+        occurrences: 9,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png',
+        metadata: { storage: { balance: 3, approval: 4 } },
+      },
+      srcTokenAmount: '1000000000000000000',
+      destAsset: {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: 1,
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        decimals: 18,
+        name: 'Ether',
+        coingeckoId: 'ethereum',
+        aggregators: [],
+        occurrences: 100,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+        metadata: {},
+      },
+      destTokenAmount: '1000000000000000000',
+      minDestTokenAmount: '1000000000000000000',
+      feeData: {
+        metabridge: {
+          amount: '0',
+          asset: {
+            chainId: 1,
+            assetId: 'eip155:1/slip44:60',
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'ETH',
+            name: 'Ether',
+            decimals: 18,
+          },
+          quoteBpsFee: 0,
+          baseBpsFee: 0,
+        },
+      },
+      bridges: [],
+      protocols: [],
+      steps: [],
+      walletAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      destWalletAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+    },
+    approval: {
+      chainId: 1,
+      to: WETH_MAINNET,
+      from: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      value: '0x0',
+      data: '0x095ea7b3000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc20000000000000000000000000000000000000000000000000000000000000000',
+      gasLimit: 46000,
+      effectiveGas: 46000,
+    },
+    trade: {
+      chainId: 1,
+      to: WETH_MAINNET,
+      from: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      value: '0x0',
+      data: '0x2e1a7d4d0000000000000000000000000000000000000000000000000de0b6b3a7640000',
+      gasLimit: 50000,
+      effectiveGas: 45038,
+    },
+    estimatedProcessingTimeInSeconds: 0,
+  },
+];
+
 export const GET_TOKENS_MAINNET_RESPONSE = [
   {
     address: '0x0000000000000000000000000000000000000000',
@@ -534,6 +825,14 @@ export const GET_POPULAR_TOKENS_MAINNET_RESPONSE = [
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png',
     name: 'Wrapped Ether',
     symbol: 'WETH',
+  },
+  {
+    assetId: 'eip155:1/erc20:0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+    decimals: 18,
+    iconUrl:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xba47214edd2bb43099611b208f75e4b42fdcfedc.png',
+    name: 'Alphabet Class A (Ondo Tokenized)',
+    symbol: 'GOOGLON',
   },
 ];
 
@@ -1136,5 +1435,238 @@ export const GET_TOKENS_API_USDT_RESPONSE = [
     decimals: 6,
     name: 'Tether USD',
     symbol: 'USDT',
+  },
+];
+
+export const GET_QUOTE_USDC_GOOGLON_RESPONSE = [
+  {
+    quote: {
+      requestId: '76032e05-1fc5-4a61-ab98-cd30505da07a',
+      bridgeId: 'cowswap',
+      srcChainId: 1,
+      srcAsset: {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: 1,
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+        decimals: 6,
+        name: 'USDC',
+        coingeckoId: 'usd-coin',
+        aggregators: [
+          'metamask',
+          'oneInch',
+          'liFi',
+          'socket',
+          'squid',
+          'rango',
+          'sonarwatch',
+          'sushiSwap',
+          'pmm',
+          'bancor',
+        ],
+        occurrences: 10,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+        metadata: {
+          storage: {
+            balance: 9,
+            approval: 10,
+          },
+        },
+      },
+      srcTokenAmount: '10000000',
+      destChainId: 1,
+      destAsset: {
+        address: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+        chainId: 1,
+        assetId: 'eip155:1/erc20:0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+        symbol: 'GOOGLON',
+        decimals: 18,
+        name: 'Alphabet Class A (Ondo Tokenized)',
+        aggregators: ['coinGecko', 'rango', 'ondo'],
+        occurrences: 3,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xba47214edd2bb43099611b208f75e4b42fdcfedc.png',
+        metadata: {},
+        rwaData: {
+          market: {
+            nextOpen: '2026-02-19T14:31:00.000Z',
+            nextClose: '2026-02-19T14:29:00.000Z',
+          },
+          nextPause: {
+            start: '2026-03-08T23:52:00.000Z',
+            end: '2026-03-09T00:12:00.000Z',
+          },
+          ticker: 'GOOGL',
+          instrumentType: 'stock',
+          isOpen: true,
+        },
+      },
+      destTokenAmount: '32747750652651914',
+      minDestTokenAmount: '32092795639598875',
+      feeData: {
+        metabridge: {
+          amount: '87500',
+          asset: {
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            chainId: 1,
+            assetId:
+              'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            symbol: 'USDC',
+            decimals: 6,
+            name: 'USDC',
+            coingeckoId: 'usd-coin',
+            aggregators: [
+              'metamask',
+              'oneInch',
+              'liFi',
+              'socket',
+              'squid',
+              'rango',
+              'sonarwatch',
+              'sushiSwap',
+              'pmm',
+              'bancor',
+            ],
+            occurrences: 10,
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+            metadata: {
+              storage: {
+                balance: 9,
+                approval: 10,
+              },
+            },
+          },
+          quoteBpsFee: 87.5,
+          baseBpsFee: 87.5,
+        },
+      },
+      aggregator: 'cowswap',
+      bridges: ['cowswap'],
+      protocols: ['cowswap'],
+      steps: [
+        {
+          action: 'swap',
+          srcChainId: 1,
+          destChainId: 1,
+          srcAsset: {
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            chainId: 1,
+            assetId:
+              'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            symbol: 'USDC',
+            decimals: 6,
+            name: 'USDC',
+            coingeckoId: 'usd-coin',
+            aggregators: [
+              'metamask',
+              'oneInch',
+              'liFi',
+              'socket',
+              'squid',
+              'rango',
+              'sonarwatch',
+              'sushiSwap',
+              'pmm',
+              'bancor',
+            ],
+            occurrences: 10,
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+            metadata: {
+              storage: {
+                balance: 9,
+                approval: 10,
+              },
+            },
+          },
+          destAsset: {
+            address: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+            chainId: 1,
+            assetId:
+              'eip155:1/erc20:0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+            symbol: 'GOOGLON',
+            decimals: 18,
+            name: 'Alphabet Class A (Ondo Tokenized)',
+            aggregators: ['coinGecko', 'rango', 'ondo'],
+            occurrences: 3,
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xba47214edd2bb43099611b208f75e4b42fdcfedc.png',
+            metadata: {},
+            rwaData: {
+              market: {
+                nextOpen: '2026-02-19T14:31:00.000Z',
+                nextClose: '2026-02-19T14:29:00.000Z',
+              },
+              nextPause: {
+                start: '2026-03-08T23:52:00.000Z',
+                end: '2026-03-09T00:12:00.000Z',
+              },
+              ticker: 'GOOGL',
+              instrumentType: 'stock',
+              isOpen: true,
+            },
+          },
+          srcAmount: '10000000',
+          destAmount: '32747750652651914',
+          protocol: {
+            name: 'cowswap',
+            displayName: 'CowSwap',
+          },
+        },
+      ],
+      priceData: {
+        totalFromAmountUsd: '9.99906',
+        totalToAmountUsd: '9.906849527440256',
+        priceImpact: '0.009221914115901285',
+      },
+      aggregatorType: 'AGG',
+      walletAddress: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      destWalletAddress: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      gasIncluded: false,
+      intent: {
+        protocol: 'cowswap',
+        order: {
+          kind: 'sell',
+          sellToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          buyToken: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+          from: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+          receiver: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+          sellAmount: '10000000',
+          buyAmount: '32092795639598875',
+          feeAmount: '55143',
+          validTo: 1771504781,
+          appData:
+            '{"appCode":"metamask","metadata":{"orderClass":{"orderClass":"market"},"partnerFee":[{"volumeBps":100,"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58"},{"volumeBps":100,"priceImprovementBps":9900,"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58"}]},"version":"1.8.0"}',
+          appDataHash:
+            '0xde8cdb301dfa645b5f0967314ca74611ea4da0622e24e366ecabb0ef05b937aa',
+          partiallyFillable: false,
+          sellTokenBalance: 'erc20',
+          buyTokenBalance: 'erc20',
+          signingScheme: 'eip712',
+          priceQuality: 'fast',
+        },
+        quoteId: null,
+        relayer: '0x9008D19f58AAbD9eD0D60971565AA8510560ab41',
+      },
+    },
+    approval: {
+      chainId: 1,
+      to: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      from: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      value: '0x0',
+      data: '0x095ea7b3000000000000000000000000c92e8bdf79f0507f65a392b0ab4667716bfe01100000000000000000000000000000000000000000000000000000000000996de7',
+      gasLimit: null,
+    },
+    trade: {
+      chainId: 1,
+      to: '0x9008D19f58AAbD9eD0D60971565AA8510560ab41',
+      from: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      value: '0x0',
+      data: '0x07c',
+      gasLimit: null,
+    },
+    estimatedProcessingTimeInSeconds: 0,
   },
 ];

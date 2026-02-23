@@ -9,6 +9,7 @@ export enum ActionType {
   SET_DATA_COLLECTION_FOR_MARKETING = 'SET_DATA_COLLECTION_FOR_MARKETING',
   SET_NFT_AUTO_DETECTION_MODAL_OPEN = 'SET_NFT_AUTO_DETECTION_MODAL_OPEN',
   SET_MULTI_RPC_MIGRATION_MODAL_OPEN = 'SET_MULTI_RPC_MIGRATION_MODAL_OPEN',
+  SET_OS_AUTH_ENABLED = 'SET_OS_AUTH_ENABLED',
 }
 
 export interface AllowLoginWithRememberMeUpdated
@@ -31,11 +32,17 @@ export interface SetDataCollectionForMarketing
   enabled: boolean;
 }
 
+export interface SetOsAuthEnabled
+  extends ReduxAction<ActionType.SET_OS_AUTH_ENABLED> {
+  enabled: boolean;
+}
+
 export type Action =
   | AllowLoginWithRememberMeUpdated
   | SetDataCollectionForMarketing
   | SetNftAutoDetectionModalOpen
-  | SetMultiRpcMigrationModalOpen;
+  | SetMultiRpcMigrationModalOpen
+  | SetOsAuthEnabled;
 
 export const setAllowLoginWithRememberMe = (
   enabled: boolean,
@@ -60,5 +67,10 @@ export const setMultiRpcMigrationModalOpen = (
 
 export const setDataCollectionForMarketing = (enabled: boolean) => ({
   type: ActionType.SET_DATA_COLLECTION_FOR_MARKETING,
+  enabled,
+});
+
+export const setOsAuthEnabled = (enabled: boolean): SetOsAuthEnabled => ({
+  type: ActionType.SET_OS_AUTH_ENABLED,
   enabled,
 });

@@ -9,9 +9,11 @@ import {
 } from '@metamask/design-system-react-native';
 import MetamaskRewardsPointsImage from '../../../../../images/rewards/metamask-rewards-points.svg';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { SeasonWayToEarnSpecificReferralDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 
-interface ReferralStatsSectionProps {
+interface ReferralStatsSectionProps
+  extends Partial<SeasonWayToEarnSpecificReferralDto> {
   earnedPointsFromReferees?: number | null;
   earnedPointsFromRefereesLoading?: boolean;
   refereeCount?: number | null;
@@ -20,6 +22,8 @@ interface ReferralStatsSectionProps {
 }
 
 const ReferralStatsSection: React.FC<ReferralStatsSectionProps> = ({
+  referralPointsTitle,
+  totalReferralsTitle,
   earnedPointsFromReferees = undefined,
   earnedPointsFromRefereesLoading = false,
   refereeCount = undefined,
@@ -29,7 +33,8 @@ const ReferralStatsSection: React.FC<ReferralStatsSectionProps> = ({
   <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-12">
     <Box twClassName="gap-2">
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {strings('rewards.referral_stats_earned_from_referrals')}
+        {referralPointsTitle ||
+          strings('rewards.referral_stats_earned_from_referrals')}
       </Text>
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -51,7 +56,7 @@ const ReferralStatsSection: React.FC<ReferralStatsSectionProps> = ({
     {(!refereeCountError || refereeCountLoading || refereeCount !== null) && (
       <Box twClassName="gap-2">
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.referral_stats_referrals')}
+          {totalReferralsTitle || strings('rewards.referral_stats_referrals')}
         </Text>
         <Box
           flexDirection={BoxFlexDirection.Row}

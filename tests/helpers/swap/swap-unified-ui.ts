@@ -1,8 +1,8 @@
-import TestHelpers from '../../../e2e/helpers';
-import QuoteView from '../../../e2e/pages/swaps/QuoteView';
-import SlippageModal from '../../../e2e/pages/swaps/SlippageModal';
+import TestHelpers from '../../helpers';
+import QuoteView from '../../page-objects/swaps/QuoteView';
+import SlippageModal from '../../page-objects/swaps/SlippageModal';
 import Assertions from '../../framework/Assertions';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 
 interface SwapOptions {
@@ -19,12 +19,15 @@ export async function submitSwapUnifiedUI(
 ) {
   const DEFAULT_SLIPPAGE_VALUE = '2';
   await device.disableSynchronization();
-  await Assertions.expectElementToBeVisible(QuoteView.selectAmountLabel);
-  await QuoteView.enterAmount(quantity);
+  await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
+    timeout: 20000,
+  });
   if (sourceTokenSymbol !== 'ETH') {
     await QuoteView.tapSourceToken();
     await QuoteView.tapToken(chainId, sourceTokenSymbol);
   }
+  await QuoteView.tapSourceAmountInput();
+  await QuoteView.enterAmount(quantity);
   await QuoteView.tapDestinationToken();
   await QuoteView.tapToken(chainId, destTokenSymbol);
 
@@ -66,7 +69,7 @@ export async function checkSwapActivity(
   // Check the token approval completed
   if (sourceTokenSymbol !== 'ETH') {
     await Assertions.expectElementToBeVisible(
-      ActivitiesView.swapApprovalActivityTitle(sourceTokenSymbol),
+      ActivitiesView.swapApprovalActivityTitle(),
     );
     await Assertions.expectElementToHaveText(
       ActivitiesView.transactionStatus(SECOND_ROW),

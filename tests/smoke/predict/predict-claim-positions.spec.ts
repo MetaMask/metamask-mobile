@@ -1,9 +1,9 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokePredictions } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { SmokePredictions } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
 import Assertions from '../../framework/Assertions';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
+import WalletView from '../../page-objects/wallet/WalletView';
 import {
   remoteFeatureFlagPredictEnabled,
   confirmationFeatureFlags,
@@ -19,9 +19,9 @@ import {
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
-import PredictActivityDetails from '../../../e2e/pages/Transactions/predictionsActivityDetails';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
+import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import {
   POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
@@ -119,6 +119,11 @@ describe(SmokePredictions('Claim winnings:'), () => {
           WalletView.PredictionsTabContainer,
         );
 
+        // Claim button is rendered only after positions API returns and Redux has won positions
+        await Assertions.expectElementToBeVisible(WalletView.claimButton, {
+          description:
+            'Claim button should be visible (positions loaded with winnings)',
+        });
         await WalletView.tapClaimButton();
         await Assertions.expectElementToBeVisible(PredictClaimPage.container);
 
@@ -222,7 +227,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
           },
         );
 
-        await WalletView.scrollToPosition(positions.Won);
+        await WalletView.scrollToPosition(positions.Lost);
 
         await WalletView.tapPredictPosition(positions.Lost);
 
@@ -234,6 +239,8 @@ describe(SmokePredictions('Claim winnings:'), () => {
           },
         );
         await PredictDetailsPage.tapBackButton();
+
+        await WalletView.scrollToPosition(positions.Won);
 
         await WalletView.tapPredictPosition(positions.Won);
 

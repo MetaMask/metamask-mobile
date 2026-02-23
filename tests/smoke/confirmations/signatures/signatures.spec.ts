@@ -1,17 +1,18 @@
 import Assertions from '../../../framework/Assertions';
-import Browser from '../../../../e2e/pages/Browser/BrowserView';
-import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
+import Browser from '../../../page-objects/Browser/BrowserView';
+import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import RequestTypes from '../../../../e2e/pages/Browser/Confirmations/RequestTypes';
-import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
-import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import RequestTypes from '../../../page-objects/Browser/Confirmations/RequestTypes';
+import TestDApp from '../../../page-objects/Browser/TestDApp';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../flows/browser.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { SmokeConfirmations } from '../../../../e2e/tags';
+import { SmokeConfirmations } from '../../../tags';
 import {
   buildPermissions,
   AnvilPort,
 } from '../../../framework/fixtures/FixtureUtils';
-import RowComponents from '../../../../e2e/pages/Browser/Confirmations/RowComponents';
+import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents';
 import { DappVariants } from '../../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';

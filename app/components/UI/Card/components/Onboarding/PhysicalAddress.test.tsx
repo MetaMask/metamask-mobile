@@ -27,19 +27,15 @@ jest.mock('../../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
 
-// Mock useMetrics
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({
+// Mock useAnalytics
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn(),
     })),
   })),
-  MetaMetricsEvents: {
-    CARD_VIEWED: 'card_viewed',
-    CARD_BUTTON_CLICKED: 'card_button_clicked',
-  },
 }));
 
 // Mock utility functions
@@ -176,10 +172,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   const React = jest.requireActual('react');
   const { TextInput } = jest.requireActual('react-native');
 
-  const TextFieldSize = {
-    Lg: 'lg',
-  };
-
   const MockTextField = ({
     testID,
     onChangeText,
@@ -212,7 +204,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   return {
     __esModule: true,
     default: MockTextField,
-    TextFieldSize,
   };
 });
 

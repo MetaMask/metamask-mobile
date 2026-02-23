@@ -62,6 +62,7 @@ import {
 } from './AccountConnect.types';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
+import AccountConnectMaliciousWarning from './AccountConnectMaliciousWarning/AccountConnectMaliciousWarning';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { getNetworkImageSource } from '../../../util/networks';
@@ -170,6 +171,13 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const isOriginWalletConnect =
     !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
+
+  // WalletConnect Verify API: detect if the dapp is flagged as malicious.
+  // Only applies to WalletConnect origins with a scam flag set by the Verify API.
+  // Verify failures (missing context) are treated as non-malicious to avoid blocking.
+  const isMaliciousDapp = Boolean(
+    isOriginWalletConnect && wc2Metadata?.verifyContext?.isScam,
+  );
 
   const defaultSelectedChainIds = useMemo(
     () =>
@@ -656,6 +664,10 @@ const AccountConnect = (props: AccountConnectProps) => {
     const handleUserActions = async (action: USER_INTENT) => {
       switch (action) {
         case USER_INTENT.Confirm: {
+          if (isMaliciousDapp) {
+            setScreen(AccountConnectScreens.MaliciousWarning);
+            break;
+          }
           handleConfirm();
           break;
         }
@@ -714,6 +726,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     hideSheet,
     trackEvent,
     createEventBuilder,
+    isMaliciousDapp,
   ]);
 
   const handleSheetDismiss = () => {
@@ -743,6 +756,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       setTabIndex,
       tabIndex,
       promptToCreateSolanaAccount,
+      isMaliciousDapp,
       onCreateAccount: (clientType, scope) => {
         setMultichainAccountOptions({
           clientType,
@@ -762,6 +776,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     tabIndex,
     setTabIndex,
     promptToCreateSolanaAccount,
+    isMaliciousDapp,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
@@ -863,6 +878,27 @@ const AccountConnect = (props: AccountConnectProps) => {
     [handleAccountSelection, setScreen, multichainAccountOptions],
   );
 
+  // Called when the user explicitly accepts the risk from the malicious warning screen.
+  const handleConnectAnyway = useCallback(async () => {
+    hideSheet();
+    await handleConnect();
+  }, [hideSheet, handleConnect]);
+
+  const handleMaliciousWarningClose = useCallback(() => {
+    setScreen(AccountConnectScreens.SingleConnect);
+  }, []);
+
+  const renderMaliciousWarningScreen = useCallback(
+    () => (
+      <AccountConnectMaliciousWarning
+        url={urlWithProtocol}
+        onConnectAnyway={handleConnectAnyway}
+        onClose={handleMaliciousWarningClose}
+      />
+    ),
+    [urlWithProtocol, handleConnectAnyway, handleMaliciousWarningClose],
+  );
+
   const renderPhishingModal = useCallback(
     () => (
       <Modal
@@ -911,6 +947,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         return renderMultiConnectNetworkSelectorScreen();
       case AccountConnectScreens.AddNewAccount:
         return renderAddNewAccount();
+      case AccountConnectScreens.MaliciousWarning:
+        return renderMaliciousWarningScreen();
     }
   }, [
     screen,
@@ -919,6 +957,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
     renderAddNewAccount,
+    renderMaliciousWarningScreen,
   ]);
 
   return (

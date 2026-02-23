@@ -1,5 +1,5 @@
-import { SmokeWalletPlatform } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { SmokeWalletPlatform } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';

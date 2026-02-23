@@ -1,19 +1,20 @@
 import { SMART_CONTRACTS } from '../../../../app/util/test/smart-contracts';
-import { SmokeConfirmations } from '../../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import { SmokeConfirmations } from '../../../tags';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../flows/browser.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import ConfirmationUITypes from '../../../../e2e/pages/Browser/Confirmations/ConfirmationUITypes';
-import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import ConfirmationUITypes from '../../../page-objects/Browser/Confirmations/ConfirmationUITypes';
+import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
 import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import {
   buildPermissions,
   AnvilPort,
 } from '../../../framework/fixtures/FixtureUtils';
-import RowComponents from '../../../../e2e/pages/Browser/Confirmations/RowComponents';
+import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
-import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
+import TestDApp from '../../../page-objects/Browser/TestDApp';
 import { DappVariants } from '../../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
@@ -21,7 +22,7 @@ import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remote
 import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../framework/types';
 import { AnvilManager } from '../../../seeder/anvil-manager';
-import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import Browser from '../../../page-objects/Browser/BrowserView';
 
 describe(SmokeConfirmations('Contract Interaction'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;

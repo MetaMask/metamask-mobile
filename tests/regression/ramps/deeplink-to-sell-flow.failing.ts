@@ -1,15 +1,15 @@
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TestHelpers from '../../../e2e/helpers';
-import SellGetStartedView from '../../../e2e/pages/Ramps/SellGetStartedView';
-import { RegressionTrade } from '../../../e2e/tags';
-import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView';
+import TestHelpers from '../../helpers';
+import SellGetStartedView from '../../page-objects/Ramps/SellGetStartedView';
+import { RegressionTrade } from '../../tags';
+import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
 import Assertions from '../../framework/Assertions';
-import NetworkApprovalBottomSheet from '../../../e2e/pages/Network/NetworkApprovalBottomSheet';
-import NetworkAddedBottomSheet from '../../../e2e/pages/Network/NetworkAddedBottomSheet';
-import NetworkEducationModal from '../../../e2e/pages/Network/NetworkEducationModal';
-import NetworkListModal from '../../../e2e/pages/Network/NetworkListModal';
+import NetworkApprovalBottomSheet from '../../page-objects/Network/NetworkApprovalBottomSheet';
+import NetworkAddedBottomSheet from '../../page-objects/Network/NetworkAddedBottomSheet';
+import NetworkEducationModal from '../../page-objects/Network/NetworkEducationModal';
+import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
@@ -33,6 +33,8 @@ describe(RegressionTrade('Sell Crypto Deeplinks'), () => {
         emoji: '🇫🇷',
         id: '/regions/fr',
         name: 'France',
+        countryName: 'France',
+        countryIsoCode: 'FR',
         support: { buy: true, sell: true, recurringBuy: true },
         unsupported: false,
         recommended: false,

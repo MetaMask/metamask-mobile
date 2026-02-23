@@ -7,22 +7,33 @@
 
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-import type { IMetaMetrics } from '../../../../core/Analytics/MetaMetrics.types';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../../util/analytics/analytics';
 import { trace, endTrace, TraceName } from '../../../../util/trace';
 import { setMeasurement } from '@sentry/react-native';
 import performance from 'react-native-performance';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import Engine from '../../../../core/Engine';
-import type {
-  PerpsPlatformDependencies,
-  PerpsMetrics,
-  PerpsTraceName,
-  PerpsTraceValue,
-  PerpsAnalyticsEvent,
-  PerpsAnalyticsProperties,
-} from '../controllers/types';
+import {
+  type PerpsPlatformDependencies,
+  type PerpsMetrics,
+  type PerpsTraceName,
+  type PerpsTraceValue,
+  type PerpsAnalyticsEvent,
+  type PerpsAnalyticsProperties,
+  type VersionGatedFeatureFlag,
+  type MarketDataFormatters,
+  type InvalidateCacheParams,
+} from '@metamask/perps-controller';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
+import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import {
+  formatVolume,
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../utils/formatUtils';
+import { getIntlNumberFormatter } from '../../../../util/intl';
 
 /**
  * Type conversion helper - isolated cast for platform bridge.
@@ -33,14 +44,12 @@ function toTraceName(name: PerpsTraceName): TraceName {
 }
 
 /**
- * Creates a mobile-specific MetaMetrics adapter that implements PerpsMetrics
+ * Creates a mobile-specific analytics adapter that implements PerpsMetrics
  */
 function createMobileMetrics(): PerpsMetrics {
-  const metricsInstance: IMetaMetrics = MetaMetrics.getInstance();
-
   return {
     isEnabled(): boolean {
-      return metricsInstance.isEnabled();
+      return analytics.isEnabled();
     },
     trackPerpsEvent(
       event: PerpsAnalyticsEvent,
@@ -57,24 +66,21 @@ function createMobileMetrics(): PerpsMetrics {
       );
 
       if (metaMetricsEvent && typeof metaMetricsEvent === 'object') {
-        // Use MetricsEventBuilder for proper event construction
-        const eventBuilder =
-          MetricsEventBuilder.createEventBuilder(
-            metaMetricsEvent,
-          ).addProperties(properties);
-        metricsInstance.trackEvent(eventBuilder.build(), true);
+        const built = AnalyticsEventBuilder.createEventBuilder(metaMetricsEvent)
+          .addProperties(properties)
+          .build();
+        analytics.trackEvent(built);
       } else {
         // Fallback: log warning and track with a generic Perps event
-        // This shouldn't happen if PerpsAnalyticsEvent values match MetaMetricsEvents
         DevLogger.log(
           `PerpsAnalyticsEvent "${event}" not found in MetaMetricsEvents`,
         );
-        // Create a proper tracking event using MetricsEventBuilder
-        // Use event name as category to match generateOpt pattern in MetaMetrics.events.ts
-        const fallbackEvent = MetricsEventBuilder.createEventBuilder({
+        const fallbackEvent = AnalyticsEventBuilder.createEventBuilder({
           category: event,
-        }).addProperties(properties);
-        metricsInstance.trackEvent(fallbackEvent.build(), true);
+        })
+          .addProperties(properties)
+          .build();
+        analytics.trackEvent(fallbackEvent);
       }
     },
   };
@@ -124,6 +130,22 @@ function createStreamManagerAdapter() {
       ) {
         streamManager.clearAllChannels();
       }
+    },
+  };
+}
+
+/**
+ * Creates a cache invalidator adapter that delegates to the mobile singleton.
+ * This allows controller services to invalidate caches without direct dependency
+ * on the mobile-specific PerpsCacheInvalidator singleton.
+ */
+function createCacheInvalidatorAdapter() {
+  return {
+    invalidate({ cacheType }: InvalidateCacheParams): void {
+      PerpsCacheInvalidator.invalidate(cacheType);
+    },
+    invalidateAll(): void {
+      PerpsCacheInvalidator.invalidateAll();
     },
   };
 }
@@ -201,5 +223,42 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
           caipAccountId,
         ),
     },
+
+    // === Feature Flags ===
+    featureFlags: {
+      validateVersionGated(flag: VersionGatedFeatureFlag): boolean | undefined {
+        return validatedVersionGatedFeatureFlag(flag);
+      },
+    },
+
+    // === Market Data Formatting ===
+    marketDataFormatters: createMobileMarketDataFormatters(),
+
+    // === Cache Invalidation ===
+    cacheInvalidator: createCacheInvalidatorAdapter(),
+  };
+}
+
+/**
+ * Creates mobile-specific market data formatters.
+ * Wires up platform dependencies (intl, formatUtils) for portable market data transformation.
+ */
+function createMobileMarketDataFormatters(): MarketDataFormatters {
+  return {
+    formatVolume,
+    formatPerpsFiat,
+    formatPercentage: (percent: number): string => {
+      if (isNaN(percent) || !isFinite(percent)) return '0.00%';
+      if (percent === 0) return '0.00%';
+
+      const formatted = getIntlNumberFormatter('en-US', {
+        style: 'percent',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(percent / 100);
+
+      return percent > 0 ? `+${formatted}` : formatted;
+    },
+    priceRangesUniversal: PRICE_RANGES_UNIVERSAL,
   };
 }

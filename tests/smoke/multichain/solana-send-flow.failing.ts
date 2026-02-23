@@ -1,15 +1,15 @@
-import { SmokeNetworkExpansion } from '../../../e2e/tags';
-import { importWalletWithRecoveryPhrase } from '../../../e2e/viewHelper';
+import { SmokeNetworkExpansion } from '../../tags';
+import { importWalletWithRecoveryPhrase } from '../../flows/wallet.flow';
 import Assertions from '../../framework/Assertions';
-import TestHelpers from '../../../e2e/helpers';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
-import SnapSendActionSheet from '../../../e2e/pages/wallet/SendActionBottomSheet';
-import NetworkEducationModal from '../../../e2e/pages/Network/NetworkEducationModal';
-import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from '../../../e2e/pages/wallet/AddAccountBottomSheet';
-import AddNewHdAccountComponent from '../../../e2e/pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+import TestHelpers from '../../helpers';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import WalletView from '../../page-objects/wallet/WalletView';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
+import SnapSendActionSheet from '../../page-objects/wallet/SendActionBottomSheet';
+import NetworkEducationModal from '../../page-objects/Network/NetworkEducationModal';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from '../../page-objects/wallet/AddAccountBottomSheet';
+import AddNewHdAccountComponent from '../../page-objects/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 
 // Test constants
 const INVALID_ADDRESS = 'invalid address';
@@ -21,8 +21,6 @@ const RECIPIENT_SHORT_ADDRESS = 'EjiyBUW...GgtXt';
 const RECENT_TRANSACTION_INDEX = 0;
 
 // Quarantining for GNS feature
-// Original path e2e/specs/solana/solana-send-flow.spec.ts
-// Failing on IOS, Passes on Android
 describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);

@@ -837,6 +837,7 @@ export function getWalletNavbarOptions(
   unreadNotificationCount,
   readNotificationCount,
   shouldDisplayCardButton,
+  isAccountMenuEnabled,
 ) {
   const innerStyles = StyleSheet.create({
     headerContainer: {
@@ -866,6 +867,7 @@ export function getWalletNavbarOptions(
     },
     actionButtonsContainer: {
       flexDirection: 'row',
+      gap: 8,
     },
     // Minimum 44px touch area for accessibility
     touchAreaSlop: {
@@ -1003,15 +1005,17 @@ export function getWalletNavbarOptions(
                     touchAreaSlop={innerStyles.touchAreaSlop}
                   />
                 )}
-                <ButtonIcon
-                  iconProps={{ color: MMDSIconColor.Default }}
-                  onPress={openQRScanner}
-                  iconName={IconName.QrCode}
-                  size={ButtonIconSize.Lg}
-                  testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-                  hitSlop={innerStyles.touchAreaSlop}
-                />
-                {isNotificationsFeatureEnabled() && (
+                {!isAccountMenuEnabled && (
+                  <ButtonIcon
+                    iconProps={{ color: MMDSIconColor.Default }}
+                    onPress={openQRScanner}
+                    iconName={IconName.QrCode}
+                    size={ButtonIconSize.Md}
+                    testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
+                )}
+                {isNotificationsFeatureEnabled() && !isAccountMenuEnabled && (
                   <BadgeWrapper
                     position={BadgeWrapperPosition.TopRight}
                     positionAnchorShape={
@@ -1027,7 +1031,7 @@ export function getWalletNavbarOptions(
                       iconProps={{ color: MMDSIconColor.Default }}
                       onPress={handleNotificationOnPress}
                       iconName={IconName.Notification}
-                      size={ButtonIconSize.Lg}
+                      size={ButtonIconSize.Md}
                       testID={
                         WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
                       }
@@ -1035,14 +1039,39 @@ export function getWalletNavbarOptions(
                     />
                   </BadgeWrapper>
                 )}
-                <ButtonIcon
-                  iconProps={{ color: MMDSIconColor.Default }}
-                  onPress={handleHamburgerPress}
-                  iconName={IconName.Menu}
-                  size={ButtonIconSize.Lg}
-                  testID="navbar-hamburger-menu-button"
-                  hitSlop={innerStyles.touchAreaSlop}
-                />
+                {isNotificationsFeatureEnabled() && isAccountMenuEnabled ? (
+                  <BadgeWrapper
+                    position={BadgeWrapperPosition.TopRight}
+                    positionAnchorShape={
+                      BadgeWrapperPositionAnchorShape.Circular
+                    }
+                    badge={
+                      isNotificationsFeatureEnabled() &&
+                      isNotificationEnabled &&
+                      unreadNotificationCount > 0 ? (
+                        <BadgeStatus status={BadgeStatusStatus.Attention} />
+                      ) : null
+                    }
+                  >
+                    <ButtonIcon
+                      iconProps={{ color: MMDSIconColor.Default }}
+                      onPress={handleHamburgerPress}
+                      iconName={IconName.Menu}
+                      size={ButtonIconSize.Md}
+                      testID="navbar-hamburger-menu-button"
+                      hitSlop={innerStyles.touchAreaSlop}
+                    />
+                  </BadgeWrapper>
+                ) : (
+                  <ButtonIcon
+                    iconProps={{ color: MMDSIconColor.Default }}
+                    onPress={handleHamburgerPress}
+                    iconName={IconName.Menu}
+                    size={ButtonIconSize.Md}
+                    testID="navbar-hamburger-menu-button"
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
+                )}
               </View>
             }
           </View>

@@ -1,19 +1,19 @@
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
-import SendView from '../../../../e2e/pages/Send/RedesignedSendView';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
+import SendView from '../../../page-objects/Send/RedesignedSendView';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import WalletView from '../../../page-objects/wallet/WalletView';
 import {
   Assertions,
   LocalNode,
   LocalNodeType,
   Utilities,
 } from '../../../framework';
-import { SmokeConfirmations } from '../../../../e2e/tags';
+import { SmokeConfirmations } from '../../../tags';
 import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
-import { loginToApp } from '../../../../e2e/viewHelper';
+import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import RowComponents from '../../../../e2e/pages/Browser/Confirmations/RowComponents';
+import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents';
 import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager';
 import {
   setupMockRequest,

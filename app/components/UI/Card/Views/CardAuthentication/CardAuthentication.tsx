@@ -10,9 +10,7 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../component-library/components/Form/Label';
 
 import Button, {
@@ -26,7 +24,8 @@ import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectUserCardLocation,
@@ -46,7 +45,7 @@ const autoComplete = Platform.select<TextInputProps['autoComplete']>({
 
 const CardAuthentication = () => {
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
   const [step, setStep] = useState<'login' | 'otp'>('login');
   const [email, setEmail] = useState('');
@@ -296,7 +295,6 @@ const CardAuthentication = () => {
               autoCapitalize={'none'}
               onChangeText={handleOtpValueChange}
               numberOfLines={1}
-              size={TextFieldSize.Lg}
               value={confirmCode}
               keyboardType="number-pad"
               textContentType="oneTimeCode"
@@ -408,7 +406,6 @@ const CardAuthentication = () => {
               autoComplete="one-time-code"
               onChangeText={handleEmailChange}
               numberOfLines={1}
-              size={TextFieldSize.Lg}
               value={email}
               returnKeyType={'next'}
               keyboardType="email-address"
@@ -426,7 +423,6 @@ const CardAuthentication = () => {
               onChangeText={handlePasswordChange}
               autoComplete="one-time-code"
               numberOfLines={1}
-              size={TextFieldSize.Lg}
               value={password}
               maxLength={255}
               returnKeyType={'done'}

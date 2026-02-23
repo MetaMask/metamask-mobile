@@ -2,12 +2,12 @@
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../../framework/Assertions';
-import { RegressionWalletPlatform } from '../../../../e2e/tags';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
-import SecurityAndPrivacy from '../../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import { loginToApp } from '../../../../e2e/viewHelper';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import CommonView from '../../../../e2e/pages/CommonView';
+import { RegressionWalletPlatform } from '../../../tags';
+import SettingsView from '../../../page-objects/Settings/SettingsView';
+import SecurityAndPrivacy from '../../../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import { loginToApp } from '../../../flows/wallet.flow';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import CommonView from '../../../page-objects/CommonView';
 import {
   EventPayload,
   filterEvents,

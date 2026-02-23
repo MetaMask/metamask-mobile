@@ -100,6 +100,8 @@ import { selectSmartTransactionsEnabled } from '../../selectors/smartTransaction
 import { AccountTreeController } from '@metamask/account-tree-controller';
 import { createTrustSignalsMiddleware } from '../RPCMethods/TrustSignalsMiddleware';
 import createDupeReqFilterStream from './createDupeReqFilterStream';
+import { asLegacyMiddleware } from '@metamask/json-rpc-engine/v2';
+import { createWalletSnapPermissionMiddleware } from '@metamask/snaps-rpc-methods';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -673,6 +675,8 @@ export class BackgroundBridge extends EventEmitter {
         networkController: Engine.context.NetworkController,
       }),
     );
+
+    engine.push(asLegacyMiddleware(createWalletSnapPermissionMiddleware()));
 
     // user-facing RPC methods
     engine.push(

@@ -344,8 +344,7 @@ describe('TurnOffRememberMeModal', () => {
     });
   });
 
-  it('restores previous auth type when disabling remember me', async () => {
-    mockGetItem.mockResolvedValue(AUTHENTICATION_TYPE.BIOMETRIC);
+  it('disables remember me with PASSWORD and clears previous auth type storage', async () => {
     mockDoesPasswordMatch.mockResolvedValue({ valid: true });
 
     const { getByTestId } = renderWithProvider(<TurnOffRememberMeModal />, {
@@ -366,17 +365,18 @@ describe('TurnOffRememberMeModal', () => {
     });
 
     await waitFor(() => {
-      expect(mockGetItem).toHaveBeenCalledWith(
-        PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
-      );
       expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
-        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        authType: AUTHENTICATION_TYPE.PASSWORD,
         password: 'ValidPassword123!',
       });
       expect(mockRemoveItem).toHaveBeenCalledWith(
         PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
       );
       expect(mockDismissModal).toHaveBeenCalled();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
     });
   });
 
@@ -406,6 +406,10 @@ describe('TurnOffRememberMeModal', () => {
         authType: AUTHENTICATION_TYPE.PASSWORD,
         password: 'ValidPassword123!',
       });
+    });
+
+    await act(async () => {
+      await Promise.resolve();
     });
   });
 
@@ -445,6 +449,9 @@ describe('TurnOffRememberMeModal', () => {
 
     if (resolveUpdateAuthPreference) {
       resolveUpdateAuthPreference();
+      await act(async () => {
+        await Promise.resolve();
+      });
     }
   });
 
@@ -484,6 +491,9 @@ describe('TurnOffRememberMeModal', () => {
 
     if (resolveUpdateAuthPreference) {
       resolveUpdateAuthPreference();
+      await act(async () => {
+        await Promise.resolve();
+      });
     }
   });
 
@@ -511,6 +521,10 @@ describe('TurnOffRememberMeModal', () => {
     await waitFor(() => {
       expect(mockUpdateAuthPreference).toHaveBeenCalled();
       expect(mockDismissModal).toHaveBeenCalled();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
     });
   });
 
@@ -551,6 +565,9 @@ describe('TurnOffRememberMeModal', () => {
       await waitFor(() => {
         expect(mockDismissModal).toHaveBeenCalled();
       });
+      await act(async () => {
+        await Promise.resolve();
+      });
     }
   });
 
@@ -576,6 +593,10 @@ describe('TurnOffRememberMeModal', () => {
     await waitFor(() => {
       expect(mockUpdateAuthPreference).toHaveBeenCalled();
       expect(mockDismissModal).toHaveBeenCalled();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
     });
   });
 });

@@ -1,9 +1,9 @@
-import { RegressionWalletUX } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { RegressionWalletUX } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { Assertions } from '../../framework';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
+import WalletView from '../../page-objects/wallet/WalletView';
 import { Mockttp } from 'mockttp';
 import { setupContentfulPromotionalBannersMock } from '../../api-mocking/helpers/contentfulHelper';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';

@@ -1,21 +1,20 @@
 // Mock wait utility to avoid delays in tests
-jest.mock('../utils/wait', () => ({
-  wait: jest.fn().mockResolvedValue(undefined),
-}));
-
-// Mock TradingReadinessCache for cache clearing tests
-// The mock must be defined inside the factory function because jest.mock is hoisted
-jest.mock('./TradingReadinessCache', () => ({
-  TradingReadinessCache: {
-    clear: jest.fn(),
-    clearAll: jest.fn(),
-    clearDexAbstraction: jest.fn(),
-    clearBuilderFee: jest.fn(),
-    clearReferral: jest.fn(),
-    get: jest.fn(),
-    set: jest.fn(),
-  },
-}));
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual('@metamask/perps-controller');
+  return {
+    ...actual,
+    wait: jest.fn().mockResolvedValue(undefined),
+    TradingReadinessCache: {
+      clear: jest.fn(),
+      clearAll: jest.fn(),
+      clearDexAbstraction: jest.fn(),
+      clearBuilderFee: jest.fn(),
+      clearReferral: jest.fn(),
+      get: jest.fn(),
+      set: jest.fn(),
+    },
+  };
+});
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../core/Engine', () => ({
@@ -72,6 +71,9 @@ const mockStreamManagerInstance = {
   marketData: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   prices: { clearCache: jest.fn(), prewarm: jest.fn(async () => jest.fn()) },
   oiCaps: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  fills: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  topOfBook: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  candles: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -97,7 +99,7 @@ import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectPerpsNetwork } from '../selectors/perpsController';
-import { TradingReadinessCache } from './TradingReadinessCache';
+import { TradingReadinessCache } from '@metamask/perps-controller';
 
 // Import PerpsConnectionManager after mocks are set up
 // This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created
@@ -835,6 +837,72 @@ describe('PerpsConnectionManager', () => {
           'PerpsConnectionManager: All signing cache cleared',
         );
       });
+    });
+  });
+
+  describe('waitForConnection', () => {
+    it('awaits resolving initPromise', async () => {
+      // Arrange — set initPromise to a resolved promise
+      const m = PerpsConnectionManager as unknown as {
+        initPromise: Promise<void> | null;
+      };
+      m.initPromise = Promise.resolve();
+
+      // Act & Assert — should complete without error
+      await expect(
+        PerpsConnectionManager.waitForConnection(),
+      ).resolves.toBeUndefined();
+
+      // Cleanup
+      m.initPromise = null;
+    });
+
+    it('swallows initPromise rejection', async () => {
+      // Arrange — set initPromise to a rejected promise
+      const m = PerpsConnectionManager as unknown as {
+        initPromise: Promise<void> | null;
+      };
+      m.initPromise = Promise.reject(new Error('init failed'));
+
+      // Act & Assert — should resolve (not throw) even though initPromise rejects
+      await expect(
+        PerpsConnectionManager.waitForConnection(),
+      ).resolves.toBeUndefined();
+
+      // Cleanup
+      m.initPromise = null;
+    });
+
+    it('awaits resolving pendingReconnectPromise', async () => {
+      // Arrange — set pendingReconnectPromise to a resolved promise
+      const m = PerpsConnectionManager as unknown as {
+        pendingReconnectPromise: Promise<void> | null;
+      };
+      m.pendingReconnectPromise = Promise.resolve();
+
+      // Act & Assert — should complete without error
+      await expect(
+        PerpsConnectionManager.waitForConnection(),
+      ).resolves.toBeUndefined();
+
+      // Cleanup
+      m.pendingReconnectPromise = null;
+    });
+
+    it('swallows pendingReconnectPromise rejection', async () => {
+      // Arrange — set pendingReconnectPromise to a rejected promise
+      const m = PerpsConnectionManager as unknown as {
+        pendingReconnectPromise: Promise<void> | null;
+      };
+      m.pendingReconnectPromise = Promise.reject(new Error('reconnect failed'));
+
+      // Act & Assert — should resolve (not throw) even though promise rejects
+      await expect(
+        PerpsConnectionManager.waitForConnection(),
+      ).resolves.toBeUndefined();
+
+      // Cleanup
+      m.pendingReconnectPromise = null;
     });
   });
 });
