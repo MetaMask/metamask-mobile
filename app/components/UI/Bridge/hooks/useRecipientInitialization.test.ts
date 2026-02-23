@@ -5,6 +5,7 @@ import { renderHookWithProvider } from '../../../../util/test/renderWithProvider
 import { createBridgeTestState } from '../testUtils';
 import { useRecipientInitialization } from './useRecipientInitialization';
 import { useDestinationAccounts } from './useDestinationAccounts';
+import type { BridgeToken } from '../types';
 
 jest.mock('./useDestinationAccounts', () => ({
   useDestinationAccounts: jest.fn(),
@@ -21,7 +22,7 @@ const evmDestinationAccount = {
   caipAccountId: `eip155:1:${INTERNAL_EVM_ADDRESS}`,
 };
 
-const evmDestToken = {
+const evmDestToken: BridgeToken = {
   address: '0x0000000000000000000000000000000000000000',
   symbol: 'ETH',
   decimals: 18,
