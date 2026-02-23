@@ -10,6 +10,7 @@ import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import {
   convertMusdClaimAmount,
   ConvertMusdClaimResult,
+  getClaimPayoutFromReceipt,
   getUnclaimedAmountForMerklClaimTx,
 } from '../../../../UI/Earn/utils/musd';
 
@@ -23,26 +24,44 @@ interface MerklClaimAmountResult {
 /**
  * Hook that computes the actual claimable (unclaimed) amount for a Merkl mUSD claim transaction.
  *
- * The transaction calldata contains the cumulative total reward, not the per-claim payout.
- * The Merkl Distributor contract computes: payout = totalAmount - alreadyClaimed.
- * This hook reads the already-claimed amount from the contract and returns the unclaimed portion.
+ * For confirmed transactions: extracts the actual payout from the receipt's Transfer event logs.
+ * For pending transactions: computes payout = totalAmount - alreadyClaimed via contract call.
  */
 const useMerklClaimAmount = (
   transaction: TransactionMeta,
   conversionRate: BigNumber,
   usdConversionRate: number,
 ): MerklClaimAmountResult => {
-  const { chainId, txParams, type: transactionType } = transaction;
+  const { chainId, txParams, txReceipt, type: transactionType } = transaction;
 
+  // For confirmed txs, extract the actual payout from receipt Transfer logs (synchronous)
+  const receiptPayout = useMemo(() => {
+    if (transactionType !== TransactionType.musdClaim) return null;
+    return getClaimPayoutFromReceipt(
+      txReceipt?.logs as Parameters<typeof getClaimPayoutFromReceipt>[0],
+      txParams?.from as string,
+    );
+  }, [transactionType, txReceipt?.logs, txParams?.from]);
+
+  // For pending txs (no receipt yet): compute payout = totalAmount - alreadyClaimed
   const { value: claimAmountResult, pending } = useAsyncResult(async () => {
     if (transactionType !== TransactionType.musdClaim) return null;
+    if (receiptPayout) return null;
     return getUnclaimedAmountForMerklClaimTx(
       txParams?.data as string | undefined,
       chainId as Hex,
     );
-  }, [transactionType, txParams?.data, chainId]);
+  }, [transactionType, txParams?.data, chainId, receiptPayout]);
 
   const claimAmount = useMemo(() => {
+    if (receiptPayout) {
+      return convertMusdClaimAmount({
+        claimAmountRaw: receiptPayout,
+        conversionRate,
+        usdConversionRate,
+      });
+    }
+
     if (pending || !claimAmountResult) return null;
 
     return convertMusdClaimAmount({
@@ -50,9 +69,15 @@ const useMerklClaimAmount = (
       conversionRate,
       usdConversionRate,
     });
-  }, [pending, claimAmountResult, conversionRate, usdConversionRate]);
+  }, [
+    receiptPayout,
+    pending,
+    claimAmountResult,
+    conversionRate,
+    usdConversionRate,
+  ]);
 
-  return { pending, claimAmount };
+  return { pending: !receiptPayout && pending, claimAmount };
 };
 
 export default useMerklClaimAmount;
