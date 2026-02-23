@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
+import { RootState } from '../../../reducers';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
@@ -70,10 +71,6 @@ export const selectMetaMaskPayFlags = createSelector(
   },
 );
 
-const PAY_POST_QUOTE_DEFAULT: PayPostQuoteConfig = {
-  enabled: false,
-};
-
 interface RawPayPostQuoteFlag {
   default?: PayPostQuoteConfig;
   overrides?: Record<string, PayPostQuoteConfig>;
@@ -99,18 +96,18 @@ export const selectPayPostQuoteFlags = createSelector(
 );
 
 /**
- * Resolves the effective config for a given override key.
- * If the key exists in override, the entire override entry is used (no merging with default).
+ * Resolves the effective post-quote config for a given transaction type.
+ * If the type has an override entry, unset properties fall back to default.
  */
-export function resolvePayPostQuoteConfig(
-  flags: PayPostQuoteFlags | undefined,
-  overrideKey?: string,
+export function selectPayQuoteConfig(
+  state: RootState,
+  transactionType?: string,
 ): PayPostQuoteConfig {
-  if (!flags) {
-    return PAY_POST_QUOTE_DEFAULT;
-  }
+  const flags = selectPayPostQuoteFlags(state);
 
-  const override = overrideKey ? flags.overrides?.[overrideKey] : undefined;
+  const override = transactionType
+    ? flags.overrides?.[transactionType]
+    : undefined;
 
   if (!override) {
     return flags.default;
@@ -120,6 +117,21 @@ export function resolvePayPostQuoteConfig(
     enabled: override.enabled ?? flags.default.enabled,
     tokens: override.tokens ?? flags.default.tokens,
   };
+}
+
+/**
+ * Resolves the token allowlist for a given transaction type and chain.
+ */
+export function selectPayQuoteTokens(
+  state: RootState,
+  transactionType?: string,
+  chainId?: Hex,
+): Hex[] | undefined {
+  const config = selectPayQuoteConfig(state, transactionType);
+  if (!config.tokens || !chainId) {
+    return undefined;
+  }
+  return config.tokens[chainId.toLowerCase() as Hex];
 }
 
 /**

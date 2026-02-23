@@ -1,6 +1,11 @@
+import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { isTransactionPayWithdraw } from '../../utils/transaction';
-import { usePayPostQuoteConfig } from './usePayPostQuoteConfig';
+import {
+  getPostQuoteTransactionType,
+  isTransactionPayWithdraw,
+} from '../../utils/transaction';
+import { selectPayQuoteConfig } from '../../../../../selectors/featureFlagController/confirmations';
+import { RootState } from '../../../../../reducers';
 
 export interface UseTransactionPayWithdrawResult {
   /** Whether this transaction is a withdraw type */
@@ -18,7 +23,10 @@ export interface UseTransactionPayWithdrawResult {
 export function useTransactionPayWithdraw(): UseTransactionPayWithdrawResult {
   const transactionMeta = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-  const config = usePayPostQuoteConfig();
+  const transactionType = getPostQuoteTransactionType(transactionMeta);
+  const config = useSelector((state: RootState) =>
+    selectPayQuoteConfig(state, transactionType),
+  );
 
   const canSelectWithdrawToken = isWithdraw && config.enabled === true;
 

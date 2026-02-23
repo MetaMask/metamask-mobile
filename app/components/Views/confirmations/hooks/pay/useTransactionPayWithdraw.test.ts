@@ -91,7 +91,7 @@ describe('useTransactionPayWithdraw', () => {
         type: TransactionType.predictWithdraw,
         postQuoteFlags: {
           default: { enabled: false },
-          override: {
+          overrides: {
             predictWithdraw: { enabled: true },
           },
         },
@@ -104,7 +104,7 @@ describe('useTransactionPayWithdraw', () => {
         type: TransactionType.predictWithdraw,
         postQuoteFlags: {
           default: { enabled: true },
-          override: {
+          overrides: {
             predictWithdraw: { enabled: false },
           },
         },
@@ -117,7 +117,7 @@ describe('useTransactionPayWithdraw', () => {
         type: TransactionType.predictWithdraw,
         postQuoteFlags: {
           default: { enabled: true },
-          override: {
+          overrides: {
             predictWithdraw: {
               tokens: { '0x1': ['0xaaa'] },
             },

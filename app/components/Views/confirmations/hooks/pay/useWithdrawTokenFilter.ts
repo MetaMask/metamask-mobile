@@ -1,8 +1,14 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { isTransactionPayWithdraw } from '../../utils/transaction';
-import { usePayPostQuoteConfig } from './usePayPostQuoteConfig';
+import {
+  getPostQuoteTransactionType,
+  isTransactionPayWithdraw,
+} from '../../utils/transaction';
+import {
+  selectPayQuoteConfig,
+  PayPostQuoteConfig,
+} from '../../../../../selectors/featureFlagController/confirmations';
 import {
   buildAllowlistTokens,
   BuildAllowlistDeps,
@@ -10,6 +16,7 @@ import {
 import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { AssetType } from '../../types/token';
+import { RootState } from '../../../../../reducers';
 
 /**
  * Returns a token filter for withdraw transactions, following the same pattern
@@ -23,9 +30,14 @@ import { AssetType } from '../../types/token';
 export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
   const transactionMeta = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-  const { tokens: allowlist } = usePayPostQuoteConfig();
+  const transactionType = getPostQuoteTransactionType(transactionMeta);
+  const config: PayPostQuoteConfig = useSelector((state: RootState) =>
+    selectPayQuoteConfig(state, transactionType),
+  );
   const tokensChainsCache = useSelector(selectERC20TokensByChain);
   const networkConfigs = useSelector(selectEvmNetworkConfigurationsByChainId);
+
+  const allowlist = config.tokens;
 
   const deps: BuildAllowlistDeps = useMemo(
     () => ({ tokensChainsCache, networkConfigs }),

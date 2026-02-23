@@ -134,12 +134,11 @@ export function isTransactionPayWithdraw(
 }
 
 /**
- * Returns the override key for post-quote feature flags based on the withdraw
- * transaction type. Maps the matching POST_QUOTE_TRANSACTION_TYPES entry to
- * its string value (e.g. "predictWithdraw"), which is used to look up override
- * config in confirmations_pay_post_quote flags.
+ * Returns the matching post-quote transaction type (e.g. "predictWithdraw")
+ * for the given transaction metadata. Used to look up override config in
+ * the confirmations_pay_post_quote feature flag.
  */
-export function getPostQuoteOverrideKey(
+export function getPostQuoteTransactionType(
   transactionMeta: TransactionMeta | undefined,
 ): string | undefined {
   if (!transactionMeta) {

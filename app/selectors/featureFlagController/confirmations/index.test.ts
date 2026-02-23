@@ -10,8 +10,8 @@ import {
   selectGasFeeTokenFlags,
   GasFeeTokenFlags,
   selectPayPostQuoteFlags,
-  resolvePayPostQuoteConfig,
-  PayPostQuoteFlags,
+  selectPayQuoteConfig,
+  selectPayQuoteTokens,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -351,71 +351,108 @@ describe('selectPayPostQuoteFlags', () => {
   });
 });
 
-describe('resolvePayPostQuoteConfig', () => {
-  const flags: PayPostQuoteFlags = {
-    default: {
-      enabled: true,
-      tokens: {
-        '0x1': ['0xaaa' as Hex],
-      },
-    },
+describe('selectPayQuoteConfig', () => {
+  function stateWithFlags(flags: Record<string, unknown>) {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      { confirmations_pay_post_quote: flags };
+    return state;
+  }
+
+  const baseFlags = {
+    default: { enabled: true, tokens: { '0x1': ['0xaaa'] } },
     overrides: {
       predictWithdraw: {
         enabled: true,
-        tokens: {
-          '0x89': ['0xbbb' as Hex],
-        },
+        tokens: { '0x89': ['0xbbb'] },
       },
-      perpsWithdraw: {
-        enabled: false,
-      },
+      perpsWithdraw: { enabled: false },
     },
   };
 
-  it('returns default config when no override key is provided', () => {
-    const result = resolvePayPostQuoteConfig(flags);
-    expect(result).toBe(flags.default);
+  it('returns default config when no transaction type is provided', () => {
+    const state = stateWithFlags(baseFlags);
+    const result = selectPayQuoteConfig(state);
+    expect(result.enabled).toBe(true);
+    expect(result.tokens).toEqual({ '0x1': ['0xaaa'] });
   });
 
-  it('returns default config when override key does not exist', () => {
-    const result = resolvePayPostQuoteConfig(flags, 'unknownType');
-    expect(result).toBe(flags.default);
+  it('returns default config when transaction type does not exist in overrides', () => {
+    const state = stateWithFlags(baseFlags);
+    const result = selectPayQuoteConfig(state, 'unknownType');
+    expect(result.enabled).toBe(true);
+    expect(result.tokens).toEqual({ '0x1': ['0xaaa'] });
   });
 
-  it('uses override value when override key has that property', () => {
-    const result = resolvePayPostQuoteConfig(flags, 'predictWithdraw');
+  it('uses override value when transaction type matches', () => {
+    const state = stateWithFlags(baseFlags);
+    const result = selectPayQuoteConfig(state, 'predictWithdraw');
     expect(result.tokens).toEqual({ '0x89': ['0xbbb'] });
     expect(result.enabled).toBe(true);
   });
 
   it('falls back to default for properties not defined in override', () => {
-    const result = resolvePayPostQuoteConfig(flags, 'perpsWithdraw');
+    const state = stateWithFlags(baseFlags);
+    const result = selectPayQuoteConfig(state, 'perpsWithdraw');
     expect(result.enabled).toBe(false);
     expect(result.tokens).toEqual({ '0x1': ['0xaaa'] });
   });
 
   it('inherits enabled from default when override omits enabled', () => {
-    const flagsWithOmittedEnabled: PayPostQuoteFlags = {
-      default: {
-        enabled: true,
-        tokens: { '0x1': ['0xaaa' as Hex] },
-      },
+    const state = stateWithFlags({
+      default: { enabled: true, tokens: { '0x1': ['0xaaa'] } },
       overrides: {
-        predictWithdraw: {
-          tokens: { '0x89': ['0xbbb' as Hex] },
-        },
+        predictWithdraw: { tokens: { '0x89': ['0xbbb'] } },
       },
-    };
-    const result = resolvePayPostQuoteConfig(
-      flagsWithOmittedEnabled,
-      'predictWithdraw',
-    );
+    });
+    const result = selectPayQuoteConfig(state, 'predictWithdraw');
     expect(result.enabled).toBe(true);
     expect(result.tokens).toEqual({ '0x89': ['0xbbb'] });
   });
 
-  it('returns disabled default when flags is undefined', () => {
-    const result = resolvePayPostQuoteConfig(undefined);
-    expect(result).toEqual({ enabled: false });
+  it('returns disabled default when flag is missing', () => {
+    const result = selectPayQuoteConfig(mockedEmptyFlagsState);
+    expect(result).toEqual({ enabled: false, tokens: undefined });
+  });
+});
+
+describe('selectPayQuoteTokens', () => {
+  function stateWithFlags(flags: Record<string, unknown>) {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      { confirmations_pay_post_quote: flags };
+    return state;
+  }
+
+  it('returns tokens for a matching chain', () => {
+    const state = stateWithFlags({
+      default: { tokens: { '0x89': ['0xaaa', '0xbbb'] } },
+    });
+    const result = selectPayQuoteTokens(state, undefined, '0x89' as Hex);
+    expect(result).toEqual(['0xaaa', '0xbbb']);
+  });
+
+  it('returns undefined when chainId is not in tokens', () => {
+    const state = stateWithFlags({
+      default: { tokens: { '0x89': ['0xaaa'] } },
+    });
+    const result = selectPayQuoteTokens(state, undefined, '0x1' as Hex);
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when no chainId provided', () => {
+    const state = stateWithFlags({
+      default: { tokens: { '0x89': ['0xaaa'] } },
+    });
+    const result = selectPayQuoteTokens(state, undefined, undefined);
+    expect(result).toBeUndefined();
+  });
+
+  it('matches chain ID case-insensitively', () => {
+    const state = stateWithFlags({
+      default: { tokens: { '0xa86a': ['0xaaa'] } },
+    });
+    const result = selectPayQuoteTokens(state, undefined, '0xA86A' as Hex);
+    expect(result).toEqual(['0xaaa']);
   });
 });
