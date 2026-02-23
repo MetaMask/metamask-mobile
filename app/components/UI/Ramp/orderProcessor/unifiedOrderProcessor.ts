@@ -130,6 +130,12 @@ export async function processUnifiedOrder(
 
     const transformedOrder = rampsOrderToFiatOrder(updatedOrder);
 
+    // Only clear forceUpdate for terminal states
+    const isTerminalState =
+      transformedOrder.state === FIAT_ORDER_STATES.COMPLETED ||
+      transformedOrder.state === FIAT_ORDER_STATES.FAILED ||
+      transformedOrder.state === FIAT_ORDER_STATES.CANCELLED;
+
     return {
       ...order,
       ...transformedOrder,
@@ -138,7 +144,7 @@ export async function processUnifiedOrder(
       account: order.account || transformedOrder.account,
       lastTimeFetched: now,
       errorCount: 0,
-      forceUpdate: false,
+      forceUpdate: isTerminalState ? false : order.forceUpdate,
     };
   } catch (error) {
     Logger.error(error as Error, {

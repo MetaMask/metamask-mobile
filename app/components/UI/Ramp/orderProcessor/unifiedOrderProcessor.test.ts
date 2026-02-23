@@ -189,6 +189,90 @@ describe('processUnifiedOrder', () => {
       const result = await processUnifiedOrder(mockOrder);
       expect(result.id).toBe(mockOrder.id);
     });
+
+    it('clears forceUpdate for terminal states (COMPLETED)', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        status: RampsOrderStatus.Completed,
+      });
+
+      const result = await processUnifiedOrder({
+        ...mockOrder,
+        forceUpdate: true,
+      });
+
+      expect(result.forceUpdate).toBe(false);
+    });
+
+    it('clears forceUpdate for terminal states (FAILED)', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        status: RampsOrderStatus.Failed,
+      });
+
+      const result = await processUnifiedOrder({
+        ...mockOrder,
+        forceUpdate: true,
+      });
+
+      expect(result.forceUpdate).toBe(false);
+    });
+
+    it('clears forceUpdate for terminal states (CANCELLED)', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        status: RampsOrderStatus.Cancelled,
+      });
+
+      const result = await processUnifiedOrder({
+        ...mockOrder,
+        forceUpdate: true,
+      });
+
+      expect(result.forceUpdate).toBe(false);
+    });
+
+    it('preserves forceUpdate for non-terminal states (PENDING)', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        status: RampsOrderStatus.Pending,
+      });
+
+      const result = await processUnifiedOrder({
+        ...mockOrder,
+        forceUpdate: true,
+      });
+
+      expect(result.forceUpdate).toBe(true);
+    });
+
+    it('preserves forceUpdate for non-terminal states (CREATED)', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        status: RampsOrderStatus.Created,
+      });
+
+      const result = await processUnifiedOrder({
+        ...mockOrder,
+        forceUpdate: true,
+      });
+
+      expect(result.forceUpdate).toBe(true);
+    });
+
+    it('preserves forceUpdate when undefined for non-terminal states', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        status: RampsOrderStatus.Pending,
+      });
+
+      const orderWithoutForceUpdate = { ...mockOrder };
+      delete orderWithoutForceUpdate.forceUpdate;
+
+      const result = await processUnifiedOrder(orderWithoutForceUpdate);
+
+      expect(result.forceUpdate).toBeUndefined();
+    });
   });
 
   describe('error handling', () => {
