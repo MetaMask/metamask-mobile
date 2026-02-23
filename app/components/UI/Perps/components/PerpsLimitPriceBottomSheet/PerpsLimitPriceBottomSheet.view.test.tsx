@@ -7,28 +7,46 @@
 import '../../../../../../tests/component-view/mocks';
 import { screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { renderPerpsComponent } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { renderPerpsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import PerpsLimitPriceBottomSheet from './PerpsLimitPriceBottomSheet';
+import React from 'react';
 
-const renderLimitPriceSheet = (props: Record<string, unknown> = {}) =>
-  renderPerpsComponent(
-    PerpsLimitPriceBottomSheet as unknown as React.ComponentType<
-      Record<string, unknown>
-    >,
-    {
-      isVisible: true,
-      onClose: jest.fn(),
-      onConfirm: jest.fn(),
-      asset: 'ETH',
-      currentPrice: '2000',
-      direction: 'long',
-      ...props,
-    },
-  );
+const LongLimitPriceWrapper: React.FC = () => (
+  <PerpsLimitPriceBottomSheet
+    isVisible
+    onClose={jest.fn()}
+    onConfirm={jest.fn()}
+    asset="ETH"
+    currentPrice={2000}
+    direction="long"
+  />
+);
+
+const ShortLimitPriceWrapper: React.FC = () => (
+  <PerpsLimitPriceBottomSheet
+    isVisible
+    onClose={jest.fn()}
+    onConfirm={jest.fn()}
+    asset="ETH"
+    currentPrice={2000}
+    direction="short"
+  />
+);
+
+const HiddenLimitPriceWrapper: React.FC = () => (
+  <PerpsLimitPriceBottomSheet
+    isVisible={false}
+    onClose={jest.fn()}
+    onConfirm={jest.fn()}
+    asset="ETH"
+    currentPrice={2000}
+    direction="long"
+  />
+);
 
 describe('PerpsLimitPriceBottomSheet', () => {
   it('renders title and set button', async () => {
-    renderLimitPriceSheet();
+    renderPerpsView(LongLimitPriceWrapper, 'LimitPriceTest');
 
     expect(
       await screen.findByText(strings('perps.order.limit_price_modal.title')),
@@ -39,7 +57,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
   });
 
   it('renders price preset buttons for long direction', async () => {
-    renderLimitPriceSheet({ direction: 'long' });
+    renderPerpsView(LongLimitPriceWrapper, 'LimitPriceTest');
 
     await screen.findByText(strings('perps.order.limit_price_modal.title'));
 
@@ -55,7 +73,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
   });
 
   it('renders ask preset button for short direction', async () => {
-    renderLimitPriceSheet({ direction: 'short' });
+    renderPerpsView(ShortLimitPriceWrapper, 'LimitPriceTest');
 
     await screen.findByText(strings('perps.order.limit_price_modal.title'));
 
@@ -71,7 +89,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
   });
 
   it('does not render when isVisible is false', () => {
-    renderLimitPriceSheet({ isVisible: false });
+    renderPerpsView(HiddenLimitPriceWrapper, 'LimitPriceTest');
 
     expect(
       screen.queryByText(strings('perps.order.limit_price_modal.title')),

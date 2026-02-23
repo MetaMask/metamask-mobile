@@ -9,33 +9,35 @@ import '../../../../../../tests/component-view/mocks';
 import { screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  renderPerpsComponent,
+  renderPerpsView,
   defaultPositionForViews,
   defaultOrderForViews,
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import PerpsMarketTabs from './PerpsMarketTabs';
 import { PerpsMarketTabsSelectorsIDs } from '../../Perps.testIds';
+import React from 'react';
 
-const renderMarketTabs = (
-  props: Partial<Parameters<typeof PerpsMarketTabs>[0]> = {},
-  streamOverrides: Record<string, unknown[]> = {},
-) =>
-  renderPerpsComponent(
-    PerpsMarketTabs as unknown as React.ComponentType<Record<string, unknown>>,
-    { symbol: 'ETH', ...props },
-    { streamOverrides },
-  );
+const MarketTabsDefault: React.FC = () => <PerpsMarketTabs symbol="ETH" />;
+const MarketTabsStatistics: React.FC = () => (
+  <PerpsMarketTabs symbol="ETH" initialTab="statistics" />
+);
+const MarketTabsPosition: React.FC = () => (
+  <PerpsMarketTabs symbol="ETH" initialTab="position" />
+);
+const MarketTabsOrders: React.FC = () => (
+  <PerpsMarketTabs symbol="ETH" initialTab="orders" />
+);
+const MarketTabsSOL: React.FC = () => <PerpsMarketTabs symbol="SOL" />;
 
 describe('PerpsMarketTabs', () => {
   describe('tab navigation', () => {
     it('renders tab container with position, orders, and statistics tabs', async () => {
-      renderMarketTabs(
-        {},
-        {
+      renderPerpsView(MarketTabsDefault, 'MarketTabsTest', {
+        streamOverrides: {
           positions: [defaultPositionForViews],
           orders: [defaultOrderForViews],
         },
-      );
+      });
 
       expect(
         await screen.findByTestId(PerpsMarketTabsSelectorsIDs.CONTAINER),
@@ -52,10 +54,12 @@ describe('PerpsMarketTabs', () => {
     });
 
     it('hides orders tab when no orders exist', async () => {
-      renderMarketTabs(
-        {},
-        { positions: [defaultPositionForViews], orders: [] },
-      );
+      renderPerpsView(MarketTabsDefault, 'MarketTabsTest', {
+        streamOverrides: {
+          positions: [defaultPositionForViews],
+          orders: [],
+        },
+      });
 
       expect(
         await screen.findByTestId(PerpsMarketTabsSelectorsIDs.CONTAINER),
@@ -69,13 +73,12 @@ describe('PerpsMarketTabs', () => {
     });
 
     it('renders statistics content when statistics is initial tab', async () => {
-      renderMarketTabs(
-        { initialTab: 'statistics' },
-        {
+      renderPerpsView(MarketTabsStatistics, 'MarketTabsTest', {
+        streamOverrides: {
           positions: [defaultPositionForViews],
           orders: [defaultOrderForViews],
         },
-      );
+      });
 
       expect(
         await screen.findByTestId(
@@ -87,10 +90,9 @@ describe('PerpsMarketTabs', () => {
 
   describe('position tab with position data', () => {
     it('renders position card when a matching position exists in stream', async () => {
-      renderMarketTabs(
-        { initialTab: 'position' },
-        { positions: [defaultPositionForViews] },
-      );
+      renderPerpsView(MarketTabsPosition, 'MarketTabsTest', {
+        streamOverrides: { positions: [defaultPositionForViews] },
+      });
 
       expect(
         await screen.findByTestId(PerpsMarketTabsSelectorsIDs.POSITION_CONTENT),
@@ -100,13 +102,12 @@ describe('PerpsMarketTabs', () => {
 
   describe('orders tab with order data', () => {
     it('renders order card when orders exist for the symbol', async () => {
-      renderMarketTabs(
-        { initialTab: 'orders' },
-        {
+      renderPerpsView(MarketTabsOrders, 'MarketTabsTest', {
+        streamOverrides: {
           positions: [],
           orders: [defaultOrderForViews],
         },
-      );
+      });
 
       expect(
         await screen.findByTestId(PerpsMarketTabsSelectorsIDs.ORDERS_CONTENT),
@@ -116,7 +117,9 @@ describe('PerpsMarketTabs', () => {
 
   describe('statistics-only view (no position)', () => {
     it('shows statistics when no position exists for the symbol', async () => {
-      renderMarketTabs({ symbol: 'SOL' }, { positions: [] });
+      renderPerpsView(MarketTabsSOL, 'MarketTabsTest', {
+        streamOverrides: { positions: [] },
+      });
 
       expect(
         await screen.findByTestId(

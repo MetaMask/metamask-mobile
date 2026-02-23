@@ -188,6 +188,8 @@ jest.mock('../../app/core/Engine', () => {
             constraints: { minAmount: 10 },
           },
         ]),
+        startMarketDataPreload: jest.fn(),
+        stopMarketDataPreload: jest.fn(),
       },
     },
     controllerMessenger: {
