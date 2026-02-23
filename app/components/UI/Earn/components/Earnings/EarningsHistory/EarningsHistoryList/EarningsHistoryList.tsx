@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import Label from '../../../../../../../component-library/components/Form/Label';
 import Text from '../../../../../../../component-library/components/Texts/Text';
 import { TextVariant } from '../../../../../../../component-library/components/Texts/Text/Text.types';
 import { useTheme } from '../../../../../../../util/theme';
@@ -9,6 +8,7 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../../../../locales/i18n';
 import { EarningsHistoryListProps } from './EarningsHistoryList.types';
 import { EARN_EXPERIENCES } from '../../../../constants/experiences';
+import { Label, TextColor } from '@metamask/design-system-react-native';
 
 const EarningsHistoryList = ({
   type,
@@ -30,29 +30,18 @@ const EarningsHistoryList = ({
           <View key={`earning-history-list-item-${index}`}>
             {isGroupHeaderVisible && (
               <View style={styles.lineItemGroupHeaderContainer}>
-                <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={colors.text.default}
-                >
+                <Label color={TextColor.TextDefault}>
                   {earning.groupHeader}
                 </Label>
               </View>
             )}
             <View style={styles.lineItemContainer}>
               <View style={styles.leftLineItemBox}>
-                <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={colors.text.default}
-                >
-                  {earning.label}
-                </Label>
+                <Label color={TextColor.TextDefault}>{earning.label}</Label>
               </View>
               <View style={styles.rightLineItemContainer}>
                 <View style={styles.rightLineItemBox}>
-                  <Label
-                    variant={TextVariant.BodyMDMedium}
-                    color={colors.success.default}
-                  >
+                  <Label color={TextColor.SuccessDefault}>
                     + {earning.amount} {earning.ticker}
                   </Label>
                 </View>
@@ -94,7 +83,7 @@ const EarningsHistoryList = ({
     <View style={styles.earningsHistoryListContainer}>
       {earnings ? (
         <>
-          <Label variant={TextVariant.BodyMDBold} color={colors.text.default}>
+          <Label color={TextColor.TextDefault}>
             {type === EARN_EXPERIENCES.STABLECOIN_LENDING
               ? strings('earn.earnings_history_list_title.lending')
               : strings('earn.earnings_history_list_title.staking')}

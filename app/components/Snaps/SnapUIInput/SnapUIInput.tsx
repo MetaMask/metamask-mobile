@@ -5,9 +5,8 @@ import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
-import Label from '../../../component-library/components/Form/Label';
 import { Box } from '../../UI/Box/Box';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
+import { Label } from '@metamask/design-system-react-native';
 
 export interface SnapUIInputProps {
   name: string;
@@ -77,7 +76,7 @@ export const SnapUIInput = ({
 
   return (
     <Box style={style}>
-      {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
+      {label && <Label>{label}</Label>}
       <TextField
         {...props}
         isDisabled={disabled}

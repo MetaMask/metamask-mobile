@@ -2,11 +2,11 @@ import React from 'react';
 import { View } from 'react-native';
 import { shallow } from 'enzyme';
 import DepositTextField from './DepositTextField';
-import Label from '../../../../../../component-library/components/Form/Label';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import TextField from '../../../../../../component-library/components/Form/TextField';
+import { Label } from '@metamask/design-system-react-native';
 
 const DEPOSIT_FIELD_TEST_ID = 'deposit-field-test-id';
 

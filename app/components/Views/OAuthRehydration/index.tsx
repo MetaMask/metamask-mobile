@@ -87,7 +87,6 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
-import Label from '../../../component-library/components/Form/Label';
 import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
@@ -95,6 +94,10 @@ import HelpText, {
 import { useAuthentication } from '../../../core/Authentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import {
+  Label,
+  TextColor as DesignSystemTextColor,
+} from '@metamask/design-system-react-native';
 
 const EmptyRecordConstant = {};
 
@@ -695,8 +698,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
               <View style={styles.field}>
                 <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  color={DesignSystemTextColor.TextDefault}
                   style={styles.label}
                 >
                   {strings('login.password')}

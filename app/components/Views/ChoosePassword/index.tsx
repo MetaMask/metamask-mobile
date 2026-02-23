@@ -69,7 +69,6 @@ import Button, {
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
-import Label from '../../../component-library/components/Form/Label';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
@@ -94,6 +93,10 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import {
+  Label,
+  TextColor as DesignSystemTextColor,
+} from '@metamask/design-system-react-native';
 
 interface KeyringState {
   type: string;
@@ -667,8 +670,7 @@ const ChoosePassword = () => {
 
                 <View style={styles.field}>
                   <Label
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Default}
+                    color={DesignSystemTextColor.TextDefault}
                     style={styles.label}
                   >
                     {strings('choose_password.password')}
@@ -718,8 +720,7 @@ const ChoosePassword = () => {
 
                 <View style={styles.field}>
                   <Label
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Default}
+                    color={DesignSystemTextColor.TextDefault}
                     style={styles.label}
                   >
                     {strings('choose_password.confirm_password')}

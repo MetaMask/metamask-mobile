@@ -106,7 +106,6 @@ const getStories = () => {
     "./app/component-library/components/Checkbox/Checkbox.stories.tsx": require("../app/component-library/components/Checkbox/Checkbox.stories.tsx"),
     "./app/component-library/components/design-system.stories.tsx": require("../app/component-library/components/design-system.stories.tsx"),
     "./app/component-library/components/Form/HelpText/HelpText.stories.tsx": require("../app/component-library/components/Form/HelpText/HelpText.stories.tsx"),
-    "./app/component-library/components/Form/Label/Label.stories.tsx": require("../app/component-library/components/Form/Label/Label.stories.tsx"),
     "./app/component-library/components/Form/TextField/foundation/Input/Input.stories.tsx": require("../app/component-library/components/Form/TextField/foundation/Input/Input.stories.tsx"),
     "./app/component-library/components/Form/TextField/TextField.stories.tsx": require("../app/component-library/components/Form/TextField/TextField.stories.tsx"),
     "./app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories.tsx": require("../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories.tsx"),

@@ -50,7 +50,6 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import Label from '../../../component-library/components/Form/Label';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { AppThemeKey } from '../../../util/theme/models';
@@ -67,6 +66,10 @@ import type {
 
 import darkBlurImage from '../../../images/dark-blur.png';
 import lightBlurImage from '../../../images/blur.png';
+import {
+  Label,
+  TextColor as DesignSystemTextColor,
+} from '@metamask/design-system-react-native';
 
 /**
  * View that's shown during the second step of
@@ -337,7 +340,7 @@ const ManualBackupStep1 = () => {
         <View style={styles.confirmPasswordWrapper}>
           <View style={[styles.content, styles.passwordRequiredContent]}>
             <View style={styles.text}>
-              <Label variant={TextVariant.BodyMD} color={TextColor.Default}>
+              <Label color={DesignSystemTextColor.TextDefault}>
                 {strings('manual_backup_step_1.before_continiuing')}
               </Label>
             </View>

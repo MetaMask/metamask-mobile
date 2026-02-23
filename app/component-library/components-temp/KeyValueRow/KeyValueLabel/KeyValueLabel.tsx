@@ -1,13 +1,8 @@
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
-import Label from '../../../../component-library/components/Form/Label';
 import {
   IconColor,
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
-import {
-  TextVariant,
-  TextColor,
-} from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import useTooltipModal from '../../../../components/hooks/useTooltipModal';
 import React from 'react';
@@ -15,6 +10,11 @@ import { View } from 'react-native';
 import { KeyValueRowLabelProps, TooltipSizes } from '../KeyValueRow.types';
 import styleSheet from './KeyValueLabel.styles';
 import { isPreDefinedKeyValueRowLabel } from '../KeyValueRow.utils';
+import {
+  Label,
+  TextVariant as DesignSystemTextVariant,
+  TextColor as DesignSystemTextColor,
+} from '@metamask/design-system-react-native';
 
 /**
  * A label and tooltip component.
@@ -44,8 +44,8 @@ const KeyValueRowLabel = ({ label, tooltip }: KeyValueRowLabelProps) => {
     <View style={styles.labelContainer}>
       {isPreDefinedKeyValueRowLabel(label) ? (
         <Label
-          variant={label?.variant ?? TextVariant.BodyMDMedium}
-          color={label?.color ?? TextColor.Default}
+          variant={label?.variant ?? DesignSystemTextVariant.BodyMd}
+          color={label?.color ?? DesignSystemTextColor.TextDefault}
         >
           {label.text}
         </Label>

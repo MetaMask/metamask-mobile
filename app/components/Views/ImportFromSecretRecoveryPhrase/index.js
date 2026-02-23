@@ -67,7 +67,6 @@ import Icon, {
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
-import Label from '../../../component-library/components/Form/Label';
 import Text, {
   TextVariant,
   TextColor,
@@ -87,6 +86,10 @@ import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
 import { selectImportSrpWordSuggestionEnabledFlag } from '../../../selectors/featureFlagController/importSrpWordSuggestion';
+import {
+  Label,
+  TextColor as DesignSystemTextColor,
+} from '@metamask/design-system-react-native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -650,8 +653,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
               <View style={styles.field}>
                 <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  color={DesignSystemTextColor.TextDefault}
                   style={styles.label}
                 >
                   {strings('import_from_seed.create_new_password')}
@@ -699,8 +701,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
               <View style={styles.field}>
                 <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  color={DesignSystemTextColor.TextDefault}
                   style={styles.label}
                 >
                   {strings('import_from_seed.confirm_password')}

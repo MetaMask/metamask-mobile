@@ -52,7 +52,6 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import Label from '../../../component-library/components/Form/Label';
 import Icon, {
   IconName,
   IconSize,
@@ -73,6 +72,10 @@ import {
   SeedlessOnboardingControllerErrorMessage,
 } from '@metamask/seedless-onboarding-controller';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
+import {
+  Label,
+  TextColor as DesignSystemTextColor,
+} from '@metamask/design-system-react-native';
 
 // Constants
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
@@ -774,8 +777,7 @@ class ResetPassword extends PureComponent {
           <View style={styles.confirmPasswordWrapper}>
             <View style={[styles.content, styles.passwordRequiredContent]}>
               <Label
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
+                color={DesignSystemTextColor.TextDefault}
                 style={styles.confirm_label}
               >
                 {strings('manual_backup_step_1.enter_current_password')}
@@ -906,8 +908,7 @@ class ResetPassword extends PureComponent {
 
                 <View style={styles.field}>
                   <Label
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Default}
+                    color={DesignSystemTextColor.TextDefault}
                     style={styles.passwordLabel}
                   >
                     {strings('reset_password.password')}
@@ -949,8 +950,7 @@ class ResetPassword extends PureComponent {
 
                 <View style={styles.field}>
                   <Label
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Default}
+                    color={DesignSystemTextColor.TextDefault}
                     style={styles.passwordLabel}
                   >
                     {strings('reset_password.confirm_password')}

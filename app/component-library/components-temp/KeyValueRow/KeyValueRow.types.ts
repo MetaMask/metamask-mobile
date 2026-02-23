@@ -5,8 +5,8 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { ButtonIconSizes } from '../../components/Buttons/ButtonIcon';
 import { ReactNode } from 'react';
-import { TextProps } from '../../components/Texts/Text/Text.types';
 import { ViewProps } from 'react-native';
+import { TextColor, TextVariant } from '@metamask/design-system-react-native';
 
 /**
  * The optional tooltip tha can be displayed within a KeyValueRowField or KeyValueRowLabel.
@@ -85,14 +85,14 @@ export interface PreDefinedKeyValueRowLabel {
   text: string;
   /**
    * Optional text variant.
-   * @default TextVariant.BodyMDMedium
+   * @default TextVariant.BodyMD
    */
-  variant?: TextProps['variant'];
+  variant?: TextVariant;
   /**
    * Optional text color.
-   * @default TextColor.Default
+   * @default TextColor.TextDefault
    */
-  color?: TextProps['color'];
+  color?: TextColor;
 }
 
 /**

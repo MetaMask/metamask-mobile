@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
-import Label from '../../../component-library/components/Form/Label';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -14,9 +13,9 @@ import stylesheet from './SnapUISelector.styles';
 import { View, ScrollView, ViewStyle } from 'react-native';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ApprovalModal from '../../Approvals/ApprovalModal';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { State } from '@metamask/snaps-sdk';
 import { isObject } from '@metamask/utils';
+import { Label } from '@metamask/design-system-react-native';
 
 export interface SnapUISelectorProps {
   name: string;
@@ -139,7 +138,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   return (
     <>
       <Box style={style} flexDirection={FlexDirection.Column}>
-        {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
+        {label && <Label>{label}</Label>}
         <ButtonBase
           width={ButtonWidthTypes.Full}
           label={inlineButtonLabel}

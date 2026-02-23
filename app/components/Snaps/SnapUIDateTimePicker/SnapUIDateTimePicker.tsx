@@ -1,12 +1,10 @@
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { DateTime } from 'luxon';
-import { Box } from '@metamask/design-system-react-native';
-import Label from '../../../component-library/components/Form/Label';
+import { Box, Label } from '@metamask/design-system-react-native';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
@@ -293,7 +291,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
 
   return (
     <Box testID={'snap-ui-renderer__date-time-picker'}>
-      {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
+      {label && <Label>{label}</Label>}
       <TextField
         testID={`snap-ui-renderer__date-time-picker--${type}`}
         placeholder={placeholder}
