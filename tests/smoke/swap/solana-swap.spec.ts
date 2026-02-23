@@ -6,7 +6,7 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import Assertions from '../../framework/Assertions';
+import { Assertions } from '../../framework';
 import enContent from '../../../locales/languages/en.json';
 import { buildSolanaSwapTestSpecificMock } from '../../helpers/swap/solana-swap-mocks';
 
@@ -18,6 +18,7 @@ const openSwapFromSolanaToken = async (): Promise<void> => {
   await WalletView.waitForTokenToBeReady(SOLANA_NETWORK_NAME);
   await Assertions.expectTextDisplayed('50 SOL', {
     timeout: 30000,
+    description: 'Mocked SOL balance should be displayed on wallet screen',
   });
   await WalletView.tapOnToken(SOLANA_NETWORK_NAME);
   await TokenOverview.tapSwapButton();
@@ -142,6 +143,7 @@ describe(SmokeTrade('Swap on Solana'), () => {
           enContent.bridge.error_banner_description,
           {
             timeout: 90000,
+            description: 'No route available error banner should be displayed',
           },
         );
       },
