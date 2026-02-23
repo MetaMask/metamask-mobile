@@ -111,7 +111,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
     }
   };
 
-  const processLedgerWorkflow = async () => {
+  const processLedgerWorkflow = async (): Promise<void> => {
     try {
       // Must do this at start of every code block to run to ensure transport is set
       await setUpBluetoothConnection();
