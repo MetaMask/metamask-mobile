@@ -105,7 +105,7 @@ const PerpsPositionRow: React.FC<PerpsPositionRowProps> = ({
           <PerpsLeverage maxLeverage={leverageLabel} />
         </View>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {tpSlLabel ?? strings('homepage.positions.no_tp_sl')}
+          {tpSlLabel ?? strings('homepage.sections.positions.no_tp_sl')}
         </Text>
       </View>
 
