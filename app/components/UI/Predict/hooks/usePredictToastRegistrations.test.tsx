@@ -485,6 +485,37 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
+    it('falls back to USDC when metamaskPay is undefined on withdraw toast', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue(
+        undefined,
+      );
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue(undefined);
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          amount: 50,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('USDC'),
+            }),
+          ]),
+        }),
+      );
+    });
+
     it('shows error toast with retry on failed status', async () => {
       const handler = getHandler();
 

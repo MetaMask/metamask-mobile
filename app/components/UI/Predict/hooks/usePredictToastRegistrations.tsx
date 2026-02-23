@@ -305,7 +305,9 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
           const tokenAddress = metamaskPay?.tokenAddress as Hex;
           const tokenSymbol =
             selectSingleTokenByAddressAndChainId(state, tokenAddress, chainId)
-              ?.symbol ?? selectTickerByChainId(state, chainId);
+              ?.symbol ??
+            selectTickerByChainId(state, chainId) ??
+            'USDC';
 
           showSuccessToast({
             showToast,
