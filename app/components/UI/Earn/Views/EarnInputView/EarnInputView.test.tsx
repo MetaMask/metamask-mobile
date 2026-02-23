@@ -358,7 +358,7 @@ describe('EarnInputView', () => {
         token: MOCK_ETH_MAINNET_ASSET,
       },
       key: Routes.STAKING.STAKE,
-      name: 'EarnInputView' as const,
+      name: 'Stake' as const,
     },
   };
   const mockTrackEvent = jest.fn();
@@ -532,7 +532,7 @@ describe('EarnInputView', () => {
           token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       });
 
       // Verify the title is rendered in the HeaderCompactStandard component
@@ -604,7 +604,7 @@ describe('EarnInputView', () => {
           token: TRX_TOKEN,
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       });
 
       expect(getByTestId('resource-toggle-energy')).toBeTruthy();
@@ -647,7 +647,7 @@ describe('EarnInputView', () => {
           token: TRX_TOKEN,
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       });
 
       // Verify getEarnToken was called with the token
@@ -691,7 +691,7 @@ describe('EarnInputView', () => {
           token: TRX_TOKEN,
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       });
 
       expect(getByText('Max')).toBeTruthy();
@@ -739,7 +739,7 @@ describe('EarnInputView', () => {
           token: TRX_TOKEN,
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       });
 
       await act(async () => {
@@ -975,7 +975,7 @@ describe('EarnInputView', () => {
           token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       };
 
       const { getByText } = render(routeParamsWithUSDC);
@@ -1056,7 +1056,7 @@ describe('EarnInputView', () => {
           token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       };
 
       const { getByText } = render(routeParamsWithUSDC);
@@ -1138,7 +1138,7 @@ describe('EarnInputView', () => {
             token: MOCK_USDC_MAINNET_ASSET,
           },
           key: Routes.STAKING.STAKE,
-          name: 'EarnInputView' as const,
+          name: 'Stake' as const,
         };
 
         const { getByText } = render(routeParamsWithUSDC);
@@ -1245,7 +1245,7 @@ describe('EarnInputView', () => {
           token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       };
 
       render(routeParamsWithUSDC);
@@ -1316,7 +1316,7 @@ describe('EarnInputView', () => {
           token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       };
 
       const { getByText } = render(routeParamsWithUSDC);
@@ -1381,7 +1381,7 @@ describe('EarnInputView', () => {
           },
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       };
 
       const { getByText } = render(routeParamsWithUSDC);
@@ -1438,7 +1438,7 @@ describe('EarnInputView', () => {
           },
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       };
 
       const { getByText } = render(routeParamsWithUSDC);
@@ -1495,7 +1495,7 @@ describe('EarnInputView', () => {
           },
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       };
 
       const { getByText } = render(routeParamsWithUSDC);
@@ -1551,7 +1551,7 @@ describe('EarnInputView', () => {
           },
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       };
 
       const { getByText } = render(routeParamsWithUSDC);
@@ -1626,7 +1626,7 @@ describe('EarnInputView', () => {
             token: MOCK_USDC_MAINNET_ASSET,
           },
           key: Routes.STAKING.STAKE,
-          name: 'EarnInputView' as const,
+          name: 'Stake' as const,
         });
 
         fireEvent.press(getByText('1'));
@@ -1654,7 +1654,7 @@ describe('EarnInputView', () => {
             token: MOCK_USDC_MAINNET_ASSET,
           },
           key: Routes.STAKING.STAKE,
-          name: 'EarnInputView' as const,
+          name: 'Stake' as const,
         });
 
         fireEvent.press(getByText('1'));
@@ -1749,7 +1749,7 @@ describe('EarnInputView', () => {
       const { getByText } = render({
         params: { token: MOCK_USDC_MAINNET_ASSET },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       });
 
       await act(async () => {
@@ -1793,7 +1793,7 @@ describe('EarnInputView', () => {
       const { getByText } = render({
         params: { token: MOCK_USDC_MAINNET_ASSET },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       });
 
       await act(async () => {
@@ -1908,7 +1908,7 @@ describe('EarnInputView', () => {
           token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       };
 
       const { getAllByTestId } = render(routeParamsWithUSDC);
@@ -1964,7 +1964,7 @@ describe('EarnInputView', () => {
           token: MOCK_USDC_MAINNET_ASSET,
         },
         key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
+        name: 'Stake' as const,
       };
 
       const { getAllByTestId } = render(routeParamsWithUSDC);

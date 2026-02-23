@@ -11,10 +11,10 @@ export interface EarnInputViewRouteParams {
 }
 
 interface EarnInputViewParamList {
-  EarnInputView: EarnInputViewRouteParams;
+  Stake: EarnInputViewRouteParams;
   [key: string]: object | undefined;
 }
 
 export interface EarnInputViewProps {
-  route: RouteProp<EarnInputViewParamList, 'EarnInputView'>;
+  route: RouteProp<EarnInputViewParamList, 'Stake'>;
 }
