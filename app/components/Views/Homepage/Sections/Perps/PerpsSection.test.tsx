@@ -31,6 +31,7 @@ jest.mock('../../../../UI/Perps', () => ({
 
 jest.mock('../../../../UI/Perps/selectors/perpsController', () => ({
   selectCachedPositions: jest.fn(() => []),
+  selectCachedMarketData: jest.fn(() => null),
 }));
 
 jest.mock('react-native-skeleton-placeholder', () => {
@@ -86,6 +87,11 @@ const setCachedPositions = (positions: unknown[] | null) =>
     .requireMock('../../../../UI/Perps/selectors/perpsController')
     .selectCachedPositions.mockReturnValue(positions);
 
+const setCachedMarketData = (markets: unknown[] | null) =>
+  jest
+    .requireMock('../../../../UI/Perps/selectors/perpsController')
+    .selectCachedMarketData.mockReturnValue(markets);
+
 describe('PerpsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -93,6 +99,7 @@ describe('PerpsSection', () => {
       .requireMock('../../../../UI/Perps')
       .selectPerpsEnabledFlag.mockReturnValue(true);
     setCachedPositions([]);
+    setCachedMarketData(null);
   });
 
   it('renders section title', () => {
@@ -176,8 +183,32 @@ describe('PerpsSection', () => {
     });
   });
 
-  it('navigates to market details with position tab on row press', () => {
+  it('navigates with full market data when cached market is available', () => {
+    const fullMarket = {
+      symbol: 'BTC',
+      maxLeverage: 50,
+      marketType: 'crypto',
+      marketSource: 'HyperLiquid',
+    };
     setCachedPositions([makePosition()]);
+    setCachedMarketData([fullMarket]);
+
+    renderWithProvider(<PerpsSection />);
+
+    fireEvent.press(screen.getByTestId('perps-position-row-BTC'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market: fullMarket,
+        initialTab: 'position',
+      },
+    });
+  });
+
+  it('falls back to partial market when cached market is unavailable', () => {
+    setCachedPositions([makePosition()]);
+    setCachedMarketData(null);
 
     renderWithProvider(<PerpsSection />);
 

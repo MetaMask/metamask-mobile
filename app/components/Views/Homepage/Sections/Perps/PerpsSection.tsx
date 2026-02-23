@@ -15,7 +15,10 @@ import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
-import { selectCachedPositions } from '../../../../UI/Perps/selectors/perpsController';
+import {
+  selectCachedPositions,
+  selectCachedMarketData,
+} from '../../../../UI/Perps/selectors/perpsController';
 import PerpsPositionRow from './components/PerpsPositionRow';
 import PerpsPositionRowSkeleton from './components/PerpsPositionRow/PerpsPositionRowSkeleton';
 import { strings } from '../../../../../../locales/i18n';
@@ -32,6 +35,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const navigation = useNavigation();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const cachedPositions = useSelector(selectCachedPositions);
+  const cachedMarkets = useSelector(selectCachedMarketData);
   const title = strings('homepage.sections.perpetuals');
 
   useEffect(() => {
@@ -65,10 +69,13 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   const handlePositionPress = useCallback(
     (position: Position) => {
+      const fullMarket = cachedMarkets?.find(
+        (m) => m.symbol === position.symbol,
+      );
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
-          market: {
+          market: fullMarket ?? {
             symbol: position.symbol,
             maxLeverage: position.maxLeverage,
           },
@@ -76,7 +83,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
         },
       });
     },
-    [navigation],
+    [navigation, cachedMarkets],
   );
 
   if (!isPerpsEnabled) {
