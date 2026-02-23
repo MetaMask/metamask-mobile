@@ -6,18 +6,13 @@ import React, {
   useState,
 } from 'react';
 import type { CaipChainId } from '@metamask/utils';
+import type { QuotesResponse, PaymentMethod } from '@metamask/ramps-controller';
 import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
+import { useNavigation } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import { AnimationDuration } from '../../../../../../component-library/constants/animation.constants';
 import Text, {
   TextVariant,
   TextColor,
@@ -39,8 +34,6 @@ import {
 import PaymentMethodListItem from './PaymentMethodListItem';
 import PaymentMethodListSkeleton from './PaymentMethodListSkeleton';
 import PaymentSelectionAlert from './PaymentSelectionAlert';
-import ProviderSelection from './ProviderSelection';
-import type { PaymentMethod, Provider } from '@metamask/ramps-controller';
 import { useRampsController } from '../../../hooks/useRampsController';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 
@@ -55,38 +48,32 @@ export const createPaymentSelectionModalNavigationDetails =
     Routes.RAMP.MODALS.PAYMENT_SELECTION,
   );
 
-enum ViewType {
-  PAYMENT = 'PAYMENT',
-  PROVIDER = 'PROVIDER',
-}
-
 const DEFAULT_QUOTE_AMOUNT = 100;
 
 function PaymentSelectionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
-    screenWidth,
   });
+  const navigation = useNavigation();
   const { amount: routeAmount, onPaymentMethodSelect } =
     useParams<PaymentSelectionModalParams>();
 
   const {
     selectedProvider,
-    setSelectedProvider,
-    providers,
     paymentMethods,
     paymentMethodsLoading,
     paymentMethodsError,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
-    quotes,
-    quotesLoading,
     getQuotes,
     userRegion,
     selectedToken,
   } = useRampsController();
+
+  const [quotes, setQuotes] = useState<QuotesResponse | null>(null);
+  const [quotesLoading, setQuotesLoading] = useState(false);
 
   const amount = routeAmount ?? DEFAULT_QUOTE_AMOUNT;
   const walletAddress =
@@ -94,25 +81,41 @@ function PaymentSelectionModal() {
     '';
   const assetId = selectedToken?.assetId ?? '';
 
-  const [activeView, setActiveView] = useState(ViewType.PAYMENT);
-
   const paymentMethodIds = useMemo(
     () => paymentMethods.map((pm) => pm.id),
     [paymentMethods],
   );
-  const providerIds = useMemo(() => providers.map((p) => p.id), [providers]);
-
-  const translateX = useSharedValue(0);
 
   useEffect(() => {
+    if (!walletAddress || !assetId) return;
+    let cancelled = false;
+    setQuotesLoading(true);
     getQuotes({
       amount,
       walletAddress,
       assetId,
       providers: selectedProvider ? [selectedProvider.id] : undefined,
       paymentMethods: paymentMethodIds,
-    });
-    return;
+      forceRefresh: true,
+    })
+      .then((data) => {
+        if (!cancelled) {
+          setQuotes(data);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setQuotes(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setQuotesLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [
     getQuotes,
     amount,
@@ -121,69 +124,10 @@ function PaymentSelectionModal() {
     paymentMethodIds,
     selectedProvider,
   ]);
-
-  useEffect(() => {
-    const animationConfig = {
-      duration: AnimationDuration.Regularly,
-      easing: Easing.out(Easing.ease),
-    };
-
-    if (activeView === ViewType.PROVIDER) {
-      translateX.value = withTiming(-screenWidth, animationConfig);
-    } else {
-      translateX.value = withTiming(0, animationConfig);
-    }
-  }, [activeView, screenWidth, translateX]);
-
-  const animatedContainerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
 
   const handleChangeProviderPress = useCallback(() => {
-    getQuotes({
-      amount,
-      walletAddress,
-      assetId,
-      providers: providerIds,
-      paymentMethods: selectedPaymentMethod
-        ? [selectedPaymentMethod.id]
-        : undefined,
-    });
-    setActiveView(ViewType.PROVIDER);
-  }, [
-    amount,
-    assetId,
-    getQuotes,
-    providerIds,
-    selectedPaymentMethod,
-    walletAddress,
-  ]);
-
-  const handleProviderBack = useCallback(() => {
-    getQuotes({
-      amount,
-      walletAddress,
-      assetId,
-      providers: selectedProvider ? [selectedProvider.id] : undefined,
-      paymentMethods: paymentMethodIds,
-    });
-    setActiveView(ViewType.PAYMENT);
-  }, [
-    amount,
-    assetId,
-    getQuotes,
-    paymentMethodIds,
-    selectedProvider,
-    walletAddress,
-  ]);
-
-  const handleProviderSelect = useCallback(
-    (provider: Provider) => {
-      setSelectedProvider(provider);
-      setActiveView(ViewType.PAYMENT);
-    },
-    [setSelectedProvider],
-  );
+    navigation.navigate(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });
+  }, [navigation, amount]);
 
   const handlePaymentMethodPress = useCallback(
     (paymentMethod: PaymentMethod) => {
@@ -282,59 +226,46 @@ function PaymentSelectionModal() {
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <View style={styles.containerOuter}>
-        <Animated.View style={[styles.containerInner, animatedContainerStyle]}>
-          <View style={styles.panel}>
-            <View style={styles.paymentPanelContent}>
-              <Box
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                twClassName="px-4 py-3"
+        <View style={styles.paymentPanelContent}>
+          <Box
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            twClassName="px-4 py-3"
+          >
+            <Text variant={TextVariant.HeadingMD}>
+              {strings('fiat_on_ramp.pay_with')}
+            </Text>
+          </Box>
+          {renderListContent()}
+        </View>
+        {selectedProvider ? (
+          <Box
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            style={styles.footer}
+          >
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {strings('fiat_on_ramp.buying_via', {
+                providerName: selectedProvider.name,
+              })}{' '}
+              <Text
+                variant={TextVariant.BodySM}
+                color={
+                  paymentMethodsLoading || paymentMethodsError
+                    ? TextColor.Alternative
+                    : TextColor.Primary
+                }
+                onPress={
+                  paymentMethodsLoading || paymentMethodsError
+                    ? undefined
+                    : handleChangeProviderPress
+                }
               >
-                <Text variant={TextVariant.HeadingMD}>
-                  {strings('fiat_on_ramp.pay_with')}
-                </Text>
-              </Box>
-              {renderListContent()}
-            </View>
-            {selectedProvider ? (
-              <Box
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                style={styles.footer}
-              >
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {strings('fiat_on_ramp.buying_via', {
-                    providerName: selectedProvider.name,
-                  })}{' '}
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={
-                      paymentMethodsLoading || paymentMethodsError
-                        ? TextColor.Alternative
-                        : TextColor.Primary
-                    }
-                    onPress={
-                      paymentMethodsLoading || paymentMethodsError
-                        ? undefined
-                        : handleChangeProviderPress
-                    }
-                  >
-                    {strings('fiat_on_ramp.change_provider')}
-                  </Text>
-                </Text>
-              </Box>
-            ) : null}
-          </View>
-          <View style={styles.panel}>
-            <ProviderSelection
-              onProviderSelect={handleProviderSelect}
-              onBack={handleProviderBack}
-            />
-          </View>
-        </Animated.View>
+                {strings('fiat_on_ramp.change_provider')}
+              </Text>
+            </Text>
+          </Box>
+        ) : null}
       </View>
     </BottomSheet>
   );

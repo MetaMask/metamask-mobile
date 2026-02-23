@@ -4,18 +4,13 @@ import PaymentSelectionModal from './PaymentSelectionModal';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
-jest.mock('react-native-reanimated', () => {
-  const Reanimated = jest.requireActual('react-native-reanimated/mock');
-  Reanimated.default.call = jest.fn();
-  return {
-    ...Reanimated,
-    useAnimatedStyle: (styleFunc: () => object) => styleFunc(),
-    useSharedValue: (initialValue: number) => ({ value: initialValue }),
-    withTiming: (toValue: number) => toValue,
-  };
-});
-
 jest.mock('../../../../../Base/RemoteImage', () => jest.fn(() => null));
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
+}));
 
 const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
   callback?.();
@@ -234,45 +229,15 @@ describe('PaymentSelectionModal', () => {
     });
   });
 
-  it('navigates to provider selection when change provider is pressed', async () => {
+  it('navigates to PROVIDER_SELECTION when change provider is pressed', () => {
+    mockUseParams.mockReturnValue({ amount: 100 });
     const { getByText } = renderWithProvider(PaymentSelectionModal);
 
     const changeProviderLink = getByText('fiat_on_ramp.change_provider');
     fireEvent.press(changeProviderLink);
 
-    await waitFor(() => {
-      expect(getByText('fiat_on_ramp.providers')).toBeOnTheScreen();
-    });
-  });
-
-  it('displays provider selection when change provider is pressed', async () => {
-    const { getByText } = renderWithProvider(PaymentSelectionModal);
-
-    const changeProviderLink = getByText('fiat_on_ramp.change_provider');
-    fireEvent.press(changeProviderLink);
-
-    await waitFor(() => {
-      expect(getByText('fiat_on_ramp.providers')).toBeOnTheScreen();
-    });
-  });
-
-  it('returns to payment selection when back is pressed from provider selection', async () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      PaymentSelectionModal,
-    );
-
-    const changeProviderLink = getByText('fiat_on_ramp.change_provider');
-    fireEvent.press(changeProviderLink);
-
-    await waitFor(() => {
-      expect(getByText('fiat_on_ramp.providers')).toBeOnTheScreen();
-    });
-
-    const backButton = getByTestId('button-icon');
-    fireEvent.press(backButton);
-
-    await waitFor(() => {
-      expect(getByText('fiat_on_ramp.pay_with')).toBeOnTheScreen();
+    expect(mockNavigate).toHaveBeenCalledWith('RampProviderSelectionModal', {
+      amount: 100,
     });
   });
 
@@ -374,34 +339,7 @@ describe('PaymentSelectionModal', () => {
         '/payments/debit-credit-card-1',
         '/payments/debit-credit-card-2',
       ],
-    });
-  });
-
-  it('calls getQuotes with provider params when navigating to PROVIDER view', async () => {
-    const mockGetQuotes = jest.fn().mockResolvedValue({
-      success: [],
-      error: [],
-      sorted: [],
-      customActions: [],
-    });
-    mockUseRampsController.mockImplementation(() => ({
-      ...defaultControllerReturn,
-      getQuotes: mockGetQuotes,
-      selectedPaymentMethod: mockPaymentMethods[0],
-    }));
-    const { getByText } = renderWithProvider(PaymentSelectionModal);
-
-    mockGetQuotes.mockClear();
-    fireEvent.press(getByText('fiat_on_ramp.change_provider'));
-
-    await waitFor(() => {
-      expect(mockGetQuotes).toHaveBeenCalledWith({
-        amount: 100,
-        walletAddress: '0x123',
-        assetId: 'eip155:1/slip44:60',
-        providers: ['/providers/transak', '/providers/moonpay'],
-        paymentMethods: ['/payments/debit-credit-card-1'],
-      });
+      forceRefresh: true,
     });
   });
 });
