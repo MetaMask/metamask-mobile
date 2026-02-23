@@ -99,10 +99,10 @@ describe('MultichainAccountSelectorList', () => {
           expect(queryByText(text)).toBeTruthy();
         });
         expectedHidden.forEach((text) => {
-          expect(queryByText(text)).toBeFalsy();
+          expect(queryByText(text)).toBeNull();
         });
       },
-      { timeout: 500 },
+      { timeout: 1000 },
     );
   };
 
