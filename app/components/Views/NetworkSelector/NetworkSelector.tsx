@@ -79,6 +79,7 @@ import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import { Box } from '@metamask/design-system-react-native';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 import {
   TraceName,
@@ -104,8 +105,9 @@ import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/n
 import { analytics } from '../../../util/analytics/analytics';
 import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored';
-import type { ShowConfirmDeleteModalState, infuraNetwork } from './types';
-import type { NetworkSelectorParams } from './NetworkSelector.types';
+import TagColored, {
+  TagColor,
+} from '../../../component-library/components-temp/TagColored';
 
 interface NetworkSelectorParamList {
   NetworkSelector: NetworkSelectorParams;
@@ -558,15 +560,22 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
                 name
               ) : (
                 <View>
-                  <Text variant={TextVariant.BodyMD}>{name}</Text>
-                  {isGasFeesSponsoredNetworkEnabled(chainId) ? (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
-                    >
-                      {strings('networks.no_network_fee')}
-                    </Text>
-                  ) : undefined}
+                  <Box twClassName="flex-row gap-2">
+                    <Text variant={TextVariant.BodyMD}>{name}</Text>
+                    {isGasFeesSponsoredNetworkEnabled(chainId) ? (
+                      <TagColored
+                        color={TagColor.Success}
+                        style={styles.noNetworkFeeContainer}
+                      >
+                        <Text
+                          variant={TextVariant.BodySM}
+                          color={TextColor.Success}
+                        >
+                          {strings('networks.no_network_fee')}
+                        </Text>
+                      </TagColored>
+                    ) : undefined}
+                  </Box>
                 </View>
               )
             }

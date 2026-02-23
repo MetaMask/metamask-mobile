@@ -6298,19 +6298,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "전환",
       "switchBack": "돌아가기",
-      "splashpage": {
-        "accept": "예",
-        "betterTransaction": "더 빠른 트랜잭션, 더 낮은 수수료",
-        "betterTransactionDescription": "트랜잭션을 함께 처리하여 시간과 비용을 절약하세요.",
-        "featuresDescription": "동일한 계정 주소를 유지하므로 언제든지 다시 전환할 수 있습니다.",
-        "payToken": "언제든지 어떤 토큰으로든 결제",
-        "payTokenDescription": "이미 보유하고 있는 코인으로 네트워크 수수료를 결제하세요.",
-        "reject": "아니오",
-        "sameAccount": "같은 계정, 더욱 스마트한 기능.",
-        "splashTitle": "스마트 계정 사용?"
-      },
       "includes_transaction": "트랜잭션 {{transactionCount}}건 포함",
-      "useSmartAccount": "스마트 계정 사용",
       "successful": "성공",
       "success_message": "다음 트랜잭션부터 계정이 스마트 계정으로 업데이트됩니다."
     },

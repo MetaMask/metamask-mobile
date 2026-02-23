@@ -2,9 +2,12 @@
 
 Generic A/B testing for MetaMask Mobile.
 
+The `ab_tests` Segment property already exists and supports nested test keys for concurrent experiments.
+
 **References:**
 
 - [Remote Feature Flags Documentation](https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md)
+- [Perps A/B Testing Guide](./perps/perps-ab-testing.md)
 
 ---
 
@@ -22,11 +25,13 @@ MetaMask does **NOT use LaunchDarkly's percentage rollout targeting**. Instead, 
 [
   {
     "name": "control",
-    "scope": { "type": "percentage_rollout", "value": 0.5 }
+    "scope": { "type": "percentage_rollout", "value": 0.5 },
+    "value": { "buttonColor": "green" }
   },
   {
     "name": "treatment",
-    "scope": { "type": "percentage_rollout", "value": 1.0 }
+    "scope": { "type": "percentage_rollout", "value": 1.0 },
+    "value": { "buttonColor": "blue" }
   }
 ]
 ```
@@ -177,6 +182,25 @@ trackEvent(
 
 ---
 
+## Segment Schema
+
+The Segment global property for A/B tests is a nested object where keys are test names and values are variant names:
+
+```yaml
+# libraries/properties/metamask-mobile-globals.yaml
+
+ab_tests:
+  type: object
+  description: 'Active A/B test variants. Keys are test names, values are variant names.'
+  required: false
+  additionalProperties:
+    type: string
+```
+
+This is why no per-test schema PR is needed after the `ab_tests` object is available.
+
+---
+
 ## LaunchDarkly Setup
 
 Thresholds are defined **inside the variation value** as an array. Do NOT use LD's percentage rollout targeting.
@@ -184,7 +208,7 @@ Thresholds are defined **inside the variation value** as an array. Do NOT use LD
 ### Step 1: Create the Flag
 
 1. LaunchDarkly → Feature Flags → Create Flag
-2. **Name:** `{team}{TestName}` (e.g., `swapsAbtestQuoteLayout`)
+2. **Name:** `{team}{TicketID}{TestName}` (e.g., `perpsTAT1234AbtestButtonColor`)
 3. **Flag type:** JSON
 4. **Client-side SDK availability:** Check "SDKs using Mobile Key"
 
@@ -295,11 +319,26 @@ ab_tests.button_color
 - Use Funnel report, compare variants side-by-side
 - Look for 95%+ confidence before calling winner
 
+**Template:** [A/B Test Template Dashboard](https://mixpanel.com/project/2697051/view/3233695/app/boards#id=10912360)
+
 ---
+
+---
+
+## Checklist
+
+- [ ] LaunchDarkly flag created (JSON type, threshold array in variation value)
+- [ ] Cumulative thresholds defined in `scope.value` (e.g., 0.5, 1.0 for 50/50)
+- [ ] Hook used in component
+- [ ] Events tracked with `ab_tests: { test_name: variantName }`
+- [ ] Mixpanel funnel created filtering by `ab_tests.test_name`
 
 ---
 
 ## FAQ
+
+**Q: Does `ab_tests` already exist in Segment?**
+Yes.
 
 **Q: How does bucketing work?**
 `RemoteFeatureFlagController` hashes `SHA256(metametricsId + flagName)` → value 0-1. Selects first variant where `userThreshold <= scope.value`.
@@ -318,6 +357,9 @@ No `metametricsId` → controller returns array unchanged → no variant selecti
 
 **Q: Which variant is used as the fallback?**
 The `control` variant is always used as the fallback when the flag is not set, invalid, or doesn't match any defined variant. The `variants` object must include a `control` key (enforced by TypeScript). This ensures users see the default experience when the test is inactive.
+
+**Q: Is there an existing example?**
+Yes. See Perps button color test (TAT-1937): `perpsAbtestButtonColor`.
 
 ---
 

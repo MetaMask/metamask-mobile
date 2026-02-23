@@ -61,7 +61,7 @@ const DetailedSIWEMessage = ({
         <Network chainId={numberToHex(parseInt(chainId))} />
       </InfoRow>
       <InfoRow label={strings('confirm.siwe_message.account')}>
-        <Address address={address} chainId={chainId} />
+        <Address address={address} chainId={numberToHex(Number(chainId))} />
       </InfoRow>
       <InfoRow label={strings('confirm.siwe_message.version')}>
         {version}

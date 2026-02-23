@@ -30,7 +30,7 @@ PERPS_SRC="app/controllers/perps"
 PERPS_DEST="packages/perps-controller/src"
 WORKSPACE="@metamask/perps-controller"
 
-STEP_COUNT=6
+STEP_COUNT=7
 STEP_RESULTS=()
 STEP_TIMES=()
 STEP_LABELS=()
@@ -166,7 +166,7 @@ if [[ -z "$CORE_PATH" ]]; then
 fi
 
 if $SKIP_BUILD; then
-  STEP_COUNT=5
+  STEP_COUNT=6
 fi
 
 # ─── Step functions ─────────────────────────────────────────────────────────────
@@ -230,6 +230,12 @@ step_copy() {
   echo "Copied $FILE_COUNT .ts files"
 }
 
+step_install() {
+  cd "$CORE_PATH"
+  yarn install
+  cd "$MOBILE_ROOT"
+}
+
 step_verify_fixes() {
   local errors=0
 
@@ -284,13 +290,13 @@ step_eslint_fix() {
   fi
 
   progress "  ├─ Running --fix"
-  npx eslint packages/perps-controller/src/ --ext .ts --fix || true
+  yarn eslint packages/perps-controller/src/ --ext .ts --fix || true
 
   progress "  ├─ Running --suppress-all"
-  npx eslint packages/perps-controller/src/ --ext .ts --suppress-all || true
+  yarn eslint packages/perps-controller/src/ --ext .ts --suppress-all || true
 
   progress "  └─ Running --prune-suppressions"
-  npx eslint packages/perps-controller/src/ --ext .ts --prune-suppressions || true
+  yarn eslint packages/perps-controller/src/ --ext .ts --prune-suppressions || true
 
   # Count suppressions
   if [[ -f "$supp_file" ]]; then
@@ -326,7 +332,7 @@ step_lint() {
   cd "$CORE_PATH"
   # No workspace-level lint script exists; run eslint directly to verify
   # all violations are either fixed or suppressed (exit 0 = clean).
-  npx eslint packages/perps-controller/src/ --ext .ts
+  yarn eslint packages/perps-controller/src/ --ext .ts
   cd "$MOBILE_ROOT"
 }
 
@@ -348,6 +354,9 @@ main() {
 
   step=$((step + 1))
   run_step $step "Copy source files" step_copy
+
+  step=$((step + 1))
+  run_step $step "Install dependencies" step_install
 
   step=$((step + 1))
   run_step $step "Verify build fixes" step_verify_fixes

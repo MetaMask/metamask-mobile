@@ -6298,19 +6298,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "Alihkan",
       "switchBack": "Alihkan kembali",
-      "splashpage": {
-        "accept": "Ya",
-        "betterTransaction": "Transaksi lebih cepat, biaya lebih rendah",
-        "betterTransactionDescription": "Hemat waktu dan uang dengan memproses transaksi bersama-sama.",
-        "featuresDescription": "Pertahankan alamat akun yang sama dan Anda dapat beralih kembali setiap saat.",
-        "payToken": "Bayar dengan token apa pun, setiap saat",
-        "payTokenDescription": "Gunakan token yang sudah Anda miliki untuk menutupi biaya jaringan.",
-        "reject": "Tidak",
-        "sameAccount": "Akun sama, fitur lebih cerdas.",
-        "splashTitle": "Gunakan akun cerdas?"
-      },
       "includes_transaction": "Mencakup {{transactionCount}} transaksi",
-      "useSmartAccount": "Gunakan akun cerdas",
       "successful": "Berhasil",
       "success_message": "Akun Anda akan diperbarui ke akun cerdas pada transaksi berikutnya."
     },
