@@ -19,6 +19,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import SectionTitle from '../../components/SectionTitle';
+import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
@@ -101,12 +102,14 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const {
     positions,
     isLoading: isLoadingPositions,
+    error: positionsError,
     refresh: refreshPositions,
   } = usePredictPositionsForHomepage(MAX_POSITIONS_DISPLAYED);
 
   const {
     markets,
     isLoading: isLoadingMarkets,
+    error: marketsError,
     refresh: refreshMarkets,
   } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
 
@@ -170,6 +173,28 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   // Don't render if Predict is disabled
   if (!isPredictEnabled) {
     return null;
+  }
+
+  // Show error state when both hooks fail and nothing is loading
+  const hasError =
+    !isLoadingPositions &&
+    !isLoadingMarkets &&
+    !hasPositions &&
+    markets.length === 0 &&
+    (positionsError || marketsError);
+
+  if (hasError) {
+    return (
+      <Box gap={3}>
+        <SectionTitle title={title} onPress={handleViewAllPredictions} />
+        <ErrorState
+          title={strings('homepage.error.unable_to_load', {
+            section: title.toLowerCase(),
+          })}
+          onRetry={refresh}
+        />
+      </Box>
+    );
   }
 
   // Render positions if user has any

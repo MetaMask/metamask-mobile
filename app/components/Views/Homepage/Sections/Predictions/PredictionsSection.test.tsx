@@ -214,6 +214,49 @@ describe('PredictionsSection', () => {
     });
   });
 
+  describe('error state', () => {
+    it('renders error state when markets fail to load', () => {
+      mockUsePredictPositionsForHomepage.mockReturnValue({
+        positions: [],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: 'Network error',
+        refresh: jest.fn(),
+      });
+
+      renderWithProvider(<PredictionsSection />);
+
+      expect(screen.getByText('Unable to load predictions')).toBeOnTheScreen();
+      expect(screen.getByText('Retry')).toBeOnTheScreen();
+    });
+
+    it('does not render error state while still loading', () => {
+      mockUsePredictPositionsForHomepage.mockReturnValue({
+        positions: [],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: [],
+        isLoading: true,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      renderWithProvider(<PredictionsSection />);
+
+      expect(
+        screen.queryByText('Unable to load predictions'),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   describe('refresh functionality', () => {
     it('refreshes only markets when user has no positions', async () => {
       const mockRefreshPositions = jest.fn();
