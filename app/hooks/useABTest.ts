@@ -9,15 +9,22 @@
  *
  * @example
  * ```typescript
- * const { variant, variantName, isActive } = useABTest('buttonColor', {
+ * const { variant, variantName, isActive } = useABTest(
+ *   'swapsSWAPS4135AbtestButtonColor',
+ *   {
  *   control: { color: 'green' },
  *   treatment: { color: 'blue' },
- * });
+ *   },
+ * );
  *
  * // Track with single JSON property (no per-test schema changes)
  * trackEvent('Screen Viewed', {
  *   screen: 'details',
- *   ...(isActive && { ab_tests: { button_color: variantName } }),
+ *   ...(isActive && {
+ *     active_ab_tests: [
+ *       { key: 'swapsSWAPS4135AbtestButtonColor', value: variantName },
+ *     ],
+ *   }),
  * });
  * ```
  */
@@ -73,7 +80,7 @@ const getExposureCacheKey = (experimentId: string, variationId: string) =>
  * when the A/B test is inactive.
  *
  * @template T - The shape of the variants object (must include 'control' key)
- * @param flagKey - The feature flag key in LaunchDarkly (camelCase, e.g., 'buttonColorTest')
+ * @param flagKey - The feature flag key in LaunchDarkly (e.g., 'swapsSWAPS4135AbtestButtonColor')
  * @param variants - Object mapping variant names to their data. Must include a `control` key for fallback.
  * @returns Object containing variant data, variant name, and active state
  *
@@ -92,16 +99,23 @@ const getExposureCacheKey = (experimentId: string, variationId: string) =>
  *
  * @example Tracking A/B test in analytics
  * ```typescript
- * const { variantName, isActive } = useABTest('buttonStyle', {
+ * const { variantName, isActive } = useABTest(
+ *   'swapsSWAPS4135AbtestButtonStyle',
+ *   {
  *   control: { style: 'default' },
  *   bold: { style: 'bold' },
- * });
+ *   },
+ * );
  *
  * trackEvent(
  *   createEventBuilder(MetaMetricsEvents.BUTTON_CLICKED)
  *     .addProperties({
  *       button_id: 'submit',
- *       ...(isActive && { ab_tests: { button_style: variantName } }),
+ *       ...(isActive && {
+ *         active_ab_tests: [
+ *           { key: 'swapsSWAPS4135AbtestButtonStyle', value: variantName },
+ *         ],
+ *       }),
  *     })
  *     .build()
  * );
@@ -109,21 +123,25 @@ const getExposureCacheKey = (experimentId: string, variationId: string) =>
  *
  * @example Multiple concurrent tests
  * ```typescript
- * const buttonTest = useABTest('buttonColorTest', {
+ * const buttonTest = useABTest('swapsSWAPS4135AbtestButtonColor', {
  *   control: { color: 'green' },
  *   treatment: { color: 'blue' },
  * });
  *
- * const ctaTest = useABTest('ctaTextTest', {
+ * const ctaTest = useABTest('swapsSWAPS4135AbtestCtaText', {
  *   control: { text: 'Get Started' },
  *   urgent: { text: 'Start Now!' },
  * });
  *
  * trackEvent('Screen Viewed', {
- *   ab_tests: {
- *     ...(buttonTest.isActive && { button_color: buttonTest.variantName }),
- *     ...(ctaTest.isActive && { cta_text: ctaTest.variantName }),
- *   },
+ *   active_ab_tests: [
+ *     ...(buttonTest.isActive
+ *       ? [{ key: 'swapsSWAPS4135AbtestButtonColor', value: buttonTest.variantName }]
+ *       : []),
+ *     ...(ctaTest.isActive
+ *       ? [{ key: 'swapsSWAPS4135AbtestCtaText', value: ctaTest.variantName }]
+ *       : []),
+ *   ],
  * });
  * ```
  */
