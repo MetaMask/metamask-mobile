@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -112,14 +113,18 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   // Determine if user has positions
   const hasPositions = positions.length > 0;
 
+  // Use ref so refresh always reads the latest value without stale closures
+  const hasPositionsRef = useRef(hasPositions);
+  hasPositionsRef.current = hasPositions;
+
   // Refresh: only refresh positions if user has them, always refresh markets
   const refresh = useCallback(async () => {
-    if (hasPositions) {
+    if (hasPositionsRef.current) {
       await Promise.all([refreshPositions(), refreshMarkets()]);
     } else {
       await refreshMarkets();
     }
-  }, [hasPositions, refreshPositions, refreshMarkets]);
+  }, [refreshPositions, refreshMarkets]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
