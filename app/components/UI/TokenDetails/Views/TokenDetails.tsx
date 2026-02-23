@@ -328,19 +328,17 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { variantName, isTestActive } = useTokenDetailsABTest();
   const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
-  const hasTrackedRef = useRef(false);
-
-  useEffect(() => {
-    hasTrackedRef.current = false;
-  }, [params.address, params.chainId, params.symbol, params.source]);
+  const lastTrackedTokenKeyRef = useRef<string | null>(null);
 
   return useCallback(
     ({ isMarketInsightsDisplayed }: { isMarketInsightsDisplayed: boolean }) => {
-      if (hasTrackedRef.current) {
+      const source = params.source ?? TokenDetailsSource.Unknown;
+      const tokenTrackingKey = `${params.chainId ?? ''}:${params.address ?? ''}:${params.symbol ?? ''}:${source}`;
+
+      if (lastTrackedTokenKeyRef.current === tokenTrackingKey) {
         return;
       }
 
-      const source = params.source ?? TokenDetailsSource.Unknown;
       const hasBalance =
         params.balance !== undefined &&
         params.balance !== null &&
@@ -377,7 +375,7 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         .addProperties(eventProperties)
         .build();
       trackEvent(event);
-      hasTrackedRef.current = true;
+      lastTrackedTokenKeyRef.current = tokenTrackingKey;
     },
     [
       createEventBuilder,

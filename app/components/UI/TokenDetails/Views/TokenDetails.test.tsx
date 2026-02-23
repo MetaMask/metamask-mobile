@@ -137,7 +137,7 @@ jest.mock('../../../Views/Asset/ActivityHeader', () => ({
 
 jest.mock('../../Transactions', () => ({
   __esModule: true,
-  default: () => null,
+  default: ({ header }: { header?: React.ReactNode }) => header ?? null,
 }));
 
 jest.mock(
@@ -361,6 +361,45 @@ describe('TokenDetails', () => {
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           market_insights_displayed: false,
+        }),
+      );
+    });
+  });
+
+  it('tracks token details opened for each token when route params change', async () => {
+    const { rerender } = render(<TokenDetails {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+          token_symbol: 'DAI',
+          market_insights_displayed: true,
+        }),
+      );
+    });
+
+    const secondToken = {
+      ...defaultToken,
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      symbol: 'USDC',
+      name: 'USD Coin',
+    } as TokenI;
+
+    rerender(
+      <TokenDetails
+        route={{
+          params: secondToken,
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          token_symbol: 'USDC',
+          market_insights_displayed: true,
         }),
       );
     });
