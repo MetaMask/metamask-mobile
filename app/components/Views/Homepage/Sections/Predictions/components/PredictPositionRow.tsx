@@ -52,10 +52,14 @@ export const PredictPositionRow = ({
         paddingVertical={3}
         gap={4}
       >
-        <Image
-          source={{ uri: position.icon }}
-          style={tw.style('w-10 h-10 rounded-lg mt-1')}
-        />
+        {position.icon ? (
+          <Image
+            source={{ uri: position.icon }}
+            style={tw.style('w-10 h-10 rounded-lg mt-1')}
+          />
+        ) : (
+          <Box twClassName="w-10 h-10 rounded-lg mt-1 bg-background-alternative" />
+        )}
         <Box style={tw.style('flex-1')} gap={0}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {position.title}
