@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -36,7 +36,6 @@ import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
-import { createProviderPickerModalNavigationDetails } from '../Modals/ProviderPickerModal';
 import { createCheckoutNavDetails } from '../Checkout';
 import {
   type Quote,
@@ -235,15 +234,6 @@ function BuildQuote() {
       }),
     );
   }, [debouncedPollingAmount, navigation]);
-
-  const handleProviderPress = useCallback(() => {
-    if (!selectedToken?.assetId) return;
-    navigation.navigate(
-      ...createProviderPickerModalNavigationDetails({
-        assetId: selectedToken.assetId,
-      }),
-    );
-  }, [selectedToken?.assetId, navigation]);
 
   useEffect(() => {
     if (
@@ -507,19 +497,6 @@ function BuildQuote() {
           )}
 
           <View style={styles.actionSection}>
-            {selectedProvider && (
-              <TouchableOpacity
-                onPress={handleProviderPress}
-                testID="provider-picker-trigger"
-                accessibilityRole="button"
-              >
-                <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
-                  {strings('fiat_on_ramp.powered_by_provider', {
-                    provider: selectedProvider.name,
-                  })}
-                </Text>
-              </TouchableOpacity>
-            )}
             {hasAmount ? (
               <Button
                 variant={ButtonVariant.Primary}

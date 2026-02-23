@@ -24,7 +24,9 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
 
 export interface ProviderSelectionModalParams {
-  amount: number;
+  amount?: number;
+  assetId?: string;
+  skipQuotes?: boolean;
 }
 
 export const createProviderSelectionModalNavigationDetails =
@@ -40,7 +42,11 @@ function ProviderSelectionModal() {
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, { screenHeight });
   const navigation = useNavigation();
-  const { amount: routeAmount } = useParams<ProviderSelectionModalParams>();
+  const {
+    amount: routeAmount,
+    assetId: paramAssetId,
+    skipQuotes = false,
+  } = useParams<ProviderSelectionModalParams>();
 
   const {
     providers,
@@ -58,12 +64,22 @@ function ProviderSelectionModal() {
   const walletAddress =
     useRampAccountAddress((selectedToken?.chainId as CaipChainId) ?? null) ??
     '';
-  const assetId = selectedToken?.assetId ?? '';
+  const assetId = paramAssetId ?? selectedToken?.assetId ?? '';
 
-  const providerIds = useMemo(() => providers.map((p) => p.id), [providers]);
+  const displayProviders = useMemo(() => {
+    if (!paramAssetId) return providers;
+    return providers.filter(
+      (p) => p.supportedCryptoCurrencies?.[paramAssetId] === true,
+    );
+  }, [providers, paramAssetId]);
+
+  const providerIds = useMemo(
+    () => displayProviders.map((p) => p.id),
+    [displayProviders],
+  );
 
   useEffect(() => {
-    if (!walletAddress || !assetId) return;
+    if (skipQuotes || !walletAddress || !assetId) return;
     let cancelled = false;
     setQuotesLoading(true);
     getQuotes({
@@ -99,6 +115,7 @@ function ProviderSelectionModal() {
       cancelled = true;
     };
   }, [
+    skipQuotes,
     amount,
     assetId,
     getQuotes,
@@ -123,9 +140,11 @@ function ProviderSelectionModal() {
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <View style={styles.container}>
         <ProviderSelection
+          providers={displayProviders}
           quotes={quotes}
           quotesLoading={quotesLoading}
           quotesError={quotesError}
+          showQuotes={!skipQuotes}
           onBack={handleBack}
           onProviderSelect={handleProviderSelect}
         />

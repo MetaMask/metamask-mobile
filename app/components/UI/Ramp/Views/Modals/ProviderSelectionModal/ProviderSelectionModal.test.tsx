@@ -192,4 +192,49 @@ describe('ProviderSelectionModal', () => {
 
     expect(mockGoBack).toHaveBeenCalled();
   });
+
+  it('does not fetch quotes when skipQuotes is true', () => {
+    mockUseParams.mockReturnValue({
+      assetId: 'eip155:1/slip44:60',
+      skipQuotes: true,
+    });
+    renderWithProvider(ProviderSelectionModal);
+
+    expect(mockGetQuotes).not.toHaveBeenCalled();
+  });
+
+  it('filters providers by assetId when provided', () => {
+    const assetId = 'eip155:1/erc20:0x123';
+    mockUseParams.mockReturnValue({ assetId, skipQuotes: true });
+    mockUseRampsController.mockImplementation(() => ({
+      ...defaultControllerReturn,
+      providers: [
+        {
+          ...mockProviders[0],
+          supportedCryptoCurrencies: { [assetId]: true },
+        },
+        {
+          ...mockProviders[1],
+          supportedCryptoCurrencies: { [assetId]: true },
+        },
+        {
+          id: '/providers/other',
+          name: 'Other',
+          supportedCryptoCurrencies: { 'eip155:1/slip44:60': true },
+          environmentType: 'PRODUCTION',
+          description: '',
+          hqAddress: '',
+          links: [],
+          logos: { light: '', dark: '', height: 24, width: 90 },
+        },
+      ],
+    }));
+    const { getByText, queryByText } = renderWithProvider(
+      ProviderSelectionModal,
+    );
+
+    expect(getByText('Transak')).toBeOnTheScreen();
+    expect(getByText('MoonPay')).toBeOnTheScreen();
+    expect(queryByText('Other')).toBeNull();
+  });
 });

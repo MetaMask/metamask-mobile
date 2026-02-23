@@ -27,17 +27,21 @@ const styles = StyleSheet.create({
 });
 
 interface ProviderSelectionProps {
+  providers?: Provider[];
   quotes: QuotesResponse | null;
   quotesLoading: boolean;
   quotesError: string | null;
+  showQuotes?: boolean;
   onBack: () => void;
   onProviderSelect: (provider: Provider) => void;
 }
 
 const ProviderSelection: React.FC<ProviderSelectionProps> = ({
+  providers: providersOverride,
   quotes,
   quotesLoading,
   quotesError,
+  showQuotes = true,
   onBack,
   onProviderSelect,
 }) => {
@@ -46,8 +50,10 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     selectedToken,
     selectedProvider,
     selectedPaymentMethod,
-    providers,
+    providers: controllerProviders,
   } = useRampsController();
+
+  const providers = providersOverride ?? controllerProviders;
   const { formatToken, formatCurrency } = useFormatters();
 
   const currency = userRegion?.country?.currency ?? 'USD';
@@ -95,22 +101,24 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           <ListItemColumn widthType={WidthType.Fill}>
             <Text variant={TextVariant.BodyLGMedium}>{provider.name}</Text>
           </ListItemColumn>
-          <ListItemColumn widthType={WidthType.Auto}>
-            {quotesLoading ? (
-              <QuoteDisplay cryptoAmount="" fiatAmount={null} isLoading />
-            ) : matchedQuote ? (
-              <QuoteDisplay
-                cryptoAmount={cryptoAmount}
-                fiatAmount={fiatAmount}
-              />
-            ) : (
-              <QuoteDisplay
-                cryptoAmount=""
-                fiatAmount={null}
-                quoteUnavailable
-              />
-            )}
-          </ListItemColumn>
+          {showQuotes ? (
+            <ListItemColumn widthType={WidthType.Auto}>
+              {quotesLoading ? (
+                <QuoteDisplay cryptoAmount="" fiatAmount={null} isLoading />
+              ) : matchedQuote ? (
+                <QuoteDisplay
+                  cryptoAmount={cryptoAmount}
+                  fiatAmount={fiatAmount}
+                />
+              ) : (
+                <QuoteDisplay
+                  cryptoAmount=""
+                  fiatAmount={null}
+                  quoteUnavailable
+                />
+              )}
+            </ListItemColumn>
+          ) : null}
         </ListItemSelect>
       );
     },
@@ -121,6 +129,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
       selectedProvider,
       selectedPaymentMethod,
       quotesLoading,
+      showQuotes,
       handleProviderSelect,
       formatToken,
       formatCurrency,
@@ -138,7 +147,11 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
         />
         <Box twClassName="flex-1 px-4">
           <PaymentSelectionAlert
-            message={strings('fiat_on_ramp.no_quotes_available')}
+            message={
+              showQuotes
+                ? strings('fiat_on_ramp.no_quotes_available')
+                : strings('fiat_on_ramp.no_providers_available')
+            }
             severity={BannerAlertSeverity.Error}
           />
         </Box>
