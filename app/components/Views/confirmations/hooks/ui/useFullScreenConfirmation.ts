@@ -28,13 +28,14 @@ const getIsFullScreenConfirmation = (
 
   if (
     approvalRequest?.type !== ApprovalType.Transaction ||
-    !transactionMetadata?.type
+    !transactionMetadata
   ) {
     return false;
   }
 
   if (
     variant &&
+    transactionMetadata.type &&
     FORCE_BOTTOM_SHEET_BY_VARIANT[transactionMetadata.type]?.[variant] === true
   ) {
     return false;
