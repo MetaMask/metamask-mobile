@@ -9535,14 +9535,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@8.1.0-preview-25c8c1fad":
-  version: 8.1.0-preview-25c8c1fad
-  resolution: "@metamask-previews/ramps-controller@npm:8.1.0-preview-25c8c1fad"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@9.0.0-preview-d1f62d044":
+  version: 9.0.0-preview-d1f62d044
+  resolution: "@metamask-previews/ramps-controller@npm:9.0.0-preview-d1f62d044"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.19.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/437f8d3b989d5ea78c16a8f0bc6bedf4e719ee26e91851c71855135d356bb49deaaf57e644cb9238419d317fd229a8f9932653f89ab62011bacc62ae10304f11
+  checksum: 10/f53556591876ebab2b198273f9a9de5e62d014a1967900efd2b766d518bc8b088174a2780067d3ead5f3054211641522b9c0fb02fc48ff330d59e01ff0f6af42
   languageName: node
   linkType: hard
 
