@@ -2,11 +2,11 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 import {
-  buildE2EProxyPatchScript,
   createWebView,
   removeWebView,
   SnapsExecutionWebView,
 } from './SnapsExecutionWebView';
+import { buildE2EProxyPatchScript } from './SnapsE2EProxy';
 
 describe('SnapsExecutionWebView', () => {
   it('should render correctly', () => {

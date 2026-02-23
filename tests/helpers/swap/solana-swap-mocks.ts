@@ -424,7 +424,7 @@ export const buildSolanaSwapTestSpecificMock =
       .thenCallback(async (request) => {
         let requestBody: unknown;
         try {
-          requestBody = JSON.parse(await request.body.getText());
+          requestBody = JSON.parse((await request.body.getText()) ?? '{}');
         } catch {
           requestBody = {};
         }

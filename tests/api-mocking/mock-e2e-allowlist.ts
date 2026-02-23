@@ -21,8 +21,6 @@ export const ALLOWLISTED_HOSTS = [
   'mainnet.infura.io',
   'linea-sepolia.infura.io',
   'linea-mainnet.infura.io',
-  'tron-mainnet.infura.io',
-  'tokens.api.cx.metamask.io',
 ];
 
 export const ALLOWLISTED_URLS = [
