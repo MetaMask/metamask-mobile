@@ -8,6 +8,7 @@ import ListItemColumn, {
   WidthType,
 } from '../../../../../../component-library/components/List/ListItemColumn';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import type {
@@ -165,6 +166,15 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
         title={strings('fiat_on_ramp.providers')}
         onBack={onBack}
       />
+      {showQuotes && selectedPaymentMethod ? (
+        <Box twClassName="px-4 pt-1 pb-2">
+          <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+            {strings('fiat_on_ramp.quotes_displayed_for', {
+              paymentMethodName: selectedPaymentMethod.name,
+            })}
+          </Text>
+        </Box>
+      ) : null}
       {quotesError ? (
         <Box twClassName="px-4">
           <PaymentSelectionAlert

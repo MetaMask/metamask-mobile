@@ -3,8 +3,23 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import PaymentSelectionModal from './PaymentSelectionModal';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-
 jest.mock('../../../../../Base/RemoteImage', () => jest.fn(() => null));
+
+const mockGetQuotes = jest.fn().mockResolvedValue({
+  success: [],
+  error: [],
+  sorted: [],
+  customActions: [],
+});
+
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    RampsController: {
+      getQuotes: mockGetQuotes,
+      getWidgetUrl: jest.fn(),
+    },
+  },
+}));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -132,12 +147,7 @@ const defaultControllerReturn = {
   selectedPaymentMethod: mockPaymentMethods[0],
   setSelectedProvider: mockSetSelectedProvider,
   setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
-  getQuotes: jest.fn().mockResolvedValue({
-    success: [],
-    error: [],
-    sorted: [],
-    customActions: [],
-  }),
+  getQuotes: mockGetQuotes,
   userRegion: { regionCode: 'us', country: { currency: 'USD' } },
   selectedToken: {
     assetId: 'eip155:1/slip44:60',
@@ -318,16 +328,7 @@ describe('PaymentSelectionModal', () => {
   });
 
   it('calls getQuotes with payment method params when on PAYMENT view', () => {
-    const mockGetQuotes = jest.fn().mockResolvedValue({
-      success: [],
-      error: [],
-      sorted: [],
-      customActions: [],
-    });
-    mockUseRampsController.mockImplementation(() => ({
-      ...defaultControllerReturn,
-      getQuotes: mockGetQuotes,
-    }));
+    mockGetQuotes.mockClear();
     renderWithProvider(PaymentSelectionModal);
 
     expect(mockGetQuotes).toHaveBeenCalledWith({

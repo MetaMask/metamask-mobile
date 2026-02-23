@@ -26,6 +26,9 @@ const styleSheet = (_params: { theme: Theme }) =>
       paddingBottom: 16,
       gap: 16,
     },
+    poweredByText: {
+      textAlign: 'center',
+    },
   });
 
 export default styleSheet;

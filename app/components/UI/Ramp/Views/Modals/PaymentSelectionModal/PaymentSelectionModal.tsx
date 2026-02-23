@@ -1,12 +1,6 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import type { CaipChainId } from '@metamask/utils';
-import type { QuotesResponse, PaymentMethod } from '@metamask/ramps-controller';
+import type { PaymentMethod } from '@metamask/ramps-controller';
 import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -35,6 +29,7 @@ import PaymentMethodListItem from './PaymentMethodListItem';
 import PaymentMethodListSkeleton from './PaymentMethodListSkeleton';
 import PaymentSelectionAlert from './PaymentSelectionAlert';
 import { useRampsController } from '../../../hooks/useRampsController';
+import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 
 export interface PaymentSelectionModalParams {
@@ -67,13 +62,9 @@ function PaymentSelectionModal() {
     paymentMethodsError,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
-    getQuotes,
     userRegion,
     selectedToken,
   } = useRampsController();
-
-  const [quotes, setQuotes] = useState<QuotesResponse | null>(null);
-  const [quotesLoading, setQuotesLoading] = useState(false);
 
   const amount = routeAmount ?? DEFAULT_QUOTE_AMOUNT;
   const walletAddress =
@@ -86,44 +77,23 @@ function PaymentSelectionModal() {
     [paymentMethods],
   );
 
-  useEffect(() => {
-    if (!walletAddress || !assetId) return;
-    let cancelled = false;
-    setQuotesLoading(true);
-    getQuotes({
-      amount,
-      walletAddress,
-      assetId,
-      providers: selectedProvider ? [selectedProvider.id] : undefined,
-      paymentMethods: paymentMethodIds,
-      forceRefresh: true,
-    })
-      .then((data) => {
-        if (!cancelled) {
-          setQuotes(data);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setQuotes(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setQuotesLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    getQuotes,
-    amount,
-    walletAddress,
-    assetId,
-    paymentMethodIds,
-    selectedProvider,
-  ]);
+  const quoteFetchParams = useMemo(
+    () =>
+      walletAddress && assetId
+        ? {
+            amount,
+            walletAddress,
+            assetId,
+            providers: selectedProvider ? [selectedProvider.id] : undefined,
+            paymentMethods: paymentMethodIds,
+            forceRefresh: true,
+          }
+        : null,
+    [amount, walletAddress, assetId, selectedProvider, paymentMethodIds],
+  );
+
+  const { data: quotes, loading: quotesLoading } =
+    useRampsQuotes(quoteFetchParams);
 
   const handleChangeProviderPress = useCallback(() => {
     navigation.navigate(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });

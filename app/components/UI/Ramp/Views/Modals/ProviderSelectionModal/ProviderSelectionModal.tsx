@@ -1,13 +1,7 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
-import type { Provider, QuotesResponse } from '@metamask/ramps-controller';
+import type { Provider } from '@metamask/ramps-controller';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -19,6 +13,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import ProviderSelection from '../PaymentSelectionModal/ProviderSelection';
 import { useRampsController } from '../../../hooks/useRampsController';
+import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
@@ -53,12 +48,7 @@ function ProviderSelectionModal() {
     setSelectedProvider,
     selectedPaymentMethod,
     selectedToken,
-    getQuotes,
   } = useRampsController();
-
-  const [quotes, setQuotes] = useState<QuotesResponse | null>(null);
-  const [quotesLoading, setQuotesLoading] = useState(false);
-  const [quotesError, setQuotesError] = useState<string | null>(null);
 
   const amount = routeAmount ?? DEFAULT_QUOTE_AMOUNT;
   const walletAddress =
@@ -78,51 +68,35 @@ function ProviderSelectionModal() {
     [displayProviders],
   );
 
-  useEffect(() => {
-    if (skipQuotes || !walletAddress || !assetId) return;
-    let cancelled = false;
-    setQuotesLoading(true);
-    getQuotes({
+  const quoteFetchParams = useMemo(
+    () =>
+      !skipQuotes && walletAddress && assetId
+        ? {
+            amount,
+            walletAddress,
+            assetId,
+            providers: providerIds,
+            paymentMethods: selectedPaymentMethod
+              ? [selectedPaymentMethod.id]
+              : undefined,
+            forceRefresh: true,
+          }
+        : null,
+    [
+      skipQuotes,
       amount,
       walletAddress,
       assetId,
-      providers: providerIds,
-      paymentMethods: selectedPaymentMethod
-        ? [selectedPaymentMethod.id]
-        : undefined,
-      forceRefresh: true,
-    })
-      .then((data) => {
-        if (!cancelled) {
-          setQuotes(data);
-          setQuotesError(null);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setQuotes(null);
-          setQuotesError(
-            err instanceof Error ? err.message : 'Failed to fetch quotes',
-          );
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setQuotesLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    skipQuotes,
-    amount,
-    assetId,
-    getQuotes,
-    providerIds,
-    selectedPaymentMethod,
-    walletAddress,
-  ]);
+      providerIds,
+      selectedPaymentMethod,
+    ],
+  );
+
+  const {
+    data: quotes,
+    loading: quotesLoading,
+    error: quotesError,
+  } = useRampsQuotes(quoteFetchParams);
 
   const handleBack = useCallback(() => {
     navigation.goBack();

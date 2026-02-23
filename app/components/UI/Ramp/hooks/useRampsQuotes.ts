@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { QuotesResponse } from '@metamask/ramps-controller';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
@@ -34,18 +34,29 @@ export interface UseRampsQuotesResult {
    * @returns Promise resolving to the widget URL string, or null if not available.
    */
   getWidgetUrl: (quote: Quote) => Promise<string | null>;
+  /** Fetched quotes response when options is used. Null when not fetching or fetch skipped. */
+  data: QuotesResponse | null;
+  /** True while a fetch is in progress. Always reset in finally, including when effect is cancelled. */
+  loading: boolean;
+  /** Error message when fetch rejects. */
+  error: string | null;
 }
 
 /**
  * Hook to get quote-related functions from RampsController.
  * Components call getQuotes() and manage quotes/selection locally.
  *
- * @returns getQuotes and getWidgetUrl functions.
+ * When options is provided, runs an effect to fetch quotes and returns data, loading, and error.
+ * Loading is always reset when the fetch settles, even when the effect is cancelled.
+ *
+ * @param options - GetQuotesOptions to fetch, or null/undefined to skip fetch.
+ * @returns getQuotes, getWidgetUrl, and when options used: data, loading, error.
  */
-export function useRampsQuotes(): UseRampsQuotesResult {
+export function useRampsQuotes(
+  options?: GetQuotesOptions | null,
+): UseRampsQuotesResult {
   const getQuotes = useCallback(
-    (options: GetQuotesOptions) =>
-      Engine.context.RampsController.getQuotes(options),
+    (opts: GetQuotesOptions) => Engine.context.RampsController.getQuotes(opts),
     [],
   );
 
@@ -54,9 +65,52 @@ export function useRampsQuotes(): UseRampsQuotesResult {
     [],
   );
 
+  const [data, setData] = useState<QuotesResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (options == null) {
+      setData(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setData(null);
+    setError(null);
+
+    getQuotes(options)
+      .then((response) => {
+        if (!cancelled) {
+          setData(response);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setData(null);
+          setError(
+            err instanceof Error ? err.message : 'Failed to fetch quotes',
+          );
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [options, getQuotes]);
+
   return {
     getQuotes,
     getWidgetUrl,
+    data,
+    loading,
+    error,
   };
 }
 

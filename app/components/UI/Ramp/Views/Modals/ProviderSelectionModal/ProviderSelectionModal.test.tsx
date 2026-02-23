@@ -7,14 +7,23 @@ import Routes from '../../../../../../constants/navigation/Routes';
 
 jest.mock('../../../../../Base/RemoteImage', () => jest.fn(() => null));
 
-const mockGoBack = jest.fn();
-const mockSetSelectedProvider = jest.fn();
 const mockGetQuotes = jest.fn().mockResolvedValue({
   success: [],
   error: [],
   sorted: [],
   customActions: [],
 });
+const mockGoBack = jest.fn();
+const mockSetSelectedProvider = jest.fn();
+
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    RampsController: {
+      getQuotes: mockGetQuotes,
+      getWidgetUrl: jest.fn(),
+    },
+  },
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),

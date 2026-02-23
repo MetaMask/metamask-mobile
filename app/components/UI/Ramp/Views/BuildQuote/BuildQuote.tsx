@@ -31,6 +31,7 @@ import styleSheet from './BuildQuote.styles';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { useRampsController } from '../../hooks/useRampsController';
+import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
@@ -38,7 +39,6 @@ import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuot
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createCheckoutNavDetails } from '../Checkout';
 import {
-  type Quote,
   isNativeProvider,
   getQuoteProviderName,
   getQuoteBuyUserAgent,
@@ -123,14 +123,10 @@ function BuildQuote() {
     userRegion,
     selectedProvider,
     selectedToken,
-    getQuotes,
     getWidgetUrl,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
-
-  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
-  const [selectedQuoteLoading, setSelectedQuoteLoading] = useState(false);
 
   const isTokenUnavailable = useMemo(
     () =>
@@ -186,6 +182,59 @@ function BuildQuote() {
 
   const debouncedPollingAmount = useDebouncedValue(amountAsNumber, 500);
 
+  const quoteFetchEnabled = !!(
+    isOnBuildQuoteScreen &&
+    walletAddress &&
+    selectedPaymentMethod &&
+    selectedProvider &&
+    selectedToken?.assetId &&
+    debouncedPollingAmount > 0
+  );
+
+  const quoteFetchParams = useMemo(
+    () =>
+      selectedToken?.assetId &&
+      walletAddress &&
+      selectedPaymentMethod &&
+      selectedProvider
+        ? {
+            assetId: selectedToken.assetId,
+            amount: debouncedPollingAmount,
+            walletAddress,
+            redirectUrl: getRampCallbackBaseUrl(),
+            paymentMethods: [selectedPaymentMethod.id],
+            providers: [selectedProvider.id],
+            forceRefresh: true,
+          }
+        : null,
+    [
+      selectedToken?.assetId,
+      debouncedPollingAmount,
+      walletAddress,
+      selectedPaymentMethod,
+      selectedProvider,
+    ],
+  );
+
+  const { data: quotesResponse, loading: selectedQuoteLoading } =
+    useRampsQuotes(quoteFetchEnabled ? quoteFetchParams : null);
+
+  const selectedQuote = useMemo(() => {
+    if (!quotesResponse?.success || !selectedProvider || !selectedPaymentMethod)
+      return null;
+    const { success } = quotesResponse;
+    if (success.length === 1) return success[0];
+    if (success.length > 1) {
+      const match = success.find(
+        (q) =>
+          q.provider === selectedProvider.id &&
+          q.quote?.paymentMethod === selectedPaymentMethod.id,
+      );
+      return match ?? success[0];
+    }
+    return null;
+  }, [quotesResponse, selectedProvider, selectedPaymentMethod]);
+
   const networkInfo = useMemo(() => {
     if (!selectedToken) return null;
     return getTokenNetworkInfo(selectedToken.chainId as CaipChainId);
@@ -234,72 +283,6 @@ function BuildQuote() {
       }),
     );
   }, [debouncedPollingAmount, navigation]);
-
-  useEffect(() => {
-    if (
-      !isOnBuildQuoteScreen ||
-      !walletAddress ||
-      !selectedPaymentMethod ||
-      !selectedProvider ||
-      !selectedToken?.assetId ||
-      debouncedPollingAmount <= 0
-    ) {
-      setSelectedQuote(null);
-      return;
-    }
-
-    let cancelled = false;
-    setSelectedQuoteLoading(true);
-    setSelectedQuote(null);
-
-    getQuotes({
-      assetId: selectedToken.assetId,
-      amount: debouncedPollingAmount,
-      walletAddress,
-      redirectUrl: getRampCallbackBaseUrl(),
-      paymentMethods: [selectedPaymentMethod.id],
-      providers: [selectedProvider.id],
-      forceRefresh: true,
-    })
-      .then((response) => {
-        if (cancelled) return;
-        if (response.success.length === 1) {
-          setSelectedQuote(response.success[0]);
-        } else if (response.success.length > 1) {
-          const match = response.success.find(
-            (q) =>
-              q.provider === selectedProvider.id &&
-              q.quote?.paymentMethod === selectedPaymentMethod.id,
-          );
-          setSelectedQuote(match ?? response.success[0]);
-        } else {
-          setSelectedQuote(null);
-        }
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          Logger.log('BuildQuote: Failed to fetch quotes', error);
-          setSelectedQuote(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setSelectedQuoteLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    walletAddress,
-    selectedPaymentMethod,
-    selectedProvider,
-    selectedToken?.assetId,
-    debouncedPollingAmount,
-    getQuotes,
-    isOnBuildQuoteScreen,
-  ]);
 
   const handleContinuePress = useCallback(async () => {
     if (!selectedQuote) return;
@@ -498,17 +481,29 @@ function BuildQuote() {
 
           <View style={styles.actionSection}>
             {hasAmount ? (
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                onPress={handleContinuePress}
-                isFullWidth
-                isDisabled={!canContinue}
-                isLoading={selectedQuoteLoading || isContinueLoading}
-                testID={BuildQuoteSelectors.CONTINUE_BUTTON}
-              >
-                {strings('fiat_on_ramp.continue')}
-              </Button>
+              <>
+                {selectedProvider && (
+                  <Text
+                    variant={TextVariant.BodySM}
+                    style={styles.poweredByText}
+                  >
+                    {strings('fiat_on_ramp.powered_by_provider', {
+                      provider: selectedProvider.name,
+                    })}
+                  </Text>
+                )}
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  onPress={handleContinuePress}
+                  isFullWidth
+                  isDisabled={!canContinue}
+                  isLoading={selectedQuoteLoading || isContinueLoading}
+                  testID={BuildQuoteSelectors.CONTINUE_BUTTON}
+                >
+                  {strings('fiat_on_ramp.continue')}
+                </Button>
+              </>
             ) : (
               quickAmounts.length > 0 && (
                 <QuickAmounts
