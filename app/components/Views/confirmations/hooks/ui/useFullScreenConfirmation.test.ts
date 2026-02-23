@@ -9,6 +9,11 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { MMM_ORIGIN } from '../../constants/confirmations';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+  useParams: jest.fn().mockReturnValue({}),
+}));
+
 describe('useFullScreenConfirmation', () => {
   it('returns true for staking confirmation', async () => {
     const { result } = renderHookWithProvider(useFullScreenConfirmation, {
