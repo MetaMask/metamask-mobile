@@ -469,6 +469,126 @@ describe('useNetworkValidation', () => {
     });
   });
 
+  describe('validateChainId — async RPC validation paths', () => {
+    it('sets warning for unsafe chain ID (exceeds MAX_SAFE_CHAIN_ID)', async () => {
+      const { result } = renderHook(() => useNetworkValidation());
+
+      await act(async () => {
+        await result.current.validateChainId({
+          ...baseForm,
+          chainId: '9999999999999999',
+        });
+      });
+
+      expect(result.current.warningChainId).toBeDefined();
+    });
+
+    it('sets warning when jsonRpcRequest fails (provider error)', async () => {
+      const { jsonRpcRequest } = jest.requireMock(
+        '../../../../../util/jsonRpcRequest',
+      );
+      jsonRpcRequest.mockRejectedValueOnce(new Error('network error'));
+
+      const { result } = renderHook(() => useNetworkValidation());
+
+      await act(async () => {
+        await result.current.validateChainId(baseForm);
+      });
+
+      expect(result.current.warningRpcUrl).toBeDefined();
+      expect(result.current.validatedRpcURL).toBe(false);
+    });
+
+    it('sets warning when endpoint returns a different chain ID', async () => {
+      const { jsonRpcRequest } = jest.requireMock(
+        '../../../../../util/jsonRpcRequest',
+      );
+      jsonRpcRequest.mockResolvedValueOnce('0x1');
+
+      const { result } = renderHook(() => useNetworkValidation());
+
+      await act(async () => {
+        await result.current.validateChainId(baseForm);
+      });
+
+      expect(result.current.warningRpcUrl).toBeDefined();
+      expect(result.current.warningChainId).toBeDefined();
+      expect(result.current.validatedRpcURL).toBe(false);
+    });
+
+    it('clears warnings when endpoint returns matching chain ID', async () => {
+      const { jsonRpcRequest } = jest.requireMock(
+        '../../../../../util/jsonRpcRequest',
+      );
+      jsonRpcRequest.mockResolvedValueOnce('0x2a');
+
+      const { result } = renderHook(() => useNetworkValidation());
+
+      await act(async () => {
+        await result.current.validateChainId(baseForm);
+      });
+
+      expect(result.current.warningChainId).toBeUndefined();
+      expect(result.current.validatedChainId).toBe(true);
+    });
+  });
+
+  describe('validateChainIdOnSubmit — NaN endpoint chain ID', () => {
+    it('logs error when endpoint returns non-numeric hex', async () => {
+      const { jsonRpcRequest } = jest.requireMock(
+        '../../../../../util/jsonRpcRequest',
+      );
+      jsonRpcRequest.mockResolvedValueOnce('0xZZZZ');
+
+      const Logger = jest.requireMock('../../../../../util/Logger');
+
+      const { result } = renderHook(() => useNetworkValidation());
+
+      let valid: boolean = true;
+      await act(async () => {
+        valid = await result.current.validateChainIdOnSubmit(
+          '42',
+          '0x2a',
+          'https://rpc.example.com',
+        );
+      });
+
+      expect(valid).toBe(false);
+      expect(Logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('validateSymbol — whitelisted symbol early return', () => {
+    it('clears warning and sets validatedSymbol for whitelisted chain+ticker', () => {
+      const { result } = renderHook(() => useNetworkValidation());
+
+      act(() => {
+        result.current.validateSymbol({
+          ...baseForm,
+          chainId: '0x3e7',
+          ticker: 'HYPE',
+        });
+      });
+
+      expect(result.current.warningSymbol).toBeUndefined();
+      expect(result.current.validatedSymbol).toBe(true);
+    });
+
+    it('sets validatedSymbol to false when whitelisted chain has empty ticker', () => {
+      const { result } = renderHook(() => useNetworkValidation());
+
+      act(() => {
+        result.current.validateSymbol({
+          ...baseForm,
+          chainId: '0x3e7',
+          ticker: '',
+        });
+      });
+
+      expect(result.current.validatedSymbol).toBe(false);
+    });
+  });
+
   describe('validateSymbol — non-whitelisted path', () => {
     it('sets warning when ticker differs from network config symbol', () => {
       mockWithConfigs({

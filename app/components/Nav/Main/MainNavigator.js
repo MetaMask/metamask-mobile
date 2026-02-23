@@ -382,11 +382,6 @@ const SettingsFlow = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="NetworksManagement"
-        component={NetworksManagementView}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
         name={Routes.SETTINGS.NETWORK_DETAILS}
         component={NetworkDetailsView}
         options={{ headerShown: false }}
