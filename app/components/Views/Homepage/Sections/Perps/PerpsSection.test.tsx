@@ -222,7 +222,7 @@ describe('PerpsSection', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('starts market data preload on mount', () => {
+  it('starts market data preload on mount and stops on unmount', () => {
     const { unmount } = renderWithProvider(<PerpsSection />);
     const EngineMock = jest.requireMock('../../../../../core/Engine');
 
@@ -235,6 +235,35 @@ describe('PerpsSection', () => {
     expect(
       EngineMock.context.PerpsController.stopMarketDataPreload,
     ).toHaveBeenCalled();
+  });
+
+  it('does not crash when PerpsController is absent from Engine.context', () => {
+    const EngineMock = jest.requireMock('../../../../../core/Engine');
+    const original = EngineMock.context.PerpsController;
+    EngineMock.context.PerpsController = undefined;
+
+    expect(() => renderWithProvider(<PerpsSection />)).not.toThrow();
+
+    EngineMock.context.PerpsController = original;
+  });
+
+  it('does not call stopMarketDataPreload when perps is disabled', () => {
+    jest
+      .requireMock('../../../../UI/Perps')
+      .selectPerpsEnabledFlag.mockReturnValue(false);
+
+    const { unmount } = renderWithProvider(<PerpsSection />);
+    const EngineMock = jest.requireMock('../../../../../core/Engine');
+
+    expect(
+      EngineMock.context.PerpsController.startMarketDataPreload,
+    ).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(
+      EngineMock.context.PerpsController.stopMarketDataPreload,
+    ).not.toHaveBeenCalled();
   });
 
   it('shows skeleton placeholder while positions are loading', () => {

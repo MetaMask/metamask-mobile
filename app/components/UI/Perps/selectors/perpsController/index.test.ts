@@ -855,7 +855,9 @@ describe('PerpsController Selectors', () => {
     });
 
     it('returns null when PerpsController is undefined', () => {
-      const mockState = createMockState();
+      const mockState = {
+        engine: { backgroundState: { PerpsController: undefined } },
+      } as unknown as RootState;
 
       const result = selectCachedMarketData(mockState);
 
@@ -892,7 +894,9 @@ describe('PerpsController Selectors', () => {
     });
 
     it('returns null when PerpsController is undefined', () => {
-      const mockState = createMockState();
+      const mockState = {
+        engine: { backgroundState: { PerpsController: undefined } },
+      } as unknown as RootState;
 
       const result = selectCachedPositions(mockState);
 

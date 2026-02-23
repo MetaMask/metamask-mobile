@@ -35,10 +35,12 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const title = strings('homepage.sections.perpetuals');
 
   useEffect(() => {
+    if (!isPerpsEnabled) return;
+
     const controller = Engine.context.PerpsController;
-    if (isPerpsEnabled) {
-      controller.startMarketDataPreload();
-    }
+    if (!controller) return;
+
+    controller.startMarketDataPreload();
     return () => controller.stopMarketDataPreload();
   }, [isPerpsEnabled]);
 
