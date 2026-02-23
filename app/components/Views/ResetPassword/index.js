@@ -1051,7 +1051,7 @@ class ResetPassword extends PureComponent {
   }
 
   render() {
-    const { view, ready } = this.state;
+    const { view, ready, loading } = this.state;
     const styles = this.getStyles();
 
     if (!ready) return this.renderLoader();
@@ -1060,6 +1060,7 @@ class ResetPassword extends PureComponent {
         <HeaderCompactStandard
           title={strings('password_reset.change_password')}
           onBack={() => this.props.navigation.goBack()}
+          backButtonProps={{ isDisabled: loading }}
           includesTopInset
         />
         <ScrollView
