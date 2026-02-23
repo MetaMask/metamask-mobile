@@ -1,11 +1,11 @@
-import { RegressionAssets } from '../../tags';
-import TestHelpers from '../../helpers';
-import { loginToApp } from '../../flows/wallet.flow';
+import { RegressionAssets } from '../../../e2e/tags';
+import TestHelpers from '../../../e2e/helpers';
+import { loginToApp } from '../../../e2e/viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import WalletView from '../../page-objects/wallet/WalletView';
-import ImportNFTView from '../../page-objects/wallet/ImportNFTFlow/ImportNFTView';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import ImportNFTView from '../../../e2e/pages/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../framework/Assertions';
 import enContent from '../../../locales/languages/en.json';
 import {

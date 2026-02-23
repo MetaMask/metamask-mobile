@@ -20,7 +20,6 @@ import {
   APPROVE_TRANSACTION_TYPES,
   TRANSFER_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
-import useNetworkInfo from '../../hooks/useNetworkInfo';
 import { ApproveMethod } from '../../types/approve';
 import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import { useSignatureRequest } from '../../hooks/signatures/useSignatureRequest';
@@ -86,7 +85,6 @@ const getTitleAndSubTitle = (
   isBatched: boolean = false,
   isUpgradeOnly: boolean = false,
   approveTransactionData?: ApproveTransactionData,
-  networkName?: string,
 ) => {
   const type = approvalRequest?.type;
   const transactionType = transactionMetadata?.type as TransactionType;
@@ -167,15 +165,6 @@ const getTitleAndSubTitle = (
         };
       }
 
-      if (transactionType === TransactionType.musdClaim) {
-        return {
-          title: strings('earn.claim_bonus'),
-          subTitle: strings('earn.claim_bonus_subtitle', {
-            networkName: networkName ?? '',
-          }),
-        };
-      }
-
       if (transactionType === TransactionType.deployContract) {
         return {
           title: strings('confirm.title.contract_deployment'),
@@ -215,7 +204,6 @@ const Title = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const { isDowngrade, isBatched, isUpgradeOnly } = use7702TransactionType();
   const approveTransactionData = useApproveTransactionData();
-  const { networkName } = useNetworkInfo(transactionMetadata?.chainId);
 
   if (isFullScreenConfirmation) {
     return null;
@@ -229,7 +217,6 @@ const Title = () => {
     isBatched,
     isUpgradeOnly,
     approveTransactionData,
-    networkName,
   );
 
   return (

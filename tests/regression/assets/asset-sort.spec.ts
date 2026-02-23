@@ -1,12 +1,12 @@
-import { RegressionAssets } from '../../tags';
-import WalletView from '../../page-objects/wallet/WalletView';
-import SortModal from '../../page-objects/wallet/TokenSortBottomSheet';
+import { RegressionAssets } from '../../../e2e/tags';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import SortModal from '../../../e2e/pages/wallet/TokenSortBottomSheet';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../flows/wallet.flow';
+import { loginToApp } from '../../../e2e/viewHelper';
 import Assertions from '../../framework/Assertions';
-import ConfirmAddAssetView from '../../page-objects/wallet/ImportTokenFlow/ConfirmAddAsset';
-import ImportTokensView from '../../page-objects/wallet/ImportTokenFlow/ImportTokensView';
+import ConfirmAddAssetView from '../../../e2e/pages/wallet/ImportTokenFlow/ConfirmAddAsset';
+import ImportTokensView from '../../../e2e/pages/wallet/ImportTokenFlow/ImportTokensView';
 import { MockApiEndpoint } from '../../framework';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';

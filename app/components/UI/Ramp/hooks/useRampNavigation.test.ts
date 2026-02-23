@@ -4,8 +4,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useRampNavigation } from './useRampNavigation';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
-import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
-import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
+import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
+import { createBuildQuoteNavDetails } from '../components/BuildQuote';
 import { RampType as AggregatorRampType } from '../Aggregator/types';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
@@ -28,8 +28,10 @@ jest.mock('@react-navigation/compat', () => ({
 }));
 jest.mock('../Aggregator/routes/utils');
 jest.mock('../Deposit/routes/utils');
-jest.mock('../Views/TokenSelection/TokenSelection', () => {
-  const actual = jest.requireActual('../Views/TokenSelection/TokenSelection');
+jest.mock('../components/TokenSelection/TokenSelection', () => {
+  const actual = jest.requireActual(
+    '../components/TokenSelection/TokenSelection',
+  );
   const mockFn = jest.fn();
   return {
     ...actual,
@@ -37,7 +39,7 @@ jest.mock('../Views/TokenSelection/TokenSelection', () => {
     createTokenSelectionNavigationDetails: mockFn, // Alias for hook compatibility
   };
 });
-jest.mock('../Views/BuildQuote', () => {
+jest.mock('../components/BuildQuote', () => {
   const mockFn = jest.fn();
   return {
     createBuildQuoteNavDetails: mockFn,
@@ -108,14 +110,8 @@ describe('useRampNavigation', () => {
     ] as unknown as ReturnType<typeof createTokenSelectionNavDetails>);
 
     mockCreateBuildQuoteNavDetails.mockReturnValue([
-      Routes.RAMP.TOKEN_SELECTION,
-      {
-        screen: Routes.RAMP.TOKEN_SELECTION,
-        params: {
-          screen: Routes.RAMP.AMOUNT_INPUT,
-          params: { assetId: 'eip155:1/erc20:0x123' },
-        },
-      },
+      Routes.RAMP.AMOUNT_INPUT,
+      { assetId: 'eip155:1/erc20:0x123' },
     ] as unknown as ReturnType<typeof createBuildQuoteNavDetails>);
   });
 
@@ -128,14 +124,8 @@ describe('useRampNavigation', () => {
       it('navigates to BuildQuote when assetId is provided', () => {
         const intent = { assetId: 'eip155:1/erc20:0x123' };
         const mockNavDetails = [
-          Routes.RAMP.TOKEN_SELECTION,
-          {
-            screen: Routes.RAMP.TOKEN_SELECTION,
-            params: {
-              screen: Routes.RAMP.AMOUNT_INPUT,
-              params: { assetId: intent.assetId },
-            },
-          },
+          Routes.RAMP.AMOUNT_INPUT,
+          { assetId: intent.assetId },
         ] as const;
         mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
 
@@ -197,14 +187,8 @@ describe('useRampNavigation', () => {
         );
         const intent = { assetId: 'eip155:1/erc20:0x123' };
         const mockNavDetails = [
-          Routes.RAMP.TOKEN_SELECTION,
-          {
-            screen: Routes.RAMP.TOKEN_SELECTION,
-            params: {
-              screen: Routes.RAMP.AMOUNT_INPUT,
-              params: { assetId: intent.assetId },
-            },
-          },
+          Routes.RAMP.AMOUNT_INPUT,
+          { assetId: intent.assetId },
         ] as const;
         mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
 

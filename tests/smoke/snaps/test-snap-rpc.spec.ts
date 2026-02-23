@@ -1,8 +1,7 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import TestSnaps from '../../page-objects/Browser/TestSnaps';
-import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../flows/browser.flow';
+import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import { FlaskBuildTests } from '../../../e2e/tags';
+import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 jest.setTimeout(150_000);

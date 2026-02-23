@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePositionManagement } from './usePositionManagement';
-import { type Position } from '@metamask/perps-controller';
+import type { Position } from '../controllers/types';
 
 describe('usePositionManagement', () => {
   const mockPosition: Position = {

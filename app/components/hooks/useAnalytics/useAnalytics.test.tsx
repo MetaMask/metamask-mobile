@@ -2,8 +2,12 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import {
   DataDeleteResponseStatus,
   DataDeleteStatus,
-  type IDeleteRegulationResponse,
-  type IDeleteRegulationStatus,
+  MetaMetrics,
+} from '../../../core/Analytics';
+import type {
+  IDeleteRegulationResponse,
+  IDeleteRegulationStatus,
+  IMetaMetrics,
 } from '../../../core/Analytics/MetaMetrics.types';
 import {
   AnalyticsEventBuilder,
@@ -18,7 +22,7 @@ jest.unmock('./useAnalytics');
 // Import after unmocking
 const { useAnalytics } = jest.requireActual('./useAnalytics');
 
-const mockAnalyticsDataDeletion = {
+const mockMetaMetricsInstance = {
   createDataDeletionTask: jest.fn(),
   checkDataDeleteStatus: jest.fn(),
   getDeleteRegulationCreationDate: jest.fn(),
@@ -26,20 +30,6 @@ const mockAnalyticsDataDeletion = {
   isDataRecorded: jest.fn(),
   updateDataRecordingFlag: jest.fn(),
 };
-jest.mock('../../../util/analytics/analyticsDataDeletion', () => ({
-  createDataDeletionTask: (...args: unknown[]) =>
-    mockAnalyticsDataDeletion.createDataDeletionTask(...args),
-  checkDataDeleteStatus: (...args: unknown[]) =>
-    mockAnalyticsDataDeletion.checkDataDeleteStatus(...args),
-  getDeleteRegulationCreationDate: (...args: unknown[]) =>
-    mockAnalyticsDataDeletion.getDeleteRegulationCreationDate(...args),
-  getDeleteRegulationId: (...args: unknown[]) =>
-    mockAnalyticsDataDeletion.getDeleteRegulationId(...args),
-  isDataRecorded: (...args: unknown[]) =>
-    mockAnalyticsDataDeletion.isDataRecorded(...args),
-  updateDataRecordingFlag: (...args: unknown[]) =>
-    mockAnalyticsDataDeletion.updateDataRecordingFlag(...args),
-}));
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
     trackEvent: jest.fn(),
@@ -102,19 +92,37 @@ describe('useAnalytics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockAnalyticsDataDeletion.createDataDeletionTask.mockResolvedValue(
-      expectedDataDeletionTaskResponse,
-    );
-    mockAnalyticsDataDeletion.checkDataDeleteStatus.mockResolvedValue(
-      expectedDataDeleteStatus,
-    );
-    mockAnalyticsDataDeletion.getDeleteRegulationCreationDate.mockReturnValue(
-      expectedDate,
-    );
-    mockAnalyticsDataDeletion.getDeleteRegulationId.mockReturnValue(
-      expectedDataDeleteRegulationId,
-    );
-    mockAnalyticsDataDeletion.isDataRecorded.mockReturnValue(true);
+    // Mock MetaMetrics.getInstance to return our mock instance
+    jest
+      .spyOn(MetaMetrics, 'getInstance')
+      .mockReturnValue(mockMetaMetricsInstance as unknown as IMetaMetrics);
+
+    // Set up mock return values
+    (
+      mockMetaMetricsInstance.createDataDeletionTask as jest.MockedFunction<
+        typeof mockMetaMetricsInstance.createDataDeletionTask
+      >
+    ).mockResolvedValue(expectedDataDeletionTaskResponse);
+    (
+      mockMetaMetricsInstance.checkDataDeleteStatus as jest.MockedFunction<
+        typeof mockMetaMetricsInstance.checkDataDeleteStatus
+      >
+    ).mockResolvedValue(expectedDataDeleteStatus);
+    (
+      mockMetaMetricsInstance.getDeleteRegulationCreationDate as jest.MockedFunction<
+        typeof mockMetaMetricsInstance.getDeleteRegulationCreationDate
+      >
+    ).mockReturnValue(expectedDate);
+    (
+      mockMetaMetricsInstance.getDeleteRegulationId as jest.MockedFunction<
+        typeof mockMetaMetricsInstance.getDeleteRegulationId
+      >
+    ).mockReturnValue(expectedDataDeleteRegulationId);
+    (
+      mockMetaMetricsInstance.isDataRecorded as jest.MockedFunction<
+        typeof mockMetaMetricsInstance.isDataRecorded
+      >
+    ).mockReturnValue(true);
 
     // Set up analytics mock return values
     (
@@ -192,7 +200,7 @@ describe('useAnalytics', () => {
     });
 
     expect(
-      mockAnalyticsDataDeletion.updateDataRecordingFlag,
+      mockMetaMetricsInstance.updateDataRecordingFlag,
     ).toHaveBeenCalledWith(false);
   });
 
@@ -227,7 +235,7 @@ describe('useAnalytics', () => {
     expect(analytics.identify).toHaveBeenCalledWith(userTraits);
   });
 
-  it('delegates createDataDeletionTask to analyticsDataDeletion', async () => {
+  it('delegates createDataDeletionTask to MetaMetrics', async () => {
     const { result } = renderHook(() => useAnalytics());
 
     let deletionTask: IDeleteRegulationResponse | undefined;
@@ -237,12 +245,12 @@ describe('useAnalytics', () => {
     });
 
     expect(
-      mockAnalyticsDataDeletion.createDataDeletionTask,
+      mockMetaMetricsInstance.createDataDeletionTask,
     ).toHaveBeenCalledTimes(1);
     expect(deletionTask).toEqual(expectedDataDeletionTaskResponse);
   });
 
-  it('delegates checkDataDeleteStatus to analyticsDataDeletion', async () => {
+  it('delegates checkDataDeleteStatus to MetaMetrics', async () => {
     const { result } = renderHook(() => useAnalytics());
 
     let dataDeleteStatus: IDeleteRegulationStatus | undefined;
@@ -251,40 +259,40 @@ describe('useAnalytics', () => {
       dataDeleteStatus = await result.current.checkDataDeleteStatus();
     });
 
-    expect(
-      mockAnalyticsDataDeletion.checkDataDeleteStatus,
-    ).toHaveBeenCalledTimes(1);
+    expect(mockMetaMetricsInstance.checkDataDeleteStatus).toHaveBeenCalledTimes(
+      1,
+    );
     expect(dataDeleteStatus).toEqual(expectedDataDeleteStatus);
   });
 
-  it('delegates getDeleteRegulationCreationDate to analyticsDataDeletion', () => {
+  it('delegates getDeleteRegulationCreationDate to MetaMetrics', () => {
     const { result } = renderHook(() => useAnalytics());
 
     const deletionDate = result.current.getDeleteRegulationCreationDate();
 
     expect(
-      mockAnalyticsDataDeletion.getDeleteRegulationCreationDate,
+      mockMetaMetricsInstance.getDeleteRegulationCreationDate,
     ).toHaveBeenCalledTimes(1);
     expect(deletionDate).toEqual(expectedDate);
   });
 
-  it('delegates getDeleteRegulationId to analyticsDataDeletion', () => {
+  it('delegates getDeleteRegulationId to MetaMetrics', () => {
     const { result } = renderHook(() => useAnalytics());
 
     const regulationId = result.current.getDeleteRegulationId();
 
-    expect(
-      mockAnalyticsDataDeletion.getDeleteRegulationId,
-    ).toHaveBeenCalledTimes(1);
+    expect(mockMetaMetricsInstance.getDeleteRegulationId).toHaveBeenCalledTimes(
+      1,
+    );
     expect(regulationId).toEqual(expectedDataDeleteRegulationId);
   });
 
-  it('delegates isDataRecorded to analyticsDataDeletion', () => {
+  it('delegates isDataRecorded to MetaMetrics', () => {
     const { result } = renderHook(() => useAnalytics());
 
     const isDataRecordedValue = result.current.isDataRecorded();
 
-    expect(mockAnalyticsDataDeletion.isDataRecorded).toHaveBeenCalledTimes(1);
+    expect(mockMetaMetricsInstance.isDataRecorded).toHaveBeenCalledTimes(1);
     expect(isDataRecordedValue).toBe(true);
   });
 

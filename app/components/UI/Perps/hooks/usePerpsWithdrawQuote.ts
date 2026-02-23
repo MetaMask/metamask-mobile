@@ -3,12 +3,10 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
-  WITHDRAWAL_CONSTANTS,
-} from '@metamask/perps-controller';
-import {
   METAMASK_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
-} from '../constants/perpsUIConfig';
+} from '../constants/hyperLiquidConfig';
+import { WITHDRAWAL_CONSTANTS } from '../constants/perpsConfig';
 
 interface PerpsWithdrawQuoteParams {
   amount: string;

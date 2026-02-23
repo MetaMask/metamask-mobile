@@ -37,13 +37,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "pendingApprovalCount": 0,
         "pendingApprovals": {},
       },
-      "AssetsController": {
-        "assetPreferences": {},
-        "assetsBalance": {},
-        "assetsMetadata": {},
-        "assetsPrice": {},
-        "customAssets": {},
-      },
       "AuthenticationController": {
         "isSignedIn": false,
       },
@@ -495,13 +488,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "cachedAccountState": null,
-        "cachedMarketData": null,
-        "cachedMarketDataTimestamp": 0,
-        "cachedOrders": null,
-        "cachedPositions": null,
-        "cachedUserDataAddress": null,
-        "cachedUserDataTimestamp": 0,
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -870,13 +856,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "pendingApprovalCount": 0,
         "pendingApprovals": {},
       },
-      "AssetsController": {
-        "assetPreferences": {},
-        "assetsBalance": {},
-        "assetsMetadata": {},
-        "assetsPrice": {},
-        "customAssets": {},
-      },
       "AuthenticationController": {
         "isSignedIn": false,
       },
@@ -1328,13 +1307,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "cachedAccountState": null,
-        "cachedMarketData": null,
-        "cachedMarketDataTimestamp": 0,
-        "cachedOrders": null,
-        "cachedPositions": null,
-        "cachedUserDataAddress": null,
-        "cachedUserDataTimestamp": 0,
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {

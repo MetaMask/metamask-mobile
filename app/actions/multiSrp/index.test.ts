@@ -12,7 +12,7 @@ import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
-import { EntropySourceId } from '@metamask/keyring-api';
+import { BtcScope, EntropySourceId, SolScope } from '@metamask/keyring-api';
 import { waitFor } from '@testing-library/react-native';
 
 const testAddress = '0x123';
@@ -29,6 +29,7 @@ const mockGetAccounts = jest.fn();
 const mockAddAccounts = jest.fn();
 const mockSetAccountLabel = jest.fn();
 const mockControllerMessenger = jest.fn();
+const mockAddDiscoveredAccounts = jest.fn();
 const mockGetAccountByAddress = jest.fn().mockReturnValue(mockExpectedAccount);
 const mockRemoveAccount = jest.fn();
 const mockSyncAccountTreeWithUserStorage = jest.fn();
@@ -48,6 +49,10 @@ const hdKeyring = {
     mockAddAccounts(n);
     return ['0x123'];
   },
+};
+
+const mockSnapClient = {
+  addDiscoveredAccounts: mockAddDiscoveredAccounts,
 };
 
 jest.mock('../../selectors/seedlessOnboardingController', () => ({
@@ -76,6 +81,20 @@ jest.mock('../../core/redux/ReduxService', () => ({
   store: {
     getState: () => ({}),
   },
+}));
+
+jest.mock('../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
+  ...jest.requireActual('../../core/SnapKeyring/MultichainWalletSnapClient'),
+  MultichainWalletSnapFactory: {
+    createClient: () => mockSnapClient,
+  },
+}));
+
+const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
+
+jest.mock('../../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: () =>
+    mockIsMultichainAccountsState2Enabled(),
 }));
 
 const mockDiscoverAccounts = jest.fn();
@@ -128,6 +147,7 @@ describe('MultiSRP Actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAddNewSecretData.mockReset();
+    mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
     mockGetSnapKeyring.mockResolvedValue(true);
   });
 
@@ -139,8 +159,42 @@ describe('MultiSRP Actions', () => {
         getAccounts: () => [testAddress],
         id: 'keyring-id-123',
       });
+      mockAddDiscoveredAccounts.mockResolvedValue(5);
+      mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
+
+      // Act
+      const result = await importNewSecretRecoveryPhrase(testMnemonic);
+
+      // Assert
+      expect(mockAddNewKeyring).toHaveBeenCalledWith(ExtendedKeyringTypes.hd, {
+        mnemonic: testMnemonic,
+        numberOfAccounts: 1,
+      });
+      expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
+      expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith(
+        'keyring-id-123',
+        BtcScope.Mainnet,
+      );
+      expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith(
+        'keyring-id-123',
+        SolScope.Mainnet,
+      );
+      expect(result).toEqual({
+        address: testAddress,
+        discoveredAccountsCount: 15,
+      });
+    });
+
+    it('(state 2) - successfully imports a new secret recovery phrase and returns account details', async () => {
+      // Arrange
+      mockGetKeyringsByType.mockResolvedValue([]);
+      mockAddNewKeyring.mockResolvedValue({
+        getAccounts: () => [testAddress],
+        id: 'keyring-id-123',
+      });
       mockDiscoverAccounts.mockResolvedValue(5);
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
       mockGetSnapKeyring.mockResolvedValue(true);
 
       const mockCallback = jest.fn();
@@ -160,7 +214,7 @@ describe('MultiSRP Actions', () => {
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
+        discoveredAccountsCount: 0, // Returns 0 immediately for multichain accounts state 2
       });
 
       // Assert async operations and callback receive the actual discovered accounts count
@@ -175,7 +229,7 @@ describe('MultiSRP Actions', () => {
       });
     });
 
-    it('gracefully handles errors during discovery with new SRP', async () => {
+    it('(state 2) - gracefully handle errors during discovery with new SRP', async () => {
       // Arrange
       mockGetKeyringsByType.mockResolvedValue([]);
       mockAddNewKeyring.mockResolvedValue({
@@ -184,6 +238,7 @@ describe('MultiSRP Actions', () => {
       });
       mockDiscoverAccounts.mockRejectedValue(new Error('Discovery failed'));
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
       mockGetSnapKeyring.mockResolvedValue(true);
 
       const mockCallback = jest.fn();
@@ -239,7 +294,7 @@ describe('MultiSRP Actions', () => {
         id: 'test-keyring-id',
         getAccounts: () => [testAddress],
       });
-      mockDiscoverAccounts.mockResolvedValue(0);
+      mockAddDiscoveredAccounts.mockResolvedValue(0);
 
       // Act
       const result = await importNewSecretRecoveryPhrase(testMnemonic, {
@@ -266,15 +321,8 @@ describe('MultiSRP Actions', () => {
 
       it('successfully adds seed phrase backup when seedless onboarding is enabled', async () => {
         mockAddNewSecretData.mockResolvedValue(undefined);
-        mockDiscoverAccounts.mockResolvedValue(5);
 
-        const mockCallback = jest.fn();
-
-        const result = await importNewSecretRecoveryPhrase(
-          testMnemonic,
-          undefined,
-          mockCallback,
-        );
+        const result = await importNewSecretRecoveryPhrase(testMnemonic);
 
         expect(mockSelectSeedlessOnboardingLoginFlow).toHaveBeenCalled();
         expect(mockTrace).toHaveBeenCalledWith({
@@ -294,11 +342,7 @@ describe('MultiSRP Actions', () => {
         });
         expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
         expect(result.address).toBe(testAddress);
-
-        // Verify async discovery is called
-        await waitFor(() => {
-          expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
-        });
+        expect(mockAddDiscoveredAccounts).toHaveBeenCalled();
       });
 
       it('handles error when seed phrase backup fails and traces error', async () => {
@@ -342,19 +386,13 @@ describe('MultiSRP Actions', () => {
         id: 'test-keyring-id',
         getAccounts: () => [testAddress],
       });
-      mockDiscoverAccounts.mockResolvedValue(3);
+      mockAddDiscoveredAccounts.mockResolvedValue(3);
       jest
         .spyOn(ReduxService.store, 'getState')
         .mockReturnValue(createMockState(true) as unknown as RootState);
 
-      const mockCallback = jest.fn();
-
       // Act
-      const result = await importNewSecretRecoveryPhrase(
-        testMnemonic,
-        undefined,
-        mockCallback,
-      );
+      const result = await importNewSecretRecoveryPhrase(testMnemonic);
 
       expect(mockAddNewSecretData).toHaveBeenCalledWith(
         expect.any(Uint8Array),
@@ -365,15 +403,7 @@ describe('MultiSRP Actions', () => {
       );
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
-      });
-
-      // Verify callback receives the actual discovered count
-      await waitFor(() => {
-        expect(mockCallback).toHaveBeenCalledWith({
-          address: testAddress,
-          discoveredAccountsCount: 3,
-        });
+        discoveredAccountsCount: 9,
       });
     });
 
@@ -404,34 +434,20 @@ describe('MultiSRP Actions', () => {
         id: 'test-keyring-id',
         getAccounts: () => [testAddress],
       });
-      mockDiscoverAccounts.mockResolvedValue(2);
+      mockAddDiscoveredAccounts.mockResolvedValue(2);
       jest
         .spyOn(ReduxService.store, 'getState')
         .mockReturnValue(createMockState(false) as unknown as RootState);
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
 
-      const mockCallback = jest.fn();
-
       // Act
-      const result = await importNewSecretRecoveryPhrase(
-        testMnemonic,
-        undefined,
-        mockCallback,
-      );
+      const result = await importNewSecretRecoveryPhrase(testMnemonic);
 
       // Assert
       expect(mockAddNewSecretData).not.toHaveBeenCalled();
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
-      });
-
-      // Verify callback receives the actual discovered count
-      await waitFor(() => {
-        expect(mockCallback).toHaveBeenCalledWith({
-          address: testAddress,
-          discoveredAccountsCount: 2,
-        });
+        discoveredAccountsCount: 6, // bitcoin + solana + tron
       });
     });
 
@@ -443,16 +459,10 @@ describe('MultiSRP Actions', () => {
         id: 'test-keyring-id',
         getAccounts: () => [testAddress],
       });
-      mockDiscoverAccounts.mockResolvedValue(3);
-
-      const mockCallback = jest.fn();
+      mockAddDiscoveredAccounts.mockResolvedValue(1);
 
       // Act
-      const result = await importNewSecretRecoveryPhrase(
-        uppercaseMnemonic,
-        undefined,
-        mockCallback,
-      );
+      const result = await importNewSecretRecoveryPhrase(uppercaseMnemonic);
 
       // Assert
       expect(mockAddNewKeyring).toHaveBeenCalledWith(ExtendedKeyringTypes.hd, {
@@ -461,15 +471,7 @@ describe('MultiSRP Actions', () => {
       });
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
-      });
-
-      // Verify callback receives the actual discovered count
-      await waitFor(() => {
-        expect(mockCallback).toHaveBeenCalledWith({
-          address: testAddress,
-          discoveredAccountsCount: 3,
-        });
+        discoveredAccountsCount: 3, // bitcoin + solana + tron
       });
     });
   });

@@ -239,29 +239,25 @@ setMeasurement(
 | `PERPS_REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL` | ms | Live discount during order |
 | `PERPS_DATA_LAKE_API_CALL` | ms | Order report submission |
 
-### Data Fetch Operations (9 events)
+### Data Fetch Operations (7 events)
 
 **Purpose:** Track controller data fetch timing.
 
-| TraceName                     | Operation        | Fetches                          | Notes                                          |
-| ----------------------------- | ---------------- | -------------------------------- | ---------------------------------------------- |
-| `PerpsGetPositions`           | `PerpsOperation` | Active positions                 | REST API                                       |
-| `PerpsGetAccountState`        | `PerpsOperation` | Account balance, margin          | REST API                                       |
-| `PerpsGetMarkets`             | `PerpsOperation` | Available markets                | REST API                                       |
-| `PerpsOrdersFetch`            | `PerpsOperation` | Open/historical orders           | REST API                                       |
-| `PerpsOrderFillsFetch`        | `PerpsOperation` | Trade execution history          | REST API                                       |
-| `PerpsFundingFetch`           | `PerpsOperation` | Funding rate history             | REST API                                       |
-| `PerpsGetHistoricalPortfolio` | `PerpsOperation` | Portfolio value history          | REST API                                       |
-| `PerpsMarketDataPreload`      | `PerpsOperation` | Market list + prices             | Background preload (5-min interval)            |
-| `PerpsUserDataPreload`        | `PerpsOperation` | Positions, orders, account state | Background preload (skipped when WS connected) |
+| TraceName                     | Operation        | Fetches                 | Notes    |
+| ----------------------------- | ---------------- | ----------------------- | -------- |
+| `PerpsGetPositions`           | `PerpsOperation` | Active positions        | REST API |
+| `PerpsGetAccountState`        | `PerpsOperation` | Account balance, margin | REST API |
+| `PerpsGetMarkets`             | `PerpsOperation` | Available markets       | REST API |
+| `PerpsOrdersFetch`            | `PerpsOperation` | Open/historical orders  | REST API |
+| `PerpsOrderFillsFetch`        | `PerpsOperation` | Trade execution history | REST API |
+| `PerpsFundingFetch`           | `PerpsOperation` | Funding rate history    | REST API |
+| `PerpsGetHistoricalPortfolio` | `PerpsOperation` | Portfolio value history | REST API |
 
 **Measurements:**
 | PerpsMeasurementName | Unit | Description |
 |---------------------|------|-------------|
 | `PERPS_GET_POSITIONS_OPERATION` | ms | Position fetch within trace |
 | `PERPS_GET_OPEN_ORDERS_OPERATION` | ms | Orders fetch within trace |
-| `PERPS_MARKET_DATA_PRELOAD` | ms | Market data background preload duration |
-| `PERPS_USER_DATA_PRELOAD` | ms | User data background preload duration |
 
 ### Market Data Updates (1 event)
 
@@ -570,6 +566,6 @@ catch (error) {
 - **Measurement hook**: `app/components/UI/Perps/hooks/usePerpsMeasurement.ts`
 - **Measurement constants**: `app/components/UI/Perps/constants/performanceMetrics.ts`
 - **Config constants**: `app/components/UI/Perps/constants/perpsConfig.ts`
-- **Controller**: `app/controllers/perps/PerpsController.ts`
+- **Controller**: `app/components/UI/Perps/controllers/PerpsController.ts`
 - **WebSocket service**: `app/components/UI/Perps/services/HyperLiquidSubscriptionService.ts`
 - **Connection manager**: `app/components/UI/Perps/services/PerpsConnectionManager.ts`

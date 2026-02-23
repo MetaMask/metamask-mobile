@@ -193,9 +193,13 @@ export const getRefreshManagerForTesting = (): EligibilityRefreshManager =>
  * poll for updates using a sequential loading pattern (wait for response → wait interval → poll again)
  * until a country is returned or the component unmounts.
  */
-export const usePredictEligibility = () => {
+export const usePredictEligibility = ({
+  providerId,
+}: {
+  providerId: string;
+}) => {
   const eligibility = useSelector(selectPredictEligibility);
-  const country = eligibility?.country;
+  const country = eligibility[providerId]?.country;
 
   // Manual refresh - bypasses debounce (force = true)
   const refreshEligibility = useCallback(async () => {
@@ -208,15 +212,19 @@ export const usePredictEligibility = () => {
 
   // Register this hook instance with the singleton manager
   useEffect(() => {
-    DevLogger.log('PredictController: Mounting eligibility hook');
+    DevLogger.log('PredictController: Mounting eligibility hook', {
+      providerId,
+    });
 
     refreshManager.register();
 
     return () => {
-      DevLogger.log('PredictController: Unmounting eligibility hook');
+      DevLogger.log('PredictController: Unmounting eligibility hook', {
+        providerId,
+      });
       refreshManager.unregister();
     };
-  }, []);
+  }, [providerId]);
 
   // Auto-refresh when country is missing - sequential loading pattern
   // Similar to usePredictOptimisticPositionRefresh
@@ -236,7 +244,7 @@ export const usePredictEligibility = () => {
 
       DevLogger.log(
         'PredictController: Country missing, auto-refreshing eligibility',
-        { retryCount, maxRetries: MISSING_COUNTRY_MAX_RETRIES },
+        { providerId, retryCount, maxRetries: MISSING_COUNTRY_MAX_RETRIES },
       );
 
       try {
@@ -264,7 +272,7 @@ export const usePredictEligibility = () => {
       } else if (shouldContinue && retryCount >= MISSING_COUNTRY_MAX_RETRIES) {
         DevLogger.log(
           'PredictController: Max retries reached for missing country',
-          { retryCount },
+          { providerId, retryCount },
         );
       }
     };
@@ -278,10 +286,10 @@ export const usePredictEligibility = () => {
         clearTimeout(timeoutId);
       }
     };
-  }, [country]);
+  }, [country, providerId]);
 
   return {
-    isEligible: eligibility?.eligible ?? false,
+    isEligible: eligibility[providerId]?.eligible ?? false,
     country,
     refreshEligibility,
   };

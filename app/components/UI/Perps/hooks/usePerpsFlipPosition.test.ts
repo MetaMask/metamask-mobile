@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsFlipPosition } from './usePerpsFlipPosition';
-import { type Position } from '@metamask/perps-controller';
+import type { Position } from '../controllers/types';
 
 const mockFlipPosition = jest.fn();
 const mockShowToast = jest.fn();
@@ -50,8 +50,7 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-jest.mock('@metamask/perps-controller', () => ({
-  ...jest.requireActual('@metamask/perps-controller'),
+jest.mock('../utils/marketUtils', () => ({
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
 }));
 

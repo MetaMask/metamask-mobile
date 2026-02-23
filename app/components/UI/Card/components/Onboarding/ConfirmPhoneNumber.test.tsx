@@ -189,6 +189,11 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   return {
     __esModule: true,
     default: MockTextField,
+    TextFieldSize: {
+      Lg: 'Lg',
+      Md: 'Md',
+      Sm: 'Sm',
+    },
   };
 });
 

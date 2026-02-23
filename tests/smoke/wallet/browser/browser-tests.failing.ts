@@ -1,22 +1,21 @@
-import { SmokeWalletPlatform } from '../../../tags.js';
-import { loginToApp } from '../../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../../flows/browser.flow';
+import { SmokeWalletPlatform } from '../../../../e2e/tags.js';
+import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import ExternalSites from '../../../resources/externalsites.json';
-import Browser from '../../../page-objects/Browser/BrowserView';
-import EnsWebsite from '../../../page-objects/Browser/ExternalWebsites/EnsWebsite';
+import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import EnsWebsite from '../../../../e2e/pages/Browser/ExternalWebsites/EnsWebsite';
 import Assertions from '../../../framework/Assertions';
-import ConnectBottomSheet from '../../../page-objects/Browser/ConnectBottomSheet';
-import RedirectWebsite from '../../../page-objects/Browser/ExternalWebsites/RedirectWebsite';
-import UniswapWebsite from '../../../page-objects/Browser/ExternalWebsites/UniswapWebsite';
-import OpenseaWebsite from '../../../page-objects/Browser/ExternalWebsites/OpenseaWebsite';
-import PancakeSwapWebsite from '../../../page-objects/Browser/ExternalWebsites/PancakeSwapWebsite';
-import DownloadFile from '../../../page-objects/Browser/DownloadFile';
-import DownloadFileWebsite from '../../../page-objects/Browser/ExternalWebsites/DownloadFileWebsite';
-import TestHelpers from '../../../helpers.js';
-import CameraWebsite from '../../../page-objects/Browser/ExternalWebsites/Security/CameraWebsite';
-import HistoryDisclosureWebsite from '../../../page-objects/Browser/ExternalWebsites/Security/HistoryDisclosureWebsite';
+import ConnectBottomSheet from '../../../../e2e/pages/Browser/ConnectBottomSheet';
+import RedirectWebsite from '../../../../e2e/pages/Browser/ExternalWebsites/RedirectWebsite';
+import UniswapWebsite from '../../../../e2e/pages/Browser/ExternalWebsites/UniswapWebsite';
+import OpenseaWebsite from '../../../../e2e/pages/Browser/ExternalWebsites/OpenseaWebsite';
+import PancakeSwapWebsite from '../../../../e2e/pages/Browser/ExternalWebsites/PancakeSwapWebsite';
+import DownloadFile from '../../../../e2e/pages/Browser/DownloadFile';
+import DownloadFileWebsite from '../../../../e2e/pages/Browser/ExternalWebsites/DownloadFileWebsite';
+import TestHelpers from '../../../../e2e/helpers.js';
+import CameraWebsite from '../../../../e2e/pages/Browser/ExternalWebsites/Security/CameraWebsite';
+import HistoryDisclosureWebsite from '../../../../e2e/pages/Browser/ExternalWebsites/Security/HistoryDisclosureWebsite';
 
 const getOriginFromURL = (url: string): string => {
   try {

@@ -1,13 +1,13 @@
-import { RegressionAccounts } from '../../tags.js';
+import { RegressionAccounts } from '../../../e2e/tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../flows/wallet.flow';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import { loginToApp } from '../../../e2e/viewHelper';
+import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
-import PrivateKeysList from '../../page-objects/MultichainAccounts/PrivateKeyList';
-import WalletView from '../../page-objects/wallet/WalletView';
-import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
-import AccountDetails from '../../page-objects/MultichainAccounts/AccountDetails';
+import PrivateKeysList from '../../../e2e/pages/MultichainAccounts/PrivateKeyList';
+import WalletView from '../../../e2e/pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
+import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
 
 describe(RegressionAccounts('Account details private key'), () => {
   const PASSWORD = '123123123';

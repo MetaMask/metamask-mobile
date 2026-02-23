@@ -8,7 +8,7 @@ alwaysApply: false
 
 ## Component-view Testing (Project-wide)
 
-Follow these rules for all component view tests. Nested, component-specific rules may also apply.
+Follow these rules for all component-view tests. Nested, component-specific rules may also apply.
 
 ## Mock Policy - MANDATORY
 
@@ -23,6 +23,11 @@ Follow these rules for all component view tests. Nested, component-specific rule
 - Use `stateFixture.ts` helpers for overrides (e.g., quotes, feature flags).
 - Prefer `deterministicFiat: true` for exact fiat assertions.
 
+## Navigation Tests
+
+- Use `renderScreenWithRoutes` and build `state` via the preset + minimal overrides.
+- Assert using route names from `app/constants/navigation/Routes.ts`.
+
 ## Test Structure - MANDATORY
 
 - AAA pattern with blank lines between sections.
@@ -34,9 +39,9 @@ Follow these rules for all component view tests. Nested, component-specific rule
   - Use yarn only (no npm/npx).
 
 - **References**
-  - Component-view framework guide: `docs/readme/component-view-testing.md`
+  - Component-view framework guide: `app/util/test/component-view/README.md`
   - Detailed rules: `app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md`
   - Cursor authoring rules: [Cursor Context Rules](https://cursor.com/docs/context/rules)
 
-@docs/readme/component-view-testing.md
+@app/util/test/component-view/README.md
 @app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md

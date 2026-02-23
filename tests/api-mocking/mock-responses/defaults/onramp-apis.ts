@@ -3,12 +3,7 @@ import {
   RampsRegions,
   RampsRegionsEnum,
 } from '../../../framework/Constants.ts';
-import {
-  RAMPS_NETWORKS_RESPONSE,
-  RAMPS_TOP_TOKENS_RESPONSE,
-  RAMPS_PROVIDERS_RESPONSE,
-  RAMPS_PAYMENTS_V2_RESPONSE,
-} from '../ramps/ramps-mocks.ts';
+import { RAMPS_NETWORKS_RESPONSE } from '../ramps/ramps-mocks.ts';
 import { createGeolocationResponse } from '../ramps/ramps-geolocation.ts';
 
 /**
@@ -23,6 +18,12 @@ export const DEFAULT_RAMPS_API_MOCKS: MockEventsObject = {
     {
       urlEndpoint:
         /^https:\/\/on-ramp\.dev-api\.cx\.metamask\.io\/regions\/networks/,
+      responseCode: 200,
+      response: RAMPS_NETWORKS_RESPONSE,
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/regions\/networks\?.*$/,
       responseCode: 200,
       response: RAMPS_NETWORKS_RESPONSE,
     },
@@ -46,35 +47,13 @@ export const DEFAULT_RAMPS_API_MOCKS: MockEventsObject = {
       urlEndpoint:
         /^https:\/\/on-ramp-content\.uat-api\.cx\.metamask\.io\/regions\/countries(\/.*)?$/,
       responseCode: 200,
-      response: {
-        global: true,
-        deposit: true,
-        aggregator: true,
-      },
+      response: [],
     },
     {
       urlEndpoint:
         /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/countries\?.*$/,
       responseCode: 200,
       response: [],
-    },
-    {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/topTokens\?.*$/,
-      responseCode: 200,
-      response: RAMPS_TOP_TOKENS_RESPONSE,
-    },
-    {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/providers\?.*$/,
-      responseCode: 200,
-      response: RAMPS_PROVIDERS_RESPONSE,
-    },
-    {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/payments\?.*$/,
-      responseCode: 200,
-      response: RAMPS_PAYMENTS_V2_RESPONSE,
     },
   ],
 };

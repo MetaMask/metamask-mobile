@@ -13,7 +13,6 @@ import {
 import {
   findMatchingPostEvent,
   processPostRequestBody,
-  setupAccountsV2SupportedNetworksMock,
 } from './helpers/mockHelpers.ts';
 import { getLocalHost } from '../framework/fixtures/FixtureUtils.ts';
 import PortManager, { ResourceType } from '../framework/PortManager.ts';
@@ -160,8 +159,6 @@ export default class MockServerE2E implements Resource {
   private _server: InternalMockServer | null = null;
   private _events: MockEventsObject;
   private _testSpecificMock?: TestSpecificMock;
-  private _activeRequests = 0;
-  private _shuttingDown = false;
 
   constructor(params: {
     events: MockEventsObject;
@@ -227,206 +224,173 @@ export default class MockServerE2E implements Resource {
       await this._testSpecificMock(this._server);
     }
 
-    await setupAccountsV2SupportedNetworksMock(this._server);
-
     await this._server
       .forAnyRequest()
       .matching((request) => request.path.startsWith('/proxy'))
       .thenCallback(async (request) => {
-        // During shutdown, consume the body (to prevent mockttp's streamToBuffer
-        // from producing an unhandled rejection) and return 503 immediately.
-        if (this._shuttingDown) {
+        const urlEndpoint = new URL(request.url).searchParams.get('url');
+        if (!urlEndpoint) {
+          return {
+            statusCode: 400,
+            body: JSON.stringify({ error: 'Missing url parameter' }),
+          };
+        }
+
+        const method = request.method;
+
+        let requestBodyText: string | undefined;
+        let requestBodyJson: unknown;
+        if (method === 'POST') {
           try {
-            await request.body.getText();
-          } catch {
-            /* swallow abort errors */
+            requestBodyText = await request.body.getText();
+            if (requestBodyText) {
+              try {
+                requestBodyJson = JSON.parse(requestBodyText);
+              } catch (e) {
+                requestBodyJson = undefined;
+              }
+            }
+          } catch (e) {
+            requestBodyText = undefined;
           }
-          return { statusCode: 503, body: 'Server shutting down' };
         }
-        this._activeRequests++;
-        try {
-          const urlEndpoint = new URL(request.url).searchParams.get('url');
-          if (!urlEndpoint) {
-            return {
-              statusCode: 400,
-              body: JSON.stringify({ error: 'Missing url parameter' }),
-            };
-          }
 
-          const method = request.method;
+        const methodEvents = this._events[method] || [];
+        const candidateEvents = methodEvents.filter(
+          (event: MockApiEndpoint) => {
+            const eventUrl = event.urlEndpoint;
+            if (!eventUrl) return false;
+            if (event.urlEndpoint instanceof RegExp) {
+              return event.urlEndpoint.test(urlEndpoint);
+            }
+            const eventUrlStr = String(eventUrl);
+            return (
+              urlEndpoint === eventUrlStr || urlEndpoint.startsWith(eventUrlStr)
+            );
+          },
+        );
 
-          let requestBodyText: string | undefined;
-          let requestBodyJson: unknown;
+        let matchingEvent: MockApiEndpoint | undefined;
+        if (candidateEvents.length > 0) {
           if (method === 'POST') {
-            try {
-              requestBodyText = await request.body.getText();
-              if (requestBodyText) {
-                try {
-                  requestBodyJson = JSON.parse(requestBodyText);
-                } catch (e) {
-                  requestBodyJson = undefined;
-                }
-              }
-            } catch (e) {
-              requestBodyText = undefined;
-            }
+            matchingEvent = findMatchingPostEvent(
+              candidateEvents,
+              requestBodyJson,
+            );
+          } else {
+            matchingEvent = candidateEvents[0];
           }
-
-          const methodEvents = this._events[method] || [];
-          const candidateEvents = methodEvents.filter(
-            (event: MockApiEndpoint) => {
-              const eventUrl = event.urlEndpoint;
-              if (!eventUrl) return false;
-              if (event.urlEndpoint instanceof RegExp) {
-                return event.urlEndpoint.test(urlEndpoint);
-              }
-              const eventUrlStr = String(eventUrl);
-              return (
-                urlEndpoint === eventUrlStr ||
-                urlEndpoint.startsWith(eventUrlStr)
-              );
-            },
-          );
-
-          let matchingEvent: MockApiEndpoint | undefined;
-          if (candidateEvents.length > 0) {
-            if (method === 'POST') {
-              matchingEvent = findMatchingPostEvent(
-                candidateEvents,
-                requestBodyJson,
-              );
-            } else {
-              matchingEvent = candidateEvents[0];
-            }
-          }
-
-          if (matchingEvent) {
-            logger.debug(`Mocking ${method} request to: ${urlEndpoint}`);
-            logger.debug(`Response status: ${matchingEvent.responseCode}`);
-            logger.debug('Response:', matchingEvent.response);
-            if (method === 'POST' && matchingEvent.requestBody) {
-              const result = processPostRequestBody(
-                requestBodyText,
-                matchingEvent.requestBody,
-                { ignoreFields: matchingEvent.ignoreFields || [] },
-              );
-
-              if (!result.matches) {
-                return {
-                  statusCode:
-                    result.error === 'Missing request body' ? 400 : 404,
-                  body: JSON.stringify({
-                    error: result.error,
-                    expected: matchingEvent.requestBody,
-                    received: result.requestBodyJson,
-                  }),
-                };
-              }
-            }
-
-            return {
-              statusCode: matchingEvent.responseCode,
-              body: JSON.stringify(matchingEvent.response),
-            };
-          }
-
-          let updatedUrl =
-            device.getPlatform() === 'android'
-              ? urlEndpoint.replace('localhost', '127.0.0.1')
-              : urlEndpoint;
-
-          // Translate fallback ports to actual allocated ports (host-side forwarding)
-          updatedUrl = translateFallbackPortToActual(updatedUrl);
-
-          if (!isUrlAllowed(updatedUrl)) {
-            const errorMessage = `Request going to live server: ${updatedUrl}`;
-            logger.warn(errorMessage);
-            if (method === 'POST') {
-              logger.warn(`Request Body: ${requestBodyText}`);
-            }
-            this._server?._liveRequests?.push({
-              url: updatedUrl,
-              method,
-              timestamp: new Date().toISOString(),
-            });
-          } else if (ALLOWLISTED_URLS.includes(updatedUrl)) {
-            logger.warn(`Allowed URL: ${updatedUrl}`);
-            if (method === 'POST') {
-              logger.warn(`Request Body: ${requestBodyText}`);
-            }
-          }
-
-          return handleDirectFetch(
-            updatedUrl,
-            method,
-            request.headers,
-            method === 'POST' ? requestBodyText : undefined,
-          );
-        } finally {
-          this._activeRequests--;
         }
-      });
 
-    await this._server.forUnmatchedRequest().thenCallback(async (request) => {
-      // During shutdown, consume the body and return 503 immediately.
-      if (this._shuttingDown) {
-        try {
-          await request.body.getText();
-        } catch {
-          /* swallow abort errors */
-        }
-        return { statusCode: 503, body: 'Server shutting down' };
-      }
-      this._activeRequests++;
-      try {
-        // Check for MockServer self-reference to prevent ECONNREFUSED
-        try {
-          const url = new URL(request.url);
-          const isLocalhost =
-            url.hostname === 'localhost' ||
-            url.hostname === '127.0.0.1' ||
-            url.hostname === '10.0.2.2';
-          const isMockServerPort =
-            url.port === '8000' || url.port === this._serverPort.toString();
+        if (matchingEvent) {
+          logger.debug(`Mocking ${method} request to: ${urlEndpoint}`);
+          logger.debug(`Response status: ${matchingEvent.responseCode}`);
+          logger.debug('Response:', matchingEvent.response);
+          if (method === 'POST' && matchingEvent.requestBody) {
+            const result = processPostRequestBody(
+              requestBodyText,
+              matchingEvent.requestBody,
+              { ignoreFields: matchingEvent.ignoreFields || [] },
+            );
 
-          if (isLocalhost && isMockServerPort) {
-            logger.debug(`Ignoring MockServer self-reference: ${request.url}`);
-            return { statusCode: 204, body: '' };
+            if (!result.matches) {
+              return {
+                statusCode: result.error === 'Missing request body' ? 400 : 404,
+                body: JSON.stringify({
+                  error: result.error,
+                  expected: matchingEvent.requestBody,
+                  received: result.requestBodyJson,
+                }),
+              };
+            }
           }
-        } catch (e) {
-          // Ignore URL parsing errors
+
+          return {
+            statusCode: matchingEvent.responseCode,
+            body: JSON.stringify(matchingEvent.response),
+          };
         }
+
+        let updatedUrl =
+          device.getPlatform() === 'android'
+            ? urlEndpoint.replace('localhost', '127.0.0.1')
+            : urlEndpoint;
 
         // Translate fallback ports to actual allocated ports (host-side forwarding)
-        const translatedUrl = translateFallbackPortToActual(request.url);
+        updatedUrl = translateFallbackPortToActual(updatedUrl);
 
-        if (!isUrlAllowed(translatedUrl)) {
-          const errorMessage = `Request going to live server: ${translatedUrl}`;
+        if (!isUrlAllowed(updatedUrl)) {
+          const errorMessage = `Request going to live server: ${updatedUrl}`;
           logger.warn(errorMessage);
-          if (request.method === 'POST') {
-            logger.warn(`Request Body: ${await request.body.getText()}`);
+          if (method === 'POST') {
+            logger.warn(`Request Body: ${requestBodyText}`);
           }
           this._server?._liveRequests?.push({
-            url: translatedUrl,
-            method: request.method,
+            url: updatedUrl,
+            method,
             timestamp: new Date().toISOString(),
           });
-        } else if (ALLOWLISTED_URLS.includes(translatedUrl)) {
-          logger.warn(`Allowed URL: ${translatedUrl}`);
-          if (request.method === 'POST') {
-            logger.warn(`Request Body: ${await request.body.getText()}`);
+        } else if (ALLOWLISTED_URLS.includes(updatedUrl)) {
+          logger.warn(`Allowed URL: ${updatedUrl}`);
+          if (method === 'POST') {
+            logger.warn(`Request Body: ${requestBodyText}`);
           }
         }
 
         return handleDirectFetch(
-          translatedUrl,
-          request.method,
+          updatedUrl,
+          method,
           request.headers,
-          await request.body.getText(),
+          method === 'POST' ? requestBodyText : undefined,
         );
-      } finally {
-        this._activeRequests--;
+      });
+
+    await this._server.forUnmatchedRequest().thenCallback(async (request) => {
+      // Check for MockServer self-reference to prevent ECONNREFUSED
+      try {
+        const url = new URL(request.url);
+        const isLocalhost =
+          url.hostname === 'localhost' ||
+          url.hostname === '127.0.0.1' ||
+          url.hostname === '10.0.2.2';
+        const isMockServerPort =
+          url.port === '8000' || url.port === this._serverPort.toString();
+
+        if (isLocalhost && isMockServerPort) {
+          logger.debug(`Ignoring MockServer self-reference: ${request.url}`);
+          return { statusCode: 204, body: '' };
+        }
+      } catch (e) {
+        // Ignore URL parsing errors
       }
+
+      // Translate fallback ports to actual allocated ports (host-side forwarding)
+      const translatedUrl = translateFallbackPortToActual(request.url);
+
+      if (!isUrlAllowed(translatedUrl)) {
+        const errorMessage = `Request going to live server: ${translatedUrl}`;
+        logger.warn(errorMessage);
+        if (request.method === 'POST') {
+          logger.warn(`Request Body: ${await request.body.getText()}`);
+        }
+        this._server?._liveRequests?.push({
+          url: translatedUrl,
+          method: request.method,
+          timestamp: new Date().toISOString(),
+        });
+      } else if (ALLOWLISTED_URLS.includes(translatedUrl)) {
+        logger.warn(`Allowed URL: ${translatedUrl}`);
+        if (request.method === 'POST') {
+          logger.warn(`Request Body: ${await request.body.getText()}`);
+        }
+      }
+
+      return handleDirectFetch(
+        translatedUrl,
+        request.method,
+        request.headers,
+        await request.body.getText(),
+      );
     });
 
     this._serverStatus = ServerStatus.STARTED;
@@ -439,156 +403,17 @@ export default class MockServerE2E implements Resource {
       return;
     }
 
-    // Signal handlers to stop processing new requests. Any request arriving
-    // after this flag is set will have its body consumed (preventing mockttp's
-    // streamToBuffer from producing an unhandled rejection) and receive 503.
-    this._shuttingDown = true;
-
-    // Wait for in-flight request handlers to complete. This is the key to
-    // avoiding the "Aborted" unhandled rejections: mockttp's stop() calls
-    // destroy() which immediately kills all TCP connections. If a handler is
-    // still running (e.g. awaiting handleDirectFetch to a real backend), the
-    // IncomingMessage is aborted and streamToBuffer rejects its promise.
-    // By waiting for handlers to finish, destroy() only kills idle connections.
-    await this._waitForActiveRequests();
-
     try {
-      await this._stopServerSuppressingAbortErrors();
+      await this._server.stop();
     } catch (error) {
       logger.error('Error stopping mock server:', error);
     } finally {
-      this._shuttingDown = false;
       this._server = null;
       this._serverStatus = ServerStatus.STOPPED;
       // Release the port after server is stopped
       if (this._serverPort > 0) {
         PortManager.getInstance().releasePort(ResourceType.MOCK_SERVER);
       }
-    }
-  }
-
-  /**
-   * Stops the mockttp server while suppressing "Aborted" unhandled promise rejections.
-   *
-   * When mockttp's `server.stop()` is called, its underlying `destroyable-server` immediately
-   * destroys all TCP connections via `socket.destroy()`. Any `IncomingMessage` whose body was
-   * being streamed through mockttp's `streamToBuffer` (buffer-utils.ts) will emit 'aborted',
-   * causing the buffer promise to reject with `Error('Aborted')`.
-   *
-   * There is a race window where requests have entered mockttp's internal pipeline
-   * (CallbackHandler.handle → waitForCompletedRequest → streamToBuffer) but have not yet
-   * reached our callback (so `_activeRequests` hasn't been incremented). For these requests,
-   * `_waitForActiveRequests()` sees zero active requests and proceeds with `stop()`, but the
-   * body buffering is still in progress. When the socket is destroyed, the buffer promise
-   * rejects and Jest catches it as an unhandled rejection, failing the test suite.
-   *
-   * This method temporarily replaces the process `unhandledRejection` handlers with a filter
-   * that suppresses "Aborted" errors originating from mockttp's buffer-utils (verified via
-   * stack trace), forwarding all other rejections to the original handlers.
-   * After the server is stopped and a brief drain period elapses, the original handlers are
-   * restored along with any handlers that were added by other code during the shutdown window.
-   */
-  private async _stopServerSuppressingAbortErrors(): Promise<void> {
-    // Snapshot current handlers so we can restore them after shutdown.
-    const originalHandlers = process.rawListeners('unhandledRejection').slice();
-    process.removeAllListeners('unhandledRejection');
-
-    let suppressCount = 0;
-    const filterHandler = (reason: unknown, promise: Promise<unknown>) => {
-      if (
-        reason instanceof Error &&
-        reason.message === 'Aborted' &&
-        reason.stack?.includes('mockttp')
-      ) {
-        // Mark the promise as handled so Node.js does not consider it unhandled.
-        // eslint-disable-next-line no-empty-function
-        promise.catch(() => {});
-        suppressCount++;
-        return;
-      }
-      // Forward any other unhandled rejection to the original handlers (e.g. Jest).
-      if (originalHandlers.length === 0) {
-        // No original handlers were registered. Since our filterHandler is a
-        // registered listener, Node considers the rejection "handled" and skips
-        // its default behaviour (warning + exit). Re-throw so the rejection
-        // surfaces as an uncaught exception instead of being silently dropped.
-        throw reason;
-      }
-      let firstError: unknown;
-      for (const handler of originalHandlers) {
-        try {
-          (handler as (...args: unknown[]) => void)(reason, promise);
-        } catch (err) {
-          if (firstError === undefined) {
-            firstError = err;
-          }
-        }
-      }
-      if (firstError !== undefined) {
-        throw firstError;
-      }
-    };
-    process.on('unhandledRejection', filterHandler);
-
-    try {
-      if (this._server) {
-        await this._server.stop();
-      }
-      // Brief drain period: 'aborted' events from destroyed sockets may fire
-      // asynchronously on the next event-loop tick after `stop()` resolves.
-      await new Promise((resolve) => setTimeout(resolve, 150));
-    } finally {
-      // Preserve any handlers that were added by other code during the
-      // shutdown window so they are not permanently lost.
-      const currentHandlers = process
-        .rawListeners('unhandledRejection')
-        .slice();
-      const addedDuringShutdown = currentHandlers.filter(
-        (h) => h !== filterHandler && !originalHandlers.includes(h),
-      );
-
-      // Remove all and restore: originals first, then any newly added handlers.
-      process.removeAllListeners('unhandledRejection');
-      for (const handler of [...originalHandlers, ...addedDuringShutdown]) {
-        process.on(
-          'unhandledRejection',
-          handler as (...args: unknown[]) => void,
-        );
-      }
-
-      if (suppressCount > 0) {
-        logger.info(
-          `Suppressed ${suppressCount} "Aborted" rejection(s) during mock server shutdown`,
-        );
-      }
-    }
-  }
-
-  /**
-   * Waits for all active request handler callbacks to complete.
-   * Polls every 50ms until _activeRequests reaches 0 or the timeout expires.
-   *
-   * @param timeoutMs - Maximum time to wait (default 5s, generous for slow CI)
-   */
-  private async _waitForActiveRequests(timeoutMs = 5000): Promise<void> {
-    if (this._activeRequests === 0) {
-      return;
-    }
-    logger.info(
-      `Waiting for ${this._activeRequests} active request(s) to complete before shutdown...`,
-    );
-    const start = Date.now();
-    while (this._activeRequests > 0 && Date.now() - start < timeoutMs) {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-    }
-    if (this._activeRequests > 0) {
-      logger.warn(
-        `${this._activeRequests} request(s) still active after ${timeoutMs}ms timeout, proceeding with shutdown`,
-      );
-    } else {
-      logger.info(
-        `All requests drained in ${Date.now() - start}ms, proceeding with shutdown`,
-      );
     }
   }
 

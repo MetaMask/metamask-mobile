@@ -6,9 +6,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
@@ -29,7 +27,6 @@ const PredictHomePositionList: React.FC<PredictHomePositionListProps> = ({
 }) => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const privacyMode = useSelector(selectPrivacyMode);
 
   const handlePositionPress = useCallback(
     (marketId: string) => {
@@ -57,7 +54,6 @@ const PredictHomePositionList: React.FC<PredictHomePositionListProps> = ({
             key={`${item.outcomeId}:${item.outcomeIndex}`}
             position={item}
             onPress={() => handlePositionPress(item.marketId)}
-            privacyMode={Boolean(privacyMode)}
           />
         ))}
       </Box>
@@ -81,7 +77,6 @@ const PredictHomePositionList: React.FC<PredictHomePositionListProps> = ({
                 key={`${item.outcomeId}:${item.outcomeIndex}`}
                 position={item}
                 onPress={() => handlePositionPress(item.marketId)}
-                privacyMode={Boolean(privacyMode)}
               />
             ))}
           </Box>

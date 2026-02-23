@@ -6,9 +6,6 @@ import {
   RAMPS_COUNTRIES_RESPONSE,
   RAMPS_LIGHT_RESPONSE,
   RAMPS_AMOUNT_RESPONSE,
-  RAMPS_TOP_TOKENS_RESPONSE,
-  RAMPS_PROVIDERS_RESPONSE,
-  RAMPS_PAYMENTS_V2_RESPONSE,
 } from './ramps-mocks.ts';
 import { createGeolocationResponse } from './ramps-geolocation.ts';
 import { RAMPS_QUOTE_RESPONSE } from './ramps-quotes-response.ts';
@@ -27,22 +24,16 @@ export const setupRegionAwareOnRampMocks = async (
   const geolocationResponse = createGeolocationResponse(selectedRegion);
 
   const mockEndpoints: MockApiEndpoint[] = [
-    // 1. Geolocation endpoints (UAT and dev only) - region-specific
+    // 1. Geolocation endpoints (both UAT and prod) - region-specific
     ...geolocationResponse,
 
-    // 2. Region eligibility endpoints (UAT only) - CRITICAL for unified routing
+    // 2. Networks endpoints (both UAT and prod)
     {
       urlEndpoint:
-        /^https:\/\/on-ramp-content\.uat-api\.cx\.metamask\.io\/regions\/countries\/[^/]+$/,
+        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/regions\/networks\?.*$/,
       responseCode: 200,
-      response: {
-        global: true,
-        deposit: true,
-        aggregator: true,
-      },
+      response: RAMPS_NETWORKS_RESPONSE,
     },
-
-    // 3. Networks endpoints (UAT only)
     {
       urlEndpoint:
         /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/networks\?.*$/,
@@ -50,7 +41,13 @@ export const setupRegionAwareOnRampMocks = async (
       response: RAMPS_NETWORKS_RESPONSE,
     },
 
-    // 4. Countries endpoints (UAT only) - Add more countries as needed - RAMPS_COUNTRIES_RESPONSE in on-ramp-mocks.ts
+    // 3. Countries endpoints (both UAT and prod) - Add more countries as needed - RAMPS_COUNTRIES_RESPONSE in on-ramp-mocks.ts
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io(\/v2)?\/regions\/countries\?.*$/,
+      responseCode: 200,
+      response: RAMPS_COUNTRIES_RESPONSE,
+    },
     {
       urlEndpoint:
         /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io(\/v2)?\/regions\/countries\?.*$/,
@@ -58,8 +55,14 @@ export const setupRegionAwareOnRampMocks = async (
       response: RAMPS_COUNTRIES_RESPONSE,
     },
 
-    // 5. Light endpoints - all parameter variations (UAT only)
+    // 4. Light endpoints - all parameter variations (both UAT and prod)
     // This controls things like: payment methods, available cryptocurrencies, fiat currencies and limits
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/regions\/[^/]+\/light\?.*$/,
+      responseCode: 200,
+      response: RAMPS_LIGHT_RESPONSE,
+    },
     {
       urlEndpoint:
         /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/[^/]+\/light\?.*$/,
@@ -67,7 +70,13 @@ export const setupRegionAwareOnRampMocks = async (
       response: RAMPS_LIGHT_RESPONSE,
     },
 
-    // 6. Amount conversion endpoints (UAT only)
+    // 5. Amount conversion endpoints (both UAT and prod)
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/currencies\/crypto\/.*\/amount\?.*$/,
+      responseCode: 200,
+      response: RAMPS_AMOUNT_RESPONSE,
+    },
     {
       urlEndpoint:
         /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/currencies\/crypto\/.*\/amount\?.*$/,
@@ -75,61 +84,18 @@ export const setupRegionAwareOnRampMocks = async (
       response: RAMPS_AMOUNT_RESPONSE,
     },
 
-    // 7. Quote endpoints V1 (UAT only)
+    // 6. Quote endpoints (both UAT and prod)
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp\.api\.cx\.metamask\.io\/providers\/all\/quote\?.*$/,
+      responseCode: 200,
+      response: RAMPS_QUOTE_RESPONSE,
+    },
     {
       urlEndpoint:
         /^https:\/\/on-ramp\.uat-api\.cx\.metamask\.io\/providers\/all\/quote\?.*$/,
       responseCode: 200,
       response: RAMPS_QUOTE_RESPONSE,
-    },
-
-    // 8. Quote endpoints V2 - Unified Ramps (UAT only)
-    {
-      urlEndpoint:
-        /^https:\/\/on-ramp\.uat-api\.cx\.metamask\.io\/v2\/quotes\?.*$/,
-      responseCode: 200,
-      response: RAMPS_QUOTE_RESPONSE,
-    },
-
-    // 9. Top Tokens V2 - Unified Buy (UAT only)
-    {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/topTokens\?.*$/,
-      responseCode: 200,
-      response: RAMPS_TOP_TOKENS_RESPONSE,
-    },
-
-    // 10. Providers V2 - Unified Buy (UAT only)
-    {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/providers\?.*$/,
-      responseCode: 200,
-      response: RAMPS_PROVIDERS_RESPONSE,
-    },
-
-    // 11. Tokens (legacy path for backward compatibility) - UAT only
-    {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/[^/]+\/tokens\?.*$/,
-      responseCode: 200,
-      response: RAMPS_TOP_TOKENS_RESPONSE,
-    },
-
-    // 12. Payments V2 - per-provider payment methods (UAT only)
-    {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/payments\?.*$/,
-      responseCode: 200,
-      response: RAMPS_PAYMENTS_V2_RESPONSE,
-    },
-
-    // FALLBACK: Catch-all for tokens endpoint with any region format (including malformed) - UAT only
-    // This handles legacy useRampTokens API calls where region might be incorrectly formatted
-    {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/.*\/tokens\?.*$/,
-      responseCode: 200,
-      response: RAMPS_TOP_TOKENS_RESPONSE,
     },
 
     {

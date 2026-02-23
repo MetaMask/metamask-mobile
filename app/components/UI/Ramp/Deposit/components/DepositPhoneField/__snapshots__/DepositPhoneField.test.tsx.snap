@@ -61,9 +61,9 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
-        "borderRadius": 12,
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -76,7 +76,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
     <View
       style={
         {
-          "marginRight": 12,
+          "marginRight": 8,
         }
       }
       testID="textfield-startacccessory"
@@ -136,13 +136,11 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
         editable={true}
         keyboardAppearance="light"
         keyboardType="phone-pad"
-        multiline={false}
-        numberOfLines={1}
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="30 12345678"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#b7bbc8"
         style={
           {
             "backgroundColor": "inherit",
@@ -154,8 +152,8 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
-            "lineHeight": 0,
             "opacity": 1,
+            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -229,9 +227,9 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
-        "borderRadius": 12,
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -244,7 +242,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
     <View
       style={
         {
-          "marginRight": 12,
+          "marginRight": 8,
         }
       }
       testID="textfield-startacccessory"
@@ -304,13 +302,11 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
         editable={true}
         keyboardAppearance="light"
         keyboardType="phone-pad"
-        multiline={false}
-        numberOfLines={1}
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="30 12345678"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#b7bbc8"
         style={
           {
             "backgroundColor": "inherit",
@@ -322,8 +318,8 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
-            "lineHeight": 0,
             "opacity": 1,
+            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -397,9 +393,9 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
-        "borderRadius": 12,
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -412,7 +408,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
     <View
       style={
         {
-          "marginRight": 12,
+          "marginRight": 8,
         }
       }
       testID="textfield-startacccessory"
@@ -472,13 +468,11 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
         editable={true}
         keyboardAppearance="light"
         keyboardType="phone-pad"
-        multiline={false}
-        numberOfLines={1}
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#b7bbc8"
         style={
           {
             "backgroundColor": "inherit",
@@ -490,8 +484,8 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
-            "lineHeight": 0,
             "opacity": 1,
+            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -565,9 +559,9 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
-        "borderRadius": 12,
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -580,7 +574,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
     <View
       style={
         {
-          "marginRight": 12,
+          "marginRight": 8,
         }
       }
       testID="textfield-startacccessory"
@@ -640,13 +634,11 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
         editable={true}
         keyboardAppearance="light"
         keyboardType="phone-pad"
-        multiline={false}
-        numberOfLines={1}
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="30 12345678"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#b7bbc8"
         style={
           {
             "backgroundColor": "inherit",
@@ -658,8 +650,8 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
-            "lineHeight": 0,
             "opacity": 1,
+            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -733,9 +725,9 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
-        "borderRadius": 12,
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -748,7 +740,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
     <View
       style={
         {
-          "marginRight": 12,
+          "marginRight": 8,
         }
       }
       testID="textfield-startacccessory"
@@ -808,13 +800,11 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
         editable={true}
         keyboardAppearance="light"
         keyboardType="phone-pad"
-        multiline={false}
-        numberOfLines={1}
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#b7bbc8"
         style={
           {
             "backgroundColor": "inherit",
@@ -826,8 +816,8 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
-            "lineHeight": 0,
             "opacity": 1,
+            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -916,9 +906,9 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
-        "borderRadius": 12,
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -931,7 +921,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
     <View
       style={
         {
-          "marginRight": 12,
+          "marginRight": 8,
         }
       }
       testID="textfield-startacccessory"
@@ -991,13 +981,11 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
         editable={true}
         keyboardAppearance="light"
         keyboardType="phone-pad"
-        multiline={false}
-        numberOfLines={1}
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#b7bbc8"
         style={
           {
             "backgroundColor": "inherit",
@@ -1009,8 +997,8 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
-            "lineHeight": 0,
             "opacity": 1,
+            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -1084,9 +1072,9 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
-        "borderRadius": 12,
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -1099,7 +1087,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
     <View
       style={
         {
-          "marginRight": 12,
+          "marginRight": 8,
         }
       }
       testID="textfield-startacccessory"
@@ -1159,14 +1147,12 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
         editable={true}
         keyboardAppearance="light"
         keyboardType="phone-pad"
-        multiline={false}
-        numberOfLines={1}
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
         onSubmitEditing={[MockFunction]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#b7bbc8"
         style={
           {
             "backgroundColor": "inherit",
@@ -1178,8 +1164,8 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
-            "lineHeight": 0,
             "opacity": 1,
+            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -1253,9 +1239,9 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
-        "borderRadius": 12,
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -1268,7 +1254,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
     <View
       style={
         {
-          "marginRight": 12,
+          "marginRight": 8,
         }
       }
       testID="textfield-startacccessory"
@@ -1328,13 +1314,11 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
         editable={true}
         keyboardAppearance="light"
         keyboardType="phone-pad"
-        multiline={false}
-        numberOfLines={1}
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#b7bbc8"
         style={
           {
             "backgroundColor": "inherit",
@@ -1346,8 +1330,8 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
-            "lineHeight": 0,
             "opacity": 1,
+            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -1421,9 +1405,9 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
-        "borderRadius": 12,
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -1436,7 +1420,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
     <View
       style={
         {
-          "marginRight": 12,
+          "marginRight": 8,
         }
       }
       testID="textfield-startacccessory"
@@ -1496,13 +1480,11 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
         editable={true}
         keyboardAppearance="light"
         keyboardType="phone-pad"
-        multiline={false}
-        numberOfLines={1}
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#b7bbc8"
         style={
           {
             "backgroundColor": "inherit",
@@ -1514,8 +1496,8 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
-            "lineHeight": 0,
             "opacity": 1,
+            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -1589,9 +1571,9 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
-        "borderRadius": 12,
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -1604,7 +1586,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
     <View
       style={
         {
-          "marginRight": 12,
+          "marginRight": 8,
         }
       }
       testID="textfield-startacccessory"
@@ -1664,13 +1646,11 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
         editable={true}
         keyboardAppearance="light"
         keyboardType="phone-pad"
-        multiline={false}
-        numberOfLines={1}
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#b7bbc8"
         style={
           {
             "backgroundColor": "inherit",
@@ -1682,8 +1662,8 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
-            "lineHeight": 0,
             "opacity": 1,
+            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -1757,9 +1737,9 @@ exports[`DepositPhoneField updates phone region when region is selected from mod
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#3c4d9d0f",
-        "borderColor": "#b7bbc866",
-        "borderRadius": 12,
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 48,
@@ -1772,7 +1752,7 @@ exports[`DepositPhoneField updates phone region when region is selected from mod
     <View
       style={
         {
-          "marginRight": 12,
+          "marginRight": 8,
         }
       }
       testID="textfield-startacccessory"
@@ -1832,13 +1812,11 @@ exports[`DepositPhoneField updates phone region when region is selected from mod
         editable={true}
         keyboardAppearance="light"
         keyboardType="phone-pad"
-        multiline={false}
-        numberOfLines={1}
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="30 12345678"
-        placeholderTextColor="#686e7d"
+        placeholderTextColor="#b7bbc8"
         style={
           {
             "backgroundColor": "inherit",
@@ -1850,8 +1828,8 @@ exports[`DepositPhoneField updates phone region when region is selected from mod
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
-            "lineHeight": 0,
             "opacity": 1,
+            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }

@@ -18,12 +18,10 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
   formatPositiveFiat,
-} from './formatUtils';
-import {
   countSignificantFigures,
   hasExceededSignificantFigures,
   roundToSignificantFigures,
-} from '@metamask/perps-controller';
+} from './formatUtils';
 import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 
 // Mock the formatWithThreshold utility

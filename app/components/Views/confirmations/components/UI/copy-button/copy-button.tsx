@@ -12,16 +12,9 @@ import {
 interface CopyButtonProps {
   copyText: string;
   testID?: string;
-  size?: ButtonIconSizes;
-  iconColor?: IconColor;
 }
 
-const CopyButton = ({
-  copyText,
-  testID,
-  size = ButtonIconSizes.Md,
-  iconColor = IconColor.Alternative,
-}: CopyButtonProps) => {
+const CopyButton = ({ copyText, testID }: CopyButtonProps) => {
   const [copied, setCopied] = useState(false);
 
   const copyMessage = useCallback(async () => {
@@ -31,8 +24,8 @@ const CopyButton = ({
 
   return (
     <ButtonIcon
-      iconColor={iconColor}
-      size={size}
+      iconColor={IconColor.Alternative}
+      size={ButtonIconSizes.Sm}
       onPress={copyMessage}
       iconName={copied ? IconName.CopySuccess : IconName.Copy}
       testID={testID ?? 'copyButtonTestId'}

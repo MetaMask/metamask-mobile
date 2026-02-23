@@ -42,7 +42,7 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "minHeight": 56,
+                "height": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -110,7 +110,7 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -128,8 +128,8 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -648,7 +648,7 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "minHeight": 56,
+                "height": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -716,7 +716,7 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -734,8 +734,8 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -1312,7 +1312,7 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "minHeight": 56,
+                "height": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -1380,7 +1380,7 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -1398,8 +1398,8 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -1962,7 +1962,7 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "minHeight": 56,
+                "height": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -2030,7 +2030,7 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -2048,8 +2048,8 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -2568,7 +2568,7 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "minHeight": 56,
+                "height": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -2636,7 +2636,7 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -2654,8 +2654,8 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -3218,7 +3218,7 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "minHeight": 56,
+                "height": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -3286,7 +3286,7 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -3304,8 +3304,8 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]

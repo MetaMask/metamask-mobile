@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';
-import { PerpsController } from '@metamask/perps-controller';
+import { PerpsController } from '../controllers';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => () => ({

@@ -1,61 +1,10 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { reloadAsync } from 'expo-updates';
+import OTAUpdatesModal from './OTAUpdatesModal';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-
-// Mock theme utility
-jest.mock('../../../util/theme', () => ({
-  useAssetFromTheme: jest.fn(() => ({ uri: 'mock-logo' })),
-}));
-
-// Create a mock tailwind function that can be called and has a style method
-const mockTw = Object.assign(
-  jest.fn(() => ({})),
-  {
-    style: jest.fn(() => ({})),
-  },
-);
-
-// Mock tailwind
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => mockTw,
-}));
-
-// Mock HeaderCompactStandard
-jest.mock(
-  '../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const {
-      View: ReactNativeView,
-      Pressable: ReactNativePressable,
-      Text: ReactNativeText,
-    } = jest.requireActual('react-native');
-
-    return (props: { children: React.ReactNode; onClose?: () => void }) =>
-      ReactActual.createElement(
-        ReactNativeView,
-        { testID: 'header' },
-        props.children,
-        props.onClose &&
-          ReactActual.createElement(
-            ReactNativePressable,
-            { testID: 'close-button', onPress: props.onClose },
-            ReactActual.createElement(ReactNativeText, {}, 'Close'),
-          ),
-      );
-  },
-);
-
-// Mock for BottomSheet onCloseBottomSheet
-const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
-  if (callback) callback();
-});
-
-const getMockOnCloseBottomSheet = () => mockOnCloseBottomSheet;
 
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
@@ -67,10 +16,9 @@ jest.mock(
       (props: { children: React.ReactNode }, ref: React.Ref<unknown>) => {
         useImperativeHandle(ref, () => ({
           onOpenBottomSheet: jest.fn(),
-          onCloseBottomSheet: (callback?: () => void) => {
-            const mockFn = getMockOnCloseBottomSheet();
-            mockFn(callback);
-          },
+          onCloseBottomSheet: jest.fn((callback?: () => void) => {
+            if (callback) callback();
+          }),
         }));
 
         return (
@@ -101,6 +49,15 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
   error: jest.fn(),
 }));
+
+jest.mock(
+  '../../../component-library/components/HeaderBase',
+  () =>
+    function HeaderBaseMock({ children }: { children: React.ReactNode }) {
+      // eslint-disable-next-line react/jsx-no-useless-fragment
+      return <>{children}</>;
+    },
+);
 
 const mockReloadAsync = reloadAsync as jest.MockedFunction<typeof reloadAsync>;
 const mockLoggerError = Logger.error as jest.MockedFunction<
@@ -133,20 +90,14 @@ jest.mock('../../hooks/useMetrics', () => ({
   }),
 }));
 
-// Import component AFTER all mocks are defined
-import OTAUpdatesModal from './OTAUpdatesModal';
-
 describe('OTAUpdatesModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (Platform as unknown as { OS: string }).OS = 'ios';
-    mockOnCloseBottomSheet.mockImplementation((callback?: () => void) => {
-      if (callback) callback();
-    });
   });
 
   it('tracks view event on mount', () => {
-    renderWithProvider(<OTAUpdatesModal />);
+    render(<OTAUpdatesModal />);
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -156,7 +107,7 @@ describe('OTAUpdatesModal', () => {
   });
 
   it('tracks primary action when primary button is pressed', async () => {
-    const { getByText } = renderWithProvider(<OTAUpdatesModal />);
+    const { getByText } = render(<OTAUpdatesModal />);
 
     fireEvent.press(getByText('Reload'));
 
@@ -170,7 +121,7 @@ describe('OTAUpdatesModal', () => {
   });
 
   it('reloads app when reload button is pressed on iOS', async () => {
-    const { getByText } = renderWithProvider(<OTAUpdatesModal />);
+    const { getByText } = render(<OTAUpdatesModal />);
 
     fireEvent.press(getByText('Reload'));
 
@@ -182,7 +133,7 @@ describe('OTAUpdatesModal', () => {
   it('does not reload app when reload button is pressed on Android', async () => {
     (Platform as unknown as { OS: string }).OS = 'android';
 
-    const { getByText } = renderWithProvider(<OTAUpdatesModal />);
+    const { getByText } = render(<OTAUpdatesModal />);
 
     fireEvent.press(getByText('Got it'));
 
@@ -196,7 +147,7 @@ describe('OTAUpdatesModal', () => {
 
     mockReloadAsync.mockRejectedValueOnce(reloadError);
 
-    const { getByText } = renderWithProvider(<OTAUpdatesModal />);
+    const { getByText } = render(<OTAUpdatesModal />);
 
     fireEvent.press(getByText('Reload'));
 
@@ -206,14 +157,5 @@ describe('OTAUpdatesModal', () => {
         'OTA Updates: Error reloading app after modal reload pressed',
       );
     });
-  });
-
-  it('closes modal when close button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<OTAUpdatesModal />);
-
-    const closeButton = getByTestId('close-button');
-    fireEvent.press(closeButton);
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 });

@@ -1563,7 +1563,6 @@ describe('RewardsDataService', () => {
         },
       ],
       activityTypes: [],
-      waysToEarn: [],
     };
 
     beforeEach(() => {
@@ -1575,8 +1574,6 @@ describe('RewardsDataService', () => {
           startDate: '2025-09-01T04:00:00.000Z',
           endDate: '2025-11-30T04:00:00.000Z',
           tiers: mockSeasonMetadataResponse.tiers,
-          activityTypes: mockSeasonMetadataResponse.activityTypes,
-          waysToEarn: mockSeasonMetadataResponse.waysToEarn,
         }),
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);

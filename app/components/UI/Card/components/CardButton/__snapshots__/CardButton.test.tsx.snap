@@ -372,11 +372,11 @@ exports[`CardButton Component renders and matches snapshot 1`] = `
                             {
                               "alignItems": "center",
                               "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "height": 32,
+                              "borderRadius": 2,
+                              "height": 40,
                               "justifyContent": "center",
                               "opacity": 1,
-                              "width": 32,
+                              "width": 40,
                             },
                             undefined,
                           ]

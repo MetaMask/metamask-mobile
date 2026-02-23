@@ -15,6 +15,7 @@ export interface UsePredictPriceHistoryOptions {
   startTs?: number;
   endTs?: number;
   fidelity?: number;
+  providerId?: string;
   enabled?: boolean;
 }
 
@@ -37,6 +38,7 @@ export const usePredictPriceHistory = (
     interval = PredictPriceHistoryInterval.ONE_DAY,
     startTs,
     endTs,
+    providerId,
     enabled = true,
   } = options;
 
@@ -103,6 +105,7 @@ export const usePredictPriceHistory = (
             interval,
             startTs,
             endTs,
+            providerId,
           });
           return { index, data: history ?? [], error: null };
         } catch (err) {
@@ -128,6 +131,7 @@ export const usePredictPriceHistory = (
                 action: 'price_history_load_single',
                 operation: 'data_fetching',
                 marketId,
+                providerId,
                 interval,
                 startTs,
                 endTs,
@@ -173,6 +177,7 @@ export const usePredictPriceHistory = (
             action: 'price_history_load_batch',
             operation: 'data_fetching',
             marketCount: marketIds.length,
+            providerId,
             interval,
             startTs,
             endTs,
@@ -192,7 +197,7 @@ export const usePredictPriceHistory = (
     }
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, marketIdsKey, fidelity, interval, startTs, endTs]);
+  }, [enabled, marketIdsKey, fidelity, interval, startTs, endTs, providerId]);
 
   useEffect(() => {
     fetchPriceHistories();

@@ -19,7 +19,6 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import Routes from '../../../../../constants/navigation/Routes';
 
-import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -144,7 +143,7 @@ const createMockPosition = (
   overrides: Partial<PredictPosition> = {},
 ): PredictPosition => ({
   id: 'position-1',
-  providerId: POLYMARKET_PROVIDER_ID,
+  providerId: 'polymarket',
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcomeTokenId: '0',
@@ -170,7 +169,7 @@ const createMockMarket = (
   overrides: Partial<PredictMarket> = {},
 ): PredictMarket => ({
   id: 'market-1',
-  providerId: POLYMARKET_PROVIDER_ID,
+  providerId: 'polymarket',
   slug: 'test-market',
   title: 'Test Market',
   description: 'Test description',
@@ -182,7 +181,7 @@ const createMockMarket = (
   outcomes: [
     {
       id: 'outcome-1',
-      providerId: POLYMARKET_PROVIDER_ID,
+      providerId: 'polymarket',
       marketId: 'market-1',
       title: 'Will it happen?',
       description: 'Test outcome',
@@ -310,24 +309,26 @@ describe('PredictSportCardFooter', () => {
       });
     });
 
-    it('calls usePredictActionGuard with navigation', () => {
+    it('calls usePredictActionGuard with correct providerId', () => {
       const market = createMockMarket({ providerId: 'test-provider' });
 
       render(<PredictSportCardFooter market={market} />);
 
       expect(mockUsePredictActionGuard).toHaveBeenCalledWith(
         expect.objectContaining({
-          navigation: expect.any(Object),
+          providerId: 'test-provider',
         }),
       );
     });
 
-    it('calls usePredictClaim without provider options', () => {
+    it('calls usePredictClaim with correct providerId', () => {
       const market = createMockMarket({ providerId: 'claim-provider' });
 
       render(<PredictSportCardFooter market={market} />);
 
-      expect(mockUsePredictClaim).toHaveBeenCalledWith();
+      expect(mockUsePredictClaim).toHaveBeenCalledWith({
+        providerId: 'claim-provider',
+      });
     });
   });
 

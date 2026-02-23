@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { type OrderResult, type Position } from '@metamask/perps-controller';
+import type { OrderResult, Position } from '../controllers/types';
 import { usePerpsClosePosition } from './usePerpsClosePosition';
 import { usePerpsTrading } from './usePerpsTrading';
 

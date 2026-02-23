@@ -29,6 +29,7 @@ export function usePredictOrderPreview(
 
   // Destructure params for stable dependencies
   const {
+    providerId,
     marketId,
     outcomeId,
     outcomeTokenId,
@@ -75,6 +76,7 @@ export function usePredictOrderPreview(
 
     try {
       const p = await previewOrder({
+        providerId,
         marketId,
         outcomeId,
         outcomeTokenId,
@@ -103,6 +105,7 @@ export function usePredictOrderPreview(
             method: 'calculatePreview',
             action: 'order_preview',
             operation: 'order_management',
+            providerId,
             side,
             marketId,
             outcomeId,
@@ -127,6 +130,7 @@ export function usePredictOrderPreview(
   }, [
     size,
     previewOrder,
+    providerId,
     marketId,
     outcomeId,
     outcomeTokenId,
@@ -159,7 +163,15 @@ export function usePredictOrderPreview(
     }, 100);
 
     return () => clearTimeout(debounceTimer);
-  }, [marketId, outcomeId, outcomeTokenId, side, size, autoRefreshTimeout]);
+  }, [
+    providerId,
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    side,
+    size,
+    autoRefreshTimeout,
+  ]);
 
   return {
     preview,

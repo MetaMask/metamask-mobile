@@ -5,14 +5,19 @@
  * Supports multiple LLM providers with automatic fallback.
  */
 
-import { ParsedArgs, AnalysisContext } from './types';
+import { ParsedArgs } from './types';
 import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
   getAllChangedFiles,
   getPRFiles,
   validatePRNumber,
 } from './utils/git-utils';
-import { MODES, validateMode, analyzeWithAgent } from './analysis/analyzer';
+import {
+  MODES,
+  validateMode,
+  analyzeWithAgent,
+  AnalysisContext,
+} from './analysis/analyzer';
 import { identifyCriticalFiles } from './utils/file-utils';
 import {
   createProvider,

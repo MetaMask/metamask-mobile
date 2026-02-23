@@ -10,13 +10,7 @@ import { Spinner } from '@metamask/design-system-react-native/dist/components/te
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import images from 'images/image-icons';
 import React, { useCallback, useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
-import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
@@ -29,7 +23,10 @@ import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import { USDC_SYMBOL, USDC_TOKEN_ICON_URL } from '@metamask/perps-controller';
+import {
+  USDC_SYMBOL,
+  USDC_TOKEN_ICON_URL,
+} from '../../../Perps/constants/hyperLiquidConfig';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { formatPrice } from '../../utils/format';
@@ -46,7 +43,6 @@ interface PredictBalanceProps {
 
 const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   const tw = useTailwind();
-  const privacyMode = useSelector(selectPrivacyMode);
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -58,6 +54,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   const { deposit, isDepositPending } = usePredictDeposit();
   const { withdraw } = usePredictWithdraw();
   const { executeGuardedAction } = usePredictActionGuard({
+    providerId: 'polymarket',
     navigation,
   });
 
@@ -151,13 +148,9 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
           alignItems={BoxAlignItems.Center}
         >
           <Box>
-            <SensitiveText
-              variant={ComponentTextVariant.BodyMDBold}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Medium}
-            >
+            <Text style={tw.style('text-body-md font-bold')}>
               {formatPrice(balance, { maximumDecimals: 2 })}
-            </SensitiveText>
+            </Text>
             <Text
               style={tw.style('color-alternative text-body-sm')}
               color={TextColor.TextAlternative}

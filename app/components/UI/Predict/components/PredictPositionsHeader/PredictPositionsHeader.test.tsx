@@ -126,11 +126,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-function createTestState(
-  _availableBalance?: number,
-  claimableAmount?: number,
-  privacyMode = false,
-) {
+function createTestState(_availableBalance?: number, claimableAmount?: number) {
   const testAddress = '0x1234567890123456789012345678901234567890';
   const testAccountId = 'test-account-id';
 
@@ -171,9 +167,6 @@ function createTestState(
               },
             },
           },
-        },
-        PreferencesController: {
-          privacyMode,
         },
       },
     },
@@ -227,18 +220,6 @@ describe('MarketsWonCard', () => {
       renderWithProvider(<MarketsWonCard />, { state });
 
       expect(screen.getByText('$1,234.56')).toBeOnTheScreen();
-    });
-
-    it('hides monetary values when privacy mode is enabled', () => {
-      const state = createTestState(100.5, 24.66, true);
-
-      renderWithProvider(<MarketsWonCard />, { state });
-
-      expect(screen.queryByText('$100.50')).toBeNull();
-      expect(screen.queryByText('+$8.63 (+3.9%)')).toBeNull();
-      expect(screen.queryByText('Claim $24.66')).toBeNull();
-      expect(screen.getByText('••••••••••••')).toBeOnTheScreen();
-      expect(screen.getByText('•••••••••')).toBeOnTheScreen();
     });
   });
 
