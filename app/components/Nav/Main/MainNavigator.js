@@ -13,6 +13,7 @@ import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
+import NetworksManagementView from '../../Views/NetworksManagement/NetworksManagementView';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
 import RegionSelector from '../../UI/Ramp/Views/Settings/RegionSelector/RegionSelector';
@@ -373,6 +374,11 @@ const SettingsFlow = () => {
         name="AdvancedSettings"
         component={AdvancedSettings}
         options={AdvancedSettings.navigationOptions}
+      />
+      <Stack.Screen
+        name="NetworksManagement"
+        component={NetworksManagementView}
+        options={{ headerShown: false }}
       />
       <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
       <Stack.Screen name="PermissionsManager" component={PermissionsManager} />
