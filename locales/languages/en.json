@@ -5998,7 +5998,6 @@
       "ok": "OK",
       "continue": "Continue",
       "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
-      "no_boost": "No boost",
       "your_musd": "Your mUSD",
       "balance_breakdown_title": "Your mUSD balances by network",
       "balance_amount": "{{amount}} mUSD",
@@ -6028,8 +6027,8 @@
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
-      "boost_title": "Get {{percentage}}% on your stablecoins",
-      "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annual bonus that you can claim daily.",
+      "bonus_title": "Get {{percentage}}% on your stablecoins",
+      "bonus_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annual bonus that you can claim daily.",
       "powered_by_relay": "Powered by Relay",
       "earn_rewards_when": "Earn rewards when",
       "you_convert_to": "you convert to",
@@ -6048,7 +6047,7 @@
         },
         "failed_to_get_quotes": "Failed to get quotes. Please close this modal and try again."
       },
-      "percentage_boost": "{{percentage}}% boost",
+      "percentage_bonus": "{{percentage}}% bonus",
       "rate": "Rate"
     },
     "bonus_claim": {
