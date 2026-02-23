@@ -52,6 +52,7 @@ export interface SRPSecurityQuizProps {
 
 export interface SeedPhraseDisplayProps {
   words: string[];
+  showSeedPhrase: boolean;
   clipboardEnabled: boolean;
   onCopyToClipboard: () => void;
   styles: RevealPrivateCredentialStyleSheet;

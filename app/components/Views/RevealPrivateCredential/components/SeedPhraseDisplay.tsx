@@ -22,6 +22,7 @@ import { SeedPhraseDisplayProps } from '../types';
 
 const SeedPhraseDisplay = ({
   words,
+  showSeedPhrase,
   clipboardEnabled,
   onCopyToClipboard,
   styles,
@@ -73,6 +74,7 @@ const SeedPhraseDisplay = ({
         }
         style={styles.clipboardButton}
         startIconName={IconNameLibrary.Copy}
+        disabled={!showSeedPhrase}
       />
     ) : null}
   </Box>

@@ -24,7 +24,9 @@ const SRPTabView = ({
   styles,
 }: SRPTabViewProps) => {
   const { colors } = useTheme();
-  const words = clipboardPrivateCredential.split(' ');
+  const trimmedCredential = clipboardPrivateCredential.trim();
+  const words = trimmedCredential ? trimmedCredential.split(/\s+/) : [];
+  const hasCredential = words.length > 0;
 
   const renderTabBar = () => <TabBar />;
 
@@ -44,9 +46,10 @@ const SRPTabView = ({
             {showSeedPhrase ? (
               <SeedPhraseDisplay
                 words={words}
-                clipboardEnabled={clipboardEnabled}
+                clipboardEnabled={clipboardEnabled && hasCredential}
                 onCopyToClipboard={onCopyToClipboard}
                 styles={styles}
+                showSeedPhrase={showSeedPhrase}
               />
             ) : (
               <SeedPhraseConcealer
@@ -66,14 +69,16 @@ const SRPTabView = ({
               RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID
             }
           >
-            <QRCode
-              value={clipboardPrivateCredential}
-              size={Dimensions.get('window').width - 200}
-              logo={logo}
-              logoSize={50}
-              backgroundColor={colors.background.default}
-              color={colors.text.default}
-            />
+            {hasCredential ? (
+              <QRCode
+                value={clipboardPrivateCredential}
+                size={Dimensions.get('window').width - 200}
+                logo={logo}
+                logoSize={50}
+                backgroundColor={colors.background.default}
+                color={colors.text.default}
+              />
+            ) : null}
           </View>
         </CustomTabView>
       </ScrollableTabView>
