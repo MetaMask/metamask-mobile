@@ -70,6 +70,11 @@ interface CheckoutParams {
   /** V2: fiat currency code (e.g., "USD"). Fallback when the callback order has no fiatCurrency yet. */
   currency?: string;
   /** V2: crypto currency symbol (e.g., "ETH"). Fallback when the callback order has no cryptoCurrency yet. */
+  /**
+   * Key into the checkout callback registry. Used by Transak/Deposit flows.
+   * The actual callback lives outside navigation state so that route params stay serializable.
+   */
+  callbackKey?: string;
   cryptocurrency?: string;
   /** V2: the Redux provider type for this order. Defaults to AGGREGATOR. */
   providerType?: FIAT_ORDER_PROVIDERS;
