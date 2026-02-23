@@ -5,6 +5,7 @@ import {
   getDappUrl,
   getDappUrlForFixture,
 } from './FixtureUtils.ts';
+import { encodeStorageKey } from '../../../app/core/Engine/utils/storage-service-utils';
 import { merge } from 'lodash';
 import defaultFixture from './json/default-fixture.json';
 import onboardingFixture from './json/onboarding-fixture.json';
@@ -1778,7 +1779,7 @@ class FixtureBuilder {
     if (!this.fixture.filesystemStorage) {
       this.fixture.filesystemStorage = {};
     }
-    const fullKey = `storageService:${namespace}:${key}`;
+    const fullKey = `storageService:${encodeStorageKey(namespace)}:${encodeStorageKey(key)}`;
     this.fixture.filesystemStorage[fullKey] = JSON.stringify(value);
     return this;
   }
