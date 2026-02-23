@@ -3,13 +3,13 @@
 buildscript {
 
 	ext {
-		buildToolsVersion = "35.0.0"
+		buildToolsVersion = "36.0.0"
 		minSdkVersion = project.hasProperty('minSdkVersion') ? project.getProperty('minSdkVersion') : 24
-		compileSdkVersion = 35
-		targetSdkVersion = 35
-		ndkVersion = "26.1.10909125"
+		compileSdkVersion = 36
+		targetSdkVersion = 36
+		ndkVersion = "27.1.12297006"
 		bitriseNdkPath = "/usr/local/share/android-sdk/ndk-bundle"
-		kotlin_version = "1.9.25"
+		kotlin_version = "2.1.20"
 		kotlinVersion = "$kotlin_version"
 		supportLibVersion = "28.0.0"
 	}

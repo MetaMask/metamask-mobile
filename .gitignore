@@ -39,6 +39,7 @@ android/app/bin/
 android/app/gradle*
 android/app/_build*
 .cxx/
+.kotlin/
 
 # if we ever want to add google services
 android/app/google-services.json
