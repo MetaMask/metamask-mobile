@@ -1,6 +1,6 @@
 import React, {
   useCallback,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -232,7 +232,7 @@ function TokenSelection() {
     return Array.from(uniqueNetworksSet);
   }, [supportedTokens]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
