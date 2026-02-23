@@ -1327,9 +1327,7 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.FEATURE_FLAG_OVERRIDE}
           component={FeatureFlagOverride}
-          options={{
-            headerShown: true,
-          }}
+          options={{ headerShown: false }}
         />
       )}
       <Stack.Screen

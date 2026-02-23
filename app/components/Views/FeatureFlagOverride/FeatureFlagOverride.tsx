@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, Alert, TextInput, Switch, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -21,7 +22,7 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useTheme } from '../../../util/theme';
 import {
   FeatureFlagInfo,
@@ -391,18 +392,9 @@ const FeatureFlagOverride: React.FC = () => {
     return flags;
   }, [featureFlagsList, searchQuery, typeFilter]);
 
-  // Set up navigation header
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        'Feature Flag Override',
-        navigation,
-        false,
-        theme.colors,
-        null,
-      ),
-    );
-  }, [navigation, theme.colors]);
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const handleToggleFlag = useCallback(
     (key: string, newValue: unknown) => {
@@ -453,9 +445,20 @@ const FeatureFlagOverride: React.FC = () => {
   }, [clearAllOverrides]);
 
   return (
-    <Box twClassName="flex-1 bg-background-default">
-      {/* Header with stats */}
-      <Box twClassName="p-4 bg-background-alternative border-b border-border-muted">
+    <SafeAreaView
+      style={tw.style('flex-1 bg-background-default')}
+      testID="feature-flag-override-screen"
+      edges={['top', 'left', 'right']}
+    >
+      <HeaderCompactStandard
+        title="Feature Flag Override"
+        onBack={handleGoBack}
+        includesTopInset={false}
+        testID="feature-flag-override-header"
+        backButtonProps={{ testID: 'feature-flag-override-header-back' }}
+      />
+      <Box twClassName="flex-1 bg-background-default">
+        <Box twClassName="p-4 bg-background-alternative border-b border-border-muted">
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
@@ -563,7 +566,8 @@ const FeatureFlagOverride: React.FC = () => {
           ))
         )}
       </ScrollView>
-    </Box>
+      </Box>
+    </SafeAreaView>
   );
 };
 

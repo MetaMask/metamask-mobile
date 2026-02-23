@@ -6,6 +6,7 @@ import {
   renderHook,
 } from '@testing-library/react-native';
 import { Alert } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -15,7 +16,6 @@ import {
   useFeatureFlagOverride,
 } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import {
   FeatureFlagType,
   isMinimumRequiredVersionSupported,
@@ -51,11 +51,6 @@ jest.mock('../../../util/theme', () => ({
     },
     brandColors: { white: '#FFFFFF' },
   })),
-}));
-
-// Mock Navbar
-jest.mock('../../UI/Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(() => ({})),
 }));
 
 // Mock Tailwind
@@ -161,9 +156,16 @@ const createTestWrapper = (
 
   const Wrapper = ({ children }: { children: ReactNode }) => (
     <Provider store={store}>
-      <ToastContext.Provider value={mockToastContext}>
-        <FeatureFlagOverrideProvider>{children}</FeatureFlagOverrideProvider>
-      </ToastContext.Provider>
+      <SafeAreaProvider
+        initialMetrics={{
+          frame: { x: 0, y: 0, width: 320, height: 640 },
+          insets: { top: 0, left: 0, right: 0, bottom: 0 },
+        }}
+      >
+        <ToastContext.Provider value={mockToastContext}>
+          <FeatureFlagOverrideProvider>{children}</FeatureFlagOverrideProvider>
+        </ToastContext.Provider>
+      </SafeAreaProvider>
     </Provider>
   );
 
@@ -290,6 +292,7 @@ describe('FeatureFlagOverride', () => {
 
     mockNavigation = {
       setOptions: jest.fn(),
+      goBack: jest.fn(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
@@ -331,17 +334,30 @@ describe('FeatureFlagOverride', () => {
       expect(screen.getByText('versionFlag')).toBeTruthy();
     });
 
-    it('sets navigation options on mount', () => {
+    it('renders screen inside SafeAreaView', () => {
       renderWithProviders();
 
-      expect(getNavigationOptionsTitle).toHaveBeenCalledWith(
-        'Feature Flag Override',
-        mockNavigation,
-        false,
-        expect.any(Object),
-        null,
+      expect(screen.getByTestId('feature-flag-override-screen')).toBeTruthy();
+    });
+
+    it('renders HeaderCompactStandard with title', () => {
+      renderWithProviders();
+
+      expect(screen.getByTestId('feature-flag-override-header')).toBeTruthy();
+      expect(screen.getByText('Feature Flag Override')).toBeTruthy();
+    });
+
+    it('renders header back button and navigates back on press', () => {
+      renderWithProviders();
+
+      const backButton = screen.getByTestId(
+        'feature-flag-override-header-back',
       );
-      expect(mockNavigation.setOptions).toHaveBeenCalled();
+      expect(backButton).toBeTruthy();
+
+      fireEvent.press(backButton);
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
     });
   });
 
