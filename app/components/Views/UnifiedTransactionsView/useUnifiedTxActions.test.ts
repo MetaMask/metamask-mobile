@@ -591,7 +591,7 @@ describe('useUnifiedTxActions', () => {
             });
           });
 
-          expect(result.current.speedUp1559IsOpen).toBe(true);
+          expect(result.current.speedUpIsOpen).toBe(true);
           expect(result.current.speedUpTxId).toBe('ledger-speedup-2');
         });
 
@@ -694,7 +694,7 @@ describe('useUnifiedTxActions', () => {
 
           act(() => result.current.onSpeedUpAction(true, gas, tx));
 
-          expect(result.current.speedUp1559IsOpen).toBe(true);
+          expect(result.current.speedUpIsOpen).toBe(true);
           expect(result.current.speedUpTxId).toBe('ledger-speedup-reject');
 
           await act(async () => {
@@ -712,7 +712,6 @@ describe('useUnifiedTxActions', () => {
           });
 
           // Modal state should be cleaned up even on rejection
-          expect(result.current.speedUp1559IsOpen).toBe(false);
           expect(result.current.speedUpIsOpen).toBe(false);
           expect(result.current.speedUpTxId).toBeNull();
           expect(result.current.existingGas).toBeNull();
@@ -766,7 +765,7 @@ describe('useUnifiedTxActions', () => {
             });
           });
 
-          expect(result.current.cancel1559IsOpen).toBe(true);
+          expect(result.current.cancelIsOpen).toBe(true);
           expect(result.current.cancelTxId).toBe('ledger-cancel-2');
         });
 
@@ -872,7 +871,7 @@ describe('useUnifiedTxActions', () => {
 
           act(() => result.current.onCancelAction(true, gas, tx));
 
-          expect(result.current.cancel1559IsOpen).toBe(true);
+          expect(result.current.cancelIsOpen).toBe(true);
           expect(result.current.cancelTxId).toBe('ledger-cancel-reject');
 
           await act(async () => {
@@ -890,7 +889,6 @@ describe('useUnifiedTxActions', () => {
           });
 
           // Modal state should be cleaned up even on rejection
-          expect(result.current.cancel1559IsOpen).toBe(false);
           expect(result.current.cancelIsOpen).toBe(false);
           expect(result.current.cancelTxId).toBeNull();
           expect(result.current.existingGas).toBeNull();
