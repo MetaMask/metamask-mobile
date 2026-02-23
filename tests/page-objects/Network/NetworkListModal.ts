@@ -162,8 +162,8 @@ class NetworkListModal {
    * Taps on the popular tab
    */
   async tapOnPopularTab(): Promise<void> {
-    const networkCell = Matchers.getElementByLabel('Popular');
-    await Gestures.waitAndTap(networkCell);
+    const popularTab = Matchers.getElementByLabel('Popular');
+    await Gestures.waitAndTap(popularTab);
   }
 
   async swipeToDismissNetworkMultiSelectorModal(): Promise<void> {
