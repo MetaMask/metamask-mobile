@@ -232,7 +232,7 @@ describe('PopularTokenRow', () => {
   describe('edge cases', () => {
     it('handles BNB chain correctly (chainId 56 -> 0x38)', () => {
       const token = createMockToken({
-        assetId: 'eip155:56/slip44:60',
+        assetId: 'eip155:56/slip44:714',
         symbol: 'BNB',
       });
 
