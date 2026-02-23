@@ -206,10 +206,7 @@ export function adaptOrderFromSDK(
   if (stopLossPrice === undefined && parentTpslMetadata.stopLossPrice) {
     stopLossPrice = parentTpslMetadata.stopLossPrice;
   }
-  if (
-    takeProfitOrderId === undefined &&
-    parentTpslMetadata.takeProfitOrderId
-  ) {
+  if (takeProfitOrderId === undefined && parentTpslMetadata.takeProfitOrderId) {
     takeProfitOrderId = parentTpslMetadata.takeProfitOrderId;
   }
   if (stopLossOrderId === undefined && parentTpslMetadata.stopLossOrderId) {
@@ -232,10 +229,11 @@ export function adaptOrderFromSDK(
     detailedOrderType,
     isTrigger,
     reduceOnly,
-    ...(rawOrder.isPositionTpsl !== undefined
-      ? { isPositionTpsl: rawOrder.isPositionTpsl }
-      : {}),
   };
+
+  if (typeof rawOrder.isPositionTpsl === 'boolean') {
+    order.isPositionTpsl = rawOrder.isPositionTpsl;
+  }
 
   if (takeProfitPrice) {
     order.takeProfitPrice = takeProfitPrice;
