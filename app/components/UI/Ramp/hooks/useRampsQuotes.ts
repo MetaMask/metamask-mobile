@@ -36,7 +36,7 @@ export interface UseRampsQuotesResult {
   getWidgetUrl: (quote: Quote) => Promise<string | null>;
   /** Fetched quotes response when options is used. Null when not fetching or fetch skipped. */
   data: QuotesResponse | null;
-  /** True while a fetch is in progress. Always reset in finally, including when effect is cancelled. */
+  /** True while a fetch is in progress. Reset when fetch settles, unless the effect was cancelled (component unmounted). */
   loading: boolean;
   /** Error message when fetch rejects. */
   error: string | null;
@@ -47,7 +47,7 @@ export interface UseRampsQuotesResult {
  * Components call getQuotes() and manage quotes/selection locally.
  *
  * When options is provided, runs an effect to fetch quotes and returns data, loading, and error.
- * Loading is always reset when the fetch settles, even when the effect is cancelled.
+ * Loading is reset when the fetch settles unless the effect was cancelled (avoids setState on unmounted component).
  *
  * @param options - GetQuotesOptions to fetch, or null/undefined to skip fetch.
  * @returns getQuotes, getWidgetUrl, and when options used: data, loading, error.
@@ -97,7 +97,9 @@ export function useRampsQuotes(
         }
       })
       .finally(() => {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       });
 
     return () => {
