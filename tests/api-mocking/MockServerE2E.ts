@@ -46,11 +46,8 @@ const SNAP_PROXY_CORS_HEADERS: Record<string, string> = {
   'access-control-allow-headers': '*',
 };
 
-const logSnapProxyToConsole = (message: string) => {
-  // We intentionally use console.log here so these lines are always visible
-  // in Detox/E2E terminal output regardless of logger configuration.
-  // eslint-disable-next-line no-console
-  console.log(`[SNAP_PROXY] ${message}`);
+const logSnapProxy = (message: string) => {
+  logger.info(`[SNAP_PROXY] ${message}`);
 };
 
 const isTrackableSnapApiUrl = (url: string): boolean => {
@@ -70,9 +67,7 @@ const maybeLogSnapProxyApiRequest = (
   snapId?: string,
 ) => {
   if (shouldLog) {
-    logSnapProxyToConsole(
-      `[${source}]${snapId ? ` [${snapId}]` : ''} ${method} ${url}`,
-    );
+    logSnapProxy(`[${source}]${snapId ? ` [${snapId}]` : ''} ${method} ${url}`);
   }
 };
 
@@ -822,7 +817,7 @@ export default class MockServerE2E implements Resource {
       )
       .join('\n');
 
-    logSnapProxyToConsole(
+    logSnapProxy(
       `Snap WebView proxied API calls: ${this._snapProxyRequests.length} total (${groupedRequests.size} unique)\n${summary}`,
     );
   }

@@ -444,11 +444,6 @@ export const buildSolanaSwapTestSpecificMock =
             ? (requestBody as { id?: number | string }).id
             : undefined;
 
-        // eslint-disable-next-line no-console
-        console.log(
-          `[SOLANA_RPC_MOCK] ${requestMethod ?? 'unknown'} (id: ${id})`,
-        );
-
         let rpcResponse;
         switch (requestMethod) {
           case 'getBalance':
@@ -492,8 +487,6 @@ export const buildSolanaSwapTestSpecificMock =
             break;
           case 'sendTransaction':
             transactionSubmitted = true;
-            // eslint-disable-next-line no-console
-            console.log('[SOLANA_RPC_MOCK] ✅ Transaction submitted!');
             rpcResponse = buildJsonRpcResponse(SOLANA_SWAP_SIGNATURE, id);
             break;
           case 'getSignaturesForAddress':
@@ -526,10 +519,6 @@ export const buildSolanaSwapTestSpecificMock =
                 : actualSwapSignature;
             if (transactionSubmitted && queriedSig !== SOLANA_SWAP_SIGNATURE) {
               actualSwapSignature = queriedSig;
-              // eslint-disable-next-line no-console
-              console.log(
-                `[SOLANA_RPC_MOCK] Captured actual swap signature: ${queriedSig.slice(0, 20)}...`,
-              );
             }
             rpcResponse = buildSuccessfulTransactionResponse(queriedSig);
             break;

@@ -16,6 +16,9 @@ const USDC_SYMBOL = 'USDC';
 
 const openSwapFromSolanaToken = async (): Promise<void> => {
   await WalletView.waitForTokenToBeReady(SOLANA_NETWORK_NAME);
+  await Assertions.expectTextDisplayed('50 SOL', {
+    timeout: 30000,
+  });
   await WalletView.tapOnToken(SOLANA_NETWORK_NAME);
   await TokenOverview.tapSwapButton();
   await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
@@ -132,7 +135,8 @@ describe(SmokeTrade('Swap on Solana'), () => {
 
         await openSwapFromSolanaToken();
         await selectDestinationTokenOnSolana(USDC_SYMBOL);
-        await setSourceAmount('1');
+        await QuoteView.tapSourceAmountInput();
+        await QuoteView.enterAmount('1');
 
         await Assertions.expectTextDisplayed(
           enContent.bridge.error_banner_description,
