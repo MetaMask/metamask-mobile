@@ -405,7 +405,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="ExperimentalSettings"
         component={ExperimentalSettings}
-        options={ExperimentalSettings.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="CompanySettings"
@@ -445,7 +445,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
         component={WalletConnectSessions}
-        options={WalletConnectSessions.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ResetPassword"

@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -7,7 +8,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
 import Button, {
@@ -34,6 +34,8 @@ import {
 } from '../../../../core/redux/slices/card';
 import { selectCardExperimentalSwitch } from '../../../../selectors/featureFlagController/card';
 import { NON_PRODUCTION_ENVIRONMENTS } from '../../../UI/Card/constants';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
 
 /**
  * Main view for app Experimental Settings
@@ -54,21 +56,9 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     process.env.METAMASK_ENVIRONMENT ?? '',
   );
 
-  useEffect(
-    () => {
-      navigation.setOptions(
-        getNavigationOptionsTitle(
-          strings('app_settings.experimental_title'),
-          navigation,
-          isFullScreenModal,
-          colors,
-          null,
-        ),
-      );
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [colors],
-  );
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const goToWalletConnectSessions = () => {
     navigation.navigate(Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW);
@@ -193,12 +183,22 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     </View>
   );
   return (
-    <ScrollView style={styles.wrapper}>
-      {renderWalletConnectSettings()}
-      {cardExperimentalSwitch && renderCardSettings()}
-      {canShowDaimoDemoToggle && renderDaimoDemoSettings()}
-      {isTest && renderPerformanceSettings()}
-    </ScrollView>
+    <SafeAreaView edges={['top']} style={styles.wrapper}>
+      <HeaderCompactStandard
+        title={strings('app_settings.experimental_title')}
+        onBack={handleBack}
+        backButtonProps={{
+          testID: ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_BACK_BUTTON,
+        }}
+        testID={ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_HEADER}
+      />
+      <ScrollView style={styles.content}>
+        {renderWalletConnectSettings()}
+        {cardExperimentalSwitch && renderCardSettings()}
+        {canShowDaimoDemoToggle && renderDaimoDemoSettings()}
+        {isTest && renderPerformanceSettings()}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
