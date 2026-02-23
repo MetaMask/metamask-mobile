@@ -174,7 +174,7 @@ class TrendingView {
         direction: 'right',
         scrollAmount: 200,
         elemDescription: description,
-        startPositionX: 50,
+        startPositionX: 0.5,
         startPositionY: 0,
       },
     );

@@ -122,7 +122,7 @@ export const usePerpsHomeActions = (
         onAddFundsSuccess();
       }
     } catch (err) {
-      const errorObj = ensureError(err);
+      const errorObj = ensureError(err, 'usePerpsHomeActions.handleAddFunds');
       setError(errorObj);
 
       Logger.error(errorObj, {
@@ -183,7 +183,7 @@ export const usePerpsHomeActions = (
         onWithdrawSuccess();
       }
     } catch (err) {
-      const errorObj = ensureError(err);
+      const errorObj = ensureError(err, 'usePerpsHomeActions.handleWithdraw');
       setError(errorObj);
 
       Logger.error(errorObj, {

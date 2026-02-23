@@ -17,25 +17,27 @@ import {
   GET_POPULAR_TOKENS_MAINNET_RESPONSE,
   GET_TOKENS_API_USDC_RESPONSE,
   GET_TOKENS_API_USDT_RESPONSE,
+  GET_QUOTE_USDC_GOOGLON_RESPONSE,
 } from './constants';
 
 const USDC_MAINNET = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const DAI_MAINNET = '0x6b175474e89094c44da98b954eedeac495271d0f';
 const USDT_MAINNET = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const WETH_MAINNET = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
+const GOOGLON_MAINNET = '0xba47214edd2bb43099611b208f75e4b42fdcfedc';
 
-export const testSpecificMock: TestSpecificMock = async (
-  mockServer: Mockttp,
-) => {
-  // Mock spot prices with regex to catch all price requests (prevents NaN balance issues).
-  // Include `price` so balance display (balance * price) does not show NaN.
-  // Include both lowercase and checksummed assetId keys for reliable lookup.
+/**
+ * Mock spot prices so balance display (balance * price) does not show NaN.
+ * Shared by swap and bridge E2E tests.
+ */
+export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
   const spotPricesResponse: Record<string, { price: number; usd: number }> = {
     'eip155:1/slip44:60': { price: 1926.42, usd: 1926.42 },
     [`eip155:1/erc20:${USDC_MAINNET}`]: { price: 0.999806, usd: 0.999806 },
     [`eip155:1/erc20:${DAI_MAINNET}`]: { price: 0.9998, usd: 0.9998 },
     [`eip155:1/erc20:${USDT_MAINNET}`]: { price: 1.0001, usd: 1.0001 },
     [`eip155:1/erc20:${WETH_MAINNET}`]: { price: 1926.42, usd: 1926.42 },
+    [`eip155:1/erc20:${GOOGLON_MAINNET}`]: { price: 312.79, usd: 312.79 },
     [`eip155:1/erc20:${toChecksumHexAddress(USDC_MAINNET)}`]: {
       price: 0.999806,
       usd: 0.999806,
@@ -52,6 +54,10 @@ export const testSpecificMock: TestSpecificMock = async (
       price: 1926.42,
       usd: 1926.42,
     },
+    [`eip155:1/erc20:${toChecksumHexAddress(GOOGLON_MAINNET)}`]: {
+      price: 312.79,
+      usd: 312.79,
+    },
   };
 
   await setupMockRequest(mockServer, {
@@ -60,6 +66,12 @@ export const testSpecificMock: TestSpecificMock = async (
     requestMethod: 'GET',
     responseCode: 200,
   });
+}
+
+export const testSpecificMock: TestSpecificMock = async (
+  mockServer: Mockttp,
+) => {
+  await setupSpotPricesMock(mockServer);
 
   // Mock ETH->USDC with default 2% slippage
   await setupMockRequest(mockServer, {
@@ -154,6 +166,14 @@ export const testSpecificMock: TestSpecificMock = async (
     requestMethod: 'GET',
     url: 'https://tokens.api.cx.metamask.io/v3/assets?assetIds=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
     response: GET_TOKENS_API_USDT_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock USDC->GOOGLON
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /getQuote.*destTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc/i,
+    response: GET_QUOTE_USDC_GOOGLON_RESPONSE,
     responseCode: 200,
   });
 

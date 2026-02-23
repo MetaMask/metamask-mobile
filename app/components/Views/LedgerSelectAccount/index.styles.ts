@@ -49,6 +49,7 @@ const createStyles = (colors: Colors) =>
       borderRadius: 5,
       borderWidth: 2,
       height: 45,
+      justifyContent: 'center',
       width: Device.getDeviceWidth() * 0.85,
     },
     navbarRightButton: {

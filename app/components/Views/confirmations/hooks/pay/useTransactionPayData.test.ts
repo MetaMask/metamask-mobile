@@ -14,6 +14,7 @@ import {
   useTransactionPaySourceAmounts,
   useTransactionPayTotals,
   useTransactionPayIsMaxAmount,
+  useTransactionPayIsPostQuote,
 } from './useTransactionPayData';
 import { cloneDeep, merge } from 'lodash';
 import {
@@ -55,6 +56,7 @@ const state = merge(
             [transactionIdMock]: {
               isLoading: true,
               isMaxAmount: true,
+              isPostQuote: true,
               quotes: [QUOTE_MOCK],
               sourceAmounts: [SOURCE_AMOUNT_MOCK],
               tokens: [REQUIRED_TOKEN_MOCK],
@@ -157,5 +159,48 @@ describe('useTransactionPayData', () => {
       renderHookWithProvider(useTransactionPayIsMaxAmount, { state }).result
         .current,
     ).toBe(true);
+  });
+
+  it('returns isPostQuote as true when set', () => {
+    expect(
+      renderHookWithProvider(useTransactionPayIsPostQuote, { state }).result
+        .current,
+    ).toBe(true);
+  });
+
+  it('returns isPostQuote as false when not set', () => {
+    const updatedState = cloneDeep(state);
+    updatedState.engine.backgroundState.TransactionPayController.transactionData[
+      transactionIdMock
+    ].isPostQuote = false;
+
+    expect(
+      renderHookWithProvider(useTransactionPayIsPostQuote, {
+        state: updatedState,
+      }).result.current,
+    ).toBe(false);
+  });
+
+  it('returns false for isPostQuote when no transaction data', () => {
+    const stateWithoutTransactionData = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      {
+        engine: {
+          backgroundState: {
+            TransactionPayController: {
+              transactionData: {},
+            },
+          },
+        },
+      },
+    );
+
+    expect(
+      renderHookWithProvider(useTransactionPayIsPostQuote, {
+        state: stateWithoutTransactionData,
+      }).result.current,
+    ).toBe(false);
   });
 });

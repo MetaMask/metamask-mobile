@@ -30,6 +30,7 @@ export function getPerpsControllerMessenger(
       'AuthenticationController:getBearerToken',
       'RemoteFeatureFlagController:getState',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      'KeyringController:getState',
       'KeyringController:signTypedMessage',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
@@ -40,6 +41,7 @@ export function getPerpsControllerMessenger(
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionFailed',
       'RemoteFeatureFlagController:stateChange',
+      'AccountTreeController:selectedAccountGroupChange',
     ],
     messenger,
   });

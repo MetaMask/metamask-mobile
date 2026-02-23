@@ -50,6 +50,7 @@ import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { calculateInputFontSize } from '../../utils/calculateInputFontSize';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
+import { useTokenInputAreaFormattedBalance } from '../../hooks/useTokenInputAreaFormattedBalance';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
@@ -133,6 +134,8 @@ export const getDisplayAmount = (
 
 export interface TokenInputAreaRef {
   blur: () => void;
+  focus: () => void;
+  isFocused: () => boolean;
 }
 
 interface TokenInputAreaProps {
@@ -204,6 +207,13 @@ export const TokenInputArea = forwardRef<
           onBlur?.();
         }
       },
+      focus: () => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          onFocus?.();
+        }
+      },
+      isFocused: () => !!inputRef.current?.isFocused(),
     }));
 
     const navigation = useNavigation();
@@ -248,16 +258,10 @@ export const TokenInputArea = forwardRef<
       nonEvmMultichainAssetRates,
     });
 
-    // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
-    const parsedTokenBalance = parseFloat(tokenBalance || '0');
-    const roundedTokenBalance =
-      Math.floor(parsedTokenBalance * 100000) / 100000;
-    const formattedBalance =
-      token?.symbol && tokenBalance
-        ? `${roundedTokenBalance.toFixed(5).replace(/\.?0+$/, '')} ${
-            token?.symbol
-          }`
-        : undefined;
+    const formattedBalance = useTokenInputAreaFormattedBalance(
+      tokenBalance,
+      token,
+    );
 
     const tokenAddress = useTokenAddress(token);
 
@@ -305,6 +309,9 @@ export const TokenInputArea = forwardRef<
                   autoFocus
                   placeholder="0"
                   testID={`${testID}-input`}
+                  onPressIn={() => {
+                    onInputPress?.();
+                  }}
                   onFocus={() => {
                     onFocus?.();
                     onInputPress?.();

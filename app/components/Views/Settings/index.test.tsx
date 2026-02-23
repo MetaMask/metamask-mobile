@@ -25,6 +25,7 @@ jest.mock('../../../core/Analytics/whenEngineReady', () => ({
 // Import the mocked Authentication
 import { Authentication } from '../../../core';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
+import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const initialState = {
   user: { seedphraseBackedUp: true, passwordSet: true },
@@ -62,6 +63,13 @@ jest.mock('../../../util/networks', () => ({
 jest.mock('../../../util/notifications/constants/config', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
 }));
+
+jest.mock(
+  '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled',
+  () => ({
+    useAccountMenuEnabled: jest.fn(() => false),
+  }),
+);
 
 describe('Settings', () => {
   beforeEach(() => {
@@ -121,6 +129,14 @@ describe('Settings', () => {
     const advancedSettings = getByTestId(SettingsViewSelectorsIDs.ADVANCED);
     expect(advancedSettings).toBeDefined();
   });
+  it('renders contacts settings button when account menu is disabled', () => {
+    jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const contactsSettings = getByTestId(SettingsViewSelectorsIDs.CONTACTS);
+    expect(contactsSettings).toBeDefined();
+  });
   it('render feature request button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
@@ -137,7 +153,36 @@ describe('Settings', () => {
     );
     expect(experimentalSettings).toBeDefined();
   });
-  it('renders permissions settings button when enabled', () => {
+  it('renders about metamask button', () => {
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const aboutMetamask = getByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK);
+    expect(aboutMetamask).toBeDefined();
+  });
+  it('renders request feature button', () => {
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const requestFeature = getByTestId(SettingsViewSelectorsIDs.REQUEST);
+    expect(requestFeature).toBeDefined();
+  });
+  it('renders contact support button', () => {
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const contactSupport = getByTestId(SettingsViewSelectorsIDs.CONTACT);
+    expect(contactSupport).toBeDefined();
+  });
+  it('renders lock button', () => {
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const lock = getByTestId(SettingsViewSelectorsIDs.LOCK);
+    expect(lock).toBeDefined();
+  });
+  it('renders permissions settings button when enabled and account menu is disabled', () => {
+    jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
@@ -204,6 +249,81 @@ describe('Settings', () => {
       );
 
       expect(featureFlagOverrideTitle).toBeDefined();
+    });
+  });
+
+  describe('Account Menu Feature Flag', () => {
+    it('hides contacts when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { queryByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId(SettingsViewSelectorsIDs.CONTACTS)).toBeNull();
+    });
+
+    it('hides permissions when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { queryByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId(SettingsViewSelectorsIDs.PERMISSIONS)).toBeNull();
+    });
+
+    it('hides about metamask when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { queryByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK)).toBeNull();
+    });
+
+    it('hides request feature when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { queryByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId(SettingsViewSelectorsIDs.REQUEST)).toBeNull();
+    });
+
+    it('hides contact support when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { queryByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId(SettingsViewSelectorsIDs.CONTACT)).toBeNull();
+    });
+
+    it('hides lock button when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { queryByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId(SettingsViewSelectorsIDs.LOCK)).toBeNull();
+    });
+
+    it('still renders core settings sections when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(getByTestId(SettingsViewSelectorsIDs.GENERAL)).toBeDefined();
+      expect(getByTestId(SettingsViewSelectorsIDs.SECURITY)).toBeDefined();
+      expect(getByTestId(SettingsViewSelectorsIDs.ADVANCED)).toBeDefined();
+      expect(getByTestId(SettingsViewSelectorsIDs.EXPERIMENTAL)).toBeDefined();
     });
   });
 });

@@ -68,10 +68,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const { marketId, entryPoint, title, image } = route.params || {};
   const resolvedMarketId = marketId;
-  const providerId = 'polymarket';
 
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId,
     navigation,
   });
 
@@ -81,7 +79,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     refetch: refetchMarket,
   } = usePredictMarket({
     id: resolvedMarketId,
-    providerId,
     enabled: Boolean(resolvedMarketId),
   });
 
@@ -111,38 +108,25 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   // active positions
   const {
-    positions: activePositions,
+    data: activePositions = [],
     isLoading: isActivePositionsLoading,
-    loadPositions: loadActivePositions,
+    refetch: refetchActivePositions,
   } = usePredictPositions({
     marketId: resolvedMarketId,
     claimable: false,
-    loadOnMount: false,
+    enabled: !isMarketFetching && Boolean(resolvedMarketId),
   });
 
   // "claimable" positions
   const {
-    positions: claimablePositions,
+    data: claimablePositions = [],
     isLoading: isClaimablePositionsLoading,
-    loadPositions: loadClaimablePositions,
+    refetch: refetchClaimablePositions,
   } = usePredictPositions({
     marketId: resolvedMarketId,
     claimable: true,
-    loadOnMount: false,
+    enabled: !isMarketFetching && Boolean(resolvedMarketId),
   });
-
-  // Load positions when market is ready
-  useEffect(() => {
-    if (!isMarketFetching && resolvedMarketId) {
-      loadActivePositions();
-      loadClaimablePositions();
-    }
-  }, [
-    isMarketFetching,
-    resolvedMarketId,
-    loadActivePositions,
-    loadClaimablePositions,
-  ]);
 
   // check if market has fee exemption (note: worth moveing to a const or util at some point))
   const isFeeExemption = market?.tags?.includes('Middle East') ?? false;
@@ -177,11 +161,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     isPriceHistoryFetching,
     refetchPriceHistory,
     timeframes,
-  } = useChartData({ market, hasAnyOutcomeToken, providerId });
+  } = useChartData({ market, hasAnyOutcomeToken });
 
   const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
     market,
-    providerId,
     isMarketFetching,
   });
 
@@ -233,15 +216,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     await Promise.allSettled([
       refetchMarket(),
       refetchPriceHistory(),
-      loadActivePositions({ isRefresh: true }),
-      loadClaimablePositions({ isRefresh: true }),
+      refetchActivePositions(),
+      refetchClaimablePositions(),
     ]);
     setIsRefreshing(false);
   }, [
-    loadActivePositions,
+    refetchActivePositions,
     refetchMarket,
     refetchPriceHistory,
-    loadClaimablePositions,
+    refetchClaimablePositions,
   ]);
 
   const handlePolymarketResolution = useCallback(() => {

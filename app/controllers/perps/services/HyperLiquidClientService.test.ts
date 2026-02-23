@@ -6,12 +6,11 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import {
-  HyperLiquidClientService,
-  type ValidCandleInterval,
-} from './HyperLiquidClientService';
-import { CandlePeriod } from '../constants/chartConfig';
 import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import { CandlePeriod } from '../constants/chartConfig';
+
+import { HyperLiquidClientService } from './HyperLiquidClientService';
+import type { ValidCandleInterval } from './HyperLiquidClientService';
 
 // Mock WebSocket for Jest environment (React Native provides this globally)
 (global as any).WebSocket = jest.fn();
@@ -733,8 +732,10 @@ describe('HyperLiquidClientService', () => {
       // Arrange
       const serviceWithNoSubClient = new HyperLiquidClientService(mockDeps);
       await serviceWithNoSubClient.initialize(mockWallet);
-      // Force subscription client to be undefined
-      (serviceWithNoSubClient as any).subscriptionClient = undefined;
+      // Mock public getter to return undefined
+      jest
+        .spyOn(serviceWithNoSubClient, 'getSubscriptionClient')
+        .mockReturnValue(undefined);
 
       // Act & Assert
       expect(() =>
@@ -743,7 +744,7 @@ describe('HyperLiquidClientService', () => {
           interval: '1h' as ValidCandleInterval,
           callback: jest.fn(),
         }),
-      ).toThrow('CLIENT_NOT_INITIALIZED');
+      ).toThrow('SUBSCRIPTION_CLIENT_NOT_AVAILABLE');
     });
 
     it('fetches historical data and setup WebSocket subscription', async () => {

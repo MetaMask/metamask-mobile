@@ -6,9 +6,10 @@
  * This script aggregates performance test results from multiple test runs
  * and creates a combined report structure.
  * 
- * Handles both:
+ * Handles:
  * - Imported Wallet Tests: *-imported-wallet-test-results-*
  * - Onboarding Tests: *-onboarding-flow-test-results-*
+ * - MM-Connect Tests: *-mm-connect-test-results-*
  */
 
 import fs from 'fs';
@@ -102,29 +103,39 @@ function extractPlatformScenarioAndDevice(filePath) {
     scenario = 'onboarding';
     scenarioKey = 'Onboarding';
     console.log(`✅ Detected iOS Onboarding test`);
+  } else if (fullPath.includes('android-mm-connect-test-results')) {
+    platform = 'android';
+    platformKey = 'Android';
+    scenario = 'mm-connect';
+    scenarioKey = 'MMConnect';
+    console.log(`✅ Detected Android MM-Connect test`);
+  } else if (fullPath.includes('ios-mm-connect-test-results')) {
+    platform = 'ios';
+    platformKey = 'iOS';
+    scenario = 'mm-connect';
+    scenarioKey = 'MMConnect';
+    console.log(`✅ Detected iOS MM-Connect test`);
   } else {
     console.log(`⚠️ Could not determine platform/scenario from path`);
     console.log(`🔍 Full path: ${filePath}`);
   }
   
   // Extract device info from path
-  const deviceMatch = pathParts.find(part => 
-    part.includes('-imported-wallet-test-results-') || 
-    part.includes('-onboarding-flow-test-results-')
+  const deviceMatch = pathParts.find(part =>
+    part.includes('-imported-wallet-test-results-') ||
+    part.includes('-onboarding-flow-test-results-') ||
+    part.includes('-mm-connect-test-results-')
   );
-  
+
   if (deviceMatch) {
     console.log(`✅ Found device match: ${deviceMatch}`);
     const parts = deviceMatch.split('-');
     console.log(`📝 Device parts:`, parts);
-    
-    // Handle both imported-wallet and onboarding patterns
-    // Pattern: android-imported-wallet-test-results-DeviceName-OSVersion
-    // Pattern: android-onboarding-flow-test-results-DeviceName-OSVersion
-    let deviceInfoStart = 5; // Skip: android-imported-wallet-test-results (5 parts)
-    if (deviceMatch.includes('-onboarding-flow-test-results-')) {
-      deviceInfoStart = 5; // Skip: android-onboarding-flow-test-results (5 parts)
-    }
+
+    // Pattern: android-imported-wallet-test-results-DeviceName-OSVersion (5 parts)
+    // Pattern: android-onboarding-flow-test-results-DeviceName-OSVersion (5 parts)
+    // Pattern: android-mm-connect-test-results-DeviceName-OSVersion (5 parts)
+    const deviceInfoStart = 5;
     
     if (parts.length >= deviceInfoStart + 1) {
       const deviceInfo = parts.slice(deviceInfoStart).join('-');
@@ -144,7 +155,9 @@ function extractPlatformScenarioAndDevice(filePath) {
     }
   } else {
     console.log(`⚠️ No device match found in path parts`);
-    console.log(`🔍 Looking for patterns: -imported-wallet-test-results- or -onboarding-flow-test-results-`);
+    console.log(
+      `🔍 Looking for patterns: -imported-wallet-test-results-, -onboarding-flow-test-results-, or -mm-connect-test-results-`
+    );
     console.log(`🔍 Available parts:`, pathParts);
   }
   
@@ -205,7 +218,7 @@ function createEmptyReport(outputPath) {
   };
   
   fs.writeFileSync(outputPath, JSON.stringify(emptyReport, null, 2));
-  fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(emptyReport, null, 2));
+  fs.writeFileSync('tests/aggregated-reports/aggregated-performance-report.json', JSON.stringify(emptyReport, null, 2));
   
   const { buildVariant, buildType } = getBuildTypeInfo();
   const emptySummary = {
@@ -243,7 +256,7 @@ function createEmptyReport(outputPath) {
     warning: 'No test results found'
   };
   
-  fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(emptySummary, null, 2));
+  fs.writeFileSync('tests/aggregated-reports/summary.json', JSON.stringify(emptySummary, null, 2));
   console.log('✅ Empty report structure created successfully');
 }
 
@@ -262,9 +275,9 @@ function createFallbackReport(outputPath, error) {
   
   try {
     fs.writeFileSync(outputPath, JSON.stringify(fallbackReport, null, 2));
-    fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(fallbackReport, null, 2));
+    fs.writeFileSync('tests/aggregated-reports/aggregated-performance-report.json', JSON.stringify(fallbackReport, null, 2));
     const { buildVariant, buildType } = getBuildTypeInfo();
-    fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify({
+    fs.writeFileSync('tests/aggregated-reports/summary.json', JSON.stringify({
       totalTests: 0,
       platforms: { android: 0, ios: 0 },
       testsByPlatform: { android: 0, ios: 0 },
@@ -1454,7 +1467,7 @@ function aggregateReports() {
     console.log('🔍 Looking for performance JSON reports...');
     
     // Ensure output directory exists
-    const outputDir = 'appwright/aggregated-reports';
+    const outputDir = 'tests/aggregated-reports';
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
       console.log(`📁 Created output directory: ${outputDir}`);
@@ -1466,7 +1479,7 @@ function aggregateReports() {
       './performance-results', 
       './onboarding-results',
       './',  // Current directory where artifacts are typically extracted
-      './appwright',  // Where artifacts are uploaded from
+      './tests',  // Where artifacts are uploaded from
     ];
     
     const jsonFiles = [];
@@ -1486,7 +1499,7 @@ function aggregateReports() {
       console.log(`  ${index + 1}. ${file}`);
     });
     
-    const outputPath = 'appwright/aggregated-reports/performance-results.json';
+    const outputPath = 'tests/aggregated-reports/performance-results.json';
     
     if (jsonFiles.length === 0) {
       createEmptyReport(outputPath);
@@ -1585,29 +1598,29 @@ function aggregateReports() {
     fs.writeFileSync(outputPath, JSON.stringify(groupedResults, null, 2));
     
     // Create aggregated-performance-report.json (same structure as performance-results.json)
-    const aggregatedReportPath = 'appwright/aggregated-reports/aggregated-performance-report.json';
+    const aggregatedReportPath = 'tests/aggregated-reports/aggregated-performance-report.json';
     fs.writeFileSync(aggregatedReportPath, JSON.stringify(groupedResults, null, 2));
     
     // Create summary
     const summary = createSummary(groupedResults);
-    fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(summary, null, 2));
+    fs.writeFileSync('tests/aggregated-reports/summary.json', JSON.stringify(summary, null, 2));
     
     
     console.log(`✅ Combined report saved: ${summary.totalTests} tests across ${summary.devices.length} device configurations`);
     console.log(`📊 Profiling data: ${summary.profilingStats.testsWithProfiling} tests with profiling data (${summary.profilingStats.profilingCoverage} coverage)`);
     console.log(`⚠️ Performance issues: ${summary.profilingStats.totalPerformanceIssues} total, ${summary.profilingStats.totalCriticalIssues} critical`);
     console.log(`📈 Average CPU: ${summary.profilingStats.avgCpuUsage}, Memory: ${summary.profilingStats.avgMemoryUsage}`);
-    console.log('📋 Summary report saved to: appwright/aggregated-reports/summary.json');
-    console.log('📋 Aggregated report saved to: appwright/aggregated-reports/aggregated-performance-report.json');
+    console.log('📋 Summary report saved to: tests/aggregated-reports/summary.json');
+    console.log('📋 Aggregated report saved to: tests/aggregated-reports/aggregated-performance-report.json');
     
     // Generate HTML report
     const htmlReport = generateHtmlReport(groupedResults, summary);
-    const htmlReportPath = 'appwright/aggregated-reports/performance-report.html';
+    const htmlReportPath = 'tests/aggregated-reports/performance-report.html';
     fs.writeFileSync(htmlReportPath, htmlReport);
     console.log(`🌐 HTML report saved to: ${htmlReportPath}`);
     
   } catch (error) {
-    createFallbackReport('appwright/aggregated-reports/performance-results.json', error);
+    createFallbackReport('tests/aggregated-reports/performance-results.json', error);
   }
 }
 

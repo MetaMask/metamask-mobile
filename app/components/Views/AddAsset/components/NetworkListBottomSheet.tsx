@@ -15,13 +15,15 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../util/networks';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   MultichainNetworkConfiguration,
   SupportedCaipChainId,
 } from '@metamask/multichain-network-controller';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
 
@@ -40,6 +42,7 @@ export default function NetworkListBottomSheet({
 }) {
   const { styles } = useStyles(styleSheet, {});
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
 
   const filteredNetworkConfigurations = useMemo(() => {
     const configs = {} as Record<string, MultichainNetworkConfiguration>;
@@ -55,17 +58,24 @@ export default function NetworkListBottomSheet({
         continue;
       }
 
+      // Filter out non-EVM networks the current account group doesn't support
+      if (
+        isNonEvmChainId(chainId) &&
+        !getAccountByScope(chainId as CaipChainId)
+      ) {
+        continue;
+      }
+
       configs[chainId] = config;
     }
 
     return configs;
-  }, [displayEvmNetworksOnly, networkConfigurations]);
+  }, [displayEvmNetworksOnly, networkConfigurations, getAccountByScope]);
 
   return (
     <BottomSheet
       shouldNavigateBack={false}
       ref={sheetRef}
-      isInteractable={false}
       onClose={() => setOpenNetworkSelector(false)}
       style={styles.bottomSheetWrapperContent}
       testID={NETWORK_LIST_BOTTOM_SHEET}

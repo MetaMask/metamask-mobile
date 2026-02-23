@@ -51,7 +51,7 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   ARBITRUM_USDC,
   PERPS_CURRENCY,
@@ -119,6 +119,7 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
+import { usePerpsConnection } from '../../hooks/usePerpsConnection';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -144,7 +145,6 @@ import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
-import Engine from '../../../../../core/Engine';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -164,10 +164,14 @@ interface OrderRouteParams {
   limitPriceUpdate?: string;
   // Hide TP/SL when modifying existing position
   hideTPSL?: boolean;
+  /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
+  assetsASSETS2493AbtestTokenDetailsLayout?: string;
 }
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
+  /** A/B test variant for token details layout */
+  routeAbTestTokenDetailsLayout?: string;
 }
 
 /**
@@ -183,6 +187,7 @@ interface PerpsOrderViewContentProps {
  */
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
+  routeAbTestTokenDetailsLayout,
 }) => {
   // Auto-detect source based on trending session state
   const source = TrendingFeedSessionManager.getInstance().isFromTrending
@@ -207,14 +212,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       onReject(undefined, true);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
-
-  // Reset selected payment token to Perps balance when leaving the order view
-  useEffect(
-    () => () => {
-      Engine.context.PerpsController?.resetSelectedPaymentToken?.();
-    },
     [],
   );
 
@@ -262,10 +259,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const orderTypeRef = useRef<OrderType>('market');
 
   const isSubmittingRef = useRef(false);
-  const hasShownSubmittedToastRef = useRef(false);
   const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
 
+  const { isInitialized } = usePerpsConnection();
+  const { subscribeToPrices, updatePositionTPSL } = usePerpsTrading();
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
   // Get order form state from context; balanceForValidation respects custom token amount when set
@@ -367,20 +365,54 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, [isOrderTypeVisible, shouldOpenLimitPrice]);
 
   // Track trading screen viewed event using unified declarative API (main's event name)
+  const perpsScreenViewedProps = {
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+    [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+    [PERPS_EVENT_PROPERTY.DIRECTION]:
+      orderForm.direction === 'long'
+        ? PERPS_EVENT_VALUE.DIRECTION.LONG
+        : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+    ...(source && { [PERPS_EVENT_PROPERTY.SOURCE]: source }),
+    ...(routeAbTestTokenDetailsLayout && {
+      ab_tests: {
+        assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
+      },
+    }),
+    ...(isButtonColorTestEnabled && {
+      [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+    }),
+  };
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    properties: {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
-      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-      [PERPS_EVENT_PROPERTY.DIRECTION]:
-        orderForm.direction === 'long'
-          ? PERPS_EVENT_VALUE.DIRECTION.LONG
-          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-      ...(isButtonColorTestEnabled && {
-        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-      }),
-    },
+    properties: perpsScreenViewedProps,
   });
+
+  // Ensure oracle price (markPrice) is available for margin calculation.
+  // The PriceStreamChannel subscribes without includeMarketData, so the
+  // HyperLiquid marketDataCache has no oraclePrice and markPrice is always
+  // undefined when entering from Token Details (no prior market data sub).
+  // This subscription populates the cache for the traded asset so that
+  // subsequent allMids price updates include markPrice.
+  //
+  // We gate on isInitialized (from usePerpsConnection) so the subscription
+  // is deferred until the controller is ready. This mirrors the pattern in
+  // usePerpsPrices and avoids a silent failure that would leave markPrice
+  // undefined with no retry (the old deps would never change).
+  useEffect(() => {
+    if (!isDataReady || !isInitialized || !orderForm.asset) return;
+
+    const unsubscribe = subscribeToPrices({
+      symbols: [orderForm.asset],
+      includeMarketData: true,
+      callback: () => {
+        // No-op callback — the side effect of populating the
+        // marketDataCache with oraclePrice is all we need.
+      },
+    });
+
+    return unsubscribe;
+  }, [isDataReady, isInitialized, orderForm.asset, subscribeToPrices]);
 
   // Get real-time price data using new stream architecture (deferred)
   // Uses single WebSocket subscription with component-level debouncing
@@ -534,11 +566,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return requiredUsd > balanceUsd;
   }, [hasCustomTokenSelected, marginRequired, payToken]);
 
-  const { updatePositionTPSL } = usePerpsTrading();
-
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
+      onSubmitted: () => {
+        showToast(
+          PerpsToastOptions.orderManagement[orderForm.type].submitted(
+            orderForm.direction,
+            positionSize,
+            orderForm.asset,
+          ),
+        );
+      },
       onSuccess: (_position) => {
         showToast(
           PerpsToastOptions.orderManagement[orderForm.type].confirmed(
@@ -558,30 +597,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         );
       },
     });
-
-  useEffect(() => {
-    if (isPlacingOrder && !hasShownSubmittedToastRef.current) {
-      showToast(
-        PerpsToastOptions.orderManagement[orderForm.type].submitted(
-          orderForm.direction,
-          positionSize,
-          orderForm.asset,
-        ),
-      );
-      hasShownSubmittedToastRef.current = true;
-    } else if (!isPlacingOrder && hasShownSubmittedToastRef.current) {
-      // Reset the flag when order placement is complete
-      hasShownSubmittedToastRef.current = false;
-    }
-  }, [
-    PerpsToastOptions.orderManagement,
-    isPlacingOrder,
-    orderForm.asset,
-    orderForm.direction,
-    orderForm.type,
-    positionSize,
-    showToast,
-  ]);
 
   // Memoize liquidation price params to prevent infinite recalculation
   const liquidationPriceParams = useMemo(() => {
@@ -846,14 +861,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         // Show deposit toast and set up tracking before confirming
         handleDepositConfirm(activeTransactionMeta, () => {
-          hasShownSubmittedToastRef.current = true;
-          showToast(
-            PerpsToastOptions.orderManagement[orderForm.type].submitted(
-              orderForm.direction,
-              positionSize,
-              orderForm.asset,
-            ),
-          );
           handlePlaceOrder(true);
         });
 
@@ -1000,6 +1007,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             tradeAction: currentMarketPosition
               ? 'increase_exposure'
               : 'create_position',
+            // Pay with any token: track when user paid with a custom token (not Perps balance)
+            tradeWithToken: hasCustomTokenSelected,
+            ...(hasCustomTokenSelected &&
+              payToken && {
+                mmPayTokenSelected: payToken.symbol ?? '',
+                mmPayNetworkSelected: String(payToken.chainId ?? ''),
+              }),
           },
         };
 
@@ -1061,7 +1075,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       executeOrder,
       showToast,
       PerpsToastOptions.formValidation.orderForm,
-      PerpsToastOptions.orderManagement,
       PerpsToastOptions.positionManagement.tpsl,
       updatePositionTPSL,
       marginRequired,
@@ -1077,6 +1090,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       depositAmount,
       activeTransactionMeta,
       hasCustomTokenSelected,
+      payToken,
       onDepositConfirm,
       handleDepositConfirm,
     ],
@@ -1349,6 +1363,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View style={[styles.detailItem, styles.detailItemLast]}>
                 <PerpsPayRow
                   embeddedInStack
+                  initialAsset={orderForm.asset}
                   onPayWithInfoPress={() => handleTooltipPress('pay_with')}
                 />
               </View>
@@ -1792,6 +1807,7 @@ const PerpsOrderView: React.FC = () => {
     leverage: paramLeverage,
     existingPosition,
     hideTPSL = false,
+    assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
   } = route.params || {};
 
   const effectiveAvailableBalance = useMemo(() => {
@@ -1809,7 +1825,10 @@ const PerpsOrderView: React.FC = () => {
       existingPosition={existingPosition}
       effectiveAvailableBalance={effectiveAvailableBalance}
     >
-      <PerpsOrderViewContent hideTPSL={hideTPSL} />
+      <PerpsOrderViewContent
+        hideTPSL={hideTPSL}
+        routeAbTestTokenDetailsLayout={routeAbTestTokenDetailsLayout}
+      />
     </PerpsOrderProvider>
   );
 };

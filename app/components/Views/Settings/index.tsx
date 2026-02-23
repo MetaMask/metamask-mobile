@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SettingsDrawer from '../../UI/SettingsDrawer';
@@ -8,17 +8,21 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import { Authentication } from '../../../core/';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from './SettingsView.testIds';
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { TextColor } from '../../../component-library/components/Texts/Text';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -31,7 +35,7 @@ const createStyles = (colors: Colors) =>
 
 const Settings = () => {
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,6 +46,9 @@ const Settings = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.seedphraseBackedUp,
   );
+
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isAccountMenuEnabled = useAccountMenuEnabled();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -101,6 +108,15 @@ const Settings = () => {
     navigation.navigate('AesCryptoTestForm');
   };
 
+  const onPressInfo = () => {
+    trackEvent(createEventBuilder(MetaMetricsEvents.SETTINGS_ABOUT).build());
+    navigation.navigate('CompanySettings');
+  };
+
+  const onPressContacts = () => {
+    navigation.navigate('ContactsSettings');
+  };
+
   const onPressDeveloperOptions = () => {
     navigation.navigate('DeveloperOptions');
   };
@@ -112,10 +128,81 @@ const Settings = () => {
     navigation.navigate('PermissionsManager');
   };
 
+  const goToBrowserUrl = (url: string, title: string) => {
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url,
+        title,
+      },
+    });
+  };
+
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   const onPressSnaps = () => {
     navigation.navigate(...createSnapsSettingsListNavDetails());
   };
+  ///: END:ONLY_INCLUDE_IF
+
+  const submitFeedback = () => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK,
+      ).build(),
+    );
+    goToBrowserUrl(
+      'https://community.metamask.io/c/feature-requests-ideas/',
+      strings('app_settings.request_feature'),
+    );
+  };
+
+  const showHelp = () => {
+    let supportUrl = 'https://support.metamask.io';
+
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
+    ///: END:ONLY_INCLUDE_IF
+
+    goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
+    );
+  };
+
+  const onPressLock = async () => {
+    await Authentication.lockApp({ reset: false, locked: false });
+  };
+
+  const lock = () => {
+    Alert.alert(
+      strings('drawer.lock_title'),
+      '',
+      [
+        {
+          text: strings('drawer.lock_cancel'),
+          onPress: () => null,
+          style: 'cancel',
+        },
+        {
+          text: strings('drawer.lock_ok'),
+          onPress: onPressLock,
+        },
+      ],
+      { cancelable: false },
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT).build(),
+    );
+  };
+
+  let aboutMetaMaskTitle = strings('app_settings.info_title');
+
+  ///: BEGIN:ONLY_INCLUDE_IF(flask)
+  aboutMetaMaskTitle = strings('app_settings.info_title_flask');
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(beta)
+  aboutMetaMaskTitle = strings('app_settings.info_title_beta');
   ///: END:ONLY_INCLUDE_IF
 
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
@@ -169,12 +256,20 @@ const Settings = () => {
             testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
           />
         )}
-        {isPermissionsSettingsV1Enabled && (
+        {!isAccountMenuEnabled && isPermissionsSettingsV1Enabled && (
           <SettingsDrawer
             description={strings('app_settings.permissions_desc')}
             onPress={goToManagePermissions}
             title={strings('app_settings.permissions_title')}
             testID={SettingsViewSelectorsIDs.PERMISSIONS}
+          />
+        )}
+        {!isAccountMenuEnabled && isEvmSelected && (
+          <SettingsDrawer
+            description={strings('app_settings.contacts_desc')}
+            onPress={onPressContacts}
+            title={strings('app_settings.contacts_title')}
+            testID={SettingsViewSelectorsIDs.CONTACTS}
           />
         )}
         {
@@ -219,6 +314,13 @@ const Settings = () => {
             />
           )
         }
+        {!isAccountMenuEnabled && (
+          <SettingsDrawer
+            title={aboutMetaMaskTitle}
+            onPress={onPressInfo}
+            testID={SettingsViewSelectorsIDs.ABOUT_METAMASK}
+          />
+        )}
         {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
           <SettingsDrawer
             title={strings('app_settings.developer_options.title')}
@@ -232,6 +334,31 @@ const Settings = () => {
               'app_settings.feature_flag_override.description',
             )}
             onPress={onPressFeatureFlagOverride}
+          />
+        )}
+        {!isAccountMenuEnabled && (
+          <SettingsDrawer
+            title={strings('app_settings.request_feature')}
+            onPress={submitFeedback}
+            renderArrowRight={false}
+            testID={SettingsViewSelectorsIDs.REQUEST}
+          />
+        )}
+        {!isAccountMenuEnabled && (
+          <SettingsDrawer
+            title={strings('app_settings.contact_support')}
+            onPress={showHelp}
+            renderArrowRight={false}
+            testID={SettingsViewSelectorsIDs.CONTACT}
+          />
+        )}
+        {!isAccountMenuEnabled && (
+          <SettingsDrawer
+            title={strings('drawer.lock')}
+            onPress={lock}
+            renderArrowRight={false}
+            testID={SettingsViewSelectorsIDs.LOCK}
+            titleColor={TextColor.Primary}
           />
         )}
       </ScrollView>

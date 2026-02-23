@@ -6,6 +6,8 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../../flows/wallet.flow';
 
+const TOKEN = 'Bitcoin';
+
 describe(SmokeConfirmations('Send Bitcoin'), () => {
   it('shows insufficient funds', async () => {
     await withFixtures(
@@ -16,7 +18,8 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
       async () => {
         await loginToApp();
         await device.disableSynchronization();
-        await WalletView.tapOnToken('Bitcoin');
+        await WalletView.waitForTokenToBeReady(TOKEN, 0);
+        await WalletView.tapOnToken(TOKEN);
         await TokenOverview.tapSendButton();
         await SendView.enterZeroAmount();
         await SendView.checkInsufficientFundsError();

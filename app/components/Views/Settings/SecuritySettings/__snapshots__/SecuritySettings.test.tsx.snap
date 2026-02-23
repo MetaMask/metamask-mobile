@@ -405,16 +405,10 @@ exports[`SecuritySettings renders correctly 1`] = `
             {
               "display": "flex",
             },
-            undefined,
+            {
+              "marginTop": 32,
+            },
           ]
-        }
-        testID="login-options"
-      />
-      <View
-        style={
-          {
-            "marginTop": 32,
-          }
         }
       >
         <View
@@ -445,7 +439,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                 }
               }
             >
-              Turn on Remember me
+              Face ID
             </Text>
             <View
               style={
@@ -456,6 +450,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             >
               <RCTSwitch
                 accessibilityRole="switch"
+                disabled={false}
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
                 onStartShouldSetResponder={[Function]}
@@ -477,28 +472,13 @@ exports[`SecuritySettings renders correctly 1`] = `
                     ],
                   ]
                 }
-                testID="turn-on-remember-me"
+                testID="device-security-toggle"
                 thumbTintColor="#ffffff"
                 tintColor="#b7bbc866"
-                value={true}
+                value={false}
               />
             </View>
           </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#686e7d",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-                "marginTop": 8,
-              }
-            }
-          >
-            When Remember me is on, anyone with access to your phone can access your MetaMask account.
-          </Text>
         </View>
       </View>
       <View
@@ -729,6 +709,90 @@ exports[`SecuritySettings renders correctly 1`] = `
       >
         Clear privacy or browser data
       </Text>
+      <View
+        style={
+          {
+            "marginTop": 16,
+          }
+        }
+        testID="sdk-section"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 18,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Manage connections
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginTop": 8,
+            }
+          }
+        >
+          Remove connections to sites and/or MetaMask SDK.
+        </Text>
+        <View
+          style={
+            {
+              "marginTop": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "#3c4d9d0f",
+                "borderColor": "transparent",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Manage connections
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
       <View
         style={
           [

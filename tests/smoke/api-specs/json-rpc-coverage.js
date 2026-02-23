@@ -22,6 +22,7 @@ import { DappVariants } from '../../framework/Constants';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 
 // API spec tests use a mock RPC server instead of Ganache (disableLocalNodes: true)
 // Fixed port is fine since tests don't run in parallel
@@ -171,7 +172,7 @@ const main = async () => {
     },
     async () => {
       await loginToApp();
-      await TabBarComponent.tapBrowser();
+      await navigateToBrowserView();
       await Browser.navigateToTestDApp();
 
       const myWebView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
