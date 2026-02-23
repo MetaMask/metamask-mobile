@@ -13,6 +13,7 @@ import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
+import NetworksManagementView from '../../Views/NetworksManagement/NetworksManagementView';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
 import RegionSelector from '../../UI/Ramp/Views/Settings/RegionSelector/RegionSelector';
@@ -26,7 +27,7 @@ import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
-import AddAsset from '../../Views/AddAsset';
+import AddAsset from '../../Views/AddAsset/AddAsset';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
@@ -81,7 +82,7 @@ import PermissionsManager from '../../Views/Settings/PermissionsSettings/Permiss
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
-import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
+import ConfirmAddAsset from '../../Views/AddAsset/Views/ConfirmAddTokenView/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
 import { isTest } from '../../../util/test/utils';
 import NftDetails from '../../Views/NftDetails';
@@ -373,6 +374,11 @@ const SettingsFlow = () => {
         name="AdvancedSettings"
         component={AdvancedSettings}
         options={AdvancedSettings.navigationOptions}
+      />
+      <Stack.Screen
+        name="NetworksManagement"
+        component={NetworksManagementView}
+        options={{ headerShown: false }}
       />
       <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
       <Stack.Screen name="PermissionsManager" component={PermissionsManager} />
@@ -898,11 +904,7 @@ const MainNavigator = () => {
     [predictEnabledFlag],
   );
   // Get feature flag state for conditional Market Insights screen registration
-  const marketInsightsEnabledFlag = useSelector(selectMarketInsightsEnabled);
-  const isMarketInsightsEnabled = useMemo(
-    () => marketInsightsEnabledFlag,
-    [marketInsightsEnabledFlag],
-  );
+  const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
 
   return (
     <Stack.Navigator
@@ -948,7 +950,22 @@ const MainNavigator = () => {
       <Stack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}
-        options={{ headerShown: true }}
+        options={{
+          headerShown: true,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
       />
       <Stack.Screen
         name={Routes.SETTINGS_VIEW}
