@@ -270,12 +270,17 @@ function getPostQuoteDisplay(tx, currentCurrency) {
   // relative to the native token. For native tokens, use the native USD rate directly.
   let tokenUsdRate = nativeUsdRate;
   if (metamaskPay.tokenAddress) {
+    let checksumAddress;
+    try {
+      checksumAddress = toChecksumAddress(metamaskPay.tokenAddress);
+    } catch {
+      return undefined;
+    }
     const contractRates = selectContractExchangeRatesByChainId(
       state,
       destChainId,
     );
-    const tokenExchangeRate =
-      contractRates?.[toChecksumAddress(metamaskPay.tokenAddress)]?.price;
+    const tokenExchangeRate = contractRates?.[checksumAddress]?.price;
     if (!tokenExchangeRate) {
       return undefined;
     }
