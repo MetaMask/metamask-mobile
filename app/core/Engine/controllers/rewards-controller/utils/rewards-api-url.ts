@@ -9,7 +9,7 @@ export const getDefaultRewardsApiBaseUrlForMetaMaskEnv = (
   metaMaskEnv: string | undefined,
 ) => {
   if (process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true') {
-    return process.env.REWARDS_API_URL;
+    return process.env.REWARDS_API_URL || AppConstants.REWARDS_API_URL.UAT;
   }
   switch (metaMaskEnv) {
     case 'e2e':
