@@ -31,7 +31,7 @@ interface AddressDisplayProps {
 
 const AddressDisplay = ({ address, chainId, label }: AddressDisplayProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { name, image, variant } = useDisplayName({
+  const { name, image, subtitle, variant } = useDisplayName({
     type: NameType.EthereumAddress,
     value: address,
     variation: chainId,
@@ -53,6 +53,15 @@ const AddressDisplay = ({ address, chainId, label }: AddressDisplayProps) => {
         >
           {displayText}
         </Text>
+        {subtitle && (
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Alternative}
+            numberOfLines={1}
+          >
+            {subtitle}
+          </Text>
+        )}
       </View>
       <Identicon
         address={address}
