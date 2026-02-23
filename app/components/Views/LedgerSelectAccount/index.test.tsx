@@ -89,7 +89,7 @@ jest.mock('../../hooks/Ledger/useLedgerBluetooth', () => ({
   default: jest.fn((_deviceId?: string) => ({
     isSendingLedgerCommands: false,
     isAppLaunchConfirmationNeeded: false,
-    ledgerLogicToRun: jest.fn(),
+    ledgerLogicToRun: jest.fn(async (fn: () => Promise<void>) => fn()),
     error: undefined,
   })),
 }));
@@ -221,7 +221,7 @@ describe('LedgerSelectAccount', () => {
     ).mockImplementation(() => ({
       isSendingLedgerCommands: false,
       isAppLaunchConfirmationNeeded: false,
-      ledgerLogicToRun: jest.fn(),
+      ledgerLogicToRun: jest.fn(async (fn: () => Promise<void>) => fn()),
       error: undefined,
       cleanupBluetoothConnection: jest.fn(),
     }));
