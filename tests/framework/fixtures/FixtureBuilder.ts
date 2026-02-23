@@ -1779,8 +1779,14 @@ class FixtureBuilder {
     if (!this.fixture.filesystemStorage) {
       this.fixture.filesystemStorage = {};
     }
+    const serialized = JSON.stringify(value);
+    if (serialized === undefined) {
+      throw new Error(
+        `withStorageService: value for key "${key}" is not JSON-serializable (got ${typeof value})`,
+      );
+    }
     const fullKey = `storageService:${encodeStorageKey(namespace)}:${encodeStorageKey(key)}`;
-    this.fixture.filesystemStorage[fullKey] = JSON.stringify(value);
+    this.fixture.filesystemStorage[fullKey] = serialized;
     return this;
   }
 
