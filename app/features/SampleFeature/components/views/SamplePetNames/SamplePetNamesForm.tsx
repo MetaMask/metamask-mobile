@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Alert } from 'react-native';
-import Label from '../../../../../component-library/components/Form/Label';
+import { Label } from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Button, {
   ButtonVariants,

@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
 import TextField from '../../../../../../component-library/components/Form/TextField';
-import Label from '../../../../../../component-library/components/Form/Label';
+import { Label } from '@metamask/design-system-react-native';
 import Button, {
   ButtonVariants,
   ButtonSize,

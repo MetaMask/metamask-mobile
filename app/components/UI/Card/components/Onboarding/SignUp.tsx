@@ -3,11 +3,12 @@ import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
+  Label,
   Text,
   TextVariant,
-  Icon,
-  IconSize,
-  IconName,
 } from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
@@ -15,7 +16,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';

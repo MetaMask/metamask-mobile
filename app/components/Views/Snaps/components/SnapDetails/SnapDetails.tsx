@@ -20,7 +20,7 @@ import { SnapVersionBadge } from '../SnapVersionTag';
 import { toDateFormat } from '../../../../../util/date';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import Label from '../../../../../component-library/components/Form/Label';
+import { Label } from '@metamask/design-system-react-native';
 import {
   SNAP_DETAILS_CELL,
   SNAP_DETAILS_INSTALL_DATE,
