@@ -241,7 +241,7 @@ function getPostQuoteDisplay(tx, currentCurrency) {
   const destChainId = metamaskPay.chainId;
   const fiatUsd = parseFloat(metamaskPay.targetFiat);
 
-  if (!destChainId || !Number.isFinite(fiatUsd)) {
+  if (!destChainId || !Number.isFinite(fiatUsd) || fiatUsd <= 0) {
     return undefined;
   }
 
