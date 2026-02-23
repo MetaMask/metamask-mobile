@@ -16,10 +16,6 @@ import {
   HardwareWalletStateSetters,
 } from './HardwareWalletStateManager';
 
-jest.mock('../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => key),
-}));
-
 describe('useDeviceEventHandlers', () => {
   let mockRefs: HardwareWalletRefs;
   let mockSetters: HardwareWalletStateSetters;
