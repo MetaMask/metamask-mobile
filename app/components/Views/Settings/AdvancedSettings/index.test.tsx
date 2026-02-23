@@ -108,7 +108,8 @@ describe('AdvancedSettings', () => {
       <AdvancedSettings navigation={defaultNavigation} />,
       { state: initialState },
     );
-    expect(getByText(strings('app_settings.advanced_title'))).toBeTruthy();
+
+    expect(getByText(strings('app_settings.advanced_title'))).toBeOnTheScreen();
   });
 
   it('calls navigation.goBack when back button is pressed', () => {
@@ -117,6 +118,7 @@ describe('AdvancedSettings', () => {
       { state: initialState },
     );
     const backButton = getByTestId('button-icon');
+
     fireEvent.press(backButton);
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
