@@ -133,7 +133,14 @@ export const usePopularTokens = () => {
   // Use ref to track if we've fetched once (avoids dependency in callback)
   const hasFetchedOnceRef = useRef(false);
 
+  // Fetch generation counter to prevent stale responses from overwriting fresh data.
+  // Each fetch captures a snapshot of the counter; if a newer fetch starts before the
+  // older one resolves, the older fetch's state updates are silently discarded.
+  const fetchIdRef = useRef(0);
+
   const fetchPrices = useCallback(async () => {
+    const fetchId = ++fetchIdRef.current;
+
     // Determine if this is initial load or refresh
     if (hasFetchedOnceRef.current) {
       setIsRefreshing(true);
@@ -154,6 +161,9 @@ export const usePopularTokens = () => {
 
       const response = (await handleFetch(url)) as PriceApiResponse;
 
+      // Discard result if a newer fetch has been initiated
+      if (fetchId !== fetchIdRef.current) return;
+
       setRawTokens(
         POPULAR_TOKENS.map((token) => ({
           ...token,
@@ -162,6 +172,9 @@ export const usePopularTokens = () => {
         })),
       );
     } catch (err) {
+      // Discard error if a newer fetch has been initiated
+      if (fetchId !== fetchIdRef.current) return;
+
       setError(
         err instanceof Error ? err : new Error('Failed to fetch prices'),
       );
@@ -174,9 +187,12 @@ export const usePopularTokens = () => {
         })),
       );
     } finally {
-      setIsInitialLoading(false);
-      setIsRefreshing(false);
-      hasFetchedOnceRef.current = true;
+      // Only update loading states if this is still the latest fetch
+      if (fetchId === fetchIdRef.current) {
+        setIsInitialLoading(false);
+        setIsRefreshing(false);
+        hasFetchedOnceRef.current = true;
+      }
     }
   }, [currentCurrency]);
 
