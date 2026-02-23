@@ -54,6 +54,7 @@ import {
   selectProviderTypeByChainId,
 } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
+import { ImportAsset } from '../../utils/utils';
 
 // --- Types ---
 
@@ -202,7 +203,6 @@ const AddCustomToken = ({
   );
 
   const networkName = networkConfig?.name ?? '';
-  const ticker = networkConfig?.nativeCurrency ?? '';
   const networkClientId = defaultEndpoint?.networkClientId ?? null;
 
   // Token metadata (async validation + RPC fetch)
@@ -323,23 +323,22 @@ const AddCustomToken = ({
     if (addressError || symbolError || decimalsError || isLoading) return;
 
     const trimmedAddress = address.trim();
+    const selectedAsset: ImportAsset[] = [
+      {
+        symbol,
+        address: trimmedAddress,
+        image: formatIconUrlWithProxy({
+          chainId: chainId as Hex,
+          tokenAddress: trimmedAddress,
+        }),
+        name,
+        decimals: Number(decimals),
+        chainId: chainId as Hex,
+      },
+    ];
     navigation.push('ConfirmAddAsset', {
-      selectedAsset: [
-        {
-          symbol,
-          address: trimmedAddress,
-          iconUrl: formatIconUrlWithProxy({
-            chainId: chainId as Hex,
-            tokenAddress: trimmedAddress,
-          }),
-          name,
-          decimals,
-          chainId,
-        },
-      ],
+      selectedAsset,
       networkName,
-      chainId,
-      ticker,
       addTokenList: addToken,
     });
   }, [
@@ -353,7 +352,6 @@ const AddCustomToken = ({
     decimals,
     chainId,
     networkName,
-    ticker,
     navigation,
     addToken,
   ]);
