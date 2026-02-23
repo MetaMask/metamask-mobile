@@ -10,8 +10,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import { isAddress as isSolanaAddress } from '@solana/addresses';
-import { isSolanaChainId } from '@metamask/bridge-controller';
 
 import { useStyles } from '../../../hooks';
 import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
@@ -37,7 +35,10 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import ExternalAccountCell from './ExternalAccountCell';
-import { areAddressesEqual, isEthAddress } from '../../../../util/address';
+import {
+  areAddressesEqual,
+  isAddressCompatibleWithChainId,
+} from '../../../../util/address';
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
@@ -156,14 +157,7 @@ const MultichainAccountSelectorList = ({
     if (!shouldShowExternalAccount || !chainId) {
       return true;
     }
-
-    if (isSolanaChainId(chainId)) {
-      return isSolanaAddress(trimmedSearchText);
-    }
-
-    const isEvmChainId =
-      chainId.startsWith('0x') || chainId.startsWith('eip155:');
-    return isEvmChainId ? isEthAddress(trimmedSearchText) : true;
+    return isAddressCompatibleWithChainId(trimmedSearchText, chainId);
   }, [chainId, shouldShowExternalAccount, trimmedSearchText]);
 
   const shouldShowInvalidAddressError =
