@@ -43,6 +43,7 @@ const formatDate = (dateString?: string): string | null => {
   if (!dateString) return null;
   try {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return null;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   } catch {
     return null;
