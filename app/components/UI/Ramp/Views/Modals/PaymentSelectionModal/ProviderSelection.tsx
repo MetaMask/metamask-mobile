@@ -1,5 +1,6 @@
-import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import React, { useCallback } from 'react';
+import { StyleSheet } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { Box } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
@@ -9,137 +10,138 @@ import ListItemColumn, {
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import type { Provider, Quote } from '@metamask/ramps-controller';
+import type {
+  Provider,
+  Quote,
+  QuotesResponse,
+} from '@metamask/ramps-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useFormatters } from '../../../../../hooks/useFormatters';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import QuoteDisplay from './QuoteDisplay';
 import PaymentSelectionAlert from './PaymentSelectionAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
-const SKELETON_ROW_COUNT = 3;
-const SKELETON_NAME_WIDTH = 120;
-const SKELETON_NAME_HEIGHT = 20;
-
 const styles = StyleSheet.create({
-  skeleton: {
-    borderRadius: 4,
-  },
-  scrollView: {
-    flex: 1,
-    minHeight: 0,
-  },
+  list: { flex: 1, minHeight: 0 },
 });
 
 interface ProviderSelectionProps {
+  quotes: QuotesResponse | null;
+  quotesLoading: boolean;
+  quotesError: string | null;
   onBack: () => void;
   onProviderSelect: (provider: Provider) => void;
 }
 
 const ProviderSelection: React.FC<ProviderSelectionProps> = ({
+  quotes,
+  quotesLoading,
+  quotesError,
   onBack,
   onProviderSelect,
 }) => {
   const {
     userRegion,
     selectedToken,
-    setSelectedQuote,
     selectedProvider,
+    selectedPaymentMethod,
     providers,
-    quotes,
-    quotesError,
-    quotesLoading,
   } = useRampsController();
   const { formatToken, formatCurrency } = useFormatters();
-
-  const handleQuotePress = useCallback(
-    (quote: Quote) => {
-      setSelectedQuote(quote);
-      const provider = providers.find((p) => p.id === quote.provider);
-      if (provider) {
-        onProviderSelect(provider);
-      }
-    },
-    [providers, setSelectedQuote, onProviderSelect],
-  );
-
-  const providerIds = useMemo(
-    () => new Set(providers.map((p) => p.id)),
-    [providers],
-  );
-
-  const filteredQuotes = useMemo(
-    () => quotes?.success?.filter((quote) => providerIds.has(quote.provider)),
-    [quotes, providerIds],
-  );
 
   const currency = userRegion?.country?.currency ?? 'USD';
   const symbol = selectedToken?.symbol ?? '';
 
-  if (quotesLoading) {
-    return (
-      <Box twClassName="flex-1 min-h-0">
-        <HeaderCompactStandard
-          title={strings('fiat_on_ramp.providers')}
-          onBack={onBack}
-        />
-        <ScrollView style={styles.scrollView}>
-          {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
-            <ListItemSelect
-              key={`skeleton-${index}`}
-              isSelected={false}
-              onPress={undefined}
-              accessibilityRole="button"
-              accessible
-            >
-              <ListItemColumn widthType={WidthType.Fill}>
-                <Skeleton
-                  width={SKELETON_NAME_WIDTH}
-                  height={SKELETON_NAME_HEIGHT}
-                  style={styles.skeleton}
-                />
-              </ListItemColumn>
-              <ListItemColumn widthType={WidthType.Auto}>
-                <QuoteDisplay cryptoAmount="" fiatAmount={null} isLoading />
-              </ListItemColumn>
-            </ListItemSelect>
-          ))}
-        </ScrollView>
-      </Box>
-    );
-  }
+  const handleProviderSelect = useCallback(
+    (provider: Provider, _matchedQuote: Quote | null) => {
+      onProviderSelect(provider);
+    },
+    [onProviderSelect],
+  );
 
-  if (quotesError) {
-    return (
-      <Box twClassName="flex-1 min-h-0">
-        <HeaderCompactStandard
-          title={strings('fiat_on_ramp.providers')}
-          onBack={onBack}
-        />
-        <ScrollView style={styles.scrollView}>
-          <PaymentSelectionAlert
-            message={quotesError}
-            severity={BannerAlertSeverity.Error}
-          />
-        </ScrollView>
-      </Box>
-    );
-  }
+  const renderItem = useCallback(
+    ({ item: provider }: { item: Provider }) => {
+      const matchedQuote =
+        quotes?.success?.find(
+          (q) =>
+            q.provider === provider.id &&
+            (!selectedPaymentMethod ||
+              q.quote?.paymentMethod === selectedPaymentMethod.id),
+        ) ??
+        quotes?.success?.find((q) => q.provider === provider.id) ??
+        null;
+      const amountOut = matchedQuote?.quote?.amountOut;
+      const cryptoAmount =
+        amountOut != null && symbol
+          ? formatToken(Number(amountOut), symbol, {
+              maximumFractionDigits: 6,
+              minimumFractionDigits: 0,
+            })
+          : '';
+      const fiatAmount =
+        matchedQuote?.quote?.amountOutInFiat != null
+          ? formatCurrency(Number(matchedQuote.quote.amountOutInFiat), currency)
+          : null;
+      const isSelected = selectedProvider?.id === provider.id;
 
-  if (!filteredQuotes || filteredQuotes.length === 0) {
+      return (
+        <ListItemSelect
+          isSelected={isSelected}
+          onPress={() => handleProviderSelect(provider, matchedQuote)}
+          accessibilityRole="button"
+          accessible
+        >
+          <ListItemColumn widthType={WidthType.Fill}>
+            <Text variant={TextVariant.BodyLGMedium}>{provider.name}</Text>
+          </ListItemColumn>
+          <ListItemColumn widthType={WidthType.Auto}>
+            {quotesLoading ? (
+              <QuoteDisplay cryptoAmount="" fiatAmount={null} isLoading />
+            ) : matchedQuote ? (
+              <QuoteDisplay
+                cryptoAmount={cryptoAmount}
+                fiatAmount={fiatAmount}
+              />
+            ) : (
+              <QuoteDisplay
+                cryptoAmount=""
+                fiatAmount={null}
+                quoteUnavailable
+              />
+            )}
+          </ListItemColumn>
+        </ListItemSelect>
+      );
+    },
+    [
+      quotes,
+      symbol,
+      currency,
+      selectedProvider,
+      selectedPaymentMethod,
+      quotesLoading,
+      handleProviderSelect,
+      formatToken,
+      formatCurrency,
+    ],
+  );
+
+  const keyExtractor = useCallback((item: Provider) => item.id, []);
+
+  if (providers.length === 0) {
     return (
       <Box twClassName="flex-1 min-h-0">
         <HeaderCompactStandard
           title={strings('fiat_on_ramp.providers')}
           onBack={onBack}
         />
-        <ScrollView style={styles.scrollView}>
+        <Box twClassName="flex-1 px-4">
           <PaymentSelectionAlert
             message={strings('fiat_on_ramp.no_quotes_available')}
             severity={BannerAlertSeverity.Error}
           />
-        </ScrollView>
+        </Box>
       </Box>
     );
   }
@@ -150,44 +152,22 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
         title={strings('fiat_on_ramp.providers')}
         onBack={onBack}
       />
-      <ScrollView style={styles.scrollView}>
-        {filteredQuotes?.map((quote) => {
-          const provider = providers.find((p) => p.id === quote.provider);
-          const amountOut = quote.quote?.amountOut;
-          const cryptoAmount =
-            amountOut != null && symbol
-              ? formatToken(Number(amountOut), symbol, {
-                  maximumFractionDigits: 6,
-                  minimumFractionDigits: 0,
-                })
-              : '';
-          const fiatAmount =
-            quote.quote?.amountOutInFiat != null
-              ? formatCurrency(Number(quote.quote.amountOutInFiat), currency)
-              : null;
-          const isSelected = selectedProvider?.id === quote.provider;
-
-          return (
-            <ListItemSelect
-              key={quote.provider}
-              isSelected={isSelected}
-              onPress={() => handleQuotePress(quote)}
-              accessibilityRole="button"
-              accessible
-            >
-              <ListItemColumn widthType={WidthType.Fill}>
-                <Text variant={TextVariant.BodyLGMedium}>{provider?.name}</Text>
-              </ListItemColumn>
-              <ListItemColumn widthType={WidthType.Auto}>
-                <QuoteDisplay
-                  cryptoAmount={cryptoAmount}
-                  fiatAmount={fiatAmount}
-                />
-              </ListItemColumn>
-            </ListItemSelect>
-          );
-        })}
-      </ScrollView>
+      {quotesError ? (
+        <Box twClassName="px-4">
+          <PaymentSelectionAlert
+            message={quotesError}
+            severity={BannerAlertSeverity.Error}
+          />
+        </Box>
+      ) : null}
+      <FlatList
+        style={styles.list}
+        data={providers}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        keyboardDismissMode="none"
+        keyboardShouldPersistTaps="always"
+      />
     </Box>
   );
 };

@@ -68,4 +68,11 @@ describe('QuoteDisplay', () => {
     );
     expect(toJSON()).toMatchSnapshot();
   });
+
+  it('matches snapshot when quote is unavailable', () => {
+    const { toJSON } = renderWithTheme(
+      <QuoteDisplay cryptoAmount="" fiatAmount={null} quoteUnavailable />,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
 });

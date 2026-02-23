@@ -374,6 +374,7 @@ describe('PaymentSelectionModal', () => {
         '/payments/debit-credit-card-1',
         '/payments/debit-credit-card-2',
       ],
+      forceRefresh: true,
     });
   });
 
@@ -401,6 +402,7 @@ describe('PaymentSelectionModal', () => {
         assetId: 'eip155:1/slip44:60',
         providers: ['/providers/transak', '/providers/moonpay'],
         paymentMethods: ['/payments/debit-credit-card-1'],
+        forceRefresh: true,
       });
     });
   });

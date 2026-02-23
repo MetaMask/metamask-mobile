@@ -33,6 +33,7 @@ import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentS
 import { createProviderPickerModalNavigationDetails } from '../Modals/ProviderPickerModal';
 import { createCheckoutNavDetails } from '../Checkout';
 import {
+  type Quote,
   isNativeProvider,
   getQuoteProviderName,
   getQuoteBuyUserAgent,
@@ -115,13 +116,16 @@ function BuildQuote() {
     userRegion,
     selectedProvider,
     selectedToken,
-    selectedQuote,
-    quotesLoading,
-    fetchQuotesForSelection,
+    getQuotes,
     getWidgetUrl,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
+
+  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [selectedQuoteLoading, setSelectedQuoteLoading] = useState(false);
+  const [widgetUrl, setWidgetUrl] = useState<string | null>(null);
+  const [, setWidgetUrlLoading] = useState(false);
 
   const {
     checkExistingToken: transakCheckExistingToken,
@@ -214,27 +218,90 @@ function BuildQuote() {
       !isOnBuildQuoteScreen ||
       !walletAddress ||
       !selectedPaymentMethod ||
+      !selectedProvider ||
+      !selectedToken?.assetId ||
       debouncedPollingAmount <= 0
     ) {
+      setSelectedQuote(null);
+      setWidgetUrl(null);
       return;
     }
 
-    try {
-      fetchQuotesForSelection({
-        walletAddress,
-        amount: debouncedPollingAmount,
-        redirectUrl: getRampCallbackBaseUrl(),
+    let cancelled = false;
+    setSelectedQuoteLoading(true);
+    setSelectedQuote(null);
+    setWidgetUrl(null);
+
+    getQuotes({
+      assetId: selectedToken.assetId,
+      amount: debouncedPollingAmount,
+      walletAddress,
+      redirectUrl: getRampCallbackBaseUrl(),
+      paymentMethods: [selectedPaymentMethod.id],
+      providers: [selectedProvider.id],
+      forceRefresh: true,
+    })
+      .then((response) => {
+        if (cancelled) return;
+        if (response.success.length === 1) {
+          setSelectedQuote(response.success[0]);
+        } else if (response.success.length > 1) {
+          const match = response.success.find(
+            (q) =>
+              q.provider === selectedProvider.id &&
+              q.quote?.paymentMethod === selectedPaymentMethod.id,
+          );
+          setSelectedQuote(match ?? response.success[0]);
+        } else {
+          setSelectedQuote(null);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          Logger.log('BuildQuote: Failed to fetch quotes', error);
+          setSelectedQuote(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setSelectedQuoteLoading(false);
+        }
       });
-    } catch (error) {
-      Logger.log('BuildQuote: Missing required selection for quotes', error);
-    }
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     walletAddress,
     selectedPaymentMethod,
+    selectedProvider,
+    selectedToken?.assetId,
     debouncedPollingAmount,
-    fetchQuotesForSelection,
+    getQuotes,
     isOnBuildQuoteScreen,
   ]);
+
+  useEffect(() => {
+    const quote = selectedQuote;
+    if (!quote?.quote?.buyURL || isNativeProvider(quote)) {
+      setWidgetUrl(null);
+      setWidgetUrlLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setWidgetUrlLoading(true);
+    getWidgetUrl(quote).then((url) => {
+      if (!cancelled) {
+        setWidgetUrl(url);
+        setWidgetUrlLoading(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedQuote, getWidgetUrl]);
 
   const handleContinuePress = useCallback(async () => {
     if (!selectedQuote) return;
@@ -305,36 +372,39 @@ function BuildQuote() {
     }
 
     // Aggregator provider -> needs a widget URL
-    // Note: CustomActions (e.g., PayPal) are handled through the same flow.
-    // If the API returns a quote with a URL, it will be opened in the checkout webview.
-    // If customActions appear without a URL, they will error here (needs backend fix).
-    try {
-      const widgetUrl = await getWidgetUrl(selectedQuote);
-
-      if (widgetUrl) {
-        navigation.navigate(
-          ...createCheckoutNavDetails({
-            url: widgetUrl,
-            providerName: getQuoteProviderName(selectedQuote),
-            userAgent: getQuoteBuyUserAgent(selectedQuote),
-          }),
-        );
-      } else {
-        Logger.error(
-          new Error('No widget URL available for aggregator provider'),
-          { provider: selectedQuote.provider },
-        );
-        // TODO: Show user-facing error (alert or inline)
+    // Use optimistic Continue: if widgetUrl prefetched, navigate immediately; else await fetch
+    let urlToUse = widgetUrl;
+    if (!urlToUse) {
+      setIsContinueLoading(true);
+      try {
+        urlToUse = await getWidgetUrl(selectedQuote);
+      } catch (error) {
+        Logger.error(error as Error, {
+          provider: selectedQuote.provider,
+          message: 'Failed to fetch widget URL',
+        });
+      } finally {
+        setIsContinueLoading(false);
       }
-    } catch (error) {
-      Logger.error(error as Error, {
-        provider: selectedQuote.provider,
-        message: 'Failed to fetch widget URL',
-      });
-      // TODO: Show user-facing error (alert or inline)
+    }
+
+    if (urlToUse) {
+      navigation.navigate(
+        ...createCheckoutNavDetails({
+          url: urlToUse,
+          providerName: getQuoteProviderName(selectedQuote),
+          userAgent: getQuoteBuyUserAgent(selectedQuote),
+        }),
+      );
+    } else {
+      Logger.error(
+        new Error('No widget URL available for aggregator provider'),
+        { provider: selectedQuote.provider },
+      );
     }
   }, [
     selectedQuote,
+    widgetUrl,
     navigation,
     getWidgetUrl,
     amountAsNumber,
@@ -380,7 +450,7 @@ function BuildQuote() {
 
   const canContinue =
     hasAmount &&
-    !quotesLoading &&
+    !selectedQuoteLoading &&
     selectedQuote !== null &&
     quoteMatchesAmount &&
     quoteMatchesCurrentContext;
@@ -441,7 +511,7 @@ function BuildQuote() {
                 onPress={handleContinuePress}
                 isFullWidth
                 isDisabled={!canContinue}
-                isLoading={quotesLoading || isContinueLoading}
+                isLoading={selectedQuoteLoading || isContinueLoading}
                 testID={BuildQuoteSelectors.CONTINUE_BUTTON}
               >
                 {strings('fiat_on_ramp.continue')}

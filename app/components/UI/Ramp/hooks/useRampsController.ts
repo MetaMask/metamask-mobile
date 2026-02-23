@@ -55,14 +55,8 @@ export interface UseRampsControllerResult {
   paymentMethodsError: UseRampsPaymentMethodsResult['error'];
 
   // Quotes
-  quotes: UseRampsQuotesResult['quotes'];
-  selectedQuote: UseRampsQuotesResult['selectedQuote'];
   getQuotes: UseRampsQuotesResult['getQuotes'];
-  setSelectedQuote: UseRampsQuotesResult['setSelectedQuote'];
-  fetchQuotesForSelection: UseRampsQuotesResult['fetchQuotesForSelection'];
   getWidgetUrl: UseRampsQuotesResult['getWidgetUrl'];
-  quotesLoading: UseRampsQuotesResult['isLoading'];
-  quotesError: UseRampsQuotesResult['error'];
 }
 
 /**
@@ -105,13 +99,8 @@ export interface UseRampsControllerResult {
  *   paymentMethodsError,
  *
  *   // Quotes
- *   quotes,
- *   selectedQuote,
- *   fetchQuotesForSelection,
- *   quotesLoading,
- *   quotesError,
  *   getQuotes,
- *   setSelectedQuote,
+ *   getWidgetUrl,
  *
  * } = useRampsController();
  * ```
@@ -149,16 +138,7 @@ export function useRampsController(): UseRampsControllerResult {
     error: paymentMethodsError,
   } = useRampsPaymentMethods();
 
-  const {
-    quotes,
-    selectedQuote,
-    fetchQuotesForSelection,
-    getWidgetUrl,
-    isLoading: quotesLoading,
-    error: quotesError,
-    getQuotes,
-    setSelectedQuote,
-  } = useRampsQuotes();
+  const { getQuotes, getWidgetUrl } = useRampsQuotes();
 
   return {
     // User region
@@ -193,14 +173,8 @@ export function useRampsController(): UseRampsControllerResult {
     paymentMethodsError,
 
     // Quotes
-    quotes,
-    selectedQuote,
     getQuotes,
-    setSelectedQuote,
-    fetchQuotesForSelection,
     getWidgetUrl,
-    quotesLoading,
-    quotesError,
   };
 }
 

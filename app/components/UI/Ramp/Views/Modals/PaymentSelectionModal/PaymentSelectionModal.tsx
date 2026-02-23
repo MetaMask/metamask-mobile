@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import type { CaipChainId } from '@metamask/utils';
+import type { QuotesResponse , PaymentMethod, Provider } from '@metamask/ramps-controller';
 import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Animated, {
@@ -40,7 +41,6 @@ import PaymentMethodListItem from './PaymentMethodListItem';
 import PaymentMethodListSkeleton from './PaymentMethodListSkeleton';
 import PaymentSelectionAlert from './PaymentSelectionAlert';
 import ProviderSelection from './ProviderSelection';
-import type { PaymentMethod, Provider } from '@metamask/ramps-controller';
 import { useRampsController } from '../../../hooks/useRampsController';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 
@@ -81,12 +81,14 @@ function PaymentSelectionModal() {
     paymentMethodsError,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
-    quotes,
-    quotesLoading,
     getQuotes,
     userRegion,
     selectedToken,
   } = useRampsController();
+
+  const [quotes, setQuotes] = useState<QuotesResponse | null>(null);
+  const [quotesLoading, setQuotesLoading] = useState(false);
+  const [quotesError, setQuotesError] = useState<string | null>(null);
 
   const amount = routeAmount ?? DEFAULT_QUOTE_AMOUNT;
   const walletAddress =
@@ -105,15 +107,41 @@ function PaymentSelectionModal() {
   const translateX = useSharedValue(0);
 
   useEffect(() => {
+    if (activeView !== ViewType.PAYMENT || !walletAddress || !assetId) return;
+    let cancelled = false;
+    setQuotesLoading(true);
     getQuotes({
       amount,
       walletAddress,
       assetId,
       providers: selectedProvider ? [selectedProvider.id] : undefined,
       paymentMethods: paymentMethodIds,
-    });
-    return;
+      forceRefresh: true,
+    })
+      .then((data) => {
+        if (!cancelled) {
+          setQuotes(data);
+          setQuotesError(null);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setQuotes(null);
+          setQuotesError(
+            err instanceof Error ? err.message : 'Failed to fetch quotes',
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setQuotesLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [
+    activeView,
     getQuotes,
     amount,
     walletAddress,
@@ -140,6 +168,8 @@ function PaymentSelectionModal() {
   }));
 
   const handleChangeProviderPress = useCallback(() => {
+    setQuotesLoading(true);
+    setQuotesError(null);
     getQuotes({
       amount,
       walletAddress,
@@ -148,7 +178,20 @@ function PaymentSelectionModal() {
       paymentMethods: selectedPaymentMethod
         ? [selectedPaymentMethod.id]
         : undefined,
-    });
+      forceRefresh: true,
+    })
+      .then((data) => {
+        setQuotes(data);
+      })
+      .catch((err) => {
+        setQuotes(null);
+        setQuotesError(
+          err instanceof Error ? err.message : 'Failed to fetch quotes',
+        );
+      })
+      .finally(() => {
+        setQuotesLoading(false);
+      });
     setActiveView(ViewType.PROVIDER);
   }, [
     amount,
@@ -160,13 +203,28 @@ function PaymentSelectionModal() {
   ]);
 
   const handleProviderBack = useCallback(() => {
+    setQuotesLoading(true);
+    setQuotesError(null);
     getQuotes({
       amount,
       walletAddress,
       assetId,
       providers: selectedProvider ? [selectedProvider.id] : undefined,
       paymentMethods: paymentMethodIds,
-    });
+      forceRefresh: true,
+    })
+      .then((data) => {
+        setQuotes(data);
+      })
+      .catch((err) => {
+        setQuotes(null);
+        setQuotesError(
+          err instanceof Error ? err.message : 'Failed to fetch quotes',
+        );
+      })
+      .finally(() => {
+        setQuotesLoading(false);
+      });
     setActiveView(ViewType.PAYMENT);
   }, [
     amount,
@@ -330,6 +388,9 @@ function PaymentSelectionModal() {
           </View>
           <View style={styles.panel}>
             <ProviderSelection
+              quotes={quotes}
+              quotesLoading={quotesLoading}
+              quotesError={quotesError}
               onProviderSelect={handleProviderSelect}
               onBack={handleProviderBack}
             />
