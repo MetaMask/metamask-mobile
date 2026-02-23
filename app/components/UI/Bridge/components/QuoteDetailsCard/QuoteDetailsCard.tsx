@@ -45,6 +45,7 @@ import { useLatestBalance } from '../../hooks/useLatestBalance';
 import TagColored, {
   TagColor,
 } from '../../../../../component-library/components-temp/TagColored';
+import AppConstants from '../../../../../core/AppConstants';
 
 if (
   Platform.OS === 'android' &&
@@ -52,9 +53,6 @@ if (
 ) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-
-const PRICE_IMPACT_WARNING_THRESHOLD = 5;
-const PRICE_IMPACT_ERROR_THRESHOLD = 25;
 
 export const getPriceImpactTextColor = (
   priceImpactValue?: string,
@@ -69,11 +67,11 @@ export const getPriceImpactTextColor = (
     return TextColor.Alternative;
   }
 
-  if (priceImpact > PRICE_IMPACT_ERROR_THRESHOLD) {
+  if (priceImpact > AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD) {
     return TextColor.Error;
   }
 
-  if (priceImpact > PRICE_IMPACT_WARNING_THRESHOLD) {
+  if (priceImpact > AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD) {
     return TextColor.Warning;
   }
 
