@@ -8,6 +8,9 @@ import {
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { MMM_ORIGIN } from '../../constants/confirmations';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { MusdConversionVariant } from '../../../../UI/Earn/types/musd.types';
+import type { ConfirmationParams } from '../../components/confirm/confirm-component';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
@@ -15,6 +18,12 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 }));
 
 describe('useFullScreenConfirmation', () => {
+  const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
+
+  beforeEach(() => {
+    mockUseParams.mockReturnValue({});
+  });
+
   it('returns true for staking confirmation', async () => {
     const { result } = renderHookWithProvider(useFullScreenConfirmation, {
       state: stakingDepositConfirmationState,
@@ -66,6 +75,58 @@ describe('useFullScreenConfirmation', () => {
       });
 
       expect(result.current.isFullScreenConfirmation).toBe(false);
+    });
+  });
+
+  describe('musd conversion variants', () => {
+    it('returns false for quick convert variant', async () => {
+      mockUseParams.mockReturnValue({
+        variant: MusdConversionVariant.QUICK_CONVERT,
+      } as ConfirmationParams);
+
+      const { result } = renderHookWithProvider(useFullScreenConfirmation, {
+        state: merge({}, transferConfirmationState, {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [
+                  {
+                    origin: MMM_ORIGIN,
+                    type: TransactionType.musdConversion,
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      });
+
+      expect(result.current.isFullScreenConfirmation).toBe(false);
+    });
+
+    it('returns true for non-overridden variant', async () => {
+      mockUseParams.mockReturnValue({
+        variant: undefined,
+      } as ConfirmationParams);
+
+      const { result } = renderHookWithProvider(useFullScreenConfirmation, {
+        state: merge({}, transferConfirmationState, {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [
+                  {
+                    origin: MMM_ORIGIN,
+                    type: TransactionType.musdConversion,
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      });
+
+      expect(result.current.isFullScreenConfirmation).toBe(true);
     });
   });
 });
