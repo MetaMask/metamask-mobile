@@ -5,11 +5,13 @@ import {
   setDestAddress,
   selectDestToken,
 } from '../../../../core/redux/slices/bridge';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { useDestinationAccounts } from './useDestinationAccounts';
-import { areAddressesEqual } from '../../../../util/address';
+import { areAddressesEqual, isEthAddress } from '../../../../util/address';
 
 export const useRecipientInitialization = (
   hasInitializedRecipient: React.MutableRefObject<boolean>,
@@ -21,6 +23,19 @@ export const useRecipientInitialization = (
 
   const destAddress = useSelector(selectDestAddress);
   const destToken = useSelector(selectDestToken);
+
+  const isExternalAddressCompatibleWithDestChain = useCallback(
+    (address: string, chainId: string) => {
+      if (isSolanaChainId(chainId)) {
+        return isSolanaAddress(address);
+      }
+
+      const isEvmChainId =
+        chainId.startsWith('0x') || chainId.startsWith('eip155:');
+      return isEvmChainId ? isEthAddress(address) : true;
+    },
+    [],
+  );
 
   const handleSelectAccount = useCallback(
     (caipAccountId: CaipAccountId | undefined) => {
@@ -44,9 +59,12 @@ export const useRecipientInitialization = (
       areAddressesEqual(internalAccount.address, destAddress),
     );
 
-    // Preserve external recipients selected by the user.
+    // Preserve external recipients only if they are compatible with dest chain.
     if (!isInternalDestAddress) {
-      return true;
+      return isExternalAddressCompatibleWithDestChain(
+        destAddress,
+        destToken.chainId,
+      );
     }
 
     if (destinationAccounts.length === 0) {
@@ -59,7 +77,13 @@ export const useRecipientInitialization = (
     return destinationAccounts.some((account) =>
       areAddressesEqual(account.address, destAddress),
     );
-  }, [destAddress, destToken?.chainId, destinationAccounts, internalAccounts]);
+  }, [
+    destAddress,
+    destToken?.chainId,
+    destinationAccounts,
+    internalAccounts,
+    isExternalAddressCompatibleWithDestChain,
+  ]);
 
   // Initialize default recipient account
   useEffect(() => {

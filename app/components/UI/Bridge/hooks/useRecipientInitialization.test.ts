@@ -15,6 +15,7 @@ const mockUseDestinationAccounts = jest.mocked(useDestinationAccounts);
 
 const INTERNAL_EVM_ADDRESS = '0x1234567890123456789012345678901234567890';
 const EXTERNAL_EVM_ADDRESS = '0x9999999999999999999999999999999999999999';
+const EXTERNAL_SOLANA_ADDRESS = '11111111111111111111111111111111';
 
 const evmDestinationAccount = {
   id: 'evm-account-1',
@@ -62,6 +63,21 @@ describe('useRecipientInitialization', () => {
 
     await waitFor(() => {
       expect(store.getState().bridge.destAddress).toBe(EXTERNAL_EVM_ADDRESS);
+    });
+  });
+
+  it('reinitializes to an internal destination account when external address is incompatible with destination chain', async () => {
+    const state = createBridgeTestState({
+      bridgeReducerOverrides: {
+        destToken: evmDestToken,
+        destAddress: EXTERNAL_SOLANA_ADDRESS,
+      },
+    });
+
+    const { store } = renderRecipientInitializationHook(state);
+
+    await waitFor(() => {
+      expect(store.getState().bridge.destAddress).toBe(INTERNAL_EVM_ADDRESS);
     });
   });
 
