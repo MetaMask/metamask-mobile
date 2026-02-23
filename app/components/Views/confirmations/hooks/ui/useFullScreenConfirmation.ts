@@ -10,6 +10,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import useApprovalRequest from '../useApprovalRequest';
 import { hasTransactionType } from '../../utils/transaction';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { ConfirmationParams } from '../../components/confirm/confirm-component';
 
 const getIsFullScreenConfirmation = (
   approvalRequest: ApprovalRequest<TransactionMeta> | undefined,
@@ -46,7 +47,7 @@ export const useFullScreenConfirmation = () => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const isInternalConfirmation = useIsInternalConfirmation();
-  const { variant } = useParams<{ variant?: string }>();
+  const { variant } = useParams<ConfirmationParams>();
 
   const isFullScreenConfirmation = getIsFullScreenConfirmation(
     approvalRequest,
