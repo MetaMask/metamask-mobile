@@ -64,9 +64,23 @@ export interface ABTestExposureMetadata<T extends ABTestVariants> {
 }
 
 const trackedExposureAssignments = new Set<string>();
+const MAX_TRACKED_EXPOSURE_ASSIGNMENTS = 500;
 
 const getExposureCacheKey = (experimentId: string, variationId: string) =>
   `${experimentId}::${variationId}`;
+
+const rememberExposureAssignment = (assignmentKey: string) => {
+  if (trackedExposureAssignments.has(assignmentKey)) {
+    return;
+  }
+  if (trackedExposureAssignments.size >= MAX_TRACKED_EXPOSURE_ASSIGNMENTS) {
+    const oldestAssignment = trackedExposureAssignments.values().next().value;
+    if (oldestAssignment) {
+      trackedExposureAssignments.delete(oldestAssignment);
+    }
+  }
+  trackedExposureAssignments.add(assignmentKey);
+};
 
 /**
  * Generic hook for A/B testing in React components
@@ -182,7 +196,7 @@ export function useABTest<T extends ABTestVariants>(
     const variationId = String(variantName);
     const assignmentKey = getExposureCacheKey(flagKey, variationId);
 
-    // Emit one exposure per experiment assignment per app session.
+    // Emit one exposure per experiment+variation assignment per app session.
     if (trackedExposureAssignments.has(assignmentKey)) {
       return;
     }
@@ -205,7 +219,7 @@ export function useABTest<T extends ABTestVariants>(
           })
           .build(),
       );
-      trackedExposureAssignments.add(assignmentKey);
+      rememberExposureAssignment(assignmentKey);
     } catch {
       // Do not cache failed emits so the hook can retry next evaluation.
       return;
