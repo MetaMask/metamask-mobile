@@ -104,29 +104,31 @@ class ReadOnlyNetworkStore {
 
     try {
       for (const url of urls) {
+        let response;
         try {
-          const response = await fetchWithTimeout(url);
-          if (response.status === 200) {
-            this._state = response.data?.state;
-            this._asyncState = response.data?.asyncState;
-            // Write any filesystemStorage entries so StorageService can read them
-            // (e.g. snap source code migrated out of SnapController state by migration 119)
-            const filesystemStorage = response.data?.filesystemStorage;
-            if (filesystemStorage) {
-              await Promise.all(
-                Object.entries(filesystemStorage).map(([key, value]) =>
-                  FilesystemStorage.setItem(key, value, Device.isIos()),
-                ),
-              );
-            }
-            // eslint-disable-next-line no-console
-            console.debug(`Successfully loaded fixture state from ${url}`);
-            return;
-          }
+          response = await fetchWithTimeout(url);
         } catch (error) {
           // eslint-disable-next-line no-console
           console.debug(`Error loading network state from ${url}: '${error}'`);
           // Continue to next URL if this one failed
+          continue;
+        }
+        if (response.status === 200) {
+          this._state = response.data?.state;
+          this._asyncState = response.data?.asyncState;
+          // Write any filesystemStorage entries so StorageService can read them
+          // (e.g. snap source code migrated out of SnapController state by migration 119)
+          const filesystemStorage = response.data?.filesystemStorage;
+          if (filesystemStorage) {
+            await Promise.all(
+              Object.entries(filesystemStorage).map(([key, value]) =>
+                FilesystemStorage.setItem(key, value, Device.isIos()),
+              ),
+            );
+          }
+          // eslint-disable-next-line no-console
+          console.debug(`Successfully loaded fixture state from ${url}`);
+          return;
         }
       }
     } catch (error) {
