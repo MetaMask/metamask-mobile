@@ -159,7 +159,7 @@ describe('AssetOverviewContent', () => {
   describe('Long / Short with perps eligibility', () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      mockBuild.mockReturnValue({ category: 'market-insights-clicked' });
+      mockBuild.mockReturnValue({ category: 'market-insights-opened' });
       mockAddProperties.mockReturnValue({ build: mockBuild });
       mockCreateEventBuilder.mockReturnValue({
         addProperties: mockAddProperties,
@@ -279,13 +279,13 @@ describe('AssetOverviewContent', () => {
         }),
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MARKET_INSIGHTS_CLICKED,
+        MetaMetricsEvents.MARKET_INSIGHTS_OPENED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         caip19: 'eip155:1/erc20:0x123',
       });
       expect(mockTrackEvent).toHaveBeenCalledWith({
-        category: 'market-insights-clicked',
+        category: 'market-insights-opened',
       });
     });
   });

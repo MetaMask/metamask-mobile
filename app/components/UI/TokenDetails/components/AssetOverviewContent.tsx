@@ -317,9 +317,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const handleMarketInsightsPress = useCallback(() => {
     if (marketInsightsCaip19Id) {
-      const event = createEventBuilder(
-        MetaMetricsEvents.MARKET_INSIGHTS_CLICKED,
-      )
+      const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
         .addProperties({
           caip19: marketInsightsCaip19Id,
         })
