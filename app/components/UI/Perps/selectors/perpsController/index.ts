@@ -106,6 +106,16 @@ export const createSelectIsWatchlistMarket = (symbol: string) =>
     selectIsWatchlistMarket(perpsControllerState, symbol),
   );
 
+const selectCachedMarketData = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => perpsControllerState?.cachedMarketData ?? null,
+);
+
+const selectCachedPositions = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => perpsControllerState?.cachedPositions ?? null,
+);
+
 export {
   selectPerpsProvider,
   selectPerpsAccountState,
@@ -119,4 +129,6 @@ export {
   selectPerpsInitializationState,
   selectIsPerpsBalanceSelected,
   selectPerpsPayWithToken,
+  selectCachedMarketData,
+  selectCachedPositions,
 };

@@ -7739,6 +7739,7 @@
       "predictions": "Predictions",
       "defi": "DeFi",
       "nfts": "NFTs",
+      "trending_perps": "Trending Perps",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "more_predictions": "More predictions"
@@ -7746,6 +7747,9 @@
     "error": {
       "unable_to_load": "Unable to load {{section}}",
       "retry": "Retry"
+    },
+    "positions": {
+      "no_tp_sl": "No TP/SL"
     }
   }
 }

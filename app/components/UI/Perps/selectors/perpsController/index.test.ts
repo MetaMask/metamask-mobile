@@ -13,6 +13,8 @@ import {
   selectPerpsInitializationState,
   selectPerpsPayWithToken,
   selectIsPerpsBalanceSelected,
+  selectCachedMarketData,
+  selectCachedPositions,
 } from './index';
 
 describe('PerpsController Selectors', () => {
@@ -831,6 +833,88 @@ describe('PerpsController Selectors', () => {
       const result = selectPerpsPayWithToken(mockState);
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectCachedMarketData', () => {
+    it('returns cached market data when available', () => {
+      const marketData = [{ symbol: 'BTC', price: '100000' }];
+      const mockState = createMockState({ cachedMarketData: marketData });
+
+      const result = selectCachedMarketData(mockState);
+
+      expect(result).toEqual(marketData);
+    });
+
+    it('returns null when cachedMarketData is undefined', () => {
+      const mockState = createMockState({});
+
+      const result = selectCachedMarketData(mockState);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when PerpsController is undefined', () => {
+      const mockState = createMockState();
+
+      const result = selectCachedMarketData(mockState);
+
+      expect(result).toBeNull();
+    });
+
+    it('memoizes the result for the same state', () => {
+      const marketData = [{ symbol: 'ETH' }];
+      const mockState = createMockState({ cachedMarketData: marketData });
+
+      const result1 = selectCachedMarketData(mockState);
+      const result2 = selectCachedMarketData(mockState);
+
+      expect(result1).toBe(result2);
+    });
+  });
+
+  describe('selectCachedPositions', () => {
+    it('returns cached positions when available', () => {
+      const positions = [{ symbol: 'BTC', size: '0.01', entryPrice: '100000' }];
+      const mockState = createMockState({ cachedPositions: positions });
+
+      const result = selectCachedPositions(mockState);
+
+      expect(result).toEqual(positions);
+    });
+
+    it('returns null when cachedPositions is undefined', () => {
+      const mockState = createMockState({});
+
+      const result = selectCachedPositions(mockState);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when PerpsController is undefined', () => {
+      const mockState = createMockState();
+
+      const result = selectCachedPositions(mockState);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns empty array when cachedPositions is empty', () => {
+      const mockState = createMockState({ cachedPositions: [] });
+
+      const result = selectCachedPositions(mockState);
+
+      expect(result).toEqual([]);
+    });
+
+    it('memoizes the result for the same state', () => {
+      const positions = [{ symbol: 'SOL' }];
+      const mockState = createMockState({ cachedPositions: positions });
+
+      const result1 = selectCachedPositions(mockState);
+      const result2 = selectCachedPositions(mockState);
+
+      expect(result1).toBe(result2);
     });
   });
 });
