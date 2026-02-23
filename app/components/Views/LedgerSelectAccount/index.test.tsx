@@ -89,7 +89,10 @@ jest.mock('../../hooks/Ledger/useLedgerBluetooth', () => ({
   default: jest.fn((_deviceId?: string) => ({
     isSendingLedgerCommands: false,
     isAppLaunchConfirmationNeeded: false,
-    ledgerLogicToRun: jest.fn(async (fn: () => Promise<void>) => fn()),
+    ledgerLogicToRun: jest.fn(
+      async (fn: (transport: unknown) => Promise<void>) =>
+        fn(undefined as unknown),
+    ),
     error: undefined,
   })),
 }));
@@ -214,14 +217,13 @@ describe('LedgerSelectAccount', () => {
     mockUnlockLedgerWalletAccount.mockResolvedValue(undefined);
     mockForgetLedger.mockResolvedValue(undefined);
 
-    (
-      useLedgerBluetooth as unknown as jest.MockedFunction<
-        typeof useLedgerBluetooth
-      >
-    ).mockImplementation(() => ({
+    (useLedgerBluetooth as jest.Mock).mockImplementation(() => ({
       isSendingLedgerCommands: false,
       isAppLaunchConfirmationNeeded: false,
-      ledgerLogicToRun: jest.fn(async (fn: () => Promise<void>) => fn()),
+      ledgerLogicToRun: jest.fn(
+        async (fn: (transport: unknown) => Promise<void>) =>
+          fn(undefined as unknown),
+      ),
       error: undefined,
       cleanupBluetoothConnection: jest.fn(),
     }));
