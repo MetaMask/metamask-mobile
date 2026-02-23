@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
 import { RootState } from '../../../reducers';
+import { createDeepEqualSelector } from '../../util';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
@@ -99,25 +100,26 @@ export const selectPayPostQuoteFlags = createSelector(
  * Resolves the effective post-quote config for a given transaction type.
  * If the type has an override entry, unset properties fall back to default.
  */
-export function selectPayQuoteConfig(
-  state: RootState,
-  transactionType?: string,
-): PayPostQuoteConfig {
-  const flags = selectPayPostQuoteFlags(state);
+export const selectPayQuoteConfig = createDeepEqualSelector(
+  [
+    selectPayPostQuoteFlags,
+    (_state: RootState, transactionType?: string) => transactionType,
+  ],
+  (flags, transactionType): PayPostQuoteConfig => {
+    const override = transactionType
+      ? flags.overrides?.[transactionType]
+      : undefined;
 
-  const override = transactionType
-    ? flags.overrides?.[transactionType]
-    : undefined;
+    if (!override) {
+      return flags.default;
+    }
 
-  if (!override) {
-    return flags.default;
-  }
-
-  return {
-    enabled: override.enabled ?? flags.default.enabled,
-    tokens: override.tokens ?? flags.default.tokens,
-  };
-}
+    return {
+      enabled: override.enabled ?? flags.default.enabled,
+      tokens: override.tokens ?? flags.default.tokens,
+    };
+  },
+);
 
 /**
  * Selector to get the allow list for non-zero unused approvals from remote feature flags.
