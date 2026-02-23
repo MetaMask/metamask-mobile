@@ -4,7 +4,8 @@ import { PermissionsAndroid, AppStateStatus, AppState } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { HardwareDeviceTypes } from '../../../../../constants/keyringTypes';
 import {
   PERMISSION_RESULT,
@@ -12,7 +13,7 @@ import {
 } from '../../../../../core/Analytics/MetaMetrics.events';
 
 export const useCamera = (isSigningQRObject: boolean) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   // todo: integrate with alert system
   const [cameraError, setCameraError] = useState<string | undefined>();
 

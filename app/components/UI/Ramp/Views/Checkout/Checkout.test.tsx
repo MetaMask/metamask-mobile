@@ -188,4 +188,113 @@ describe('Checkout', () => {
       getByText('fiat_on_ramp_aggregator.webview_received_error'),
     ).toBeOnTheScreen();
   });
+
+  it('renders error view when no URL is provided', () => {
+    const useParamsMock = jest.requireMock<
+      typeof import('../../../../../util/navigation/navUtils')
+    >('../../../../../util/navigation/navUtils').useParams as jest.Mock;
+
+    useParamsMock.mockReturnValue({
+      url: undefined,
+      providerName: 'Test Provider',
+    });
+
+    const { getByText } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <Checkout />
+      </ThemeContext.Provider>,
+    );
+
+    expect(
+      getByText('fiat_on_ramp_aggregator.webview_no_url_provided'),
+    ).toBeOnTheScreen();
+
+    useParamsMock.mockReturnValue({
+      url: 'https://provider.example.com/widget?test=1',
+      providerName: 'Test Provider',
+    });
+  });
+
+  it('retries loading after error by pressing CTA', () => {
+    const { getByTestId, getByText, queryByText } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <Checkout />
+      </ThemeContext.Provider>,
+    );
+
+    const webview = getByTestId('checkout-webview');
+
+    fireEvent(webview, 'onHttpError', {
+      nativeEvent: {
+        url: 'https://provider.example.com/widget?test=1',
+        statusCode: 500,
+      },
+    });
+
+    expect(
+      getByText('fiat_on_ramp_aggregator.webview_received_error'),
+    ).toBeOnTheScreen();
+
+    const retryButton = getByText('fiat_on_ramp_aggregator.try_again');
+    fireEvent.press(retryButton);
+
+    expect(
+      queryByText('fiat_on_ramp_aggregator.webview_received_error'),
+    ).toBeNull();
+  });
+
+  it('calls onCloseBottomSheet when close button is pressed', () => {
+    const { getByTestId } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <Checkout />
+      </ThemeContext.Provider>,
+    );
+
+    fireEvent.press(getByTestId('checkout-close-button'));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+  });
+
+  it('matches snapshot when no URL is provided', () => {
+    const useParamsMock = jest.requireMock<
+      typeof import('../../../../../util/navigation/navUtils')
+    >('../../../../../util/navigation/navUtils').useParams as jest.Mock;
+
+    useParamsMock.mockReturnValue({
+      url: undefined,
+      providerName: 'Test Provider',
+    });
+
+    const { toJSON } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <Checkout />
+      </ThemeContext.Provider>,
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+
+    useParamsMock.mockReturnValue({
+      url: 'https://provider.example.com/widget?test=1',
+      providerName: 'Test Provider',
+    });
+  });
+
+  it('matches snapshot when in error state', () => {
+    const { getByTestId, toJSON } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <Checkout />
+      </ThemeContext.Provider>,
+    );
+
+    const webview = getByTestId('checkout-webview');
+
+    fireEvent(webview, 'onHttpError', {
+      nativeEvent: {
+        url: 'https://provider.example.com/widget?test=1',
+        statusCode: 500,
+      },
+    });
+
+    expect(toJSON()).toMatchSnapshot();
+  });
 });

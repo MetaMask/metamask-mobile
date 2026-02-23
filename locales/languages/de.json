@@ -6298,19 +6298,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "Wechseln",
       "switchBack": "Zurückwechseln",
-      "splashpage": {
-        "accept": "Ja",
-        "betterTransaction": "Schnellere Transaktionen, niedrigere Gebühren",
-        "betterTransactionDescription": "Sparen Sie Zeit und Geld, indem Sie Transaktionen gebündelt abwickeln.",
-        "featuresDescription": "Behalten Sie die gleiche Kontoadresse bei, damit Sie jederzeit zurückwechseln können.",
-        "payToken": "Bezahlen Sie jederzeit und mit jedem Token",
-        "payTokenDescription": "Nutzen Sie die bereits verfügbaren Token, um die Netzwerkgebühren zu decken.",
-        "reject": "Nein",
-        "sameAccount": "Gleiches Konto, intelligentere Funktionen.",
-        "splashTitle": "Smart-Konto verwenden?"
-      },
       "includes_transaction": "Umfasst {{transactionCount}} Transaktionen",
-      "useSmartAccount": "Smart-Konto verwenden",
       "successful": "Erfolg",
       "success_message": "Ihr Konto wird mit Ihrer nächsten Transaktion auf ein Smart-Konto aktualisiert."
     },

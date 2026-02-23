@@ -6298,19 +6298,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "Lumipat",
       "switchBack": "Lumipat pabalik",
-      "splashpage": {
-        "accept": "Oo",
-        "betterTransaction": "Mas mabibilis na transaksyon, mas mabababang bayarin",
-        "betterTransactionDescription": "Makatipid sa oras at pera sa pamamagitan ng pagpoproseso ng mga transaksyon nang sabay-sabay.",
-        "featuresDescription": "Hindi mapapalitan ang account address mo, at maaari kang bumalik sa dati anumang oras.",
-        "payToken": "Magbayad gamit ang kahit anong token, anumang oras",
-        "payTokenDescription": "Gamitin ang mga token na mayroon ka na para bayaran ang mga bayad sa network.",
-        "reject": "Hindi",
-        "sameAccount": "Parehong account, mas smart na mga feature.",
-        "splashTitle": "Gumamit ng smart account?"
-      },
       "includes_transaction": "Kasama ang {{transactionCount}} (na) transaksyon",
-      "useSmartAccount": "Gumamit ng smart account",
       "successful": "Tagumpay",
       "success_message": "Maa-update sa smart account ang iyong account sa susunod mong transaksyon."
     },

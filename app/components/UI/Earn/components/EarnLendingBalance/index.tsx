@@ -26,7 +26,8 @@ import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useStyles } from '../../../../hooks/useStyles';
 import AssetElement from '../../../AssetElement';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
@@ -60,7 +61,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   const { shouldShowAssetOverviewCta } = useMusdCtaVisibility();
   const dispatch = useDispatch();
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),

@@ -10,6 +10,8 @@ import {
   setIsDestTokenManuallySet,
 } from '../../../../core/redux/slices/bridge';
 import { BridgeToken, TokenSelectorType } from '../types';
+import Routes from '../../../../constants/navigation/Routes';
+import { useRWAToken } from './useRWAToken';
 import { useSwitchTokens } from './useSwitchTokens';
 import { useIsNetworkEnabled } from './useIsNetworkEnabled';
 import { useAutoUpdateDestToken } from './useAutoUpdateDestToken';
@@ -30,6 +32,7 @@ export const useTokenSelection = (type: TokenSelectorType) => {
   const navigation = useNavigation();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const { isStockToken, isTokenTradingOpen } = useRWAToken();
   const destAmount = useSelector(selectDestAmount);
   const { handleSwitchTokens } = useSwitchTokens();
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
@@ -46,6 +49,14 @@ export const useTokenSelection = (type: TokenSelectorType) => {
         otherToken &&
         token.address === otherToken.address &&
         token.chainId === otherToken.chainId;
+
+      if (isStockToken(token) && !isTokenTradingOpen(token)) {
+        // Show market closed bottom sheet
+        navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+          screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+        });
+        return;
+      }
 
       // Add the network if the user hasn't configured it yet
       const isNetworkAdded = Boolean(networkConfigurations?.[token.chainId]);
@@ -116,8 +127,10 @@ export const useTokenSelection = (type: TokenSelectorType) => {
     },
     [
       type,
-      sourceToken,
       destToken,
+      sourceToken,
+      isStockToken,
+      isTokenTradingOpen,
       destAmount,
       dispatch,
       navigation,

@@ -146,7 +146,6 @@ import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/Mult
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
@@ -884,21 +883,6 @@ const ModalSwitchAccountType = () => (
   </Stack.Navigator>
 );
 
-const ModalSmartAccountOptIn = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
-    }}
-    mode={'modal'}
-  >
-    <Stack.Screen
-      name={Routes.SMART_ACCOUNT_OPT_IN}
-      component={SmartAccountUpdateModal}
-    />
-  </Stack.Navigator>
-);
-
 const AppFlow = () => (
   <Stack.Navigator
     initialRouteName={Routes.FOX_LOADER}
@@ -1082,10 +1066,6 @@ const AppFlow = () => (
     <Stack.Screen
       name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
       component={ModalSwitchAccountType}
-    />
-    <Stack.Screen
-      name={Routes.SMART_ACCOUNT_OPT_IN}
-      component={ModalSmartAccountOptIn}
     />
     <Stack.Screen
       name={Routes.CONFIRMATION_PAY_WITH_MODAL}

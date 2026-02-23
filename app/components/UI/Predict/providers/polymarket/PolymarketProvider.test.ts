@@ -464,7 +464,7 @@ describe('PolymarketProvider', () => {
     expect(calledWithUrl).toContain('offset=0');
     expect(calledWithUrl).toContain(`user=${safeAddress}`);
     expect(calledWithUrl).toContain('sortBy=CURRENT');
-    expect(calledWithUrl).toContain('redeemable=false');
+    expect(calledWithUrl).not.toContain('redeemable');
 
     (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
       originalFetch;
@@ -499,7 +499,7 @@ describe('PolymarketProvider', () => {
     expect(calledWithUrl).toContain('offset=15');
     expect(calledWithUrl).toContain(`user=${safeAddress}`);
     expect(calledWithUrl).toContain('sortBy=CURRENT');
-    expect(calledWithUrl).toContain('redeemable=false');
+    expect(calledWithUrl).not.toContain('redeemable');
 
     (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
       originalFetch;

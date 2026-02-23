@@ -6298,19 +6298,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "Değiştir",
       "switchBack": "Geri dön",
-      "splashpage": {
-        "accept": "Evet",
-        "betterTransaction": "Daha hızlı işlemler, daha düşük ücretler",
-        "betterTransactionDescription": "İşlemleri bir arada gerçekleştirerek hem zamandan hem de paradan tasarruf edin.",
-        "featuresDescription": "Aynı hesap adresini koruyun; dilediğiniz zaman tekrar geçiş yapabilirsiniz.",
-        "payToken": "Dilediğiniz token ile dilediğiniz zaman ödeme yapın",
-        "payTokenDescription": "Zaten sahip olduğunuz token'leri kullanarak ağ ücretlerini karşılayın.",
-        "reject": "Hayır",
-        "sameAccount": "Aynı hesap, daha akıllı özellikler.",
-        "splashTitle": "Akıllı hesap kullan?"
-      },
       "includes_transaction": "{{transactionCount}} işlem içerir",
-      "useSmartAccount": "Akıllı hesap kullan",
       "successful": "Başarılı",
       "success_message": "Bir sonraki işleminizle hesabınız akıllı hesaba güncellenecektir."
     },

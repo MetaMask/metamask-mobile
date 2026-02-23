@@ -20,6 +20,15 @@ const Routes = {
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
     AMOUNT_INPUT: 'RampAmountInput',
+    ENTER_EMAIL: 'RampEnterEmail',
+    OTP_CODE: 'RampOtpCode',
+    ORDER_PROCESSING: 'RampOrderProcessing',
+    KYC_PROCESSING: 'RampKycProcessing',
+    BASIC_INFO: 'RampBasicInfo',
+    VERIFY_IDENTITY: 'RampVerifyIdentity',
+    BANK_DETAILS: 'RampBankDetails',
+    ADDITIONAL_VERIFICATION: 'RampAdditionalVerification',
+    ENTER_ADDRESS: 'RampEnterAddress',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -32,6 +41,7 @@ const Routes = {
       PAYMENT_SELECTION: 'RampPaymentSelectionModal',
       SETTINGS: 'RampSettingsModal',
       BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
+      PROVIDER_PICKER: 'RampProviderPickerModal',
     },
   },
   DEPOSIT: {
@@ -261,6 +271,7 @@ const Routes = {
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
       RECIPIENT_SELECTOR_MODAL: 'RecipientSelectorModal',
+      MARKET_CLOSED_MODAL: 'MarketClosedModal',
       NETWORK_LIST_MODAL: 'NetworkListModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
@@ -301,6 +312,10 @@ const Routes = {
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
     FUNDING_TRANSACTION: 'PerpsFundingTransaction',
   },
+  MARKET_INSIGHTS: {
+    ROOT: 'MarketInsights',
+    VIEW: 'MarketInsightsView',
+  },
   PREDICT: {
     ROOT: 'Predict',
     MARKET_LIST: 'PredictMarketList',
@@ -320,7 +335,6 @@ const Routes = {
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   CONFIRMATION_PAY_WITH_MODAL: 'ConfirmationPayWithModal',
   CONFIRMATION_PAY_WITH_NETWORK_MODAL: 'ConfirmationPayWithNetworkModal',
-  SMART_ACCOUNT_OPT_IN: 'SmartAccountOptIn',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
@@ -419,7 +433,6 @@ const Routes = {
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
       KYC_PENDING: 'CardOnboardingKYCPending',
-      WEBVIEW: 'CardOnboardingWebview',
     },
     MODALS: {
       ID: 'CardModals',

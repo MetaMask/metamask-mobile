@@ -17,7 +17,8 @@ import {
   selectNetworkConfigurationByChainId,
 } from '../../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import {
   selectPooledStakingEnabledFlag,
@@ -51,7 +52,7 @@ interface StakeButtonContentProps {
 const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const chainId = useSelector(selectEvmChainId);
   const { isStakingSupportedChain } = useStakingChain();
 
