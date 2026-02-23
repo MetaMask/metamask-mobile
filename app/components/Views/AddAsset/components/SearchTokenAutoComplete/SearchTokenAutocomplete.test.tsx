@@ -50,8 +50,8 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   })),

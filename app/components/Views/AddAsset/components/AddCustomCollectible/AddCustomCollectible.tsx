@@ -28,7 +28,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import Logger from '../../../../../util/Logger';
 import { TraceName, endTrace, trace } from '../../../../../util/trace';
 import { NFTImportScreenSelectorsIDs } from '../../ImportAssetView.testIds';
@@ -134,7 +134,7 @@ const AddCustomCollectible = ({
   const tokenIdInputRef = useRef<TextInput>(null);
 
   const { colors, themeAppearance } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { toastRef } = useContext(ToastContext);
   const tw = useTailwind();
 

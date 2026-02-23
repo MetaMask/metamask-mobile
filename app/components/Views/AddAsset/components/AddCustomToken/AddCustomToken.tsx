@@ -30,7 +30,7 @@ import {
   getBlockExplorerAddressUrl,
   getDecimalChainId,
 } from '../../../../../util/networks';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { formatIconUrlWithProxy } from '@metamask/assets-controllers';
 import Button, {
   ButtonSize,
@@ -186,7 +186,7 @@ const AddCustomToken = ({
 
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const { colors, themeAppearance } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
 

@@ -20,7 +20,7 @@ import { selectEvmTicker } from '../../../../../selectors/networkController';
 import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import SearchTokenResults from '../SearchTokenResults/SearchTokenResults';
 import Button, {
@@ -80,7 +80,7 @@ interface Props {
  */
 const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch search results from the API based on user's search query.
