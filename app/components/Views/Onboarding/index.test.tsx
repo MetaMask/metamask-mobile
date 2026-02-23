@@ -667,7 +667,10 @@ describe('Onboarding', () => {
       });
 
       expect(Authentication.resetVault).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      expect(mockReplace).toHaveBeenCalledWith(
+        Routes.ONBOARDING.HOME_NAV,
+        undefined,
+      );
     });
 
     it('navigates to LOGIN when unlock is pressed and password is set', async () => {
