@@ -61,6 +61,12 @@ function applyConfig(buildName) {
   return config;
 }
 
+// Log to stderr so the message appears in the GitHub Actions step log without
+// interfering with stdout (which is either eval'd or redirected to GITHUB_ENV).
+function logInfo(message) {
+  process.stderr.write(`[apply-build-config] ${message}\n`);
+}
+
 // Export for shell (used in CI)
 function exportForShell(buildName) {
   const config = loadConfig(buildName);
@@ -79,8 +85,16 @@ function exportForShell(buildName) {
   }
 
   if (config.remote_feature_flags) {
+    const flagKeys = Object.keys(config.remote_feature_flags);
+    logInfo(
+      `Setting REMOTE_FEATURE_FLAG_DEFAULTS with ${flagKeys.length} flag(s) for build "${buildName}": ${flagKeys.join(', ')}`,
+    );
     lines.push(
       `export REMOTE_FEATURE_FLAG_DEFAULTS='${JSON.stringify(config.remote_feature_flags)}'`,
+    );
+  } else {
+    logInfo(
+      `No remote_feature_flags defined for build "${buildName}" — REMOTE_FEATURE_FLAG_DEFAULTS will not be set.`,
     );
   }
 
@@ -119,9 +133,17 @@ function exportForGitHubEnv(buildName) {
   }
 
   if (config.remote_feature_flags) {
+    const flagKeys = Object.keys(config.remote_feature_flags);
+    logInfo(
+      `Persisting REMOTE_FEATURE_FLAG_DEFAULTS to GITHUB_ENV with ${flagKeys.length} flag(s) for build "${buildName}": ${flagKeys.join(', ')}`,
+    );
     appendVar(
       'REMOTE_FEATURE_FLAG_DEFAULTS',
       JSON.stringify(config.remote_feature_flags),
+    );
+  } else {
+    logInfo(
+      `No remote_feature_flags defined for build "${buildName}" — REMOTE_FEATURE_FLAG_DEFAULTS will not be persisted to GITHUB_ENV.`,
     );
   }
 
