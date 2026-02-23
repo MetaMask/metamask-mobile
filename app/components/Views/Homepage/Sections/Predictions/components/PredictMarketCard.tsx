@@ -58,7 +58,7 @@ const OutcomeRow: React.FC<{
   onPress: () => void;
 }> = ({ outcome, onPress }) => {
   const tw = useTailwind();
-  const yesToken = outcome.tokens[0];
+  const yesToken = outcome.tokens?.[0];
   const price = yesToken?.price ?? 0;
 
   return (
