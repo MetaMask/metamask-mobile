@@ -27,6 +27,7 @@ import {
   MusdConversionVariant,
 } from '../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../selectors/featureFlags';
+import { providerErrors } from '@metamask/rpc-errors';
 
 type MusdInitiationResult = { transactionId: string } | void;
 
@@ -44,17 +45,22 @@ type MusdInitiationResult = { transactionId: string } | void;
  * but the pending approval is not yet observable in Redux. Rapid spam during that window
  * can otherwise create multiple transactions before (1) can detect an existing pending tx.
  *
- * This map is shared by both custom and max entry points so a rapid cross-entry tap (although unlikely)
- * (e.g., Custom then Max) dedupes to the same initiation for a given account+chain.
+ * This map is shared by both custom and max entry points so a rapid cross-entry tap
+ * (e.g., Custom then Max) dedupes to the same initiation for a given account+chain+token.
  */
 const inFlightInitiationPromises = new Map<
   string,
   Promise<MusdInitiationResult>
 >();
 
-function getInitiationKey(params: { selectedAddress: string; chainId: Hex }) {
-  const { selectedAddress, chainId } = params;
-  return `${selectedAddress.toLowerCase()}_${chainId.toLowerCase()}`;
+function getInitiationKey(params: {
+  selectedAddress: string;
+  chainId: Hex;
+  tokenAddress?: Hex;
+}) {
+  const { selectedAddress, chainId, tokenAddress } = params;
+  const baseKey = `${selectedAddress.toLowerCase()}_${chainId.toLowerCase()}`;
+  return tokenAddress ? `${baseKey}_${tokenAddress.toLowerCase()}` : baseKey;
 }
 
 function findExistingPendingMusdConversion(params: {
@@ -240,6 +246,7 @@ export const useMusdConversion = () => {
         const initiationKey = getInitiationKey({
           selectedAddress,
           chainId: tokenChainId,
+          tokenAddress,
         });
 
         const inFlightInitiation =
@@ -269,37 +276,66 @@ export const useMusdConversion = () => {
             networkClientId,
           });
 
-          const { TransactionPayController, GasFeeController } = Engine.context;
-          Logger.log('[mUSD Max Conversion] Setting payment token:', {
-            transactionId,
-            tokenAddress,
-            chainId: tokenChainId,
-          });
+          const {
+            TransactionPayController,
+            GasFeeController,
+            ApprovalController,
+          } = Engine.context;
 
-          // Must be called BEFORE updatePaymentToken.
-          TransactionPayController.setTransactionConfig(
-            transactionId,
-            (config) => {
-              config.isMaxAmount = true;
-            },
-          );
+          try {
+            Logger.log('[mUSD Max Conversion] Setting payment token:', {
+              transactionId,
+              tokenAddress,
+              chainId: tokenChainId,
+            });
 
-          await GasFeeController.fetchGasFeeEstimates({
-            networkClientId,
-          }).catch(() => undefined);
+            // Must be called BEFORE updatePaymentToken.
+            TransactionPayController.setTransactionConfig(
+              transactionId,
+              (config) => {
+                config.isMaxAmount = true;
+              },
+            );
 
-          // Set payment token - this triggers automatic Relay quote fetching
-          TransactionPayController.updatePaymentToken({
-            transactionId,
-            tokenAddress,
-            chainId: tokenChainId,
-          });
+            await GasFeeController.fetchGasFeeEstimates({ networkClientId });
 
-          EngineService.flushState();
+            // Set payment token - this triggers automatic Relay quote fetching
+            TransactionPayController.updatePaymentToken({
+              transactionId,
+              tokenAddress,
+              chainId: tokenChainId,
+            });
 
-          Logger.log(
-            `[mUSD Max Conversion] Created transaction ${transactionId} for ${token.symbol ?? tokenAddress}`,
-          );
+            EngineService.flushState();
+
+            Logger.log(
+              `[mUSD Max Conversion] Created transaction ${transactionId} for ${token.symbol ?? tokenAddress}`,
+            );
+          } catch (postCreationConfigError) {
+            Logger.error(
+              postCreationConfigError as Error,
+              'Error creating max conversion transaction',
+            );
+            try {
+              ApprovalController.reject(
+                transactionId,
+                providerErrors.userRejectedRequest({
+                  message:
+                    'Automatically rejected transaction due to error with post creation configuration',
+                  data: {
+                    cause: 'musdMaxConversionPostCreationConfigurationError',
+                    transactionId,
+                  },
+                }),
+              );
+            } catch (rejectError) {
+              Logger.error(
+                rejectError as Error,
+                '[mUSD Max Conversion] Failed to reject transaction after post-creation configuration error',
+              );
+            }
+            throw postCreationConfigError;
+          }
 
           // Navigate to modal stack AFTER transaction is created
           // This ensures approvalRequest exists when the confirmation screen renders

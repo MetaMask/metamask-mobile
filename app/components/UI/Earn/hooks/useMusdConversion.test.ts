@@ -85,6 +85,10 @@ const mockTransactionPayController = {
   updatePaymentToken: jest.fn(),
 };
 
+const mockApprovalController = {
+  reject: jest.fn(),
+};
+
 const mockFetchGasFeeEstimates = jest.fn().mockResolvedValue(undefined);
 const mockGasFeeController = {
   fetchGasFeeEstimates: mockFetchGasFeeEstimates,
@@ -161,6 +165,7 @@ describe('useMusdConversion', () => {
         TransactionController: mockTransactionController,
         TransactionPayController: mockTransactionPayController,
         GasFeeController: mockGasFeeController,
+        ApprovalController: mockApprovalController,
       },
       writable: true,
       configurable: true,
@@ -934,6 +939,92 @@ describe('useMusdConversion', () => {
 
       expect(result.current.error).toBe('Max conversion failed');
       expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('rejects the created transaction when post-creation max configuration fails', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-123' },
+      });
+
+      const postCreationError = new Error(
+        'Failed to set max conversion transaction config',
+      );
+      mockTransactionPayController.setTransactionConfig.mockImplementation(
+        () => {
+          throw postCreationError;
+        },
+      );
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await expect(
+          result.current.initiateMaxConversion(mockToken),
+        ).rejects.toThrow(postCreationError);
+      });
+
+      expect(mockApprovalController.reject).toHaveBeenCalledWith(
+        'tx-max-123',
+        expect.objectContaining({
+          message:
+            'Automatically rejected transaction due to error with post creation configuration',
+          data: expect.objectContaining({
+            cause: 'musdMaxConversionPostCreationConfigurationError',
+            transactionId: 'tx-max-123',
+          }),
+        }),
+      );
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      expect(result.current.error).toBe(
+        'Failed to set max conversion transaction config',
+      );
+    });
+
+    it('preserves original post-creation error when rejection cleanup fails', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-123' },
+      });
+
+      const postCreationError = new Error(
+        'Failed to set max conversion transaction config',
+      );
+      mockTransactionPayController.setTransactionConfig.mockImplementation(
+        () => {
+          throw postCreationError;
+        },
+      );
+
+      const rejectCleanupError = new Error('Failed to reject pending approval');
+      mockApprovalController.reject.mockImplementation(() => {
+        throw rejectCleanupError;
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await expect(
+          result.current.initiateMaxConversion(mockToken),
+        ).rejects.toThrow(postCreationError);
+      });
+
+      expect(mockApprovalController.reject).toHaveBeenCalledTimes(1);
+      expect(Logger.error).toHaveBeenCalledWith(
+        rejectCleanupError,
+        '[mUSD Max Conversion] Failed to reject transaction after post-creation configuration error',
+      );
+      expect(result.current.error).toBe(
+        'Failed to set max conversion transaction config',
+      );
     });
   });
 
