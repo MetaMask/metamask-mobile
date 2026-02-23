@@ -85,12 +85,16 @@ function exportForShell(buildName) {
   }
 
   if (config.remote_feature_flags) {
-    const flagKeys = Object.keys(config.remote_feature_flags);
+    const flags = config.remote_feature_flags;
+    const flagKeys = Object.keys(flags);
     logInfo(
-      `Setting REMOTE_FEATURE_FLAG_DEFAULTS with ${flagKeys.length} flag(s) for build "${buildName}": ${flagKeys.join(', ')}`,
+      `Setting REMOTE_FEATURE_FLAG_DEFAULTS with ${flagKeys.length} flag(s) for build "${buildName}":`,
     );
+    flagKeys.forEach((key) => {
+      logInfo(`  ${key}: ${JSON.stringify(flags[key])}`);
+    });
     lines.push(
-      `export REMOTE_FEATURE_FLAG_DEFAULTS='${JSON.stringify(config.remote_feature_flags)}'`,
+      `export REMOTE_FEATURE_FLAG_DEFAULTS='${JSON.stringify(flags)}'`,
     );
   } else {
     logInfo(
@@ -133,14 +137,15 @@ function exportForGitHubEnv(buildName) {
   }
 
   if (config.remote_feature_flags) {
-    const flagKeys = Object.keys(config.remote_feature_flags);
+    const flags = config.remote_feature_flags;
+    const flagKeys = Object.keys(flags);
     logInfo(
-      `Persisting REMOTE_FEATURE_FLAG_DEFAULTS to GITHUB_ENV with ${flagKeys.length} flag(s) for build "${buildName}": ${flagKeys.join(', ')}`,
+      `Persisting REMOTE_FEATURE_FLAG_DEFAULTS to GITHUB_ENV with ${flagKeys.length} flag(s) for build "${buildName}":`,
     );
-    appendVar(
-      'REMOTE_FEATURE_FLAG_DEFAULTS',
-      JSON.stringify(config.remote_feature_flags),
-    );
+    flagKeys.forEach((key) => {
+      logInfo(`  ${key}: ${JSON.stringify(flags[key])}`);
+    });
+    appendVar('REMOTE_FEATURE_FLAG_DEFAULTS', JSON.stringify(flags));
   } else {
     logInfo(
       `No remote_feature_flags defined for build "${buildName}" — REMOTE_FEATURE_FLAG_DEFAULTS will not be persisted to GITHUB_ENV.`,

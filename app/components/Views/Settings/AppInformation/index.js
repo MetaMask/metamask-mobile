@@ -268,6 +268,43 @@ class AppInformation extends PureComponent {
                   </>
                 )}
 
+                {(() => {
+                  try {
+                    const raw = process.env.REMOTE_FEATURE_FLAG_DEFAULTS;
+                    if (!raw) {
+                      return (
+                        <Text style={styles.branchInfo}>
+                          {
+                            'Build-time flags: not set (REMOTE_FEATURE_FLAG_DEFAULTS is empty)'
+                          }
+                        </Text>
+                      );
+                    }
+                    const flags = JSON.parse(raw);
+                    const entries = Object.entries(flags);
+                    return (
+                      <>
+                        <Text style={styles.branchInfo}>
+                          {`Build-time flags from builds.yml (${entries.length}):`}
+                        </Text>
+                        {entries.map(([key, value]) => (
+                          <Text key={key} style={styles.branchInfo}>
+                            {`  ${key}: ${JSON.stringify(value)}`}
+                          </Text>
+                        ))}
+                      </>
+                    );
+                  } catch {
+                    return (
+                      <Text style={styles.branchInfo}>
+                        {
+                          'Build-time flags: failed to parse REMOTE_FEATURE_FLAG_DEFAULTS'
+                        }
+                      </Text>
+                    );
+                  }
+                })()}
+
                 {this.props.preinstalledSnaps.map((snap) => (
                   <Text key={snap.name} style={styles.branchInfo}>
                     {snap.name}: {snap.version} ({snap.status})
