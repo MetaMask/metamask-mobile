@@ -6006,7 +6006,6 @@
       "ok": "OK",
       "continue": "Continue",
       "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
-      "no_boost": "No boost",
       "your_musd": "Your mUSD",
       "balance_breakdown_title": "Your mUSD balances by network",
       "balance_amount": "{{amount}} mUSD",
@@ -6036,8 +6035,8 @@
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
-      "boost_title": "Get {{percentage}}% on your stablecoins",
-      "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
+      "bonus_title": "Get {{percentage}}% on your stablecoins",
+      "bonus_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
       "powered_by_relay": "Powered by Relay",
       "max": "Max",
       "quick_convert_button": "Convert",
@@ -6053,7 +6052,7 @@
           "title": "Convert max"
         }
       },
-      "percentage_boost": "{{percentage}}% boost",
+      "percentage_bonus": "{{percentage}}% bonus",
       "rate": "Rate"
     },
     "bonus_claim": {
