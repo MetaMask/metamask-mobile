@@ -287,6 +287,10 @@ function getPostQuoteDisplay(tx, currentCurrency) {
   const userFiat =
     destRate && nativeUsdRate ? fiatUsd * (destRate / nativeUsdRate) : fiatUsd;
 
+  if (!Number.isFinite(receivedAmount) || !Number.isFinite(userFiat)) {
+    return undefined;
+  }
+
   return {
     value: `${receivedAmount >= 1 ? receivedAmount.toFixed(2) : receivedAmount.toPrecision(4)} ${destSymbol}`,
     fiatValue: addCurrencySymbol(userFiat.toFixed(2), currentCurrency),
