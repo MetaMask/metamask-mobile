@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 
+import { strings } from '../../../../locales/i18n';
 import AesCryptoTestForm from './AesCryptoTestForm';
 import {
   aesCryptoFormHeader,
@@ -42,16 +43,18 @@ describe('AesCryptoTestForm', () => {
     const { getByTestId } = render(<AesCryptoTestForm />);
     const safeArea = getByTestId(aesCryptoFormSafeArea);
 
-    expect(safeArea).toBeTruthy();
+    expect(safeArea).toBeOnTheScreen();
     expect(safeArea.props.edges).toMatchObject({ bottom: 'additive' });
   });
 
   it('renders HeaderCompactStandard with title and back button', () => {
     const { getByTestId, getByText } = render(<AesCryptoTestForm />);
 
-    expect(getByTestId(aesCryptoFormHeader)).toBeTruthy();
-    expect(getByText('AES crypto - test form')).toBeTruthy();
-    expect(getByTestId(aesCryptoFormHeaderBackButton)).toBeTruthy();
+    expect(getByTestId(aesCryptoFormHeader)).toBeOnTheScreen();
+    expect(
+      getByText(strings('app_settings.aes_crypto_test_form_title')),
+    ).toBeOnTheScreen();
+    expect(getByTestId(aesCryptoFormHeaderBackButton)).toBeOnTheScreen();
   });
 
   it('calls navigation.goBack when header back button is pressed', () => {
