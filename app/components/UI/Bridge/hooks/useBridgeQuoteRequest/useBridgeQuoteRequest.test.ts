@@ -601,6 +601,29 @@ describe('useBridgeQuoteRequest', () => {
       });
     });
 
+    it('uses override path when latestSourceAtomicBalance key is provided as undefined', async () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '5.5',
+        },
+      });
+
+      renderHookWithProvider(
+        () => useBridgeQuoteRequest({ latestSourceAtomicBalance: undefined }),
+        {
+          state: testState,
+        },
+      );
+
+      expect(mockUseLatestBalance).toHaveBeenCalledWith({});
+      expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith({
+        amount: '5.5',
+        token: testState.bridge.sourceToken,
+        latestAtomicBalance: undefined,
+        ignoreGasFees: true,
+      });
+    });
+
     it('falls back to useLatestBalance when no latestSourceAtomicBalance override is provided', async () => {
       const testState = createBridgeTestState({
         bridgeReducerOverrides: {

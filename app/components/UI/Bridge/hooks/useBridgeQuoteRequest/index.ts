@@ -45,9 +45,10 @@ export const useBridgeQuoteRequest = (
   const destAddress = useSelector(selectDestAddress);
   const context = useUnifiedSwapBridgeContext();
   const { latestSourceAtomicBalance } = options;
+  const hasLatestSourceBalanceOverride = 'latestSourceAtomicBalance' in options;
 
   const latestSourceBalance = useLatestBalance(
-    latestSourceAtomicBalance
+    hasLatestSourceBalanceOverride
       ? {}
       : {
           address: sourceToken?.address,
@@ -57,8 +58,9 @@ export const useBridgeQuoteRequest = (
         },
   );
 
-  const sourceAtomicBalance =
-    latestSourceAtomicBalance ?? latestSourceBalance?.atomicBalance;
+  const sourceAtomicBalance = hasLatestSourceBalanceOverride
+    ? latestSourceAtomicBalance
+    : latestSourceBalance?.atomicBalance;
 
   // Use simple balance check (ignoring gas fees) for quote requests to avoid circular dependencies.
   // The full balance check with gas fees is used separately within the BridgeView to block user from executing
