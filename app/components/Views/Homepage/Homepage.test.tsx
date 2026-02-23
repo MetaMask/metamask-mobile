@@ -21,6 +21,32 @@ jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => true),
 }));
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      startMarketDataPreload: jest.fn(),
+      stopMarketDataPreload: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('../../UI/Perps/selectors/perpsController', () => ({
+  selectCachedPositions: jest.fn(() => []),
+  selectCachedMarketData: jest.fn(() => null),
+  selectPerpsNetwork: jest.fn(() => 'mainnet'),
+}));
+
+jest.mock('react-native-skeleton-placeholder', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockSkeletonPlaceholder({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) {
+    return <View testID="skeleton-placeholder">{children}</View>;
+  };
+});
+
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
 }));
