@@ -201,6 +201,14 @@ export const usePopularTokens = () => {
     fetchPrices();
   }, [fetchPrices]);
 
+  // On unmount, invalidate any in-flight fetch so it won't call setState
+  useEffect(
+    () => () => {
+      fetchIdRef.current++;
+    },
+    [],
+  );
+
   // Add descriptions dynamically (localized strings must be called within component)
   const tokens: PopularToken[] = useMemo(
     () =>
