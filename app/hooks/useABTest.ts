@@ -187,6 +187,8 @@ export function useABTest<T extends ABTestVariants>(
 
   // Check if the test is active (flag is set AND matches a valid variant)
   const isActive = Boolean(flagValue && hasVariant(flagValue));
+  const activeVariationName =
+    exposureMetadata?.variationNames?.[variantName as Extract<keyof T, string>];
 
   useEffect(() => {
     if (!isActive) {
@@ -201,11 +203,6 @@ export function useABTest<T extends ABTestVariants>(
       return;
     }
 
-    const variationName =
-      exposureMetadata?.variationNames?.[
-        variationId as Extract<keyof T, string>
-      ];
-
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EXPERIMENT_VIEWED)
@@ -215,7 +212,9 @@ export function useABTest<T extends ABTestVariants>(
             ...(exposureMetadata?.experimentName && {
               experiment_name: exposureMetadata.experimentName,
             }),
-            ...(variationName && { variation_name: variationName }),
+            ...(activeVariationName && {
+              variation_name: activeVariationName,
+            }),
           })
           .build(),
       );
@@ -226,8 +225,8 @@ export function useABTest<T extends ABTestVariants>(
     }
   }, [
     createEventBuilder,
+    activeVariationName,
     exposureMetadata?.experimentName,
-    exposureMetadata?.variationNames,
     flagKey,
     isActive,
     trackEvent,
