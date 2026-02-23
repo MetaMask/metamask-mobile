@@ -95,8 +95,10 @@ const DeviceSecurityToggle = ({
         }, 100);
       } catch (error) {
         // Check if error is "password required" - navigate to password entry
-        const isPasswordRequiredError =
-          containsErrorMessage(error as Error, ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS);
+        const isPasswordRequiredError = containsErrorMessage(
+          error as Error,
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+        );
 
         if (isPasswordRequiredError) {
           // Navigate to password entry - keep optimistic value until callback completes
