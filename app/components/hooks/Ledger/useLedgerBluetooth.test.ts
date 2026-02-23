@@ -24,6 +24,11 @@ import {
  * - cleanupBluetoothConnection behavior
  * - isEthAppNotOpenErrorMessage integration
  * - isDisconnectError helper
+ *
+ * NOTE: The hook uses an isReconnecting ref to guard against late BLE
+ * disconnects clearing workflowSteps during app-switch direct recursion.
+ * This internal mechanism cannot be tested here due to the transport mock
+ * limitation above.
  */
 
 // Mock the Ledger module

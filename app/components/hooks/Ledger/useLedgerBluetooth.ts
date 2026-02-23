@@ -68,6 +68,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
   // Due to the async nature of the disconnects after sending an APDU command we load the code to run in a stack
   // with code being pushed and popped off of the stack
   const workflowSteps = useRef<(() => Promise<void>)[]>([]);
+  const isReconnecting = useRef(false);
   const [ledgerError, setLedgerError] = useState<LedgerCommunicationErrors>();
 
   const resetConnectionState = () => {
@@ -105,6 +106,13 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         transportRef.current?.on('disconnect', () => {
           transportRef.current = undefined;
+
+          // When we're handling an app switch directly via recursive
+          // processLedgerWorkflow, don't interfere with the workflow state.
+          if (isReconnecting.current) {
+            return;
+          }
+
           // Restart connection if more code is to be run
           if (
             workflowSteps.current.length > 0 &&
@@ -156,14 +164,6 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
 
       // BOLOS is the Ledger main screen app
       if (appName === 'BOLOS') {
-        // Pre-register the restart so the disconnect handler (which fires
-        // when the Ledger switches from BOLOS to the Ethereum app) can
-        // re-enter processLedgerWorkflow even if the APDU rejects due to
-        // the transport closing mid-flight.
-        workflowSteps.current.push(processLedgerWorkflow);
-        restartConnectionState.current.shouldRestartConnection = true;
-
-        // Open Ethereum App
         try {
           setIsAppLaunchConfirmationNeeded(true);
           await openEthereumAppOnLedger();
@@ -187,42 +187,59 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
             }
           }
 
-          // BLE disconnects are expected when the Ledger switches apps.
-          // The disconnect handler will pick up the restart state we
-          // registered above and re-run processLedgerWorkflow.
-          if (isDisconnectError(e)) {
-            return;
+          if (!isDisconnectError(e)) {
+            throw new LedgerError(
+              strings('ledger.ethereum_app_open_error'),
+              LedgerCommunicationErrors.FailedToOpenApp,
+            );
           }
-
-          throw new LedgerError(
-            strings('ledger.ethereum_app_open_error'),
-            LedgerCommunicationErrors.FailedToOpenApp,
-          );
         } finally {
           setIsAppLaunchConfirmationNeeded(false);
         }
 
-        return;
-      } else if (appName !== 'Ethereum') {
-        // Pre-register the restart so the disconnect handler can re-enter
-        // processLedgerWorkflow after the running app is closed.
-        workflowSteps.current.push(processLedgerWorkflow);
-        restartConnectionState.current.shouldRestartConnection = true;
+        // Whether openEthereumAppOnLedger succeeded (BLE stayed connected)
+        // or threw a disconnect error (transport already gone), the Ledger
+        // is now switching to the Ethereum app. Guard against a late BLE
+        // disconnect clearing our workflowSteps, wait for the app to load,
+        // then re-enter processLedgerWorkflow directly.
+        isReconnecting.current = true;
+        await new Promise((r) => setTimeout(r, 1000));
+        isReconnecting.current = false;
 
+        restartConnectionState.current.restartCount += 1;
+        if (restartConnectionState.current.restartCount >= RESTART_LIMIT) {
+          throw new LedgerError(
+            strings('ledger.ethereum_app_open_error'),
+            LedgerCommunicationErrors.FailedToOpenApp,
+          );
+        }
+
+        return await processLedgerWorkflow();
+      } else if (appName !== 'Ethereum') {
         try {
           await closeRunningAppOnLedger();
         } catch (e) {
-          if (isDisconnectError(e)) {
-            return;
+          if (!isDisconnectError(e)) {
+            throw new LedgerError(
+              strings('ledger.running_app_close_error'),
+              LedgerCommunicationErrors.FailedToCloseApp,
+            );
           }
+        }
 
+        isReconnecting.current = true;
+        await new Promise((r) => setTimeout(r, 1000));
+        isReconnecting.current = false;
+
+        restartConnectionState.current.restartCount += 1;
+        if (restartConnectionState.current.restartCount >= RESTART_LIMIT) {
           throw new LedgerError(
             strings('ledger.running_app_close_error'),
             LedgerCommunicationErrors.FailedToCloseApp,
           );
         }
 
-        return;
+        return await processLedgerWorkflow();
       }
 
       // Should now be on the Ethereum app if reached this point
