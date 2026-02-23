@@ -157,7 +157,6 @@ export function usePredictPlaceOrder(
       const totalAmount = maxAmountSpent + (fees?.totalFee ?? 0);
 
       // Check if user has sufficient balance for the bet amount
-      // maxAmountSpent includes the bet amount plus all fees
       if (side === Side.BUY && balance < totalAmount) {
         await deposit({
           amountUsd: maxAmountSpent,
