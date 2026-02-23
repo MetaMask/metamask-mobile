@@ -78,13 +78,16 @@ export const useRwaTokens = (opts?: {
 
   const effectiveChainIds = chainIds ?? RWA_CHAIN_IDS;
 
-  const { results: searchResults, isLoading: isSearchLoading } =
-    useSearchRequest({
-      query: 'Ondo',
-      limit: 100,
-      chainIds: effectiveChainIds,
-      includeMarketData,
-    });
+  const {
+    results: searchResults,
+    isLoading: isSearchLoading,
+    search: refetch,
+  } = useSearchRequest({
+    query: 'Ondo',
+    limit: 100,
+    chainIds: effectiveChainIds,
+    includeMarketData,
+  });
 
   const data = useMemo(() => {
     const normalizedResults: TrendingAsset[] = searchResults
@@ -116,5 +119,5 @@ export const useRwaTokens = (opts?: {
     );
   }, [searchResults, searchQuery, sortTrendingTokensOptions]);
 
-  return { data, isLoading: isSearchLoading, refetch: () => undefined };
+  return { data, isLoading: isSearchLoading, refetch };
 };
