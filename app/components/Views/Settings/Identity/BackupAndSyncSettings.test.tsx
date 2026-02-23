@@ -46,9 +46,7 @@ describe('BackupAndSyncSettings', () => {
     expect(
       getByTestId(BackupAndSyncSettingsSelectorsIDs.HEADER),
     ).toBeOnTheScreen();
-    expect(getAllByText(strings('backupAndSync.title')).length).toBeGreaterThan(
-      0,
-    );
+    expect(getAllByText(strings('backupAndSync.title'))[0]).toBeOnTheScreen();
   });
 
   it('navigates back when back button is pressed', () => {
