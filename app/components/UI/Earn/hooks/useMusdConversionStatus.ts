@@ -11,7 +11,8 @@ import Engine from '../../../../core/Engine';
 import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
 import { safeToChecksumAddress } from '../../../../util/address';
 import useEarnToasts from './useEarnToasts';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { decodeTransferData } from '../../../../util/transactions';
 import { TOAST_TRACKING_CLEANUP_DELAY_MS } from '../constants/musd';
 import {
@@ -137,7 +138,7 @@ export const useMusdConversionStatus = () => {
   const { showToast, EarnToastOptions } = useEarnToasts();
   const tokensChainsCache = useSelector(selectERC20TokensByChain);
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const shownToastsRef = useRef<Set<string>>(new Set());
   const tokensCacheRef = useRef(tokensChainsCache);

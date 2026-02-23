@@ -6,13 +6,9 @@ import {
   selectSourceToken,
   selectDestToken,
 } from '../core/redux/slices/bridge';
-import {
-  selectInternalAccountsByScope,
-  selectSelectedInternalAccountAddress,
-} from '../selectors/accountsController';
+import { selectInternalAccountsByScope } from '../selectors/accountsController';
 import type { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
-import { selectMultichainAccountsState2Enabled } from './featureFlagController/multichainAccounts';
 import { createDeepEqualSelector } from './util';
 import { KnownCaipNamespace } from '@metamask/utils';
 
@@ -21,23 +17,9 @@ import { KnownCaipNamespace } from '@metamask/utils';
  * that matches the token's chain scope
  */
 export const selectSourceWalletAddress = createSelector(
-  [
-    (state: RootState) => state,
-    selectSourceToken,
-    selectMultichainAccountsState2Enabled,
-    selectSelectedInternalAccountAddress,
-  ],
-  (
-    state,
-    sourceToken,
-    isMultichainAccountsState2Enabled,
-    selectedInternalAccountAddress,
-  ) => {
+  [(state: RootState) => state, selectSourceToken],
+  (state, sourceToken) => {
     if (!sourceToken) return undefined;
-
-    if (!isMultichainAccountsState2Enabled) {
-      return selectedInternalAccountAddress;
-    }
 
     const chainId = formatChainIdToCaip(sourceToken.chainId);
     const internalAccount =

@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import TronStakingLearnMoreModal from '.';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -22,15 +23,24 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('../../../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    STAKE_LEARN_MORE_CLICKED: 'STAKE_LEARN_MORE_CLICKED',
-  },
-  useMetrics: () => ({
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
+
+// LearnMoreModalFooter (child component) still uses useMetrics - mock it
+jest.mock('../../../../../hooks/useMetrics', () => {
+  const actual = jest.requireActual('../../../../../../core/Analytics');
+  return {
+    ...actual,
+    useMetrics: () => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    }),
+  };
+});
 
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
@@ -186,7 +196,7 @@ describe('TronStakingLearnMoreModal', () => {
       fireEvent.press(getByText('Learn more'));
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'STAKE_LEARN_MORE_CLICKED',
+        MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
     });

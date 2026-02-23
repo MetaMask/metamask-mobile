@@ -14,9 +14,14 @@ const ACCOUNT_MENU_FLAG_KEY = 'mobileUxAccountMenu';
 export const selectAccountMenuEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const remoteFlag = remoteFeatureFlags[
-      ACCOUNT_MENU_FLAG_KEY
-    ] as unknown as VersionGatedFeatureFlag;
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+    const remoteFlag = remoteFeatureFlags[ACCOUNT_MENU_FLAG_KEY];
+    if (typeof remoteFlag === 'boolean') {
+      return remoteFlag;
+    }
+    return (
+      validatedVersionGatedFeatureFlag(
+        remoteFlag as unknown as VersionGatedFeatureFlag,
+      ) ?? false
+    );
   },
 );

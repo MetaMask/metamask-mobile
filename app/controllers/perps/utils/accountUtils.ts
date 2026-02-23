@@ -6,6 +6,7 @@ import { isEvmAccountType } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PerpsControllerMessenger } from '../PerpsController';
 import type { AccountState } from '../types';
 
 export function findEvmAccount(
@@ -24,19 +25,13 @@ export function getEvmAccountFromAccountGroup(
   return evmAccount ? { address: evmAccount.address } : undefined;
 }
 
-type AccountTreeMessenger = {
-  call: (
-    action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
-  ) => InternalAccount[];
-};
-
 export function getSelectedEvmAccount(
-  messenger: AccountTreeMessenger,
+  messenger: PerpsControllerMessenger,
 ): { address: string } | undefined {
   const accounts = messenger.call(
     'AccountTreeController:getAccountsFromSelectedAccountGroup',
   );
-  return getEvmAccountFromAccountGroup(accounts);
+  return getEvmAccountFromAccountGroup(accounts as InternalAccount[]);
 }
 
 export type ReturnOnEquityInput = {
