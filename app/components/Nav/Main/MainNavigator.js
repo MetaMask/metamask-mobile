@@ -382,10 +382,15 @@ const SettingsFlow = () => {
         options={SecuritySettings.navigationOptions}
       />
 
-      <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
+      <Stack.Screen
+        name={Routes.RAMP.SETTINGS}
+        component={RampSettings}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name={Routes.RAMP.ACTIVATION_KEY_FORM}
         component={RampActivationKeyForm}
+        options={{ headerShown: false }}
       />
       {
         /**

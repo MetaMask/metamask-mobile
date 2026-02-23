@@ -1,6 +1,7 @@
 // Third party dependencies
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // External dependencies
 import Row from '../../components/Row';
@@ -14,19 +15,20 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../../../component-library/components/Buttons/Button';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 
-import { getNavigationOptionsTitle } from '../../../../Navbar';
+import Routes from '../../../../../../constants/navigation/Routes';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../util/navigation/navUtils';
-import { useTheme } from '../../../../../../util/theme';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { regex } from '../../../../../../util/regex';
 
 // Internal dependencies
 import styles from './Settings.styles';
+
+export const ACTIVATION_KEY_FORM_HEADER_TEST_ID = 'activation-key-form-header';
 
 interface ActivationKeyFormParams {
   onSubmit: (key: string, label: string, active: boolean) => void;
@@ -50,21 +52,11 @@ function ActivationKeyForm() {
   } = useParams<ActivationKeyFormParams>();
   const [activationKey, setActivationKey] = useState(key ?? '');
   const [label, setLabel] = useState(initialLabel ?? '');
-  const { colors } = useTheme();
   const style = styles();
 
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        key
-          ? strings('app_settings.fiat_on_ramp.edit_activation_key')
-          : strings('app_settings.fiat_on_ramp.add_activation_key'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  }, [colors, key, navigation]);
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const handleSubmit = useCallback(() => {
     if (!regex.activationKey.test(activationKey)) {
@@ -78,72 +70,83 @@ function ActivationKeyForm() {
     navigation.goBack();
   }, [navigation]);
 
+  const title = key
+    ? strings('app_settings.fiat_on_ramp.edit_activation_key')
+    : strings('app_settings.fiat_on_ramp.add_activation_key');
+
   return (
-    <ScreenLayout>
-      <ScreenLayout.Body>
-        <ScreenLayout.Content>
-          <Text variant={TextVariant.BodyLGMedium}>
-            {key
-              ? strings('app_settings.fiat_on_ramp.edit_activation_key')
-              : strings('app_settings.fiat_on_ramp.add_activation_key')}
-          </Text>
+    <SafeAreaView edges={['top']} style={style.container}>
+      <HeaderCompactStandard
+        testID={ACTIVATION_KEY_FORM_HEADER_TEST_ID}
+        title={title}
+        onBack={handleBack}
+      />
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content>
+            <Text variant={TextVariant.BodyLGMedium}>
+              {key
+                ? strings('app_settings.fiat_on_ramp.edit_activation_key')
+                : strings('app_settings.fiat_on_ramp.add_activation_key')}
+            </Text>
 
-          <Row>
-            <Label>{strings('app_settings.fiat_on_ramp.label')}</Label>
-            <TextField
-              autoCapitalize={'none'}
-              onChangeText={setLabel}
-              placeholder={strings('app_settings.fiat_on_ramp.add_label')}
-              numberOfLines={1}
-              value={label}
-              returnKeyType={'done'}
-              onSubmitEditing={handleSubmit}
-              autoFocus
-            />
-          </Row>
-          <Row>
-            <Label>{strings('app_settings.fiat_on_ramp.key')}</Label>
-            <TextField
-              autoCapitalize={'none'}
-              autoCorrect={false}
-              onChangeText={setActivationKey}
-              placeholder={strings(
-                'app_settings.fiat_on_ramp.paste_or_type_activation_key',
-              )}
-              spellCheck={false}
-              numberOfLines={1}
-              value={activationKey}
-              returnKeyType={'done'}
-              onSubmitEditing={handleSubmit}
-              isReadonly={Boolean(key)}
-              autoFocus
-            />
-          </Row>
+            <Row>
+              <Label>{strings('app_settings.fiat_on_ramp.label')}</Label>
+              <TextField
+                autoCapitalize={'none'}
+                onChangeText={setLabel}
+                placeholder={strings('app_settings.fiat_on_ramp.add_label')}
+                numberOfLines={1}
+                value={label}
+                returnKeyType={'done'}
+                onSubmitEditing={handleSubmit}
+                autoFocus
+              />
+            </Row>
+            <Row>
+              <Label>{strings('app_settings.fiat_on_ramp.key')}</Label>
+              <TextField
+                autoCapitalize={'none'}
+                autoCorrect={false}
+                onChangeText={setActivationKey}
+                placeholder={strings(
+                  'app_settings.fiat_on_ramp.paste_or_type_activation_key',
+                )}
+                spellCheck={false}
+                numberOfLines={1}
+                value={activationKey}
+                returnKeyType={'done'}
+                onSubmitEditing={handleSubmit}
+                isReadonly={Boolean(key)}
+                autoFocus
+              />
+            </Row>
 
-          <Row style={style.buttons}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              style={style.button}
-              onPress={handleCancel}
-              label={strings('app_settings.fiat_on_ramp.cancel')}
-            />
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              style={style.button}
-              onPress={handleSubmit}
-              label={
-                key
-                  ? strings('app_settings.fiat_on_ramp.update')
-                  : strings('app_settings.fiat_on_ramp.add')
-              }
-              isDisabled={!regex.activationKey.test(activationKey)}
-            />
-          </Row>
-        </ScreenLayout.Content>
-      </ScreenLayout.Body>
-    </ScreenLayout>
+            <Row style={style.buttons}>
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                style={style.button}
+                onPress={handleCancel}
+                label={strings('app_settings.fiat_on_ramp.cancel')}
+              />
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                style={style.button}
+                onPress={handleSubmit}
+                label={
+                  key
+                    ? strings('app_settings.fiat_on_ramp.update')
+                    : strings('app_settings.fiat_on_ramp.add')
+                }
+                isDisabled={!regex.activationKey.test(activationKey)}
+              />
+            </Row>
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    </SafeAreaView>
   );
 }
 

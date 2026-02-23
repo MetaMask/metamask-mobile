@@ -1,6 +1,6 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
-import Settings from './Settings';
+import { fireEvent, screen, within } from '@testing-library/react-native';
+import Settings, { RAMP_SETTINGS_HEADER_TEST_ID } from './Settings';
 import useActivationKeys from '../../hooks/useActivationKeys';
 import { RampSDK, withRampSDK } from '../../sdk';
 import { ActivationKey } from '../../../../../../reducers/fiatOrders/types';
@@ -30,7 +30,7 @@ function render(Component: React.ComponentType) {
 }
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -38,9 +38,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions.mockImplementation(
-        actualReactNavigation.useNavigation().setOptions,
-      ),
+      goBack: mockGoBack,
     }),
   };
 });
@@ -200,6 +198,20 @@ describe('Settings', () => {
     render(Settings);
     expect(screen.toJSON()).toMatchSnapshot();
     expect(withRampSDK).toHaveBeenCalled();
+  });
+
+  it('renders inline header with title Buy & sell crypto', () => {
+    render(Settings);
+    expect(screen.getByText('Buy & sell crypto')).toBeOnTheScreen();
+    expect(screen.getByTestId(RAMP_SETTINGS_HEADER_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('navigates back when header back button is pressed', () => {
+    render(Settings);
+    const header = screen.getByTestId(RAMP_SETTINGS_HEADER_TEST_ID);
+    const backButton = within(header).getByTestId('button-icon');
+    fireEvent.press(backButton);
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('renders correctly for internal builds', () => {
