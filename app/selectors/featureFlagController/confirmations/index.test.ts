@@ -11,7 +11,6 @@ import {
   GasFeeTokenFlags,
   selectPayPostQuoteFlags,
   selectPayQuoteConfig,
-  selectPayQuoteTokens,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -413,46 +412,5 @@ describe('selectPayQuoteConfig', () => {
   it('returns disabled default when flag is missing', () => {
     const result = selectPayQuoteConfig(mockedEmptyFlagsState);
     expect(result).toEqual({ enabled: false, tokens: undefined });
-  });
-});
-
-describe('selectPayQuoteTokens', () => {
-  function stateWithFlags(flags: Record<string, unknown>) {
-    const state = cloneDeep(mockedEmptyFlagsState);
-    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-      { confirmations_pay_post_quote: flags };
-    return state;
-  }
-
-  it('returns tokens for a matching chain', () => {
-    const state = stateWithFlags({
-      default: { tokens: { '0x89': ['0xaaa', '0xbbb'] } },
-    });
-    const result = selectPayQuoteTokens(state, undefined, '0x89' as Hex);
-    expect(result).toEqual(['0xaaa', '0xbbb']);
-  });
-
-  it('returns undefined when chainId is not in tokens', () => {
-    const state = stateWithFlags({
-      default: { tokens: { '0x89': ['0xaaa'] } },
-    });
-    const result = selectPayQuoteTokens(state, undefined, '0x1' as Hex);
-    expect(result).toBeUndefined();
-  });
-
-  it('returns undefined when no chainId provided', () => {
-    const state = stateWithFlags({
-      default: { tokens: { '0x89': ['0xaaa'] } },
-    });
-    const result = selectPayQuoteTokens(state, undefined, undefined);
-    expect(result).toBeUndefined();
-  });
-
-  it('matches chain ID case-insensitively', () => {
-    const state = stateWithFlags({
-      default: { tokens: { '0xa86a': ['0xaaa'] } },
-    });
-    const result = selectPayQuoteTokens(state, undefined, '0xA86A' as Hex);
-    expect(result).toEqual(['0xaaa']);
   });
 });

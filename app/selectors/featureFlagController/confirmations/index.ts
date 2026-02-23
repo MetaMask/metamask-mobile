@@ -120,21 +120,6 @@ export function selectPayQuoteConfig(
 }
 
 /**
- * Resolves the token allowlist for a given transaction type and chain.
- */
-export function selectPayQuoteTokens(
-  state: RootState,
-  transactionType?: string,
-  chainId?: Hex,
-): Hex[] | undefined {
-  const config = selectPayQuoteConfig(state, transactionType);
-  if (!config.tokens || !chainId) {
-    return undefined;
-  }
-  return config.tokens[chainId.toLowerCase() as Hex];
-}
-
-/**
  * Selector to get the allow list for non-zero unused approvals from remote feature flags.
  *
  * @param state - The MetaMask state object
