@@ -83,7 +83,7 @@ export function HighlightedAction({ item }: HighlightedActionProps) {
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
                 onPress={action.onPress}
-                disabled={action.isDisabled}
+                isDisabled={action.isDisabled}
               >
                 {action.buttonLabel}
               </Button>
