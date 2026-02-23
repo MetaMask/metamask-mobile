@@ -33,6 +33,7 @@ const createMockProvider = (overrides?: Partial<Provider>): Provider => ({
 });
 
 const TRANSAK_PROVIDER_ID = '/providers/transak-native';
+const TRANSAK_STAGING_PROVIDER_ID = '/providers/transak-native-staging';
 
 const createMockTransakProvider = (
   overrides?: Partial<Provider>,
@@ -41,6 +42,24 @@ const createMockTransakProvider = (
   name: 'Transak',
   environmentType: 'PRODUCTION',
   description: 'Transak Provider',
+  hqAddress: '123 Transak St',
+  links: [
+    {
+      name: PROVIDER_LINKS.SUPPORT,
+      url: MOCK_TRANSAK_SUPPORT_URL,
+    },
+  ],
+  logos: { light: '', dark: '', height: 24, width: 79 },
+  ...overrides,
+});
+
+const createMockTransakStagingProvider = (
+  overrides?: Partial<Provider>,
+): Provider => ({
+  id: TRANSAK_STAGING_PROVIDER_ID,
+  name: 'Transak',
+  environmentType: 'STAGING',
+  description: 'Transak Provider (Staging)',
   hqAddress: '123 Transak St',
   links: [
     {
@@ -283,6 +302,16 @@ describe('SettingsModal', () => {
         iconColor: 'Error',
         hasNoTimeout: false,
       });
+    });
+
+    it('displays logout option when user is authenticated with Transak staging', async () => {
+      mockSelectedProvider = createMockTransakStagingProvider();
+
+      const { findByText } = renderWithProvider(SettingsModal);
+
+      const logoutButton = await findByText('Log out of Transak');
+
+      expect(logoutButton).toBeOnTheScreen();
     });
 
     it('hides logout option for non-Transak providers even when authenticated', async () => {

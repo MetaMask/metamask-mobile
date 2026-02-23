@@ -4,7 +4,7 @@ import ReviewOrder from './ReviewOrder';
 import { ReviewOrderSelectors } from './ReviewOrder.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockNavigate = jest.fn();
@@ -54,15 +54,11 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => jest.fn()),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
-  MetaMetricsEvents: {
-    CARD_VIEWED: 'Card Viewed',
-    CARD_BUTTON_CLICKED: 'Card Button Clicked',
-  },
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({

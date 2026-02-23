@@ -117,7 +117,12 @@ import ErrorBoundary from '../ErrorBoundary';
 import { Token } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import {
+  selectHomepageRedesignV1Enabled,
+  selectHomepageSectionsV1Enabled,
+} from '../../../selectors/featureFlagController/homepage';
+import Homepage from '../Homepage';
+import { SectionRefreshHandle } from '../Homepage/types';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -171,6 +176,7 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
+import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -750,6 +756,7 @@ const Wallet = ({
   );
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const { isNetworkEnabledForDefi } = useCurrentNetworkInfo();
 
   const collectiblesEnabled = useMemo(() => {
     if (allEnabledNetworks.length === 1) {
@@ -964,6 +971,7 @@ const Wallet = ({
     isAllNetworks && isPopularNetworks ? allDetectedTokens : detectedTokens;
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
+  const isAccountMenuEnabled = useAccountMenuEnabled();
   const { detectNfts } = useNftDetection();
 
   /**
@@ -1055,13 +1063,22 @@ const Wallet = ({
     /* eslint-disable-next-line */
     // TODO: The need of usage of this chainId as a dependency is not clear, we shouldn't need to refresh the native balances when the chainId changes. Since the pooling is always working in the back. Check with assets team.
     // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
-    [navigation, chainId, evmNetworkConfigurations],
+    [navigation, chainId, evmNetworkConfigurations, selectedInternalAccount],
   );
 
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
+  const isHomepageSectionsV1Enabled = useSelector(
+    selectHomepageSectionsV1Enabled,
+  );
+
+  const homepageRef = useRef<SectionRefreshHandle>(null);
+
+  // Enable parent scroll when homepage redesign or sections feature flags are enabled
+  const shouldEnableParentScroll =
+    isHomepageRedesignV1Enabled || isHomepageSectionsV1Enabled;
 
   useEffect(() => {
     if (!selectedInternalAccount) return;
@@ -1080,6 +1097,7 @@ const Wallet = ({
         unreadNotificationCount,
         readNotificationCount,
         shouldDisplayCardButton,
+        isAccountMenuEnabled,
       ),
     );
   }, [
@@ -1095,6 +1113,7 @@ const Wallet = ({
     unreadNotificationCount,
     readNotificationCount,
     shouldDisplayCardButton,
+    isAccountMenuEnabled,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(
@@ -1224,7 +1243,7 @@ const Wallet = ({
   }, [navigation]);
 
   const defiEnabled =
-    isEvmSelected &&
+    isNetworkEnabledForDefi &&
     !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
@@ -1232,9 +1251,9 @@ const Wallet = ({
   const scrollViewContentStyle = useMemo(
     () => [
       styles.wrapper,
-      isHomepageRedesignV1Enabled && { flex: undefined, flexGrow: 0 },
+      shouldEnableParentScroll && { flex: undefined, flexGrow: 0 },
     ],
-    [styles.wrapper, isHomepageRedesignV1Enabled],
+    [styles.wrapper, shouldEnableParentScroll],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1247,7 +1266,13 @@ const Wallet = ({
     setRefreshing(true);
 
     try {
-      await walletTokensTabViewRef.current?.refresh(refreshBalance);
+      if (isHomepageSectionsV1Enabled) {
+        // Homepage sections mode - refresh homepage and balance
+        await Promise.all([refreshBalance(), homepageRef.current?.refresh()]);
+      } else {
+        // Legacy tab mode
+        await walletTokensTabViewRef.current?.refresh(refreshBalance);
+      }
     } catch (error) {
       Logger.error(error as Error, 'Error refreshing wallet');
     } finally {
@@ -1258,7 +1283,7 @@ const Wallet = ({
         setRefreshing(false);
       }
     }
-  }, [refreshBalance]);
+  }, [refreshBalance, isHomepageSectionsV1Enabled]);
 
   const content = (
     <>
@@ -1297,13 +1322,17 @@ const Wallet = ({
 
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
-        <WalletTokensTabView
-          ref={walletTokensTabViewRef}
-          navigation={navigation}
-          onChangeTab={onChangeTab}
-          defiEnabled={defiEnabled}
-          collectiblesEnabled={collectiblesEnabled}
-        />
+        {isHomepageSectionsV1Enabled ? (
+          <Homepage ref={homepageRef} />
+        ) : (
+          <WalletTokensTabView
+            ref={walletTokensTabViewRef}
+            navigation={navigation}
+            onChangeTab={onChangeTab}
+            defiEnabled={defiEnabled}
+            collectiblesEnabled={collectiblesEnabled}
+          />
+        )}
       </>
     </>
   );
@@ -1326,11 +1355,11 @@ const Wallet = ({
           >
             <ConditionalScrollView
               ref={scrollViewRef}
-              isScrollEnabled={isHomepageRedesignV1Enabled}
+              isScrollEnabled={shouldEnableParentScroll}
               scrollViewProps={{
                 contentContainerStyle: scrollViewContentStyle,
                 showsVerticalScrollIndicator: false,
-                refreshControl: isHomepageRedesignV1Enabled ? (
+                refreshControl: shouldEnableParentScroll ? (
                   <RefreshControl
                     colors={[colors.primary.default]}
                     tintColor={colors.icon.default}

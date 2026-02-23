@@ -13,15 +13,15 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 ### Component-View Tests (Mandatory)
 
 - [.cursor/rules/component-view-testing.mdc](../.cursor/rules/component-view-testing.mdc) — Mock policy, presets/renderers, navigation, test structure, **no fake timers**.
-- [app/util/test/component-view/README.md](../app/util/test/component-view/README.md) — Framework layout, usage, presets, renderers, platform matrix.
-- [app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md](../app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md) — Detailed rules, allowed mocks, avoid fake timers, how to write component-view tests.
+- [tests/component-view/README.md](component-view/README.md) — Framework layout, usage, presets, renderers, platform matrix.
+- [tests/component-view/COMPONENT_VIEW_TEST_RULES.md](component-view/COMPONENT_VIEW_TEST_RULES.md) — Detailed rules, allowed mocks, avoid fake timers, how to write component-view tests.
 
 ### Implementation Reference (Component-View)
 
-- Mocks: [util/test/component-view/mocks.ts](../app/util/test/component-view/mocks.ts)
-- Presets: [util/test/component-view/presets/](../app/util/test/component-view/presets/)
-- Renderers: [util/test/component-view/renderers/](../app/util/test/component-view/renderers/)
-- State fixture: [util/test/component-view/stateFixture.ts](../app/util/test/component-view/stateFixture.ts)
+- Mocks: [tests/component-view/mocks.ts](component-view/mocks.ts)
+- Presets: [tests/component-view/presets/](component-view/presets/)
+- Renderers: [tests/component-view/renderers/](component-view/renderers/)
+- State fixture: [tests/component-view/stateFixture.ts](component-view/stateFixture.ts)
 
 ## Canonical Sources (read these, do not duplicate)
 

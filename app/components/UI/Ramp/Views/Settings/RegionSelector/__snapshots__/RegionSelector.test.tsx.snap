@@ -445,9 +445,7 @@ exports[`RegionSelector clears search and scrolls to top when clear button is pr
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -1521,9 +1519,7 @@ exports[`RegionSelector clears search text when clear button is pressed 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -2597,9 +2593,7 @@ exports[`RegionSelector displays empty state when search has no results 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -3169,9 +3163,7 @@ exports[`RegionSelector displays grouped search results showing country and matc
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -3982,9 +3974,7 @@ exports[`RegionSelector displays standalone countries in search results 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -4652,9 +4642,7 @@ exports[`RegionSelector displays standalone states in search results 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -5465,9 +5453,7 @@ exports[`RegionSelector does not highlight country when regionCode does not matc
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -6545,9 +6531,7 @@ exports[`RegionSelector does not highlight state when country does not match 1`]
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -7240,9 +7224,7 @@ exports[`RegionSelector does not highlight state when state ID does not match 1`
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -7950,9 +7932,7 @@ exports[`RegionSelector does not highlight state when userRegion has no state 1`
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -8654,9 +8634,7 @@ exports[`RegionSelector falls back to userCountryCode when regionInTransit is nu
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -9530,9 +9508,7 @@ exports[`RegionSelector filters regions when search text is entered 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -10254,9 +10230,7 @@ exports[`RegionSelector highlights country when regionCode exactly matches count
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -11365,9 +11339,7 @@ exports[`RegionSelector highlights country when regionCode starts with country c
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -12497,9 +12469,7 @@ exports[`RegionSelector highlights state in grouped search results when parent c
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -13365,9 +13335,7 @@ exports[`RegionSelector highlights state when selected in state view 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -14091,9 +14059,7 @@ exports[`RegionSelector limits search results 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -16002,9 +15968,7 @@ exports[`RegionSelector navigates back to countries view when back button is pre
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -16670,9 +16634,7 @@ exports[`RegionSelector navigates to states view when country with states is sel
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -17354,9 +17316,7 @@ exports[`RegionSelector renders countries list 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -18430,9 +18390,7 @@ exports[`RegionSelector renders country with supported set to false 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -19058,9 +19016,7 @@ exports[`RegionSelector renders country without flag 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -19703,9 +19659,7 @@ exports[`RegionSelector renders description text only in country view 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -20763,9 +20717,7 @@ exports[`RegionSelector renders description text only in country view 2`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -21447,9 +21399,7 @@ exports[`RegionSelector renders disabled country 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -22507,9 +22457,7 @@ exports[`RegionSelector renders disabled state 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -23191,9 +23139,7 @@ exports[`RegionSelector renders error state when countries error occurs 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -23737,9 +23683,7 @@ exports[`RegionSelector renders loading state when regions are loading 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -24257,9 +24201,7 @@ exports[`RegionSelector renders recommended countries 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -24989,9 +24931,7 @@ exports[`RegionSelector renders state with supported set to false 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -25585,9 +25525,7 @@ exports[`RegionSelector renders state without stateId 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -26236,9 +26174,7 @@ exports[`RegionSelector renders states view 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -26920,9 +26856,7 @@ exports[`RegionSelector renders unsupported country 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -27980,9 +27914,7 @@ exports[`RegionSelector renders unsupported state 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -28664,9 +28596,7 @@ exports[`RegionSelector renders when country has states and user region state is
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -29796,9 +29726,7 @@ exports[`RegionSelector renders with empty regions array 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -30300,9 +30228,7 @@ exports[`RegionSelector renders with selected user region 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -31416,9 +31342,7 @@ exports[`RegionSelector resets search when navigating to state view 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -32100,9 +32024,7 @@ exports[`RegionSelector scrolls to top when search text changes 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -32656,9 +32578,7 @@ exports[`RegionSelector sets up back button in state view 1`] = `
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -33340,9 +33260,7 @@ exports[`RegionSelector shows state name in country view when user has selected 
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"
@@ -34482,9 +34400,7 @@ exports[`RegionSelector sorts regions with recommended first when no search 1`] 
                                   "fontWeight": "400",
                                   "height": 46,
                                   "letterSpacing": 0,
-                                  "lineHeight": 0,
                                   "opacity": 1,
-                                  "textAlignVertical": "center",
                                 }
                               }
                               testID="textfieldsearch"

@@ -1,19 +1,13 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useRef } from 'react';
-import {
-  Pressable,
-  View,
-  Animated,
-  GestureResponderEvent,
-  Easing,
-} from 'react-native';
+import React from 'react';
+import { Pressable, View, Animated } from 'react-native';
 
 // External dependencies.
 import Icon, { IconSize, IconColor } from '../../components/Icons/Icon';
 import Text, { TextVariant, TextColor } from '../../components/Texts/Text';
-import { useStyles } from '../../hooks';
+import { useAnimatedPressable, useStyles } from '../../hooks';
 
 // Internal dependencies.
 import { MainActionButtonProps } from './MainActionButton.types';
@@ -34,27 +28,10 @@ const MainActionButton = ({
     isDisabled,
   });
 
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  const handlePressIn = (pressEvent: GestureResponderEvent) => {
-    Animated.timing(scaleAnim, {
-      toValue: 0.98,
-      duration: 150,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-    onPressIn?.(pressEvent);
-  };
-
-  const handlePressOut = (pressEvent: GestureResponderEvent) => {
-    Animated.timing(scaleAnim, {
-      toValue: 1,
-      duration: 150,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-    onPressOut?.(pressEvent);
-  };
+  const { scaleAnim, handlePressIn, handlePressOut } = useAnimatedPressable({
+    onPressIn: onPressIn ?? undefined,
+    onPressOut: onPressOut ?? undefined,
+  });
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
