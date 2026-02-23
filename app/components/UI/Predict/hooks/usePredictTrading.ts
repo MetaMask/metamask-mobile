@@ -3,7 +3,6 @@ import Engine from '../../../../core/Engine';
 import {
   ClaimParams,
   GetBalanceParams,
-  GetPositionsParams,
   OrderPreview,
   PlaceOrderParams,
   PrepareDepositParams,
@@ -12,11 +11,6 @@ import {
 } from '../types';
 
 export function usePredictTrading() {
-  const getPositions = useCallback(async (params: GetPositionsParams) => {
-    const controller = Engine.context.PredictController;
-    return controller.getPositions(params);
-  }, []);
-
   const claim = useCallback(async (claimParams: ClaimParams) => {
     const controller = Engine.context.PredictController;
     return controller.claimWithConfirmation(claimParams);
@@ -51,7 +45,6 @@ export function usePredictTrading() {
   }, []);
 
   return {
-    getPositions,
     placeOrder,
     claim,
     getBalance,

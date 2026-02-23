@@ -30,53 +30,6 @@ describe('usePredictTrading', () => {
     jest.clearAllMocks();
   });
 
-  describe('getPositions', () => {
-    it('calls PredictController.getPositions and returns positions', async () => {
-      const mockPositions = [
-        {
-          id: 'pos1',
-          market: 'BTC/UP',
-          side: 'UP',
-          size: '10',
-          entryPrice: '100',
-          payout: '180',
-          status: 'OPEN',
-        },
-      ];
-
-      (
-        Engine.context.PredictController.getPositions as jest.Mock
-      ).mockResolvedValue(mockPositions);
-
-      const { result } = renderHook(() => usePredictTrading());
-
-      const response = await result.current.getPositions({
-        address: '0x1234567890123456789012345678901234567890',
-      });
-
-      expect(
-        Engine.context.PredictController.getPositions,
-      ).toHaveBeenCalledWith({
-        address: '0x1234567890123456789012345678901234567890',
-      });
-      expect(response).toEqual(mockPositions);
-    });
-
-    it('throws error when PredictController.getPositions fails', async () => {
-      const mockError = new Error('Failed to fetch predict positions');
-      (
-        Engine.context.PredictController.getPositions as jest.Mock
-      ).mockRejectedValue(mockError);
-      const { result } = renderHook(() => usePredictTrading());
-
-      await expect(
-        result.current.getPositions({
-          address: '0x1234567890123456789012345678901234567890',
-        }),
-      ).rejects.toThrow('Failed to fetch predict positions');
-    });
-  });
-
   describe('placeOrder', () => {
     it('calls PredictController.placeOrder for buy and returns result', async () => {
       const mockBuyResult = {
@@ -277,7 +230,6 @@ describe('usePredictTrading', () => {
     it('returns stable function references', () => {
       const { result, rerender } = renderHook(() => usePredictTrading());
 
-      const initialGetPositions = result.current.getPositions;
       const initialPlaceOrder = result.current.placeOrder;
       const initialClaim = result.current.claim;
       const initialGetBalance = result.current.getBalance;
@@ -285,7 +237,6 @@ describe('usePredictTrading', () => {
 
       rerender({});
 
-      expect(result.current.getPositions).toBe(initialGetPositions);
       expect(result.current.placeOrder).toBe(initialPlaceOrder);
       expect(result.current.claim).toBe(initialClaim);
       expect(result.current.getBalance).toBe(initialGetBalance);

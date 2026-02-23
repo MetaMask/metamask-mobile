@@ -18,7 +18,8 @@ import { RootState } from '../../../../../reducers';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { capitalize } from '../../../../../util/general';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { TokenI } from '../../../Tokens/types';
 import {
@@ -46,7 +47,7 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
 
   const { navigate } = useNavigation();
 
-  const { createEventBuilder, trackEvent } = useMetrics();
+  const { createEventBuilder, trackEvent } = useAnalytics();
 
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
