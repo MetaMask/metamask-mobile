@@ -62,7 +62,8 @@ import {
   TOKEN_RATE_UNDEFINED,
 } from '../../../Tokens/constants';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import {
   DEPOSIT_SUPPORTED_TOKENS,
@@ -162,7 +163,7 @@ const CardHome = () => {
 
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const theme = useTheme();
