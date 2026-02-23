@@ -192,6 +192,10 @@ const MarketInsightsView: React.FC = () => {
     [trackEvent, createEventBuilder, caip19Id],
   );
 
+  useEffect(() => {
+    hasTrackedViewRef.current = false;
+  }, [caip19Id]);
+
   const handleThumbsUpPress = useCallback(() => {
     trackMarketInsightsInteraction('thumbs_up');
   }, [trackMarketInsightsInteraction]);

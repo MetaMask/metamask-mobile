@@ -23,7 +23,7 @@ const mockUseSwapBridgeNavigation = jest.fn((_options: unknown) => ({
   goToSwaps: mockGoToSwaps,
 }));
 
-const mockRouteParams = {
+let mockRouteParams = {
   assetSymbol: 'ETH',
   caip19Id: 'eip155:1/erc20:0x123',
   tokenImageUrl: 'https://example.com/eth.png',
@@ -132,13 +132,13 @@ jest.mock('../../components/MarketInsightsSourcesFooter', () => {
         <MockText>source-link</MockText>
       </MockPressable>
       <MockPressable
-        testID={MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON}
+        testID="market-insights-thumbs-up-button"
         onPress={onThumbsUp}
       >
         <MockText>thumbs-up</MockText>
       </MockPressable>
       <MockPressable
-        testID={MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON}
+        testID="market-insights-thumbs-down-button"
         onPress={onThumbsDown}
       >
         <MockText>thumbs-down</MockText>
@@ -186,6 +186,16 @@ describe('MarketInsightsView', () => {
   beforeEach(() => {
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     jest.clearAllMocks();
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      caip19Id: 'eip155:1/erc20:0x123',
+      tokenImageUrl: 'https://example.com/eth.png',
+      pricePercentChange: 4.2,
+      tokenAddress: '0x123',
+      tokenDecimals: 18,
+      tokenName: 'Ethereum',
+      tokenChainId: '0x1',
+    };
   });
 
   afterEach(() => {
@@ -403,6 +413,70 @@ describe('MarketInsightsView', () => {
             url: 'https://x.com/user/status/101',
           }),
         ],
+      }),
+    );
+  });
+
+  it('tracks viewed event again when caip19Id changes on mounted view', () => {
+    mockUseMarketInsights.mockImplementation((caip19Id: string) => {
+      if (caip19Id === 'eip155:1/erc20:0x456') {
+        return {
+          report: {
+            asset: 'usdc',
+            generatedAt: '2026-02-17T12:00:00.000Z',
+            headline: 'USDC stable',
+            summary: 'Stablecoin demand remains steady',
+            trends: [],
+            sources: [],
+          },
+          isLoading: false,
+          error: null,
+          timeAgo: '1m ago',
+        };
+      }
+
+      return {
+        report: {
+          asset: 'eth',
+          generatedAt: '2026-02-17T11:55:00.000Z',
+          headline: 'ETH extends gains',
+          summary: 'Momentum improves on macro risk-on signals',
+          trends: [],
+          sources: [],
+        },
+        isLoading: false,
+        error: null,
+        timeAgo: '5m ago',
+      };
+    });
+
+    const { rerender } = renderWithProvider(<MarketInsightsView />);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
+        properties: expect.objectContaining({
+          caip19: 'eip155:1/erc20:0x123',
+        }),
+      }),
+    );
+
+    mockRouteParams = {
+      ...mockRouteParams,
+      assetSymbol: 'USDC',
+      caip19Id: 'eip155:1/erc20:0x456',
+      tokenAddress: '0x456',
+      tokenName: 'USD Coin',
+    };
+
+    rerender(<MarketInsightsView />);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
+        properties: expect.objectContaining({
+          caip19: 'eip155:1/erc20:0x456',
+        }),
       }),
     );
   });
