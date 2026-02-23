@@ -3,7 +3,17 @@ import { View, SafeAreaView, ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { captureException } from '@sentry/react-native';
+import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
 
+import {
+  OnboardingActionTypes,
+  saveOnboardingEvent as saveEvent,
+} from '../../../actions/onboarding';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Text, {
   TextVariant,
   TextColor,
@@ -28,9 +38,13 @@ import styleSheet from './SRPErrorScreen.styles';
 
 interface SRPErrorScreenProps {
   error: Error;
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
 
-const SRPErrorScreen = ({ error }: SRPErrorScreenProps) => {
+const SRPErrorScreen = ({
+  error,
+  saveOnboardingEvent,
+}: SRPErrorScreenProps) => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const [copied, setCopied] = useState(false);
@@ -45,6 +59,22 @@ const SRPErrorScreen = ({ error }: SRPErrorScreenProps) => {
     },
     [],
   );
+
+  // Track screen viewed event
+  useEffect(() => {
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_VIEWED,
+      )
+        .addProperties({
+          flow_type: 'srp',
+          error_name: error?.name || 'Unknown',
+          error_message: error?.message || 'No message',
+        })
+        .build(),
+      saveOnboardingEvent,
+    );
+  }, [error, saveOnboardingEvent]);
 
   const errorReport = `View: ChoosePassword\nError: ${error?.name || 'Unknown'}\n${error?.message || 'No message'}`;
 
@@ -187,4 +217,9 @@ const SRPErrorScreen = ({ error }: SRPErrorScreenProps) => {
   );
 };
 
-export default SRPErrorScreen;
+const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
+    dispatch(saveEvent(eventArgs)),
+});
+
+export default connect(null, mapDispatchToProps)(SRPErrorScreen);

@@ -6,6 +6,21 @@ import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({});
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 const mockReset = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -37,10 +52,35 @@ describe('SocialLoginErrorSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddProperties.mockReturnThis();
+    mockBuild.mockReturnValue({});
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    });
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+  });
+
+  describe('analytics', () => {
+    it('tracks screen viewed event on mount', () => {
+      renderWithProvider(<SocialLoginErrorSheet error={mockError} />);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks event with correct flow_type property', () => {
+      renderWithProvider(<SocialLoginErrorSheet error={mockError} />);
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        flow_type: 'social_login',
+        error_name: 'Error',
+        error_message: 'Test social login error',
+      });
+    });
   });
 
   describe('rendering', () => {

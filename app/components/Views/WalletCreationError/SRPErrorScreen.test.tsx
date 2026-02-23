@@ -8,6 +8,13 @@ import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
+const mockTrackOnboarding = jest.fn();
+
+jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) => mockTrackOnboarding(...args),
+}));
+
 const mockReset = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -54,6 +61,29 @@ describe('SRPErrorScreen', () => {
   afterEach(() => {
     jest.resetAllMocks();
     jest.useRealTimers();
+  });
+
+  describe('analytics', () => {
+    it('tracks screen viewed event on mount', () => {
+      renderWithProvider(<SRPErrorScreen error={mockError} />);
+
+      expect(mockTrackOnboarding).toHaveBeenCalled();
+    });
+
+    it('tracks event with correct flow_type property', () => {
+      renderWithProvider(<SRPErrorScreen error={mockError} />);
+
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            flow_type: 'srp',
+            error_name: 'WalletCreationError',
+            error_message: 'Test wallet creation error',
+          }),
+        }),
+        expect.any(Function),
+      );
+    });
   });
 
   describe('rendering', () => {

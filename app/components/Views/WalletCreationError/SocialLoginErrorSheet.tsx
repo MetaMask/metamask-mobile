@@ -1,8 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, Image, Linking, SafeAreaView } from 'react-native';
 import { useNavigation, ParamListBase } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Text, {
   TextVariant,
   TextColor,
@@ -32,10 +34,23 @@ interface SocialLoginErrorSheetProps {
   error?: Error;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const { styles } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  // Track screen viewed event
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_VIEWED)
+        .addProperties({
+          flow_type: 'social_login',
+          error_name: error?.name || 'Unknown',
+          error_message: error?.message || 'No message',
+        })
+        .build(),
+    );
+  }, [error, trackEvent, createEventBuilder]);
 
   const handleTryAgain = useCallback(async () => {
     // Delete wallet
