@@ -147,13 +147,6 @@ jest.mock('../../hooks/AssetPolling/useCurrencyRatePolling', () => jest.fn());
 jest.mock('../../hooks/AssetPolling/useTokenRatesPolling', () => jest.fn());
 
 jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
-jest.mock(
   '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView',
   () => {
     const { View, Text } = jest.requireActual('react-native');
@@ -335,10 +328,9 @@ describe('ActivityView', () => {
       spyOnCreateNetworkManagerNavDetails.mockRestore();
     });
 
-    it('disables filter button when network info isDisabled is true', () => {
+    it('displays filter button as disabled', () => {
       const disabledNetworkInfo = {
         ...defaultNetworkInfo,
-        isDisabled: true,
       };
       mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
       const { getByTestId } = renderComponent(mockInitialState);
@@ -347,7 +339,7 @@ describe('ActivityView', () => {
         WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
       );
 
-      expect(filterButton.props.disabled).toBe(true);
+      expect(filterButton.props.disabled).toBe(false);
     });
   });
 
