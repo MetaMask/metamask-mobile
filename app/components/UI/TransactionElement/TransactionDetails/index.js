@@ -66,7 +66,7 @@ import {
   MAINNET_BLOCK_EXPLORER,
   SEPOLIA_BLOCK_EXPLORER,
 } from '../../../../constants/urls';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import TagBase from '../../../../component-library/base-components/TagBase';
 
 const createStyles = (colors) =>
@@ -380,9 +380,14 @@ class TransactionDetails extends PureComponent {
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
 
+    const isBridgeTransaction =
+      transactionObject?.type === TransactionType.bridge;
+    const isSmartTransaction = Boolean(transactionObject?.isSmartTransaction);
     const renderTxActions =
       (status === 'submitted' || status === 'approved') &&
-      !shouldUseSmartTransaction;
+      !shouldUseSmartTransaction &&
+      !isSmartTransaction &&
+      !isBridgeTransaction;
     const { rpcBlockExplorer } = this.state;
 
     return updatedTransactionDetails ? (

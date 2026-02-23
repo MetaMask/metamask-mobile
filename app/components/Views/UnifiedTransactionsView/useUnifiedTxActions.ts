@@ -306,9 +306,7 @@ export function useUnifiedTxActions() {
     return getCancelOrSpeedupValues(params as ReplacementGasParams);
   };
 
-  const speedUpTransaction = async (
-    params?: ReplacementGasParams | CancelSpeedupModalParams,
-  ) => {
+  const speedUpTransaction = async (params?: ReplacementGasParams) => {
     try {
       if (params && 'error' in params && params.error) {
         throw new Error(params.error);
@@ -318,7 +316,7 @@ export function useUnifiedTxActions() {
       }
 
       if (isLedgerAccount) {
-        const gasValues = getCancelOrSpeedupValues(params);
+        const gasValues = getParamsToSend(params);
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
 
         await signLedgerTransaction({
@@ -355,7 +353,7 @@ export function useUnifiedTxActions() {
       }
 
       if (isLedgerAccount) {
-        const gasValues = getCancelOrSpeedupValues(params);
+        const gasValues = getParamsToSend(params);
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
 
         await signLedgerTransaction({
