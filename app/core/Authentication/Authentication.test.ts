@@ -4563,6 +4563,29 @@ describe('Authentication', () => {
       });
     });
 
+    it('tracks unlock error as analytics when unlock fails', async () => {
+      const trackErrorSpy = jest.mocked(trackErrorAsAnalytics);
+      const unlockError = new Error('Failed to rehydrate seed phrase');
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValueOnce(unlockError);
+
+      await expect(
+        Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: true,
+          },
+        }),
+      ).rejects.toThrow('Failed to rehydrate seed phrase');
+
+      expect(trackErrorSpy).toHaveBeenCalledWith(
+        'Unlock Wallet Error',
+        unlockError.message,
+      );
+    });
+
     it('calls lockApp when error is thrown', async () => {
       const lockAppSpy = jest.spyOn(Authentication, 'lockApp');
       // Mock rehydrateSeedPhrase to reject.
@@ -4585,6 +4608,10 @@ describe('Authentication', () => {
         reset: false,
         navigateToLogin: false,
       });
+      expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+        'Unlock Wallet Error',
+        'Failed to rehydrate seed phrase',
+      );
     });
 
     it('calls lockApp when error is thrown and logs error when lockApp fails', async () => {
@@ -4621,6 +4648,11 @@ describe('Authentication', () => {
       expect(Logger.error).toHaveBeenCalledWith(
         expect.any(Error),
         'Failed to lock app during unlockWallet error condition.',
+      );
+
+      expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+        'Unlock Wallet Error',
+        'Failed to rehydrate seed phrase',
       );
     });
 
