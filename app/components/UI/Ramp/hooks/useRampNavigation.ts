@@ -5,6 +5,7 @@ import {
   RampIntent,
   RampType as AggregatorRampType,
 } from '../Aggregator/types';
+import type { MMPayOnRampIntent } from '../types';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
@@ -70,10 +71,50 @@ export const useRampNavigation = () => {
       options?: {
         mode?: RampMode;
         overrideUnifiedRouting?: boolean;
+        mmPayOnRamp?: MMPayOnRampIntent;
       },
     ) => {
-      const { mode = RampMode.AGGREGATOR, overrideUnifiedRouting = false } =
-        options || {};
+      const {
+        mode = RampMode.AGGREGATOR,
+        overrideUnifiedRouting = false,
+        mmPayOnRamp,
+      } = options || {};
+      const mmPayOnRampParam = mmPayOnRamp ?? null;
+
+      const navigateToTokenSelection = () => {
+        const [routeName] = createTokenSelectionNavDetails();
+        navigation.navigate(routeName, {
+          mmPayOnRamp: mmPayOnRampParam,
+        });
+      };
+
+      const navigateToBuildQuote = (assetId: string) => {
+        const [routeName, routeParams] = createBuildQuoteNavDetails({
+          assetId,
+        });
+
+        navigation.navigate(routeName, {
+          ...routeParams,
+          mmPayOnRamp: mmPayOnRampParam,
+        });
+      };
+
+      const navigateToDeposit = (depositIntent?: RampIntent) => {
+        const [routeName, routeParams] =
+          createDepositNavigationDetails(depositIntent);
+
+        if (routeParams) {
+          navigation.navigate(routeName, {
+            ...routeParams,
+            mmPayOnRamp: mmPayOnRampParam,
+          });
+          return;
+        }
+
+        navigation.navigate(routeName, {
+          mmPayOnRamp: mmPayOnRampParam,
+        });
+      };
 
       const isUnifiedRoutingEnabled =
         (isRampsUnifiedV1Enabled || isRampsUnifiedV2Enabled) &&
@@ -109,9 +150,7 @@ export const useRampNavigation = () => {
           // Token may not be in controller's list yet (still loading).
           // Navigate anyway — BuildQuote will handle the missing token.
         }
-        navigation.navigate(
-          ...createBuildQuoteNavDetails({ assetId: controllerAssetId }),
-        );
+        navigateToBuildQuote(controllerAssetId);
         return;
       }
 
@@ -119,19 +158,19 @@ export const useRampNavigation = () => {
       if (isRampsUnifiedV1Enabled && !overrideUnifiedRouting) {
         // If no assetId is provided, route to TokenSelection
         if (!intent?.assetId) {
-          navigation.navigate(...createTokenSelectionNavDetails());
+          navigateToTokenSelection();
           return;
         }
 
         // If routing decision hasn't been determined yet, route to TokenSelection
         if (rampRoutingDecision === null) {
-          navigation.navigate(...createTokenSelectionNavDetails());
+          navigateToTokenSelection();
           return;
         }
 
         // If assetId is provided, route based on rampRoutingDecision
         if (rampRoutingDecision === UnifiedRampRoutingType.DEPOSIT) {
-          navigation.navigate(...createDepositNavigationDetails(intent));
+          navigateToDeposit(intent);
         } else if (rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR) {
           navigation.navigate(
             ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
@@ -142,7 +181,7 @@ export const useRampNavigation = () => {
 
       // When overriding unified routing or when v1 is disabled
       if (mode === RampMode.DEPOSIT) {
-        navigation.navigate(...createDepositNavigationDetails(intent));
+        navigateToDeposit(intent);
       } else {
         navigation.navigate(
           ...createRampNavigationDetails(AggregatorRampType.BUY, intent),

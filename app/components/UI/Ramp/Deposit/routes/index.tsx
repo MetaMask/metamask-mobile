@@ -31,6 +31,8 @@ import IncompatibleAccountTokenModal from '../Views/Modals/IncompatibleAccountTo
 import SsnInfoModal from '../Views/Modals/SsnInfoModal';
 import ConfigurationModal from '../Views/Modals/ConfigurationModal';
 import ErrorDetailsModal from '../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
+import { MMPayOnRampProvider } from '../../../../Views/confirmations/context/mmpay-on-ramp-context';
+import type { MMPayOnRampEntryRoute } from '../../types';
 
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -194,22 +196,32 @@ const DepositModalsRoutes = () => (
   </ModalsStack.Navigator>
 );
 
-const DepositRoutes = () => (
-  <DepositSDKProvider>
-    <RootStack.Navigator
-      initialRouteName={Routes.DEPOSIT.ROOT}
-      headerMode="none"
-    >
-      <RootStack.Screen name={Routes.DEPOSIT.ROOT} component={MainRoutes} />
-      <RootStack.Screen
-        name={Routes.DEPOSIT.MODALS.ID}
-        component={DepositModalsRoutes}
-        options={{
-          ...clearStackNavigatorOptions,
-          detachPreviousScreen: false,
-        }}
-      />
-    </RootStack.Navigator>
-  </DepositSDKProvider>
-);
+interface DepositRoutesProps {
+  route?: MMPayOnRampEntryRoute;
+}
+
+const DepositRoutes = ({ route }: DepositRoutesProps) => {
+  const mmPayOnRamp = route?.params?.mmPayOnRamp;
+
+  return (
+    <MMPayOnRampProvider mmPayOnRamp={mmPayOnRamp}>
+      <DepositSDKProvider>
+        <RootStack.Navigator
+          initialRouteName={Routes.DEPOSIT.ROOT}
+          headerMode="none"
+        >
+          <RootStack.Screen name={Routes.DEPOSIT.ROOT} component={MainRoutes} />
+          <RootStack.Screen
+            name={Routes.DEPOSIT.MODALS.ID}
+            component={DepositModalsRoutes}
+            options={{
+              ...clearStackNavigatorOptions,
+              detachPreviousScreen: false,
+            }}
+          />
+        </RootStack.Navigator>
+      </DepositSDKProvider>
+    </MMPayOnRampProvider>
+  );
+};
 export default DepositRoutes;

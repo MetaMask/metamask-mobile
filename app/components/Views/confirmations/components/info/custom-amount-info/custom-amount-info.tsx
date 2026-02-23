@@ -58,6 +58,7 @@ import EngineService from '../../../../../../core/EngineService';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { MMPayOnRampStatusRow } from '../../rows/mmpay-on-ramp-status-row';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -158,6 +159,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasTokens && <PayWithRow />}
             </>
           )}
+          <MMPayOnRampStatusRow />
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />

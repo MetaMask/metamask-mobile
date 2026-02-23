@@ -64,6 +64,7 @@ export interface FiatOrder {
   account: string; // Account wallet address
   network: string; // Network
   txHash?: string; // Transaction hash
+  mmPayTransactionId?: string; // MM-pay confirmation transaction id for top-up correlation
   sellTxHash?: string; // Sell transaction hash the user has sent
   excludeFromPurchases: boolean; // Exclude from purchases
   orderType: OrderOrderTypeEnum | DepositOrderType; // Order type

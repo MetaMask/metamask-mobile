@@ -23,6 +23,12 @@ import { useRampsPaymentMethods } from './useRampsPaymentMethods';
 import { selectTokens } from '../../../../selectors/rampsController';
 import useRampAccountAddress from './useRampAccountAddress';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
+import type { MMPayOnRampIntent } from '../types';
+import { useMMPayOnRampContext } from '../../../Views/confirmations/context/mmpay-on-ramp-context';
+import {
+  resolveMMPayOnRampOrderProcessingIntercept,
+  returnToMMPayConfirmation,
+} from '../../../Views/confirmations/utils/mmpay-on-ramp-utils';
 
 interface RampStackParamList {
   RampVerifyIdentity: { quote: TransakBuyQuote };
@@ -65,6 +71,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
   const processingOrderIdRef = useRef<string | null>(null);
+  const { mmPayOnRamp } = useMMPayOnRampContext();
 
   const {
     logoutFromProvider,
@@ -211,7 +218,18 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const navigateToOrderProcessingCallback = useCallback(
-    ({ orderId }: { orderId: string }) => {
+    ({
+      orderId,
+      mmPayOnRamp: mmPayOnRampIntent,
+    }: {
+      orderId: string;
+      mmPayOnRamp?: MMPayOnRampIntent;
+    }) => {
+      if (mmPayOnRampIntent) {
+        returnToMMPayConfirmation(navigation);
+        return;
+      }
+
       navigation.reset({
         index: 0,
         routes: [
@@ -291,12 +309,29 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
           ),
           account: walletAddress || order.walletAddress,
           cryptocurrency,
+          ...(mmPayOnRamp
+            ? {
+                mmPayTransactionId: mmPayOnRamp.mmPayTransactionId,
+              }
+            : {}),
         };
 
         await handleNewOrder(processedOrder);
 
+        const processedOrderId = processedOrder.id;
+        const { mmPayOnRamp: currentMMPayOnRamp, shouldSkip } =
+          resolveMMPayOnRampOrderProcessingIntercept({
+            mmPayOnRamp,
+            processedOrderId,
+          });
+
+        if (shouldSkip) {
+          return;
+        }
+
         navigateToOrderProcessingCallback({
           orderId: processedOrder.id,
+          mmPayOnRamp: currentMMPayOnRamp,
         });
 
         const rawNetwork = order.network as
@@ -340,6 +375,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       walletAddress,
       handleNewOrder,
       navigateToOrderProcessingCallback,
+      mmPayOnRamp,
       regionIsoCode,
       trackEvent,
     ],
@@ -440,6 +476,11 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                     order as Parameters<typeof depositOrderToFiatOrder>[0],
                   ),
                   account: walletAddress || order.walletAddress,
+                  ...(mmPayOnRamp?.source === 'mm_pay'
+                    ? {
+                        mmPayTransactionId: mmPayOnRamp.mmPayTransactionId,
+                      }
+                    : {}),
                 };
 
                 await handleNewOrder(processedOrder);
@@ -579,6 +620,8 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       generatePaymentWidgetUrl,
       checkUserLimits,
       walletAddress,
+      mmPayOnRamp?.source,
+      mmPayOnRamp?.mmPayTransactionId,
       themeAppearance,
       colors,
     ],

@@ -1,4 +1,19 @@
 import type { Quote as BaseQuote } from '@metamask/ramps-controller';
+import type { TransactionType } from '@metamask/transaction-controller';
+export interface MMPayOnRampIntent {
+  source: 'mm_pay';
+  mmPayTransactionId: string;
+  transactionType: TransactionType;
+  startedAt: number;
+}
+
+export interface MMPayOnRampRouteParams {
+  mmPayOnRamp?: MMPayOnRampIntent | null;
+}
+
+export interface MMPayOnRampEntryRoute {
+  params?: MMPayOnRampRouteParams;
+}
 
 export interface RampIntent {
   assetId?: string;

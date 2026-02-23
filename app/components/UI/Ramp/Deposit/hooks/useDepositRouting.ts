@@ -32,6 +32,12 @@ import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useDepositUser } from './useDepositUser';
 import { useDepositOrderNetworkName } from './useDepositOrderNetworkName';
+import type { MMPayOnRampIntent } from '../../types';
+import { useMMPayOnRampContext } from '../../../../Views/confirmations/context/mmpay-on-ramp-context';
+import {
+  resolveMMPayOnRampOrderProcessingIntercept,
+  returnToMMPayConfirmation,
+} from '../../../../Views/confirmations/utils/mmpay-on-ramp-utils';
 
 class LimitExceededError extends Error {
   constructor(message: string) {
@@ -56,6 +62,7 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
   } = useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
+  const { mmPayOnRamp } = useMMPayOnRampContext();
 
   const getDepositOrderNetworkName = useDepositOrderNetworkName();
 
@@ -250,7 +257,18 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
   );
 
   const navigateToOrderProcessingCallback = useCallback(
-    ({ orderId }: { orderId: string }) => {
+    ({
+      orderId,
+      mmPayOnRamp: mmPayOnRampIntent,
+    }: {
+      orderId: string;
+      mmPayOnRamp?: MMPayOnRampIntent;
+    }) => {
+      if (mmPayOnRampIntent) {
+        returnToMMPayConfirmation(navigation);
+        return;
+      }
+
       popToBuildQuote();
       navigation.navigate(
         ...createOrderProcessingNavDetails({
@@ -307,12 +325,29 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
               const processedOrder = {
                 ...depositOrderToFiatOrder(order),
                 account: selectedWalletAddress || order.walletAddress,
+                ...(mmPayOnRamp
+                  ? {
+                      mmPayTransactionId: mmPayOnRamp.mmPayTransactionId,
+                    }
+                  : {}),
               };
 
               await handleNewOrder(processedOrder);
 
+              const processedOrderId = processedOrder.id ?? transformedOrderId;
+              const { mmPayOnRamp: currentMMPayOnRamp, shouldSkip } =
+                resolveMMPayOnRampOrderProcessingIntercept({
+                  mmPayOnRamp,
+                  processedOrderId,
+                });
+
+              if (shouldSkip) {
+                return;
+              }
+
               navigateToOrderProcessingCallback({
                 orderId: transformedOrderId,
+                mmPayOnRamp: currentMMPayOnRamp,
               });
 
               trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
@@ -351,6 +386,7 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
       selectedWalletAddress,
       handleNewOrder,
       navigateToOrderProcessingCallback,
+      mmPayOnRamp,
       selectedRegion?.isoCode,
       trackEvent,
       getDepositOrderNetworkName,
@@ -462,6 +498,11 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
                 const processedOrder = {
                   ...depositOrderToFiatOrder(order),
                   account: selectedWalletAddress || order.walletAddress,
+                  ...(mmPayOnRamp?.source === 'mm_pay'
+                    ? {
+                        mmPayTransactionId: mmPayOnRamp.mmPayTransactionId,
+                      }
+                    : {}),
                 };
 
                 await handleNewOrder(processedOrder);
@@ -572,7 +613,7 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
         if ((error as AxiosError).status === 401) {
           await logoutFromProvider(false);
           popToBuildQuote();
-          navigation.navigate(...createEnterEmailNavDetails({}));
+          navigation.navigate(...createEnterEmailNavDetails());
           return;
         }
         throw error;
@@ -601,6 +642,8 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
       generatePaymentUrl,
       checkUserLimits,
       selectedWalletAddress,
+      mmPayOnRamp?.source,
+      mmPayOnRamp?.mmPayTransactionId,
       themeAppearance,
       colors,
     ],

@@ -20,6 +20,8 @@ import TokenNotAvailableModal from './Views/Modals/TokenNotAvailableModal';
 import ProviderSelectionModal from './Views/Modals/ProviderSelectionModal';
 import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import RampsOrderDetails from './Views/OrderDetails';
+import { MMPayOnRampProvider } from '../../Views/confirmations/context/mmpay-on-ramp-context';
+import type { MMPayOnRampEntryRoute } from './types';
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();
@@ -114,24 +116,30 @@ const TokenListModalsRoutes = () => (
   </ModalsStack.Navigator>
 );
 
-const TokenListRoutes = () => (
-  <RootStack.Navigator
-    initialRouteName={Routes.RAMP.TOKEN_SELECTION}
-    headerMode="none"
-  >
-    <RootStack.Screen
-      name={Routes.RAMP.TOKEN_SELECTION}
-      component={MainRoutes}
-    />
-    <RootStack.Screen
-      name={Routes.RAMP.MODALS.ID}
-      component={TokenListModalsRoutes}
-      options={{
-        ...clearStackNavigatorOptions,
-        detachPreviousScreen: false,
-      }}
-    />
-  </RootStack.Navigator>
-);
+const TokenListRoutes = ({ route }: { route?: MMPayOnRampEntryRoute }) => {
+  const mmPayOnRamp = route?.params?.mmPayOnRamp;
+
+  return (
+    <MMPayOnRampProvider mmPayOnRamp={mmPayOnRamp}>
+      <RootStack.Navigator
+        initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+        headerMode="none"
+      >
+        <RootStack.Screen
+          name={Routes.RAMP.TOKEN_SELECTION}
+          component={MainRoutes}
+        />
+        <RootStack.Screen
+          name={Routes.RAMP.MODALS.ID}
+          component={TokenListModalsRoutes}
+          options={{
+            ...clearStackNavigatorOptions,
+            detachPreviousScreen: false,
+          }}
+        />
+      </RootStack.Navigator>
+    </MMPayOnRampProvider>
+  );
+};
 
 export default TokenListRoutes;

@@ -6412,7 +6412,10 @@
     "custom_amount": {
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
-      "buy_perps": "Add funds to your wallet to use Perps."
+      "buy_perps": "Add funds to your wallet to use Perps.",
+      "top_up_in_progress": "Your order is processing",
+      "top_up_failed": "Your order failed. Try again.",
+      "top_up_completed": "Funds arrived to your account."
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -7307,7 +7310,10 @@
   "pay_with_modal": {
     "title": "Select payment method",
     "title_receive": "Select receive token",
-    "no_gas": "No native balance for gas"
+    "no_gas": "No native balance for gas",
+    "top_up_title": "Top up your account",
+    "top_up_description": "with {{token}} on {{network}}",
+    "buy": "Buy"
   },
   "connection_removed_modal": {
     "title": "Connections removed",
