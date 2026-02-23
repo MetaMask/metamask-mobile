@@ -4,6 +4,7 @@ import {
   getPerpsDisplaySymbol,
   type Position,
 } from '@metamask/perps-controller';
+import { getPositionDirection } from '../../../../../../UI/Perps/utils/positionCalculations';
 import Text, {
   TextColor,
   TextVariant,
@@ -64,7 +65,8 @@ const PerpsPositionRow: React.FC<PerpsPositionRowProps> = ({
   onPress,
   testID,
 }) => {
-  const isLong = parseFloat(position.size) >= 0;
+  const positionDirection = getPositionDirection(position.size);
+  const isLong = positionDirection !== 'short';
   const direction = isLong
     ? strings('perps.order.long_label')
     : strings('perps.order.short_label');
