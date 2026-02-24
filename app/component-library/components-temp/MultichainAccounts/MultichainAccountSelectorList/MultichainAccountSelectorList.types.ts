@@ -22,7 +22,10 @@ export type FlattenedMultichainAccountListItem =
   | { type: 'cell'; data: AccountGroupObject; walletName: string }
   | { type: 'header'; data: { title: string; walletName: string } }
   | { type: 'footer'; data: { walletName: string; walletId: AccountWalletId } }
-  | { type: 'external'; data: { address: string } };
+  | {
+      type: 'external';
+      data: { address: string; isValid: boolean };
+    };
 
 /**
  * Props for MultichainAccountSelectorList component
