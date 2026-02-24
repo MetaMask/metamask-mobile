@@ -8,7 +8,7 @@ import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import { selectTokenList } from '../../../../selectors/tokenListController';
-import { ImportTokenViewSelectorsIDs } from '../../../Views/AddAsset/ImportTokenView.testIds';
+import { ImportTokenViewSelectorsIDs } from '../../../Views/AddAsset/ImportAssetView.testIds';
 import { toChecksumAddress } from '../../../../util/address';
 
 // TODO: Replace "any" with type
