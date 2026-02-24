@@ -1,4 +1,4 @@
-import { TEAMS } from '../../../tests/teams-config.js';
+import { TEAMS, DEFAULT_TEAM_TAG } from '../../../tests/teams-config.js';
 
 export interface TeamConfig {
   name: string;
@@ -10,8 +10,6 @@ export interface TeamInfo {
   teamName: string;
   slackMention: string;
 }
-
-const DEFAULT_TEAM_TAG = '@performance-team';
 
 function getTeamConfig(teamTag: keyof typeof TEAMS): TeamConfig | undefined {
   return TEAMS[teamTag];
