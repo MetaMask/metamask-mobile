@@ -112,18 +112,35 @@ jest.mock(
   }),
 );
 
+const MockTokenListItemV2 = ({
+  assetKey,
+}: {
+  assetKey: { address: string };
+}) => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return ReactActual.createElement(
+    Text,
+    { testID: `token-item-v2-${assetKey.address}` },
+    `TokenV2 ${assetKey.address}`,
+  );
+};
+
 jest.mock(
   '../../../../UI/Tokens/TokenList/TokenListItemV2/TokenListItemV2',
   () => ({
     TokenListItemV2: (props: { assetKey: { address: string } }) =>
-      MockTokenListItem(props),
+      MockTokenListItemV2(props),
   }),
 );
+
+const mockSelectTokenListLayoutV2Enabled = jest.fn(() => false);
 
 jest.mock(
   '../../../../../selectors/featureFlagController/tokenListLayout',
   () => ({
-    selectTokenListLayoutV2Enabled: () => false,
+    selectTokenListLayoutV2Enabled: (state: unknown) =>
+      mockSelectTokenListLayoutV2Enabled(state),
   }),
 );
 
