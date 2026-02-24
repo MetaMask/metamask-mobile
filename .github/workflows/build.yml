@@ -95,6 +95,12 @@ jobs:
           # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
           node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
 
+      - name: Validate secrets
+        env:
+          CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
+          SECRETS_JSON: ${{ toJSON(secrets) }}
+        run: node scripts/validate-secrets-from-config.js
+
       - name: Set secrets
         env:
           CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
