@@ -34,6 +34,10 @@ export const createStyles = (theme: Theme, colors: Colors) =>
     quizDescription: {
       marginTop: 24,
     },
+    securityQuizLockImage: {
+      height: 220,
+      width: 190,
+    },
     quizQuestion: {
       width: '90%',
       marginBottom: 24,

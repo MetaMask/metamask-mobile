@@ -1,5 +1,11 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
-import React, { useEffect, useState, useCallback, useContext } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useContext,
+  useRef,
+} from 'react';
 import { Linking, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import ActionView from '../../UI/ActionView';
@@ -13,7 +19,6 @@ import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
-import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
 import { RevealSeedViewSelectorsIDs } from './RevealSeedView.testIds';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -40,6 +45,8 @@ import {
 } from './components';
 import { useRevealCredential, useSRPQuiz } from './hooks';
 import { IRevealPrivateCredentialProps, RevealSrpStage } from './types';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const RevealPrivateCredential = ({
   navigation,
@@ -96,24 +103,14 @@ const RevealPrivateCredential = ({
       : undefined,
   });
 
-  const updateNavBar = useCallback(() => {
-    if (!hasNavigation || !shouldUpdateNav) {
-      return;
-    }
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('reveal_credential.seed_phrase_title'),
-        navigation,
-        false,
-        colors,
+  const headerNavigationBack = () => {
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.GO_BACK_SRP_SCREEN,
-      ),
+      ).build(),
     );
-  }, [hasNavigation, shouldUpdateNav, navigation, colors]);
-
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
+    navigation.goBack();
+  };
 
   // Only when user reaches the action view (after quiz): track, then attempt
   useEffect(() => {
@@ -205,7 +202,16 @@ const RevealPrivateCredential = ({
     [trackEvent, createEventBuilder],
   );
 
+  const lastCopyTimeRef = useRef<number>(0);
+  const COPY_THROTTLE_MS = 5000;
+
   const copyPrivateCredentialToClipboard = useCallback(async () => {
+    const now = Date.now();
+    if (now - lastCopyTimeRef.current < COPY_THROTTLE_MS) {
+      return;
+    }
+    lastCopyTimeRef.current = now;
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVEAL_SRP_COMPLETED)
         .addProperties({
@@ -238,10 +244,7 @@ const RevealPrivateCredential = ({
   const renderSRPExplanation = () => (
     <Text style={styles.normalText}>
       {strings('reveal_credential.seed_phrase_explanation')[0]}{' '}
-      <Text
-        color={colors.primary.default}
-        onPress={() => Linking.openURL(SRP_GUIDE_URL)}
-      >
+      <Text color={colors.primary.default} onPress={handleLearnMoreClick}>
         {strings('reveal_credential.seed_phrase_explanation')[1]}
       </Text>{' '}
       {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
@@ -360,6 +363,14 @@ const RevealPrivateCredential = ({
       style={styles.wrapper}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
+      <HeaderCompactStandard
+        title={strings('reveal_credential.seed_phrase_title')}
+        onBack={headerNavigationBack}
+        backButtonProps={{
+          testID: RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BACK_BUTTON_ID,
+        }}
+        includesTopInset
+      />
       {renderContent()}
       <ScreenshotDeterrent
         enabled={unlocked}

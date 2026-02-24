@@ -213,6 +213,7 @@ const WalletTabStackFlow = () => (
     <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
       component={RevealPrivateCredential}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -447,6 +448,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
         component={RevealPrivateCredential}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}

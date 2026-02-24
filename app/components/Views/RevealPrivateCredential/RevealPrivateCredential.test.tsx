@@ -24,6 +24,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const MOCK_PASSWORD = 'word1 word2 word3 word4';
 
@@ -412,6 +413,33 @@ describe('RevealPrivateCredential', () => {
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
         ),
       ).toBeTruthy();
+    });
+
+    it('renders back button', () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={{
+            goBack: jest.fn(),
+          }}
+          cancel={() => null}
+        />,
+      );
+      expect(
+        getByTestId(
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BACK_BUTTON_ID,
+        ),
+      ).toBeTruthy();
+      fireEvent.press(
+        getByTestId(
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BACK_BUTTON_ID,
+        ),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.GO_BACK_SRP_SCREEN,
+        ).build(),
+      );
     });
   });
 
@@ -1271,24 +1299,6 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('navigation', () => {
-    it('updates navigation options when shouldUpdateNav is true', () => {
-      const mockSetOptions = jest.fn();
-      const mockNavigation = {
-        pop: jest.fn(),
-        setOptions: mockSetOptions,
-      };
-
-      renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute({ shouldUpdateNav: true })}
-          navigation={mockNavigation}
-          cancel={() => null}
-        />,
-      );
-
-      expect(mockSetOptions).toHaveBeenCalled();
-    });
-
     it('does not update navigation options when shouldUpdateNav is false', () => {
       const mockSetOptions = jest.fn();
       const mockNavigation = {

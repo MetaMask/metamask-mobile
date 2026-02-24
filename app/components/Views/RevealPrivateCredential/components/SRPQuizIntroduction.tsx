@@ -46,7 +46,10 @@ const SRPQuizIntroduction = ({
         alignItems={AlignItems.center}
         justifyContent={JustifyContent.center}
       >
-        <Image source={SecurityQuizLockImage} height={220} width={190} />
+        <Image
+          source={SecurityQuizLockImage}
+          style={styles.securityQuizLockImage}
+        />
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
