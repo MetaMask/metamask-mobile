@@ -258,6 +258,22 @@ export const PerpsConnectionProvider: React.FC<
     ],
   );
 
+  // Sentry breadcrumb: makes error screen appearance visible in issue timelines
+  // Placed in useEffect to avoid firing on every re-render (polling is 100ms)
+  useEffect(() => {
+    if (connectionState.error) {
+      addBreadcrumb({
+        category: 'perps.connection',
+        message: 'PerpsConnectionErrorView shown',
+        level: 'error',
+        data: {
+          errorCode: connectionState.error,
+          retryAttempts,
+        },
+      });
+    }
+  }, [connectionState.error, retryAttempts]);
+
   // Environment-level error handling - show error screen if connection failed
   // This ensures NO Perps screen can render when there's a connection error
   if (connectionState.error) {
@@ -265,17 +281,6 @@ export const PerpsConnectionProvider: React.FC<
     // Always show back button when in full screen mode (e.g., stack navigator)
     // Also show it after retry attempts for other contexts
     const shouldShowBackButton = isFullScreen || retryAttempts > 0;
-
-    // Sentry breadcrumb: makes error screen appearance visible in issue timelines
-    addBreadcrumb({
-      category: 'perps.connection',
-      message: 'PerpsConnectionErrorView shown',
-      level: 'error',
-      data: {
-        errorCode: connectionState.error,
-        retryAttempts,
-      },
-    });
 
     const handleRetry = async () => {
       // Increment retry attempts first to ensure back button shows immediately

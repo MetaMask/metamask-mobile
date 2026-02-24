@@ -147,7 +147,8 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
               track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
                 [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
                   PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
-                [PERPS_EVENT_PROPERTY.ACTION]: 'connection_go_back',
+                [PERPS_EVENT_PROPERTY.ACTION]:
+                  PERPS_EVENT_VALUE.ACTION.CONNECTION_GO_BACK,
                 [PERPS_EVENT_PROPERTY.ATTEMPT_NUMBER]: retryAttempts,
                 [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorCode ?? 'unknown',
               });

@@ -387,6 +387,7 @@ export const PERPS_EVENT_VALUE = {
   },
   ACTION: {
     CONNECTION_RETRY: 'connection_retry',
+    CONNECTION_GO_BACK: 'connection_go_back',
     SHARE: 'share',
     // Risk management actions
     ADD_MARGIN: 'add_margin',
