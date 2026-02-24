@@ -1450,7 +1450,7 @@ const Wallet = ({
             >
               {content}
             </ConditionalScrollView>
-            {shouldEnableParentScroll && bottomFadeOpacity > 0 && (
+            {isHomepageSectionsV1Enabled && bottomFadeOpacity > 0 && (
               <LinearGradient
                 pointerEvents="none"
                 colors={[
