@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -11,20 +11,16 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { selectNetworkName } from '../../../../../../selectors/networkInfos';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayQuotes,
-} from '../../../hooks/pay/useTransactionPayData';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import { useAlerts } from '../../../context/alert-system-context';
 import { TotalRow } from '../../rows/total-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { AssetType } from '../../../types/token';
-import musdMaxConversionInfoStyleSheet from './musd-max-conversion-info.styles';
+import stylesheet from './musd-max-conversion-info.styles';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { PercentageRow } from '../../rows/percentage-row';
 import { MusdMaxConversionAssetHeader } from './musd-max-conversion-asset-header';
-import { useNoPayTokenQuotesAlert } from '../../../hooks/alerts/useNoPayTokenQuotesAlert';
 import Text, {
   TextColor,
   TextVariant,
@@ -76,66 +72,68 @@ export const MusdMaxConversionInfoTestIds = {
 } as const;
 
 export const MusdMaxConversionInfo = () => {
-  const { styles } = useStyles(musdMaxConversionInfoStyleSheet, {});
+  const { styles } = useStyles(stylesheet, {});
   const networkName = useSelector(selectNetworkName);
 
   const { token } = useParams<MusdMaxConversionParams>();
 
-  const quotes = useTransactionPayQuotes();
-
   const transactionMetadata = useTransactionMetadataRequest();
   const isQuoteLoading = useIsTransactionPayLoading();
-  const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
 
   const { onConfirm } = useTransactionConfirm();
-  const { hasBlockingAlerts } = useAlerts();
+  const { alerts } = useAlerts();
+
+  const blockingAlert = alerts.find(
+    (confirmationAlert) => confirmationAlert.isBlocking,
+  );
 
   const formatFiat = useFiatFormatter();
 
-  const isLoading =
-    !transactionMetadata || isQuoteLoading || quotes?.length === 0;
+  const isLoading = !transactionMetadata || isQuoteLoading;
 
-  const isConfirmDisabled = isLoading || hasBlockingAlerts;
+  const isConfirmDisabled = isLoading || Boolean(blockingAlert);
+
+  const buttonLabel = useMemo(() => {
+    if (blockingAlert) {
+      return blockingAlert.title;
+    }
+    return strings('earn.musd_conversion.convert');
+  }, [blockingAlert]);
 
   return (
     <View
       style={styles.container}
       testID={MusdMaxConversionInfoTestIds.CONTAINER}
     >
-      {noPayTokenQuotesAlert.length > 0 ? (
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Error}
-          style={styles.errorText}
-        >
-          {strings('earn.musd_conversion.quick_convert.failed_to_get_quotes')}
-        </Text>
-      ) : (
-        <>
-          <MusdMaxConversionAssetHeader
-            token={token}
-            networkName={networkName}
-            formatFiat={formatFiat}
-          />
-          <View style={styles.detailsSection}>
-            <RateRow tokenSymbol={token.symbol} isLoading={isLoading} />
-            <BridgeFeeRow />
-            <TotalRow />
-            <PercentageRow />
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button
-              onPress={onConfirm}
-              label={strings('earn.musd_conversion.convert')}
-              variant={ButtonVariants.Primary}
-              width={ButtonWidthTypes.Full}
-              size={ButtonSize.Lg}
-              isDisabled={isConfirmDisabled}
-              testID={MusdMaxConversionInfoTestIds.CONFIRM_BUTTON}
-            />
-          </View>
-        </>
+      <MusdMaxConversionAssetHeader
+        token={token}
+        networkName={networkName}
+        formatFiat={formatFiat}
+      />
+      <View style={styles.detailsSection}>
+        <RateRow tokenSymbol={token.symbol} isLoading={isLoading} />
+        <BridgeFeeRow />
+        <TotalRow />
+        <PercentageRow />
+      </View>
+      {blockingAlert?.message && (
+        <View style={styles.errorTextContainer}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+            {blockingAlert?.message}
+          </Text>
+        </View>
       )}
+      <View style={styles.buttonContainer}>
+        <Button
+          onPress={onConfirm}
+          label={buttonLabel}
+          variant={ButtonVariants.Primary}
+          width={ButtonWidthTypes.Full}
+          size={ButtonSize.Lg}
+          isDisabled={isConfirmDisabled}
+          testID={MusdMaxConversionInfoTestIds.CONFIRM_BUTTON}
+        />
+      </View>
     </View>
   );
 };

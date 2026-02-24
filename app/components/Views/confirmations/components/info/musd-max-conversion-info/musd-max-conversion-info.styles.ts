@@ -14,13 +14,12 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 8,
-      marginBottom: 16,
     },
     buttonContainer: {
-      paddingTop: 16,
+      paddingTop: 32,
     },
-    errorText: {
-      textAlign: 'center',
+    errorTextContainer: {
+      paddingTop: 32,
     },
   });
 };
