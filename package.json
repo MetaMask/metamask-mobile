@@ -153,7 +153,8 @@
     "a:ios": "scripts/perps/agentic/preflight.sh --platform ios --wallet-setup",
     "a:android": "scripts/perps/agentic/preflight.sh --platform android --wallet-setup",
     "a:setup:ios": "scripts/perps/agentic/preflight.sh --platform ios --clean --wallet-setup",
-    "a:setup:android": "scripts/perps/agentic/preflight.sh --platform android --clean --wallet-setup"
+    "a:setup:android": "scripts/perps/agentic/preflight.sh --platform android --clean --wallet-setup",
+    "docs:messenger": "messenger-docs --serve"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -543,6 +544,7 @@
     "@metamask/eslint-config-typescript": "^13.0.0",
     "@metamask/eslint-plugin-design-tokens": "^1.0.0",
     "@metamask/foundryup": "1.0.0",
+    "@metamask/messenger-docs": "npm:@metamask-previews/messenger-docs@0.0.0-preview-0866a6f",
     "@metamask/mobile-provider": "^3.0.0",
     "@metamask/object-multiplex": "^1.1.0",
     "@metamask/providers": "^18.3.1",
@@ -702,6 +704,8 @@
   },
   "lavamoat": {
     "allowScripts": {
+      "@metamask/messenger-docs>@docusaurus/core>@docusaurus/babel>@babel/runtime-corejs3>core-js-pure": false,
+      "@metamask/messenger-docs>@docusaurus/core>core-js": false,
       "ethereumjs-abi>ethereumjs-util>ethereum-cryptography>keccak": true,
       "@sentry/react-native>@sentry/cli": true,
       "@storybook/manager-webpack5>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>fsevents": false,
@@ -782,6 +786,11 @@
     }
   },
   "packageManager": "yarn@4.10.3",
+  "messenger-docs": {
+    "scanDirs": [
+      "app"
+    ]
+  },
   "foundryup": {
     "binaries": [
       "anvil"
