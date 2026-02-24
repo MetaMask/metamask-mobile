@@ -103,14 +103,18 @@ const RevealPrivateCredential = ({
       : undefined,
   });
 
-  const headerNavigationBack = () => {
+  const headerNavigationBack = useCallback(() => {
     trackEvent(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.GO_BACK_SRP_SCREEN,
       ).build(),
     );
-    navigation.goBack();
-  };
+    if (hasNavigation) {
+      navigation.goBack();
+    } else {
+      cancel?.();
+    }
+  }, [hasNavigation, navigation, cancel, trackEvent]);
 
   // Only when user reaches the action view (after quiz): track, then attempt
   useEffect(() => {
