@@ -2093,6 +2093,7 @@ export class PerpsController extends BaseController<
                 );
                 if (requestToUpdate) {
                   requestToUpdate.status = 'cancelled' as TransactionStatus;
+                  requestToUpdate.success = false;
                 }
               });
             } else {
