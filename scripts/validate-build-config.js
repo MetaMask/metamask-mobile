@@ -72,7 +72,7 @@ function validate() {
     const flags = config.builds[name].remote_feature_flags;
     if (!flags) return;
     Object.entries(flags).forEach(([key, value]) => {
-      if (versionGatedFlagNames.has(key) && (value === null || typeof value !== 'object')) {
+      if (versionGatedFlagNames.has(key) && (value === null || typeof value !== 'object' || Array.isArray(value))) {
         errors.push(
           `${name}: remote_feature_flags.${key} must be an object ` +
             `{ enabled: bool, minimumVersion: string } but got ${JSON.stringify(value)}. ` +

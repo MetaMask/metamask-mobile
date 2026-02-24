@@ -1060,6 +1060,10 @@ describe('Earn Feature Flag Selectors', () => {
   });
 
   describe('selectMerklCampaignClaimingEnabledFlag', () => {
+    afterEach(() => {
+      delete process.env.MM_EARN_MERKL_CAMPAIGN_CLAIMING;
+    });
+
     it('returns true when remote flag is valid and enabled', () => {
       const state = createStateWithRemoteFlags({
         earnMerklCampaignClaiming: {
