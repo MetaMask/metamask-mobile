@@ -4,6 +4,7 @@ import {
   setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
+  setSourceAmount,
   selectSourceToken,
   selectDestToken,
   selectDestAmount,
@@ -17,16 +18,7 @@ const mockDispatch = jest.fn();
 const mockHandleSwitchTokensInner = jest.fn().mockResolvedValue(undefined);
 const mockHandleSwitchTokens = jest.fn(() => mockHandleSwitchTokensInner);
 const mockAddNetwork = jest.fn();
-const mockEngineModule = {
-  __esModule: true,
-  default: {
-    context: {
-      NetworkController: {
-        addNetwork: mockAddNetwork,
-      },
-    },
-  },
-};
+const mockResetState = jest.fn();
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
@@ -63,8 +55,36 @@ jest.mock('./useAutoUpdateDestToken', () => ({
   }),
 }));
 
-jest.mock('../../../../core/Engine', () => mockEngineModule);
-jest.mock('../../../../core/Engine/index', () => mockEngineModule);
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    get context() {
+      return {
+        NetworkController: {
+          addNetwork: mockAddNetwork,
+        },
+        BridgeController: {
+          resetState: mockResetState,
+        },
+      };
+    },
+  },
+}));
+jest.mock('../../../../core/Engine/index', () => ({
+  __esModule: true,
+  default: {
+    get context() {
+      return {
+        NetworkController: {
+          addNetwork: mockAddNetwork,
+        },
+        BridgeController: {
+          resetState: mockResetState,
+        },
+      };
+    },
+  },
+}));
 
 jest.mock('../../../../util/networks/customNetworks', () => {
   const actual = jest.requireActual('../../../../util/networks/customNetworks');
@@ -177,6 +197,7 @@ describe('useTokenSelection', () => {
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(setSourceToken(newToken));
+      expect(mockDispatch).toHaveBeenCalledWith(setSourceAmount(undefined));
       expect(mockAutoUpdateDestToken).toHaveBeenCalledWith(newToken);
       expect(mockGoBack).toHaveBeenCalled();
     });
@@ -329,6 +350,7 @@ describe('useTokenSelection', () => {
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(setSourceToken(newToken));
+      expect(mockDispatch).toHaveBeenCalledWith(setSourceAmount(undefined));
       expect(mockAutoUpdateDestToken).toHaveBeenCalledWith(newToken);
       expect(mockGoBack).toHaveBeenCalled();
     });
@@ -361,7 +383,7 @@ describe('useTokenSelection', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         setSourceToken(sameAddressToken),
       );
-      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(setSourceAmount(undefined));
       expect(mockAutoUpdateDestToken).toHaveBeenCalledWith(sameAddressToken);
       expect(mockHandleSwitchTokens).not.toHaveBeenCalled();
     });
@@ -378,7 +400,7 @@ describe('useTokenSelection', () => {
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(setSourceToken(sameChainToken));
-      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(setSourceAmount(undefined));
       expect(mockAutoUpdateDestToken).toHaveBeenCalledWith(sameChainToken);
       expect(mockHandleSwitchTokens).not.toHaveBeenCalled();
     });
