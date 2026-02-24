@@ -10,7 +10,8 @@
  * Components covered: PerpsClosePositionView, PerpsOrderBookView,
  * PerpsOrderDetailsView, PerpsHeroCardView, PerpsWithdrawView,
  * PerpsSelectProviderView, PerpsOrderTypeBottomSheet,
- * PerpsQuoteDetailsCard, PerpsQuoteExpiredModal, PerpsAdjustMarginView
+ * PerpsQuoteDetailsCard, PerpsQuoteExpiredModal, PerpsAdjustMarginView,
+ * PerpsTransactionsView, PerpsSelectOrderTypeView
  */
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
@@ -32,6 +33,7 @@ import {
   renderPerpsSelectProviderView,
   renderPerpsView,
   renderPerpsComponent,
+  renderPerpsTransactionsView,
   defaultPositionForViews,
 } from '../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
@@ -46,6 +48,7 @@ import PerpsOrderTypeBottomSheet from '../components/PerpsOrderTypeBottomSheet/P
 import PerpsQuoteDetailsCard from '../components/PerpsQuoteDetailsCard/PerpsQuoteDetailsCard';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal/PerpsQuoteExpiredModal';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView/PerpsAdjustMarginView';
+import PerpsSelectOrderTypeView from './PerpsSelectOrderTypeView/PerpsSelectOrderTypeView';
 
 /** Shorter timeout so tests fail fast; 3s is enough for component render. */
 const TIMEOUT_MS = 3000;
@@ -435,5 +438,51 @@ describe('Order Lifecycle & Funds Flow', () => {
     expect(
       screen.getByText(strings('perps.withdrawal.title')),
     ).toBeOnTheScreen();
+
+    // ── PHASE 13: Activity / Transactions view ─────────────────────────
+    // Trader opens Activity — sees Trades, Orders, Funding, Deposits tabs
+    cleanup();
+    renderPerpsTransactionsView();
+    await screen.findByText(
+      strings('perps.transactions.tabs.trades'),
+      {},
+      {
+        timeout: TIMEOUT_MS,
+      },
+    );
+    expect(
+      screen.getByText(strings('perps.transactions.tabs.orders')),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByText(strings('perps.transactions.tabs.orders')),
+    );
+    expect(
+      screen.getByText(strings('perps.transactions.tabs.funding')),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByText(strings('perps.transactions.tabs.funding')),
+    );
+    expect(
+      screen.getByText(strings('perps.transactions.tabs.deposits')),
+    ).toBeOnTheScreen();
+
+    // ── PHASE 14: Select order type (View wrapper) ───────────────────────
+    // Trader opens order type via View — same UI as OrderTypeBottomSheet, with nav
+    cleanup();
+    renderPerpsView(
+      PerpsSelectOrderTypeView as unknown as React.ComponentType,
+      Routes.PERPS.SELECT_ORDER_TYPE,
+      {
+        initialParams: {
+          currentOrderType: 'market',
+          asset: 'ETH',
+          direction: 'long',
+        },
+      },
+    );
+    await screen.findByText(ORDER_TYPE_TITLE, {}, { timeout: TIMEOUT_MS });
+    expect(screen.getByText(ORDER_TYPE_MARKET)).toBeOnTheScreen();
+    expect(screen.getByText(ORDER_TYPE_LIMIT)).toBeOnTheScreen();
+    fireEvent.press(screen.getByText(ORDER_TYPE_LIMIT));
   });
 });

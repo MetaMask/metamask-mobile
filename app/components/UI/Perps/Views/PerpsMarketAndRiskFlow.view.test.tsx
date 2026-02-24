@@ -8,7 +8,9 @@
  *
  * Components covered: PerpsLoader, LivePriceDisplay, PerpsMarketRowItem,
  * PerpsMarketTradesList, PerpsStopLossPromptBanner,
- * PerpsNotificationBottomSheet, PerpsTransactionDetailAssetHero
+ * PerpsNotificationBottomSheet, PerpsTransactionDetailAssetHero,
+ * PerpsMarketSortFieldBottomSheet, PerpsTransactionItem,
+ * TradingViewChart, PerpsNotificationTooltip
  */
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
@@ -22,6 +24,7 @@ import {
   PerpsLoaderSelectorsIDs,
   PerpsStopLossPromptSelectorsIDs,
   PerpsTransactionSelectorsIDs,
+  TradingViewChartSelectorsIDs,
 } from '../Perps.testIds';
 import PerpsLoader from '../components/PerpsLoader/PerpsLoader';
 import LivePriceDisplay from '../components/LivePriceDisplay/LivePriceDisplay';
@@ -30,6 +33,10 @@ import PerpsMarketTradesList from '../components/PerpsMarketTradesList/PerpsMark
 import PerpsStopLossPromptBanner from '../components/PerpsStopLossPromptBanner/PerpsStopLossPromptBanner';
 import PerpsNotificationBottomSheet from '../components/PerpsNotificationBottomSheet/PerpsNotificationBottomSheet';
 import PerpsTransactionDetailAssetHero from '../components/PerpsTransactionDetailAssetHero/PerpsTransactionDetailAssetHero';
+import PerpsMarketSortFieldBottomSheet from '../components/PerpsMarketSortFieldBottomSheet/PerpsMarketSortFieldBottomSheet';
+import PerpsTransactionItem from '../components/PerpsTransactionItem/PerpsTransactionItem';
+import TradingViewChart from '../components/TradingViewChart/TradingViewChart';
+import PerpsNotificationTooltip from '../components/PerpsNotificationTooltip/PerpsNotificationTooltip';
 
 const ethMarket = {
   symbol: 'ETH',
@@ -81,11 +88,27 @@ const mockStyles = {
   assetAmount: {},
 };
 
+const transactionItemStyles = {
+  transactionItem: {},
+  tokenIconContainer: {},
+  transactionContent: {},
+  transactionContentCentered: {},
+  transactionTitle: {},
+  transactionTitleCentered: {},
+  transactionSubtitle: {},
+  rightContent: {},
+  fillTag: {},
+};
+
 describe('Market Browsing & Risk Awareness Flow', () => {
   let NOTIFICATIONS_TITLE: string;
+  let SORT_SORT_BY: string;
+  let SORT_APPLY: string;
 
   beforeAll(() => {
     NOTIFICATIONS_TITLE = strings('perps.tooltips.notifications.title');
+    SORT_SORT_BY = strings('perps.sort.sort_by');
+    SORT_APPLY = strings('perps.sort.apply');
   });
 
   it('trader sees loading, browses markets, checks risk warnings, enables notifications, and reviews transactions', async () => {
@@ -329,5 +352,73 @@ describe('Market Browsing & Risk Awareness Flow', () => {
       screen.getByTestId(PerpsTransactionSelectorsIDs.ASSET_ICON_CONTAINER),
     ).toBeOnTheScreen();
     expect(screen.getByText('2.5 ETH')).toBeOnTheScreen();
+
+    // ── PHASE 8: Market sort field bottom sheet ───────────────────────────
+    cleanup();
+    const mockOnOptionSelect = jest.fn();
+    const mockOnCloseSort = jest.fn();
+    renderPerpsComponent(
+      PerpsMarketSortFieldBottomSheet as unknown as React.ComponentType<
+        Record<string, unknown>
+      >,
+      {
+        isVisible: true,
+        onClose: mockOnCloseSort,
+        selectedOptionId: 'priceChange',
+        sortDirection: 'desc',
+        onOptionSelect: mockOnOptionSelect,
+        testID: 'perps-sort-sheet',
+      },
+    );
+    await screen.findByText(SORT_SORT_BY, {}, { timeout: 3000 });
+    expect(screen.getByText(SORT_APPLY)).toBeOnTheScreen();
+    const volumeOption = screen.getByTestId('perps-sort-sheet-option-volume');
+    fireEvent.press(volumeOption);
+    fireEvent.press(screen.getByText(SORT_APPLY));
+    expect(mockOnOptionSelect).toHaveBeenCalled();
+
+    // ── PHASE 9: Transaction list item ───────────────────────────────────
+    cleanup();
+    const mockOnPressItem = jest.fn();
+    renderPerpsComponent(
+      PerpsTransactionItem as unknown as React.ComponentType<
+        Record<string, unknown>
+      >,
+      {
+        item: sampleTransaction,
+        styles: transactionItemStyles,
+        onPress: mockOnPressItem,
+        renderRightContent: () => null,
+      },
+    );
+    expect(
+      await screen.findByTestId(PerpsTransactionSelectorsIDs.TRANSACTION_ITEM),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Closed long')).toBeOnTheScreen();
+    expect(screen.getByText('2.5 ETH')).toBeOnTheScreen();
+    fireEvent.press(screen.getByText('Closed long'));
+    expect(mockOnPressItem).toHaveBeenCalledWith(sampleTransaction);
+
+    // ── PHASE 10: TradingView chart container ──────────────────────────────
+    cleanup();
+    renderPerpsComponent(
+      TradingViewChart as unknown as React.ComponentType<
+        Record<string, unknown>
+      >,
+      { height: 200, candleData: null },
+    );
+    expect(
+      await screen.findByTestId(TradingViewChartSelectorsIDs.CONTAINER, {
+        timeout: 3000,
+      }),
+    ).toBeOnTheScreen();
+
+    // ── PHASE 11: Notification tooltip (no sheet when orderSuccess false) ─
+    cleanup();
+    const NotificationTooltipWrapper: React.FC = () => (
+      <PerpsNotificationTooltip orderSuccess={false} onComplete={jest.fn()} />
+    );
+    renderPerpsView(NotificationTooltipWrapper, 'NotificationTooltipTest');
+    expect(screen.queryByText(NOTIFICATIONS_TITLE)).not.toBeOnTheScreen();
   });
 });
