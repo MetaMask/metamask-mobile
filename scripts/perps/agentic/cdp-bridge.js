@@ -365,26 +365,26 @@ async function cdpEvalAsync(client, expression, timeoutMs = 30000) {
   // Poll for completion
   const pollInterval = 200;
   const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    await new Promise((r) => setTimeout(r, pollInterval));
-    const check = await client.send('Runtime.evaluate', {
-      expression: `(function() { return globalThis['${key}']; })()`,
-      returnByValue: true,
-      awaitPromise: false,
-    });
-    const val = check.result?.value;
-    if (val && val.status === 'resolved') {
-      await cleanup();
-      return val.value;
+  try {
+    while (Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, pollInterval));
+      const check = await client.send('Runtime.evaluate', {
+        expression: `(function() { return globalThis['${key}']; })()`,
+        returnByValue: true,
+        awaitPromise: false,
+      });
+      const val = check.result?.value;
+      if (val && val.status === 'resolved') {
+        return val.value;
+      }
+      if (val && val.status === 'rejected') {
+        throw new Error(`Async evaluation error: ${val.error}`);
+      }
     }
-    if (val && val.status === 'rejected') {
-      await cleanup();
-      throw new Error(`Async evaluation error: ${val.error}`);
-    }
+    throw new Error(`Async evaluation timed out after ${timeoutMs}ms`);
+  } finally {
+    await cleanup();
   }
-  // Cleanup on timeout
-  await cleanup();
-  throw new Error(`Async evaluation timed out after ${timeoutMs}ms`);
 }
 
 // ---------------------------------------------------------------------------
