@@ -150,20 +150,6 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-// Mock Label component
-jest.mock('../../../../../component-library/components/Form/Label', () => {
-  const React = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-
-  return ({
-    children,
-    testID,
-  }: {
-    children: React.ReactNode;
-    testID?: string;
-  }) => React.createElement(Text, { testID: testID || 'label' }, children);
-});
-
 // Mock CodeField and related components
 jest.mock('react-native-confirmation-code-field', () => {
   const React = jest.requireActual('react');

@@ -182,19 +182,6 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Form/Label', () => {
-  const React = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-
-  return ({
-    children,
-    testID,
-  }: {
-    children: React.ReactNode;
-    testID?: string;
-  }) => React.createElement(Text, { testID }, children);
-});
-
 jest.mock('../../../Ramp/Deposit/components/DepositDateField', () => {
   const React = jest.requireActual('react');
   const { TextInput } = jest.requireActual('react-native');

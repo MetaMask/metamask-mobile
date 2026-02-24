@@ -560,15 +560,18 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
                                   }
-                                  testID="label"
                                 >
                                   Network fee
                                 </Text>
@@ -637,15 +640,18 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
                                   }
-                                  testID="label"
                                 >
                                   0.01
                                 </Text>
@@ -696,15 +702,18 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
                                   }
-                                  testID="label"
                                 >
                                   Slippage
                                 </Text>
@@ -857,15 +866,18 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
                                   }
-                                  testID="label"
                                 >
                                   Price impact
                                 </Text>
@@ -934,15 +946,18 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
                                   }
-                                  testID="label"
                                 >
                                   -0.06%
                                 </Text>

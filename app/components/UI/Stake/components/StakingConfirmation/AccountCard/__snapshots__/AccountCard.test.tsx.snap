@@ -61,15 +61,18 @@ exports[`AccountCard render matches snapshot 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
-              testID="label"
             >
               Staking from
             </Text>
@@ -221,15 +224,18 @@ exports[`AccountCard render matches snapshot 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
-              testID="label"
             >
               Interacting with
             </Text>
@@ -400,15 +406,18 @@ exports[`AccountCard render matches snapshot 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
-              testID="label"
             >
               Network
             </Text>

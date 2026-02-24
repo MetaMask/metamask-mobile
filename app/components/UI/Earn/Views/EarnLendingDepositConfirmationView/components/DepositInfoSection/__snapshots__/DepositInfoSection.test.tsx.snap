@@ -66,15 +66,18 @@ exports[`DepositInfoSection renders correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
-              testID="label"
             >
               APR
             </Text>
@@ -143,15 +146,18 @@ exports[`DepositInfoSection renders correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#457a39",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#457a39",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
-              testID="label"
             >
               4.5%
             </Text>
@@ -202,15 +208,18 @@ exports[`DepositInfoSection renders correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
-              testID="label"
             >
               Est. annual reward
             </Text>
@@ -329,15 +338,18 @@ exports[`DepositInfoSection renders correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
-              testID="label"
             >
               Reward frequency
             </Text>
@@ -406,15 +418,18 @@ exports[`DepositInfoSection renders correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
-              testID="label"
             >
               Every minute
             </Text>
@@ -465,15 +480,18 @@ exports[`DepositInfoSection renders correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
-              testID="label"
             >
               Withdrawal time
             </Text>
@@ -542,15 +560,18 @@ exports[`DepositInfoSection renders correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
-              testID="label"
             >
               Immediate
             </Text>
@@ -601,15 +622,18 @@ exports[`DepositInfoSection renders correctly 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  undefined,
+                ]
               }
-              testID="label"
             >
               Protocol
             </Text>

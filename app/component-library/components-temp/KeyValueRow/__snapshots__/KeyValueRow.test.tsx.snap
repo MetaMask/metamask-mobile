@@ -57,15 +57,18 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
-          testID="label"
         >
           Key Text
         </Text>
@@ -113,15 +116,18 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
-          testID="label"
         >
           Value Text
         </Text>
@@ -188,15 +194,18 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
-          testID="label"
         >
           Key Text
         </Text>
@@ -278,15 +287,18 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
-          testID="label"
         >
           Value Text
         </Text>
@@ -374,15 +386,18 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
-          testID="label"
         >
           Key Text
         </Text>
@@ -451,15 +466,18 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
-          testID="label"
         >
           Value Text
         </Text>
@@ -547,15 +565,18 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
-          testID="label"
         >
           Sample Key Text
         </Text>
@@ -590,15 +611,18 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
-          testID="label"
         >
           Sample Value Text
         </Text>

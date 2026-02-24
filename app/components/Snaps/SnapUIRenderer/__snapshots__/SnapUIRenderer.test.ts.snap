@@ -1783,15 +1783,18 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
+                    [
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
                   }
-                  testID="label"
                 >
                   My Input
                 </Text>

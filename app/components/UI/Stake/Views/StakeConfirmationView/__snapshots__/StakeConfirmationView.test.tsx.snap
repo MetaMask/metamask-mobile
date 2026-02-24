@@ -139,15 +139,18 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     <Text
                       accessibilityRole="text"
                       style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "Geist-Medium",
-                          "fontSize": 16,
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                        }
+                        [
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist-Medium",
+                            "fontSize": 16,
+                            "fontWeight": 400,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          },
+                          undefined,
+                        ]
                       }
-                      testID="label"
                     >
                       Staking from
                     </Text>
@@ -227,15 +230,18 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     <Text
                       accessibilityRole="text"
                       style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "Geist-Medium",
-                          "fontSize": 16,
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                        }
+                        [
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist-Medium",
+                            "fontSize": 16,
+                            "fontWeight": 400,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          },
+                          undefined,
+                        ]
                       }
-                      testID="label"
                     >
                       Interacting with
                     </Text>
@@ -335,15 +341,18 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     <Text
                       accessibilityRole="text"
                       style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "Geist-Medium",
-                          "fontSize": 16,
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                        }
+                        [
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist-Medium",
+                            "fontSize": 16,
+                            "fontWeight": 400,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          },
+                          undefined,
+                        ]
                       }
-                      testID="label"
                     >
                       Network
                     </Text>
@@ -476,15 +485,18 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "Geist-Medium",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    testID="label"
                   >
                     Reward rate
                   </Text>
@@ -553,15 +565,18 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      {
-                        "color": "#457a39",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
+                      [
+                        {
+                          "color": "#457a39",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    testID="label"
                   >
                     2.6%
                   </Text>
@@ -612,15 +627,18 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "Geist-Medium",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    testID="label"
                   >
                     Estimated annual rewards
                   </Text>
@@ -736,15 +754,18 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "Geist-Medium",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    testID="label"
                   >
                     Reward frequency
                   </Text>
@@ -813,15 +834,18 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    testID="label"
                   >
                     12 hours
                   </Text>
@@ -886,15 +910,18 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "Geist-Medium",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    testID="label"
                   >
                     Unstaking time
                   </Text>
@@ -963,15 +990,18 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    testID="label"
                   >
                     1 to 44 days
                   </Text>

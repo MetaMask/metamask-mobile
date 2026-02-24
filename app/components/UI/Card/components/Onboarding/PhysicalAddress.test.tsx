@@ -207,19 +207,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   };
 });
 
-// Mock Label
-jest.mock('../../../../../component-library/components/Form/Label', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-
-  return ({
-    children,
-    ...props
-  }: React.PropsWithChildren<Record<string, unknown>>) =>
-    React.createElement(Text, props, children);
-});
-
 // Mock Button
 jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow

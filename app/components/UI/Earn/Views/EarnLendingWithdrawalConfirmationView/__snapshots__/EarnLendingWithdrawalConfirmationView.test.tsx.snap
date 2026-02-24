@@ -242,15 +242,18 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "Geist-Medium",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    testID="label"
                   >
                     Withdrawal time
                   </Text>
@@ -319,15 +322,18 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    testID="label"
                   >
                     Immediate
                   </Text>
@@ -403,15 +409,18 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "Geist-Medium",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    testID="label"
                   >
                     Withdrawing to
                   </Text>
@@ -563,15 +572,18 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "Geist-Medium",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    testID="label"
                   >
                     Protocol
                   </Text>
@@ -773,15 +785,18 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "Geist-Medium",
-                        "fontSize": 16,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    testID="label"
                   >
                     Network
                   </Text>

@@ -15,16 +15,20 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -181,16 +185,20 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -347,16 +355,20 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -513,16 +525,20 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -679,16 +695,20 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -860,16 +880,20 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -1026,16 +1050,20 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -1193,16 +1221,20 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -1359,16 +1391,20 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -1525,16 +1561,20 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
@@ -1691,16 +1731,20 @@ exports[`DepositPhoneField updates phone region when region is selected from mod
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 6,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginBottom": 6,
+        },
+      ]
     }
-    testID="label"
   >
     Phone Number
   </Text>
