@@ -1,5 +1,5 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
+import BigNumber from 'bignumber.js';
 import {
   normalizeToDotDecimal,
   toTokenMinimalUnit,
@@ -12,37 +12,24 @@ import type { TronStakeResult, TronUnstakeResult } from './tron-staking-snap';
 import { TokenI } from '../../Tokens/types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { safeParseBigNumber } from '../../../../util/number/bignumber';
+import type { TronResourcesMap } from '../../../../selectors/assets/assets-list';
 
-interface TronResource {
-  symbol?: string;
-  balance?: string | number;
+/**
+ * Returns the total staked TRX (sTRX) amount from TRON resources.
+ * This is pre-computed in the selector using BigNumber to avoid floating-point precision errors.
+ */
+export function getStakedTrxTotalFromResources(
+  resources?: TronResourcesMap | null,
+): number {
+  return resources?.totalStakedTrx ?? 0;
 }
 
 /**
- * Returns the total staked TRX (sTRX) amount derived from TRON resources.
- * Sums both sTRX Energy and sTRX Bandwidth balances.
+ * True if the user holds any sTRX according to TRON resources.
  */
-export const getStakedTrxTotalFromResources = (
-  resources?: TronResource[] | null,
-): number => {
-  if (!Array.isArray(resources)) return 0;
-
-  const parseNum = (v?: string | number) =>
-    typeof v === 'number' ? v : parseFloat(String(v ?? '0').replace(/,/g, ''));
-
-  const strxEnergy = resources.find(
-    (a) => a.symbol?.toLowerCase() === TRON_RESOURCE.STRX_ENERGY,
-  );
-  const strxBandwidth = resources.find(
-    (a) => a.symbol?.toLowerCase() === TRON_RESOURCE.STRX_BANDWIDTH,
-  );
-
-  return parseNum(strxEnergy?.balance) + parseNum(strxBandwidth?.balance);
-};
-
-// True if the user holds any sTRX according to TRON resources.
 export const hasStakedTrxPositions = (
-  resources?: TronResource[] | null,
+  resources?: TronResourcesMap | null,
 ): boolean => getStakedTrxTotalFromResources(resources) > 0;
 
 export const buildTronEarnTokenIfEligible = (
@@ -70,9 +57,17 @@ export const buildTronEarnTokenIfEligible = (
       ? normalizeToDotDecimal(stakedBalanceOverride)
       : normalizeToDotDecimal(token.balance);
 
+  // Truncate to token decimals to prevent "too many decimal places" error
+  // from toTokenMinimalUnit when floating-point arithmetic produces extra decimals.
+  // safeParseBigNumber handles empty/invalid input by defaulting to BigNumber(0).
+  const decimals = token.decimals ?? 6;
+  const truncatedBalance = safeParseBigNumber(balanceSource)
+    .decimalPlaces(decimals, BigNumber.ROUND_DOWN)
+    .toFixed();
+
   const balanceMinimalUnit = toTokenMinimalUnit(
-    balanceSource,
-    token.decimals ?? 0,
+    truncatedBalance,
+    decimals,
   ).toString();
 
   const experiences = [

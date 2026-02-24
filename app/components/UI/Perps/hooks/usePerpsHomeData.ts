@@ -6,24 +6,21 @@ import {
   usePerpsLiveFills,
 } from './stream';
 import { usePerpsMarkets } from './usePerpsMarkets';
-import type {
-  Position,
-  Order,
-  PerpsMarketData,
-  OrderFill,
-} from '../controllers/types';
+import {
+  MARKET_SORTING_CONFIG,
+  sortMarkets,
+  type Position,
+  type Order,
+  type PerpsMarketData,
+  type OrderFill,
+  type SortField,
+} from '@metamask/perps-controller';
 import type { PerpsTransaction } from '../types/transactionHistory';
 import { transformFillsToTransactions } from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
-import {
-  HOME_SCREEN_CONFIG,
-  MARKET_SORTING_CONFIG,
-} from '../constants/perpsConfig';
-import { sortMarkets, type SortField } from '../utils/sortMarkets';
-import {
-  selectPerpsWatchlistMarkets,
-  selectPerpsMarketFilterPreferences,
-} from '../selectors/perpsController';
+import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
+import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
+import { usePerpsConnection } from './usePerpsConnection';
 
 interface UsePerpsHomeDataParams {
   positionsLimit?: number;
@@ -65,6 +62,9 @@ export const usePerpsHomeData = ({
   activityLimit = HOME_SCREEN_CONFIG.RecentActivityLimit,
   searchQuery = '',
 }: UsePerpsHomeDataParams = {}): UsePerpsHomeDataReturn => {
+  // Get connection state to guard REST calls that require an initialized controller
+  const { isConnected, isInitialized } = usePerpsConnection();
+
   // Fetch positions via WebSocket with throttling for performance
   const { positions, isInitialLoading: isPositionsLoading } =
     usePerpsLivePositions({
@@ -93,6 +93,12 @@ export const usePerpsHomeData = ({
   // Note: We don't track loading state - WebSocket data displays immediately,
   // REST fills merge silently in the background via mergedFills
   useEffect(() => {
+    // Guard: Skip REST fetch until connection is ready
+    if (!isConnected || !isInitialized) {
+      return;
+    }
+
+    let isMounted = true;
     const fetchFills = async () => {
       try {
         const controller = Engine.context.PerpsController;
@@ -102,14 +108,19 @@ export const usePerpsHomeData = ({
         }
 
         const fills = await provider.getOrderFills({ aggregateByTime: false });
-        setRestFills(fills);
+        if (isMounted) {
+          setRestFills(fills);
+        }
       } catch (error) {
         // Log error but don't fail - WebSocket fills still work
         console.error('[usePerpsHomeData] Failed to fetch REST fills:', error);
       }
     };
     fetchFills();
-  }, []);
+    return () => {
+      isMounted = false;
+    };
+  }, [isConnected, isInitialized]);
 
   // Merge REST + WebSocket fills with deduplication
   // Live fills take precedence over REST fills (more up-to-date)
@@ -155,9 +166,6 @@ export const usePerpsHomeData = ({
   // Get watchlist symbols from Redux
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
 
-  // Get saved market filter preferences
-  const savedSortPreference = useSelector(selectPerpsMarketFilterPreferences);
-
   // Filter markets that are in watchlist
   const watchlistMarkets = useMemo(
     () =>
@@ -165,17 +173,8 @@ export const usePerpsHomeData = ({
     [allMarkets, watchlistSymbols],
   );
 
-  // Derive sort field from saved preference
-  const { sortBy, direction } = useMemo(() => {
-    const sortOption = MARKET_SORTING_CONFIG.SortOptions.find(
-      (opt) => opt.id === savedSortPreference.optionId,
-    );
-
-    return {
-      sortBy: sortOption?.field ?? MARKET_SORTING_CONFIG.SortFields.Volume,
-      direction: savedSortPreference.direction,
-    };
-  }, [savedSortPreference]);
+  const sortBy = MARKET_SORTING_CONFIG.SortFields.Volume;
+  const direction = MARKET_SORTING_CONFIG.DefaultDirection;
 
   // Filter and sort markets by type
   // Perps (crypto) - exclude all non-crypto markets

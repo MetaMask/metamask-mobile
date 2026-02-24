@@ -2,10 +2,8 @@ import React, { useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  selectTokenDetailsV2Enabled,
-  selectTokenDetailsV2ButtonsEnabled,
-} from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
@@ -29,7 +27,6 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import { selectPerpsEnabledFlag } from '../../Perps';
-import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { TraceName, endTrace } from '../../../../util/trace';
 import {
   isNetworkRampNativeTokenSupported,
@@ -41,6 +38,7 @@ import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import Transactions from '../../Transactions';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
+import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -49,6 +47,9 @@ import {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
+import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
+import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../Bridge/types';
 
 export {
   TokenDetailsSource,
@@ -94,9 +95,9 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
-  const isTokenDetailsV2ButtonsEnabled = useSelector(
-    selectTokenDetailsV2ButtonsEnabled,
-  );
+  // A/B test hook for layout selection
+  const { useNewLayout } = useTokenDetailsABTest();
+  const { isTokenTradingOpen } = useRWAToken();
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
@@ -129,9 +130,6 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
   };
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isMerklCampaignClaimingEnabled = useSelector(
-    selectMerklCampaignClaimingEnabledFlag,
-  );
 
   const {
     currentPrice,
@@ -213,7 +211,6 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
         setTimePeriod={setTimePeriod}
         chartNavigationButtons={chartNavigationButtons}
         isPerpsEnabled={isPerpsEnabled}
-        isMerklCampaignClaimingEnabled={isMerklCampaignClaimingEnabled}
         displayBuyButton={isRampAvailable}
         displaySwapsButton={displaySwapsButton}
         currentCurrency={currentCurrency}
@@ -247,7 +244,7 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
         networkName={networkName ?? ''}
         onBackPress={() => navigation.goBack()}
         onOptionsPress={
-          shouldShowMoreOptionsInNavBar && !isTokenDetailsV2ButtonsEnabled
+          shouldShowMoreOptionsInNavBar && !useNewLayout
             ? openAssetOptions
             : undefined
         }
@@ -263,6 +260,7 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
           chainId={token.chainId as SupportedCaipChainId}
           enableRefresh
           showDisclaimer
+          location={TransactionDetailLocation.AssetDetails}
         />
       ) : (
         <Transactions
@@ -280,46 +278,55 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
           headerHeight={280}
           tokenChainId={token.chainId}
           skipScrollOnClick
+          location={TransactionDetailLocation.AssetDetails}
         />
       )}
       {networkModal}
-      {isTokenDetailsV2ButtonsEnabled && !txLoading && displaySwapsButton && (
-        <BottomSheetFooter
-          style={{
-            ...styles.bottomSheetFooter,
-            paddingBottom: insets.bottom + 6,
-          }}
-          buttonPropsArray={[
-            {
-              variant: ButtonVariants.Primary,
-              label: strings('asset_overview.buy_button'),
-              size: ButtonSize.Lg,
-              onPress: handleBuyPress,
-            },
-            // Only show Sell button if user has balance of this token
-            ...(balance && parseFloat(String(balance)) > 0
-              ? [
-                  {
-                    variant: ButtonVariants.Primary,
-                    label: strings('asset_overview.sell_button'),
-                    size: ButtonSize.Lg,
-                    onPress: handleSellPress,
-                  },
-                ]
-              : []),
-          ]}
-          buttonsAlignment={ButtonsAlignment.Horizontal}
-        />
-      )}
+      {useNewLayout &&
+        !txLoading &&
+        displaySwapsButton &&
+        isTokenTradingOpen(token as BridgeToken) && (
+          <BottomSheetFooter
+            style={{
+              ...styles.bottomSheetFooter,
+              paddingBottom: insets.bottom + 6,
+            }}
+            buttonPropsArray={[
+              {
+                variant: ButtonVariants.Primary,
+                label: strings('asset_overview.buy_button'),
+                size: ButtonSize.Lg,
+                onPress: handleBuyPress,
+              },
+              // Only show Sell button if user has balance of this token
+              ...(balance && parseFloat(String(balance)) > 0
+                ? [
+                    {
+                      variant: ButtonVariants.Primary,
+                      label: strings('asset_overview.sell_button'),
+                      size: ButtonSize.Lg,
+                      onPress: handleSellPress,
+                    },
+                  ]
+                : []),
+            ]}
+            buttonsAlignment={ButtonsAlignment.Horizontal}
+          />
+        )}
     </View>
   );
 };
 
 /**
  * Fires TOKEN_DETAILS_OPENED for both V2 and legacy Asset view.
+ * Includes ab_tests property when navigating from the token list and the
+ * token list layout A/B test is active.
  */
 const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { variantName, isTestActive } = useTokenDetailsABTest();
+  const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
+
   useEffect(() => {
     const source = params.source ?? TokenDetailsSource.Unknown;
     const hasBalance =
@@ -328,13 +335,31 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       params.balance !== '0' &&
       params.balance !== '';
 
+    const isFromTokenList =
+      source === TokenDetailsSource.MobileTokenList ||
+      source === TokenDetailsSource.MobileTokenListPage;
+
+    const eventProperties = {
+      source,
+      chain_id: params.chainId,
+      token_symbol: params.symbol,
+      token_address: params.address,
+      token_name: params.name,
+      has_balance: hasBalance,
+      // A/B test attribution — each experiment is independent
+      ...((isTestActive || isFromTokenList) && {
+        ab_tests: {
+          ...(isTestActive && {
+            assetsASSETS2493AbtestTokenDetailsLayout: variantName,
+          }),
+          ...(isFromTokenList && {
+            assetsASSETS2621AbtestTokenListLayout: isTokenListV2 ? 'v2' : 'v1',
+          }),
+        },
+      }),
+    };
     const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-      .addProperties({
-        source,
-        chain_id: params.chainId,
-        token_symbol: params.symbol,
-        has_balance: hasBalance,
-      })
+      .addProperties(eventProperties)
       .build();
     trackEvent(event);
     // eslint-disable-next-line react-hooks/exhaustive-deps

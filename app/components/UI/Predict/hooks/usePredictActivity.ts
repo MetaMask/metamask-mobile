@@ -7,7 +7,6 @@ import type { PredictActivity } from '../types';
 import { ensureError } from '../utils/predictErrorHandler';
 
 interface UsePredictActivityOptions {
-  providerId?: string;
   loadOnMount?: boolean;
   refreshOnFocus?: boolean;
 }
@@ -23,7 +22,7 @@ interface UsePredictActivityReturn {
 export function usePredictActivity(
   options: UsePredictActivityOptions = {},
 ): UsePredictActivityReturn {
-  const { providerId, loadOnMount = true, refreshOnFocus = true } = options;
+  const { loadOnMount = true, refreshOnFocus = true } = options;
 
   const [activity, setActivity] = useState<PredictActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,9 +41,7 @@ export function usePredictActivity(
         setError(null);
 
         const controller = Engine.context.PredictController;
-        const data = await controller.getActivity({
-          providerId,
-        });
+        const data = await controller.getActivity({});
         setActivity(data ?? []);
       } catch (err) {
         const message =
@@ -63,7 +60,6 @@ export function usePredictActivity(
               method: 'loadActivity',
               action: 'activity_load',
               operation: 'data_fetching',
-              providerId,
             },
           },
         });
@@ -72,7 +68,7 @@ export function usePredictActivity(
         setIsRefreshing(false);
       }
     },
-    [providerId],
+    [],
   );
 
   useEffect(() => {

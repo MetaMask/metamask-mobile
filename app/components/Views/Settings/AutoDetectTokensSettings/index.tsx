@@ -18,13 +18,13 @@ import Text, {
 import styleSheet from './index.styles';
 import { TOKEN_DETECTION_TOGGLE } from './index.constants';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 const AutoDetectTokensSettings = () => {
   const theme = useTheme();
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
-  const { addTraitsToUser } = useMetrics();
+  const { addTraitsToUser } = useAnalytics();
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
 

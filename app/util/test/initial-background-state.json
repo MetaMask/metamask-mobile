@@ -461,6 +461,13 @@
     "pendingApprovalCount": 0,
     "approvalFlows": []
   },
+  "AssetsController": {
+    "assetPreferences": {},
+    "assetsBalance": {},
+    "assetsInfo": {},
+    "assetsPrice": {},
+    "customAssets": {}
+  },
   "PermissionController": {
     "subjects": {}
   },
@@ -508,7 +515,14 @@
     },
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
-    "selectedPaymentToken": null
+    "selectedPaymentToken": null,
+    "cachedMarketData": null,
+    "cachedMarketDataTimestamp": 0,
+    "cachedPositions": null,
+    "cachedOrders": null,
+    "cachedAccountState": null,
+    "cachedUserDataTimestamp": 0,
+    "cachedUserDataAddress": null
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -744,7 +758,7 @@
     "subscriptions": {}
   },
   "PredictController": {
-    "eligibility": {},
+    "eligibility": { "eligible": false },
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "balances": {},
@@ -752,6 +766,9 @@
     "pendingDeposits": {},
     "withdrawTransaction": null,
     "accountMeta": {}
+  },
+  "AiDigestController": {
+    "marketInsights": {}
   },
   "RampsController": {
     "userRegion": null,
@@ -780,6 +797,35 @@
       "error": null
     },
     "quotes": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "nativeProviders": {
+      "transak": {
+        "buyQuote": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        },
+        "isAuthenticated": false,
+        "kycRequirement": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        },
+        "userDetails": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        }
+      }
+    },
+    "widgetUrl": {
       "data": null,
       "selected": null,
       "isLoading": false,

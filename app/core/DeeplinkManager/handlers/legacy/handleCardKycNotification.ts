@@ -8,14 +8,15 @@ import {
   selectSelectedCountry,
   selectUserCardLocation,
   selectCardGeoLocation,
+  selectAlwaysShowCardButton,
 } from '../../../redux/slices/card';
 import {
-  selectCardExperimentalSwitch,
   selectCardSupportedCountries,
   selectDisplayCardButtonFeatureFlag,
   selectCardFeatureFlag,
   CardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
+import { isBaanxLoginEnabled } from '../../../../components/UI/Card/hooks/isBaanxLoginEnabled';
 import { CardSDK } from '../../../../components/UI/Card/sdk/CardSDK';
 import { mapCountryToLocation } from '../../../../components/UI/Card/util/mapCountryToLocation';
 import {
@@ -56,19 +57,17 @@ export const handleCardKycNotification = async () => {
     const state = ReduxService.store.getState();
 
     // Check feature flags
-    const cardGeoLocation = selectCardGeoLocation(state);
-    const isCardExperimentalSwitchEnabled = selectCardExperimentalSwitch(state);
-    const displayCardButtonFeatureFlag =
-      selectDisplayCardButtonFeatureFlag(state);
-    const cardSupportedCountries = selectCardSupportedCountries(
-      state,
-    ) as Record<string, boolean>;
-    const shouldOnboardingBeEnabled =
-      isCardExperimentalSwitchEnabled ||
-      (cardSupportedCountries?.[cardGeoLocation as string] === true &&
-        displayCardButtonFeatureFlag);
+    const shouldHandleKycNotification = isBaanxLoginEnabled({
+      alwaysShowCardButton: selectAlwaysShowCardButton(state),
+      cardGeoLocation: selectCardGeoLocation(state) as string,
+      cardSupportedCountries: selectCardSupportedCountries(state) as Record<
+        string,
+        boolean
+      >,
+      displayCardButtonFeatureFlag: selectDisplayCardButtonFeatureFlag(state),
+    });
 
-    if (!shouldOnboardingBeEnabled) {
+    if (!shouldHandleKycNotification) {
       Logger.log(
         '[handleCardKycNotification] Card feature is not enabled, skipping',
       );

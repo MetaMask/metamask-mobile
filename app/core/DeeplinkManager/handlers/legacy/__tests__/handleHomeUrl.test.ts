@@ -2,7 +2,7 @@ import NavigationService from '../../../../NavigationService';
 import { setContentPreviewToken } from '../../../../../actions/notification/helpers';
 import { navigateToHomeUrl } from '../handleHomeUrl';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PERFORMANCE_CONFIG } from '../../../../../components/UI/Perps/constants/perpsConfig';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../../actions/notification/helpers');

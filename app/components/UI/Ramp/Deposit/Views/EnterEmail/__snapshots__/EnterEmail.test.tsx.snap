@@ -631,7 +631,6 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value=""
@@ -1351,7 +1350,6 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value="test@example.com"
@@ -2085,7 +2083,6 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value=""
@@ -2805,7 +2802,6 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value="invalid-email"

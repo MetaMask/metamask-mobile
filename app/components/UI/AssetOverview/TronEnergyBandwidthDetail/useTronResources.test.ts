@@ -2,9 +2,11 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 
-import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
 import { useTronResources } from './useTronResources';
-import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
+import {
+  selectTronResourcesBySelectedAccountGroup,
+  TronResourcesMap,
+} from '../../../../selectors/assets/assets-list';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -27,34 +29,47 @@ interface MockTronAsset {
   balance?: string | number;
 }
 
-describe('useTronResources', () => {
-  const createTronAsset = (
-    symbol: string,
-    balance: string | number,
-  ): MockTronAsset => ({
-    symbol,
-    balance,
-  });
+const createEmptyResourcesMap = (): TronResourcesMap => ({
+  energy: undefined,
+  bandwidth: undefined,
+  maxEnergy: undefined,
+  maxBandwidth: undefined,
+  stakedTrxForEnergy: undefined,
+  stakedTrxForBandwidth: undefined,
+  totalStakedTrx: 0,
+});
 
+const createTronAsset = (
+  symbol: string,
+  balance: string | number,
+): MockTronAsset => ({
+  symbol,
+  balance,
+});
+
+describe('useTronResources', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockUseSelector.mockImplementation((selector: any) => selector());
-    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue([]);
+    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue(
+      createEmptyResourcesMap(),
+    );
   });
 
   it('builds energy and bandwidth resources from base max capacity', () => {
-    const tronResources: MockTronAsset[] = [
-      createTronAsset(TRON_RESOURCE.ENERGY, '500'),
-      createTronAsset(TRON_RESOURCE.MAX_ENERGY, '1000'),
-      createTronAsset(TRON_RESOURCE.STRX_ENERGY, '500'),
-      createTronAsset(TRON_RESOURCE.BANDWIDTH, '300'),
-      createTronAsset(TRON_RESOURCE.MAX_BANDWIDTH, '600'),
-      createTronAsset(TRON_RESOURCE.STRX_BANDWIDTH, 0),
-    ];
+    const tronResourcesMap: TronResourcesMap = {
+      energy: createTronAsset('energy', '500') as any,
+      bandwidth: createTronAsset('bandwidth', '300') as any,
+      maxEnergy: createTronAsset('max-energy', '1000') as any,
+      maxBandwidth: createTronAsset('max-bandwidth', '600') as any,
+      stakedTrxForEnergy: createTronAsset('strx-energy', '500') as any,
+      stakedTrxForBandwidth: createTronAsset('strx-bandwidth', 0) as any,
+      totalStakedTrx: 500,
+    };
 
     mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue(
-      tronResources as any,
+      tronResourcesMap,
     );
 
     const { result } = renderHook(() => useTronResources());
@@ -69,7 +84,9 @@ describe('useTronResources', () => {
   });
 
   it('returns zeroed resources when no Tron resources exist', () => {
-    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue([] as any);
+    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue(
+      createEmptyResourcesMap(),
+    );
 
     const { result } = renderHook(() => useTronResources());
 
@@ -89,13 +106,14 @@ describe('useTronResources', () => {
   });
 
   it('parses balances with comma separators', () => {
-    const tronResources: MockTronAsset[] = [
-      createTronAsset(TRON_RESOURCE.ENERGY, '1,000'),
-      createTronAsset(TRON_RESOURCE.MAX_ENERGY, '2,000'),
-    ];
+    const tronResourcesMap: TronResourcesMap = {
+      ...createEmptyResourcesMap(),
+      energy: createTronAsset('energy', '1,000') as any,
+      maxEnergy: createTronAsset('max-energy', '2,000') as any,
+    };
 
     mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue(
-      tronResources as any,
+      tronResourcesMap,
     );
 
     const { result } = renderHook(() => useTronResources());
@@ -106,13 +124,14 @@ describe('useTronResources', () => {
   });
 
   it('caps percentage at one hundred when current exceeds max', () => {
-    const tronResources: MockTronAsset[] = [
-      createTronAsset(TRON_RESOURCE.ENERGY, 200),
-      createTronAsset(TRON_RESOURCE.MAX_ENERGY, 100),
-    ];
+    const tronResourcesMap: TronResourcesMap = {
+      ...createEmptyResourcesMap(),
+      energy: createTronAsset('energy', 200) as any,
+      maxEnergy: createTronAsset('max-energy', 100) as any,
+    };
 
     mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue(
-      tronResources as any,
+      tronResourcesMap,
     );
 
     const { result } = renderHook(() => useTronResources());
@@ -122,13 +141,14 @@ describe('useTronResources', () => {
   });
 
   it('sets percentage to zero when balances cannot be parsed', () => {
-    const tronResources: MockTronAsset[] = [
-      createTronAsset(TRON_RESOURCE.ENERGY, 'invalid'),
-      createTronAsset(TRON_RESOURCE.MAX_ENERGY, '1000'),
-    ];
+    const tronResourcesMap: TronResourcesMap = {
+      ...createEmptyResourcesMap(),
+      energy: createTronAsset('energy', 'invalid') as any,
+      maxEnergy: createTronAsset('max-energy', '1000') as any,
+    };
 
     mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue(
-      tronResources as any,
+      tronResourcesMap,
     );
 
     const { result } = renderHook(() => useTronResources());

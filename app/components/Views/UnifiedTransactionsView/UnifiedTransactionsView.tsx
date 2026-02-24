@@ -53,10 +53,12 @@ import { getAddressUrl } from '../../../core/Multichain/utils';
 import UpdateEIP1559Tx from '../confirmations/legacy/components/UpdateEIP1559Tx';
 import styleSheet from './UnifiedTransactionsView.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
+import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
+import { UnifiedTransactionsViewSelectorsIDs } from './UnifiedTransactionsView.testIds';
 
 type SmartTransactionWithId = SmartTransaction & { id: string };
 type EvmTransaction = TransactionMeta | SmartTransactionWithId;
@@ -86,11 +88,13 @@ interface UnifiedTransactionsViewProps {
   header?: React.ReactElement;
   tabLabel?: string;
   chainId?: string; // used by non-EVM list items for explorer links
+  location?: TransactionDetailLocation;
 }
 
 const UnifiedTransactionsView = ({
   header,
   chainId,
+  location,
 }: UnifiedTransactionsViewProps) => {
   const navigation =
     useNavigation<NavigationProp<Record<string, object | undefined>>>();
@@ -593,6 +597,7 @@ const UnifiedTransactionsView = ({
           signLedgerTransaction={signLedgerTransaction}
           currentCurrency={currentCurrency}
           showBottomBorder
+          location={location}
         />
       );
     }
@@ -606,6 +611,7 @@ const UnifiedTransactionsView = ({
         bridgeHistoryItem={bridgeHistoryItem}
         navigation={navigation}
         index={index}
+        location={location}
       />
     ) : (
       <MultichainTransactionListItem
@@ -614,6 +620,7 @@ const UnifiedTransactionsView = ({
         index={index}
         // Use the transaction's chain property for non-EVM transactions (contains CAIP chainId)
         chainId={item.tx.chain as unknown as SupportedCaipChainId}
+        location={location}
       />
     );
   };
@@ -626,6 +633,7 @@ const UnifiedTransactionsView = ({
             <FlashList
               ref={listRef}
               data={data}
+              testID={UnifiedTransactionsViewSelectorsIDs.CONTAINER}
               renderItem={renderItem}
               keyExtractor={(listItem) =>
                 listItem.kind === TransactionKind.Evm

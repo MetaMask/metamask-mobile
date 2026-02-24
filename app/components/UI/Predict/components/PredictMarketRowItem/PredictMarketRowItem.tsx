@@ -1,8 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View, Image } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './PredictMarketRowItem.styles';
 import { PredictMarket as PredictMarketType } from '../../types';
 import {
   PredictNavigationParamList,
@@ -31,7 +29,6 @@ const PredictMarketRowItem = ({
   testID,
   entryPoint: propEntryPoint,
 }: PredictMarketRowItemProps) => {
-  const { styles } = useStyles(styleSheet, {});
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
@@ -76,11 +73,11 @@ const PredictMarketRowItem = ({
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={tw.style('flex-row items-start self-stretch py-2')}
       onPress={handlePress}
       testID={testID || `predict-market-row-item-${market.id}`}
     >
-      <View style={styles.iconContainer}>
+      <View style={tw.style('h-10 w-10')}>
         <Box twClassName="rounded-full bg-muted overflow-hidden items-center justify-center">
           {market.image ? (
             <Image
@@ -93,8 +90,8 @@ const PredictMarketRowItem = ({
           )}
         </Box>
       </View>
-      <View style={styles.leftContainer}>
-        <View style={styles.marketHeaderRow}>
+      <View style={tw.style('flex-1 pl-4')}>
+        <View style={tw.style('flex-row items-center')}>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
@@ -108,6 +105,7 @@ const PredictMarketRowItem = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
+          style={tw.style('mt-0.5')}
           numberOfLines={1}
           ellipsizeMode="tail"
         >

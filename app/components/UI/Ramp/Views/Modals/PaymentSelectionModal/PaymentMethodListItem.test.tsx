@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import PaymentMethodListItem from './PaymentMethodListItem';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
-import type { PaymentMethod } from '@metamask/ramps-controller';
+import type { PaymentMethod, Quote } from '@metamask/ramps-controller';
 
 const renderWithTheme = (component: React.ReactElement) =>
   render(
@@ -27,6 +27,24 @@ const mockPaymentMethodWithoutDelay: PaymentMethod = {
   delay: undefined,
 };
 
+const defaultQuoteProps = {
+  quote: null as Quote | null,
+  quoteLoading: false,
+  quoteError: false,
+  currency: 'USD',
+  tokenSymbol: 'ETH',
+};
+
+const mockQuote: Quote = {
+  provider: '/providers/test',
+  quote: {
+    amountIn: 500,
+    amountOut: '0.10596',
+    paymentMethod: mockPaymentMethod.id,
+    amountOutInFiat: 499.97,
+  },
+};
+
 describe('PaymentMethodListItem', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -34,7 +52,10 @@ describe('PaymentMethodListItem', () => {
 
   it('renders payment method name', () => {
     const { getByText } = renderWithTheme(
-      <PaymentMethodListItem paymentMethod={mockPaymentMethod} />,
+      <PaymentMethodListItem
+        paymentMethod={mockPaymentMethod}
+        {...defaultQuoteProps}
+      />,
     );
 
     expect(getByText('Debit or Credit')).toBeOnTheScreen();
@@ -42,7 +63,10 @@ describe('PaymentMethodListItem', () => {
 
   it('renders delay text when delay array is provided', () => {
     const { getByText } = renderWithTheme(
-      <PaymentMethodListItem paymentMethod={mockPaymentMethod} />,
+      <PaymentMethodListItem
+        paymentMethod={mockPaymentMethod}
+        {...defaultQuoteProps}
+      />,
     );
 
     expect(getByText('5 - 10 mins')).toBeOnTheScreen();
@@ -50,19 +74,26 @@ describe('PaymentMethodListItem', () => {
 
   it('does not render delay text when not available', () => {
     const { queryByText } = renderWithTheme(
-      <PaymentMethodListItem paymentMethod={mockPaymentMethodWithoutDelay} />,
+      <PaymentMethodListItem
+        paymentMethod={mockPaymentMethodWithoutDelay}
+        {...defaultQuoteProps}
+      />,
     );
 
     expect(queryByText('5 - 10 mins')).not.toBeOnTheScreen();
   });
 
-  it('renders quote amounts', () => {
+  it('renders quote amounts when quote is provided', () => {
     const { getByText } = renderWithTheme(
-      <PaymentMethodListItem paymentMethod={mockPaymentMethod} />,
+      <PaymentMethodListItem
+        paymentMethod={mockPaymentMethod}
+        {...defaultQuoteProps}
+        quote={mockQuote}
+      />,
     );
 
     expect(getByText('0.10596 ETH')).toBeOnTheScreen();
-    expect(getByText('~ $499.97')).toBeOnTheScreen();
+    expect(getByText('$499.97')).toBeOnTheScreen();
   });
 
   it('calls onPress when pressed', () => {
@@ -71,6 +102,7 @@ describe('PaymentMethodListItem', () => {
       <PaymentMethodListItem
         paymentMethod={mockPaymentMethod}
         onPress={mockOnPress}
+        {...defaultQuoteProps}
       />,
     );
 
@@ -81,7 +113,11 @@ describe('PaymentMethodListItem', () => {
 
   it('renders as selected when isSelected is true', () => {
     const { toJSON } = renderWithTheme(
-      <PaymentMethodListItem paymentMethod={mockPaymentMethod} isSelected />,
+      <PaymentMethodListItem
+        paymentMethod={mockPaymentMethod}
+        isSelected
+        {...defaultQuoteProps}
+      />,
     );
 
     expect(toJSON()).toMatchSnapshot();
@@ -89,7 +125,10 @@ describe('PaymentMethodListItem', () => {
 
   it('matches snapshot', () => {
     const { toJSON } = renderWithTheme(
-      <PaymentMethodListItem paymentMethod={mockPaymentMethod} />,
+      <PaymentMethodListItem
+        paymentMethod={mockPaymentMethod}
+        {...defaultQuoteProps}
+      />,
     );
     expect(toJSON()).toMatchSnapshot();
   });

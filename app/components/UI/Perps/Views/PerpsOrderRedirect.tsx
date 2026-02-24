@@ -17,10 +17,8 @@ import usePerpsToasts from '../hooks/usePerpsToasts';
 import PerpsLoader from '../components/PerpsLoader';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
-import {
-  PERPS_CONSTANTS,
-  CONFIRMATION_HEADER_CONFIG,
-} from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../types/navigation';
 
 type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
@@ -41,7 +39,8 @@ type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
 const PerpsOrderRedirect: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteParams>();
-  const { direction, asset } = route.params;
+  const { direction, asset, assetsASSETS2493AbtestTokenDetailsLayout } =
+    route.params;
 
   const { isConnected, isInitialized } = usePerpsConnection();
   const { depositWithOrder } = usePerpsTrading();
@@ -72,6 +71,7 @@ const PerpsOrderRedirect: React.FC = () => {
             {
               direction,
               asset,
+              assetsASSETS2493AbtestTokenDetailsLayout,
               showPerpsHeader:
                 CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
@@ -79,10 +79,10 @@ const PerpsOrderRedirect: React.FC = () => {
         );
       })
       .catch((error: unknown) => {
-        const err = ensureError(error);
+        const err = ensureError(error, 'PerpsOrderRedirect.depositWithOrder');
         Logger.error(err, {
-          feature: PERPS_CONSTANTS.FeatureName,
-          message: 'Failed to start one-click trade from asset details',
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: { name: 'PerpsOrderRedirect.depositWithOrder', data: {} },
         });
         showToast(
           PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
@@ -95,6 +95,7 @@ const PerpsOrderRedirect: React.FC = () => {
     isInitialized,
     direction,
     asset,
+    assetsASSETS2493AbtestTokenDetailsLayout,
     depositWithOrder,
     navigation,
     showToast,

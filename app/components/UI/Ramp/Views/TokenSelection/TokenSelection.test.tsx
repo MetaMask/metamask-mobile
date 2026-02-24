@@ -9,6 +9,7 @@ import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
 import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders/types';
 import { useRampTokens } from '../../hooks/useRampTokens';
 import { useRampsController } from '../../hooks/useRampsController';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -173,8 +174,11 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       quotes: null,
       selectedQuote: null,
+      getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });
@@ -240,15 +244,22 @@ describe('TokenSelection Component', () => {
     });
   });
 
-  it('calls goToBuy without closing modal when token is pressed (V2 flow)', () => {
+  it('sets selected token and navigates directly to AMOUNT_INPUT without closing modal when token is pressed (V2 flow)', () => {
+    const mockSetSelectedToken = jest.fn();
     mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+    mockUseRampsController.mockReturnValue({
+      ...mockUseRampsController(),
+      setSelectedToken: mockSetSelectedToken,
+    });
     const { getByTestId } = renderWithProvider(TokenSelection);
 
     const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
     fireEvent.press(firstToken);
 
     expect(mockParentGoBack).not.toHaveBeenCalled();
-    expect(mockGoToBuy).toHaveBeenCalledWith({
+    expect(mockGoToBuy).not.toHaveBeenCalled();
+    expect(mockSetSelectedToken).toHaveBeenCalledWith(mockTokens[0].assetId);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.AMOUNT_INPUT, {
       assetId: mockTokens[0].assetId,
     });
   });
@@ -304,8 +315,11 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       quotes: null,
       selectedQuote: null,
+      getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });
@@ -355,8 +369,11 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       quotes: null,
       selectedQuote: null,
+      getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });
@@ -418,8 +435,11 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       quotes: null,
       selectedQuote: null,
+      getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });
@@ -491,8 +511,11 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       quotes: null,
       selectedQuote: null,
+      getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });
@@ -568,8 +591,11 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       quotes: null,
       selectedQuote: null,
+      getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });
@@ -647,8 +673,11 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       quotes: null,
       selectedQuote: null,
+      getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });

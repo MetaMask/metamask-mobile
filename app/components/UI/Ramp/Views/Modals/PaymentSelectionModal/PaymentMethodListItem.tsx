@@ -10,11 +10,12 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import PaymentMethodIcon from '../../../Aggregator/components/PaymentMethodIcon';
-import PaymentMethodQuote from './PaymentMethodQuote';
+import QuoteDisplay from './QuoteDisplay';
 import { formatDelayFromArray } from '../../../Aggregator/utils';
+import { useFormatters } from '../../../../../hooks/useFormatters';
 import { useTheme } from '../../../../../../util/theme';
 import type { Colors } from '../../../../../../util/theme/models';
-import type { PaymentMethod } from '@metamask/ramps-controller';
+import type { PaymentMethod, Quote } from '@metamask/ramps-controller';
 
 const ICON_CIRCLE_SIZE = 44;
 
@@ -37,23 +38,42 @@ interface PaymentMethodListItemProps {
   paymentMethod: PaymentMethod;
   onPress?: () => void;
   isSelected?: boolean;
+  quote: Quote | null;
+  quoteLoading: boolean;
+  quoteError: boolean;
+  currency: string;
+  tokenSymbol: string;
 }
 
 const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
   paymentMethod,
   onPress,
   isSelected = false,
+  quote,
+  quoteLoading,
+  quoteError,
+  currency,
+  tokenSymbol,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const mockQuote = {
-    cryptoAmount: '0.10596 ETH',
-    fiatAmount: '~ $499.97',
-  };
+  const { formatToken, formatCurrency } = useFormatters();
 
   const delayText =
     Array.isArray(paymentMethod.delay) && paymentMethod.delay.length >= 2
       ? formatDelayFromArray(paymentMethod.delay)
+      : null;
+
+  const cryptoAmount =
+    quote?.quote?.amountOut != null && tokenSymbol
+      ? formatToken(Number(quote.quote.amountOut), tokenSymbol, {
+          maximumFractionDigits: 6,
+          minimumFractionDigits: 0,
+        })
+      : '';
+  const fiatAmount =
+    quote?.quote?.amountOutInFiat != null
+      ? formatCurrency(Number(quote.quote.amountOutInFiat), currency)
       : null;
 
   return (
@@ -83,9 +103,11 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
         ) : null}
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Auto}>
-        <PaymentMethodQuote
-          cryptoAmount={mockQuote.cryptoAmount}
-          fiatAmount={mockQuote.fiatAmount}
+        <QuoteDisplay
+          cryptoAmount={cryptoAmount}
+          fiatAmount={fiatAmount}
+          isLoading={quoteLoading}
+          showWarningIcon={quoteError}
         />
       </ListItemColumn>
     </ListItemSelect>

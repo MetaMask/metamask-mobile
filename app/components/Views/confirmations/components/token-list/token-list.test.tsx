@@ -4,7 +4,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 // eslint-disable-next-line import/no-namespace
 import * as AssetSelectionMetrics from '../../hooks/send/metrics/useAssetSelectionMetrics';
 import { TokenList } from './token-list';
-import { AssetType } from '../../types/token';
+import { AssetType, HighlightedAssetListItem } from '../../types/token';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSendContext } from '../../context/send-context';
 
@@ -36,6 +36,21 @@ jest.mock('../UI/token', () => {
         onPress={() => onPress(asset)}
       >
         <Text>{asset.symbol}</Text>
+      </Pressable>
+    ),
+  };
+});
+
+jest.mock('../UI/highlighted-asset', () => {
+  const { Pressable, Text } = jest.requireActual('react-native');
+
+  return {
+    HighlightedAsset: ({ item }: { item: HighlightedAssetListItem }) => (
+      <Pressable
+        testID={`highlighted-asset-${item.name}`}
+        onPress={() => item.action()}
+      >
+        <Text>{item.name}</Text>
       </Pressable>
     ),
   };
@@ -90,12 +105,26 @@ const manyTokens: AssetType[] = Array.from({ length: 25 }, (_, i) => ({
   ticker: `TKN${i}`,
 }));
 
+const highlightedAssetActionMock = jest.fn();
+const highlightedAssets: HighlightedAssetListItem[] = [
+  {
+    type: 'highlighted_asset',
+    icon: 'https://example.com/perps.png',
+    name: 'Perps Balance',
+    name_description: 'USD',
+    fiat: '$31.16',
+    fiat_description: '31.16 USD',
+    action: highlightedAssetActionMock,
+  },
+];
+
 describe('TokenList', () => {
   const mockUpdateAsset = jest.fn();
   const mockUseSendContext = jest.mocked(useSendContext);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    highlightedAssetActionMock.mockClear();
     mockUseSendContext.mockReturnValue({
       updateAsset: mockUpdateAsset,
       asset: undefined,
@@ -122,6 +151,15 @@ describe('TokenList', () => {
       const { getByTestId } = render(<TokenList tokens={singleToken} />);
 
       expect(getByTestId('token-ETH')).toBeOnTheScreen();
+    });
+
+    it('renders highlighted asset rows when provided', () => {
+      const { getByTestId, getByText } = render(
+        <TokenList tokens={mockTokens} highlightedAssets={highlightedAssets} />,
+      );
+
+      expect(getByTestId('highlighted-asset-Perps Balance')).toBeOnTheScreen();
+      expect(getByText('ETH')).toBeOnTheScreen();
     });
   });
 
@@ -201,6 +239,18 @@ describe('TokenList', () => {
 
       expect(mockOnSelect).toHaveBeenCalledTimes(1);
       expect(mockOnSelect).toHaveBeenCalledWith(mockTokens[1]);
+      expect(mockUpdateAsset).not.toHaveBeenCalled();
+      expect(mockGotToSendScreen).not.toHaveBeenCalled();
+    });
+
+    it('calls highlighted asset action and does not trigger token selection side effects', () => {
+      const { getByTestId } = render(
+        <TokenList tokens={mockTokens} highlightedAssets={highlightedAssets} />,
+      );
+
+      fireEvent.press(getByTestId('highlighted-asset-Perps Balance'));
+
+      expect(highlightedAssetActionMock).toHaveBeenCalledTimes(1);
       expect(mockUpdateAsset).not.toHaveBeenCalled();
       expect(mockGotToSendScreen).not.toHaveBeenCalled();
     });

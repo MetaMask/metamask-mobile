@@ -82,7 +82,7 @@ const MainRoutes = ({ route }: MainRoutesProps) => {
         name={Routes.DEPOSIT.ROOT}
         component={Root}
         initialParams={parentParams}
-        options={{ animationEnabled: false }}
+        options={{ animationEnabled: false, headerShown: false }}
       />
       <Stack.Screen
         name={Routes.DEPOSIT.BUILD_QUOTE}

@@ -1,8 +1,7 @@
 import { formatPerpsFiat } from '../utils/formatUtils';
 import BN from 'bnjs4';
 import { ensureError } from '../../../../util/errorUtils';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type { PerpsLogger } from '../controllers/types';
+import { PERPS_CONSTANTS, type PerpsLogger } from '@metamask/perps-controller';
 
 /**
  * Optional logger for amount conversion functions.
@@ -58,7 +57,7 @@ export const convertPerpsAmountToUSD = (
     // Invalid input - return formatted zero
     return formatPerpsFiat(0);
   } catch (error) {
-    logger?.error(ensureError(error), {
+    logger?.error(ensureError(error, 'amountConversion.convertAmountToUsd'), {
       context: {
         name: PERPS_CONSTANTS.FeatureName,
         data: { message: `Error converting Perps amount to USD: ${amount}` },

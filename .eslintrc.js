@@ -16,6 +16,7 @@ module.exports = {
   plugins: [
     '@typescript-eslint',
     '@metamask/design-tokens',
+    'promise',
     'react-compiler',
     'tailwindcss',
   ],
@@ -174,6 +175,219 @@ module.exports = {
         ],
       },
     },
+    // ── Perps controller Core-alignment override ──
+    // Enforces the same ESLint rules that Core's @metamask/eslint-config
+    // applies to packages/perps-controller so that code written in mobile
+    // passes Core's linter after a straight copy.
+    //
+    // Plugin differences from Core:
+    //   - mobile uses `import` (eslint-plugin-import); Core uses `import-x`
+    //     (eslint-plugin-import-x). Rules are identical; `--fix` in Core
+    //     handles any formatting delta.
+    //
+    // See docs/perps/perps-core-sync.md for the full sync workflow.
+    {
+      files: ['app/controllers/perps/**/*.{ts,tsx}'],
+      excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
+      rules: {
+        // === Existing rule ===
+        '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+
+        // === Core base rules (from @metamask/eslint-config) ===
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'TSParameterProperty',
+            message:
+              'Prefer explicit property declaration and assignment in constructor.',
+          },
+          {
+            selector: "MethodDefinition[accessibility='private']",
+            message:
+              'Use ES private class fields (#field) instead of TypeScript private keyword.',
+          },
+          {
+            selector: "PropertyDefinition[accessibility='private']",
+            message:
+              'Use ES private class fields (#field) instead of TypeScript private keyword.',
+          },
+        ],
+        'id-denylist': [
+          'error',
+          'buf',
+          'cat',
+          'err',
+          'cb',
+          'cfg',
+          'hex',
+          'int',
+          'msg',
+          'num',
+          'opt',
+          'sig',
+        ],
+        'id-length': [
+          'error',
+          {
+            min: 2,
+            exceptionPatterns: ['_', 'a', 'b', 'i', 'j', 'k'],
+            properties: 'never',
+          },
+        ],
+        'no-negated-condition': 'error',
+        'no-eq-null': 'error',
+        'no-nested-ternary': 'error',
+        'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
+        'require-unicode-regexp': 'error',
+        'consistent-return': 'error',
+        'prefer-template': 'error',
+        'prefer-destructuring': [
+          'error',
+          {
+            VariableDeclarator: { array: false, object: true },
+            AssignmentExpression: { array: false, object: false },
+          },
+          { enforceForRenamedProperties: false },
+        ],
+        'no-implicit-coercion': 'error',
+        'no-param-reassign': 'error',
+        'no-duplicate-imports': 'off',
+        curly: ['error', 'all'],
+        'no-void': 'error',
+
+        // === TypeScript type-aware rules ===
+        'no-shadow': 'off',
+        '@typescript-eslint/no-shadow': ['error', { builtinGlobals: true }],
+        '@typescript-eslint/prefer-nullish-coalescing': 'error',
+        '@typescript-eslint/prefer-readonly': 'error',
+        '@typescript-eslint/explicit-function-return-type': 'error',
+        '@typescript-eslint/naming-convention': [
+          'error',
+          {
+            selector: 'default',
+            format: ['camelCase'],
+            leadingUnderscore: 'allow',
+            trailingUnderscore: 'forbid',
+          },
+          {
+            selector: 'enumMember',
+            format: ['PascalCase'],
+          },
+          {
+            selector: 'import',
+            format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE'],
+          },
+          {
+            selector: 'interface',
+            format: ['PascalCase'],
+            custom: {
+              regex: '^I[A-Z]',
+              match: false,
+            },
+          },
+          {
+            selector: 'objectLiteralMethod',
+            format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
+          },
+          {
+            selector: 'objectLiteralProperty',
+            format: null,
+          },
+          {
+            selector: 'typeLike',
+            format: ['PascalCase'],
+          },
+          {
+            selector: 'typeParameter',
+            format: ['PascalCase'],
+            custom: { regex: '^.{3,}', match: true },
+          },
+          {
+            selector: 'variable',
+            format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+            leadingUnderscore: 'allow',
+          },
+          {
+            selector: 'parameter',
+            format: ['camelCase', 'PascalCase'],
+            leadingUnderscore: 'allow',
+          },
+          {
+            selector: [
+              'classProperty',
+              'objectLiteralProperty',
+              'typeProperty',
+              'classMethod',
+              'objectLiteralMethod',
+              'typeMethod',
+              'accessor',
+              'enumMember',
+            ],
+            format: null,
+            modifiers: ['requiresQuotes'],
+          },
+        ],
+        '@typescript-eslint/consistent-type-exports': 'error',
+        '@typescript-eslint/no-floating-promises': 'error',
+        '@typescript-eslint/restrict-template-expressions': 'error',
+
+        // === Import rules (using 'import' plugin, not 'import-x') ===
+        'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
+        'import/no-named-as-default': 'error',
+        'import/order': [
+          'error',
+          {
+            groups: [
+              ['builtin', 'external'],
+              ['internal', 'parent', 'sibling', 'index'],
+            ],
+            alphabetize: { order: 'asc', caseInsensitive: true },
+            'newlines-between': 'always',
+          },
+        ],
+
+        // === JSDoc rules ===
+        'jsdoc/check-alignment': 'error',
+        'jsdoc/tag-lines': ['error', 'any', { startLines: 1 }],
+        'jsdoc/check-param-names': 'error',
+        'jsdoc/require-param': 'error',
+        'jsdoc/require-param-description': 'error',
+        'jsdoc/require-returns': 'error',
+        'jsdoc/require-returns-description': 'error',
+
+        // === Promise rules (eslint-plugin-promise) ===
+        'promise/always-return': 'error',
+        'promise/no-nesting': 'error',
+        'promise/no-callback-in-promise': 'error',
+        'promise/param-names': 'error',
+      },
+    },
+    {
+      // Perps test files use top-level type imports (import type + import from same module),
+      // which conflicts with the global no-duplicate-imports rule.
+      files: ['app/controllers/perps/**/*.test.{ts,tsx}'],
+      rules: {
+        'no-duplicate-imports': 'off',
+      },
+    },
+    {
+      files: ['app/**/*.{ts,tsx}'],
+      excludedFiles: ['app/controllers/perps/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['**/controllers/perps', '**/controllers/perps/**'],
+                message:
+                  'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
+              },
+            ],
+          },
+        ],
+      },
+    },
   ],
 
   globals: {
@@ -200,6 +414,7 @@ module.exports = {
     'import/resolver': {
       typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
     },
+    'import/internal-regex': '^@metamask/perps-controller',
   },
 
   rules: {

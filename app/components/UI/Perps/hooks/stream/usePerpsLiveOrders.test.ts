@@ -1,7 +1,23 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { usePerpsLiveOrders } from './index';
-import type { Order } from '../../controllers/types';
+import { type Order } from '@metamask/perps-controller';
+
+// Mock Engine for lazy isInitialLoading check
+const mockEngineState = {
+  cachedOrders: null as Order[] | null,
+  cachedUserDataTimestamp: 0,
+};
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      get state() {
+        return mockEngineState;
+      },
+    },
+  },
+}));
 
 // Mock the stream provider
 const mockSubscribe = jest.fn();
@@ -39,7 +55,7 @@ describe('usePerpsLiveOrders', () => {
     jest.useRealTimers();
   });
 
-  it('should subscribe to orders on mount', () => {
+  it('subscribes to orders on mount', () => {
     const throttleMs = 2000;
     mockSubscribe.mockReturnValue(jest.fn());
 
@@ -51,7 +67,7 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
-  it('should unsubscribe on unmount', () => {
+  it('unsubscribes on unmount', () => {
     const mockUnsubscribe = jest.fn();
     mockSubscribe.mockReturnValue(mockUnsubscribe);
 
@@ -62,7 +78,7 @@ describe('usePerpsLiveOrders', () => {
     expect(mockUnsubscribe).toHaveBeenCalled();
   });
 
-  it('should update orders when callback is invoked', async () => {
+  it('updates orders when callback is invoked', async () => {
     let capturedCallback: (orders: Order[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
@@ -89,7 +105,7 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
-  it('should use default throttle value when not provided', () => {
+  it('uses default throttle value when not provided', () => {
     mockSubscribe.mockReturnValue(jest.fn());
 
     renderHook(() => usePerpsLiveOrders());
@@ -100,7 +116,7 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
-  it('should handle throttle changes', () => {
+  it('handles throttle changes', () => {
     const mockUnsubscribe1 = jest.fn();
     const mockUnsubscribe2 = jest.fn();
 
@@ -131,7 +147,7 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
-  it('should handle empty orders array', async () => {
+  it('handles empty orders array', async () => {
     let capturedCallback: (orders: Order[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
@@ -149,7 +165,7 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
-  it('should handle null or undefined updates gracefully', async () => {
+  it('handles null or undefined updates gracefully', async () => {
     let capturedCallback: (orders: Order[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
@@ -186,7 +202,63 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
-  it('should replace orders on each update', async () => {
+  describe('initial state from cache', () => {
+    it('seeds orders from cache when fresh cached data exists', () => {
+      const cachedOrders: Order[] = [
+        mockOrder,
+        { ...mockOrder, orderId: 'order-2', symbol: 'ETH-PERP' } as Order,
+      ];
+
+      mockEngineState.cachedOrders = cachedOrders;
+      mockEngineState.cachedUserDataTimestamp = Date.now();
+
+      mockSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLiveOrders());
+
+      expect(result.current.orders).toEqual(cachedOrders);
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+
+    it('returns empty orders for stale cache (older than 60s)', () => {
+      mockEngineState.cachedOrders = [mockOrder];
+      mockEngineState.cachedUserDataTimestamp = Date.now() - 61_000;
+
+      mockSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLiveOrders());
+
+      // getPreloadedData enforces 60s TTL — stale cache is not used
+      expect(result.current.orders).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(true);
+    });
+
+    it('returns empty orders when no cache exists', () => {
+      mockEngineState.cachedOrders = null;
+      mockEngineState.cachedUserDataTimestamp = 0;
+
+      mockSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLiveOrders());
+
+      expect(result.current.orders).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(true);
+    });
+
+    it('handles empty cached orders array (valid cache, no orders)', () => {
+      mockEngineState.cachedOrders = [];
+      mockEngineState.cachedUserDataTimestamp = Date.now();
+
+      mockSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLiveOrders());
+
+      expect(result.current.orders).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+  });
+
+  it('replaces orders on each update', async () => {
     let capturedCallback: (orders: Order[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;

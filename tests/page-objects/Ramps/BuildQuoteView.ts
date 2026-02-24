@@ -62,6 +62,14 @@ class BuildQuoteView {
     return Matchers.getElementByID(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON);
   }
 
+  get doneButton(): DetoxElement {
+    return Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON);
+  }
+
+  get continueButton(): DetoxElement {
+    return Matchers.getElementByID(BuildQuoteSelectors.CONTINUE_BUTTON);
+  }
+
   get quickAmount25(): DetoxElement {
     return Matchers.getElementByLabel('25%');
   }
@@ -134,13 +142,15 @@ class BuildQuoteView {
     });
   }
 
-  async enterAmount(amount: string): Promise<void> {
-    await Gestures.waitAndTap(
-      Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT),
-      {
-        elemDescription: 'Amount Input in Build Quote View',
-      },
-    );
+  async enterAmount(
+    amount: string,
+    rampsType: 'unifiedBuy' | 'sell' = 'sell',
+  ): Promise<void> {
+    await Gestures.waitAndTap(this.amountInput, {
+      elemDescription: 'Amount Input in Build Quote View',
+    });
+
+    // Both onramp and offramp enter digits using keypad
     // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let digit = 0; digit < amount.length; digit++) {
       const numberButton = Matchers.getElementByText(amount[digit]);
@@ -148,13 +158,14 @@ class BuildQuoteView {
         elemDescription: `Number Button (${amount[digit]}) in Build Quote View`,
       });
     }
-    await Gestures.waitAndTap(
-      Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON),
-      {
+
+    // Sell: Tap done button to close keypad
+    if (rampsType === 'sell') {
+      await Gestures.waitAndTap(this.doneButton, {
         elemDescription:
           'Done Button after entering amount in Build Quote View',
-      },
-    );
+      });
+    }
   }
 
   async tapGetQuotesButton() {
@@ -197,12 +208,9 @@ class BuildQuoteView {
   }
 
   async tapKeypadDeleteButton(times: number): Promise<void> {
-    await Gestures.waitAndTap(
-      Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT),
-      {
-        elemDescription: 'Amount Input in Build Quote View',
-      },
-    );
+    await Gestures.waitAndTap(this.amountInput, {
+      elemDescription: 'Amount Input in Build Quote View',
+    });
     for (let i = 0; i < times; i++) {
       await Gestures.waitAndTap(this.keypadDeleteButton, {
         elemDescription: `Keypad Delete Button (${i + 1}) in Build Quote View`,

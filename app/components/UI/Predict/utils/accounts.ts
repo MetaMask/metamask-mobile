@@ -12,8 +12,9 @@ import Engine from '../../../../core/Engine';
  * @returns EVM account or null if not found
  */
 export const getEvmAccountFromSelectedAccountGroup = () => {
-  const { AccountTreeController } = Engine.context;
-  const accounts = AccountTreeController.getAccountsFromSelectedAccountGroup();
+  const accounts =
+    Engine.context?.AccountTreeController?.getAccountsFromSelectedAccountGroup?.() ??
+    [];
   const evmAccount = accounts.find(
     (account) => account && isEvmAccountType(account.type),
   );

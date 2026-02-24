@@ -18,6 +18,7 @@ import {
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
+  POLYMARKET_PROVIDER_ID,
 } from './constants';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import {
@@ -982,7 +983,7 @@ describe('polymarket utils', () => {
       expect(result[0]).toEqual({
         id: 'event-1',
         slug: 'test-event',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         title: 'Test Event',
         description: 'A test event',
         image: 'https://example.com/icon.png',
@@ -994,7 +995,7 @@ describe('polymarket utils', () => {
         outcomes: [
           {
             id: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'event-1',
             title: 'Will it rain?',
             description: 'Weather prediction',
@@ -1916,7 +1917,7 @@ describe('polymarket utils', () => {
 
       expect(result).toEqual({
         id: 'market-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'event-1',
         title: 'Will it rain?',
         description: 'Weather prediction',
@@ -2118,7 +2119,7 @@ describe('polymarket utils', () => {
 
       expect(result[0]).toEqual({
         id: 'position-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'event-1',
         outcomeId: 'condition-1',
         outcome: 'Yes',
@@ -2143,7 +2144,7 @@ describe('polymarket utils', () => {
 
       expect(result[1]).toEqual({
         id: 'position-2',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'event-1',
         outcomeId: 'condition-1',
         outcome: 'No',
@@ -2168,7 +2169,7 @@ describe('polymarket utils', () => {
 
       expect(result[2]).toEqual({
         id: 'position-3',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'event-1',
         outcomeId: 'condition-1',
         outcome: 'Maybe',
@@ -2281,7 +2282,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         q: 'weather',
         limit: 10,
         offset: 5,
@@ -2312,7 +2312,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         q: 'nhl',
         limit: 10,
         offset: 0,
@@ -2339,7 +2338,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         q: 'nhl',
         limit: 10,
         offset: 0,
@@ -2362,7 +2360,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         category: 'crypto',
         limit: 5,
       };

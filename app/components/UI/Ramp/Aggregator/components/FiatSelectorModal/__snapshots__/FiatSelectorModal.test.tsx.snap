@@ -686,7 +686,6 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -1686,7 +1685,6 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -2686,7 +2684,6 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -3686,7 +3683,6 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
