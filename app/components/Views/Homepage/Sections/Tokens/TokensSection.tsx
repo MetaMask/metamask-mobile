@@ -21,6 +21,7 @@ import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
@@ -43,7 +44,7 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const sortedTokenKeys = useSelector(selectSortedAssetsBySelectedAccountGroup);
   const privacyMode = useSelector(selectPrivacyMode);
   const popularTokensListRef = useRef<SectionRefreshHandle>(null);
-  const [hasPopularTokensError, setHasPopularTokensError] = useState(false);
+  const [hasTokensError, setHasTokensError] = useState(false);
 
   const evmNetworkConfigurationsByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -52,6 +53,9 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const selectedSolanaAccount =
     useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
   const isSolanaSelected = selectedSolanaAccount !== null;
+  const accountGroupBalance = useSelector(
+    selectAccountGroupBalanceForEmptyState,
+  );
 
   const title = strings('homepage.sections.tokens');
 
@@ -60,15 +64,29 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     [sortedTokenKeys],
   );
 
+  // Show error when an explicit refresh failed, or when balance data has loaded
+  // and the account has balance but the selector returned no tokens (controllers
+  // failed to load data). The accountGroupBalance null-check prevents a false
+  // positive on cold start before the balance selectors have initialized.
+  const showTokensError =
+    hasTokensError ||
+    (accountGroupBalance !== null &&
+      !isZeroBalanceAccount &&
+      displayTokenKeys.length === 0);
+
   const refresh = useCallback(async () => {
     if (isZeroBalanceAccount) {
       await popularTokensListRef.current?.refresh();
     } else {
-      await refreshTokens({
-        isSolanaSelected,
-        evmNetworkConfigurationsByChainId,
-        selectedAccountId,
-      });
+      try {
+        await refreshTokens({
+          isSolanaSelected,
+          evmNetworkConfigurationsByChainId,
+          selectedAccountId,
+        });
+      } catch {
+        setHasTokensError(true);
+      }
     }
   }, [
     isZeroBalanceAccount,
@@ -83,29 +101,28 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
   }, [navigation]);
 
-  const handlePopularTokensRetry = useCallback(() => {
-    setHasPopularTokensError(false);
-  }, []);
+  const handleTokensRetry = useCallback(async () => {
+    setHasTokensError(false);
+    await refresh();
+  }, [refresh]);
 
   return (
     <Box gap={3}>
       <SectionTitle title={title} onPress={handleViewAllTokens} />
-      {isZeroBalanceAccount ? (
-        hasPopularTokensError ? (
-          <ErrorState
-            title={strings('homepage.error.unable_to_load', {
-              section: title.toLowerCase(),
-            })}
-            onRetry={handlePopularTokensRetry}
+      {showTokensError ? (
+        <ErrorState
+          title={strings('homepage.error.unable_to_load', {
+            section: title.toLowerCase(),
+          })}
+          onRetry={handleTokensRetry}
+        />
+      ) : isZeroBalanceAccount ? (
+        <SectionRow>
+          <PopularTokensList
+            ref={popularTokensListRef}
+            onError={setHasTokensError}
           />
-        ) : (
-          <SectionRow>
-            <PopularTokensList
-              ref={popularTokensListRef}
-              onError={setHasPopularTokensError}
-            />
-          </SectionRow>
-        )
+        </SectionRow>
       ) : (
         <SectionRow>
           {displayTokenKeys.map((tokenKey, index) => (

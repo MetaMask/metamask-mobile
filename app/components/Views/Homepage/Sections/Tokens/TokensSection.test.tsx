@@ -33,10 +33,16 @@ jest.mock('./hooks', () => ({
 }));
 
 const mockSortedTokenKeys = jest.fn();
+const mockAccountGroupBalance = jest.fn();
 
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
   selectSortedAssetsBySelectedAccountGroup: (state: unknown) =>
     mockSortedTokenKeys(state),
+}));
+
+jest.mock('../../../../../selectors/assets/balances', () => ({
+  selectAccountGroupBalanceForEmptyState: (state: unknown) =>
+    mockAccountGroupBalance(state),
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -175,6 +181,9 @@ describe('TokensSection', () => {
     mockRefreshTokens.mockResolvedValue(undefined);
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([]);
+    // Default null: balance selectors not yet initialized (cold start).
+    // Prevents the heuristic from firing in tests that don't set up balance data.
+    mockAccountGroupBalance.mockReturnValue(null);
     mockUsePopularTokens.mockReturnValue({
       tokens: mockPopularTokens,
       isInitialLoading: false,
@@ -307,6 +316,87 @@ describe('TokensSection', () => {
 
     expect(screen.queryByTestId('error-state')).toBeNull();
     expect(screen.getByText('MetaMask USD')).toBeOnTheScreen();
+  });
+
+  it('renders ErrorState when refreshTokens throws for non-zero balance account', async () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+    mockRefreshTokens.mockRejectedValue(new Error('Network error'));
+
+    const ref = React.createRef<{ refresh: () => Promise<void> }>();
+    renderWithProvider(<TokensSection ref={ref} />);
+
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('error-state')).toBeOnTheScreen();
+    });
+    expect(screen.getByText('Unable to load tokens')).toBeOnTheScreen();
+  });
+
+  it('clears error and shows token items on retry after ownership path error', async () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+    mockRefreshTokens.mockRejectedValueOnce(new Error('Network error'));
+
+    const ref = React.createRef<{ refresh: () => Promise<void> }>();
+    renderWithProvider(<TokensSection ref={ref} />);
+
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('error-state')).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('error-state-retry-button'));
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('error-state')).toBeNull();
+      expect(screen.getByTestId('token-item-0xtoken1')).toBeOnTheScreen();
+    });
+  });
+
+  it('renders ErrorState when account has balance but selector returns no tokens', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([]);
+    mockAccountGroupBalance.mockReturnValue({
+      totalBalanceInUserCurrency: 100,
+      userCurrency: 'usd',
+    });
+
+    renderWithProvider(<TokensSection />);
+
+    expect(screen.getByTestId('error-state')).toBeOnTheScreen();
+    expect(screen.getByText('Unable to load tokens')).toBeOnTheScreen();
+  });
+
+  it('retries data fetch when retry is pressed on heuristic error', async () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([]);
+    mockAccountGroupBalance.mockReturnValue({
+      totalBalanceInUserCurrency: 100,
+      userCurrency: 'usd',
+    });
+
+    renderWithProvider(<TokensSection />);
+
+    expect(screen.getByTestId('error-state')).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('error-state-retry-button'));
+    });
+
+    expect(mockRefreshTokens).toHaveBeenCalledTimes(1);
   });
 
   it('calls refreshTokens for non-zero balance pull-to-refresh', async () => {
