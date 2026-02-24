@@ -143,35 +143,85 @@ exports[`Login renders matching snapshot 1`] = `
           }
           testID="textfield-endacccessory"
         >
-          <TouchableOpacity
-            disabled={false}
-            hitSlop={
-              {
-                "bottom": 10,
-                "left": 10,
-                "right": 10,
-                "top": 10,
-              }
-            }
-            onPress={[Function]}
-            testID="biometry-button"
-          >
-            <SvgMock
-              color="#121314"
-              fill="currentColor"
-              height={24}
-              name="SecurityKey"
-              style={
+          <View
+            style={
+              [
                 {
-                  "height": 24,
-                  "marginBottom": -3,
-                  "width": 24,
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                },
+              ]
+            }
+          >
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
               }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "transparent",
+                    "borderRadius": 8,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "opacity": 1,
+                    "width": 32,
+                  },
+                  undefined,
+                ]
+              }
               testID="device-authentication-icon"
-              width={24}
-            />
-          </TouchableOpacity>
+            >
+              <SvgMock
+                fill="currentColor"
+                name="Lock"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "height": 24,
+                      "width": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              />
+            </View>
+          </View>
         </View>
       </View>
     </View>
@@ -474,35 +524,85 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
           }
           testID="textfield-endacccessory"
         >
-          <TouchableOpacity
-            disabled={false}
-            hitSlop={
-              {
-                "bottom": 10,
-                "left": 10,
-                "right": 10,
-                "top": 10,
-              }
-            }
-            onPress={[Function]}
-            testID="biometry-button"
-          >
-            <SvgMock
-              color="#121314"
-              fill="currentColor"
-              height={24}
-              name="SecurityKey"
-              style={
+          <View
+            style={
+              [
                 {
-                  "height": 24,
-                  "marginBottom": -3,
-                  "width": 24,
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                },
+              ]
+            }
+          >
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
               }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "transparent",
+                    "borderRadius": 8,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "opacity": 1,
+                    "width": 32,
+                  },
+                  undefined,
+                ]
+              }
               testID="device-authentication-icon"
-              width={24}
-            />
-          </TouchableOpacity>
+            >
+              <SvgMock
+                fill="currentColor"
+                name="Lock"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "height": 24,
+                      "width": 24,
+                    },
+                    undefined,
+                  ]
+                }
+              />
+            </View>
+          </View>
         </View>
       </View>
     </View>
