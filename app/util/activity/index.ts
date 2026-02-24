@@ -46,7 +46,6 @@ export const isFromOrToSelectedAddress = (
  * Used to filter incoming token transfers to prevent poisoning attacks
  *
  * @param address - Address to check
- * @param chainId - Chain ID for address book lookup
  * @param addressBook - Address book state from AddressBookController
  * @param internalAccountAddresses - Array of user's account addresses
  * @returns Boolean indicating if address is trusted
