@@ -202,6 +202,7 @@ export type PerpsControllerState = {
   lastDepositResult: LastTransactionResult | null;
 
   // Simple withdrawal state (transient, for UI feedback)
+  // Note: withdrawInProgress is now derived from withdrawalRequests having pending/bridging entries
   withdrawInProgress: boolean;
   lastWithdrawResult: LastTransactionResult | null;
 
@@ -2275,6 +2276,134 @@ export class PerpsController extends BaseController<
         });
       }
     });
+  }
+
+  /**
+   * Complete a specific withdrawal detected via transaction history polling (FIFO queue).
+   * Called when a completed withdrawal appears in the transaction history matching a pending request.
+   *
+   * Uses FIFO matching: oldest pending withdrawal is matched with first completed withdrawal
+   * in history that happened after its submission time.
+   *
+   * @param withdrawalRequestId - The ID of the pending withdrawal request to mark as complete.
+   * @param completedWithdrawal - The completed withdrawal data from the history API.
+   * @param completedWithdrawal.txHash - The on-chain transaction hash.
+   * @param completedWithdrawal.amount - The withdrawal amount.
+   * @param completedWithdrawal.timestamp - The completion timestamp from the history API.
+   * @param completedWithdrawal.asset - The asset symbol (e.g. USDC).
+   */
+  completeWithdrawalFromHistory(
+    withdrawalRequestId: string,
+    completedWithdrawal: {
+      txHash: string;
+      amount: string;
+      timestamp: number;
+      asset?: string;
+    },
+  ): void {
+    this.update((state) => {
+      const requestIndex = state.withdrawalRequests.findIndex(
+        (req) => req.id === withdrawalRequestId,
+      );
+
+      if (requestIndex !== -1) {
+        state.withdrawalRequests.splice(requestIndex, 1);
+      }
+
+      // Update the timestamp to prevent double-matching in FIFO logic
+      if (state.lastWithdrawResult) {
+        state.lastWithdrawResult.timestamp = completedWithdrawal.timestamp;
+      }
+
+      const hasPendingWithdrawals = state.withdrawalRequests.some(
+        (req) => req.status === 'pending' || req.status === 'bridging',
+      );
+
+      state.withdrawInProgress = hasPendingWithdrawals;
+
+      if (!hasPendingWithdrawals) {
+        state.withdrawalProgress = {
+          progress: 0,
+          lastUpdated: Date.now(),
+          activeWithdrawalId: null,
+        };
+      }
+
+      state.lastUpdateTimestamp = Date.now();
+    });
+
+    this.#debugLog(
+      'PerpsController: Completed withdrawal from transaction history (FIFO)',
+      {
+        withdrawalRequestId,
+        txHash: completedWithdrawal.txHash,
+        amount: completedWithdrawal.amount,
+      },
+    );
+
+    this.#getMetrics().trackPerpsEvent(
+      PerpsAnalyticsEvent.WithdrawalTransaction,
+      {
+        [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.COMPLETED,
+        [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: Number.parseFloat(
+          completedWithdrawal.amount,
+        ),
+      },
+    );
+  }
+
+  /**
+   * Complete a deposit from transaction history using FIFO queue matching.
+   *
+   * Called by usePendingTransactions hook when a completed deposit is found
+   * in history that happened after its submission time.
+   *
+   * @param depositRequestId - The ID of the pending deposit request to mark as complete.
+   * @param completedDeposit - The completed deposit data from the history API.
+   * @param completedDeposit.txHash - The on-chain transaction hash.
+   * @param completedDeposit.amount - The deposit amount.
+   * @param completedDeposit.timestamp - The completion timestamp from the history API.
+   * @param completedDeposit.asset - The asset symbol (e.g. USDC).
+   */
+  completeDepositFromHistory(
+    depositRequestId: string,
+    completedDeposit: {
+      txHash: string;
+      amount: string;
+      timestamp: number;
+      asset?: string;
+    },
+  ): void {
+    this.update((state) => {
+      const requestIndex = state.depositRequests.findIndex(
+        (req) => req.id === depositRequestId,
+      );
+
+      if (requestIndex !== -1) {
+        state.depositRequests.splice(requestIndex, 1);
+      }
+
+      if (state.lastDepositResult) {
+        state.lastDepositResult.timestamp = completedDeposit.timestamp;
+      }
+
+      const hasPendingDeposits = state.depositRequests.some(
+        (req) => req.status === 'pending' || req.status === 'bridging',
+      );
+
+      state.depositInProgress = hasPendingDeposits;
+
+      state.lastUpdateTimestamp = Date.now();
+    });
+
+    this.#debugLog(
+      'PerpsController: Completed deposit from transaction history (FIFO)',
+      {
+        depositRequestId,
+        txHash: completedDeposit.txHash,
+        amount: completedDeposit.amount,
+      },
+    );
   }
 
   /**

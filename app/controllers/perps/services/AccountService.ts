@@ -173,7 +173,31 @@ export class AccountService {
           context.stateManager.update((state) => {
             state.lastError = null;
             state.lastUpdateTimestamp = Date.now();
-            state.withdrawInProgress = false;
+
+            // Update the withdrawal request by request ID
+            if (state.withdrawalRequests.length > 0) {
+              const requestToUpdate = state.withdrawalRequests.find(
+                (req) => req.id === currentWithdrawalId,
+              );
+              if (requestToUpdate) {
+                if (result.txHash) {
+                  // Withdrawal is fully completed (has txHash)
+                  requestToUpdate.status = 'completed' as TransactionStatus;
+                  requestToUpdate.success = true;
+                  requestToUpdate.txHash = result.txHash;
+                } else {
+                  // Withdrawal is bridging (no txHash yet)
+                  requestToUpdate.status = 'bridging' as TransactionStatus;
+                  requestToUpdate.success = true;
+                }
+                if (result.withdrawalId) {
+                  requestToUpdate.withdrawalId = result.withdrawalId;
+                }
+              }
+            }
+
+            // Set lastWithdrawResult when submission is successful (even if bridging)
+            // This triggers the "confirmed" toast telling user funds arrive in ~5 mins
             state.lastWithdrawResult = {
               success: true,
               txHash: result.txHash ?? '',
@@ -183,25 +207,16 @@ export class AccountService {
               error: '',
             };
 
-            // Update the withdrawal request by request ID
-            if (state.withdrawalRequests.length > 0) {
-              const requestToUpdate = state.withdrawalRequests.find(
-                (req) => req.id === currentWithdrawalId,
-              );
-              if (requestToUpdate) {
-                if (result.txHash) {
-                  requestToUpdate.status = 'completed' as TransactionStatus;
-                  requestToUpdate.success = true;
-                  requestToUpdate.txHash = result.txHash;
-                } else {
-                  requestToUpdate.status = 'bridging' as TransactionStatus;
-                  requestToUpdate.success = true;
-                }
-                if (result.withdrawalId) {
-                  requestToUpdate.withdrawalId = result.withdrawalId;
-                }
-              }
+            // Only clear withdrawInProgress if we have a txHash (fully completed)
+            // If bridging (no txHash), keep withdrawInProgress = true so the UI
+            // continues showing the progress indicator until we detect completion
+            // in the transaction history
+            if (result.txHash) {
+              state.withdrawInProgress = false;
             }
+            // If no txHash (bridging), keep withdrawInProgress = true
+            // usePendingTransactions will poll getUserHistory and call
+            // completeWithdrawalFromHistory when the transaction appears
           });
         }
 
