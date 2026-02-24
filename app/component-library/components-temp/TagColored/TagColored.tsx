@@ -32,7 +32,7 @@ const TagColored: React.FC<TagColoredProps> = ({
           variant={DEFAULT_TAGCOLORED_TEXTVARIANT}
           {...labelProps}
           style={StyleSheet.flatten([styles.text, labelProps?.style])}
-          testID={TAGCOLORED_TEXT_TESTID}
+          testID={labelProps?.testID ?? TAGCOLORED_TEXT_TESTID}
         >
           {children}
         </Text>
