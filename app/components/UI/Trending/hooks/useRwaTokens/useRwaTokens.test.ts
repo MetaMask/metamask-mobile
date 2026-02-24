@@ -55,8 +55,8 @@ describe('useRwaTokens', () => {
     renderHookWithProvider(() => useRwaTokens());
 
     expect(mockUseSearchRequest).toHaveBeenCalledWith({
-      query: 'Ondo',
-      limit: 100,
+      query: '(Ondo Tokenized)',
+      limit: 500,
       chainIds: RWA_CHAIN_IDS,
       includeMarketData: true,
     });
