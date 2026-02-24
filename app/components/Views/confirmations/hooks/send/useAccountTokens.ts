@@ -94,7 +94,6 @@ export function useAccountTokens({
       );
 
       for (const [chainId, cache] of Object.entries(tokensChainsCache ?? {})) {
-        const hex = chainId as Hex;
         for (const [address, entry] of Object.entries(cache?.data ?? {})) {
           if (
             existing.has(`${chainId.toLowerCase()}:${address.toLowerCase()}`)
@@ -103,7 +102,7 @@ export function useAccountTokens({
           }
           processedAssets.push({
             address,
-            chainId: hex,
+            chainId: chainId as Hex,
             accountType: EthAccountType.Eoa,
             name: entry.name ?? '',
             symbol: entry.symbol ?? '',
@@ -114,7 +113,7 @@ export function useAccountTokens({
             balanceInSelectedCurrency: zeroFiat,
             isETH: false,
             isNative: false,
-            networkBadgeSource: getNetworkBadgeSource(hex),
+            networkBadgeSource: getNetworkBadgeSource(chainId as Hex),
             standard: TokenStandard.ERC20,
           } as AssetType);
         }
