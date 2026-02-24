@@ -6,6 +6,7 @@ import {
   ButtonSize as ButtonSizeHero,
   FontWeight,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Text,
@@ -51,11 +52,7 @@ import {
 } from '../../constants/eventNames';
 import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName as IconNameLegacy,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName as IconNameLegacy } from '../../../../../component-library/components/Icons/Icon';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import {
@@ -481,19 +478,20 @@ const PredictBuyPreview = () => {
         flexDirection={BoxFlexDirection.Column}
         twClassName="border-t border-muted p-4 pb-0 gap-4"
       >
-        <Box twClassName="flex-row justify-between items-center">
-          <Box twClassName="flex-col">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {strings('predict.fee_summary.total')}
-            </Text>
-            <TouchableOpacity
-              onPress={handleFeesInfoPress}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
+        <TouchableOpacity
+          onPress={handleFeesInfoPress}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          style={tw.style('py-1')}
+        >
+          <Box twClassName="flex-row justify-between items-center">
+            <Box twClassName="flex-col">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Bold}
+                color={TextColor.TextDefault}
+              >
+                {strings('predict.fee_summary.total')}
+              </Text>
               <Box twClassName="flex-row items-center gap-1">
                 <Text
                   variant={TextVariant.BodySm}
@@ -501,23 +499,22 @@ const PredictBuyPreview = () => {
                 >
                   {strings('predict.fee_summary.total_incl_fees')}
                 </Text>
-                <ButtonIcon
-                  size={TooltipSizes.Sm}
-                  iconColor={IconColor.Alternative}
-                  iconName={IconNameLegacy.Info}
-                  onPress={handleFeesInfoPress}
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
                 />
               </Box>
-            </TouchableOpacity>
+            </Box>
+            <Text
+              variant={TextVariant.HeadingMd}
+              fontWeight={FontWeight.Bold}
+              color={TextColor.TextDefault}
+            >
+              {formatPrice(total, { maximumDecimals: 2 })}
+            </Text>
           </Box>
-          <Text
-            variant={TextVariant.HeadingMd}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-          >
-            {formatPrice(total, { maximumDecimals: 2 })}
-          </Text>
-        </Box>
+        </TouchableOpacity>
 
         {shouldShowRewardsRow &&
           (isAccountOptedIntoRewards || rewardsAccountScope) && (
