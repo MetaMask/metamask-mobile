@@ -1,4 +1,4 @@
-import { TEAMS, DEFAULT_TEAM_TAG } from '../../../tests/teams-config.js';
+import { TEAMS, DEFAULT_TEAM_TAG } from '../../teams-config.js';
 
 export interface TeamConfig {
   name: string;
