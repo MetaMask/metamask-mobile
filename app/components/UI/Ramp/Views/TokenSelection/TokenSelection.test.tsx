@@ -620,7 +620,7 @@ describe('TokenSelection Component', () => {
     fireEvent.press(firstToken);
 
     expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
-      ramp_type: 'UNIFIED BUY',
+      ramp_type: 'UNIFIED_BUY',
       region: 'US',
       chain_id: mockTokens[0].chainId,
       currency_destination: mockTokens[0].assetId,

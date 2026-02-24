@@ -134,7 +134,7 @@ function TokenSelection() {
   useEffect(() => {
     trackRampsEvent('RAMPS_SCREEN_VIEWED', {
       location: 'Token Selection',
-      ramp_type: 'UNIFIED BUY 2',
+      ramp_type: 'UNIFIED_BUY_2',
       ramp_routing: rampRoutingDecision ?? undefined,
     });
   }, [rampRoutingDecision]);
@@ -145,7 +145,7 @@ function TokenSelection() {
         search_query: debouncedSearchString,
         results_count: searchTokenResults?.length ?? 0,
         location: 'Token Selection',
-        ramp_type: 'UNIFIED BUY 2',
+        ramp_type: 'UNIFIED_BUY_2',
       });
     }
   }, [debouncedSearchString, searchTokenResults?.length]);
@@ -157,7 +157,7 @@ function TokenSelection() {
       );
       if (selectedToken) {
         trackEvent('RAMPS_TOKEN_SELECTED', {
-          ramp_type: isV2UnifiedEnabled ? 'UNIFIED BUY 2' : 'UNIFIED BUY',
+          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY',
           region: detectedGeolocation || '',
           chain_id: selectedToken.chainId,
           currency_destination: selectedToken.assetId,
@@ -223,7 +223,7 @@ function TokenSelection() {
       trackRampsEvent('RAMPS_NETWORK_FILTER_CLICKED', {
         network_chain_id: newFilter?.[0] ?? undefined,
         location: 'Token Selection',
-        ramp_type: 'UNIFIED BUY 2',
+        ramp_type: 'UNIFIED_BUY_2',
       });
     },
     [],
@@ -232,7 +232,7 @@ function TokenSelection() {
   const handleUnsupportedInfoPress = useCallback(() => {
     trackRampsEvent('RAMPS_UNSUPPORTED_TOKEN_TOOLTIP_CLICKED', {
       location: 'Token Selection',
-      ramp_type: 'UNIFIED BUY 2',
+      ramp_type: 'UNIFIED_BUY_2',
     });
     navigation.navigate(...createUnsupportedTokenModalNavigationDetails());
   }, [navigation]);

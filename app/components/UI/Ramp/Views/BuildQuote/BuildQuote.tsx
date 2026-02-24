@@ -180,7 +180,7 @@ function BuildQuote() {
   useEffect(() => {
     trackRampsEvent('RAMPS_SCREEN_VIEWED', {
       location: 'Amount Input',
-      ramp_type: 'UNIFIED BUY 2',
+      ramp_type: 'UNIFIED_BUY_2',
       ramp_routing: rampRoutingDecision ?? undefined,
     });
   }, [rampRoutingDecision]);
@@ -218,7 +218,7 @@ function BuildQuote() {
         onSettingsPress: () => {
           trackRampsEvent('RAMPS_SETTINGS_CLICKED', {
             location: 'Amount Input',
-            ramp_type: 'UNIFIED BUY 2',
+            ramp_type: 'UNIFIED_BUY_2',
           });
           navigation.navigate(...createSettingsModalNavDetails());
         },
@@ -246,7 +246,7 @@ function BuildQuote() {
         amount: quickAmount,
         currency_source: currency,
         location: 'Amount Input',
-        ramp_type: 'UNIFIED BUY 2',
+        ramp_type: 'UNIFIED_BUY_2',
       });
     },
     [currency],
@@ -260,7 +260,7 @@ function BuildQuote() {
     trackRampsEvent('RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED', {
       current_payment_method: selectedPaymentMethod?.id,
       location: 'Amount Input',
-      ramp_type: 'UNIFIED BUY 2',
+      ramp_type: 'UNIFIED_BUY_2',
     });
     stopQuotePolling();
     navigation.navigate(
@@ -280,7 +280,7 @@ function BuildQuote() {
     trackRampsEvent('RAMPS_CHANGE_PROVIDER_BUTTON_CLICKED', {
       current_provider: selectedProvider?.name,
       location: 'Amount Input',
-      ramp_type: 'UNIFIED BUY 2',
+      ramp_type: 'UNIFIED_BUY_2',
       ramp_routing: rampRoutingDecision ?? undefined,
     });
     stopQuotePolling();
@@ -358,7 +358,7 @@ function BuildQuote() {
 
     trackRampsEvent('RAMPS_CONTINUE_BUTTON_CLICKED', {
       ramp_routing: rampRoutingDecision ?? UnifiedRampRoutingType.AGGREGATOR,
-      ramp_type: 'UNIFIED BUY 2',
+      ramp_type: 'UNIFIED_BUY_2',
       amount_source: amountAsNumber,
       payment_method_id: selectedPaymentMethod?.id ?? '',
       provider_onramp: selectedProvider?.name,

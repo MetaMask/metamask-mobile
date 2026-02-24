@@ -2,7 +2,7 @@ import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders';
 
 interface RampsButtonClicked {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
   user_id?: string;
   region: string;
   location: string;
@@ -32,7 +32,7 @@ interface RampsPaymentMethodSelected {
 
 interface RampsTokenSelected {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
   user_id?: string;
   region: string;
   chain_id: string;
@@ -263,57 +263,57 @@ interface RampsUserDetailsFetched {
 
 interface RampsScreenViewed {
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
   ramp_routing?: UnifiedRampRoutingType;
 }
 
 interface RampsBackButtonClicked {
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
   ramp_routing?: UnifiedRampRoutingType;
 }
 
 interface RampsNetworkFilterClicked {
   network_chain_id?: string;
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
 }
 
 interface RampsTokenSearched {
   search_query: string;
   results_count?: number;
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
 }
 
 interface RampsSettingsClicked {
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
 }
 
 interface RampsSettingOptionClicked {
   option: string;
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
 }
 
 interface RampsPaymentMethodSelectorClicked {
   current_payment_method?: string;
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
 }
 
 interface RampsQuickAmountClicked {
   amount: number;
   currency_source: string;
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
 }
 
 interface RampsChangeProviderButtonClicked {
   current_provider?: string;
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
   ramp_routing?: UnifiedRampRoutingType;
 }
 
@@ -321,13 +321,13 @@ interface RampsProviderSelected {
   provider: string;
   previous_provider?: string;
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
   ramp_routing?: UnifiedRampRoutingType;
 }
 
 interface RampsContinueButtonClicked {
   ramp_routing: UnifiedRampRoutingType;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
   amount_source: number;
   amount_destination?: number;
   payment_method_id: string;
@@ -348,7 +348,7 @@ interface RampsContinueButtonClicked {
 
 interface RampsTermsConsentClicked {
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
   ramp_routing?: UnifiedRampRoutingType;
 }
 
@@ -356,12 +356,12 @@ interface RampsExternalLinkClicked {
   location: string;
   text: string;
   url_domain?: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
 }
 
 interface RampsCloseButtonClicked {
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
 }
 
 interface RampsQuoteError {
@@ -371,14 +371,14 @@ interface RampsQuoteError {
   currency_destination?: string;
   payment_method_id?: string;
   chain_id?: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
   ramp_routing?: UnifiedRampRoutingType;
 }
 
 interface RampsQuoteErrorTooltipClicked {
   error_message?: string;
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
 }
 
 interface RampsUnsupportedTokenTooltipClicked {
@@ -386,13 +386,13 @@ interface RampsUnsupportedTokenTooltipClicked {
   token_symbol?: string;
   chain_id?: string;
   location: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
 }
 
 interface RampsToastButtonClicked {
   action: string;
   location?: string;
-  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
 }
 
 export interface AnalyticsEvents {
