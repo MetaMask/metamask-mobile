@@ -41,7 +41,7 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
     return (
       <View style={[styles.container, styles.loadingContainer]} testID={testID}>
         <Spinner
-          color={DsIconColor.IconAlternative}
+          color={DsIconColor.IconDefault}
           spinnerIconProps={{ size: DsIconSize.Sm }}
         />
       </View>
