@@ -71,13 +71,16 @@ jest.mock('../../../util/errorHandling', () => ({
     error.toString().toLowerCase().includes(message.toLowerCase()),
 }));
 
-// Mock useMetrics
 const mockIsEnabled = jest.fn().mockReturnValue(true);
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     isEnabled: () => mockIsEnabled(),
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({ build: jest.fn() })),
+      build: jest.fn(),
+    })),
   }),
-  withMetricsAwareness: <T,>(component: T): T => component,
 }));
 
 // Mock usePromptSeedlessRelogin
