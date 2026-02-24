@@ -1,3 +1,5 @@
+/* eslint-disable no-empty */
+
 /**
  * Shared helpers for WalletConnect v2 tests.
  *
@@ -112,7 +114,7 @@ export async function connectWalletConnectSession(device) {
   });
 
   // Wait for page load
-  await AppwrightGestures.wait(5000);
+  await AppwrightGestures.wait(2000);
 
   // ── Phase 3: Initiate connection (web context) ─────────────────────
   await AppwrightHelpers.withWebAction(
@@ -124,7 +126,7 @@ export async function connectWalletConnectSession(device) {
   );
 
   // Wait for wallet selection modal to render
-  await AppwrightGestures.wait(3000);
+  await AppwrightGestures.wait(2000);
 
   // ── Phase 3b: Tap MetaMask in Web3Modal (web, shadow DOM) ────────
   await AppwrightHelpers.withWebAction(
@@ -137,14 +139,14 @@ export async function connectWalletConnectSession(device) {
   );
 
   // Wait for deeplink to trigger
-  await AppwrightGestures.wait(3000);
+  await AppwrightGestures.wait(2000);
 
   // ── Phase 4: Handle native app chooser ─────────────────────────────
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
   });
 
-  await AppwrightGestures.wait(3000);
+  await AppwrightGestures.wait(1000);
 
   // ── Phase 4b: Unlock MetaMask if locked ───────────────────────────
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -154,7 +156,7 @@ export async function connectWalletConnectSession(device) {
         const password = getPasswordForScenario('login');
         await LoginScreen.typePassword(password);
         await LoginScreen.tapUnlockButton();
-        await AppwrightGestures.wait(3000);
+        await AppwrightGestures.wait(1000);
       }
     } catch (_) {
       // Wallet was not locked, continue
@@ -162,7 +164,7 @@ export async function connectWalletConnectSession(device) {
   });
 
   // Wait for MetaMask to process the WC session proposal
-  await AppwrightGestures.wait(5000);
+  await AppwrightGestures.wait(3000);
 
   // ── Phase 5: Approve session (native context) ────────────────────
   await AppwrightHelpers.withNativeAction(device, async () => {
