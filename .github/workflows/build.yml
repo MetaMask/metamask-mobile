@@ -250,6 +250,12 @@ jobs:
           # 2. Persist env vars to GITHUB_ENV so LATER steps inherit them (build, signing, etc.)
           node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
 
+      - name: Validate secrets
+        env:
+          CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
+          SECRETS_JSON: ${{ toJSON(secrets) }}
+        run: node scripts/validate-secrets-from-config.js
+
       # iOS: Regenerate Pods and xcconfig on this runner so paths are correct (not from artifact).
       - name: Install CocoaPods dependencies (iOS)
         if: matrix.platform == 'ios'
