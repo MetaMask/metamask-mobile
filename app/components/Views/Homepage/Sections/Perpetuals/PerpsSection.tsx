@@ -46,12 +46,8 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     const controller = Engine.context.PerpsController;
     if (!controller) return;
 
-    try {
-      setError(false);
-      await controller.startMarketDataPreload();
-    } catch {
-      setError(true);
-    }
+    setError(false);
+    controller.startMarketDataPreload();
   }, []);
 
   useEffect(() => {
