@@ -93,19 +93,39 @@ jest.mock('./components/PopularTokensSkeleton', () => {
   };
 });
 
-// Mock TokenListItem to avoid complex import chains
-jest.mock('../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem', () => {
+// Mock TokenListItem and TokenListItemV2 to avoid complex import chains
+const MockTokenListItem = ({ assetKey }: { assetKey: { address: string } }) => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
-  return {
-    TokenListItem: ({ assetKey }: { assetKey: { address: string } }) =>
-      ReactActual.createElement(
-        Text,
-        { testID: `token-item-${assetKey.address}` },
-        `Token ${assetKey.address}`,
-      ),
-  };
-});
+  return ReactActual.createElement(
+    Text,
+    { testID: `token-item-${assetKey.address}` },
+    `Token ${assetKey.address}`,
+  );
+};
+
+jest.mock(
+  '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem',
+  () => ({
+    TokenListItem: (props: { assetKey: { address: string } }) =>
+      MockTokenListItem(props),
+  }),
+);
+
+jest.mock(
+  '../../../../UI/Tokens/TokenList/TokenListItemV2/TokenListItemV2',
+  () => ({
+    TokenListItemV2: (props: { assetKey: { address: string } }) =>
+      MockTokenListItem(props),
+  }),
+);
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/tokenListLayout',
+  () => ({
+    selectTokenListLayoutV2Enabled: () => false,
+  }),
+);
 
 // Mock PopularTokenRow to avoid deep import chains (AvatarToken uses selectors)
 jest.mock('./components/PopularTokenRow', () => {
