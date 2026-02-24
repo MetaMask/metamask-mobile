@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Updates the usage of `TagColored` component for `Gas Sponsorship feature`, present inside #26252, by passing the text to be rendered directly inside the component. (#26473)
+- Usage of new `labelProps` property for `TagColored` implemented in #26362. (#26473)
+
 ## [7.66.0]
 
 ### Added
