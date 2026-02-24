@@ -1,0 +1,16 @@
+---
+description: SnapsExecutionWebView has an E2E variant that must stay in sync
+globs: app/lib/snaps/SnapsExecutionWebView.tsx
+alwaysApply: false
+---
+
+# SnapsExecutionWebView E2E variant
+
+`app/lib/snaps/SnapsExecutionWebView.tsx` has a companion file `app/lib/snaps/SnapsExecutionWebView.e2e.tsx` that Metro loads instead during E2E builds (controlled by `resolveRequest` in `metro.config.js`).
+
+## Key points
+
+- The `.e2e.tsx` variant adds fetch/XHR/WebSocket proxy injection for E2E test mocking. It must export the same public API (`createWebView`, `removeWebView`, `SnapsExecutionWebView`).
+- Any change to the component logic, props, lifecycle, or exported API in the base `.tsx` **must be mirrored** in the `.e2e.tsx` variant, or E2E tests will break.
+- The base `.tsx` must remain completely free of E2E/test code — no imports from `util/test/utils`, no proxy injection, no `Platform` import for proxy purposes.
+- Do NOT create stub files or intermediate proxy modules. The E2E code is self-contained in the `.e2e.tsx` file.
