@@ -5,8 +5,8 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import DeviceSecurityToggle from './DeviceSecurityToggle';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import { SecurityPrivacyViewSelectorsIDs } from '../SecurityPrivacyView.testIds';
-import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../../../constants/error';
 import Logger from '../../../../../util/Logger';
+import { ReauthenticateErrorType } from '../../../../../core/Authentication/types';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -27,13 +27,6 @@ jest.mock('../../../../../core/Authentication/AuthenticationError', () => {
   }
   return { __esModule: true, default: AuthenticationError };
 });
-
-const MockedAuthenticationError = jest.requireMock(
-  '../../../../../core/Authentication/AuthenticationError',
-).default as new (
-  message: string,
-  code: string,
-) => Error & { customErrorMessage: string };
 
 const mockUpdateAuthPreference = jest.fn();
 const mockGetAuthCapabilities = jest.fn();
@@ -275,10 +268,7 @@ describe('DeviceSecurityToggle', () => {
   describe('password required', () => {
     it('navigates to EnterPasswordSimple when updateAuthPreference throws password-required error', async () => {
       mockUpdateAuthPreference.mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       );
       const { getByTestId } = renderComponent();
       const toggle = await waitFor(() =>
@@ -298,10 +288,7 @@ describe('DeviceSecurityToggle', () => {
       let onPasswordSet: ((password: string) => Promise<void>) | undefined;
       mockUpdateAuthPreference
         .mockRejectedValueOnce(
-          new MockedAuthenticationError(
-            'Password required',
-            AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          ),
+          new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
         )
         .mockResolvedValueOnce(undefined);
       mockNavigate.mockImplementation(
@@ -336,10 +323,7 @@ describe('DeviceSecurityToggle', () => {
     it('clears optimistic state when user cancels password entry', async () => {
       let onCancel: (() => void) | undefined;
       mockUpdateAuthPreference.mockRejectedValueOnce(
-        new MockedAuthenticationError(
-          'Password required',
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        ),
+        new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
       );
       mockNavigate.mockImplementation(
         (_: string, params?: { onCancel?: () => void }) => {
@@ -372,10 +356,7 @@ describe('DeviceSecurityToggle', () => {
       let onPasswordSet: ((password: string) => Promise<void>) | undefined;
       mockUpdateAuthPreference
         .mockRejectedValueOnce(
-          new MockedAuthenticationError(
-            'Password required',
-            AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          ),
+          new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
         )
         .mockRejectedValueOnce(updateError);
       mockNavigate.mockImplementation(
