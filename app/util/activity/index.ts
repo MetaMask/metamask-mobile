@@ -71,8 +71,8 @@ export const isTrustedAddress = (
   // Check if address is in address book across all chains.
   // EVM addresses are the same on every EVM network, so a contact saved on
   // Ethereum should be trusted when they send from Polygon, Arbitrum, etc.
-  return Object.values(addressBook).some((chainBook) =>
-    Object.values(chainBook).some((entry) =>
+  return Object.values(addressBook ?? {}).some((chainBook) =>
+    Object.values(chainBook ?? {}).some((entry) =>
       areAddressesEqual(entry.address, address),
     ),
   );
