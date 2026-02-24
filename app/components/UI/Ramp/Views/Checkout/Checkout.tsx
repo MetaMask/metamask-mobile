@@ -80,11 +80,6 @@ interface CheckoutParams {
   providerType?: FIAT_ORDER_PROVIDERS;
   /** Optional callback invoked on every navigation state change (e.g. to intercept redirect URLs). */
   onNavigationStateChange?: (navState: { url: string }) => void;
-  /**
-   * Key into the checkout callback registry. Used by Transak/Deposit flows.
-   * The actual callback lives outside navigation state so that route params stay serializable.
-   */
-  callbackKey?: string;
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
