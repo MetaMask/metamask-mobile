@@ -480,12 +480,17 @@ function handleToggleVolume(payload) {
  * as prices change (e.g. meme token pumps from $0.0001 to $1).
  */
 var VARIABLE_TICK_SIZE = [
-  '0.0000000001', '0.000001',   // prices < $0.000001 → 10 dp
-  '0.00000001',   '0.0001',     // prices < $0.0001   →  8 dp
-  '0.000001',     '0.01',       // prices < $0.01     →  6 dp
-  '0.0001',       '1',          // prices < $1        →  4 dp
-  '0.01',         '10000',      // prices < $10000    →  2 dp
-  '0.1',                        // prices ≥ $10000    →  1 dp
+  '0.0000000001',
+  '0.000001', // prices < $0.000001 → 10 dp
+  '0.00000001',
+  '0.0001', // prices < $0.0001   →  8 dp
+  '0.000001',
+  '0.01', // prices < $0.01     →  6 dp
+  '0.0001',
+  '1', // prices < $1        →  4 dp
+  '0.01',
+  '10000', // prices < $10000    →  2 dp
+  '0.1', // prices ≥ $10000    →  1 dp
 ].join(' ');
 var customDatafeed = {
   onReady: function (callback) {

@@ -22,8 +22,9 @@ export interface TimeRangeConfig {
 
 const ytdDays = () => {
   const now = new Date();
-  const jan1 = new Date(now.getFullYear(), 0, 1);
-  return Math.ceil((now.getTime() - jan1.getTime()) / 86_400_000);
+  const startOfYear = Date.UTC(now.getFullYear(), 0, 1);
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((today - startOfYear) / 86_400_000) + 1;
 };
 
 export const TIME_RANGE_CONFIGS: Record<TimeRange, TimeRangeConfig> = {
