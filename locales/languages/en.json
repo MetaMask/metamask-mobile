@@ -7623,8 +7623,10 @@
     },
     "label": {
       "bridge_fee": "Bridge fee",
+      "provider_fee": "Provider fee",
       "network_fee": "Network fee",
       "paid_with": "Paid with",
+      "receive_token": "Receive token",
       "retry_button": "Try again",
       "total": "Total",
       "account": "Account",
