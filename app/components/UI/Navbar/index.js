@@ -931,7 +931,9 @@ export function getWalletNavbarOptions(
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_QR_SCANNER,
-      ).build(),
+      )
+        .addProperties({ action: 'Wallet View', name: 'QR scanner' })
+        .build(),
     );
   }
 
@@ -967,7 +969,9 @@ export function getWalletNavbarOptions(
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
-      ).build(),
+      )
+        .addProperties({ action: 'Navigation Drawer', name: 'Settings' })
+        .build(),
     );
     navigation.navigate(Routes.SETTINGS_VIEW);
   };
@@ -1519,6 +1523,8 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
           MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
         )
           .addProperties({
+            action: 'Quote',
+            name: 'Swaps',
             token_from: trade.token_from,
             token_to: trade.token_to,
             request_type: trade.request_type,

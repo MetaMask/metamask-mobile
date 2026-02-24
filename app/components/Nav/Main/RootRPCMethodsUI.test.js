@@ -76,8 +76,7 @@ describe('RootRPCMethodsUI', () => {
   it('calls trackEvent for DAPP_TRANSACTION_CANCELLED on keystone cancel', async () => {
     render(<RootRPCMethodsUI navigation={{ navigate: jest.fn() }} />);
 
-    const subscribeCall =
-      controllerMessenger.subscribe.mock.calls[0];
+    const subscribeCall = controllerMessenger.subscribe.mock.calls[0];
     const handleUnapprovedTransaction = subscribeCall[1];
 
     handleUnapprovedTransaction({
