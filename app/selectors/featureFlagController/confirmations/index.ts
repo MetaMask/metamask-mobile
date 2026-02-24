@@ -2,7 +2,6 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
 import { RootState } from '../../../reducers';
-import { createDeepEqualSelector } from '../../util';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
@@ -100,7 +99,7 @@ export const selectPayPostQuoteFlags = createSelector(
  * Resolves the effective post-quote config for a given transaction type.
  * If the type has an override entry, unset properties fall back to default.
  */
-export const selectPayQuoteConfig = createDeepEqualSelector(
+export const selectPayQuoteConfig = createSelector(
   [
     selectPayPostQuoteFlags,
     (_state: RootState, transactionType?: string) => transactionType,
