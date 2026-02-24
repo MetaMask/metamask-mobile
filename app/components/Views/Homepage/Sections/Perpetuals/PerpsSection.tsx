@@ -21,10 +21,11 @@ import {
   selectCachedPositions,
   selectCachedMarketData,
 } from '../../../../UI/Perps/selectors/perpsController';
-import PerpsPositionRow from './components/PerpsPositionRow';
-import PerpsPositionRowSkeleton from './components/PerpsPositionRow/PerpsPositionRowSkeleton';
+import PerpsPositionCard from '../../../../UI/Perps/components/PerpsPositionCard/PerpsPositionCard';
+import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+import { PerpsCacheInvalidator } from '../../../../UI/Perps/services/PerpsCacheInvalidator';
 
 const MAX_POSITIONS = 5;
 
@@ -41,12 +42,12 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const title = strings('homepage.sections.perpetuals');
   const [error, setError] = useState<boolean>(false);
 
-  const startPreload = useCallback(async () => {
+  const refreshData = useCallback(async () => {
     const controller = Engine.context.PerpsController;
     if (!controller) return;
 
-    setError(false);
     try {
+      setError(false);
       await controller.startMarketDataPreload();
     } catch {
       setError(true);
@@ -55,10 +56,36 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   useEffect(() => {
     if (!isPerpsEnabled) return;
+    refreshData();
+  }, [isPerpsEnabled, refreshData]);
 
-    startPreload();
-    return () => Engine.context.PerpsController?.stopMarketDataPreload();
-  }, [isPerpsEnabled, startPreload]);
+  // Re-fetch when positions change (e.g., user closes a position in perps)
+  useEffect(() => {
+    if (!isPerpsEnabled) return;
+
+    let invalidationTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const handleInvalidation = () => {
+      if (invalidationTimeout) {
+        clearTimeout(invalidationTimeout);
+      }
+      invalidationTimeout = setTimeout(() => {
+        refreshData();
+      }, 10);
+    };
+
+    const unsubPositions = PerpsCacheInvalidator.subscribe(
+      'positions',
+      handleInvalidation,
+    );
+
+    return () => {
+      if (invalidationTimeout) {
+        clearTimeout(invalidationTimeout);
+      }
+      unsubPositions();
+    };
+  }, [isPerpsEnabled, refreshData]);
 
   const isLoading = cachedPositions === null && !error;
 
@@ -68,8 +95,8 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   );
 
   const refresh = useCallback(async () => {
-    await startPreload();
-  }, [startPreload]);
+    await refreshData();
+  }, [refreshData]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -123,14 +150,18 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
       <SectionTitle title={title} onPress={handleViewAllPerps} />
       <SectionRow>
         {isLoading ? (
-          <PerpsPositionRowSkeleton />
+          <PerpsPositionSkeleton />
         ) : (
           <View testID="homepage-perps-positions">
             {positions.map((position) => (
-              <PerpsPositionRow
+              <PerpsPositionCard
                 key={`pos-${position.symbol}-${position.size}`}
                 position={position}
+                compact
+                compactVariant="position"
+                iconSize={36}
                 onPress={() => handlePositionPress(position)}
+                testID={`perps-position-row-${position.symbol}`}
               />
             ))}
           </View>

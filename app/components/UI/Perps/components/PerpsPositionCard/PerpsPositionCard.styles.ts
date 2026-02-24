@@ -38,6 +38,11 @@ const styleSheet = (params: StyleSheetParams) => {
     compactInfo: {
       flex: 1,
     },
+    compactNameRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 6,
+    },
     compactRight: {
       alignItems: 'flex-end',
     },

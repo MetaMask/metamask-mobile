@@ -253,7 +253,7 @@ describe('PerpsSection', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('starts market data preload on mount and stops on unmount', () => {
+  it('starts market data preload on mount but does not stop on unmount', () => {
     const { unmount } = renderWithProvider(<PerpsSection />);
     const EngineMock = jest.requireMock('../../../../../core/Engine');
 
@@ -265,7 +265,7 @@ describe('PerpsSection', () => {
 
     expect(
       EngineMock.context.PerpsController.stopMarketDataPreload,
-    ).toHaveBeenCalled();
+    ).not.toHaveBeenCalled();
   });
 
   it('does not crash when PerpsController is absent from Engine.context', () => {

@@ -2,11 +2,11 @@ import React from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../../../util/theme';
+import { useTheme } from '../../../../../../util/theme';
 
 const SKELETON_ROWS = 2;
 
-const PerpsPositionRowSkeleton: React.FC = () => {
+const PerpsPositionSkeleton: React.FC = () => {
   const { colors } = useTheme();
   const tw = useTailwind();
 
@@ -32,4 +32,4 @@ const PerpsPositionRowSkeleton: React.FC = () => {
   );
 };
 
-export default React.memo(PerpsPositionRowSkeleton);
+export default React.memo(PerpsPositionSkeleton);
