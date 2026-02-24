@@ -45,10 +45,14 @@ function ProcessingInfoModal() {
 
   const handleGoToSupport = useCallback(async () => {
     if (!providerSupportUrl) return;
-    handleClose();
     if (await InAppBrowser.isAvailable()) {
+      // Close the sheet before the InAppBrowser overlay opens so the two don't overlap.
+      handleClose();
       await InAppBrowser.open(providerSupportUrl);
     } else {
+      // Navigate without closing the sheet first. If we called handleClose() here,
+      // shouldNavigateBack would fire goBack() after the close animation and pop the
+      // Webview screen off the stack instead of the modal.
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: {

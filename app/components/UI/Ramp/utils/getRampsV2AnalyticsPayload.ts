@@ -55,14 +55,16 @@ const getRampsV2AnalyticsPayload = (
     };
   }
 
+  const cryptoAmount = Number(fiatOrder.cryptoAmount);
   const sharedCompletedPayload: Partial<
     | AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED']
     | AnalyticsEvents['ONRAMP_PURCHASE_COMPLETED']
   > = {
     total_fee: Number(fiatOrder.fee),
     exchange_rate:
-      (Number(fiatOrder.amount) - Number(fiatOrder.fee)) /
-      Number(fiatOrder.cryptoAmount),
+      cryptoAmount > 0
+        ? (Number(fiatOrder.amount) - Number(fiatOrder.fee)) / cryptoAmount
+        : 0,
     amount_in_usd: data?.fiatAmountInUsd,
   };
 

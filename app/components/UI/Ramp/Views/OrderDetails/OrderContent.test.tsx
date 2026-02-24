@@ -103,7 +103,7 @@ describe('OrderContent', () => {
 
   it('copies order ID to clipboard when order ID is tapped', () => {
     renderOrder(mockOrder);
-    const copyButton = screen.getByText('..abc123').parent;
+    const copyButton = screen.getByText('...abc123').parent;
     if (copyButton) {
       fireEvent.press(copyButton);
     }

@@ -9,6 +9,18 @@ import {
 import { DepositSDKNoAuth } from '../sdk';
 import Logger from '../../../../../util/Logger';
 
+function getFiatCurrencySymbol(currencyCode: string): string {
+  try {
+    const parts = new Intl.NumberFormat('en', {
+      style: 'currency',
+      currency: currencyCode,
+    }).formatToParts(0);
+    return parts.find((p) => p.type === 'currency')?.value ?? '';
+  } catch {
+    return '';
+  }
+}
+
 const depositOrderStateToFiatOrderState = (
   aggregatorOrderState: DepositOrder['status'],
 ) => {
@@ -45,7 +57,7 @@ export const depositOrderToFiatOrder = (
   cryptoAmount: depositOrder.cryptoAmount || 0,
   cryptoFee: depositOrder.totalFeesFiat || 0,
   currency: depositOrder.fiatCurrency,
-  currencySymbol: '',
+  currencySymbol: getFiatCurrencySymbol(depositOrder.fiatCurrency),
   amountInUSD: depositOrder.fiatAmountInUsd?.toString(),
   cryptocurrency: depositOrder.cryptoCurrency?.symbol || '',
   network: depositOrder.network?.chainId || '',

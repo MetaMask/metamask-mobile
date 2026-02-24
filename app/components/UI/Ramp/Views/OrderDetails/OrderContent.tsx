@@ -89,7 +89,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
 
   const shortOrderId = order.id
     ? order.id.length > 8
-      ? `..${order.id.slice(-6)}`
+      ? `...${order.id.slice(-6)}`
       : order.id
     : '...';
 

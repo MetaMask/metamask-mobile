@@ -60,8 +60,8 @@ const OrderDetails = () => {
       order?.state === FIAT_ORDER_STATES.CREATED,
   );
   const [error, setError] = useState<string | null>(null);
-  const { colors } = useTheme();
   const theme = useTheme();
+  const { colors } = theme;
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
@@ -73,9 +73,7 @@ const OrderDetails = () => {
     navigation.setOptions(
       getRampsOrderDetailsNavbarOptions(
         navigation,
-        {
-          title: strings('ramps_order_details.title'),
-        },
+        { title: strings('ramps_order_details.title') },
         theme,
       ),
     );

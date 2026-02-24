@@ -1,27 +1,9 @@
-import {
-  renderFromTokenMinimalUnit,
-  renderNumber,
-  toTokenMinimalUnit,
-} from '../../../../util/number';
+import { renderNumber } from '../../../../util/number';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 
+// order.cryptoAmount is already in human-readable form (e.g. 0.05 ETH),
+// so format it directly without any unit conversion.
 export function getOrderAmount(order: FiatOrder) {
-  let amount = '...';
-  if (order.cryptoAmount) {
-    const data = order?.data as
-      | { cryptoCurrency?: { decimals?: number } }
-      | undefined;
-    if (data?.cryptoCurrency?.decimals !== undefined && order.cryptocurrency) {
-      amount = renderFromTokenMinimalUnit(
-        toTokenMinimalUnit(
-          order.cryptoAmount,
-          data.cryptoCurrency.decimals,
-        ).toString(),
-        data.cryptoCurrency.decimals,
-      );
-    } else {
-      amount = renderNumber(String(order.cryptoAmount));
-    }
-  }
-  return amount;
+  if (!order.cryptoAmount) return '...';
+  return renderNumber(String(order.cryptoAmount));
 }

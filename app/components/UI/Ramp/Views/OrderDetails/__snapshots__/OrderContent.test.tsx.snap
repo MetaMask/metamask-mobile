@@ -350,7 +350,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
             ]
           }
         >
-          ..abc123
+          ...abc123
         </Text>
         <SvgMock
           fill="currentColor"
