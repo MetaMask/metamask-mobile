@@ -103,6 +103,22 @@ jest.mock('../../app/core/Engine', () => {
         resetState: jest.fn(),
         stopAllPolling: jest.fn(),
       },
+      RampsController: {
+        setUserRegion: jest.fn().mockResolvedValue(null),
+        setSelectedProvider: jest.fn(),
+        setSelectedToken: jest.fn(),
+        setSelectedPaymentMethod: jest.fn(),
+        getQuotes: jest.fn().mockResolvedValue({
+          success: [],
+          sorted: [],
+          error: [],
+          customActions: [],
+        }),
+        getWidgetUrl: jest.fn().mockResolvedValue(null),
+        transakSetApiKey: jest.fn(),
+        transakSetAccessToken: jest.fn(),
+        transakClearAccessToken: jest.fn(),
+      },
       NetworkController: {
         state: { networksMetadata: {} },
         findNetworkClientIdByChainId() {
