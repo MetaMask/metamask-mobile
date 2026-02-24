@@ -13,39 +13,6 @@ import { useSendTokens } from '../send/useSendTokens';
 import { AssetType } from '../../types/token';
 import { RootState } from '../../../../../reducers';
 
-function isAllowlisted(
-  token: AssetType,
-  allowlist: Record<Hex, Hex[]>,
-): boolean {
-  const chainId = token.chainId?.toLowerCase() as Hex | undefined;
-  if (!chainId) {
-    return false;
-  }
-
-  const allowlistKey = Object.keys(allowlist).find(
-    (key) => key.toLowerCase() === chainId,
-  ) as Hex | undefined;
-  const addresses = allowlistKey ? allowlist[allowlistKey] : undefined;
-  if (!addresses) {
-    return false;
-  }
-
-  const tokenAddr = token.address?.toLowerCase();
-  return addresses.some((allowed) => {
-    const allowedLower = allowed.toLowerCase();
-    if (tokenAddr === allowedLower) {
-      return true;
-    }
-    // Allowlist may use 0x000…000 for native tokens while the token list
-    // uses the chain-specific native address (e.g. 0x…1010 on Polygon).
-    if (isNativeAddress(allowedLower)) {
-      const nativeAddr = getNativeTokenAddress(chainId);
-      return tokenAddr === nativeAddr.toLowerCase();
-    }
-    return false;
-  });
-}
-
 /**
  * Returns a token filter for withdraw transactions, following the same pattern
  * as `usePerpsBalanceTokenFilter` and `useMusdConversionTokens`.
@@ -80,4 +47,37 @@ export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
     },
     [isWithdraw, filtered],
   );
+}
+
+function isAllowlisted(
+  token: AssetType,
+  allowlist: Record<Hex, Hex[]>,
+): boolean {
+  const chainId = token.chainId?.toLowerCase() as Hex | undefined;
+  if (!chainId) {
+    return false;
+  }
+
+  const allowlistKey = Object.keys(allowlist).find(
+    (key) => key.toLowerCase() === chainId,
+  ) as Hex | undefined;
+  const addresses = allowlistKey ? allowlist[allowlistKey] : undefined;
+  if (!addresses) {
+    return false;
+  }
+
+  const tokenAddr = token.address?.toLowerCase();
+  return addresses.some((allowed) => {
+    const allowedLower = allowed.toLowerCase();
+    if (tokenAddr === allowedLower) {
+      return true;
+    }
+    // Allowlist may use 0x000…000 for native tokens while the token list
+    // uses the chain-specific native address (e.g. 0x…1010 on Polygon).
+    if (isNativeAddress(allowedLower)) {
+      const nativeAddr = getNativeTokenAddress(chainId);
+      return tokenAddr === nativeAddr.toLowerCase();
+    }
+    return false;
+  });
 }
