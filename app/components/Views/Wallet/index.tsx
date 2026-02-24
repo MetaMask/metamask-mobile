@@ -1095,6 +1095,7 @@ const Wallet = ({
 
   const scrollContentHeight = useRef(0);
   const scrollLayoutHeight = useRef(0);
+  const scrollOffsetY = useRef(0);
 
   const computeFadeOpacity = useCallback(
     (contentH: number, layoutH: number, offsetY: number) => {
@@ -1118,6 +1119,7 @@ const Wallet = ({
         event.nativeEvent;
       scrollContentHeight.current = contentSize.height;
       scrollLayoutHeight.current = layoutMeasurement.height;
+      scrollOffsetY.current = contentOffset.y;
       computeFadeOpacity(
         contentSize.height,
         layoutMeasurement.height,
@@ -1130,7 +1132,7 @@ const Wallet = ({
   const handleScrollContentSizeChange = useCallback(
     (_w: number, h: number) => {
       scrollContentHeight.current = h;
-      computeFadeOpacity(h, scrollLayoutHeight.current, 0);
+      computeFadeOpacity(h, scrollLayoutHeight.current, scrollOffsetY.current);
     },
     [computeFadeOpacity],
   );
@@ -1141,7 +1143,7 @@ const Wallet = ({
       computeFadeOpacity(
         scrollContentHeight.current,
         event.nativeEvent.layout.height,
-        0,
+        scrollOffsetY.current,
       );
     },
     [computeFadeOpacity],
