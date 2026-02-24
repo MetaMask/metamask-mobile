@@ -103,7 +103,7 @@ jobs:
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
           local-testing: start
-          local-identifier: ${{ github.run_id }}
+          local-identifier: ${{ github.run_id }}-${{ inputs.build_type }}-${{ matrix.device.name }}
           # Use same args for all build types. Do not use --include-hosts for mm-connect:
           # bs-local.com requests must be forwarded to localhost; --include-hosts can block them.
           local-args: '--force-local --verbose'
@@ -147,7 +147,7 @@ jobs:
       - name: Run Tests
         env:
           BROWSERSTACK_LOCAL: 'true'
-          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
+          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}-${{ inputs.build_type }}-${{ matrix.device.name }}
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
         working-directory: '.'
         run: |
