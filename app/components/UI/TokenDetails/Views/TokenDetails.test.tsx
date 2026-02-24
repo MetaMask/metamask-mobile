@@ -52,7 +52,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
-  useRoute: mockRouteParams,
+  useRoute: () => ({ params: mockRouteParams() }),
 }));
 
 jest.mock('../hooks/useTokenPrice', () => ({
