@@ -8,11 +8,7 @@ import {
 } from './musd-max-conversion-info';
 import { AssetType } from '../../../types/token';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayQuotes,
-} from '../../../hooks/pay/useTransactionPayData';
-import { useNoPayTokenQuotesAlert } from '../../../hooks/alerts/useNoPayTokenQuotesAlert';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -54,11 +50,6 @@ jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => ({
 
 jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
   useIsTransactionPayLoading: jest.fn(),
-  useTransactionPayQuotes: jest.fn(),
-}));
-
-jest.mock('../../../hooks/alerts/useNoPayTokenQuotesAlert', () => ({
-  useNoPayTokenQuotesAlert: jest.fn(),
 }));
 
 jest.mock('../../../hooks/transactions/useTransactionConfirm', () => ({
@@ -97,8 +88,6 @@ const mockUseTransactionMetadataRequest = jest.mocked(
   useTransactionMetadataRequest,
 );
 const mockUseIsTransactionPayLoading = jest.mocked(useIsTransactionPayLoading);
-const mockUseTransactionPayQuotes = jest.mocked(useTransactionPayQuotes);
-const mockUseNoPayTokenQuotesAlert = jest.mocked(useNoPayTokenQuotesAlert);
 const mockUseTransactionConfirm = jest.mocked(useTransactionConfirm);
 const mockUseAlerts = jest.mocked(useAlerts);
 const mockUseFiatFormatter = jest.mocked(useFiatFormatter);
@@ -109,13 +98,9 @@ function setupMocksForSuccessPath() {
     chainId: '0x1',
   } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
   mockUseIsTransactionPayLoading.mockReturnValue(false);
-  mockUseTransactionPayQuotes.mockReturnValue([
-    { strategy: 'test' },
-  ] as ReturnType<typeof useTransactionPayQuotes>);
-  mockUseNoPayTokenQuotesAlert.mockReturnValue([]);
   mockUseTransactionConfirm.mockReturnValue({ onConfirm: jest.fn() });
   mockUseAlerts.mockReturnValue({
-    hasBlockingAlerts: false,
+    alerts: [],
   } as ReturnType<typeof useAlerts>);
   mockUseFiatFormatter.mockReturnValue((value: { toString: () => string }) =>
     value.toString(),
@@ -143,25 +128,62 @@ describe('MusdMaxConversionInfo', () => {
     });
   });
 
-  describe('noPayTokenQuotesAlert', () => {
-    it('displays error text when noPayTokenQuotesAlert has items', () => {
-      mockUseNoPayTokenQuotesAlert.mockReturnValue([
-        {
-          key: 'NoPayTokenQuotes',
-          message: 'No quotes available',
-          title: 'Error',
-          severity: 'danger',
-          isBlocking: true,
-        },
-      ] as never);
+  describe('blocking alert', () => {
+    it('displays blocking alert message when provided', () => {
+      mockUseAlerts.mockReturnValue({
+        alerts: [
+          {
+            key: 'BlockingAlert',
+            message: 'Cannot proceed with this conversion',
+            title: 'Review',
+            severity: 'danger',
+            isBlocking: true,
+          },
+        ],
+      } as ReturnType<typeof useAlerts>);
 
       renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
 
       expect(
-        screen.getByText(
-          'Failed to get quotes. Please close this modal and try again.',
-        ),
+        screen.getByText('Cannot proceed with this conversion'),
       ).toBeOnTheScreen();
+    });
+
+    it('uses blocking alert title as button label', () => {
+      mockUseAlerts.mockReturnValue({
+        alerts: [
+          {
+            key: 'BlockingAlert',
+            message: 'Blocked',
+            title: 'Acknowledge First',
+            severity: 'danger',
+            isBlocking: true,
+          },
+        ],
+      } as ReturnType<typeof useAlerts>);
+
+      renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
+
+      expect(screen.getByText('Acknowledge First')).toBeOnTheScreen();
+    });
+
+    it('does not render blocking alert text when message missing', () => {
+      mockUseAlerts.mockReturnValue({
+        alerts: [
+          {
+            key: 'BlockingAlert',
+            title: 'Review',
+            severity: 'danger',
+            isBlocking: true,
+          },
+        ],
+      } as ReturnType<typeof useAlerts>);
+
+      renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
+
+      expect(
+        screen.queryByText('Cannot proceed with this conversion'),
+      ).toBeNull();
     });
   });
 
@@ -202,20 +224,17 @@ describe('MusdMaxConversionInfo', () => {
       expect(confirmButton.props.disabled).toBe(true);
     });
 
-    it('disables confirm button when quotes array is empty', () => {
-      mockUseTransactionPayQuotes.mockReturnValue([]);
-
-      renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
-
-      const confirmButton = screen.getByTestId(
-        MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
-      );
-      expect(confirmButton.props.disabled).toBe(true);
-    });
-
-    it('disables confirm button when hasBlockingAlerts is true', () => {
+    it('disables confirm button when alerts contain isBlocking entry', () => {
       mockUseAlerts.mockReturnValue({
-        hasBlockingAlerts: true,
+        alerts: [
+          {
+            key: 'BlockingAlert',
+            message: 'Blocked',
+            title: 'Review',
+            severity: 'danger',
+            isBlocking: true,
+          },
+        ],
       } as ReturnType<typeof useAlerts>);
 
       renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
