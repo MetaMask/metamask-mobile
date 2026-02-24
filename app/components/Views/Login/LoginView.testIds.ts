@@ -7,7 +7,6 @@ export const LoginViewSelectors = {
   REMEMBER_ME_SWITCH: 'login-with-remember-me-switch',
   BIOMETRIC_SWITCH: 'login-with-biometric-switch',
   PASSWORD_INPUT: 'login-password-input',
-  BIOMETRY_BUTTON: 'biometry-button',
   DEVICE_AUTHENTICATION_ICON: 'device-authentication-icon',
   OTHER_METHODS_BUTTON: 'other-methods-button',
 };
