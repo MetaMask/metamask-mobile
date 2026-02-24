@@ -466,6 +466,27 @@ const PredictBuyPreview = () => {
     );
   };
 
+  const renderMinimumBetWarning = () => {
+    if (isBalanceLoading || !isBelowMinimum) {
+      return null;
+    }
+
+    return (
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.ErrorDefault}
+        style={tw.style('text-center pb-2')}
+      >
+        {strings('predict.order.prediction_minimum_bet', {
+          amount: formatPrice(MINIMUM_BET, {
+            minimumDecimals: 2,
+            maximumDecimals: 2,
+          }),
+        })}
+      </Text>
+    );
+  };
+
   const renderBottomContent = () => {
     if (isInputFocused) {
       return null;
@@ -585,20 +606,6 @@ const PredictBuyPreview = () => {
               {errorMessage}
             </Text>
           )}
-          {!isBalanceLoading && isBelowMinimum && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.ErrorDefault}
-              style={tw.style('text-center pb-2')}
-            >
-              {strings('predict.order.prediction_minimum_bet', {
-                amount: formatPrice(MINIMUM_BET, {
-                  minimumDecimals: 2,
-                  maximumDecimals: 2,
-                }),
-              })}
-            </Text>
-          )}
           <Box twClassName="w-full h-12">{renderActionButton()}</Box>
           <Box twClassName="text-center items-center flex-row gap-1 justify-center">
             <Text
@@ -626,6 +633,7 @@ const PredictBuyPreview = () => {
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       {renderHeader()}
       {renderAmount()}
+      {renderMinimumBetWarning()}
       <PredictKeypad
         ref={keypadRef}
         isInputFocused={isInputFocused}
