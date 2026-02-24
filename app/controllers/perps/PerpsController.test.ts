@@ -2355,8 +2355,6 @@ describe('PerpsController', () => {
     const mockTransactionMeta = { id: 'tx-meta-123' };
     const mockTxHash = '0xhash123';
 
-    // Local messenger mock for depositWithConfirmation tests
-    let depositMessengerMock: jest.Mock;
     let depositInfrastructure: jest.Mocked<PerpsPlatformDependencies>;
     let depositController: TestablePerpsController;
 
@@ -2382,20 +2380,6 @@ describe('PerpsController', () => {
       ).mockResolvedValue({
         result: Promise.resolve(mockTxHash),
         transactionMeta: mockTransactionMeta,
-      });
-
-      // Keep depositMessengerMock for tests that still reference it (RemoteFeatureFlagController)
-      depositMessengerMock = jest.fn().mockImplementation((action: string) => {
-        if (action === 'RemoteFeatureFlagController:getState') {
-          return {
-            remoteFeatureFlags: {
-              perpsPerpTradingGeoBlockedCountriesV2: {
-                blockedRegions: [],
-              },
-            },
-          };
-        }
-        return undefined;
       });
 
       Engine.context.TransactionController.estimateGasFee = jest
@@ -2428,7 +2412,7 @@ describe('PerpsController', () => {
 
       // Create a controller with the custom infrastructure for this test suite
       depositController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: depositMessengerMock }),
+        messenger: createMockMessenger(),
         state: getDefaultPerpsControllerState(),
         infrastructure: depositInfrastructure,
       });
