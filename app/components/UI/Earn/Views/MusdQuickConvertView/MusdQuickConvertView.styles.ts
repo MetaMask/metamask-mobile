@@ -15,9 +15,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     headerTextContainer: {
       gap: 8,
+      paddingBottom: 16,
     },
     balanceCardHeader: {
-      paddingTop: 16,
       paddingBottom: 8,
     },
     emptyContainer: {

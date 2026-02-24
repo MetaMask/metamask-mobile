@@ -302,8 +302,8 @@ describe('MusdQuickConvertView', () => {
       expect(getByText(strings('earn.your_stablecoins'))).toBeOnTheScreen();
     });
 
-    it('renders header with title and mUSD balance section', () => {
-      const { getByTestId, getByText } = renderWithProvider(
+    it('does not render Your mUSD section when user has no balance on any chain', () => {
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
         <MusdQuickConvertView />,
         { state: initialRootState },
       );
@@ -316,6 +316,27 @@ describe('MusdQuickConvertView', () => {
           }),
         ),
       ).toBeOnTheScreen();
+      expect(
+        queryByText(strings('earn.musd_conversion.your_musd')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders Your mUSD section when user has balance on any chain', () => {
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        hasMusdBalanceOnChain: jest.fn(),
+        tokenBalanceByChain: { '0x1': '100.00' },
+        fiatBalanceByChain: { '0x1': '100.00' },
+        fiatBalanceFormattedByChain: { '0x1': '$100.00' },
+        tokenBalanceAggregated: '100.00',
+        fiatBalanceAggregated: '100.00',
+        fiatBalanceAggregatedFormatted: '$100.00',
+      });
+
+      const { getByText } = renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
       expect(
         getByText(strings('earn.musd_conversion.your_musd')),
       ).toBeOnTheScreen();
