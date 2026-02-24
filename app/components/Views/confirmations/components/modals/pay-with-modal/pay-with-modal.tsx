@@ -101,7 +101,7 @@ export function PayWithModal() {
         // Ensure the token is tracked by TokensController so the pay
         // controller can resolve its metadata (symbol, decimals, balance).
         // This is needed for zero-balance tokens from the catalog.
-        if (isWithdraw && token.balance === '0') {
+        if (isWithdraw && token.balance === '0' && !token.isNative) {
           const { TokensController, NetworkController } = Engine.context;
           try {
             const networkClientId =
