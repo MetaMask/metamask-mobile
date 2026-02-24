@@ -112,26 +112,23 @@ jobs:
         run: |
           node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
 
+      # Skip CocoaPods in setup: we do not pack ios/Pods or ios/*.xcconfig (they embed
+      # absolute paths); the build job runs pod install on the build runner. Saves
+      # ~10–20 min and avoids transient pod failures here blocking the build.
+      # Retry: setup does network-dependent work (Terms of Use curl, Foundry install).
       - name: Run project setup (NO SECRETS)
-        run: |
-          echo "🔧 Running setup for ${{ matrix.platform }}..."
-          if [ "${{ matrix.platform }}" = "ios" ]; then
-            yarn setup:github-ci --build-ios --no-build-android
-          else
-            yarn setup:github-ci --no-build-ios
-          fi
-
-      # iOS: Install CocoaPods dependencies (NO SECRETS)
-      - name: Install CocoaPods dependencies
-        if: matrix.platform == 'ios'
-        env:
-          BUNDLE_GEMFILE: ios/Gemfile
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn pod:install
+          command: |
+            echo "🔧 Running setup for ${{ matrix.platform }}..."
+            if [ "${{ matrix.platform }}" = "ios" ]; then
+              yarn setup:github-ci --build-ios --no-build-android --no-install-pods
+            else
+              yarn setup:github-ci --no-build-ios
+            fi
 
       - name: Verify setup completed
         run: |
@@ -143,20 +140,6 @@ jobs:
           if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
             echo "❌ InpageBridgeWeb3.js not found"
             exit 1
-          fi
-          if [ "${{ matrix.platform }}" = "ios" ]; then
-            if [ ! -f "ios/debug.xcconfig" ]; then
-              echo "❌ ios/debug.xcconfig not found"
-              exit 1
-            fi
-            if [ ! -f "ios/release.xcconfig" ]; then
-              echo "❌ ios/release.xcconfig not found"
-              exit 1
-            fi
-            if [ ! -d "ios/Pods" ]; then
-              echo "❌ ios/Pods not found"
-              exit 1
-            fi
           fi
           echo "✅ Setup verification passed"
 
