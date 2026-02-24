@@ -91,6 +91,7 @@ export class Connection {
           ) {
             this.hostApp.showConfirmationRejectionError(this.info);
           } else {
+            // why is this triggering?..
             this.hostApp.showConnectionError(this.info);
           }
         } else {

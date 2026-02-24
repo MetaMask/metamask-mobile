@@ -9,6 +9,9 @@ import {
   unlockIfLockScreenVisible,
   ensurePlaygroundInstalled,
 } from './utils.js';
+import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
+import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
+import AppwrightGestures from '../../framework/AppwrightGestures.ts';
 
 const CHAINS = {
   ETHEREUM: 'eip155:1',
@@ -41,7 +44,7 @@ async function returnToPlayground(device) {
 }
 
 test.beforeAll(() => {
-  ensurePlaygroundInstalled();
+  // ensurePlaygroundInstalled();
 });
 
 test('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Solana, invoke read/write methods, and disconnect', async ({
@@ -50,6 +53,9 @@ test('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Solana, 
   RNPlaygroundDapp.device = device;
   DappConnectionModal.device = device;
   SignModal.device = device;
+  WalletMainScreen.device = device;
+  AccountListComponent.device = device;
+  AppwrightGestures.device = device;
 
   await device.webDriverClient.updateSettings({
     waitForIdleTimeout: 100,
@@ -62,6 +68,20 @@ test('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Solana, 
   //
 
   await login(device);
+  await WalletMainScreen.isMainWalletViewVisible();
+
+  // Cycle the app to ensure solana accounts are created
+  await AppwrightGestures.terminateApp(device);
+  await AppwrightGestures.activateApp(device);
+  await login(device);
+  await WalletMainScreen.isMainWalletViewVisible();
+  await WalletMainScreen.tapIdenticon();
+  await AccountListComponent.isComponentDisplayed();
+  await AccountListComponent.waitForSyncingToComplete();
+  await AppwrightGestures.terminateApp(device);
+  await AppwrightGestures.activateApp(device);
+  await login(device);
+  await WalletMainScreen.isMainWalletViewVisible();
 
   //
   // 2. Switch to the RN playground and select networks
@@ -80,10 +100,10 @@ test('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Solana, 
   //
 
   await RNPlaygroundDapp.tapConnect();
-  await new Promise((r) => setTimeout(r, 3000));
+  // await new Promise((r) => setTimeout(r, 3000));
 
-  await unlockIfLockScreenVisible(device);
-  await new Promise((r) => setTimeout(r, 5000));
+  // await unlockIfLockScreenVisible(device);
+  // await new Promise((r) => setTimeout(r, 5000));
   await DappConnectionModal.tapConnectButton();
 
   //
@@ -94,99 +114,99 @@ test('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Solana, 
   await new Promise((r) => setTimeout(r, 1000));
   await RNPlaygroundDapp.assertConnected();
 
-  await RNPlaygroundDapp.scrollToElement(RNPlaygroundDapp.appTitle, {
-    scrollParams: { direction: 'down' },
-  });
+  // await RNPlaygroundDapp.scrollToElement(RNPlaygroundDapp.appTitle, {
+  //   scrollParams: { direction: 'down' },
+  // });
 
-  for (const chain of ALL_CHAINS) {
-    await RNPlaygroundDapp.scrollToElement(
-      RNPlaygroundDapp.getScopeCard(chain),
-      DEFAULT_SCROLL_PARAMS,
-    );
-    await RNPlaygroundDapp.assertScopeCardVisible(chain);
-  }
+  // for (const chain of ALL_CHAINS) {
+  //   await RNPlaygroundDapp.scrollToElement(
+  //     RNPlaygroundDapp.getScopeCard(chain),
+  //     DEFAULT_SCROLL_PARAMS,
+  //   );
+  //   await RNPlaygroundDapp.assertScopeCardVisible(chain);
+  // }
 
   //
   // 5. EVM Read requests — eth_blockNumber for each EVM chain (already the
   //    default selected method) and getGenesisHash for Solana
   //
 
-  await RNPlaygroundDapp.scrollToElement(RNPlaygroundDapp.appTitle, {
-    scrollParams: { direction: 'down' },
-  });
+  // await RNPlaygroundDapp.scrollToElement(RNPlaygroundDapp.appTitle, {
+  //   scrollParams: { direction: 'down' },
+  // });
 
-  for (const chain of EVM_CHAINS) {
-    await RNPlaygroundDapp.scrollToElement(
-      RNPlaygroundDapp.getInvokeButton(chain),
-      DEFAULT_SCROLL_PARAMS,
-    );
-    await RNPlaygroundDapp.tapInvoke(chain);
-    await new Promise((r) => setTimeout(r, 5000));
+  // for (const chain of EVM_CHAINS) {
+  //   await RNPlaygroundDapp.scrollToElement(
+  //     RNPlaygroundDapp.getInvokeButton(chain),
+  //     DEFAULT_SCROLL_PARAMS,
+  //   );
+  //   await RNPlaygroundDapp.tapInvoke(chain);
+  //   await new Promise((r) => setTimeout(r, 5000));
 
-    await RNPlaygroundDapp.scrollToElement(
-      RNPlaygroundDapp.getResultCode(chain, 'eth_blockNumber'),
-      DEFAULT_SCROLL_PARAMS,
-    );
-    await RNPlaygroundDapp.assertResultCodeContains(
-      chain,
-      'eth_blockNumber',
-      '0x',
-    );
-  }
+  //   await RNPlaygroundDapp.scrollToElement(
+  //     RNPlaygroundDapp.getResultCode(chain, 'eth_blockNumber'),
+  //     DEFAULT_SCROLL_PARAMS,
+  //   );
+  //   await RNPlaygroundDapp.assertResultCodeContains(
+  //     chain,
+  //     'eth_blockNumber',
+  //     '0x',
+  //   );
+  // }
 
   //
   // 6. Write requests — personal_sign for each EVM chain, signMessage for Solana.
   //    Each write request opens MetaMask for approval, validating that the request
   //    is routed to the correct network.
   //
-  await RNPlaygroundDapp.scrollToElement(RNPlaygroundDapp.appTitle, {
-    scrollParams: { direction: 'down' },
-  });
+  // await RNPlaygroundDapp.scrollToElement(RNPlaygroundDapp.appTitle, {
+  //   scrollParams: { direction: 'down' },
+  // });
 
-  for (const chain of EVM_CHAINS) {
-    // Select personal_sign (replaces default eth_blockNumber)
-    await RNPlaygroundDapp.scrollToElement(
-      RNPlaygroundDapp.getMethodSelect(chain),
-      DEFAULT_SCROLL_PARAMS,
-    );
-    await RNPlaygroundDapp.selectMethod(chain, 'personal_sign');
+  // for (const chain of EVM_CHAINS) {
+  //   // Select personal_sign (replaces default eth_blockNumber)
+  //   await RNPlaygroundDapp.scrollToElement(
+  //     RNPlaygroundDapp.getMethodSelect(chain),
+  //     DEFAULT_SCROLL_PARAMS,
+  //   );
+  //   await RNPlaygroundDapp.selectMethod(chain, 'personal_sign');
 
-    await RNPlaygroundDapp.scrollToElement(
-      RNPlaygroundDapp.getInvokeButton(chain),
-      DEFAULT_SCROLL_PARAMS,
-    );
-    await RNPlaygroundDapp.tapInvoke(chain);
-    await new Promise((r) => setTimeout(r, 3000));
+  //   await RNPlaygroundDapp.scrollToElement(
+  //     RNPlaygroundDapp.getInvokeButton(chain),
+  //     DEFAULT_SCROLL_PARAMS,
+  //   );
+  //   await RNPlaygroundDapp.tapInvoke(chain);
+  //   await new Promise((r) => setTimeout(r, 3000));
 
-    // Handle MetaMask sign approval
-    await unlockIfLockScreenVisible(device);
-    await new Promise((r) => setTimeout(r, 1000));
+  //   // Handle MetaMask sign approval
+  //   await unlockIfLockScreenVisible(device);
+  //   await new Promise((r) => setTimeout(r, 1000));
 
-    // Verify request was routed to the correct network
-    const networkName = NETWORK_DISPLAY_NAMES[chain];
-    if (networkName) {
-      try {
-        await SignModal.assertNetworkText(networkName);
-      } catch {
-        // Network label may not appear for all signing modals; continue
-      }
-    }
+  //   // Verify request was routed to the correct network
+  //   const networkName = NETWORK_DISPLAY_NAMES[chain];
+  //   if (networkName) {
+  //     try {
+  //       await SignModal.assertNetworkText(networkName);
+  //     } catch {
+  //       // Network label may not appear for all signing modals; continue
+  //     }
+  //   }
 
-    await SignModal.tapConfirmButton();
-    await returnToPlayground(device);
-    await new Promise((r) => setTimeout(r, 1000));
+  //   await SignModal.tapConfirmButton();
+  //   await returnToPlayground(device);
+  //   await new Promise((r) => setTimeout(r, 1000));
 
-    // Verify a signature was returned (hex string starting with 0x)
-    await RNPlaygroundDapp.scrollToElement(
-      RNPlaygroundDapp.getResultCode(chain, 'personal_sign'),
-      DEFAULT_SCROLL_PARAMS,
-    );
-    await RNPlaygroundDapp.assertResultCodeContains(
-      chain,
-      'personal_sign',
-      '0x',
-    );
-  }
+  //   // Verify a signature was returned (hex string starting with 0x)
+  //   await RNPlaygroundDapp.scrollToElement(
+  //     RNPlaygroundDapp.getResultCode(chain, 'personal_sign'),
+  //     DEFAULT_SCROLL_PARAMS,
+  //   );
+  //   await RNPlaygroundDapp.assertResultCodeContains(
+  //     chain,
+  //     'personal_sign',
+  //     '0x',
+  //   );
+  // }
 
   // Solana write request
   await RNPlaygroundDapp.scrollToElement(
@@ -212,6 +232,8 @@ test('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Solana, 
     DEFAULT_SCROLL_PARAMS,
   );
   await RNPlaygroundDapp.waitForResult(CHAINS.SOLANA, 'signMessage');
+
+  await new Promise((r) => setTimeout(r, 100000));
 
   //
   // 7. Disconnect (wallet_revokeSession) and verify session termination

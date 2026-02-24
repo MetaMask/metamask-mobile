@@ -34,7 +34,7 @@ export const APP_PACKAGE_IDS = {
 } as const;
 
 // Package ID for the React Native playground APK (pre-installed on the device)
-export const PLAYGROUND_PACKAGE_ID = 'com.anonymous.multichainrnplayground';
+export const PLAYGROUND_PACKAGE_ID = 'host.exp.exponent';
 
 export const DEFAULT_TEST_DAPP_PATH = path.join(
   '..',
