@@ -34,16 +34,13 @@ describe(
               description: 'Account 3 should be visible',
             },
           );
-          // This should actually be account 2 but there's a bug in the naming of imported accounts
-          // that needs to be fixed in how the fixtures are set up.
-          // For the purpose of this test, we'll just assert that account 4 is visible since
-          // it proves that the account was added to the imported SRP.
+
           await Assertions.expectElementToBeVisible(
             AccountListBottomSheet.getAccountElementByAccountNameV2(
-              'Account 4',
+              'Account 2',
             ),
             {
-              description: 'Account 4 should be visible',
+              description: 'Account 2 should be visible',
             },
           );
         },
