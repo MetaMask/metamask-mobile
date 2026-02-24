@@ -63,6 +63,13 @@ jest.mock('./useRampsPaymentMethods', () => ({
   })),
 }));
 
+jest.mock('./useRampsQuotes', () => ({
+  useRampsQuotes: jest.fn(() => ({
+    getQuotes: jest.fn(),
+    getWidgetUrl: jest.fn(),
+  })),
+}));
+
 const createMockStore = () =>
   configureStore({
     reducer: {
@@ -126,6 +133,8 @@ describe('useRampsController', () => {
     expect(typeof result.current.setSelectedProvider).toBe('function');
     expect(typeof result.current.setSelectedToken).toBe('function');
     expect(typeof result.current.setSelectedPaymentMethod).toBe('function');
+    expect(typeof result.current.getQuotes).toBe('function');
+    expect(typeof result.current.getWidgetUrl).toBe('function');
   });
 
   it('calls child hooks', () => {
