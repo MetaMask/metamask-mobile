@@ -37,6 +37,7 @@ const path = require('path');
 const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
+const { truncate } = require('node:fs');
 
 module.exports = function (baseConfig) {
   const defaultConfig = mergeConfig(baseConfig, getDefaultConfig(__dirname));
@@ -67,6 +68,10 @@ module.exports = function (baseConfig) {
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
       resolver: {
+        // Disable package exports field resolution - it changes module ID assignment
+        // which breaks LavaMoat's lockdownSerializer (hardenIntrinsics fires before require is set up)
+        // See: https://github.com/expo/expo/discussions/36551
+        //unstable_enablePackageExports: true,
         assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
         sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
@@ -99,28 +104,20 @@ module.exports = function (baseConfig) {
           'node:buffer': '@craftzdog/react-native-buffer',
         },
         resolveRequest: (context, moduleName, platform) => {
-          // @ecies/ciphers uses package.json "exports" subpaths that Metro
-          // can't resolve without unstable_enablePackageExports. Map them to
-          // the react-native condition targets manually.
-          // Note: require.resolve can't be used here because the package's
-          // "exports" field blocks direct dist/ access.
-          if (moduleName === '@ecies/ciphers/aes') {
-            return {
-              filePath: path.resolve(
-                __dirname,
-                'node_modules/@ecies/ciphers/dist/aes/noble.js',
-              ),
-              type: 'sourceFile',
-            };
-          }
-          if (moduleName === '@ecies/ciphers/chacha') {
-            return {
-              filePath: path.resolve(
-                __dirname,
-                'node_modules/@ecies/ciphers/dist/chacha/noble.js',
-              ),
-              type: 'sourceFile',
-            };
+          // @ledgerhq packages use exports field subpath mapping (e.g. ./signers/index -> ./lib/signers/index.js)
+          // which doesn't work with unstable_enablePackageExports: false — manually replicate the lib/ mapping
+          // Affected: domain-service, evm-tools, devices, cryptoassets-evm-signatures
+          const ledgerhqSubpathMatch = moduleName.match(/^(@ledgerhq\/[^/]+)\/(.+)$/);
+          if (ledgerhqSubpathMatch) {
+            const [, pkgName, subpath] = ledgerhqSubpathMatch;
+            try {
+              return {
+                filePath: require.resolve(`${pkgName}/lib/${subpath}`),
+                type: 'sourceFile',
+              };
+            } catch {
+              // fall through to default resolution if lib/ mapping doesn't exist
+            }
           }
           // Use axios browser build so Node-only deps (e.g. http2) are never pulled in
           if (
@@ -160,39 +157,6 @@ module.exports = function (baseConfig) {
                 ),
               };
             }
-            if (
-              moduleName.endsWith(
-                'controllers/seedless-onboarding-controller',
-              ) ||
-              moduleName.endsWith(
-                'controllers/seedless-onboarding-controller/index',
-              ) ||
-              moduleName === './seedless-onboarding-controller' ||
-              moduleName === '../seedless-onboarding-controller'
-            ) {
-              return {
-                type: 'sourceFile',
-                filePath: path.resolve(
-                  __dirname,
-                  'tests/module-mocking/seedless/index.ts',
-                ),
-              };
-            }
-            // Mock OAuth Login Handlers for E2E Google/Apple login tests
-            if (
-              moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
-              moduleName.endsWith('OAuthService/OAuthLoginHandlers/index') ||
-              moduleName === './OAuthLoginHandlers' ||
-              moduleName === '../OAuthLoginHandlers'
-            ) {
-              return {
-                type: 'sourceFile',
-                filePath: path.resolve(
-                  __dirname,
-                  'tests/module-mocking/oauth/OAuthLoginHandlers/index.ts',
-                ),
-              };
-            }
           }
           return context.resolveRequest(context, moduleName, platform);
         },
@@ -217,12 +181,17 @@ module.exports = function (baseConfig) {
           },
         }),
       },
-      serializer: lockdownSerializer(
-        { hermesRuntime: true },
-        {
-          getPolyfills,
-        },
-      ),
+      // DEBUG: lockdownSerializer disabled to confirm it's causing the hardenIntrinsics/require crash
+      // TODO: re-enable once LavaMoat is compatible with the new Metro module ID assignment
+      // serializer: lockdownSerializer(
+      //   { hermesRuntime: true },
+      //   {
+      //     getPolyfills,
+      //   },
+      // ),
+      serializer: {
+        getPolyfills,
+      },
       resetCache: true,
       maxWorkers,
     }),

@@ -36238,7 +36238,7 @@ __metadata:
     react-native-nitro-modules: "npm:^0.33.9"
     react-native-os: "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch"
     react-native-pager-view: "npm:6.9.1"
-    react-native-performance: "npm:^5.1.2"
+    react-native-performance: "npm:^6.0.0"
     react-native-permissions: "npm:^3.7.2"
     react-native-progress: "npm:3.5.0"
     react-native-qrcode-svg: "npm:5.1.2"
@@ -41232,12 +41232,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-performance@npm:^5.1.2":
-  version: 5.1.2
-  resolution: "react-native-performance@npm:5.1.2"
+"react-native-performance@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "react-native-performance@npm:6.0.0"
   peerDependencies:
     react-native: "*"
-  checksum: 10/7c8025616f85b3cfbbc9f8593b11d65d44693464c97b7290efe807e901c4241c5db25f68424874b456b2fc6ac8188fd07a06f807c75632e5a1fa167e85ae268d
+  checksum: 10/0228eb759760308b84d1ee96a60634bea5a0e25b89c77817bbcd23fbc35cc3597d5f05079a85cd5003ec6ec007d9e22f70fc502e8e4b01a4747c67b42c215659
   languageName: node
   linkType: hard
 
