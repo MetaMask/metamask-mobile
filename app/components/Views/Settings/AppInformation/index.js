@@ -1,7 +1,6 @@
 /* eslint-disable dot-notation */
 import React, { PureComponent } from 'react';
 import {
-  SafeAreaView,
   StyleSheet,
   Image,
   Text,
@@ -10,6 +9,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   getApplicationName,
   getVersion,
@@ -207,6 +207,7 @@ class AppInformation extends PureComponent {
         testID={AboutMetaMaskSelectorsIDs.CONTAINER}
       >
         <HeaderCompactStandard
+          includesTopInset
           title={aboutTitle}
           onBack={() => this.props.navigation.goBack()}
           backButtonProps={{ testID: AboutMetaMaskSelectorsIDs.BACK_BUTTON }}
