@@ -1428,13 +1428,13 @@ const Wallet = ({
               scrollViewProps={{
                 contentContainerStyle: scrollViewContentStyle,
                 showsVerticalScrollIndicator: false,
-                onScroll: shouldEnableParentScroll
+                onScroll: isHomepageSectionsV1Enabled
                   ? handleVerticalScroll
                   : undefined,
-                onContentSizeChange: shouldEnableParentScroll
+                onContentSizeChange: isHomepageSectionsV1Enabled
                   ? handleScrollContentSizeChange
                   : undefined,
-                onLayout: shouldEnableParentScroll
+                onLayout: isHomepageSectionsV1Enabled
                   ? handleScrollLayout
                   : undefined,
                 scrollEventThrottle: 16,
