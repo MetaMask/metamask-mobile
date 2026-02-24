@@ -17,8 +17,8 @@ import { RootState } from '../../../../../reducers';
  * Returns a token filter for withdraw transactions, following the same pattern
  * as `usePerpsBalanceTokenFilter` and `useMusdConversionTokens`.
  *
- * Searches over the full `useSendTokens` result (including zero-balance tokens)
- * and returns only tokens present in the feature-flag allowlist.
+ * Uses `includeAllTokens` to pull from the full token catalog so that
+ * allowlisted tokens appear even when the user has zero balance.
  */
 export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
   const transactionMeta = useTransactionMetadataRequest();
@@ -27,7 +27,10 @@ export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
   const config = useSelector((state: RootState) =>
     selectPayQuoteConfig(state, transactionType),
   );
-  const allTokens = useSendTokens({ includeNoBalance: true });
+  const allTokens = useSendTokens({
+    includeNoBalance: true,
+    includeAllTokens: true,
+  });
 
   const allowlist = config.tokens;
 

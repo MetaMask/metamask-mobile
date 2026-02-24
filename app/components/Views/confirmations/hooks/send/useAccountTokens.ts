@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { isTestNet } from '../../../../../util/networks';
@@ -11,14 +12,20 @@ import I18n from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
+import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 
 export function useAccountTokens({
   includeNoBalance = false,
+  includeAllTokens = false,
 }: {
   includeNoBalance?: boolean;
+  includeAllTokens?: boolean;
 } = {}): AssetType[] {
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
   const fiatCurrency = useSelector(selectCurrentCurrency);
+  const tokensChainsCache = useSelector(selectERC20TokensByChain);
+  const networkConfigs = useSelector(selectEvmNetworkConfigurationsByChainId);
 
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
@@ -41,7 +48,7 @@ export function useAccountTokens({
       return haveBalance || isTestNetAsset;
     });
 
-    const processedAssets = assetsWithBalance.map((asset) => {
+    const processedAssets: AssetType[] = assetsWithBalance.map((asset) => {
       const fiatAmount = new BigNumber(asset.fiat?.balance || 0);
       const hasDecimals = !fiatAmount.isInteger();
 
@@ -62,8 +69,63 @@ export function useAccountTokens({
         networkBadgeSource: getNetworkBadgeSource(asset.chainId as Hex),
         balanceInSelectedCurrency,
         standard: TokenStandard.ERC20 as const,
-      };
+      } as AssetType;
     });
+
+    if (includeAllTokens) {
+      const existing = new Set(
+        processedAssets.map(
+          (a) => `${a.chainId?.toLowerCase()}:${a.address?.toLowerCase()}`,
+        ),
+      );
+
+      for (const [chainId, cache] of Object.entries(tokensChainsCache ?? {})) {
+        const hex = chainId as Hex;
+        for (const [address, entry] of Object.entries(cache?.data ?? {})) {
+          if (
+            existing.has(`${chainId.toLowerCase()}:${address.toLowerCase()}`)
+          ) {
+            continue;
+          }
+          processedAssets.push({
+            address,
+            chainId: hex,
+            name: entry.name ?? '',
+            symbol: entry.symbol ?? '',
+            decimals: entry.decimals ?? 18,
+            image: entry.iconUrl ?? '',
+            logo: entry.iconUrl ?? undefined,
+            balance: '0',
+            isETH: false,
+            isNative: false,
+            networkBadgeSource: getNetworkBadgeSource(hex),
+            standard: TokenStandard.ERC20,
+          } as AssetType);
+        }
+
+        // Add native token if not already present
+        const nativeAddr = getNativeTokenAddress(hex).toLowerCase();
+        if (!existing.has(`${chainId.toLowerCase()}:${nativeAddr}`)) {
+          const config = networkConfigs?.[hex];
+          if (config) {
+            processedAssets.push({
+              address: getNativeTokenAddress(hex),
+              chainId: hex,
+              name: config.nativeCurrency ?? '',
+              symbol: config.nativeCurrency ?? '',
+              decimals: 18,
+              image: '',
+              logo: undefined,
+              balance: '0',
+              isETH: hex === '0x1',
+              isNative: true,
+              networkBadgeSource: getNetworkBadgeSource(hex),
+              standard: TokenStandard.ERC20,
+            } as AssetType);
+          }
+        }
+      }
+    }
 
     return processedAssets.sort(
       (a, b) =>
@@ -71,5 +133,12 @@ export function useAccountTokens({
           new BigNumber(a.fiat?.balance || 0),
         ) || 0,
     );
-  }, [assets, includeNoBalance, fiatCurrency]) as unknown as AssetType[];
+  }, [
+    assets,
+    includeNoBalance,
+    includeAllTokens,
+    fiatCurrency,
+    tokensChainsCache,
+    networkConfigs,
+  ]) as unknown as AssetType[];
 }
