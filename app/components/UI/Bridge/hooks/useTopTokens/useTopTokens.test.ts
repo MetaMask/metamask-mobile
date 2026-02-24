@@ -23,9 +23,7 @@ jest.mock('@metamask/bridge-controller', () => ({
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
-  ...jest.requireActual('../../../../../core/Engine'),
   context: {
-    ...jest.requireActual('../../../../../core/Engine').context,
     AuthenticationController: {
       getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
     },

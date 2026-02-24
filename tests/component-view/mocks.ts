@@ -98,6 +98,9 @@ jest.mock('../../app/core/Engine', () => {
           return undefined;
         },
       },
+      AuthenticationController: {
+        getBearerToken: jest.fn(),
+      },
       BridgeController: {
         updateBridgeQuoteRequestParams: jest.fn().mockResolvedValue(undefined),
         resetState: jest.fn(),
