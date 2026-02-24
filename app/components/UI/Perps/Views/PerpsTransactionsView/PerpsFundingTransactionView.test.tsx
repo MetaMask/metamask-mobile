@@ -43,7 +43,7 @@ jest.mock('../../hooks', () => ({
 const mockSelectedAccount = {
   id: 'account-1',
   address: '0x1234567890123456789012345678901234567890',
-  type: 'eip155:eoa',
+  type: 'eip155:eoa' as const,
   metadata: {
     name: 'Account 1',
     keyring: { type: 'HD Key Tree' },

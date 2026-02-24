@@ -100,7 +100,7 @@ jest.mock(
 describe('UnifiedTransactionsView', () => {
   const mockAccount = {
     address: '0x1234567890123456789012345678901234567890',
-    type: 'eip155:eoa',
+    type: 'eip155:eoa' as const,
     metadata: {
       importTime: Date.now(),
     },
@@ -131,12 +131,12 @@ describe('UnifiedTransactionsView', () => {
         },
         NetworkController: {
           providerConfig: {
-            chainId: '0x1',
+            chainId: '0x1' as const,
             type: 'mainnet',
           },
           networkConfigurationsByChainId: {
             '0x1': {
-              chainId: '0x1',
+              chainId: '0x1' as const,
               blockExplorerUrls: ['https://etherscan.io'],
               defaultBlockExplorerUrlIndex: 0,
             },
@@ -276,7 +276,7 @@ describe('UnifiedTransactionsView', () => {
 describe('UnifiedTransactionsView with transactions', () => {
   const mockAccount = {
     address: '0x1234567890123456789012345678901234567890',
-    type: 'eip155:eoa',
+    type: 'eip155:eoa' as const,
     metadata: {
       importTime: Date.now(),
     },
@@ -284,7 +284,7 @@ describe('UnifiedTransactionsView with transactions', () => {
 
   const mockTransaction = {
     id: 'tx-1',
-    chainId: '0x1',
+    chainId: '0x1' as const,
     status: 'confirmed',
     time: Date.now(),
     txParams: {
@@ -320,12 +320,12 @@ describe('UnifiedTransactionsView with transactions', () => {
         },
         NetworkController: {
           providerConfig: {
-            chainId: '0x1',
+            chainId: '0x1' as const,
             type: 'mainnet',
           },
           networkConfigurationsByChainId: {
             '0x1': {
-              chainId: '0x1',
+              chainId: '0x1' as const,
               blockExplorerUrls: ['https://etherscan.io'],
               defaultBlockExplorerUrlIndex: 0,
             },
