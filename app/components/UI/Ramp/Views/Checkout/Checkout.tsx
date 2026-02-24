@@ -33,6 +33,7 @@ import NotificationManager from '../../../../../core/NotificationManager';
 import getNotificationDetails from '../../utils/getNotificationDetails';
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import stateHasOrder from '../../utils/stateHasOrder';
+import { createRampsOrderDetailsNavDetails } from '../OrderDetails';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import BottomSheet, {
   BottomSheetRef,
@@ -267,13 +268,24 @@ const Checkout = () => {
           return;
         }
         _dispatch(addFiatOrder(order));
-        const notificationDetails = getNotificationDetails(order);
-        if (notificationDetails) {
-          NotificationManager.showSimpleNotification(notificationDetails);
+        if (providerType !== FIAT_ORDER_PROVIDERS.RAMPS_V2) {
+          const notificationDetails = getNotificationDetails(order);
+          if (notificationDetails) {
+            NotificationManager.showSimpleNotification(notificationDetails);
+          }
         }
       });
+
+      if (providerType === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
+        navigation.navigate(
+          ...createRampsOrderDetailsNavDetails({
+            orderId: order.id,
+            showCloseButton: true,
+          }),
+        );
+      }
     },
-    [dispatch, dispatchThunk, navigation],
+    [dispatch, dispatchThunk, navigation, providerType],
   );
 
   const handleNavigationStateChange = useCallback(
