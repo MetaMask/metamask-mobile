@@ -1,6 +1,6 @@
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import { RouteProp, ParamListBase } from '@react-navigation/native';
+import { RouteProp } from '@react-navigation/native';
 import { createStyles } from './styles';
+import type { RevealPrivateCredentialParams } from './RevealPrivateCredential.types';
 
 export enum RevealSrpStage {
   Introduction = 'introduction',
@@ -10,18 +10,9 @@ export enum RevealSrpStage {
 
 export type RevealPrivateCredentialStyleSheet = ReturnType<typeof createStyles>;
 
-export interface RootStackParamList extends ParamListBase {
-  RevealPrivateCredential: {
-    shouldUpdateNav?: boolean;
-    selectedAccount?: InternalAccount;
-    keyringId?: string;
-    /** When true, skip quiz and show password/action view (e.g. when coming from SRPQuiz modal) */
-    skipQuiz?: boolean;
-  };
-}
-
+/** Route prop for RevealPrivateCredential screen; params come from canonical RevealPrivateCredentialParams. */
 export type RevealPrivateCredentialRouteProp = RouteProp<
-  RootStackParamList,
+  { RevealPrivateCredential: RevealPrivateCredentialParams },
   'RevealPrivateCredential'
 >;
 

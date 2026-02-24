@@ -222,7 +222,7 @@ const completeSecurityQuiz = async (
 ) => {
   // Step 1: Click "Get started" on introduction screen
   await waitFor(() => {
-    expect(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON)).toBeTruthy();
+    expect(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON)).toBeOnTheScreen();
   });
   fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
 
@@ -230,7 +230,7 @@ const completeSecurityQuiz = async (
   await waitFor(() => {
     expect(
       getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
   fireEvent.press(getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER));
 
@@ -238,7 +238,7 @@ const completeSecurityQuiz = async (
   await waitFor(() => {
     expect(
       getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
   fireEvent.press(
     getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
@@ -248,7 +248,7 @@ const completeSecurityQuiz = async (
   await waitFor(() => {
     expect(
       getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
   fireEvent.press(getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER));
 
@@ -256,7 +256,7 @@ const completeSecurityQuiz = async (
   await waitFor(() => {
     expect(
       getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_CONTINUE),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
   fireEvent.press(
     getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_CONTINUE),
@@ -266,7 +266,7 @@ const completeSecurityQuiz = async (
   await waitFor(() => {
     expect(
       getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 };
 
@@ -279,7 +279,7 @@ const completeSecurityQuizAndWaitForPasswordEntry = async (
   await waitFor(() => {
     expect(
       getByTestId(RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 };
 
@@ -334,10 +334,12 @@ describe('RevealPrivateCredential', () => {
 
       expect(
         getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
-      ).toBeTruthy();
-      expect(getByTestId(ExportCredentialsIds.CONTAINER)).toBeTruthy();
-      expect(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON)).toBeTruthy();
-      expect(getByText('Get started')).toBeTruthy();
+      ).toBeOnTheScreen();
+      expect(getByTestId(ExportCredentialsIds.CONTAINER)).toBeOnTheScreen();
+      expect(
+        getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON),
+      ).toBeOnTheScreen();
+      expect(getByText('Get started')).toBeOnTheScreen();
     });
 
     it('renders password entry after completing security quiz', async () => {
@@ -360,10 +362,10 @@ describe('RevealPrivateCredential', () => {
 
       expect(
         getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId(RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('renders warning section with eye slash icon after completing quiz', async () => {
@@ -386,7 +388,7 @@ describe('RevealPrivateCredential', () => {
 
       expect(
         getByTestId(RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('renders cancel button when showCancelButton is true after completing quiz', async () => {
@@ -412,7 +414,7 @@ describe('RevealPrivateCredential', () => {
         getByTestId(
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
         ),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('renders back button', () => {
@@ -429,7 +431,7 @@ describe('RevealPrivateCredential', () => {
         getByTestId(
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BACK_BUTTON_ID,
         ),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       fireEvent.press(
         getByTestId(
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BACK_BUTTON_ID,
@@ -454,14 +456,16 @@ describe('RevealPrivateCredential', () => {
       );
 
       // Initially on introduction screen
-      expect(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON)).toBeTruthy();
+      expect(
+        getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON),
+      ).toBeOnTheScreen();
 
       // Click Get started
       fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
 
       // Should show quiz question
       await waitFor(() => {
-        expect(getByText('Question 1 of 2')).toBeTruthy();
+        expect(getByText('Question 1 of 2')).toBeOnTheScreen();
       });
     });
 
@@ -480,7 +484,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       // Select correct answer for question 1
@@ -490,10 +494,10 @@ describe('RevealPrivateCredential', () => {
 
       // Should show correct feedback
       await waitFor(() => {
-        expect(getByText('Correct!')).toBeTruthy();
+        expect(getByText('Correct!')).toBeOnTheScreen();
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
@@ -512,7 +516,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       // Select wrong answer for question 1
@@ -522,12 +526,12 @@ describe('RevealPrivateCredential', () => {
 
       // Should show incorrect feedback
       await waitFor(() => {
-        expect(getByText('Incorrect!')).toBeTruthy();
+        expect(getByText('Incorrect!')).toBeOnTheScreen();
         expect(
           getByTestId(
             SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
           ),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
@@ -540,7 +544,9 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
-      expect(getByTestId(ExportCredentialsIds.LEARN_MORE_BUTTON)).toBeTruthy();
+      expect(
+        getByTestId(ExportCredentialsIds.LEARN_MORE_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('shows question 2 specific test IDs when correct answer is selected', async () => {
@@ -559,7 +565,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
       fireEvent.press(
         getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
@@ -568,7 +574,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
       fireEvent.press(
         getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
@@ -576,13 +582,13 @@ describe('RevealPrivateCredential', () => {
 
       // Now on question 2 - verify question 2 specific test IDs
       await waitFor(() => {
-        expect(getByText('Question 2 of 2')).toBeTruthy();
+        expect(getByText('Question 2 of 2')).toBeOnTheScreen();
         expect(
           getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
         expect(
           getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       // Select correct answer for question 2
@@ -592,10 +598,10 @@ describe('RevealPrivateCredential', () => {
 
       // Should show correct feedback with question 2 continue button
       await waitFor(() => {
-        expect(getByText('Correct!')).toBeTruthy();
+        expect(getByText('Correct!')).toBeOnTheScreen();
         expect(
           getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_CONTINUE),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
@@ -615,7 +621,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
       fireEvent.press(
         getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
@@ -624,7 +630,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
       fireEvent.press(
         getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
@@ -634,7 +640,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
       fireEvent.press(
         getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
@@ -642,12 +648,12 @@ describe('RevealPrivateCredential', () => {
 
       // Should show incorrect feedback with question 2 try again button
       await waitFor(() => {
-        expect(getByText('Incorrect!')).toBeTruthy();
+        expect(getByText('Incorrect!')).toBeOnTheScreen();
         expect(
           getByTestId(
             SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
           ),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
@@ -667,10 +673,10 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
   });
@@ -710,7 +716,7 @@ describe('RevealPrivateCredential', () => {
       });
 
       // Validate specific warning message for incorrect password
-      expect(getByText('Incorrect password')).toBeTruthy();
+      expect(getByText('Incorrect password')).toBeOnTheScreen();
     });
 
     it('accepts text input in password field and triggers tryUnlock on submit editing', async () => {
@@ -768,7 +774,7 @@ describe('RevealPrivateCredential', () => {
         const confirmButton = getByTestId(
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
         );
-        expect(confirmButton).toBeTruthy();
+        expect(confirmButton).toBeOnTheScreen();
         expect(confirmButton.props.disabled).toBe(true);
       });
     });
@@ -832,7 +838,7 @@ describe('RevealPrivateCredential', () => {
       // Validate specific unknown error message
       expect(
         getByText("Couldn't unlock your account. Please try again."),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('uses keyringId parameter when provided', async () => {
@@ -920,7 +926,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           queryByTestId(RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
@@ -1293,7 +1299,7 @@ describe('RevealPrivateCredential', () => {
       );
 
       // Verify the button exists and can be pressed without error
-      expect(learnMoreButton).toBeTruthy();
+      expect(learnMoreButton).toBeOnTheScreen();
       fireEvent.press(learnMoreButton);
     });
   });
@@ -1330,7 +1336,7 @@ describe('RevealPrivateCredential', () => {
 
       expect(
         getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       // When navigation is null, hasNavigation is false, so setOptions should never be called.
       // The component handles null navigation gracefully (no error thrown),
       // which proves updateNavBar returns early without calling navigation.setOptions()
@@ -1461,7 +1467,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       // Select correct answer
@@ -1494,7 +1500,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       // Select wrong answer
@@ -1527,7 +1533,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
       fireEvent.press(
         getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
@@ -1536,7 +1542,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
       fireEvent.press(
         getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
@@ -1567,7 +1573,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
       fireEvent.press(
         getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
@@ -1575,7 +1581,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
       fireEvent.press(
         getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
@@ -1585,7 +1591,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
       fireEvent.press(
         getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
@@ -1616,7 +1622,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
       fireEvent.press(
         getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
@@ -1624,7 +1630,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
       fireEvent.press(
         getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
@@ -1634,7 +1640,7 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(
           getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
       fireEvent.press(
         getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
@@ -1678,7 +1684,7 @@ describe('RevealPrivateCredential', () => {
         const doneButton = getByTestId(
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
         );
-        expect(doneButton).toBeTruthy();
+        expect(doneButton).toBeOnTheScreen();
         fireEvent.press(doneButton);
       });
 
@@ -1763,13 +1769,13 @@ describe('RevealPrivateCredential', () => {
         const copyButton = queryByTestId(
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
         );
-        expect(copyButton).toBeTruthy();
+        expect(copyButton).toBeOnTheScreen();
       });
 
       // Verify the container is still rendered (component didn't crash with fallback address)
       expect(
         getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
   });
 });
