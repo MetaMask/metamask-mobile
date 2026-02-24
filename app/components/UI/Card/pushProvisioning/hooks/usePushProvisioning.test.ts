@@ -13,14 +13,14 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
 
-// Mock useMetrics
+// Mock useAnalytics
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 });
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -92,7 +92,6 @@ describe('usePushProvisioning', () => {
     holderName: 'John Doe',
     panLast4: '1234',
     status: 'ACTIVE',
-    expiryDate: '12/25',
   };
 
   const mockUserAddress = {

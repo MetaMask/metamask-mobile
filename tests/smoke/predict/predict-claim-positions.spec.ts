@@ -119,6 +119,11 @@ describe(SmokePredictions('Claim winnings:'), () => {
           WalletView.PredictionsTabContainer,
         );
 
+        // Claim button is rendered only after positions API returns and Redux has won positions
+        await Assertions.expectElementToBeVisible(WalletView.claimButton, {
+          description:
+            'Claim button should be visible (positions loaded with winnings)',
+        });
         await WalletView.tapClaimButton();
         await Assertions.expectElementToBeVisible(PredictClaimPage.container);
 

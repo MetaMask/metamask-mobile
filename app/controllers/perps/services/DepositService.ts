@@ -1,11 +1,13 @@
 import { toHex } from '@metamask/controller-utils';
-import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import type { TransactionParams } from '@metamask/transaction-controller';
-import { generateERC20TransferData } from '../utils/transferData';
-import { generateDepositId } from '../utils/idUtils';
-import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
+import { parseCaipAssetId } from '@metamask/utils';
+import type { Hex } from '@metamask/utils';
+
 import type { PerpsControllerMessenger } from '../PerpsController';
+import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
+import { generateDepositId } from '../utils/idUtils';
+import { generateERC20TransferData } from '../utils/transferData';
 
 // Temporary to avoid estimation failures due to insufficient balance
 const DEPOSIT_GAS_LIMIT = toHex(100000);
@@ -21,11 +23,13 @@ const DEPOSIT_GAS_LIMIT = toHex(100000);
  * and messenger for inter-controller communication.
  */
 export class DepositService {
-  private readonly deps: PerpsPlatformDependencies;
-  private readonly messenger: PerpsControllerMessenger;
+  readonly #deps: PerpsPlatformDependencies;
+
+  readonly #messenger: PerpsControllerMessenger;
 
   /**
    * Create a new DepositService instance
+   *
    * @param deps - Platform dependencies for logging, metrics, etc.
    * @param messenger - Messenger for inter-controller communication
    */
@@ -33,8 +37,8 @@ export class DepositService {
     deps: PerpsPlatformDependencies,
     messenger: PerpsControllerMessenger,
   ) {
-    this.deps = deps;
-    this.messenger = messenger;
+    this.#deps = deps;
+    this.#messenger = messenger;
   }
 
   /**
@@ -52,7 +56,7 @@ export class DepositService {
   }> {
     const { provider } = options;
 
-    this.deps.debugLogger.log('DepositService: Preparing deposit transaction');
+    this.#deps.debugLogger.log('DepositService: Preparing deposit transaction');
 
     // Generate deposit request ID for tracking
     const currentDepositId = generateDepositId();
@@ -69,7 +73,7 @@ export class DepositService {
     );
 
     // Get EVM account from selected account group via messenger
-    const evmAccount = getSelectedEvmAccount(this.messenger);
+    const evmAccount = getSelectedEvmAccount(this.#messenger);
     if (!evmAccount) {
       throw new Error(
         'No EVM-compatible account found in selected account group',
@@ -79,7 +83,7 @@ export class DepositService {
 
     // Parse CAIP asset ID to extract chain ID and token address
     const parsedAsset = parseCaipAssetId(route.assetId);
-    const assetChainId = toHex(parsedAsset.chainId.split(':')[1]) as Hex;
+    const assetChainId = toHex(parsedAsset.chainId.split(':')[1]);
     const tokenAddress = parsedAsset.assetReference as Hex;
 
     // Build transaction parameters for TransactionController
@@ -91,7 +95,7 @@ export class DepositService {
       gas: DEPOSIT_GAS_LIMIT,
     };
 
-    this.deps.debugLogger.log('DepositService: Deposit transaction prepared', {
+    this.#deps.debugLogger.log('DepositService: Deposit transaction prepared', {
       depositId: currentDepositId,
       assetChainId,
       from: accountAddress,

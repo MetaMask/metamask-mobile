@@ -1,14 +1,13 @@
-import { MarketDataService } from './MarketDataService';
-import {
-  createMockServiceContext,
-  createMockInfrastructure,
-} from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import {
   createMockHyperLiquidProvider,
   createMockPosition,
   createMockOrder,
 } from '../../../components/UI/Perps/__mocks__/providerMocks';
-import type { ServiceContext } from './ServiceContext';
+import {
+  createMockServiceContext,
+  createMockInfrastructure,
+} from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import type { CandlePeriod } from '../constants/chartConfig';
 import type {
   PerpsProvider,
   Position,
@@ -23,7 +22,9 @@ import type {
   PerpsPlatformDependencies,
 } from '../types';
 import type { CandleData } from '../types/perps-types';
-import type { CandlePeriod } from '../constants/chartConfig';
+
+import { MarketDataService } from './MarketDataService';
+import type { ServiceContext } from './ServiceContext';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 

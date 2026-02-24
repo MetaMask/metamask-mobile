@@ -568,6 +568,7 @@ exports[`BrowserTab render Browser 1`] = `
             onLoadStart={[Function]}
             onMessage={[Function]}
             onNavigationStateChange={[Function]}
+            onOpenWindow={[Function]}
             onShouldStartLoadWithRequest={[Function]}
             originWhitelist={
               [

@@ -5,14 +5,10 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
-import { AccountState } from '../providers/types';
+import { AccountState } from '../types';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 
 interface UsePredictWalletParams {
-  /**
-   * The provider ID to load account state for
-   */
-  providerId?: string;
   /**
    * Whether to load account state on mount
    * @default true
@@ -26,7 +22,6 @@ interface UsePredictWalletParams {
 }
 
 export const usePredictAccountState = ({
-  providerId = 'polymarket',
   loadOnMount = true,
   refreshOnFocus = true,
 }: UsePredictWalletParams = {}) => {
@@ -65,9 +60,7 @@ export const usePredictAccountState = ({
         }
 
         const controller = Engine.context.PredictController;
-        const accountStateResponse = await controller.getAccountState({
-          providerId,
-        });
+        const accountStateResponse = await controller.getAccountState({});
 
         setAccountState(accountStateResponse);
 
@@ -97,7 +90,6 @@ export const usePredictAccountState = ({
               method: 'loadAccountState',
               action: 'account_state_load',
               operation: 'data_fetching',
-              providerId,
             },
           },
         });
@@ -106,7 +98,7 @@ export const usePredictAccountState = ({
         setIsRefreshing(false);
       }
     },
-    [providerId, ensurePolygonNetworkExists],
+    [ensurePolygonNetworkExists],
   );
 
   // Load account state on mount if enabled

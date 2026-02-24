@@ -2,8 +2,6 @@ import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
-import { TokenI } from '../../Tokens/types';
-import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
@@ -13,9 +11,19 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
 
-const mockSelectTokenDetailsV2ButtonsEnabled = jest.fn().mockReturnValue(true);
+// Mock feature flags
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
-  selectTokenDetailsV2ButtonsEnabled: mockSelectTokenDetailsV2ButtonsEnabled,
+  selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
+}));
+
+// Mock useTokenDetailsABTest hook
+const mockUseTokenDetailsABTest = jest.fn().mockReturnValue({
+  useNewLayout: true,
+  variantName: 'treatment',
+  isTestActive: true,
+});
+jest.mock('../hooks/useTokenDetailsABTest', () => ({
+  useTokenDetailsABTest: () => mockUseTokenDetailsABTest(),
 }));
 
 const mockUseSelector = jest.fn();
@@ -147,23 +155,23 @@ jest.mock('../../Ramp/Aggregator/utils', () => ({
   isNetworkRampSupported: jest.fn(() => true),
 }));
 
-describe('TokenDetails', () => {
-  const defaultToken: TokenI = {
-    address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-    chainId: '0x1',
-    symbol: 'DAI',
-    decimals: 18,
-    name: 'Dai Stablecoin',
-    image: 'https://example.com/dai.png',
-    isETH: false,
-    isNative: false,
-    balance: '10.5',
-  } as TokenI;
+const mockIsTokenTradingOpen = jest.fn().mockReturnValue(true);
+jest.mock('../../Bridge/hooks/useRWAToken', () => ({
+  useRWAToken: () => ({
+    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isStockToken: jest.fn(() => false),
+  }),
+}));
 
+describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams.mockReturnValue(defaultToken);
-    mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(true);
+    mockUseTokenDetailsABTest.mockReturnValue({
+      useNewLayout: true,
+      variantName: 'treatment',
+      isTestActive: true,
+    });
+    mockIsTokenTradingOpen.mockReturnValue(true);
     mockUseTokenTransactions.mockReturnValue(defaultUseTokenTransactionsReturn);
 
     mockUseTokenBalance.mockReturnValue({
@@ -173,8 +181,6 @@ describe('TokenDetails', () => {
     });
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectTokenDetailsV2ButtonsEnabled)
-        return mockSelectTokenDetailsV2ButtonsEnabled();
       if (selector === selectNetworkConfigurationByChainId)
         return { name: 'Ethereum' };
       if (selector === selectPerpsEnabledFlag) return false;
@@ -198,15 +204,27 @@ describe('TokenDetails', () => {
   });
 
   describe('Buy/Sell sticky buttons', () => {
-    it('shows sticky buttons when selectTokenDetailsV2ButtonsEnabled is true', () => {
+    it('shows sticky buttons when useNewLayout is true (treatment variant)', () => {
       const { getByTestId, getByText } = render(<TokenDetails />);
 
       expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(getByText('Buy')).toBeOnTheScreen();
     });
 
-    it('does not show sticky buttons when selectTokenDetailsV2ButtonsEnabled is false', () => {
-      mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(false);
+    it('does not show sticky buttons when useNewLayout is false (control variant)', () => {
+      mockUseTokenDetailsABTest.mockReturnValue({
+        useNewLayout: false,
+        variantName: 'control',
+        isTestActive: true,
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(queryByTestId('bottomsheetfooter')).toBeNull();
+    });
+
+    it('does not show sticky buttons when RWA token trading is not open', () => {
+      mockIsTokenTradingOpen.mockReturnValue(false);
 
       const { queryByTestId } = render(<TokenDetails />);
 

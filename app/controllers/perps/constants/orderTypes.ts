@@ -12,9 +12,14 @@ export const DETAILED_ORDER_TYPES = {
 
 /**
  * Check if an order type is a TP/SL order
+ *
+ * @param detailedOrderType - The detailed order type string to check.
+ * @returns True if the order type is a take-profit or stop-loss variant.
  */
 export const isTPSLOrder = (detailedOrderType?: string): boolean => {
-  if (!detailedOrderType) return false;
+  if (!detailedOrderType) {
+    return false;
+  }
   return (
     detailedOrderType === DETAILED_ORDER_TYPES.STOP_LIMIT ||
     detailedOrderType === DETAILED_ORDER_TYPES.STOP_MARKET ||

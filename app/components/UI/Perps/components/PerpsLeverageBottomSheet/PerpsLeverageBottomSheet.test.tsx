@@ -32,6 +32,27 @@ jest.mock('react-native-gesture-handler', () => ({
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
+// Mock SkeletonPlaceholder
+jest.mock('react-native-skeleton-placeholder', () => {
+  const { View } = jest.requireActual('react-native');
+  const MockSkeletonPlaceholder = ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) => <View testID="skeleton-placeholder">{children}</View>;
+
+  MockSkeletonPlaceholder.Item = (props: {
+    width: number | string;
+    height: number;
+    borderRadius: number;
+  }) => <View testID="skeleton-item" {...props} />;
+
+  return {
+    __esModule: true,
+    default: MockSkeletonPlaceholder,
+  };
+});
+
 // Mock safe area context (required for BottomSheet)
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -620,7 +641,7 @@ describe('PerpsLeverageBottomSheet', () => {
       expect(screen.queryByText('5x')).toBeNull();
     });
 
-    it('does not set skeleton state when pressing already active quick select button', () => {
+    it('keeps displaying values when pressing already active quick select button', () => {
       // Arrange
       render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
 
@@ -628,7 +649,7 @@ describe('PerpsLeverageBottomSheet', () => {
       const buttons5x = screen.getAllByText('5x');
       fireEvent.press(buttons5x[0]);
 
-      // Assert - Component continues to render without errors
+      // Assert - Component continues to render with values (no skeleton blink)
       expect(screen.getByText('Set 5x')).toBeOnTheScreen();
     });
   });
@@ -1156,28 +1177,8 @@ describe('PerpsLeverageBottomSheet', () => {
     });
   });
 
-  describe('Skeleton Loading State', () => {
-    it('displays skeleton when liquidation price is calculating', () => {
-      // Arrange
-      const mockUsePerpsLiquidationPrice = jest.requireMock(
-        '../../hooks/usePerpsLiquidationPrice',
-      );
-      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice.mockReturnValueOnce(
-        {
-          liquidationPrice: '0.00',
-          isCalculating: true, // Loading state
-          error: null,
-        },
-      );
-
-      // Act
-      render(<PerpsLeverageBottomSheet {...defaultProps} />);
-
-      // Assert - Component renders in loading state
-      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
-    });
-
-    it('hides liquidation price when calculating', () => {
+  describe('Liquidation Display Without Skeleton', () => {
+    it('shows placeholder text when liquidation price is not yet available', () => {
       // Arrange
       const mockUsePerpsLiquidationPrice = jest.requireMock(
         '../../hooks/usePerpsLiquidationPrice',
@@ -1193,35 +1194,14 @@ describe('PerpsLeverageBottomSheet', () => {
       // Act
       render(<PerpsLeverageBottomSheet {...defaultProps} />);
 
-      // Assert - Component still renders
+      // Assert - Shows placeholder '--' instead of skeleton
+      expect(screen.getByText('--')).toBeOnTheScreen();
       expect(
         screen.getByText('perps.order.leverage_modal.title'),
       ).toBeOnTheScreen();
     });
 
-    it('sets skeleton state to true when isCalculating is true', () => {
-      // Arrange
-      const mockUsePerpsLiquidationPrice = jest.requireMock(
-        '../../hooks/usePerpsLiquidationPrice',
-      );
-      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice.mockReturnValueOnce(
-        {
-          liquidationPrice: '2400.00',
-          isCalculating: true,
-          error: null,
-        },
-      );
-
-      // Act
-      render(<PerpsLeverageBottomSheet {...defaultProps} />);
-
-      // Assert - Title still renders, skeleton is shown
-      expect(
-        screen.getByText('perps.order.leverage_modal.title'),
-      ).toBeOnTheScreen();
-    });
-
-    it('sets skeleton state to false when isCalculating is false', () => {
+    it('displays liquidation price immediately when available', () => {
       // Arrange
       const mockUsePerpsLiquidationPrice = jest.requireMock(
         '../../hooks/usePerpsLiquidationPrice',
@@ -1239,6 +1219,100 @@ describe('PerpsLeverageBottomSheet', () => {
 
       // Assert - Liquidation price displays (format may vary but price is shown)
       expect(screen.getByText(/\$2,400/)).toBeOnTheScreen();
+    });
+
+    it('renders component during calculating state without skeleton blink', () => {
+      // Arrange
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice.mockReturnValueOnce(
+        {
+          liquidationPrice: '2400.00',
+          isCalculating: true,
+          error: null,
+        },
+      );
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      // Assert - Component renders with price text visible (no skeleton)
+      expect(
+        screen.getByText('perps.order.leverage_modal.title'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+      // Price is shown (not replaced by skeleton) since it's a valid value
+      expect(screen.getByText(/\$2,400/)).toBeOnTheScreen();
+    });
+
+    it('shows warning text with percentage when liquidation data is available', () => {
+      // Arrange - Explicitly mock to ensure known liquidation price
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice.mockReturnValueOnce(
+        {
+          liquidationPrice: '2400.00', // 3000 * (1 - 1/5) = 2400, gives 20% drop
+          isCalculating: false,
+          error: null,
+        },
+      );
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      // Assert - Warning text with percentage is shown, not a skeleton
+      expect(screen.getByText(/20\.0%/)).toBeOnTheScreen();
+      expect(screen.getByText(/drops/)).toBeOnTheScreen();
+    });
+  });
+
+  describe('Stale Cache Prevention After Leverage Change', () => {
+    it('shows skeleton instead of stale cached price when leverage changes via quick select', () => {
+      // Arrange — default mock returns a calculated price for 5x leverage
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
+
+      // The initial render should show a price (from the default mock), no skeletons
+      expect(screen.queryAllByTestId('skeleton-placeholder')).toHaveLength(0);
+
+      // Simulate the real hook behavior: after leverage changes, the hook
+      // starts a debounced API call and sets isCalculating: true while the
+      // old liquidationPrice persists in state until the new result arrives.
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice.mockReturnValue({
+        liquidationPrice: '2400.00', // Old price still in hook state
+        isCalculating: true,
+        error: null,
+      });
+
+      // Act — press 2x quick select button. We use 2x because it only appears
+      // in the quick select row (not in the slider labels like 10x/20x do),
+      // so getByText('2x') returns a single unambiguous element.
+      const button2x = screen.getByText('2x');
+      fireEvent.press(button2x);
+
+      // Assert — should show skeleton placeholders, NOT the stale cached price from 5x
+      const skeletons = screen.getAllByTestId('skeleton-placeholder');
+      expect(skeletons.length).toBeGreaterThanOrEqual(2); // warning text + price value
+    });
+
+    it('does not show skeleton when pressing the already active leverage', () => {
+      // Arrange — default mock returns calculated price for 5x
+      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
+
+      // The initial render should show a calculated price, no skeletons
+      expect(screen.queryAllByTestId('skeleton-placeholder')).toHaveLength(0);
+
+      // Act — press the same leverage that's already selected
+      const buttons5x = screen.getAllByText('5x');
+      fireEvent.press(buttons5x[0]);
+
+      // Assert — cache should NOT be invalidated, no skeletons should appear
+      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+      expect(screen.queryAllByTestId('skeleton-placeholder')).toHaveLength(0);
     });
   });
 

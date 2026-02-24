@@ -62,18 +62,14 @@ describe('usePredictActivity', () => {
     });
   });
 
-  it('respects providerId option when loading', async () => {
+  it('loads activity when hook is mounted', async () => {
     mockGetActivity.mockResolvedValueOnce([]);
 
-    const { waitForNextUpdate } = renderHook(() =>
-      usePredictActivity({ providerId: 'polymarket' }),
-    );
+    const { waitForNextUpdate } = renderHook(() => usePredictActivity());
 
     await waitForNextUpdate();
 
-    expect(mockGetActivity).toHaveBeenCalledWith({
-      providerId: 'polymarket',
-    });
+    expect(mockGetActivity).toHaveBeenCalledWith({});
   });
 
   it('can refresh with isRefresh=true and sets isRefreshing flag', async () => {

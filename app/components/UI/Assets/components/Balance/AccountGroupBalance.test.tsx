@@ -37,8 +37,8 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock metrics hook used by BalanceEmptyState
-jest.mock('../../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({ record: jest.fn() })),
   }),

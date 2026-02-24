@@ -270,6 +270,117 @@ describe('Transaction Metric Event Handlers', () => {
     );
   });
 
+  describe('securityAlertResponse properties', () => {
+    it('includes security_alert_reason and security_alert_response when securityAlertResponse is present', async () => {
+      const transactionMetaWithAlert = {
+        ...mockTransactionMeta,
+        securityAlertResponse: {
+          result_type: 'Benign',
+          reason: 'raw_native_token_transfer',
+        },
+      } as unknown as TransactionMeta;
+
+      await handleTransactionApprovedEventForMetrics(
+        transactionMetaWithAlert,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          security_alert_response: 'Benign',
+          security_alert_reason: 'raw_native_token_transfer',
+        }),
+      );
+    });
+
+    it('includes ui_customizations as flagged_as_malicious when result_type is Malicious', async () => {
+      const transactionMetaWithMalicious = {
+        ...mockTransactionMeta,
+        securityAlertResponse: {
+          result_type: 'Malicious',
+          reason: 'malicious_domain',
+        },
+      } as unknown as TransactionMeta;
+
+      await handleTransactionAddedEventForMetrics(
+        transactionMetaWithMalicious,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          security_alert_response: 'Malicious',
+          security_alert_reason: 'malicious_domain',
+          ui_customizations: ['flagged_as_malicious'],
+        }),
+      );
+    });
+
+    it('sets security_alert_response to loading when result_type is RequestInProgress', async () => {
+      const transactionMetaWithLoading = {
+        ...mockTransactionMeta,
+        securityAlertResponse: {
+          result_type: 'RequestInProgress',
+          reason: 'other',
+        },
+      } as unknown as TransactionMeta;
+
+      await handleTransactionSubmittedEventForMetrics(
+        transactionMetaWithLoading,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          security_alert_response: 'loading',
+          security_alert_reason: 'other',
+          ui_customizations: ['security_alert_loading'],
+        }),
+      );
+    });
+
+    it('includes ppom provider request counts', async () => {
+      const transactionMetaWithCounts = {
+        ...mockTransactionMeta,
+        securityAlertResponse: {
+          result_type: 'Benign',
+          reason: 'other',
+          providerRequestsCount: {
+            eth_call: 5,
+            eth_getCode: 3,
+          },
+        },
+      } as unknown as TransactionMeta;
+
+      await handleTransactionRejectedEventForMetrics(
+        transactionMetaWithCounts,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          security_alert_response: 'Benign',
+          security_alert_reason: 'other',
+          ppom_eth_call_count: 5,
+          ppom_eth_getCode_count: 3,
+        }),
+      );
+    });
+
+    it('does not include security alert properties when securityAlertResponse is undefined', async () => {
+      await handleTransactionApprovedEventForMetrics(
+        mockTransactionMeta,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockMetricsEventBuilder.addProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          security_alert_response: expect.anything(),
+        }),
+      );
+    });
+  });
+
   describe('handleTransactionFinalized', () => {
     it('adds STX metrics properties if smart transactions are enabled', async () => {
       // Force the selector to return true

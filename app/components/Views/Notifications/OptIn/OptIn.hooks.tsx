@@ -3,7 +3,8 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
-import { IUseMetricsHook, MetaMetricsEvents } from '../../../hooks/useMetrics';
+import type { UseAnalyticsHook } from '../../../hooks/useAnalytics/useAnalytics.types';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 
 /**
@@ -47,7 +48,7 @@ export function useOptimisticNavigationEffect(props: {
 
 export function useHandleOptInClick(props: {
   navigation: NavigationProp<ParamListBase>;
-  metrics: IUseMetricsHook;
+  metrics: UseAnalyticsHook;
   enableNotifications: () => Promise<void>;
 }) {
   const { navigation, enableNotifications, metrics } = props;
@@ -97,7 +98,7 @@ export function useHandleOptInClick(props: {
 
 export function useHandleOptInCancel(props: {
   navigation: NavigationProp<ParamListBase>;
-  metrics: IUseMetricsHook;
+  metrics: UseAnalyticsHook;
   isCreatingNotifications: boolean;
 }) {
   const { navigation, metrics, isCreatingNotifications } = props;

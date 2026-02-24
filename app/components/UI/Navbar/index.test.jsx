@@ -282,6 +282,8 @@ describe('getWalletNavbarOptions', () => {
     isBackupAndSyncEnabled: null,
     unreadNotificationCount: 0,
     readNotificationCount: 0,
+    shouldDisplayCardButton: false,
+    isAccountMenuEnabled: false,
   };
 
   beforeEach(() => {
@@ -505,6 +507,8 @@ describe('getWalletNavbarOptions', () => {
         null,
         0,
         0,
+        false,
+        false,
       ];
 
       expect(() => {
@@ -517,7 +521,7 @@ describe('getWalletNavbarOptions', () => {
     it('maintains function signature consistency', () => {
       // Test that the function accepts the expected number of parameters
       const allParams = Object.values(defaultProps);
-      expect(allParams.length).toBe(12); // Verify expected parameter count
+      expect(allParams.length).toBe(14); // Verify expected parameter count
 
       const options = getWalletNavbarOptions(...allParams);
       expect(options).toBeDefined();
@@ -542,6 +546,216 @@ describe('getWalletNavbarOptions', () => {
         const headerComponent = options.header({});
         expect(headerComponent).toBeDefined();
       }).not.toThrow();
+    });
+  });
+
+  describe('Notification Badge Logic', () => {
+    const {
+      isNotificationsFeatureEnabled,
+    } = require('../../../util/notifications');
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      isNotificationsFeatureEnabled.mockReturnValue(false);
+    });
+
+    it('handles notification badge props when all conditions are met', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notificationProps = {
+        ...defaultProps,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 5,
+        readNotificationCount: 3,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(notificationProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles notification badge props when feature is disabled', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(false);
+
+      const notificationProps = {
+        ...defaultProps,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 5,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(notificationProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles notification badge props when isNotificationEnabled is false', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notificationProps = {
+        ...defaultProps,
+        isNotificationEnabled: false,
+        unreadNotificationCount: 5,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(notificationProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles notification badge props when unreadNotificationCount is 0', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notificationProps = {
+        ...defaultProps,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 0,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(notificationProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles notification badge props with minimal unread count', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notificationProps = {
+        ...defaultProps,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 1,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(notificationProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles notification badge props with large unread counts', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notificationProps = {
+        ...defaultProps,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 999,
+        readNotificationCount: 500,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(notificationProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles all notification badge conditions combined', () => {
+      const testCases = [
+        {
+          feature: true,
+          enabled: true,
+          count: 5,
+          description: 'all enabled with count',
+        },
+        {
+          feature: true,
+          enabled: true,
+          count: 0,
+          description: 'enabled but no count',
+        },
+        {
+          feature: true,
+          enabled: false,
+          count: 5,
+          description: 'feature enabled but notification disabled',
+        },
+        {
+          feature: false,
+          enabled: true,
+          count: 5,
+          description: 'notification enabled but feature disabled',
+        },
+        {
+          feature: false,
+          enabled: false,
+          count: 0,
+          description: 'all disabled',
+        },
+      ];
+
+      testCases.forEach(({ feature, enabled, count, description }) => {
+        isNotificationsFeatureEnabled.mockReturnValue(feature);
+
+        const props = {
+          ...defaultProps,
+          isNotificationEnabled: enabled,
+          unreadNotificationCount: count,
+        };
+
+        expect(() => {
+          const options = getWalletNavbarOptions(...Object.values(props));
+          expect(options).toBeDefined();
+          expect(options.header).toBeInstanceOf(Function);
+          options.header();
+        }).not.toThrow();
+      });
+    });
+
+    it('handles notification badge when account menu is enabled (hamburger badge path)', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const accountMenuEnabledProps = {
+        ...defaultProps,
+        isAccountMenuEnabled: true,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 3,
+        readNotificationCount: 2,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(accountMenuEnabledProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles hamburger without badge when account menu enabled and no unread', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const props = {
+        ...defaultProps,
+        isAccountMenuEnabled: true,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 0,
+      };
+
+      const options = getWalletNavbarOptions(...Object.values(props));
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
     });
   });
 });
