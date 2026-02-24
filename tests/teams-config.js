@@ -9,7 +9,7 @@
  * The slackGroupId is used to generate proper Slack mentions: <!subteam^ID|name>
  */
 
-const TEAMS = {
+export const TEAMS = {
   '@swap-bridge-dev-team': {
     name: 'Swap & Bridge Dev Team',
     slackGroupId: null, // S04NGHK3U9Z
