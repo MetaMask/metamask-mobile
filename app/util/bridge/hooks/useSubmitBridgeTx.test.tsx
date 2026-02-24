@@ -18,17 +18,26 @@ let mockSubmitTx: jest.Mock<
   Promise<TransactionMeta>,
   [string, QuoteResponse & QuoteMetadata, boolean]
 >;
+let mockSubmitIntent: jest.Mock<
+  Promise<TransactionMeta>,
+  [{ quoteResponse: BridgeQuoteResponse; accountAddress: string }]
+>;
 
 jest.mock('../../../core/Engine', () => {
   mockSubmitTx = jest.fn<
     Promise<TransactionMeta>,
     [string, QuoteResponse & QuoteMetadata, boolean]
   >();
+  mockSubmitIntent = jest.fn<
+    Promise<TransactionMeta>,
+    [{ quoteResponse: BridgeQuoteResponse; accountAddress: string }]
+  >();
   return {
     context: {
       BridgeStatusController: {
         startPollingForBridgeTxStatus: jest.fn(),
         submitTx: mockSubmitTx,
+        submitIntent: mockSubmitIntent,
       },
     },
   };
@@ -84,12 +93,6 @@ jest.mock('../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(
     () => '0x1234567890123456789012345678901234567890',
   ),
-}));
-
-const mockHandleIntentTransaction = jest.fn();
-jest.mock('../../../lib/transaction/intent', () => ({
-  handleIntentTransaction: (...args: unknown[]) =>
-    mockHandleIntentTransaction(...args),
 }));
 
 const mockStore = configureMockStore();
@@ -327,7 +330,7 @@ describe('useSubmitBridgeTx', () => {
     ).rejects.toThrow('Wallet address is not set');
   });
 
-  it('calls handleIntentTransaction for quoteResponse with intent', async () => {
+  it('calls submitIntent for quoteResponse with intent', async () => {
     const { result } = renderHook(() => useSubmitBridgeTx(), {
       wrapper: createWrapper(),
     });
@@ -343,7 +346,7 @@ describe('useSubmitBridgeTx', () => {
       },
     } as TransactionMeta;
 
-    mockHandleIntentTransaction.mockResolvedValueOnce(mockIntentResult);
+    mockSubmitIntent.mockResolvedValueOnce(mockIntentResult);
 
     const baseQuote = DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0];
     const mockQuoteResponse = {
@@ -426,10 +429,11 @@ describe('useSubmitBridgeTx', () => {
       quoteResponse: mockQuoteResponse,
     });
 
-    expect(mockHandleIntentTransaction).toHaveBeenCalledWith(
-      mockQuoteResponse,
-      '0x1234567890123456789012345678901234567890',
-    );
+    expect(mockSubmitIntent).toHaveBeenCalledWith({
+      quoteResponse: mockQuoteResponse,
+      accountAddress: '0x1234567890123456789012345678901234567890',
+      location: undefined,
+    });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
   });
