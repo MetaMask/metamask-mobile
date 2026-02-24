@@ -43,13 +43,23 @@ export function getWithdrawConfirmedMessage(
   const withdrawAmount =
     Number.isFinite(targetFiat) && targetFiat > 0 ? targetFiat : fallbackAmount;
 
-  const chainId = metamaskPay.chainId as Hex;
-  const tokenAddress = metamaskPay.tokenAddress as Hex;
-  const tokenSymbol =
-    selectSingleTokenByAddressAndChainId(state, tokenAddress, chainId)
-      ?.symbol ??
-    selectTickerByChainId(state, chainId) ??
-    'USDC';
+  const chainId = metamaskPay.chainId as Hex | undefined;
+  const tokenAddress = metamaskPay.tokenAddress as Hex | undefined;
+
+  let tokenSymbol: string | undefined;
+  if (tokenAddress && chainId) {
+    tokenSymbol = selectSingleTokenByAddressAndChainId(
+      state,
+      tokenAddress,
+      chainId,
+    )?.symbol;
+  }
+  if (!tokenSymbol && chainId) {
+    tokenSymbol = selectTickerByChainId(state, chainId);
+  }
+  if (!tokenSymbol) {
+    tokenSymbol = 'USDC';
+  }
 
   return {
     title,

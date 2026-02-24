@@ -165,6 +165,37 @@ describe('getWithdrawConfirmedMessage', () => {
     expect(result.description).toContain('$20');
   });
 
+  it('does not crash when tokenAddress is missing on post-quote', () => {
+    selectTxMeta.mockReturnValue({
+      metamaskPay: {
+        isPostQuote: true,
+        targetFiat: '10',
+        chainId: '0x1',
+      },
+    });
+    selectTicker.mockReturnValue('ETH');
+
+    const result = getWithdrawConfirmedMessage(mockState, 'tx-1', 10);
+
+    expect(selectToken).not.toHaveBeenCalled();
+    expect(result.description).toContain('ETH');
+  });
+
+  it('does not crash when both chainId and tokenAddress are missing on post-quote', () => {
+    selectTxMeta.mockReturnValue({
+      metamaskPay: {
+        isPostQuote: true,
+        targetFiat: '10',
+      },
+    });
+
+    const result = getWithdrawConfirmedMessage(mockState, 'tx-1', 10);
+
+    expect(selectToken).not.toHaveBeenCalled();
+    expect(selectTicker).not.toHaveBeenCalled();
+    expect(result.description).toContain('USDC');
+  });
+
   it('falls back to event amount when targetFiat is NaN', () => {
     selectTxMeta.mockReturnValue({
       metamaskPay: {
