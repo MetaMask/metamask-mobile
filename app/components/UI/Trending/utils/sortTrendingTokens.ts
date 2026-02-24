@@ -69,9 +69,5 @@ export const sortTrendingTokens = (
 
   sortable.sort((a, b) => (getValue(a) - getValue(b)) * dirMultiplier);
 
-  for (const token of nulled) {
-    sortable.push(token);
-  }
-
-  return sortable;
+  return [...sortable, ...nulled];
 };
