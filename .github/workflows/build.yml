@@ -90,6 +90,14 @@ jobs:
     runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     steps:
+      - name: Validate version-bump commit
+        run: |
+          COMMIT_HASH="${{ needs.update-build-version.outputs.commit-hash }}"
+          if [ -z "$COMMIT_HASH" ]; then
+            echo "::error::update-build-version did not produce commit-hash; refusing to build to avoid using pre-bump version numbers."
+            exit 1
+          fi
+          echo "Building at version-bump commit: $COMMIT_HASH"
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.update-build-version.outputs.commit-hash }}
