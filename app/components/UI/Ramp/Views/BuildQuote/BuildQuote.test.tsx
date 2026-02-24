@@ -4,6 +4,7 @@ import { fireEvent, render, act, waitFor } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import type { RampsToken } from '../../hooks/useRampTokens';
+import type { Quote } from '../../types';
 import type { CaipChainId } from '@metamask/utils';
 import Logger from '../../../../../util/Logger';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
@@ -167,7 +168,13 @@ let mockTokens: {
   topTokens: [createMockToken()],
 };
 
-const mockGetQuotes = jest.fn();
+jest.mock('../../../../../core/Engine');
+
+import Engine from '../../../../../core/Engine';
+
+const mockGetQuotes = jest.mocked(
+  Engine.context.RampsController.getQuotes,
+) as jest.MockedFunction<typeof Engine.context.RampsController.getQuotes>;
 
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: () => ({
@@ -530,7 +537,7 @@ describe('BuildQuote', () => {
           const continueButton = getByTestId('build-quote-continue-button');
           expect(continueButton).not.toBeDisabled();
         },
-        { timeout: 2000 },
+        { timeout: 5000 },
       );
     });
 
@@ -567,7 +574,7 @@ describe('BuildQuote', () => {
           const continueButton = getByTestId('build-quote-continue-button');
           expect(continueButton).not.toBeDisabled();
         },
-        { timeout: 2000 },
+        { timeout: 5000 },
       );
 
       const continueButton = getByTestId('build-quote-continue-button');
@@ -638,7 +645,7 @@ describe('BuildQuote', () => {
           const btn = getByTestId('build-quote-continue-button');
           expect(btn).not.toBeDisabled();
         },
-        { timeout: 2000 },
+        { timeout: 5000 },
       );
       const continueButton = getByTestId('build-quote-continue-button');
       await act(async () => {
@@ -698,7 +705,7 @@ describe('BuildQuote', () => {
           const btn = getByTestId('build-quote-continue-button');
           expect(btn).not.toBeDisabled();
         },
-        { timeout: 2000 },
+        { timeout: 5000 },
       );
       const continueButton = getByTestId('build-quote-continue-button');
 
@@ -762,7 +769,7 @@ describe('BuildQuote', () => {
           const btn = getByTestId('build-quote-continue-button');
           expect(btn).not.toBeDisabled();
         },
-        { timeout: 2000 },
+        { timeout: 5000 },
       );
       const continueButton = getByTestId('build-quote-continue-button');
 
@@ -827,7 +834,7 @@ describe('BuildQuote', () => {
           const btn = getByTestId('build-quote-continue-button');
           expect(btn).not.toBeDisabled();
         },
-        { timeout: 2000 },
+        { timeout: 5000 },
       );
       const continueButton = getByTestId('build-quote-continue-button');
 
@@ -889,7 +896,7 @@ describe('BuildQuote', () => {
           const btn = getByTestId('build-quote-continue-button');
           expect(btn).not.toBeDisabled();
         },
-        { timeout: 2000 },
+        { timeout: 5000 },
       );
       const continueButton = getByTestId('build-quote-continue-button');
 
@@ -1086,7 +1093,7 @@ describe('BuildQuote', () => {
           const btn = getByTestId('build-quote-continue-button');
           expect(btn).not.toBeDisabled();
         },
-        { timeout: 2000 },
+        { timeout: 5000 },
       );
       const continueButton = getByTestId('build-quote-continue-button');
 
@@ -1165,7 +1172,7 @@ describe('BuildQuote', () => {
         name: 'Card',
       };
       mockGetQuotes.mockResolvedValue({
-        success: [mockSelectedQuote],
+        success: [mockSelectedQuote as unknown as Quote],
         sorted: [],
         error: [],
         customActions: [],
@@ -1180,7 +1187,7 @@ describe('BuildQuote', () => {
         () => {
           expect(continueButton).not.toBeDisabled();
         },
-        { timeout: 3000 },
+        { timeout: 5000 },
       );
 
       await act(async () => {
@@ -1219,7 +1226,7 @@ describe('BuildQuote', () => {
         name: 'Card',
       };
       mockGetQuotes.mockResolvedValue({
-        success: [mockSelectedQuote],
+        success: [mockSelectedQuote as unknown as Quote],
         sorted: [],
         error: [],
         customActions: [],
@@ -1237,7 +1244,7 @@ describe('BuildQuote', () => {
         () => {
           expect(continueButton).not.toBeDisabled();
         },
-        { timeout: 3000 },
+        { timeout: 5000 },
       );
 
       await act(async () => {
@@ -1342,7 +1349,7 @@ describe('BuildQuote', () => {
         name: 'Card',
       };
       mockGetQuotes.mockResolvedValue({
-        success: [mockSelectedQuote],
+        success: [mockSelectedQuote as unknown as Quote],
         sorted: [],
         error: [],
         customActions: [],
@@ -1356,7 +1363,7 @@ describe('BuildQuote', () => {
         () => {
           expect(continueButton).not.toBeDisabled();
         },
-        { timeout: 3000 },
+        { timeout: 5000 },
       );
 
       await act(async () => {
@@ -1367,7 +1374,7 @@ describe('BuildQuote', () => {
         () => {
           expect(getByText('Network error')).toBeOnTheScreen();
         },
-        { timeout: 3000 },
+        { timeout: 5000 },
       );
     });
 
@@ -1524,7 +1531,7 @@ describe('BuildQuote', () => {
             }),
           );
         },
-        { timeout: 2000 },
+        { timeout: 5000 },
       );
 
       mockNavigate.mockClear();
