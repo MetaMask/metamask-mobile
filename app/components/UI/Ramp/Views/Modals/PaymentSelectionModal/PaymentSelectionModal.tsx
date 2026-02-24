@@ -79,7 +79,10 @@ function PaymentSelectionModal() {
 
   const quoteFetchParams = useMemo(
     () =>
-      walletAddress && assetId
+      walletAddress &&
+      assetId &&
+      !paymentMethodsLoading &&
+      paymentMethodIds.length > 0
         ? {
             amount,
             walletAddress,
@@ -89,7 +92,14 @@ function PaymentSelectionModal() {
             forceRefresh: true,
           }
         : null,
-    [amount, walletAddress, assetId, selectedProvider, paymentMethodIds],
+    [
+      amount,
+      walletAddress,
+      assetId,
+      selectedProvider,
+      paymentMethodIds,
+      paymentMethodsLoading,
+    ],
   );
 
   const { data: quotes, loading: quotesLoading } =
