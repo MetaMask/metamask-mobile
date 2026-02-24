@@ -277,8 +277,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     ),
     Skeleton: TrendingTokensSkeleton,
     Section: SectionCard,
-    useSectionData: () => {
-      const { data, isLoading, refetch } = useRwaTokens();
+    useSectionData: (searchQuery) => {
+      const { data, isLoading, refetch } = useRwaTokens({ searchQuery });
       return { data, isLoading, refetch };
     },
   },
@@ -403,7 +403,7 @@ export const useSectionsData = (
     SECTIONS_CONFIG.perps.useSectionData(searchQuery);
 
   const { data: stocks, isLoading: isStocksLoading } =
-    SECTIONS_CONFIG.stocks.useSectionData();
+    SECTIONS_CONFIG.stocks.useSectionData(searchQuery);
 
   const { data: predictionMarkets, isLoading: isPredictionsLoading } =
     SECTIONS_CONFIG.predictions.useSectionData(searchQuery);
@@ -422,10 +422,8 @@ export const useSectionsData = (
     },
     stocks: {
       // Avoids making 2 API calls to the search endpoint when searching on the main search
-      data: searchQuery
-        ? trendingTokens.filter((item) => (item as TrendingAsset).rwaData)
-        : stocks,
-      isLoading: searchQuery ? isTokensLoading : isStocksLoading,
+      data: stocks,
+      isLoading: isStocksLoading,
     },
     predictions: {
       data: predictionMarkets,
