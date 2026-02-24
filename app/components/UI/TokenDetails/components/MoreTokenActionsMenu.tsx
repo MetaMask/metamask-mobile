@@ -18,7 +18,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
 import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
-import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';
@@ -111,10 +110,7 @@ const MoreTokenActionsMenu = () => {
       const tokenAddress = isCaipAssetType(asset.address)
         ? parseCaipAssetType(asset.address).assetReference
         : asset.address;
-      url = explorer.getBlockExplorerUrl(tokenAddress, asset.chainId);
-      if (url && asset.chainId && isNonEvmChainId(asset.chainId)) {
-        url = url.replace('/account/', '/token/');
-      }
+      url = explorer.getBlockExplorerTokenUrl(tokenAddress, asset.chainId);
     }
 
     if (url) {
