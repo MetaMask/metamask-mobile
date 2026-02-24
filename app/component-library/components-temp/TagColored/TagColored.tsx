@@ -25,14 +25,21 @@ const TagColored: React.FC<TagColoredProps> = ({
   labelProps,
 }) => {
   const { styles } = useStyles(styleSheet, { style, color });
+
+  const {
+    testID = TAGCOLORED_TEXT_TESTID,
+    style: labelStyle,
+    ...otherLabelProps
+  } = labelProps || {};
+
   return (
     <View style={styles.base} testID={TAGCOLORED_TESTID}>
       {typeof children === 'string' ? (
         <Text
           variant={DEFAULT_TAGCOLORED_TEXTVARIANT}
-          {...labelProps}
-          style={StyleSheet.flatten([styles.text, labelProps?.style])}
-          testID={labelProps?.testID ?? TAGCOLORED_TEXT_TESTID}
+          {...otherLabelProps}
+          testID={testID}
+          style={StyleSheet.flatten([styles.text, labelStyle])}
         >
           {children}
         </Text>
