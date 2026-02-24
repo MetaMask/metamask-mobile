@@ -134,13 +134,12 @@ jest.mock(
   }),
 );
 
-const mockSelectTokenListLayoutV2Enabled = jest.fn(() => false);
+const mockSelectTokenListLayoutV2Enabled = jest.fn().mockReturnValue(false);
 
 jest.mock(
   '../../../../../selectors/featureFlagController/tokenListLayout',
   () => ({
-    selectTokenListLayoutV2Enabled: (state: unknown) =>
-      mockSelectTokenListLayoutV2Enabled(state),
+    selectTokenListLayoutV2Enabled: () => mockSelectTokenListLayoutV2Enabled(),
   }),
 );
 
@@ -221,6 +220,7 @@ describe('TokensSection', () => {
     // Default null: balance selectors not yet initialized (cold start).
     // Prevents the heuristic from firing in tests that don't set up balance data.
     mockAccountGroupBalance.mockReturnValue(null);
+    mockSelectTokenListLayoutV2Enabled.mockReturnValue(false);
     mockUsePopularTokens.mockReturnValue({
       tokens: mockPopularTokens,
       isInitialLoading: false,
