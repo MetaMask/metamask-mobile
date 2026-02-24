@@ -487,6 +487,35 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                             />
                           </View>
                         </View>
+                        <View
+                          style={
+                            [
+                              {
+                                "display": "flex",
+                                "paddingBottom": 8,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "paddingTop": 4,
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#b7bbc8",
+                                "fontFamily": "Geist-Regular",
+                                "fontSize": 14,
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            fiat_on_ramp.quotes_displayed_for
+                          </Text>
+                        </View>
                         <RCTScrollView
                           collapsable={false}
                           data={

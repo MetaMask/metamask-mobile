@@ -12,13 +12,19 @@ const mockGetQuotes = jest.fn().mockResolvedValue({
   customActions: [],
 });
 
-jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    RampsController: {
-      getQuotes: mockGetQuotes,
-      getWidgetUrl: jest.fn(),
-    },
-  },
+const mockGetWidgetUrl = jest.fn();
+
+const defaultQuotesReturn = {
+  getQuotes: mockGetQuotes,
+  getWidgetUrl: mockGetWidgetUrl,
+  data: null,
+  loading: false,
+  error: null,
+};
+
+const mockUseRampsQuotes: jest.Mock = jest.fn(() => defaultQuotesReturn);
+jest.mock('../../../hooks/useRampsQuotes', () => ({
+  useRampsQuotes: (...args: unknown[]) => mockUseRampsQuotes(...args),
 }));
 
 const mockNavigate = jest.fn();
@@ -147,7 +153,6 @@ const defaultControllerReturn = {
   selectedPaymentMethod: mockPaymentMethods[0],
   setSelectedProvider: mockSetSelectedProvider,
   setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
-  getQuotes: mockGetQuotes,
   userRegion: { regionCode: 'us', country: { currency: 'USD' } },
   selectedToken: {
     assetId: 'eip155:1/slip44:60',
@@ -189,6 +194,7 @@ describe('PaymentSelectionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRampsController.mockImplementation(() => defaultControllerReturn);
+    mockUseRampsQuotes.mockImplementation(() => defaultQuotesReturn);
   });
 
   it('matches snapshot', () => {
@@ -327,11 +333,11 @@ describe('PaymentSelectionModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('calls getQuotes with payment method params when on PAYMENT view', () => {
-    mockGetQuotes.mockClear();
+  it('passes correct quote fetch params to useRampsQuotes', () => {
+    mockUseRampsQuotes.mockClear();
     renderWithProvider(PaymentSelectionModal);
 
-    expect(mockGetQuotes).toHaveBeenCalledWith({
+    expect(mockUseRampsQuotes).toHaveBeenCalledWith({
       amount: 100,
       walletAddress: '0x123',
       assetId: 'eip155:1/slip44:60',

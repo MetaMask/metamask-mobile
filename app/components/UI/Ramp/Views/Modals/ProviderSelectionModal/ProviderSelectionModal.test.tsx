@@ -6,26 +6,13 @@ import ProviderSelectionModal, {
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../constants/navigation/Routes';
+import Engine from '../../../../../../core/Engine';
 
 jest.mock('../../../../../Base/RemoteImage', () => jest.fn(() => null));
 
-const mockGetQuotes = jest.fn().mockResolvedValue({
-  success: [],
-  error: [],
-  sorted: [],
-  customActions: [],
-});
+const mockGetQuotes = jest.mocked(Engine.context.RampsController.getQuotes);
 const mockGoBack = jest.fn();
 const mockSetSelectedProvider = jest.fn();
-
-jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    RampsController: {
-      getQuotes: mockGetQuotes,
-      getWidgetUrl: jest.fn(),
-    },
-  },
-}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -152,6 +139,12 @@ function renderWithProvider(component: React.ComponentType) {
 describe('ProviderSelectionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetQuotes.mockResolvedValue({
+      success: [],
+      error: [],
+      sorted: [],
+      customActions: [],
+    });
     mockUseRampsController.mockImplementation(() => defaultControllerReturn);
     mockUseParams.mockReturnValue({ amount: 100 });
   });
