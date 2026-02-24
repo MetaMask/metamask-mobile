@@ -116,6 +116,38 @@ describe('AdvancedChart', () => {
     expect(onError).toHaveBeenCalledWith('test error');
   });
 
+  it('does not destroy the chart for errors after CHART_READY', () => {
+    const onError = jest.fn();
+    const { getByTestId, queryByText } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} onError={onError} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'ERROR',
+            payload: { message: 'Failed to add indicator: timeout' },
+          }),
+        },
+      });
+    });
+
+    expect(onError).toHaveBeenCalledWith('Failed to add indicator: timeout');
+    expect(queryByText(/Failed to load chart/)).not.toBeOnTheScreen();
+    expect(getByTestId('mock-webview')).toBeOnTheScreen();
+  });
+
   it('calls onCrosshairMove when crosshair data arrives', () => {
     const onCrosshairMove = jest.fn();
     const { getByTestId } = render(
@@ -355,8 +387,10 @@ describe('AdvancedChart', () => {
     expect(addIndicatorCall).toBeDefined();
   });
 
-  it('displays error when WebView fails', () => {
-    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
+  it('displays error screen for errors before CHART_READY', () => {
+    const { getByTestId, getByText } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} />,
+    );
 
     const webView = getByTestId('mock-webview');
     act(() => {
@@ -370,8 +404,7 @@ describe('AdvancedChart', () => {
       });
     });
 
-    // After error, component re-renders with error state
-    // The test verifies it doesn't crash
+    expect(getByText(/Load failed/)).toBeOnTheScreen();
   });
 
   it('recovers from error state when reset() is called via ref', () => {

@@ -188,7 +188,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           case 'ERROR':
             if (hasPayload && 'message' in payload) {
               const errorMessage = payload.message as string;
-              setWebViewError(errorMessage);
+              if (!isChartReady) {
+                setWebViewError(errorMessage);
+              }
               onError?.(errorMessage);
             }
             break;
@@ -202,7 +204,13 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             break;
         }
       },
-      [onChartReady, onError, onCrosshairMove, onRequestMoreHistory],
+      [
+        isChartReady,
+        onChartReady,
+        onError,
+        onCrosshairMove,
+        onRequestMoreHistory,
+      ],
     );
 
     const handleWebViewError = useCallback(

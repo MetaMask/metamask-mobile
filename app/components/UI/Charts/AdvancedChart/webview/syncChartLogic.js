@@ -24,7 +24,7 @@ const tsContent = `/**
  */
 
 // eslint-disable-next-line import/no-default-export
-export default \`${jsContent.replace(/`/g, '\\`').replace(/\${/g, '\\${')}\`;
+export default \`${jsContent.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\${/g, '\\${')}\`;
 `;
 
 fs.writeFileSync(targetFile, tsContent);

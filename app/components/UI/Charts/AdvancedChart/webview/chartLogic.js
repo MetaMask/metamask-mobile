@@ -458,6 +458,31 @@ function handleToggleVolume(payload) {
 // ============================================
 // Custom Datafeed Implementation
 // ============================================
+
+/**
+ * TradingView variable_tick_size string.
+ *
+ * Tells TradingView to dynamically adjust pricescale/minmov based on
+ * the current price level. Format: "tickSize threshold tickSize threshold …"
+ * where each tickSize applies for prices below the next threshold, and
+ * the last tickSize applies to all prices above the last threshold.
+ *
+ * This replaces a manual pricescale computation and adapts automatically
+ * as prices change (e.g. meme token pumps from $0.0001 to $1).
+ */
+var VARIABLE_TICK_SIZE = [
+  '0.0000000001',
+  '0.000001', // prices < $0.000001 → 10 dp
+  '0.00000001',
+  '0.0001', // prices < $0.0001   →  8 dp
+  '0.000001',
+  '0.01', // prices < $0.01     →  6 dp
+  '0.0001',
+  '1', // prices < $1        →  4 dp
+  '0.01',
+  '10000', // prices < $10000    →  2 dp
+  '0.1', // prices ≥ $10000    →  1 dp
+].join(' ');
 var customDatafeed = {
   onReady: function (callback) {
     setTimeout(function () {
@@ -498,9 +523,10 @@ var customDatafeed = {
         type: 'crypto',
         session: '24x7',
         timezone: 'Etc/UTC',
-        exchange: 'MetaMask',
+        exchange: '',
         minmov: 1,
         pricescale: 100,
+        variable_tick_size: VARIABLE_TICK_SIZE,
         has_intraday: true,
         has_daily: true,
         has_weekly_and_monthly: true,
