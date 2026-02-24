@@ -15,6 +15,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: (component: unknown) => component,
+  withNavigationFocus: (component: unknown) => component,
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
@@ -71,6 +76,40 @@ jest.mock('../utils/accounts', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: () => unknown) => selector(),
+}));
+
+// Mock the entire confirm-component to avoid deep dependency chain
+jest.mock(
+  '../../../Views/confirmations/components/confirm/confirm-component',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
+
+// Mock useConfirmationAlerts to avoid deep dependency chain
+jest.mock(
+  '../../../Views/confirmations/hooks/alerts/useConfirmationAlerts',
+  () => ({
+    useConfirmationAlerts: () => ({
+      alerts: [],
+    }),
+  }),
+);
+
+// Mock useInsufficientBalanceAlert
+jest.mock(
+  '../../../Views/confirmations/hooks/alerts/useInsufficientBalanceAlert',
+  () => ({
+    useInsufficientBalanceAlert: () => undefined,
+  }),
+);
+
+// Mock useRampNavigation
+jest.mock('../../../UI/Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({
+    goToBuy: jest.fn(),
+  }),
 }));
 
 // Mock useContext for ToastContext

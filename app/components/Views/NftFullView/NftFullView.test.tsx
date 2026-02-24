@@ -15,6 +15,27 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../UI/NftGrid/NftGrid', () => 'NftGrid');
 
+jest.mock(
+  '../../../component-library/components/BottomSheets/BottomSheetHeader',
+  () => {
+    const { TouchableOpacity, View, Text } = jest.requireActual('react-native');
+    return ({
+      children,
+      onBack,
+    }: {
+      children: React.ReactNode;
+      onBack: () => void;
+    }) => (
+      <View testID="bottom-sheet-header">
+        <TouchableOpacity testID="header-back-button" onPress={onBack}>
+          <Text>Back</Text>
+        </TouchableOpacity>
+        <Text testID="header-title">{children}</Text>
+      </View>
+    );
+  },
+);
+
 describe('NftFullView', () => {
   const initialState = {
     engine: {
@@ -39,7 +60,8 @@ describe('NftFullView', () => {
     });
 
     // Assert
-    const nftGrid = UNSAFE_getByType('NftGrid');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nftGrid = UNSAFE_getByType('NftGrid' as any);
     expect(nftGrid.props.isFullView).toBe(true);
   });
 
@@ -57,13 +79,13 @@ describe('NftFullView', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('displays collectibles header title', () => {
+  it('displays NFTs header title', () => {
     // Arrange & Act
-    const { getByText } = renderWithProvider(<NftFullView />, {
+    const { getByTestId } = renderWithProvider(<NftFullView />, {
       state: initialState,
     });
 
     // Assert
-    expect(getByText('Collectibles')).toBeOnTheScreen();
+    expect(getByTestId('header-title')).toBeOnTheScreen();
   });
 });

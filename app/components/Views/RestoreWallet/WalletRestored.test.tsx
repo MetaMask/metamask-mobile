@@ -54,7 +54,8 @@ describe('WalletRestored', () => {
     navigate: jest.fn(),
     goBack: jest.fn(),
     dispatch: jest.fn((action) => {
-      if (action.type === 'REPLACE') {
+      // StackActions.replace creates action with type 'stack/REPLACE'
+      if (action.type === 'stack/REPLACE') {
         mockNavigation.replace(action.payload.name, action.payload.params);
       }
     }),
