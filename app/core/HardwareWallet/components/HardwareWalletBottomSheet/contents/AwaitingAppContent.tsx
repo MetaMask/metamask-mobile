@@ -1,10 +1,3 @@
-/**
- * Awaiting App Content Component
- *
- * Displays a message prompting the user to open the Ethereum app on their hardware wallet device.
- * Device-agnostic component using generic icons consistent with ErrorContent.
- */
-
 import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
@@ -27,33 +20,13 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { getHardwareWalletTypeName } from '../../../helpers';
+import { ContentLayout } from './ContentLayout';
 
-// Test IDs
 export const AWAITING_APP_CONTENT_TEST_ID = 'awaiting-app-content';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    container: {
-      paddingHorizontal: 24,
-      paddingBottom: 24,
-    },
-    iconContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 16,
-      marginTop: 8,
-    },
-    titleContainer: {
-      alignItems: 'center',
-      marginBottom: 8,
-    },
-    title: {
-      textAlign: 'center',
-    },
-    messageContainer: {
-      alignItems: 'center',
-      marginBottom: 24,
-    },
     messageText: {
       textAlign: 'center',
       marginBottom: 8,
@@ -68,15 +41,11 @@ const createStyles = (colors: Colors) =>
     currentAppText: {
       textAlign: 'center',
     },
-    buttonContainer: {
-      marginTop: 16,
-      width: '100%',
-    },
   });
 
 export interface AwaitingAppContentProps {
   /** The device type for context in messages */
-  deviceType?: HardwareWalletType;
+  deviceType: HardwareWalletType;
   /** The name of the app currently open on the device (if known) */
   currentApp?: string;
   /** The required app name (defaults to 'Ethereum') */
@@ -88,11 +57,10 @@ export interface AwaitingAppContentProps {
 }
 
 /**
- * Content component shown when the user needs to open the Ethereum app on their hardware wallet.
- * Uses generic icons consistent with ErrorContent design.
+ * Content component shown when the user needs to open the correct app on their hardware wallet.
  */
 export const AwaitingAppContent: React.FC<AwaitingAppContentProps> = ({
-  deviceType = HardwareWalletType.Ledger,
+  deviceType,
   currentApp,
   requiredApp = 'Ethereum',
   onContinue,
@@ -100,72 +68,54 @@ export const AwaitingAppContent: React.FC<AwaitingAppContentProps> = ({
 }) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const deviceName = getHardwareWalletTypeName(deviceType);
 
   const showCurrentApp =
     currentApp && currentApp !== requiredApp && currentApp !== 'BOLOS';
 
-  // Get device-specific name for display
-  const deviceName = useMemo(
-    () => strings(`hardware_wallet.device_names.${deviceType.toLowerCase()}`),
-    [deviceType],
-  );
-
   return (
-    <View style={styles.container} testID={AWAITING_APP_CONTENT_TEST_ID}>
-      {/* Icon - consistent with ErrorContent design */}
-      <View style={styles.iconContainer}>
+    <ContentLayout
+      testID={AWAITING_APP_CONTENT_TEST_ID}
+      icon={
         <Icon
           name={IconName.Setting}
           size={IconSize.Xl}
           color={IconColor.Primary}
         />
-      </View>
+      }
+      title={strings('hardware_wallet.awaiting_app.title', {
+        app: requiredApp,
+      })}
+      body={
+        <>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
+            style={styles.messageText}
+          >
+            {strings('hardware_wallet.awaiting_app.message', {
+              device: deviceName,
+              app: requiredApp,
+            })}
+          </Text>
 
-      {/* Title */}
-      <View style={styles.titleContainer}>
-        <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
-          style={styles.title}
-        >
-          {strings('hardware_wallet.awaiting_app.title', {
-            app: requiredApp,
-          })}
-        </Text>
-      </View>
-
-      {/* Message */}
-      <View style={styles.messageContainer}>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Default}
-          style={styles.messageText}
-        >
-          {strings('hardware_wallet.awaiting_app.message', {
-            device: deviceName,
-            app: requiredApp,
-          })}
-        </Text>
-
-        {/* Show current app if different from required */}
-        {showCurrentApp && (
-          <View style={styles.currentAppContainer}>
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Default}
-              style={styles.currentAppText}
-            >
-              {strings('hardware_wallet.awaiting_app.current_app', {
-                app: currentApp,
-              })}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Continue button - user taps after opening app */}
-      {onContinue && (
-        <View style={styles.buttonContainer}>
+          {showCurrentApp && (
+            <View style={styles.currentAppContainer}>
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Default}
+                style={styles.currentAppText}
+              >
+                {strings('hardware_wallet.awaiting_app.current_app', {
+                  app: currentApp,
+                })}
+              </Text>
+            </View>
+          )}
+        </>
+      }
+      footer={
+        onContinue ? (
           <Button
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
@@ -175,10 +125,8 @@ export const AwaitingAppContent: React.FC<AwaitingAppContentProps> = ({
             loading={isLoading}
             disabled={isLoading}
           />
-        </View>
-      )}
-    </View>
+        ) : undefined
+      }
+    />
   );
 };
-
-export default AwaitingAppContent;

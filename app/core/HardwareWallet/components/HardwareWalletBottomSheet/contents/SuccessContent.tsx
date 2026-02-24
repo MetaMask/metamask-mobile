@@ -1,17 +1,5 @@
-/**
- * Success Content Component
- *
- * Displays a brief success message after a successful operation.
- * Auto-dismisses without requiring user action.
- */
+import React, { useEffect } from 'react';
 
-import React, { useMemo, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
-
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
@@ -19,37 +7,16 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 
 import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
-import { Colors } from '../../../../../util/theme/models';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { getHardwareWalletTypeName } from '../../../helpers';
+import { ContentLayout } from './ContentLayout';
 
-// Test IDs
 export const SUCCESS_CONTENT_TEST_ID = 'success-content';
 export const SUCCESS_CONTENT_ICON_TEST_ID = 'success-content-icon';
 
-const createStyles = (_colors: Colors) =>
-  StyleSheet.create({
-    container: {
-      paddingHorizontal: 24,
-      paddingBottom: 24,
-    },
-    iconContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 16,
-      marginTop: 8,
-    },
-    titleContainer: {
-      alignItems: 'center',
-    },
-    title: {
-      textAlign: 'center',
-    },
-  });
-
 export interface SuccessContentProps {
   /** The device type for context in messages */
-  deviceType?: HardwareWalletType;
+  deviceType: HardwareWalletType;
   /** Callback when auto-dismiss triggers */
   onDismiss?: () => void;
   /** Auto-dismiss after this many milliseconds (0 to disable) */
@@ -58,23 +25,13 @@ export interface SuccessContentProps {
 
 /**
  * Content component for displaying success feedback.
- * Auto-dismisses after the specified timeout - no button shown.
+ * Auto-dismisses after the specified timeout.
  */
 export const SuccessContent: React.FC<SuccessContentProps> = ({
-  deviceType = HardwareWalletType.Ledger,
+  deviceType,
   onDismiss,
   autoDismissMs = 0,
 }) => {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-
-  // Get device-specific name for display
-  const deviceName = useMemo(
-    () => strings(`hardware_wallet.device_names.${deviceType.toLowerCase()}`),
-    [deviceType],
-  );
-
-  // Auto-dismiss effect
   useEffect(() => {
     if (autoDismissMs > 0 && onDismiss) {
       const timer = setTimeout(() => {
@@ -87,29 +44,19 @@ export const SuccessContent: React.FC<SuccessContentProps> = ({
   }, [autoDismissMs, onDismiss]);
 
   return (
-    <View style={styles.container} testID={SUCCESS_CONTENT_TEST_ID}>
-      {/* Success Icon */}
-      <View style={styles.iconContainer}>
+    <ContentLayout
+      testID={SUCCESS_CONTENT_TEST_ID}
+      icon={
         <Icon
           testID={SUCCESS_CONTENT_ICON_TEST_ID}
           name={IconName.CheckBold}
           size={IconSize.Xl}
           color={IconColor.Success}
         />
-      </View>
-
-      {/* Title */}
-      <View style={styles.titleContainer}>
-        <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
-          style={styles.title}
-        >
-          {strings('hardware_wallet.success.title', { device: deviceName })}
-        </Text>
-      </View>
-    </View>
+      }
+      title={strings('hardware_wallet.success.title', {
+        device: getHardwareWalletTypeName(deviceType),
+      })}
+    />
   );
 };
-
-export default SuccessContent;

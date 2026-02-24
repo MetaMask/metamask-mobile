@@ -1,10 +1,3 @@
-/**
- * Device Selection Content Component
- *
- * Displays a list of discovered Bluetooth devices for user selection.
- * Used during the device scanning phase of hardware wallet connection.
- */
-
 import React, { useMemo } from 'react';
 import {
   View,
@@ -34,8 +27,9 @@ import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { DiscoveredDevice } from '../../../types';
+import { getHardwareWalletTypeName } from '../../../helpers';
+import { ContentLayout } from './ContentLayout';
 
-// Test IDs
 export const DEVICE_SELECTION_CONTENT_TEST_ID = 'device-selection-content';
 export const DEVICE_SELECTION_ITEM_TEST_ID = 'device-selection-item';
 export const DEVICE_SELECTION_EMPTY_TEST_ID = 'device-selection-empty';
@@ -43,23 +37,6 @@ export const DEVICE_SELECTION_SCANNING_TEST_ID = 'device-selection-scanning';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    container: {
-      paddingHorizontal: 24,
-      paddingBottom: 24,
-    },
-    iconContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 16,
-      marginTop: 8,
-    },
-    titleContainer: {
-      alignItems: 'center',
-      marginBottom: 16,
-    },
-    title: {
-      textAlign: 'center',
-    },
     scanningContainer: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -72,7 +49,6 @@ const createStyles = (colors: Colors) =>
     },
     deviceList: {
       maxHeight: 300,
-      marginBottom: 16,
     },
     deviceItem: {
       flexDirection: 'row',
@@ -97,9 +73,6 @@ const createStyles = (colors: Colors) =>
     deviceName: {
       marginBottom: 2,
     },
-    deviceModel: {
-      // Empty style for future use
-    },
     checkmarkContainer: {
       marginLeft: 8,
     },
@@ -116,13 +89,6 @@ const createStyles = (colors: Colors) =>
     },
     emptySubtext: {
       textAlign: 'center',
-    },
-    buttonContainer: {
-      marginTop: 8,
-      width: '100%',
-    },
-    buttonSpacing: {
-      marginBottom: 8,
     },
     tipsContainer: {
       marginBottom: 16,
@@ -143,7 +109,7 @@ export interface DeviceSelectionContentProps {
   /** Whether scanning is in progress */
   isScanning: boolean;
   /** The device type for context in messages */
-  deviceType?: HardwareWalletType;
+  deviceType: HardwareWalletType;
   /** Callback when a device is selected */
   onSelectDevice: (device: DiscoveredDevice) => void;
   /** Callback when user confirms selection */
@@ -162,7 +128,7 @@ export const DeviceSelectionContent: React.FC<DeviceSelectionContentProps> = ({
   devices,
   selectedDevice,
   isScanning,
-  deviceType = HardwareWalletType.Ledger,
+  deviceType,
   onSelectDevice,
   onConfirmSelection,
   onRescan,
@@ -170,12 +136,7 @@ export const DeviceSelectionContent: React.FC<DeviceSelectionContentProps> = ({
 }) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-
-  // Get device-specific name for display
-  const deviceName = useMemo(
-    () => strings(`hardware_wallet.device_names.${deviceType.toLowerCase()}`),
-    [deviceType],
-  );
+  const deviceName = getHardwareWalletTypeName(deviceType);
 
   const renderDevice = ({ item }: { item: DiscoveredDevice }) => {
     const isSelected = selectedDevice?.id === item.id;
@@ -206,11 +167,7 @@ export const DeviceSelectionContent: React.FC<DeviceSelectionContentProps> = ({
               strings('hardware_wallet.device_selection.unknown_device')}
           </Text>
           {item.metadata?.rssi !== undefined && (
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Default}
-              style={styles.deviceModel}
-            >
+            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
               {strings('hardware_wallet.device_selection.signal_strength', {
                 rssi: item.metadata.rssi,
               })}
@@ -262,105 +219,91 @@ export const DeviceSelectionContent: React.FC<DeviceSelectionContentProps> = ({
   );
 
   return (
-    <View style={styles.container} testID={DEVICE_SELECTION_CONTENT_TEST_ID}>
-      {/* Icon */}
-      <View style={styles.iconContainer}>
+    <ContentLayout
+      testID={DEVICE_SELECTION_CONTENT_TEST_ID}
+      icon={
         <Icon
           name={IconName.Hardware}
           size={IconSize.Xl}
           color={IconColor.Primary}
         />
-      </View>
+      }
+      title={strings('hardware_wallet.device_selection.title', {
+        device: deviceName,
+      })}
+      body={
+        <>
+          {isScanning && (
+            <View
+              style={styles.scanningContainer}
+              testID={DEVICE_SELECTION_SCANNING_TEST_ID}
+            >
+              <ActivityIndicator color={colors.primary.default} />
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                style={styles.scanningText}
+              >
+                {strings('hardware_wallet.device_selection.scanning')}
+              </Text>
+            </View>
+          )}
 
-      {/* Title */}
-      <View style={styles.titleContainer}>
-        <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
-          style={styles.title}
-        >
-          {strings('hardware_wallet.device_selection.title', {
-            device: deviceName,
-          })}
-        </Text>
-      </View>
+          <View style={styles.tipsContainer}>
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Default}
+              style={styles.tipText}
+            >
+              {strings('hardware_wallet.device_selection.tips', {
+                device: deviceName,
+              })}
+            </Text>
+          </View>
 
-      {/* Scanning indicator */}
-      {isScanning && (
-        <View
-          style={styles.scanningContainer}
-          testID={DEVICE_SELECTION_SCANNING_TEST_ID}
-        >
-          <ActivityIndicator color={colors.primary.default} />
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
-            style={styles.scanningText}
-          >
-            {strings('hardware_wallet.device_selection.scanning')}
-          </Text>
-        </View>
-      )}
-
-      {/* Tips */}
-      <View style={styles.tipsContainer}>
-        <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Default}
-          style={styles.tipText}
-        >
-          {strings('hardware_wallet.device_selection.tips', {
-            device: deviceName,
-          })}
-        </Text>
-      </View>
-
-      {/* Device list */}
-      {devices.length > 0 ? (
-        <FlatList
-          data={devices}
-          renderItem={renderDevice}
-          keyExtractor={(item) => item.id}
-          style={styles.deviceList}
-          showsVerticalScrollIndicator={false}
-        />
-      ) : (
-        renderEmpty()
-      )}
-
-      {/* Action buttons */}
-      <View style={styles.buttonContainer}>
-        {selectedDevice && (
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('hardware_wallet.device_selection.connect')}
-            onPress={onConfirmSelection}
-            style={styles.buttonSpacing}
-          />
-        )}
-        {onRescan && !isScanning && (
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('hardware_wallet.device_selection.rescan')}
-            onPress={onRescan}
-            style={styles.buttonSpacing}
-          />
-        )}
-        {onCancel && (
-          <Button
-            variant={ButtonVariants.Link}
-            size={ButtonSize.Lg}
-            label={strings('hardware_wallet.common.cancel')}
-            onPress={onCancel}
-          />
-        )}
-      </View>
-    </View>
+          {devices.length > 0 ? (
+            <FlatList
+              data={devices}
+              renderItem={renderDevice}
+              keyExtractor={(item) => item.id}
+              style={styles.deviceList}
+              showsVerticalScrollIndicator={false}
+            />
+          ) : (
+            renderEmpty()
+          )}
+        </>
+      }
+      footer={
+        <>
+          {selectedDevice && (
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={strings('hardware_wallet.device_selection.connect')}
+              onPress={onConfirmSelection}
+            />
+          )}
+          {onRescan && !isScanning && (
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={strings('hardware_wallet.device_selection.rescan')}
+              onPress={onRescan}
+            />
+          )}
+          {onCancel && (
+            <Button
+              variant={ButtonVariants.Link}
+              size={ButtonSize.Lg}
+              label={strings('hardware_wallet.common.cancel')}
+              onPress={onCancel}
+            />
+          )}
+        </>
+      }
+    />
   );
 };
-
-export default DeviceSelectionContent;

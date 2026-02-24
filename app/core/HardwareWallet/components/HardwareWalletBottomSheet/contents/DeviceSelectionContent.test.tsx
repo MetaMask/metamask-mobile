@@ -187,6 +187,7 @@ describe('DeviceSelectionContent', () => {
         devices={mockDevices}
         selectedDevice={undefined}
         isScanning={false}
+        deviceType={HardwareWalletType.Ledger}
         onSelectDevice={jest.fn()}
         onConfirmSelection={jest.fn()}
       />,

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useMemo, useRef, useCallback, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 
@@ -22,10 +21,9 @@ import {
   ErrorContent,
   SuccessContent,
 } from './contents';
-import { DiscoveredDevice } from '../../types';
-import { DeviceSelectionState } from '../../contexts/HardwareWalletContext';
+import { DiscoveredDevice, type DeviceSelectionState } from '../../types';
+import DevLogger from '../../../SDKConnect/utils/DevLogger';
 
-// Test IDs
 export const HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID =
   'hardware-wallet-bottom-sheet';
 
@@ -36,27 +34,18 @@ const createStyles = (colors: { background: { default: string } }) =>
     },
   });
 
-/**
- * Internal props for HardwareWalletBottomSheet.
- *
- * These are passed directly by HardwareWalletProvider, NOT consumed via context.
- * This ensures internal actions (retryLastOperation, connect, rescan, etc.) are
- * physically inaccessible to external consumers of useHardwareWallet().
- */
 export interface HardwareWalletBottomSheetProps {
-  // --- Internal state (from provider) ---
   connectionState: HardwareWalletConnectionState;
   deviceSelection: DeviceSelectionState;
   walletType: HardwareWalletType | null;
+  connectionTips: string[];
 
-  // --- Internal actions (from provider) ---
   retryLastOperation: () => Promise<void>;
   closeDeviceSelection: () => void;
   selectDevice: (device: DiscoveredDevice) => void;
   rescan: () => void;
   connect: (deviceId: string) => Promise<void>;
 
-  // --- External callbacks (from parent components) ---
   /** Optional callback when sheet closes */
   onClose?: () => void;
   /** Optional callback when user cancels an operation */
@@ -73,12 +62,12 @@ export interface HardwareWalletBottomSheetProps {
  * Unified Hardware Wallet Bottom Sheet
  *
  * Automatically displays the appropriate content based on connection state:
+ * - Scanning: Device selection list
  * - Connecting: Shows tips and loading spinner
- * - AwaitingApp: Prompts user to open Ethereum app
+ * - AwaitingApp: Prompts user to open correct app
  * - AwaitingConfirmation: Prompts user to confirm on device
  * - Error: Shows error with recovery actions
- *
- * The sheet visibility is controlled by the connection state from context.
+ * - Ready: Shows success feedback
  */
 export const HardwareWalletBottomSheet: React.FC<
   HardwareWalletBottomSheetProps
@@ -86,6 +75,7 @@ export const HardwareWalletBottomSheet: React.FC<
   connectionState,
   deviceSelection,
   walletType,
+  connectionTips,
   retryLastOperation,
   closeDeviceSelection,
   selectDevice,
@@ -102,10 +92,8 @@ export const HardwareWalletBottomSheet: React.FC<
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  // Extract device selection state from context
   const { devices, selectedDevice, isScanning } = deviceSelection;
 
-  // Determine if sheet should be visible
   const shouldShow = useMemo(() => {
     switch (connectionState.status) {
       case ConnectionStatus.Scanning:
@@ -121,9 +109,8 @@ export const HardwareWalletBottomSheet: React.FC<
     }
   }, [connectionState.status]);
 
-  // Debug: log visibility changes
   useEffect(() => {
-    console.log(
+    DevLogger.log(
       '[HardwareWalletBottomSheet] shouldShow:',
       shouldShow,
       'status:',
@@ -131,10 +118,7 @@ export const HardwareWalletBottomSheet: React.FC<
     );
   }, [shouldShow, connectionState.status]);
 
-  // Handle sheet close
   const handleClose = useCallback(() => {
-    // If we're in any active state (scanning, connecting, error, etc.),
-    // call closeDeviceSelection to properly clean up and resolve any pending promises
     if (
       connectionState.status === ConnectionStatus.Scanning ||
       connectionState.status === ConnectionStatus.Connecting ||
@@ -146,31 +130,22 @@ export const HardwareWalletBottomSheet: React.FC<
     onClose?.();
   }, [connectionState.status, closeDeviceSelection, onClose]);
 
-  // Handle cancel during awaiting confirmation state
-  // This uses the specific callback from provider, which triggers the stored onReject
   const handleAwaitingConfirmationCancel = useCallback(() => {
     onAwaitingConfirmationCancel?.();
   }, [onAwaitingConfirmationCancel]);
 
-  // Handle error continue - user wants to retry the operation
-  // Only manual dismiss (swipe down) should resolve with false
   const handleErrorContinue = useCallback(async () => {
     await retryLastOperation();
   }, [retryLastOperation]);
 
-  // Handle error dismiss - for ACKNOWLEDGE errors, just close the sheet
-  // This is used when the error cannot be recovered by retrying
   const handleErrorDismiss = useCallback(() => {
     closeDeviceSelection();
   }, [closeDeviceSelection]);
 
-  // Handle success dismiss - trigger callback which will resolve the promise
-  // and transition state properly
   const handleSuccessDismiss = useCallback(() => {
     onConnectionSuccess?.();
   }, [onConnectionSuccess]);
 
-  // Handle device selection - use context action
   const handleSelectDevice = useCallback(
     (selectedDev: DiscoveredDevice) => {
       selectDevice(selectedDev);
@@ -178,42 +153,35 @@ export const HardwareWalletBottomSheet: React.FC<
     [selectDevice],
   );
 
-  // Handle confirm device selection - connect to selected device.
-  // The provider will automatically continue the ensureDeviceReady flow after connect.
-  // We do NOT call ensureDeviceReady here - that would create a nested flow.
   const handleConfirmDeviceSelection = useCallback(async () => {
     if (selectedDevice) {
-      console.log(
+      DevLogger.log(
         '[HardwareWalletBottomSheet] Connecting to device:',
         selectedDevice.id,
       );
-      // Just connect - the provider will handle the rest via connectAndVerify
       await connect(selectedDevice.id);
-      // The provider's ensureDeviceReady flow will automatically continue
-      // and show success state when ready
     }
   }, [selectedDevice, connect]);
 
-  // Handle rescan - use context action
   const handleRescan = useCallback(() => {
     rescan();
   }, [rescan]);
 
-  // Handle cancel device selection
   const handleCancelDeviceSelection = useCallback(() => {
     closeDeviceSelection();
     onCancel?.();
   }, [closeDeviceSelection, onCancel]);
 
-  // Get the device type for content components
+  // The effective device type — only used when the sheet is visible,
+  // so walletType should always be set by then.
   const deviceType = walletType ?? HardwareWalletType.Ledger;
 
-  // Render content based on state
   const renderContent = () => {
     switch (connectionState.status) {
       case ConnectionStatus.Ready:
         return (
           <SuccessContent
+            deviceType={deviceType}
             onDismiss={handleSuccessDismiss}
             autoDismissMs={successAutoDismissMs}
           />
@@ -235,9 +203,12 @@ export const HardwareWalletBottomSheet: React.FC<
 
       case ConnectionStatus.Connecting:
       case ConnectionStatus.Connected:
-        // Show connecting content for both states - just informational, no button
-        // User can swipe down to cancel
-        return <ConnectingContent deviceType={deviceType} />;
+        return (
+          <ConnectingContent
+            deviceType={deviceType}
+            connectionTips={connectionTips}
+          />
+        );
 
       case ConnectionStatus.AwaitingApp:
         return (
@@ -282,7 +253,6 @@ export const HardwareWalletBottomSheet: React.FC<
     }
   };
 
-  // Don't render if sheet shouldn't show
   if (!shouldShow) {
     return null;
   }
@@ -300,5 +270,3 @@ export const HardwareWalletBottomSheet: React.FC<
     </BottomSheet>
   );
 };
-
-export default HardwareWalletBottomSheet;

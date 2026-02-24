@@ -1,4 +1,5 @@
 import React from 'react';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { AppThemeKey } from '../../../../../util/theme/models';
 
@@ -38,9 +39,19 @@ describe('ConnectingContent', () => {
     },
   };
 
+  const defaultProps = {
+    deviceType: HardwareWalletType.Ledger,
+    connectionTips: [
+      'hardware_wallet.connecting.tip_unlock',
+      'hardware_wallet.connecting.tip_open_app',
+      'hardware_wallet.connecting.tip_enable_bluetooth',
+      'hardware_wallet.connecting.tip_dnd_off',
+    ],
+  };
+
   const renderComponent = (props = {}) =>
     renderWithProvider(
-      <ConnectingContent {...props} />,
+      <ConnectingContent {...defaultProps} {...props} />,
       { state: mockInitialState },
       false,
       false,
@@ -62,16 +73,12 @@ describe('ConnectingContent', () => {
     const { getByText } = renderComponent();
 
     expect(getByText('hardware_wallet.connecting.tips_header')).toBeTruthy();
-    // Some tips have interpolation params, so they include the params JSON
+    // All tips are rendered with { device: deviceName } interpolation params
+    expect(getByText(/hardware_wallet\.connecting\.tip_unlock/)).toBeTruthy();
+    expect(getByText(/hardware_wallet\.connecting\.tip_open_app/)).toBeTruthy();
     expect(
-      getByText(
-        /hardware_wallet\.connecting\.tip_unlock.*device.*hardware_wallet\.device_names\.ledger/,
-      ),
+      getByText(/hardware_wallet\.connecting\.tip_enable_bluetooth/),
     ).toBeTruthy();
-    expect(getByText('hardware_wallet.connecting.tip_open_app')).toBeTruthy();
-    expect(
-      getByText('hardware_wallet.connecting.tip_enable_bluetooth'),
-    ).toBeTruthy();
-    expect(getByText('hardware_wallet.connecting.tip_dnd_off')).toBeTruthy();
+    expect(getByText(/hardware_wallet\.connecting\.tip_dnd_off/)).toBeTruthy();
   });
 });

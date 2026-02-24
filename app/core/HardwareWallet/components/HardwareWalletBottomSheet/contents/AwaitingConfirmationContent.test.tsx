@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { AppThemeKey } from '../../../../../util/theme/models';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 import {
   AwaitingConfirmationContent,
@@ -34,9 +35,13 @@ describe('AwaitingConfirmationContent', () => {
     },
   };
 
+  const defaultProps = {
+    deviceType: HardwareWalletType.Ledger,
+  };
+
   const renderComponent = (props = {}) =>
     renderWithProvider(
-      <AwaitingConfirmationContent {...props} />,
+      <AwaitingConfirmationContent {...defaultProps} {...props} />,
       { state: mockInitialState },
       false,
       false,

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { AppThemeKey } from '../../../../../util/theme/models';
 
@@ -33,9 +34,13 @@ describe('AwaitingAppContent', () => {
     },
   };
 
+  const defaultProps = {
+    deviceType: HardwareWalletType.Ledger,
+  };
+
   const renderComponent = (props = {}) =>
     renderWithProvider(
-      <AwaitingAppContent {...props} />,
+      <AwaitingAppContent {...defaultProps} {...props} />,
       { state: mockInitialState },
       false,
       false,

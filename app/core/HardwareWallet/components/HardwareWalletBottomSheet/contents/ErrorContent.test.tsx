@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   HardwareWalletError,
+  HardwareWalletType,
   ErrorCode,
   Severity,
   Category,
@@ -128,21 +129,27 @@ describe('ErrorContent', () => {
 
   it('should render with test ID', () => {
     const error = createError('Test error');
-    const { getByTestId } = render(<ErrorContent error={error} />);
+    const { getByTestId } = render(
+      <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
+    );
 
     expect(getByTestId(ERROR_CONTENT_TEST_ID)).toBeTruthy();
   });
 
   it('should render error icon', () => {
     const error = createError('Test error');
-    const { getByTestId } = render(<ErrorContent error={error} />);
+    const { getByTestId } = render(
+      <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
+    );
 
     expect(getByTestId(ERROR_CONTENT_ICON_TEST_ID)).toBeTruthy();
   });
 
   it('should render error title', () => {
     const error = createError('Test error');
-    const { getByTestId } = render(<ErrorContent error={error} />);
+    const { getByTestId } = render(
+      <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
+    );
 
     expect(getByTestId(ERROR_CONTENT_TITLE_TEST_ID)).toBeTruthy();
   });
@@ -153,7 +160,9 @@ describe('ErrorContent', () => {
       ErrorCode.Unknown,
       'User-friendly error message',
     );
-    const { getByTestId } = render(<ErrorContent error={error} />);
+    const { getByTestId } = render(
+      <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
+    );
 
     expect(getByTestId(ERROR_CONTENT_MESSAGE_TEST_ID)).toBeTruthy();
   });
@@ -166,20 +175,26 @@ describe('ErrorContent', () => {
       category: Category.Unknown,
       userMessage: '',
     });
-    const { queryByTestId } = render(<ErrorContent error={error} />);
+    const { queryByTestId } = render(
+      <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
+    );
 
     expect(queryByTestId(ERROR_CONTENT_MESSAGE_TEST_ID)).toBeNull();
   });
 
   it('should return null when error is null', () => {
-    const { queryByTestId } = render(<ErrorContent error={null} />);
+    const { queryByTestId } = render(
+      <ErrorContent error={null} deviceType={HardwareWalletType.Ledger} />,
+    );
 
     expect(queryByTestId(ERROR_CONTENT_TEST_ID)).toBeNull();
   });
 
   it('should render Continue button', () => {
     const error = createError('Test error');
-    const { getByTestId } = render(<ErrorContent error={error} />);
+    const { getByTestId } = render(
+      <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
+    );
 
     expect(getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID)).toBeTruthy();
   });
@@ -188,7 +203,11 @@ describe('ErrorContent', () => {
     const onContinue = jest.fn().mockResolvedValue(undefined);
     const error = createError('Test error');
     const { getByTestId } = render(
-      <ErrorContent error={error} onContinue={onContinue} />,
+      <ErrorContent
+        error={error}
+        onContinue={onContinue}
+        deviceType={HardwareWalletType.Ledger}
+      />,
     );
 
     fireEvent.press(getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID));
@@ -202,7 +221,12 @@ describe('ErrorContent', () => {
     const onContinue = jest.fn();
     const error = createError('Test error');
     const { getByTestId } = render(
-      <ErrorContent error={error} onContinue={onContinue} isLoading />,
+      <ErrorContent
+        error={error}
+        onContinue={onContinue}
+        isLoading
+        deviceType={HardwareWalletType.Ledger}
+      />,
     );
 
     const button = getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID);
@@ -220,7 +244,11 @@ describe('ErrorContent', () => {
     const onContinue = jest.fn().mockReturnValue(retryPromise);
     const error = createError('Test error');
     const { getByTestId } = render(
-      <ErrorContent error={error} onContinue={onContinue} />,
+      <ErrorContent
+        error={error}
+        onContinue={onContinue}
+        deviceType={HardwareWalletType.Ledger}
+      />,
     );
 
     const button = getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID);

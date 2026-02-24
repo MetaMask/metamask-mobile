@@ -1,10 +1,3 @@
-/**
- * Awaiting Confirmation Content Component
- *
- * Displays a message prompting the user to confirm a transaction on their hardware wallet device.
- * Device-agnostic component using generic icons consistent with ErrorContent.
- */
-
 import React, { useMemo } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 
@@ -25,84 +18,40 @@ import Icon, {
 
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import { Colors } from '../../../../../util/theme/models';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { getHardwareWalletTypeName } from '../../../helpers';
+import { ContentLayout } from './ContentLayout';
 
-// Test IDs
 export const AWAITING_CONFIRMATION_CONTENT_TEST_ID =
   'awaiting-confirmation-content';
 export const AWAITING_CONFIRMATION_SPINNER_TEST_ID =
   'awaiting-confirmation-spinner';
 
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    container: {
-      paddingHorizontal: 24,
-      paddingBottom: 24,
-    },
-    iconContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 16,
-      marginTop: 8,
-    },
-    titleContainer: {
-      alignItems: 'center',
-      marginBottom: 8,
-    },
-    title: {
-      textAlign: 'center',
-    },
-    messageContainer: {
-      alignItems: 'center',
-      marginBottom: 16,
-    },
-    messageText: {
-      textAlign: 'center',
-    },
-    operationTypeContainer: {
-      backgroundColor: colors.background.alternative,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 8,
-      marginTop: 12,
-    },
-    spinnerContainer: {
-      alignItems: 'center',
-      marginBottom: 24,
-    },
-    buttonContainer: {
-      marginTop: 16,
-      width: '100%',
-    },
-  });
+const styles = StyleSheet.create({
+  messageText: {
+    textAlign: 'center',
+  },
+  spinnerContainer: {
+    alignItems: 'center',
+    marginTop: 8,
+  },
+});
 
 export interface AwaitingConfirmationContentProps {
   /** The device type for context in messages */
-  deviceType?: HardwareWalletType;
+  deviceType: HardwareWalletType;
   /** The type of operation awaiting confirmation (e.g., 'transaction', 'message') */
   operationType?: string;
   /** Optional callback when user wants to cancel/reject */
   onCancel?: () => void;
 }
 
-/**
- * Content component shown when waiting for user confirmation on the hardware wallet device.
- * Uses generic icons consistent with ErrorContent design.
- */
 export const AwaitingConfirmationContent: React.FC<
   AwaitingConfirmationContentProps
-> = ({ deviceType = HardwareWalletType.Ledger, operationType, onCancel }) => {
+> = ({ deviceType, operationType, onCancel }) => {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const deviceName = getHardwareWalletTypeName(deviceType);
 
-  // Get device-specific name for display
-  const deviceName = useMemo(
-    () => strings(`hardware_wallet.device_names.${deviceType.toLowerCase()}`),
-    [deviceType],
-  );
-
-  // Determine the title based on operation type
   const title = useMemo(() => {
     switch (operationType) {
       case 'message':
@@ -119,55 +68,38 @@ export const AwaitingConfirmationContent: React.FC<
   }, [operationType, deviceName]);
 
   return (
-    <View
-      style={styles.container}
+    <ContentLayout
       testID={AWAITING_CONFIRMATION_CONTENT_TEST_ID}
-    >
-      {/* Icon - consistent with ErrorContent design */}
-      <View style={styles.iconContainer}>
+      icon={
         <Icon
           name={IconName.SecurityTick}
           size={IconSize.Xl}
           color={IconColor.Primary}
         />
-      </View>
-
-      {/* Title */}
-      <View style={styles.titleContainer}>
-        <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
-          style={styles.title}
-        >
-          {title}
-        </Text>
-      </View>
-
-      {/* Message */}
-      <View style={styles.messageContainer}>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Default}
-          style={styles.messageText}
-        >
-          {strings('hardware_wallet.awaiting_confirmation.message', {
-            device: deviceName,
-          })}
-        </Text>
-      </View>
-
-      {/* Loading spinner */}
-      <View style={styles.spinnerContainer}>
-        <ActivityIndicator
-          testID={AWAITING_CONFIRMATION_SPINNER_TEST_ID}
-          size="large"
-          color={colors.primary.default}
-        />
-      </View>
-
-      {/* Cancel/Reject button */}
-      {onCancel && (
-        <View style={styles.buttonContainer}>
+      }
+      title={title}
+      body={
+        <>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
+            style={styles.messageText}
+          >
+            {strings('hardware_wallet.awaiting_confirmation.message', {
+              device: deviceName,
+            })}
+          </Text>
+          <View style={styles.spinnerContainer}>
+            <ActivityIndicator
+              testID={AWAITING_CONFIRMATION_SPINNER_TEST_ID}
+              size="large"
+              color={colors.primary.default}
+            />
+          </View>
+        </>
+      }
+      footer={
+        onCancel ? (
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
@@ -175,10 +107,8 @@ export const AwaitingConfirmationContent: React.FC<
             width={ButtonWidthTypes.Full}
             onPress={onCancel}
           />
-        </View>
-      )}
-    </View>
+        ) : undefined
+      }
+    />
   );
 };
-
-export default AwaitingConfirmationContent;

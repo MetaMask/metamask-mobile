@@ -45,11 +45,19 @@ const mockAdapterInstance = {
       return jest.fn();
     }),
   getRequiredAppName: jest.fn().mockReturnValue('Ethereum'),
+  getTransportDisabledErrorCode: jest.fn().mockReturnValue('BluetoothDisabled'),
+  getConnectionTips: jest
+    .fn()
+    .mockReturnValue([
+      'hardware_wallet.connecting.tip_unlock',
+      'hardware_wallet.connecting.tip_open_app',
+      'hardware_wallet.connecting.tip_enable_bluetooth',
+      'hardware_wallet.connecting.tip_dnd_off',
+    ]),
 };
 
 jest.mock('./adapters', () => ({
   createAdapter: jest.fn(() => mockAdapterInstance),
-  requiresBluetooth: jest.fn().mockReturnValue(true),
 }));
 
 // Mock the BLE transport

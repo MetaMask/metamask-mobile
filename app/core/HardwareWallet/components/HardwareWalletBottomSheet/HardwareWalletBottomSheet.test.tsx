@@ -110,6 +110,12 @@ const createDefaultProps = (
   deviceSelection:
     mockDeviceSelection as HardwareWalletBottomSheetProps['deviceSelection'],
   walletType: HardwareWalletType.Ledger,
+  connectionTips: [
+    'hardware_wallet.connecting.tip_unlock',
+    'hardware_wallet.connecting.tip_open_app',
+    'hardware_wallet.connecting.tip_enable_bluetooth',
+    'hardware_wallet.connecting.tip_dnd_off',
+  ],
   ...mockActions,
   ...overrides,
 });
