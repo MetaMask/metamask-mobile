@@ -216,7 +216,6 @@ const createStyles = ({ colors }: Theme) =>
       right: 0,
       bottom: 0,
       height: 40,
-      pointerEvents: 'none',
     },
   });
 
@@ -1092,26 +1091,60 @@ const Wallet = ({
   const shouldEnableParentScroll =
     isHomepageRedesignV1Enabled || isHomepageSectionsV1Enabled;
 
-  const [bottomFadeOpacity, setBottomFadeOpacity] = useState(1);
+  const [bottomFadeOpacity, setBottomFadeOpacity] = useState(0);
 
-  const handleVerticalScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const { contentOffset, contentSize, layoutMeasurement } =
-        event.nativeEvent;
-      const scrollableHeight = contentSize.height - layoutMeasurement.height;
+  const scrollContentHeight = useRef(0);
+  const scrollLayoutHeight = useRef(0);
 
+  const computeFadeOpacity = useCallback(
+    (contentH: number, layoutH: number, offsetY: number) => {
+      const scrollableHeight = contentH - layoutH;
       if (scrollableHeight <= 0) {
         setBottomFadeOpacity(0);
         return;
       }
-
-      const distanceFromEnd = scrollableHeight - contentOffset.y;
+      const distanceFromEnd = scrollableHeight - offsetY;
       const fadeThreshold = 100;
       setBottomFadeOpacity(
         Math.min(1, Math.max(0, distanceFromEnd / fadeThreshold)),
       );
     },
     [],
+  );
+
+  const handleVerticalScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      scrollContentHeight.current = contentSize.height;
+      scrollLayoutHeight.current = layoutMeasurement.height;
+      computeFadeOpacity(
+        contentSize.height,
+        layoutMeasurement.height,
+        contentOffset.y,
+      );
+    },
+    [computeFadeOpacity],
+  );
+
+  const handleScrollContentSizeChange = useCallback(
+    (_w: number, h: number) => {
+      scrollContentHeight.current = h;
+      computeFadeOpacity(h, scrollLayoutHeight.current, 0);
+    },
+    [computeFadeOpacity],
+  );
+
+  const handleScrollLayout = useCallback(
+    (event: { nativeEvent: { layout: { height: number } } }) => {
+      scrollLayoutHeight.current = event.nativeEvent.layout.height;
+      computeFadeOpacity(
+        scrollContentHeight.current,
+        event.nativeEvent.layout.height,
+        0,
+      );
+    },
+    [computeFadeOpacity],
   );
 
   useEffect(() => {
@@ -1396,6 +1429,12 @@ const Wallet = ({
                 onScroll: shouldEnableParentScroll
                   ? handleVerticalScroll
                   : undefined,
+                onContentSizeChange: shouldEnableParentScroll
+                  ? handleScrollContentSizeChange
+                  : undefined,
+                onLayout: shouldEnableParentScroll
+                  ? handleScrollLayout
+                  : undefined,
                 scrollEventThrottle: 16,
                 refreshControl: shouldEnableParentScroll ? (
                   <RefreshControl
@@ -1411,6 +1450,7 @@ const Wallet = ({
             </ConditionalScrollView>
             {shouldEnableParentScroll && bottomFadeOpacity > 0 && (
               <LinearGradient
+                pointerEvents="none"
                 colors={[
                   colorWithOpacity(colors.background.default, 0),
                   colors.background.default,
