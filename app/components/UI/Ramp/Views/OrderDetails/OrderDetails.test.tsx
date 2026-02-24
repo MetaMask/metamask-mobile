@@ -65,11 +65,8 @@ describe('Ramps OrderDetails Component', () => {
   const mockRampsOrder: RampsOrder = {
     id: 'provider-order-123',
     isOnlyLink: false,
-    provider: {
-      id: '/providers/transak',
-      name: 'Transak',
-      links: [],
-    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    provider: { id: '/providers/transak', name: 'Transak', links: [] } as any,
     success: true,
     cryptoAmount: 0.05,
     fiatAmount: 100,
