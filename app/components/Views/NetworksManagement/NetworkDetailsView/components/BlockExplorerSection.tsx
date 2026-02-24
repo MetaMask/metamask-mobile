@@ -132,6 +132,7 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
     closeBlockExplorerModal,
     onBlockExplorerItemAdd,
     onBlockExplorerUrlChange,
+    onBlockExplorerSelect,
     onBlockExplorerUrlDelete,
     inputBlockExplorerURL,
     modals: {
@@ -161,10 +162,10 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
 
   const handleSelectAndDismiss = useCallback(
     (url: string) => {
-      onBlockExplorerUrlChange(url);
+      onBlockExplorerSelect(url);
       handleDismiss();
     },
-    [onBlockExplorerUrlChange, handleDismiss],
+    [onBlockExplorerSelect, handleDismiss],
   );
 
   const handleBack = () => {

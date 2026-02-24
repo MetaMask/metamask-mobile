@@ -22,7 +22,6 @@ import {
 
 import { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
-import Engine from '../../../../core/Engine';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
 import { getNetworkImageSource } from '../../../../util/networks';
@@ -156,16 +155,14 @@ const NetworkDetailsView = () => {
     setShowDeleteModal(true);
   }, []);
 
-  const confirmDelete = useCallback(() => {
-    const { chainId } = formHook.form;
-    if (!chainId) return;
-    const { NetworkController } = Engine.context;
-    NetworkController.removeNetwork(chainId as `0x${string}`);
+  const confirmDelete = useCallback(async () => {
+    const { chainId, rpcUrl } = formHook.form;
+    if (!chainId || !rpcUrl) return;
+    await operations.removeNetwork(rpcUrl);
     const caipChainId: CaipChainId = `eip155:${parseInt(chainId, 16)}`;
     disableNetwork(caipChainId);
     setShowDeleteModal(false);
-    navigation.goBack();
-  }, [formHook.form, disableNetwork, navigation]);
+  }, [formHook.form, disableNetwork, operations]);
 
   const headerTitle = formHook.form.addMode
     ? strings('app_settings.add_network_title')

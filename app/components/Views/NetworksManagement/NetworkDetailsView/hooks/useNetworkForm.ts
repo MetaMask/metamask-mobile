@@ -82,6 +82,7 @@ export interface UseNetworkFormReturn
   // Block explorer handlers
   onBlockExplorerItemAdd: (url: string) => void;
   onBlockExplorerUrlChange: (url: string) => void;
+  onBlockExplorerSelect: (url: string) => void;
   onBlockExplorerUrlDelete: (url: string) => void;
 
   // Register a callback invoked after form changes that require re-validation
@@ -144,12 +145,14 @@ export const useNetworkForm = (
     setForm((prev) => {
       const actual =
         (prev.rpcUrl ?? '') +
+        String(prev.failoverRpcUrls) +
         (prev.blockExplorerUrl ?? '') +
         (prev.nickname ?? '') +
         (prev.chainId ?? '') +
         (prev.ticker ?? '') +
-        (prev.editable ?? '') +
-        String(prev.rpcUrls);
+        String(prev.editable) +
+        String(prev.rpcUrls) +
+        String(prev.blockExplorerUrls);
 
       setEnableAction(actual !== initialStateStr);
       return prev; // no mutation
@@ -500,11 +503,21 @@ export const useNetworkForm = (
         return {
           ...prev,
           blockExplorerUrlForm: url,
-          blockExplorerUrl: url,
         };
       });
       getCurrentState();
       requestValidation.current?.();
+    },
+    [getCurrentState],
+  );
+
+  const onBlockExplorerSelect = useCallback(
+    (url: string) => {
+      setForm((prev) => ({
+        ...prev,
+        blockExplorerUrl: url,
+      }));
+      getCurrentState();
     },
     [getCurrentState],
   );
@@ -538,6 +551,7 @@ export const useNetworkForm = (
     onRpcUrlDelete,
     onBlockExplorerItemAdd,
     onBlockExplorerUrlChange,
+    onBlockExplorerSelect,
     onBlockExplorerUrlDelete,
     setValidationCallback,
   };

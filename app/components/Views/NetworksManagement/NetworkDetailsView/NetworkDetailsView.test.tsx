@@ -136,6 +136,7 @@ const createMockFormHook = (overrides: Record<string, unknown> = {}) => ({
   onRpcUrlDelete: jest.fn(),
   onBlockExplorerItemAdd: jest.fn(),
   onBlockExplorerUrlChange: jest.fn(),
+  onBlockExplorerSelect: jest.fn(),
   onBlockExplorerUrlDelete: jest.fn(),
   setValidationCallback: jest.fn(),
   onNameFocused: jest.fn(),
@@ -199,10 +200,12 @@ describe('NetworkDetailsView', () => {
   it('renders the container and save button in add mode', () => {
     const { getByTestId } = render(<NetworkDetailsView />);
 
-    expect(getByTestId(NetworkDetailsViewSelectorsIDs.CONTAINER)).toBeTruthy();
+    expect(
+      getByTestId(NetworkDetailsViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(NetworkDetailsViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('renders all form fields in add mode', () => {
@@ -210,28 +213,30 @@ describe('NetworkDetailsView', () => {
 
     expect(
       getByTestId(NetworkDetailsViewSelectorsIDs.NETWORK_NAME_INPUT),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(NetworkDetailsViewSelectorsIDs.RPC_URL_INPUT),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(NetworkDetailsViewSelectorsIDs.RPC_NAME_INPUT),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(NetworkDetailsViewSelectorsIDs.CHAIN_INPUT),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(NetworkDetailsViewSelectorsIDs.NETWORKS_SYMBOL_INPUT),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(NetworkDetailsViewSelectorsIDs.BLOCK_EXPLORER_INPUT),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('shows add network title in header for add mode', () => {
     const { getByText } = render(<NetworkDetailsView />);
 
-    expect(getByText(strings('app_settings.add_network_title'))).toBeTruthy();
+    expect(
+      getByText(strings('app_settings.add_network_title')),
+    ).toBeOnTheScreen();
   });
 
   it('calls onNicknameChange when name field text changes', () => {
@@ -281,7 +286,7 @@ describe('NetworkDetailsView', () => {
 
     expect(
       getByTestId(NetworkDetailsViewSelectorsIDs.USE_THIS_NETWORK_BUTTON),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   describe('edit mode', () => {
@@ -316,7 +321,7 @@ describe('NetworkDetailsView', () => {
     it('renders network name in header', () => {
       const { getByText } = render(<NetworkDetailsView />);
 
-      expect(getByText('Ethereum Mainnet')).toBeTruthy();
+      expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
     });
 
     it('renders RPC dropdown selector instead of inline input', () => {
@@ -324,7 +329,7 @@ describe('NetworkDetailsView', () => {
 
       expect(
         getByTestId(NetworkDetailsViewSelectorsIDs.ICON_BUTTON_RPC),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         queryByTestId(NetworkDetailsViewSelectorsIDs.RPC_NAME_INPUT),
       ).toBeNull();
@@ -335,7 +340,7 @@ describe('NetworkDetailsView', () => {
 
       expect(
         getByTestId(NetworkDetailsViewSelectorsIDs.ICON_BUTTON_BLOCK_EXPLORER),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('disables chain ID field in edit mode', () => {
@@ -357,7 +362,7 @@ describe('NetworkDetailsView', () => {
 
       expect(
         getByTestId(NetworkDetailsViewSelectorsIDs.RPC_WARNING_BANNER),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('shows failover tag when failover RPC URLs exist and flag is enabled', () => {
@@ -387,7 +392,7 @@ describe('NetworkDetailsView', () => {
 
       const { getByText } = render(<NetworkDetailsView />);
 
-      expect(getByText(strings('app_settings.failover'))).toBeTruthy();
+      expect(getByText(strings('app_settings.failover'))).toBeOnTheScreen();
     });
   });
 
@@ -400,7 +405,7 @@ describe('NetworkDetailsView', () => {
 
       const { getByText } = render(<NetworkDetailsView />);
 
-      expect(getByText('Invalid chain ID')).toBeTruthy();
+      expect(getByText('Invalid chain ID')).toBeOnTheScreen();
     });
 
     it('shows symbol warning with suggested ticker', () => {
@@ -411,10 +416,10 @@ describe('NetworkDetailsView', () => {
 
       const { getByText } = render(<NetworkDetailsView />);
 
-      expect(getByText('MATIC')).toBeTruthy();
+      expect(getByText('MATIC')).toBeOnTheScreen();
       expect(
         getByText(strings('wallet.suggested_token_symbol'), { exact: false }),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('shows name warning with suggested name', () => {
@@ -425,10 +430,10 @@ describe('NetworkDetailsView', () => {
 
       const { getByText } = render(<NetworkDetailsView />);
 
-      expect(getByText('Polygon Mainnet')).toBeTruthy();
+      expect(getByText('Polygon Mainnet')).toBeOnTheScreen();
       expect(
         getByText(strings('wallet.suggested_name'), { exact: false }),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
   });
 
@@ -460,7 +465,9 @@ describe('NetworkDetailsView', () => {
 
     const { getByText } = render(<NetworkDetailsView />);
 
-    expect(getByText(strings('networks.network_warning_title'))).toBeTruthy();
+    expect(
+      getByText(strings('networks.network_warning_title')),
+    ).toBeOnTheScreen();
   });
 
   it('calls saveNetwork when save button is pressed', () => {
@@ -633,7 +640,7 @@ describe('NetworkDetailsView', () => {
 
       expect(
         getByText(strings('app_settings.network_failover_rpc_url_label')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
   });
 
@@ -736,10 +743,14 @@ describe('NetworkDetailsView', () => {
 
       if (trashIcon.parent) fireEvent.press(trashIcon.parent);
 
-      expect(getByText(strings('app_settings.network_delete'))).toBeTruthy();
+      expect(
+        getByText(strings('app_settings.network_delete')),
+      ).toBeOnTheScreen();
     });
 
-    it('calls removeNetwork and goBack on confirm delete', () => {
+    it('calls operations.removeNetwork on confirm delete', () => {
+      const ops = createMockOperations();
+      mockOperations.mockReturnValue(ops);
       mockFormHook.mockReturnValue(editForm());
 
       const { getByTestId } = render(<NetworkDetailsView />);
@@ -752,11 +763,7 @@ describe('NetworkDetailsView', () => {
       // Confirm delete
       fireEvent.press(getByTestId('networks-settings-delete-confirm-button'));
 
-      const { NetworkController } = jest.requireMock(
-        '../../../../core/Engine',
-      ).context;
-      expect(NetworkController.removeNetwork).toHaveBeenCalledWith('0x2a');
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(ops.removeNetwork).toHaveBeenCalledWith('https://rpc.example.com');
     });
   });
 

@@ -74,14 +74,13 @@ export const useFormModals = (
     }
   }, [blockExplorerUrlsCount, setForm]);
 
-  const closeBlockExplorerModal = useCallback(
-    () =>
-      setModals((prev) => ({
-        ...prev,
-        showMultiBlockExplorerAddModal: false,
-      })),
-    [],
-  );
+  const closeBlockExplorerModal = useCallback(() => {
+    setModals((prev) => ({
+      ...prev,
+      showMultiBlockExplorerAddModal: false,
+    }));
+    setForm((prev) => ({ ...prev, blockExplorerUrlForm: undefined }));
+  }, [setForm]);
 
   const setBlockExplorerModalShowForm = useCallback(
     (show: boolean) => {

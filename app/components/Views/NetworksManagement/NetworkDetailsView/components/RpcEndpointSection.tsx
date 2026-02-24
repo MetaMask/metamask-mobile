@@ -294,6 +294,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
 
   const {
     warningRpcUrl,
+    validatedRpcURL,
     checkIfNetworkExists,
     checkIfRpcUrlExists,
     onRpcUrlValidationChange,
@@ -429,7 +430,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
                 size={ButtonSize.Lg}
                 onPress={handleFormSubmit}
                 width={ButtonWidthTypes.Full}
-                isDisabled={!!warningRpcUrl}
+                isDisabled={!rpcUrlForm || !validatedRpcURL || !!warningRpcUrl}
                 testID={NetworkDetailsViewSelectorsIDs.ADD_RPC_BUTTON}
               />
             </Box>

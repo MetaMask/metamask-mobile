@@ -105,10 +105,11 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       if (!isPrivateConnection(url.hostname)) {
         url.set('protocol', 'https:');
       }
+      const correctedRpcUrl = url.toString();
 
       const hexChainId = chainId as Hex;
       const existingNetwork = networkConfigurations[hexChainId];
-      const indexRpc = rpcUrls.findIndex((r) => r.url === rpcUrl);
+      const indexRpc = rpcUrls.findIndex((r) => r.url === correctedRpcUrl);
       const blockExplorerIndex = blockExplorerUrls.findIndex(
         (u) => u === blockExplorerUrl,
       );
@@ -116,10 +117,15 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       const networkConfig = {
         blockExplorerUrls,
         chainId: hexChainId,
-        rpcEndpoints: rpcUrls,
+        rpcEndpoints: rpcUrls.map((r) =>
+          r.url === rpcUrl ? { ...r, url: correctedRpcUrl } : r,
+        ),
         nativeCurrency: ticker,
         name: nickname,
-        defaultRpcEndpointIndex: indexRpc,
+        defaultRpcEndpointIndex:
+          indexRpc !== -1
+            ? indexRpc
+            : rpcUrls.findIndex((r) => r.url === rpcUrl),
         defaultBlockExplorerUrlIndex:
           blockExplorerIndex !== -1 ? blockExplorerIndex : undefined,
       };
