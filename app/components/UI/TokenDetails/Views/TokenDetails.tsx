@@ -311,7 +311,7 @@ const TokenDetails: React.FC<{
  * Includes ab_tests property when navigating from the token list and the
  * token list layout A/B test is active.
  */
-const useTokenDetailsOpenedTracking = (token: TokenDetailsRouteParams) => {
+const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { variantName, isTestActive } = useTokenDetailsABTest();
   const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
@@ -319,18 +319,18 @@ const useTokenDetailsOpenedTracking = (token: TokenDetailsRouteParams) => {
 
   return useCallback(
     ({ isMarketInsightsDisplayed }: { isMarketInsightsDisplayed: boolean }) => {
-      const source = token.source ?? TokenDetailsSource.Unknown;
-      const tokenTrackingKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}:${source}`;
+      const source = params.source ?? TokenDetailsSource.Unknown;
+      const tokenTrackingKey = `${params.chainId ?? ''}:${params.address ?? ''}:${params.symbol ?? ''}:${source}`;
 
       if (lastTrackedTokenKeyRef.current === tokenTrackingKey) {
         return;
       }
 
       const hasBalance =
-        token.balance !== undefined &&
-        token.balance !== null &&
-        token.balance !== '0' &&
-        token.balance !== '';
+        params.balance !== undefined &&
+        params.balance !== null &&
+        params.balance !== '0' &&
+        params.balance !== '';
 
       const isFromTokenList =
         source === TokenDetailsSource.MobileTokenList ||
@@ -338,10 +338,10 @@ const useTokenDetailsOpenedTracking = (token: TokenDetailsRouteParams) => {
 
       const eventProperties = {
         source,
-        chain_id: token.chainId,
-        token_symbol: token.symbol,
-        token_address: token.address,
-        token_name: token.name,
+        chain_id: params.chainId,
+        token_symbol: params.symbol,
+        token_address: params.address,
+        token_name: params.name,
         has_balance: hasBalance,
         market_insights_displayed: isMarketInsightsDisplayed,
         // A/B test attribution — each experiment is independent
@@ -368,12 +368,12 @@ const useTokenDetailsOpenedTracking = (token: TokenDetailsRouteParams) => {
       createEventBuilder,
       isTestActive,
       isTokenListV2,
-      token.address,
-      token.balance,
-      token.chainId,
-      token.name,
-      token.source,
-      token.symbol,
+      params.address,
+      params.balance,
+      params.chainId,
+      params.name,
+      params.source,
+      params.symbol,
       trackEvent,
       variantName,
     ],
