@@ -70,6 +70,14 @@ export function getTransactionTypeValue(
     return 'predict_claim';
   }
 
+  if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
+    return 'musd_conversion';
+  }
+
+  if (hasTransactionType(transactionMeta, [TransactionType.musdClaim])) {
+    return 'musd_claim';
+  }
+
   switch (transactionType) {
     case TransactionType.bridgeApproval:
       return 'bridge_approval';
