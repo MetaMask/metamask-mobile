@@ -17,7 +17,8 @@ import { getDecimalChainId } from '../../../../util/networks';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
-import { Hex } from '@metamask/utils';
+import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';
@@ -103,9 +104,18 @@ const MoreTokenActionsMenu = () => {
   }, [closeBottomSheetAndNavigate, onReceive]);
 
   const handleViewOnBlockExplorer = useCallback(() => {
-    const url = isNativeCurrency
-      ? explorer.getBlockExplorerBaseUrl(asset.chainId)
-      : explorer.getBlockExplorerUrl(asset.address, asset.chainId);
+    let url: string | null;
+    if (isNativeCurrency) {
+      url = explorer.getBlockExplorerBaseUrl(asset.chainId);
+    } else {
+      const tokenAddress = isCaipAssetType(asset.address)
+        ? parseCaipAssetType(asset.address).assetReference
+        : asset.address;
+      url = explorer.getBlockExplorerUrl(tokenAddress, asset.chainId);
+      if (url && asset.chainId && isNonEvmChainId(asset.chainId)) {
+        url = url.replace('/account/', '/token/');
+      }
+    }
 
     if (url) {
       goToBrowserUrl(url, explorer.getBlockExplorerName(asset.chainId));
