@@ -140,10 +140,11 @@ const MarketInsightsView: React.FC = () => {
   }, [goToSwaps]);
 
   const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
-    if (trend.articles.length === 0) {
+    const hasArticles = trend.articles.length > 0;
+    const hasTweets = (trend.tweets?.length ?? 0) > 0;
+    if (!hasArticles && !hasTweets) {
       return;
     }
-
     setSelectedTrend(trend);
   }, []);
 
@@ -334,6 +335,7 @@ const MarketInsightsView: React.FC = () => {
           onClose={handleCloseTrendSources}
           trendTitle={selectedTrend.title}
           articles={selectedTrend.articles}
+          tweets={selectedTrend.tweets ?? []}
         />
       ) : null}
     </Box>
