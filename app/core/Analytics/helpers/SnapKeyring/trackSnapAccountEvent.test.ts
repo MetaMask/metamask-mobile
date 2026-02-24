@@ -34,9 +34,9 @@ describe('trackSnapAccountEvent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(analytics.trackEvent).mockImplementation(mockTrackEvent);
-    jest.mocked(AnalyticsEventBuilder.createEventBuilder).mockImplementation(
-      mockCreateEventBuilder,
-    );
+    jest
+      .mocked(AnalyticsEventBuilder.createEventBuilder)
+      .mockImplementation(mockCreateEventBuilder);
   });
 
   it('creates and tracks an event with snap account properties', () => {
