@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -75,9 +75,10 @@ const styleSheet = (params: { theme: Theme }) => {
  * TokenDetails component - Clean orchestrator that fetches data and sets layout.
  * All business logic is delegated to hooks and presentation to AssetOverviewContent.
  */
-const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
-  token,
-}) => {
+const TokenDetails: React.FC<{
+  token: TokenDetailsRouteParams;
+  onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
+}> = ({ token, onMarketInsightsDisplayResolved }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -205,6 +206,7 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
         onSend={onSend}
         onReceive={onReceive}
         goToSwaps={goToSwaps}
+        onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         isTronNative={isTronNative}
         stakedTrxAsset={stakedTrxAsset}
@@ -313,44 +315,69 @@ const useTokenDetailsOpenedTracking = (token: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { variantName, isTestActive } = useTokenDetailsABTest();
   const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
+  const lastTrackedTokenKeyRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    const source = token.source ?? TokenDetailsSource.Unknown;
-    const hasBalance =
-      token.balance !== undefined &&
-      token.balance !== null &&
-      token.balance !== '0' &&
-      token.balance !== '';
+  return useCallback(
+    ({ isMarketInsightsDisplayed }: { isMarketInsightsDisplayed: boolean }) => {
+      const source = token.source ?? TokenDetailsSource.Unknown;
+      const tokenTrackingKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}:${source}`;
 
-    const isFromTokenList =
-      source === TokenDetailsSource.MobileTokenList ||
-      source === TokenDetailsSource.MobileTokenListPage;
+      if (lastTrackedTokenKeyRef.current === tokenTrackingKey) {
+        return;
+      }
 
-    const eventProperties = {
-      source,
-      chain_id: token.chainId,
-      token_symbol: token.symbol,
-      token_address: token.address,
-      token_name: token.name,
-      has_balance: hasBalance,
-      // A/B test attribution — each experiment is independent
-      ...((isTestActive || isFromTokenList) && {
-        ab_tests: {
-          ...(isTestActive && {
-            assetsASSETS2493AbtestTokenDetailsLayout: variantName,
-          }),
-          ...(isFromTokenList && {
-            assetsASSETS2621AbtestTokenListLayout: isTokenListV2 ? 'v2' : 'v1',
-          }),
-        },
-      }),
-    };
-    const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-      .addProperties(eventProperties)
-      .build();
-    trackEvent(event);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      const hasBalance =
+        token.balance !== undefined &&
+        token.balance !== null &&
+        token.balance !== '0' &&
+        token.balance !== '';
+
+      const isFromTokenList =
+        source === TokenDetailsSource.MobileTokenList ||
+        source === TokenDetailsSource.MobileTokenListPage;
+
+      const eventProperties = {
+        source,
+        chain_id: token.chainId,
+        token_symbol: token.symbol,
+        token_address: token.address,
+        token_name: token.name,
+        has_balance: hasBalance,
+        market_insights_displayed: isMarketInsightsDisplayed,
+        // A/B test attribution — each experiment is independent
+        ...((isTestActive || isFromTokenList) && {
+          ab_tests: {
+            ...(isTestActive && {
+              assetsASSETS2493AbtestTokenDetailsLayout: variantName,
+            }),
+            ...(isFromTokenList && {
+              assetsASSETS2621AbtestTokenListLayout: isTokenListV2
+                ? 'v2'
+                : 'v1',
+            }),
+          },
+        }),
+      };
+      const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+        .addProperties(eventProperties)
+        .build();
+      trackEvent(event);
+      lastTrackedTokenKeyRef.current = tokenTrackingKey;
+    },
+    [
+      createEventBuilder,
+      isTestActive,
+      isTokenListV2,
+      token.address,
+      token.balance,
+      token.chainId,
+      token.name,
+      token.source,
+      token.symbol,
+      trackEvent,
+      variantName,
+    ],
+  );
 };
 
 /**
@@ -361,11 +388,23 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
 
-  useTokenDetailsOpenedTracking(token);
+  const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
 
-  // TODO: Add validation for token here to ensure it is valid and has required fields (e.g. chainId)
+  const handleMarketInsightsDisplayResolved = useCallback(
+    (isDisplayed: boolean) => {
+      trackTokenDetailsOpened({
+        isMarketInsightsDisplayed: isDisplayed,
+      });
+    },
+    [trackTokenDetailsOpened],
+  );
 
-  return <TokenDetails token={token} />;
+  return (
+    <TokenDetails
+      token={token}
+      onMarketInsightsDisplayResolved={handleMarketInsightsDisplayResolved}
+    />
+  );
 };
 
 export { TokenDetailsRouteWrapper as TokenDetails };

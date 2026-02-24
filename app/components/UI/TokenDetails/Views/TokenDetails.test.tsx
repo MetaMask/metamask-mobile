@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
-import { render } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
@@ -10,6 +10,7 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
@@ -113,10 +114,25 @@ jest.mock('../components/TokenDetailsInlineHeader', () => ({
   TokenDetailsInlineHeader: () => null,
 }));
 
-jest.mock('../components/AssetOverviewContent', () => ({
-  __esModule: true,
-  default: () => null,
-}));
+jest.mock('../components/AssetOverviewContent', () => {
+  const ReactLib = jest.requireActual('react');
+  const AssetOverviewContentMock = ({
+    onMarketInsightsDisplayResolved,
+  }: {
+    onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
+  }) => {
+    ReactLib.useEffect(() => {
+      onMarketInsightsDisplayResolved?.(true);
+    }, [onMarketInsightsDisplayResolved]);
+
+    return null;
+  };
+
+  return {
+    __esModule: true,
+    default: AssetOverviewContentMock,
+  };
+});
 
 jest.mock('../../../Views/Asset/ActivityHeader', () => ({
   __esModule: true,
@@ -125,7 +141,7 @@ jest.mock('../../../Views/Asset/ActivityHeader', () => ({
 
 jest.mock('../../Transactions', () => ({
   __esModule: true,
-  default: () => null,
+  default: ({ header }: { header?: React.ReactNode }) => header ?? null,
 }));
 
 jest.mock(
@@ -162,6 +178,17 @@ jest.mock('../../Ramp/Aggregator/utils', () => ({
   isNetworkRampSupported: jest.fn(() => true),
 }));
 
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 const mockIsTokenTradingOpen = jest.fn().mockReturnValue(true);
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
@@ -173,6 +200,11 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBuild.mockReturnValue({ category: 'token-details-opened' });
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
     mockUseTokenDetailsABTest.mockReturnValue({
       useNewLayout: true,
       variantName: 'treatment',
@@ -275,6 +307,86 @@ describe('TokenDetails', () => {
 
       expect(getByText('Buy')).toBeOnTheScreen();
       expect(queryByText('Sell')).toBeNull();
+    });
+  });
+
+  it('tracks token details opened with market insights hidden for legacy asset view', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectTokenDetailsV2Enabled) return false;
+      if (selector === selectNetworkConfigurationByChainId)
+        return { name: 'Ethereum' };
+      if (selector === selectPerpsEnabledFlag) return false;
+      if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+      if (selector === getRampNetworks) return [];
+      if (selector === selectDepositActiveFlag) return false;
+      if (selector === selectDepositMinimumVersionFlag) return null;
+      return undefined;
+    });
+
+    render(<TokenDetails {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.TOKEN_DETAILS_OPENED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          market_insights_displayed: false,
+        }),
+      );
+    });
+  });
+
+  it('tracks token details opened for each token when route params change', async () => {
+    const { rerender } = render(<TokenDetails {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+          token_symbol: 'DAI',
+          market_insights_displayed: true,
+        }),
+      );
+    });
+
+    const secondToken = {
+      ...defaultToken,
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      symbol: 'USDC',
+      name: 'USD Coin',
+    } as TokenI;
+
+    rerender(
+      <TokenDetails
+        route={{
+          params: secondToken,
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          token_symbol: 'USDC',
+          market_insights_displayed: true,
+        }),
+      );
+    });
+  });
+
+  it('does not track token details opened more than once for the same token', async () => {
+    const { rerender } = render(<TokenDetails {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    rerender(<TokenDetails {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
   });
 });
