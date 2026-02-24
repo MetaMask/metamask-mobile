@@ -29,7 +29,6 @@ import {
   KeyringController,
   KeyringTypes,
   AccountImportStrategy,
-  KeyringMetadata,
 } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
@@ -62,6 +61,8 @@ import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAna
 import Routes from '../../constants/navigation/Routes';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
+import { toMultichainAccountWalletId } from '@metamask/account-api';
+import { MultichainAccountService } from '@metamask/multichain-account-service';
 import { AuthenticationType, SecurityLevel } from 'expo-local-authentication';
 import { createDataDeletionTask as createDataDeletionTaskMock } from '../../util/analytics/analyticsDataDeletion';
 
@@ -69,9 +70,17 @@ export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
 };
 
+const mockEntropySource = 'test-entropy-source-id';
+const mockAddress = '0x1234567890abcdef';
+
+const mockMnemonicPhraseToBytes = jest
+  .fn()
+  .mockReturnValue(new Uint8Array([1, 2, 3, 4]));
+
 // mock mnemonicPhraseToBytes
 jest.mock('@metamask/key-tree', () => ({
-  mnemonicPhraseToBytes: jest.fn(),
+  mnemonicPhraseToBytes: (...args: unknown[]) =>
+    mockMnemonicPhraseToBytes(...args),
 }));
 
 // Mock the accountsController selector
@@ -149,10 +158,14 @@ const HD_KEY_TREE = 'HD Key Tree';
  * @param id - The keyring metadata id, defaults to 'test-keyring-id'
  * @returns A mock keyring object with HD type and metadata
  */
-const createMockHdKeyring = (id = 'test-keyring-id') => ({
+const createMockHdKeyringObject = (id = 'test-keyring-id') => ({
   type: HD_KEY_TREE,
   metadata: { id },
 });
+
+const mockHdKeyring = {
+  getAccounts: jest.fn().mockResolvedValue([mockAddress]),
+};
 
 jest.mock('../Engine', () => ({
   resetState: jest.fn(),
@@ -161,15 +174,14 @@ jest.mock('../Engine', () => ({
   },
   context: {
     KeyringController: {
-      createNewVaultAndKeychain: jest.fn(),
-      createNewVaultAndRestore: jest.fn(),
       submitPassword: jest.fn(),
       setLocked: jest.fn(),
       isUnlocked: jest.fn(() => true),
-      removeAccount: jest.fn(),
       verifyPassword: jest.fn(),
+      createNewVaultAndKeychain: jest.fn().mockResolvedValue(undefined),
+      createNewVaultAndRestore: jest.fn().mockResolvedValue(undefined),
       state: {
-        keyrings: [createMockHdKeyring()],
+        keyrings: [createMockHdKeyringObject()],
       },
     },
 
@@ -182,6 +194,8 @@ jest.mock('../Engine', () => ({
     MultichainAccountService: {
       init: jest.fn().mockResolvedValue(undefined),
       resyncAccounts: jest.fn().mockImplementation(() => mockResyncAccounts()),
+      createMultichainAccountWallet: jest.fn(),
+      removeMultichainAccountWallet: jest.fn(),
     },
   },
 }));
@@ -256,23 +270,14 @@ const mockUint8ArrayToMnemonic = jest
   .fn()
   .mockImplementation((uint8Array: Uint8Array) => uint8Array.toString());
 
-const mockConvertMnemonicToWordlistIndices = jest
-  .fn()
-  .mockReturnValue(new Uint8Array([1, 2, 3, 4]));
-
-const mockConvertEnglishWordlistIndicesToCodepoints = jest
-  .fn()
-  .mockReturnValue(new Uint8Array([1, 2, 3, 4]));
-
 jest.mock('../../util/mnemonic', () => ({
   uint8ArrayToMnemonic: (mnemonic: Uint8Array, wordlist: string[]) =>
     mockUint8ArrayToMnemonic(mnemonic, wordlist),
-  convertMnemonicToWordlistIndices: (mnemonic: Buffer, wordlist: string[]) =>
-    mockConvertMnemonicToWordlistIndices(mnemonic, wordlist),
-  convertEnglishWordlistIndicesToCodepoints: (
-    wordlistIndices: Uint8Array,
-    wordlist: string[],
-  ) => mockConvertEnglishWordlistIndicesToCodepoints(wordlistIndices, wordlist),
+}));
+
+jest.mock('../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
 }));
 
 jest.mock('../../util/Logger', () => ({
@@ -309,6 +314,20 @@ jest.mock('../../util/trace', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   endTrace: (...args: any[]) => mockEndTrace(...args),
 }));
+
+const mockMultichainAccountGroup = {
+  getAccounts: jest.fn().mockReturnValue([
+    {
+      address: mockAddress,
+    },
+  ]),
+};
+
+const mockMultichainAccountWallet = {
+  id: toMultichainAccountWalletId(mockEntropySource),
+  entropySource: mockEntropySource,
+  getAccountGroup: () => mockMultichainAccountGroup,
+};
 
 describe('Authentication', () => {
   let mockDispatch: jest.Mock;
@@ -1081,8 +1100,8 @@ describe('Authentication', () => {
 
         Engine.context.KeyringController.setLocked.mockResolvedValue(undefined);
 
-        // Mock KeyringController.createNewVaultAndRestore to throw an error
-        Engine.context.KeyringController.createNewVaultAndRestore.mockRejectedValueOnce(
+        // Mock error during vault creation
+        Engine.context.MultichainAccountService.createMultichainAccountWallet.mockRejectedValueOnce(
           new Error('Wallet creation failed'),
         );
 
@@ -1121,8 +1140,8 @@ describe('Authentication', () => {
         // Ensure KeyringController.setLocked resolves immediately
         Engine.context.KeyringController.setLocked.mockResolvedValue(undefined);
 
-        // Mock KeyringController.createNewVaultAndKeychain to throw an error
-        Engine.context.KeyringController.createNewVaultAndKeychain.mockRejectedValueOnce(
+        // Mock error during vault creation
+        Engine.context.MultichainAccountService.createMultichainAccountWallet.mockRejectedValueOnce(
           new Error('Keychain creation failed'),
         );
 
@@ -1507,7 +1526,7 @@ describe('Authentication', () => {
         isUnlocked: jest.fn().mockReturnValue(true),
         setLocked: jest.fn().mockResolvedValue(undefined),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       } as unknown as KeyringController;
 
@@ -1631,9 +1650,6 @@ describe('Authentication', () => {
 
       jest.spyOn(analytics, 'isEnabled').mockReturnValue(true);
 
-      const mockKeyring = {
-        getAccounts: jest.fn().mockResolvedValue(['0x1234567890abcdef']),
-      };
       Engine.context.SeedlessOnboardingController = {
         fetchAllSecretData: jest.fn(),
         updateBackupMetadataState: jest.fn(),
@@ -1648,22 +1664,26 @@ describe('Authentication', () => {
       Engine.context.KeyringController = {
         setLocked: jest.fn(),
         isUnlocked: jest.fn().mockResolvedValue(true),
-        addNewKeyring: jest.fn(),
-        createNewVaultAndRestore: jest.fn(),
         submitPassword: jest.fn().mockResolvedValue(undefined),
         verifyPassword: jest.fn().mockResolvedValue(undefined),
         withKeyring: jest
           .fn()
           .mockImplementation(
             async ({ id: _id }, callback) =>
-              await callback({ keyring: mockKeyring }),
+              await callback({ keyring: mockHdKeyring }),
           ),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
         exportEncryptionKey: jest.fn(),
         exportSeedPhrase: jest.fn(),
       } as unknown as KeyringController;
+      Engine.context.MultichainAccountService = {
+        init: jest.fn(),
+        createMultichainAccountWallet: jest
+          .fn()
+          .mockResolvedValue(mockMultichainAccountWallet),
+      } as unknown as MultichainAccountService;
     });
 
     afterEach(() => {
@@ -1742,11 +1762,6 @@ describe('Authentication', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
-      (
-        Engine.context.KeyringController.addNewKeyring as jest.Mock
-      ).mockResolvedValueOnce({
-        id: 'new-keyring-id',
-      });
       Engine.context.SeedlessOnboardingController.state.vault =
         'seedless onboarding vault';
 
@@ -1768,16 +1783,16 @@ describe('Authentication', () => {
         false,
       );
       expect(
-        Engine.context.KeyringController.addNewKeyring,
-      ).toHaveBeenCalledWith(KeyringTypes.hd, {
-        mnemonic: uint8ArrayToMnemonic(mockSeedPhrase2, []),
-        numberOfAccounts: 1,
+        Engine.context.MultichainAccountService.createMultichainAccountWallet,
+      ).toHaveBeenCalledWith({
+        type: 'import',
+        mnemonic: new Uint8Array([1, 2, 3, 4]),
       });
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).toHaveBeenCalledWith({
         data: new Uint8Array([1, 2, 3, 4]),
-        keyringId: 'new-keyring-id',
+        keyringId: mockMultichainAccountWallet.entropySource,
         type: 'mnemonic',
       });
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
@@ -1946,7 +1961,8 @@ describe('Authentication', () => {
         .mockResolvedValueOnce(undefined);
       const error = new Error('Keyring add failed');
       (
-        Engine.context.KeyringController.addNewKeyring as jest.Mock
+        Engine.context.MultichainAccountService
+          .createMultichainAccountWallet as jest.Mock
       ).mockRejectedValueOnce(error);
 
       const mockState = {
@@ -1974,7 +1990,7 @@ describe('Authentication', () => {
       });
 
       expect(
-        Engine.context.KeyringController.addNewKeyring,
+        Engine.context.MultichainAccountService.createMultichainAccountWallet,
       ).toHaveBeenCalledTimes(1);
       expect(newWalletVaultAndRestoreSpy).toHaveBeenCalled();
       expect(
@@ -2558,7 +2574,7 @@ describe('Authentication', () => {
         submitPassword: jest.fn(),
         verifyPassword: jest.fn().mockResolvedValue(undefined),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       } as unknown as KeyringController;
 
@@ -2594,9 +2610,6 @@ describe('Authentication', () => {
 
   describe('importSeedlessMnemonicToVault', () => {
     const Engine = jest.requireMock('../Engine');
-    const mockKeyring = {
-      getAccounts: jest.fn().mockResolvedValue(['0x1234567890abcdef']),
-    };
 
     beforeEach(() => {
       // Reset mocks
@@ -2604,18 +2617,23 @@ describe('Authentication', () => {
 
       // Setup Engine context mocks
       Engine.context.KeyringController = {
-        addNewKeyring: jest.fn().mockResolvedValue({ id: 'test-keyring-id' }),
         withKeyring: jest
           .fn()
           .mockImplementation(
             async ({ id: _id }, callback) =>
-              await callback({ keyring: mockKeyring }),
+              await callback({ keyring: mockHdKeyring }),
           ),
-        removeAccount: jest.fn(),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       } as unknown as KeyringController;
+
+      Engine.context.MultichainAccountService = {
+        init: jest.fn(),
+        createMultichainAccountWallet: jest
+          .fn()
+          .mockResolvedValue(mockMultichainAccountWallet),
+      } as unknown as MultichainAccountService;
 
       Engine.context.SeedlessOnboardingController = {
         addNewSecretData: jest.fn().mockResolvedValue(undefined),
@@ -2694,43 +2712,46 @@ describe('Authentication', () => {
 
       // Assert
       expect(
-        Engine.context.KeyringController.addNewKeyring,
-      ).toHaveBeenCalledWith(KeyringTypes.hd, {
-        mnemonic,
-        numberOfAccounts: 1,
+        Engine.context.MultichainAccountService.createMultichainAccountWallet,
+      ).toHaveBeenCalledWith({
+        type: 'import',
+        mnemonic: new Uint8Array([1, 2, 3, 4]),
       });
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).toHaveBeenCalledWith({
-        keyringId: 'test-keyring-id',
+        keyringId: mockMultichainAccountWallet.entropySource,
         data: new Uint8Array([1, 2, 3, 4]),
         type: SecretType.Mnemonic,
       });
-      expect(result).toEqual({
-        id: 'test-keyring-id',
-      });
+      expect(result).toEqual(mockMultichainAccountWallet.entropySource);
     });
 
-    it('handle KeyringController.addNewKeyring failure', async () => {
+    it('handle MultichainAccountService.createMultichainAccountWallet failure', async () => {
       // Arrange
       const mnemonic = 'test mnemonic phrase for wallet';
 
-      const error = new Error('Failed to add new keyring');
-      Engine.context.KeyringController.addNewKeyring.mockRejectedValue(error);
+      const error = new Error('Failed to add new wallet');
+      Engine.context.MultichainAccountService.createMultichainAccountWallet.mockRejectedValue(
+        error,
+      );
 
       Engine.context.SeedlessOnboardingController.state.vault =
         'seedless onboarding vault';
       // Act & Assert
       await expect(
         Authentication.importSeedlessMnemonicToVault(mnemonic),
-      ).rejects.toThrow('Failed to add new keyring');
+      ).rejects.toThrow('Failed to add new wallet');
     });
 
     it('handle keyring.getAccounts failure', async () => {
       // Arrange
       const mnemonic = 'test mnemonic phrase for wallet';
       const error = new Error('Failed to get accounts');
-      mockKeyring.getAccounts.mockRejectedValue(error);
+      mockHdKeyring.getAccounts.mockRejectedValue(error);
+      Engine.context.MultichainAccountService.createMultichainAccountWallet.mockResolvedValue(
+        mockMultichainAccountWallet,
+      );
       Engine.context.SeedlessOnboardingController.state.vault =
         'seedless onboarding vault';
 
@@ -2758,7 +2779,7 @@ describe('Authentication', () => {
           .mockResolvedValue(mockImportedAddress),
         removeAccount: jest.fn().mockResolvedValue(undefined),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       } as unknown as KeyringController;
 
@@ -3242,12 +3263,9 @@ describe('Authentication', () => {
         .mockResolvedValue(true);
       jest
         .spyOn(Authentication, 'importSeedlessMnemonicToVault')
-        .mockResolvedValue({ id: 'test-keyring-id' } as KeyringMetadata);
+        .mockResolvedValue('test-keyring-id');
 
-      // Mock convertEnglishWordlistIndicesToCodepoints
-      mockConvertEnglishWordlistIndicesToCodepoints.mockReturnValue(
-        Buffer.from('test mnemonic phrase'),
-      );
+      // Mock mnemonic conversion utility
       mockUint8ArrayToMnemonic.mockReturnValue('test mnemonic phrase');
     });
 
@@ -3539,7 +3557,7 @@ describe('Authentication', () => {
         setLocked: jest.fn().mockResolvedValue(undefined),
         isUnlocked: jest.fn(() => true),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       } as unknown as KeyringController;
 
@@ -3624,7 +3642,7 @@ describe('Authentication', () => {
         setLocked: jest.fn().mockResolvedValue(undefined),
         isUnlocked: jest.fn(() => true),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       } as unknown as KeyringController;
 
@@ -4438,7 +4456,7 @@ describe('Authentication', () => {
         submitPassword: jest.fn(),
         verifyPassword: jest.fn(),
         state: {
-          keyrings: [createMockHdKeyring()],
+          keyrings: [createMockHdKeyringObject()],
         },
       };
 
