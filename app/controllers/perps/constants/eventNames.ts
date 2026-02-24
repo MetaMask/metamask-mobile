@@ -134,6 +134,15 @@ export const PERPS_EVENT_PROPERTY = {
 
   // Scroll tracking properties
   SECTION_VIEWED: 'section_viewed',
+
+  // Pay with any token (PERPS_TRADE_TRANSACTION)
+  TRADE_WITH_TOKEN: 'trade_with_token',
+  MM_PAY_TOKEN_SELECTED: 'mm_pay_token_selected',
+  MM_PAY_NETWORK_SELECTED: 'mm_pay_network_selected',
+
+  // Pay-with UI (PERPS_UI_INTERACTION)
+  INITIAL_PAYMENT_METHOD: 'initial_payment_method',
+  NEW_PAYMENT_METHOD: 'new_payment_method',
 } as const;
 
 /**
@@ -290,6 +299,9 @@ export const PERPS_EVENT_VALUE = {
     SHARE_PNL_HERO_CARD: 'share_pnl_hero_card',
     // Chart interactions
     FULL_SCREEN_CHART: 'full_screen_chart',
+    // Pay-with interactions
+    PAYMENT_TOKEN_SELECTOR: 'payment_token_selector',
+    PAYMENT_METHOD_CHANGED: 'payment_method_changed',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',

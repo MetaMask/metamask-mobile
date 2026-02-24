@@ -619,18 +619,6 @@ describe('CardSDK', () => {
   });
 
   describe('getGeoLocation', () => {
-    const originalNodeEnv = process.env.NODE_ENV;
-
-    afterEach(() => {
-      // Restore original NODE_ENV
-      if (originalNodeEnv === undefined) {
-        delete (process.env as { NODE_ENV?: string }).NODE_ENV;
-      } else {
-        (process.env as { NODE_ENV?: string }).NODE_ENV = originalNodeEnv;
-      }
-      jest.clearAllMocks();
-    });
-
     it('returns UNKNOWN when API call fails', async () => {
       const error = new Error('Network error');
       (global.fetch as jest.Mock).mockRejectedValueOnce(error);
@@ -5031,6 +5019,120 @@ describe('CardSDK', () => {
       await expect(
         cardSDK.createApplePayProvisioningRequest(mockApplePayParams),
       ).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+      });
+    });
+  });
+
+  describe('freezeCard', () => {
+    it('freezes card successfully', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ success: true }),
+      });
+
+      const result = await cardSDK.freezeCard();
+
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/card/freeze'),
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
+    });
+
+    it('throws error on server failure', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: jest.fn().mockResolvedValue({ message: 'Server error' }),
+      });
+
+      await expect(cardSDK.freezeCard()).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+
+      expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('throws INVALID_CREDENTIALS on 401', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: jest.fn().mockResolvedValue({ message: 'Unauthorized' }),
+      });
+
+      await expect(cardSDK.freezeCard()).rejects.toMatchObject({
+        type: CardErrorType.INVALID_CREDENTIALS,
+      });
+    });
+
+    it('handles network errors', async () => {
+      (global.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network failure'),
+      );
+
+      await expect(cardSDK.freezeCard()).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+      });
+    });
+  });
+
+  describe('unfreezeCard', () => {
+    it('unfreezes card successfully', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ success: true }),
+      });
+
+      const result = await cardSDK.unfreezeCard();
+
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/card/unfreeze'),
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
+    });
+
+    it('throws error on server failure', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: jest.fn().mockResolvedValue({ message: 'Server error' }),
+      });
+
+      await expect(cardSDK.unfreezeCard()).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+
+      expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('throws INVALID_CREDENTIALS on 403', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+        json: jest.fn().mockResolvedValue({ message: 'Forbidden' }),
+      });
+
+      await expect(cardSDK.unfreezeCard()).rejects.toMatchObject({
+        type: CardErrorType.INVALID_CREDENTIALS,
+      });
+    });
+
+    it('handles network errors', async () => {
+      (global.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network failure'),
+      );
+
+      await expect(cardSDK.unfreezeCard()).rejects.toMatchObject({
         type: CardErrorType.NETWORK_ERROR,
       });
     });

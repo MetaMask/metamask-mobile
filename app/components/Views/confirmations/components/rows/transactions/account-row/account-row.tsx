@@ -7,14 +7,17 @@ import { getFormattedAddressFromInternalAccount } from '../../../../../../../cor
 import Name from '../../../../../../UI/Name';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
+import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import InfoRow from '../../../UI/info-row';
 
 interface AccountRowProps {
   label: string;
-  chainId: Hex;
+  chainId?: Hex;
 }
 
-const AccountRow = ({ label, chainId }: AccountRowProps) => {
+const AccountRow = ({ label, chainId: chainIdProp }: AccountRowProps) => {
+  const transactionMetadata = useTransactionMetadataRequest();
+  const chainId = chainIdProp ?? (transactionMetadata?.chainId as Hex);
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );

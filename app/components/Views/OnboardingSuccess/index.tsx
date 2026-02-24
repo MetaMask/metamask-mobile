@@ -54,13 +54,12 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   }, [navigation]);
 
   const goToDefaultSettings = () => {
-    navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
-      screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
-    });
+    navigation.navigate(Routes.ONBOARDING.DEFAULT_SETTINGS);
   };
 
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
+      // Run discovery on all account providers (EVM and non-EVM)
       await discoverAccounts(
         Engine.context.KeyringController.state.keyrings[0].metadata.id,
       );

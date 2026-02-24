@@ -13,6 +13,7 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers.js';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 
 class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 8;
@@ -201,11 +202,22 @@ class WalletView {
     });
   }
 
+  async waitForTokenToBeReady(text: string, index = 0): Promise<DetoxElement> {
+    const elem = Matchers.getElementByText(text, index);
+    await Assertions.expectElementToBeVisible(elem, {
+      description: `${text} token in wallet list`,
+    });
+    return await Utilities.waitForReadyState(elem, {
+      elemDescription: `Token with text ${text} at index ${index}`,
+    });
+  }
+
   async tapOnToken(token: string, index = 0): Promise<void> {
-    const elem = Matchers.getElementByText(
-      token || WalletViewSelectorsText.DEFAULT_TOKEN,
-      index,
-    );
+    const tokenLabel = token || WalletViewSelectorsText.DEFAULT_TOKEN;
+    const elem = Matchers.getElementByText(tokenLabel, index);
+    await Assertions.expectElementToBeVisible(elem, {
+      description: `${tokenLabel} token in wallet list`,
+    });
     await Gestures.waitAndTap(elem, {
       elemDescription: 'Token',
     });

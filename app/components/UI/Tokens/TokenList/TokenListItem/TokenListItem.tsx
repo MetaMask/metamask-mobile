@@ -18,7 +18,8 @@ import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import AssetElement from '../../../AssetElement';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
@@ -63,8 +64,7 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
-import BigNumber from 'bignumber.js';
-import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
+import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -108,7 +108,6 @@ interface TokenListItemProps {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
-  shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;
@@ -119,12 +118,11 @@ export const TokenListItem = React.memo(
     assetKey,
     showRemoveMenu,
     setShowScamWarningModal,
-    shouldShowTokenListItemCta,
     privacyMode,
     showPercentageChange = true,
     isFullView = false,
   }: TokenListItemProps) => {
-    const { trackEvent, createEventBuilder } = useMetrics();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
     const { colors } = useTheme();
     const styles = createStyles(colors);
@@ -151,6 +149,7 @@ export const TokenListItem = React.memo(
 
     const earnToken = getEarnToken(asset as TokenI);
 
+    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
     const { initiateConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
@@ -189,7 +188,28 @@ export const TokenListItem = React.memo(
     );
 
     const { claimRewards } = merklData;
-    const handleClaimBonus = useCallback(() => claimRewards(), [claimRewards]);
+    const handleClaimBonus = useCallback(() => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
+          .addProperties({
+            location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+            action_type: 'claim_bonus',
+            button_text: strings('earn.claim_bonus'),
+            network_chain_id: asset?.chainId,
+            network_name: networkName,
+            asset_symbol: asset?.symbol,
+          })
+          .build(),
+      );
+      claimRewards();
+    }, [
+      trackEvent,
+      createEventBuilder,
+      asset?.chainId,
+      asset?.symbol,
+      networkName,
+      claimRewards,
+    ]);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -303,10 +323,7 @@ export const TokenListItem = React.memo(
 
       if (
         isStablecoinLendingEnabled &&
-        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
-        new BigNumber(earnToken?.balanceFiatNumber || '0').gte(
-          MINIMUM_BALANCE_FOR_EARN_CTA,
-        )
+        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
       ) {
         return {
           text: `${strings('stake.earn')}`,
@@ -337,12 +354,12 @@ export const TokenListItem = React.memo(
       return { text, color, onPress: undefined };
     }, [
       hasClaimableBonus,
-      merklData.isClaiming,
       shouldShowConvertToMusdCta,
-      earnToken,
       isStablecoinLendingEnabled,
+      earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
+      merklData.isClaiming,
       handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
@@ -390,8 +407,8 @@ export const TokenListItem = React.memo(
             asset.isNative || isMusdToken(asset.address) ? null : showRemoveMenu
           }
           asset={asset}
-          balance={asset.balanceFiat}
-          secondaryBalance={secondaryBalanceDisplay.text}
+          balance={asset.balanceFiat || '—'}
+          secondaryBalance={secondaryBalanceDisplay.text || '-'}
           secondaryBalanceColor={secondaryBalanceDisplay.color}
           privacyMode={privacyMode}
           hideSecondaryBalanceInPrivacyMode={false}
@@ -448,7 +465,10 @@ export const TokenListItem = React.memo(
                 </SensitiveText>
               }
               {isStockToken(asset as BridgeToken) && (
-                <StockBadge style={styles.stockBadgeWrapper} token={asset} />
+                <StockBadge
+                  style={styles.stockBadgeWrapper}
+                  token={asset as BridgeToken}
+                />
               )}
             </View>
           </View>

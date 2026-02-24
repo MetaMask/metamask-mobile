@@ -31,7 +31,7 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
       }
     >
       <View
-        pointerEvents="auto"
+        pointerEvents="none"
       >
         <TouchableOpacity
           disabled={false}

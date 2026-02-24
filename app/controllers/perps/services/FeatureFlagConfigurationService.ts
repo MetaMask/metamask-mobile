@@ -1,15 +1,16 @@
-import { hasProperty } from '@metamask/utils';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
+import { hasProperty } from '@metamask/utils';
+
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { isVersionGatedFeatureFlag } from '../types';
+import type { PerpsPlatformDependencies } from '../types';
+import type { ServiceContext } from './ServiceContext';
 import { ensureError } from '../utils/errorUtils';
+import { validateMarketPattern } from '../utils/marketUtils';
 import {
   parseCommaSeparatedString,
   stripQuotes,
 } from '../utils/stringParseUtils';
-import type { ServiceContext } from './ServiceContext';
-import {
-  isVersionGatedFeatureFlag,
-  type PerpsPlatformDependencies,
-} from '../types';
 
 /**
  * FeatureFlagConfigurationService
@@ -28,26 +29,32 @@ import {
  * Instance-based service with constructor injection of platform dependencies.
  */
 export class FeatureFlagConfigurationService {
-  private readonly deps: PerpsPlatformDependencies;
+  readonly #deps: PerpsPlatformDependencies;
 
   /**
    * Create a new FeatureFlagConfigurationService instance
+   *
    * @param deps - Platform dependencies for logging, metrics, etc.
    */
   constructor(deps: PerpsPlatformDependencies) {
-    this.deps = deps;
+    this.#deps = deps;
   }
 
   /**
    * Validate and parse market list from remote feature flags
    * Handles both string (comma-separated) and array formats from LaunchDarkly
+   *
+   * @param remoteValue - The raw value from remote feature flags (string or array).
+   * @param fieldName - The name of the field being validated (for logging).
+   * @param currentValue - The current local market list as fallback reference.
+   * @returns The validated market list, or undefined if validation fails.
    */
-  private validateMarketList(
+  #validateMarketList(
     remoteValue: unknown,
     fieldName: string,
     currentValue: string[],
   ): string[] | undefined {
-    this.deps.debugLogger.log(
+    this.#deps.debugLogger.log(
       `PerpsController: HIP-3 ${fieldName} validation`,
       {
         remoteValue,
@@ -59,17 +66,20 @@ export class FeatureFlagConfigurationService {
     // LaunchDarkly returns comma-separated strings for list values
     // Values may have literal quotes (e.g., '"xyz"') due to JSON encoding quirks
     if (typeof remoteValue === 'string') {
-      const parsed = parseCommaSeparatedString(remoteValue).map(stripQuotes);
+      const parsed = this.#filterValidPatterns(
+        parseCommaSeparatedString(remoteValue).map(stripQuotes),
+        fieldName,
+      );
 
       if (parsed.length > 0) {
-        this.deps.debugLogger.log(
+        this.#deps.debugLogger.log(
           `PerpsController: HIP-3 ${fieldName} validated from string`,
           { validatedMarkets: parsed },
         );
         return parsed;
       }
 
-      this.deps.debugLogger.log(
+      this.#deps.debugLogger.log(
         `PerpsController: HIP-3 ${fieldName} string was empty after parsing`,
         { fallbackValue: currentValue },
       );
@@ -81,18 +91,29 @@ export class FeatureFlagConfigurationService {
       Array.isArray(remoteValue) &&
       remoteValue.every((item) => typeof item === 'string' && item.length > 0)
     ) {
-      const validatedMarkets = (remoteValue as string[])
-        .map((market) => stripQuotes(market.trim()))
-        .filter((market) => market.length > 0);
-
-      this.deps.debugLogger.log(
-        `PerpsController: HIP-3 ${fieldName} validated from array`,
-        { validatedMarkets },
+      const validatedMarkets = this.#filterValidPatterns(
+        (remoteValue as string[])
+          .map((market) => stripQuotes(market.trim()))
+          .filter((market) => market.length > 0),
+        fieldName,
       );
-      return validatedMarkets;
+
+      if (validatedMarkets.length > 0) {
+        this.#deps.debugLogger.log(
+          `PerpsController: HIP-3 ${fieldName} validated from array`,
+          { validatedMarkets },
+        );
+        return validatedMarkets;
+      }
+
+      this.#deps.debugLogger.log(
+        `PerpsController: HIP-3 ${fieldName} array was empty after filtering`,
+        { fallbackValue: currentValue },
+      );
+      return undefined;
     }
 
-    this.deps.debugLogger.log(
+    this.#deps.debugLogger.log(
       `PerpsController: HIP-3 ${fieldName} validation FAILED - falling back to local config`,
       {
         reason: Array.isArray(remoteValue)
@@ -105,9 +126,45 @@ export class FeatureFlagConfigurationService {
   }
 
   /**
-   * Check if arrays have different values (order-independent comparison)
+   * Filter out patterns that fail market pattern validation.
+   * Invalid patterns are logged and dropped instead of propagated downstream.
+   *
+   * @param patterns - The array of market patterns to validate.
+   * @param fieldName - The name of the field being validated (for logging).
+   * @returns The filtered array containing only valid market patterns.
    */
-  private arraysHaveDifferentValues(a: string[], b: string[]): boolean {
+  #filterValidPatterns(patterns: string[], fieldName: string): string[] {
+    return patterns.filter((pattern) => {
+      try {
+        validateMarketPattern(pattern);
+        return true;
+      } catch (error) {
+        this.#deps.logger.error(
+          ensureError(
+            error,
+            `FeatureFlagConfigurationService.filterValidPatterns`,
+          ),
+          {
+            tags: { feature: PERPS_CONSTANTS.FeatureName },
+            context: {
+              name: 'FeatureFlagConfigurationService.filterValidPatterns',
+              data: { fieldName, pattern },
+            },
+          },
+        );
+        return false;
+      }
+    });
+  }
+
+  /**
+   * Check if arrays have different values (order-independent comparison)
+   *
+   * @param a - The first string array to compare.
+   * @param b - The second string array to compare.
+   * @returns True if the arrays contain different values.
+   */
+  #arraysHaveDifferentValues(a: string[], b: string[]): boolean {
     return (
       JSON.stringify(
         [...a].sort((itemA, itemB) => itemA.localeCompare(itemB)),
@@ -152,21 +209,24 @@ export class FeatureFlagConfigurationService {
     // Use type guard to validate before calling - validatedVersionGatedFeatureFlag also
     // handles invalid flags internally, but proper typing requires the guard
     const validatedEquity = isVersionGatedFeatureFlag(equityFlag)
-      ? this.deps.featureFlags.validateVersionGated(equityFlag)
+      ? this.#deps.featureFlags.validateVersionGated(equityFlag)
       : undefined;
 
-    this.deps.debugLogger.log('PerpsController: HIP-3 equity flag validation', {
-      equityFlag,
-      validatedEquity,
-      willUse: validatedEquity !== undefined ? 'remote' : 'fallback',
-    });
+    this.#deps.debugLogger.log(
+      'PerpsController: HIP-3 equity flag validation',
+      {
+        equityFlag,
+        validatedEquity,
+        willUse: validatedEquity === undefined ? 'fallback' : 'remote',
+      },
+    );
 
     // Extract and validate remote HIP-3 market lists
     const validatedAllowlistMarkets = hasProperty(
       remoteFlags,
       'perpsHip3AllowlistMarkets',
     )
-      ? this.validateMarketList(
+      ? this.#validateMarketList(
           remoteFlags.perpsHip3AllowlistMarkets,
           'allowlistMarkets',
           currentConfig.allowlistMarkets,
@@ -177,7 +237,7 @@ export class FeatureFlagConfigurationService {
       remoteFlags,
       'perpsHip3BlocklistMarkets',
     )
-      ? this.validateMarketList(
+      ? this.#validateMarketList(
           remoteFlags.perpsHip3BlocklistMarkets,
           'blocklistMarkets',
           currentConfig.blocklistMarkets,
@@ -190,19 +250,19 @@ export class FeatureFlagConfigurationService {
       validatedEquity !== currentConfig.enabled;
     const allowlistMarketsChanged =
       validatedAllowlistMarkets !== undefined &&
-      this.arraysHaveDifferentValues(
+      this.#arraysHaveDifferentValues(
         validatedAllowlistMarkets,
         currentConfig.allowlistMarkets,
       );
     const blocklistMarketsChanged =
       validatedBlocklistMarkets !== undefined &&
-      this.arraysHaveDifferentValues(
+      this.#arraysHaveDifferentValues(
         validatedBlocklistMarkets,
         currentConfig.blocklistMarkets,
       );
 
     if (equityChanged || allowlistMarketsChanged || blocklistMarketsChanged) {
-      this.deps.debugLogger.log(
+      this.#deps.debugLogger.log(
         'PerpsController: HIP-3 config changed via remote feature flags',
         {
           equityChanged,
@@ -233,7 +293,7 @@ export class FeatureFlagConfigurationService {
       // Increment version to trigger ConnectionManager reconnection and cache clearing
       const newVersion = context.incrementHip3ConfigVersion();
 
-      this.deps.debugLogger.log(
+      this.#deps.debugLogger.log(
         'PerpsController: Incremented hip3ConfigVersion to trigger reconnection',
         {
           newVersion,
@@ -329,12 +389,16 @@ export class FeatureFlagConfigurationService {
     }
 
     context.refreshEligibility().catch((error) => {
-      this.deps.logger.error(ensureError(error), {
-        context: {
-          name: 'FeatureFlagConfigurationService.setBlockedRegions',
-          data: { source },
+      this.#deps.logger.error(
+        ensureError(error, 'FeatureFlagConfigurationService.setBlockedRegions'),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'FeatureFlagConfigurationService.setBlockedRegions',
+            data: { source },
+          },
         },
-      });
+      );
     });
   }
 }

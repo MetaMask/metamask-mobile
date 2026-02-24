@@ -29,7 +29,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 const SeasonStatus: React.FC = () => {
   const theme = useTheme();
   const { fetchSeasonStatus } = useSeasonStatus({
-    onlyForExplicitFetch: false,
+    onlyForExplicitFetch: true,
   });
   const tw = useTailwind();
   const balanceTotal = useSelector(selectBalanceTotal);

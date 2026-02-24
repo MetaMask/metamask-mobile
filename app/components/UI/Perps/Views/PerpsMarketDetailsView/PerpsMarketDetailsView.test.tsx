@@ -1911,8 +1911,11 @@ describe('PerpsMarketDetailsView', () => {
         expect(mockLoggerError).toHaveBeenCalledWith(
           expect.any(Error),
           expect.objectContaining({
-            feature: 'perps',
-            message: 'Failed to open Trading View URL',
+            tags: { feature: 'perps' },
+            context: {
+              name: 'PerpsMarketDetailsView.handleTradingViewPress',
+              data: {},
+            },
           }),
         );
       });

@@ -52,12 +52,24 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
+  get bridgeViewScroll(): DetoxElement {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL);
+  }
+
+  get keypadDeleteButton(): DetoxElement {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON);
+  }
+
   get maxLink(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.MAX);
   }
 
   get includedLabel(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.INCLUDED);
+  }
+
+  get rateLabel(): DetoxElement {
+    return Matchers.getElementByText(QuoteViewSelectorText.RATE);
   }
 
   token(chainId: string, symbol: string): Detox.NativeElement {
@@ -116,6 +128,22 @@ class QuoteView {
   async tapSourceToken(): Promise<void> {
     await Gestures.waitAndTap(this.sourceTokenArea, {
       elemDescription: 'Tap source asset picker',
+    });
+  }
+
+  /**
+   * Taps the source amount input to focus it and open the keypad (BottomSheet).
+   * Use before enterAmount() when the keypad may be closed (e.g. after returning from token/network selection).
+   */
+  async tapSourceAmountInput(): Promise<void> {
+    await Gestures.waitAndTap(this.amountInput, {
+      elemDescription: 'Tap source amount input to open keypad',
+    });
+  }
+
+  async dismissKeypad(): Promise<void> {
+    await Gestures.waitAndTap(this.rateLabel, {
+      elemDescription: 'Tap rate label to dismiss keypad',
     });
   }
 

@@ -10,7 +10,7 @@ import { Linking } from 'react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import QrScanner from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -46,9 +46,8 @@ jest.mock('react-native-vision-camera', () => ({
   useCodeScanner: jest.fn(),
 }));
 
-jest.mock('../../../components/hooks/useMetrics/useMetrics', () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -99,6 +98,10 @@ jest.mock('ethereumjs-util', () => ({
 
 jest.mock('../../../util/general', () => ({
   getURLProtocol: jest.fn().mockReturnValue(''),
+}));
+
+jest.mock('../../../core/DeeplinkManager/util/deeplinks', () => ({
+  isMetaMaskUniversalLink: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('eth-url-parser', () => ({
@@ -173,11 +176,12 @@ const initialState = {
   },
 };
 
-// Import useMetrics after mocking
-import useMetrics from '../../../components/hooks/useMetrics/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+  typeof useAnalytics
+>;
 
 describe('QrScanner', () => {
   let onCodeScannedCallback: ((codes: { value: string }[]) => void) | null =
@@ -188,6 +192,20 @@ describe('QrScanner', () => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockLinkingOpenURL.mockClear();
+
+    // Reset isMetaMaskUniversalLink to default (false) — individual tests
+    // that need it to return true will override this.
+    const deeplinksUtilModule = jest.requireMock(
+      '../../../core/DeeplinkManager/util/deeplinks',
+    );
+    (deeplinksUtilModule.isMetaMaskUniversalLink as jest.Mock).mockReturnValue(
+      false,
+    );
+
+    // Reset SharedDeeplinkManager.parse to default (not handled) so each
+    // test starts with a clean slate. jest.clearAllMocks() only clears call
+    // counts, not implementations set via mockResolvedValue.
+    (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
 
     // Setup useSelector mock
     mockUseSelector.mockImplementation(
@@ -219,7 +237,7 @@ describe('QrScanner', () => {
       addProperties: mockAddProperties,
       build: mockBuild,
     });
-    mockUseMetrics.mockReturnValue({
+    mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
       isEnabled: jest.fn().mockReturnValue(true),
@@ -227,11 +245,11 @@ describe('QrScanner', () => {
       addTraitsToUser: jest.fn(),
       createDataDeletionTask: jest.fn(),
       checkDataDeleteStatus: jest.fn(),
-      getMetaMetricsId: jest.fn(),
+      getAnalyticsId: jest.fn(),
       isDataRecorded: jest.fn().mockReturnValue(true),
       getDeleteRegulationId: jest.fn(),
       getDeleteRegulationCreationDate: jest.fn(),
-    } as ReturnType<typeof useMetrics>);
+    } as ReturnType<typeof useAnalytics>);
 
     // Setup camera mocks
     mockUseCameraDevice.mockReturnValue({
@@ -746,6 +764,117 @@ describe('QrScanner', () => {
         });
       });
 
+      it('routes MetaMask universal links through DeeplinkManager instead of Linking.openURL', async () => {
+        // isMetaMaskUniversalLink identifies the link, isMwpDeeplink must be
+        // false so we don't get caught by the MWP handler above.
+        const deeplinksUtilModule = jest.requireMock(
+          '../../../core/DeeplinkManager/util/deeplinks',
+        );
+        (
+          deeplinksUtilModule.isMetaMaskUniversalLink as jest.Mock
+        ).mockReturnValue(true);
+
+        const SDKConnectV2Module = jest.requireMock(
+          '../../../core/SDKConnectV2',
+        );
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          false,
+        );
+
+        // Invoke the onHandled callback so navigation clean-up lines are
+        // covered — mockResolvedValue alone would leave them dead.
+        (SharedDeeplinkManager.parse as jest.Mock).mockImplementation(
+          async (
+            _url: string,
+            opts?: { onHandled?: () => void },
+          ): Promise<boolean> => {
+            opts?.onHandled?.();
+            return true;
+          },
+        );
+
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([
+            { value: 'https://metamask.app.link/dapp/example.com' },
+          ]);
+        });
+
+        await waitFor(() => {
+          // Must NOT open externally — on iOS this would bounce to Safari → App Store
+          expect(mockLinkingOpenURL).not.toHaveBeenCalled();
+
+          // Must route through DeeplinkManager for in-app handling
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+            'https://metamask.app.link/dapp/example.com',
+            expect.objectContaining({
+              origin: 'qr-code',
+            }),
+          );
+
+          // Must track as a successfully handled deeplink
+          expect(mockTrackEvent).toHaveBeenCalled();
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: true,
+            [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.DEEPLINK_HANDLED,
+          });
+        });
+      });
+
+      it('tracks unrecognized_qr_code when DeeplinkManager cannot handle a universal link', async () => {
+        const deeplinksUtilModule = jest.requireMock(
+          '../../../core/DeeplinkManager/util/deeplinks',
+        );
+        (
+          deeplinksUtilModule.isMetaMaskUniversalLink as jest.Mock
+        ).mockReturnValue(true);
+
+        const SDKConnectV2Module = jest.requireMock(
+          '../../../core/SDKConnectV2',
+        );
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          false,
+        );
+
+        // DeeplinkManager.parse returns false → link was not handled
+        (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
+
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([
+            { value: 'https://metamask.app.link/unknown-action' },
+          ]);
+        });
+
+        await waitFor(() => {
+          expect(mockLinkingOpenURL).not.toHaveBeenCalled();
+
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: false,
+            [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            [QRScannerEventProperties.SCAN_RESULT]:
+              ScanResult.UNRECOGNIZED_QR_CODE,
+          });
+        });
+      });
+
       it('tracks QR_SCANNED with unrecognized_qr_code result and scan_success false for arbitrary content', async () => {
         const validatorsModule = jest.requireMock('../../../util/validators');
         (validatorsModule.isValidMnemonic as jest.Mock).mockReturnValue(false);
@@ -815,7 +944,7 @@ describe('QrScanner', () => {
         addProperties: mockAddProperties,
         build: mockBuild,
       });
-      mockUseMetrics.mockReturnValue({
+      mockUseAnalytics.mockReturnValue({
         trackEvent: mockTrackEvent,
         createEventBuilder: mockCreateEventBuilder,
         isEnabled: jest.fn().mockReturnValue(true),
@@ -823,11 +952,11 @@ describe('QrScanner', () => {
         addTraitsToUser: jest.fn(),
         createDataDeletionTask: jest.fn(),
         checkDataDeleteStatus: jest.fn(),
-        getMetaMetricsId: jest.fn(),
+        getAnalyticsId: jest.fn(),
         isDataRecorded: jest.fn().mockReturnValue(true),
         getDeleteRegulationId: jest.fn(),
         getDeleteRegulationCreationDate: jest.fn(),
-      } as ReturnType<typeof useMetrics>);
+      } as ReturnType<typeof useAnalytics>);
 
       mockUseCameraDevice.mockReturnValue({
         id: 'back',

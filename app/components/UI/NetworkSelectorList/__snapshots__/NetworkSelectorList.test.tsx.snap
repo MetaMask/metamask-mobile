@@ -93,7 +93,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
               }
             >
               <View
-                pointerEvents="auto"
+                pointerEvents="none"
               >
                 <TouchableOpacity
                   disabled={false}
@@ -242,7 +242,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
               }
             >
               <View
-                pointerEvents="auto"
+                pointerEvents="none"
               >
                 <TouchableOpacity
                   disabled={false}

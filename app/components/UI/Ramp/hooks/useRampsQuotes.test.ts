@@ -3,7 +3,8 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsQuotes } from './useRampsQuotes';
-import type { Quote, QuotesResponse } from '@metamask/ramps-controller';
+import type { QuotesResponse } from '@metamask/ramps-controller';
+import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -11,6 +12,9 @@ jest.mock('../../../../core/Engine', () => ({
     RampsController: {
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
+      getWidgetUrl: jest.fn(),
     },
   },
 }));
@@ -61,7 +65,7 @@ describe('useRampsQuotes', () => {
   });
 
   describe('return value structure', () => {
-    it('returns quotes, selectedQuote, startQuotePolling, stopQuotePolling, isLoading, and error', () => {
+    it('returns quotes, selectedQuote, startQuotePolling, stopQuotePolling, getWidgetUrl, isLoading, and error', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsQuotes(), {
         wrapper: wrapper(store),
@@ -75,6 +79,9 @@ describe('useRampsQuotes', () => {
       });
       expect(typeof result.current.startQuotePolling).toBe('function');
       expect(typeof result.current.stopQuotePolling).toBe('function');
+      expect(typeof result.current.getQuotes).toBe('function');
+      expect(typeof result.current.setSelectedQuote).toBe('function');
+      expect(typeof result.current.getWidgetUrl).toBe('function');
     });
   });
 
@@ -243,6 +250,37 @@ describe('useRampsQuotes', () => {
       expect(
         Engine.context.RampsController.stopQuotePolling,
       ).toHaveBeenCalled();
+    });
+  });
+
+  describe('getWidgetUrl', () => {
+    it('calls Engine.context.RampsController.getWidgetUrl with quote', async () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsQuotes(), {
+        wrapper: wrapper(store),
+      });
+
+      const testQuote: Quote = {
+        provider: '/providers/test',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/card',
+          buyURL: 'https://on-ramp.uat-api.cx.metamask.io/test/buy-widget',
+        },
+      } as Quote;
+
+      (
+        Engine.context.RampsController.getWidgetUrl as jest.Mock
+      ).mockResolvedValue('https://global.transak.com/?apiKey=test');
+
+      await act(async () => {
+        await result.current.getWidgetUrl(testQuote);
+      });
+
+      expect(Engine.context.RampsController.getWidgetUrl).toHaveBeenCalledWith(
+        testQuote,
+      );
     });
   });
 });
