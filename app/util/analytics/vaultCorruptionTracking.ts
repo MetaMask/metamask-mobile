@@ -3,7 +3,6 @@ import { analytics } from './analytics';
 import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
 import Logger from '../Logger';
 import {
-  AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
@@ -41,9 +40,6 @@ export const isVaultRelatedError = (errorMessage: string): boolean => {
     // Vault creation/parsing errors (from constants/error.ts)
     VAULT_CREATION_ERROR.toLowerCase(),
     NO_VAULT_IN_BACKUP_ERROR.toLowerCase(),
-
-    // System authentication failures (from constants/error.ts)
-    AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS.toLowerCase(),
 
     // Actual vault error (from components/Views/Login/constants.ts)
     VAULT_ERROR.toLowerCase(),

@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
@@ -37,7 +43,9 @@ import {
   getQuoteProviderName,
   getQuoteBuyUserAgent,
 } from '../../types';
+import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import Logger from '../../../../../util/Logger';
+import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
@@ -123,6 +131,32 @@ function BuildQuote() {
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
+
+  const isTokenUnavailable = useMemo(
+    () =>
+      !!(
+        selectedProvider &&
+        params?.assetId &&
+        selectedProvider.supportedCryptoCurrencies &&
+        !selectedProvider.supportedCryptoCurrencies[params.assetId]
+      ),
+    [selectedProvider, params?.assetId],
+  );
+
+  const hasShownTokenUnavailableRef = useRef(false);
+
+  useEffect(() => {
+    if (isTokenUnavailable && !hasShownTokenUnavailableRef.current) {
+      hasShownTokenUnavailableRef.current = true;
+      navigation.navigate(
+        ...createTokenNotAvailableModalNavigationDetails({
+          assetId: params?.assetId ?? '',
+        }),
+      );
+    } else if (!isTokenUnavailable) {
+      hasShownTokenUnavailableRef.current = false;
+    }
+  }, [isTokenUnavailable, params?.assetId, navigation]);
 
   const {
     checkExistingToken: transakCheckExistingToken,
@@ -263,7 +297,6 @@ function BuildQuote() {
 
     // Validate payment method context matches
     if (quotePaymentMethod != null) {
-      // Quote requires a payment method - must have one selected and it must match
       if (
         !selectedPaymentMethod ||
         selectedPaymentMethod.id !== quotePaymentMethod
@@ -314,19 +347,31 @@ function BuildQuote() {
       return;
     }
 
-    // Aggregator provider -> needs a widget URL
-    // Note: CustomActions (e.g., PayPal) are handled through the same flow.
-    // If the API returns a quote with a URL, it will be opened in the checkout webview.
-    // If customActions appear without a URL, they will error here (needs backend fix).
+    // V2 aggregator: get widget URL via controller and navigate to checkout
     try {
       const widgetUrl = await getWidgetUrl(selectedQuote);
 
       if (widgetUrl) {
+        const providerCode = selectedQuote.provider.startsWith('/providers/')
+          ? selectedQuote.provider.split('/')[2] || selectedQuote.provider
+          : selectedQuote.provider;
+        const chainId = selectedToken?.chainId as CaipChainId | undefined;
+        const network = chainId?.includes(':')
+          ? chainId.split(':')[1] || ''
+          : chainId || '';
+
         navigation.navigate(
           ...createCheckoutNavDetails({
             url: widgetUrl,
-            providerName: getQuoteProviderName(selectedQuote),
+            providerName:
+              selectedProvider?.name || getQuoteProviderName(selectedQuote),
             userAgent: getQuoteBuyUserAgent(selectedQuote),
+            providerCode,
+            providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+            walletAddress: walletAddress ?? undefined,
+            network,
+            currency,
+            cryptocurrency: selectedToken?.symbol || '',
           }),
         );
       } else {
@@ -334,22 +379,22 @@ function BuildQuote() {
           new Error('No widget URL available for aggregator provider'),
           { provider: selectedQuote.provider },
         );
-        // TODO: Show user-facing error (alert or inline)
       }
     } catch (error) {
       Logger.error(error as Error, {
         provider: selectedQuote.provider,
         message: 'Failed to fetch widget URL',
       });
-      // TODO: Show user-facing error (alert or inline)
     }
   }, [
     selectedQuote,
+    selectedProvider,
+    selectedToken,
+    walletAddress,
+    currency,
     navigation,
     getWidgetUrl,
     amountAsNumber,
-    selectedToken,
-    currency,
     selectedPaymentMethod,
     transakCheckExistingToken,
     transakGetBuyQuote,

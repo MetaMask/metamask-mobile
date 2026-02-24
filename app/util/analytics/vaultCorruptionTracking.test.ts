@@ -4,7 +4,6 @@ import {
   VaultCorruptionTrackingProperties,
 } from './vaultCorruptionTracking';
 import {
-  AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
   VAULT_CREATION_ERROR,
   NO_VAULT_IN_BACKUP_ERROR,
 } from '../../constants/error';
@@ -88,18 +87,6 @@ describe('vaultCorruptionTracking', () => {
       });
     });
 
-    it('detects system authentication failures', () => {
-      const systemAuthErrors = [
-        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-        `Error: ${AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS}`,
-        `Failed with: ${AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS}`,
-      ];
-
-      systemAuthErrors.forEach((errorMessage) => {
-        expect(isVaultRelatedError(errorMessage)).toBe(true);
-      });
-    });
-
     it('is case insensitive for all patterns', () => {
       // Given: error messages with different cases
       // When: checking if they are vault-related
@@ -123,7 +110,6 @@ describe('vaultCorruptionTracking', () => {
       const longErrorMessages = [
         `Migration failed: ${VAULT_ERROR} - please restore wallet`,
         `Backup restoration error: ${NO_VAULT_IN_BACKUP_ERROR}`,
-        `System failure: ${AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS} detected`,
         `Vault initialization failed: ${VAULT_CREATION_ERROR}`,
         'Migration 75: Invalid vault in KeyringController - corrupted data detected',
       ];
@@ -221,9 +207,6 @@ describe('vaultCorruptionTracking', () => {
       expect(isVaultRelatedError(VAULT_ERROR)).toBe(true);
       expect(isVaultRelatedError(VAULT_CREATION_ERROR)).toBe(true);
       expect(isVaultRelatedError(NO_VAULT_IN_BACKUP_ERROR)).toBe(true);
-      expect(
-        isVaultRelatedError(AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS),
-      ).toBe(true);
     });
 
     it('handles special characters and formatting', () => {
@@ -231,7 +214,6 @@ describe('vaultCorruptionTracking', () => {
         `Error: ${VAULT_ERROR}`,
         `[${VAULT_CREATION_ERROR}]`,
         `Failed - ${NO_VAULT_IN_BACKUP_ERROR}`,
-        `System error: ${AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS}`,
         'Migration 35: Invalid vault in KeyringController (corrupted)',
       ];
 
@@ -245,7 +227,6 @@ describe('vaultCorruptionTracking', () => {
         `${VAULT_ERROR} 🔒`,
         `${VAULT_CREATION_ERROR} ⚠️`,
         `${NO_VAULT_IN_BACKUP_ERROR} 🚫`,
-        `${AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS} ❌`,
       ];
 
       unicodeErrors.forEach((errorMessage) => {
@@ -264,7 +245,6 @@ describe('vaultCorruptionTracking', () => {
     it('handles multiple pattern matches', () => {
       const multipleMatches = [
         `${VAULT_ERROR} and ${VAULT_CREATION_ERROR}`,
-        `Migration error: ${NO_VAULT_IN_BACKUP_ERROR} with ${AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS}`,
         'Invalid vault in KeyringController with existing user missing vault in KeyringController',
       ];
 
@@ -344,7 +324,6 @@ describe('vaultCorruptionTracking', () => {
       VAULT_ERROR,
       VAULT_CREATION_ERROR,
       NO_VAULT_IN_BACKUP_ERROR,
-      AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
     ] as const)('tracks all vault error types: %s', (errorConstant) => {
       trackVaultCorruption(errorConstant, mockProperties);
 
