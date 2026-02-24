@@ -11,12 +11,10 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
 
-// Mock feature flags
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
 }));
 
-// Mock useTokenDetailsABTest hook
 const mockUseTokenDetailsABTest = jest.fn().mockReturnValue({
   useNewLayout: true,
   variantName: 'treatment',
@@ -35,7 +33,6 @@ jest.mock('react-redux', () => ({
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockRouteParams = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -43,7 +40,17 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
   }),
   useRoute: () => ({
-    params: mockRouteParams(),
+    params: {
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      chainId: '0x1',
+      symbol: 'DAI',
+      decimals: 18,
+      name: 'Dai Stablecoin',
+      image: 'https://example.com/dai.png',
+      isETH: false,
+      isNative: false,
+      balance: '10.5',
+    },
   }),
 }));
 
