@@ -41,15 +41,13 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const title = strings('homepage.sections.perpetuals');
   const [error, setError] = useState<boolean>(false);
 
-  const startPreload = useCallback(() => {
+  const startPreload = useCallback(async () => {
     const controller = Engine.context.PerpsController;
     if (!controller) return;
 
     setError(false);
     try {
-      Promise.resolve(controller.startMarketDataPreload()).catch(() =>
-        setError(true),
-      );
+      await controller.startMarketDataPreload();
     } catch {
       setError(true);
     }
@@ -70,7 +68,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   );
 
   const refresh = useCallback(async () => {
-    startPreload();
+    await startPreload();
   }, [startPreload]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
