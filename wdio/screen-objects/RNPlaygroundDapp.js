@@ -69,6 +69,58 @@ class RNPlaygroundDapp {
     return this._getByTestId('app-section-error');
   }
 
+  get connectLegacyButton() {
+    return this._getByTestId('app-btn-connect-legacy');
+  }
+
+  // ============================================================
+  // LEGACY EVM CARD SELECTORS
+  // ============================================================
+
+  get legacyEvmCard() {
+    return this._getByTestId('legacy-evm-card');
+  }
+
+  get legacyEvmChainIdValue() {
+    return this._getByTestId('legacy-evm-chain-id-value');
+  }
+
+  get legacyEvmAccountsValue() {
+    return this._getByTestId('legacy-evm-accounts-value');
+  }
+
+  get legacyEvmActiveAccount() {
+    return this._getByTestId('legacy-evm-active-account');
+  }
+
+  get legacyEvmResponseText() {
+    return this._getByTestId('legacy-evm-response-text');
+  }
+
+  get legacyEvmBtnPersonalSign() {
+    return this._getByTestId('legacy-evm-btn-personal-sign');
+  }
+
+  get legacyEvmBtnSendTransaction() {
+    return this._getByTestId('legacy-evm-btn-send-transaction');
+  }
+
+  get legacyEvmBtnSwitchSepolia() {
+    return this._getByTestId('legacy-evm-btn-switch-sepolia');
+  }
+
+  get legacyEvmBtnSwitchMainnet() {
+    return this._getByTestId('legacy-evm-btn-switch-mainnet');
+  }
+
+  get legacyEvmBtnSwitchPolygon() {
+    return this._getByTestId('legacy-evm-btn-switch-polygon');
+  }
+
+  get legacyEvmBtnBlockNumber() {
+    return this._getByTestId('legacy-evm-btn-block-number');
+  }
+
   // ============================================================
   // NETWORK CHECKBOX SELECTORS
   // ============================================================
@@ -169,6 +221,18 @@ class RNPlaygroundDapp {
   async tapConnect() {
     if (!this._device) return;
     const elem = await this.connectButton;
+    await AppwrightGestures.tap(elem);
+  }
+
+  async tapConnectLegacy() {
+    if (!this._device) return;
+    const elem = await this.connectLegacyButton;
+    await AppwrightGestures.tap(elem);
+  }
+
+  async tapLegacyEvmButton(buttonPromise) {
+    if (!this._device) return;
+    const elem = await buttonPromise;
     await AppwrightGestures.tap(elem);
   }
 
@@ -273,6 +337,36 @@ class RNPlaygroundDapp {
     if (!this._device) return;
     const code = await this.getResultCode(scope, method, index);
     await expect(code).toBeVisible({ timeout: timeoutMs });
+  }
+
+  async assertLegacyEvmConnected(timeoutMs = 15000) {
+    if (!this._device) return;
+    const card = await this.legacyEvmCard;
+    await expect(card).toBeVisible({ timeout: timeoutMs });
+  }
+
+  async assertLegacyEvmHasAccounts(timeoutMs = 10000) {
+    if (!this._device) return;
+    const accounts = await this.legacyEvmAccountsValue;
+    await expect(accounts).toBeVisible({ timeout: timeoutMs });
+  }
+
+  async assertLegacyEvmActiveAccount(timeoutMs = 10000) {
+    if (!this._device) return;
+    const activeAcct = await this.legacyEvmActiveAccount;
+    await expect(activeAcct).toBeVisible({ timeout: timeoutMs });
+  }
+
+  async getLegacyEvmChainId() {
+    if (!this._device) return null;
+    const chainIdElem = await this.legacyEvmChainIdValue;
+    return await chainIdElem.getText();
+  }
+
+  async getLegacyEvmResponseText() {
+    if (!this._device) return null;
+    const resp = await this.legacyEvmResponseText;
+    return await resp.getText();
   }
 
   /**

@@ -4,12 +4,13 @@ This directory contains Appwright-based E2E tests for MetaMask Connect flows.
 
 ## Test Files
 
-| File                            | Description                                                 |
-| ------------------------------- | ----------------------------------------------------------- |
-| `connection-evm.spec.js`        | Legacy EVM connection via Browser Playground in Chrome      |
-| `connection-multichain.spec.js` | Multichain API connection via Browser Playground in Chrome  |
-| `connection-wagmi.spec.js`      | Wagmi connector via Browser Playground in Chrome            |
-| `multichain-rn-connect.spec.js` | **Multichain + Solana via the React Native Playground APK** |
+| File                            | Description                                                   |
+| ------------------------------- | ------------------------------------------------------------- |
+| `connection-evm.spec.js`        | Legacy EVM connection via Browser Playground in Chrome        |
+| `connection-multichain.spec.js` | Multichain API connection via Browser Playground in Chrome    |
+| `connection-wagmi.spec.js`      | Wagmi connector via Browser Playground in Chrome              |
+| `multichain-rn-connect.spec.js` | **Multichain + Solana via the React Native Playground APK**   |
+| `legacy-evm-rn-connect.spec.js` | **Legacy EVM connection via the React Native Playground APK** |
 
 ## React Native Playground Setup
 
@@ -137,10 +138,16 @@ stale debug-vs-release mismatches.
 yarn run-appwright:mm-connect-android-local
 ```
 
-Or run only the RN playground spec:
+Or run individual RN playground specs:
 
 ```bash
+# Multichain + Solana test
 npx appwright test tests/performance/mm-connect/multichain-rn-connect.spec.js \
+  --project mm-connect-android-local \
+  --config tests/appwright.config.ts
+
+# Legacy EVM test
+npx appwright test tests/performance/mm-connect/legacy-evm-rn-connect.spec.js \
   --project mm-connect-android-local \
   --config tests/appwright.config.ts
 ```
@@ -164,6 +171,25 @@ MetaMask Connect flow:
 4. **Session termination** — disconnects via the Multichain SDK
    (`sdk.disconnect()`, the equivalent of `wallet_revokeSession`) and verifies
    the session is fully terminated on both the dApp and wallet sides.
+
+The `legacy-evm-rn-connect` test validates the Legacy EVM connection flow:
+
+1. **accountsChanged propagation** — connects via the Legacy EVM SDK and
+   verifies the dapp receives accounts and displays the active account.
+
+2. **personal_sign** — sends a personal_sign request, approves it in the
+   wallet, and verifies the signature is returned to the dapp.
+
+3. **eth_sendTransaction (cancel)** — sends a transaction request, cancels it
+   in the wallet (to avoid spending funds), and verifies the dapp handles the
+   rejection.
+
+4. **Chain switching from the dapp** — calls `wallet_switchEthereumChain` to
+   switch to Polygon from the dapp side and verifies the chain ID updates.
+
+5. **Chain switching from the wallet** — switches to Ethereum Mainnet in the
+   wallet's network picker and verifies the dapp receives the `chainChanged`
+   event.
 
 ### How It Works
 
