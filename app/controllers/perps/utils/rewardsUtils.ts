@@ -26,6 +26,9 @@ function formatChainIdToCaip(chainId: string): string {
   const decimal = chainId.startsWith('0x')
     ? parseInt(chainId, 16)
     : parseInt(chainId, 10);
+  if (isNaN(decimal)) {
+    throw new Error(`Invalid chain ID: ${chainId}`);
+  }
   return `eip155:${decimal}`;
 }
 

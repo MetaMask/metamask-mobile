@@ -289,7 +289,9 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
           const typedHandler = handler as Parameters<
             typeof Engine.controllerMessenger.subscribe<'RemoteFeatureFlagController:stateChange'>
           >[1];
+          let disposed = false;
           const doSubscribe = () => {
+            if (disposed) return;
             Engine.controllerMessenger.subscribe(
               'RemoteFeatureFlagController:stateChange',
               typedHandler,
@@ -302,6 +304,7 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
             setTimeout(doSubscribe, 0);
           }
           return () => {
+            disposed = true;
             try {
               Engine.controllerMessenger.unsubscribe(
                 'RemoteFeatureFlagController:stateChange',
@@ -321,7 +324,9 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
           const typedHandler = handler as Parameters<
             typeof Engine.controllerMessenger.subscribe<'AccountTreeController:selectedAccountGroupChange'>
           >[1];
+          let disposed = false;
           const doSubscribe = () => {
+            if (disposed) return;
             Engine.controllerMessenger.subscribe(
               'AccountTreeController:selectedAccountGroupChange',
               typedHandler,
@@ -334,6 +339,7 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
             setTimeout(doSubscribe, 0);
           }
           return () => {
+            disposed = true;
             try {
               Engine.controllerMessenger.unsubscribe(
                 'AccountTreeController:selectedAccountGroupChange',

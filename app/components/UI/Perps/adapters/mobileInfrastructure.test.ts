@@ -82,7 +82,7 @@ jest.mock('../../../../core/Engine', () => ({
       getBearerToken: jest.fn().mockResolvedValue('bearer-token-123'),
     },
     RewardsController: {
-      getPerpsDiscountForAccount: jest.fn().mockResolvedValue({ discount: 5 }),
+      getPerpsDiscountForAccount: jest.fn().mockResolvedValue(5),
     },
   },
   controllerMessenger: {
@@ -344,6 +344,29 @@ describe('createMobileInfrastructure', () => {
 
         expect(() => unsubscribe()).not.toThrow();
       });
+
+      it('deferred subscribe does not leak subscription when disposed before timeout fires', () => {
+        jest.useFakeTimers();
+        mockSubscribe.mockImplementationOnce(() => {
+          throw new Error('Engine not ready');
+        });
+
+        const infra = createMobileInfrastructure();
+        const handler = jest.fn();
+
+        const unsubscribe =
+          infra.controllers.remoteFeatureFlags.onStateChange(handler);
+
+        // Dispose before the deferred setTimeout fires
+        unsubscribe();
+
+        jest.runAllTimers();
+
+        // subscribe should have been called only once (the initial failed attempt)
+        // The deferred setTimeout should bail out due to disposed flag
+        expect(mockSubscribe).toHaveBeenCalledTimes(1);
+        jest.useRealTimers();
+      });
     });
 
     describe('accountTree', () => {
@@ -416,6 +439,29 @@ describe('createMobileInfrastructure', () => {
 
         expect(() => unsubscribe()).not.toThrow();
       });
+
+      it('deferred accountTree subscribe does not leak subscription when disposed before timeout fires', () => {
+        jest.useFakeTimers();
+        mockSubscribe.mockImplementationOnce(() => {
+          throw new Error('Engine not ready');
+        });
+
+        const infra = createMobileInfrastructure();
+        const handler = jest.fn();
+
+        const unsubscribe =
+          infra.controllers.accountTree.onSelectedAccountGroupChange(handler);
+
+        // Dispose before the deferred setTimeout fires
+        unsubscribe();
+
+        jest.runAllTimers();
+
+        // subscribe should have been called only once (the initial failed attempt)
+        // The deferred setTimeout should bail out due to disposed flag
+        expect(mockSubscribe).toHaveBeenCalledTimes(1);
+        jest.useRealTimers();
+      });
     });
 
     describe('authentication', () => {
@@ -445,7 +491,7 @@ describe('createMobileInfrastructure', () => {
         expect(
           Engine.context.RewardsController.getPerpsDiscountForAccount,
         ).toHaveBeenCalledWith(caipAccountId);
-        expect(result).toEqual({ discount: 5 });
+        expect(result).toBe(5);
       });
     });
   });
