@@ -44,6 +44,29 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   removeEventListener: jest.fn(),
 }));
 
+const mockRemoveChannel = jest.fn();
+jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
+  __esModule: true,
+  default: {
+    getInstance: () => ({
+      removeChannel: mockRemoveChannel,
+      invalidateChannel: jest.fn(),
+    }),
+  },
+}));
+
+jest.mock('../AccountInfoCard', () => {
+  const ReactActual = jest.requireActual<typeof import('react')>('react');
+  const { Text } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    __esModule: true,
+    default: function MockAccountInfoCard() {
+      return ReactActual.createElement(Text, null, 'Mock Account Info');
+    },
+  };
+});
+
 jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
@@ -197,5 +220,41 @@ describe('AccountApproval', () => {
 
     const warningText = await findByText('Deceptive site ahead');
     expect(warningText).toBeOnTheScreen();
+  });
+
+  it('tracks CONNECT_REQUEST_OTPFAILURE when connect is pressed with wrong OTP selected', () => {
+    const onCancel = jest.fn();
+    const mockNavigate = jest.fn();
+    const currentPageInformation = {
+      icon: '',
+      url: 'https://example.com',
+      title: '',
+      origin: 'qr-code',
+      reconnect: true,
+      apiVersion: 'v1',
+      otps: ['first', 'second'],
+      channelId: 'test-channel-id',
+    };
+
+    const { getByText, getByTestId } = renderWithProvider(
+      <AccountApproval
+        currentPageInformation={currentPageInformation}
+        onCancel={onCancel}
+        navigation={{ navigate: mockNavigate }}
+      />,
+      { state: mockInitialState },
+    );
+
+    mockTrackEvent.mockClear();
+    fireEvent.press(getByText('second'));
+    fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: MetaMetricsEvents.CONNECT_REQUEST_OTPFAILURE,
+      }),
+    );
+    expect(onCancel).toHaveBeenCalled();
+    expect(mockRemoveChannel).toHaveBeenCalledWith('test-channel-id', true);
   });
 });

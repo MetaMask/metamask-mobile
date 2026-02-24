@@ -84,6 +84,8 @@ const mockInitialState = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
+  browser: { tabs: [] },
+  security: { dataCollectionForMarketing: false },
 };
 
 describe('AccountOverview', () => {
@@ -126,5 +128,38 @@ describe('AccountOverview', () => {
         }),
       );
     });
+  });
+
+  it('tracks PORTFOLIO_LINK_CLICKED when onOpenPortfolio is called', async () => {
+    const account = {
+      address: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
+      balanceFiat: 1604.2,
+      label: 'Account 1',
+    };
+    const mockNavigate = jest.fn();
+    const onRef = jest.fn();
+
+    renderWithProvider(
+      <AccountOverview
+        account={account}
+        navigation={{ navigate: mockNavigate }}
+        onRef={onRef}
+      />,
+      { state: mockInitialState },
+    );
+
+    await waitFor(() => {
+      expect(onRef).toHaveBeenCalled();
+    });
+
+    mockTrackEvent.mockClear();
+    const overviewInstance = onRef.mock.calls[0][0];
+    overviewInstance.onOpenPortfolio();
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: MetaMetricsEvents.PORTFOLIO_LINK_CLICKED,
+      }),
+    );
   });
 });
