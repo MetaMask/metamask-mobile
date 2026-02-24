@@ -3,7 +3,7 @@ import Gestures from '../../../framework/Gestures';
 import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText,
-} from '../../../../app/components/Views/AddAsset/ImportTokenView.testIds';
+} from '../../../../app/components/Views/AddAsset/ImportAssetView.testIds';
 import { CellComponentSelectorsIDs } from '../../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
 import { logger } from '../../../framework';
 

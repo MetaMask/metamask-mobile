@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TagColored should render TagColored 1`] = `
+exports[`TagColored renders with default props and matches snapshot 1`] = `
 <View
   style={
     {
