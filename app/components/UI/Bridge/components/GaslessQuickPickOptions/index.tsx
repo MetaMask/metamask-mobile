@@ -12,12 +12,12 @@ import {
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 
-const PERCENTAGE_TO_PRESET: Record<number, InputAmountPreset> = {
+const PERCENTAGE_TO_PRESET = {
   25: InputAmountPreset.PERCENT_25,
   50: InputAmountPreset.PERCENT_50,
   75: InputAmountPreset.PERCENT_75,
   90: InputAmountPreset.PERCENT_90,
-};
+} as const;
 
 interface GaslessQuickPickOptionsProps {
   token?: BridgeToken;
@@ -50,7 +50,7 @@ export const GaslessQuickPickOptions = ({
   }, []);
 
   const onQuickOptionPress = useCallback(
-    (percentage: number) => () => {
+    (percentage: keyof typeof PERCENTAGE_TO_PRESET) => () => {
       if (!tokenBalance?.displayBalance) return '0';
 
       const balance = new BigNumber(tokenBalance.displayBalance);
