@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -15,6 +16,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
 import { useIsZeroBalanceAccount } from './hooks';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { SectionRefreshHandle } from '../../types';
@@ -41,6 +43,9 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const navigation = useNavigation();
   const isZeroBalanceAccount = useIsZeroBalanceAccount();
   const sortedTokenKeys = useSelector(selectSortedAssetsBySelectedAccountGroup);
+  const accountGroupBalance = useSelector(
+    selectAccountGroupBalanceForEmptyState,
+  );
   const privacyMode = useSelector(selectPrivacyMode);
   const popularTokensListRef = useRef<SectionRefreshHandle>(null);
   const [hasTokensError, setHasTokensError] = useState(false);
@@ -53,6 +58,15 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
   const isSolanaSelected = selectedSolanaAccount !== null;
 
+  const prevAccountIdRef = useRef(selectedAccountId);
+  // Reset section error when account changes (not on initial mount) so the new account gets a fresh state
+  useEffect(() => {
+    if (prevAccountIdRef.current !== selectedAccountId) {
+      prevAccountIdRef.current = selectedAccountId;
+      setHasTokensError(false);
+    }
+  }, [selectedAccountId]);
+
   const title = strings('homepage.sections.tokens');
 
   const displayTokenKeys = useMemo(
@@ -63,9 +77,12 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   // Show error when an explicit refresh failed, or when balance data has loaded
   // and the account has balance but the selector returned no tokens (controllers
   // failed to load data). The accountGroupBalance null-check prevents a false
-  // positive on cold start before the balance selectors have initialized.
-  const showTokensError =
-    hasTokensError || (!isZeroBalanceAccount && displayTokenKeys.length === 0);
+  // positive on cold start or for legitimately empty token lists.
+  const hasBalanceButNoTokens =
+    accountGroupBalance != null &&
+    accountGroupBalance.totalBalanceInUserCurrency > 0 &&
+    displayTokenKeys.length === 0;
+  const showTokensError = hasTokensError || hasBalanceButNoTokens;
 
   const refresh = useCallback(async () => {
     if (isZeroBalanceAccount) {

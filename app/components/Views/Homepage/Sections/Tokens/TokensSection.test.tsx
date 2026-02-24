@@ -366,6 +366,16 @@ describe('TokensSection', () => {
     });
   });
 
+  it('does not render ErrorState when balance has not loaded and token list is empty (cold start)', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([]);
+    mockAccountGroupBalance.mockReturnValue(null);
+
+    renderWithProvider(<TokensSection />);
+
+    expect(screen.queryByTestId('error-state')).toBeNull();
+  });
+
   it('renders ErrorState when account has balance but selector returns no tokens', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([]);
