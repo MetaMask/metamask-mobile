@@ -104,6 +104,37 @@ index 45003640c463ecf21f4a6ddd57d3d4244d46be94..28bb117e186c4a81bbd63966c2547b0c
              };
              // This will publish events for PERPS dropped tx failures as well
              if (!txMetaId) {
+diff --git a/dist/bridge-status-controller.d.cts b/dist/bridge-status-controller.d.cts
+index a2b3f4c..b5e8d1a 100644
+--- a/dist/bridge-status-controller.d.cts
++++ b/dist/bridge-status-controller.d.cts
+@@ -85,9 +85,10 @@ export declare class BridgeStatusController extends BridgeStatusController_base<
+      * @param isStxEnabledOnClient - Whether smart transactions are enabled on the client, for example the getSmartTransactionsEnabled selector value from the extension
+      * @param quotesReceivedContext - The context for the QuotesReceived event
+      * @param location - The entry point from which the user initiated the swap or bridge (e.g. Main View, Token View, Trending Explore)
++     * @param abTests - A/B test context to attribute events to specific experiments
+      * @returns The transaction meta
+      */
+-    submitTx: (accountAddress: string, quoteResponse: QuoteResponse<Trade, Trade> & QuoteMetadata, isStxEnabledOnClient: boolean, quotesReceivedContext?: RequiredEventContextFromClient[UnifiedSwapBridgeEventName.QuotesReceived], location?: MetaMetricsSwapsEventSource) => Promise<TransactionMeta & Partial<SolanaTransactionMeta>>;
++    submitTx: (accountAddress: string, quoteResponse: QuoteResponse<Trade, Trade> & QuoteMetadata, isStxEnabledOnClient: boolean, quotesReceivedContext?: RequiredEventContextFromClient[UnifiedSwapBridgeEventName.QuotesReceived], location?: MetaMetricsSwapsEventSource, abTests?: Record<string, string>) => Promise<TransactionMeta & Partial<SolanaTransactionMeta>>;
+     /**
+      * UI-signed intent submission (fast path): the UI generates the EIP-712 signature and calls this with the raw signature.
+      * Here we submit the order to the intent provider and create a synthetic history entry for UX.
+@@ -97,12 +98,14 @@ export declare class BridgeStatusController extends BridgeStatusController_base<
+      * @param params.signature - Hex signature produced by eth_signTypedData_v4
+      * @param params.accountAddress - The EOA submitting the order
+      * @param params.location - The entry point from which the user initiated the swap or bridge
++     * @param params.abTests - A/B test context to attribute events to specific experiments
+      * @returns A lightweight TransactionMeta-like object for history linking
+      */
+     submitIntent: (params: {
+         quoteResponse: QuoteResponse<TxData | string> & QuoteMetadata;
+         signature: string;
+         accountAddress: string;
+         location?: MetaMetricsSwapsEventSource;
++        abTests?: Record<string, string>;
+     }) => Promise<Pick<TransactionMeta, 'id' | 'chainId' | 'type' | 'status'>>;
+ }
 diff --git a/dist/types.d.cts b/dist/types.d.cts
 index a77021907623ca60681a979c0ef0bfeee5ca3150..0175527dc5c6e7b48bb0dfdf95f43e66cc5c8b2f 100644
 --- a/dist/types.d.cts
