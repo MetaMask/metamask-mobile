@@ -164,11 +164,31 @@ describe('UnifiedTransactionsView', () => {
   });
 
   it('renders TransactionsFooter when only EVM chains enabled', () => {
-    // Arrange & Act
+    // Arrange - State with only EVM chains enabled (no non-EVM chains)
+    const evmOnlyState = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkEnablementController: {
+            ...backgroundState.NetworkEnablementController,
+            enabledNetworkMap: {
+              eip155: {
+                '0x1': true,
+              },
+              solana: {},
+              bip122: {},
+              tron: {},
+            },
+          },
+        },
+      },
+    };
+
+    // Act
     const { UNSAFE_queryByType } = renderWithProvider(
       <UnifiedTransactionsView />,
       {
-        state: initialState,
+        state: evmOnlyState,
       },
     );
 

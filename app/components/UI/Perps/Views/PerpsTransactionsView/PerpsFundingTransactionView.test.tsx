@@ -40,6 +40,14 @@ jest.mock('../../hooks', () => ({
   }),
 }));
 
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: () => () => ({
+    address: '0x1234567890123456789012345678901234567890',
+    id: 'test-account-id',
+    metadata: { name: 'Test Account' },
+  }),
+}));
+
 describe('PerpsFundingTransactionView', () => {
   const initialState = {
     engine: {
