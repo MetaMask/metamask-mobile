@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
+import { createRampsOrderDetailsNavDetails } from '../../../Views/OrderDetails';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import OrderListItem from '../../components/OrderListItem';
 import createStyles from './OrdersList.styles';
@@ -60,6 +61,17 @@ function OrdersList() {
     [navigation],
   );
 
+  const handleNavigateToRampsTxDetails = useCallback(
+    (orderId: string) => {
+      navigation.navigate(
+        ...createRampsOrderDetailsNavDetails({
+          orderId,
+        }),
+      );
+    },
+    [navigation],
+  );
+
   const handleNavigateToDepositTxDetails = useCallback(
     (orderId: string) => {
       const order = orders.find((o) => o.id === orderId);
@@ -83,12 +95,13 @@ function OrdersList() {
       accessible
       style={styles.row}
       onPress={
-        item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR ||
-        item.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+        item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR
           ? () => handleNavigateToAggregatorTxDetails(item.id)
-          : item.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
-            ? () => handleNavigateToDepositTxDetails(item.id)
-            : undefined
+          : item.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+            ? () => handleNavigateToRampsTxDetails(item.id)
+            : item.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
+              ? () => handleNavigateToDepositTxDetails(item.id)
+              : undefined
       }
       underlayColor={colors.background.alternative}
       activeOpacity={1}

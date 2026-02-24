@@ -16,6 +16,7 @@ const Routes = {
     QUOTES: 'Quotes',
     CHECKOUT: 'Checkout',
     ORDER_DETAILS: 'OrderDetails',
+    RAMPS_ORDER_DETAILS: 'RampsOrderDetails',
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
@@ -42,6 +43,7 @@ const Routes = {
       SETTINGS: 'RampSettingsModal',
       BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
       PROVIDER_PICKER: 'RampProviderPickerModal',
+      PROCESSING_INFO: 'RampProcessingInfoModal',
     },
   },
   DEPOSIT: {

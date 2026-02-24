@@ -66,6 +66,8 @@ import DepositRoutes from '../../UI/Ramp/Deposit/routes';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
+import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
+import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
@@ -238,6 +240,10 @@ const TransactionsHome = () => (
       component={TransactionDetails}
     />
     <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
+    <Stack.Screen
+      name={Routes.RAMP.RAMPS_ORDER_DETAILS}
+      component={RampsOrderDetails}
+    />
     <Stack.Screen
       name={Routes.DEPOSIT.ORDER_DETAILS}
       component={DepositOrderDetails}
@@ -1394,6 +1400,11 @@ const MainNavigator = () => {
         ///: END:ONLY_INCLUDE_IF
       }
       <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
+      <Stack.Screen
+        name={Routes.RAMP.MODALS.PROCESSING_INFO}
+        component={ProcessingInfoModal}
+        options={clearStackNavigatorOptions}
+      />
     </Stack.Navigator>
   );
 };
