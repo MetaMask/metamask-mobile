@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
+import { EthAccountType } from '@metamask/keyring-api';
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { isTestNet } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
@@ -98,6 +99,7 @@ export function useAccountTokens({
           processedAssets.push({
             address,
             chainId: hex,
+            accountType: EthAccountType.Eoa,
             name: entry.name ?? '',
             symbol: entry.symbol ?? '',
             decimals: entry.decimals ?? 18,

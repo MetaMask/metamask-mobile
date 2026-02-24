@@ -302,6 +302,7 @@ describe('useWithdrawTokenFilter', () => {
 
     expect(mockUseSendTokens).toHaveBeenCalledWith({
       includeNoBalance: true,
+      includeAllTokens: true,
     });
   });
 });
