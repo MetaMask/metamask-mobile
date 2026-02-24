@@ -11,7 +11,7 @@ import {
 import {
   StackActions,
   useNavigation,
-  useRoute,
+  RouteProp,
 } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import styles from './index.styles';
@@ -27,7 +27,6 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import {
   endTrace,
   trace,
-  TraceContext,
   TraceName,
   TraceOperation,
 } from '../../../util/trace';
@@ -42,32 +41,33 @@ import {
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
 import AccountStatusImg from '../../../images/account_status.png';
+import type { AccountStatusParams } from './types';
+
+interface AccountStatusRouteParams {
+  AccountStatus: AccountStatusParams;
+  AccountAlreadyExists: AccountStatusParams;
+  AccountNotFound: AccountStatusParams;
+  [key: string]: object | undefined;
+}
 
 interface AccountStatusProps {
-  type?: 'found' | 'not_exist';
+  route: RouteProp<
+    AccountStatusRouteParams,
+    'AccountStatus' | 'AccountAlreadyExists' | 'AccountNotFound'
+  >;
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
 
-interface AccountRouteParams {
-  accountName?: string;
-  oauthLoginSuccess?: boolean;
-  onboardingTraceCtx?: TraceContext;
-  provider?: string;
-}
-
-const AccountStatus = ({
-  type = 'not_exist',
-  saveOnboardingEvent,
-}: AccountStatusProps) => {
+const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
   const navigation = useNavigation();
-  const route = useRoute();
 
-  const accountName = (route.params as AccountRouteParams)?.accountName;
-  const oauthLoginSuccess = (route.params as AccountRouteParams)
-    ?.oauthLoginSuccess;
-  const onboardingTraceCtx = (route.params as AccountRouteParams)
-    ?.onboardingTraceCtx;
-  const provider = (route.params as AccountRouteParams)?.provider;
+  const {
+    type = 'not_exist',
+    accountName,
+    oauthLoginSuccess,
+    onboardingTraceCtx,
+    provider,
+  } = route?.params ?? {};
 
   // check for small screen size
   const isSmallScreen = Dimensions.get('window').width < 375;
