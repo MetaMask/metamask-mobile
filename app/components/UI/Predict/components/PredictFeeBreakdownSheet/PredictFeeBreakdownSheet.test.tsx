@@ -63,23 +63,23 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'predict.fee_summary.price_details') {
       return 'Price details';
     }
-    if (key === 'predict.fee_summary.contracts_price') {
-      return `Contracts × Price: ${params?.count ?? '0.00'} @ ${params?.price ?? '$0.00'}`;
+    if (key === 'predict.fee_summary.prediction_order') {
+      return 'Prediction order';
     }
-    if (key === 'predict.fee_summary.contracts_price_description') {
-      return `The number of contracts is an approximation (up to ${params?.slippage ?? '0'}%)`;
+    if (key === 'predict.fee_summary.prediction_order_description') {
+      return `~${params?.count ?? '0.00'} contracts at ${params?.price ?? '$0.00'} each. Final amount may vary based on order book availability (up to ${params?.slippage ?? '0'}%).`;
     }
     if (key === 'predict.fee_summary.metamask_fee') {
       return 'MetaMask fee';
     }
     if (key === 'predict.fee_summary.metamask_fee_description') {
-      return 'Convenience fee charged by MetaMask';
+      return 'Service fee for processing this prediction';
     }
     if (key === 'predict.fee_summary.exchange_fee') {
       return 'Exchange fee';
     }
     if (key === 'predict.fee_summary.exchange_fee_description') {
-      return 'Any fees charged by the exchange';
+      return 'Fee paid to the exchange or market';
     }
     if (key === 'predict.fee_summary.total') {
       return 'Total';
@@ -135,7 +135,7 @@ describe('PredictFeeBreakdownSheet', () => {
   });
 
   describe('Contracts display', () => {
-    it('displays contracts count and share price', () => {
+    it('displays prediction order title', () => {
       const TestComponent = () => {
         const ref = useRef<BottomSheetRef>(null);
         return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
@@ -143,7 +143,7 @@ describe('PredictFeeBreakdownSheet', () => {
 
       const { getByText } = render(<TestComponent />);
 
-      expect(getByText('Contracts × Price: 22.22 @ $0.45')).toBeOnTheScreen();
+      expect(getByText('Prediction order')).toBeOnTheScreen();
     });
 
     it('displays bet amount on contracts row', () => {
@@ -157,7 +157,7 @@ describe('PredictFeeBreakdownSheet', () => {
       expect(getByText('$10.00')).toBeOnTheScreen();
     });
 
-    it('displays contracts price description', () => {
+    it('displays prediction order description', () => {
       const TestComponent = () => {
         const ref = useRef<BottomSheetRef>(null);
         return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
@@ -166,7 +166,9 @@ describe('PredictFeeBreakdownSheet', () => {
       const { getByText } = render(<TestComponent />);
 
       expect(
-        getByText('The number of contracts is an approximation (up to 3%)'),
+        getByText(
+          '~22.22 contracts at $0.45 each. Final amount may vary based on order book availability (up to 3%).',
+        ),
       ).toBeOnTheScreen();
     });
   });
@@ -193,7 +195,7 @@ describe('PredictFeeBreakdownSheet', () => {
       const { getByText } = render(<TestComponent />);
 
       expect(
-        getByText('Convenience fee charged by MetaMask'),
+        getByText('Service fee for processing this prediction'),
       ).toBeOnTheScreen();
     });
 
@@ -217,7 +219,7 @@ describe('PredictFeeBreakdownSheet', () => {
 
       const { getByText } = render(<TestComponent />);
 
-      expect(getByText('Any fees charged by the exchange')).toBeOnTheScreen();
+      expect(getByText('Fee paid to the exchange or market')).toBeOnTheScreen();
     });
 
     it('displays zero fees correctly', () => {

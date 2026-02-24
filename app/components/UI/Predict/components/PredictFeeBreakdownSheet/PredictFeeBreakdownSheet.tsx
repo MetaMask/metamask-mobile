@@ -44,13 +44,12 @@ const PredictFeeBreakdownSheet = forwardRef<
         <Box twClassName="flex-row items-start py-4">
           <Box twClassName="flex-1 pr-4 gap-1">
             <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
-              {strings('predict.fee_summary.contracts_price', {
-                count: contractCount.toFixed(2),
-                price: formatPrice(sharePrice, { maximumDecimals: 2 }),
-              })}
+              {strings('predict.fee_summary.prediction_order')}
             </Text>
             <Text color={TextColor.Alternative} variant={TextVariant.BodyXS}>
-              {strings('predict.fee_summary.contracts_price_description', {
+              {strings('predict.fee_summary.prediction_order_description', {
+                count: contractCount.toFixed(2),
+                price: formatPrice(sharePrice, { maximumDecimals: 2 }),
                 slippage: Math.round(SLIPPAGE_BUY * 100),
               })}
             </Text>

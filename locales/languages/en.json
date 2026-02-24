@@ -2296,9 +2296,11 @@
       "price_details": "Price details",
       "contracts_price": "{{count}} contracts × {{price}}",
       "contracts_price_description": "The number of contracts is an approximation based on the current state of the order book and may vary slightly (up to {{slippage}}%)",
-      "metamask_fee_description": "Convenience fee for facilitation of predictions",
+      "prediction_order": "Prediction order",
+      "prediction_order_description": "~{{count}} contracts at {{price}} each. Final amount may vary based on order book availability (up to {{slippage}}%).",
+      "metamask_fee_description": "Service fee for processing this prediction",
       "exchange_fee": "Exchange fee",
-      "exchange_fee_description": "Any fees collected by the exchange or market",
+      "exchange_fee_description": "Fee paid to the exchange or market",
       "total_incl_fees": "incl. fees",
       "close": "Close"
     },
