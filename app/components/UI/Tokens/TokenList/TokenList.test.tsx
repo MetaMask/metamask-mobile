@@ -41,13 +41,6 @@ jest.mock('../../../../selectors/preferencesController', () => ({
   selectIsTokenNetworkFilterEqualCurrentNetwork: jest.fn(() => true),
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(() => false),
-  }),
-);
-
 jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageRedesignV1Enabled: jest.fn(() => true),
 }));
@@ -338,11 +331,6 @@ describe('TokenList', () => {
         selector
           .toString()
           .includes('selectIsTokenNetworkFilterEqualCurrentNetwork')
-      ) {
-        return true;
-      }
-      if (
-        selector.toString().includes('selectMultichainAccountsState2Enabled')
       ) {
         return true;
       }

@@ -73,13 +73,6 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
 // DeviceSecurityToggle uses useAuthCapabilities; mock so it renders the toggle instead of null
 jest.mock('../../../../core/Authentication/hooks/useAuthCapabilities', () => ({
   __esModule: true,
