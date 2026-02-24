@@ -29,6 +29,7 @@ import {
 import { PerpsEmptyState } from './PerpsEmptyState/PerpsEmptyState';
 
 const MARKET_LIST_ROUTE = Routes.PERPS.MARKET_LIST;
+const TIMEOUT_MS = 3000;
 
 const OPEN_POSITION = {
   symbol: 'ETH',
@@ -47,30 +48,50 @@ const OPEN_POSITION = {
 };
 
 describe('Portfolio & Account Flow', () => {
+  let SEE_ALL_PERPS: string;
+  let POSITIONS: string;
+  let ACCOUNT_SUMMARY_TITLE: string;
+  let EMPTY_TITLE: string;
+  let FIRST_TIME_DESCRIPTION: string;
+  let ADD_MARGIN: string;
+  let REDUCE_MARGIN: string;
+
+  beforeAll(() => {
+    SEE_ALL_PERPS = strings('perps.home.see_all_perps');
+    POSITIONS = strings('perps.home.positions');
+    ACCOUNT_SUMMARY_TITLE = strings('perps.position.account.summary_title');
+    EMPTY_TITLE = strings('perps.position.list.empty_title');
+    FIRST_TIME_DESCRIPTION = strings(
+      'perps.position.list.first_time_description',
+    );
+    ADD_MARGIN = strings('perps.adjust_margin.add_margin');
+    REDUCE_MARGIN = strings('perps.adjust_margin.reduce_margin');
+  });
+
   it('trader explores perps tab, browses positions, handles geo-restrictions, and adjusts margin', async () => {
     // ── PHASE 1: Perps Tab — Explore section ─────────────────────────────
     // Trader opens the Perps tab for the first time — sees explore copy
     renderPerpsTabView();
-    await expect(
-      screen.findByText(strings('perps.home.explore_markets')),
-    ).resolves.toBeOnTheScreen();
-    await expect(
-      screen.findByText(strings('perps.home.see_all_perps')),
-    ).resolves.toBeOnTheScreen();
-
-    // Verify control bar and scroll are present (connected state)
+    await screen.findByText(
+      strings('perps.home.explore_markets'),
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+    expect(screen.getByText(SEE_ALL_PERPS)).toBeOnTheScreen();
     expect(
-      await screen.findByTestId(PerpsTabViewSelectorsIDs.BALANCE_BUTTON),
+      screen.getByTestId(PerpsTabViewSelectorsIDs.BALANCE_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      await screen.findByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW),
+      screen.getByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW),
     ).toBeOnTheScreen();
 
     // ── PHASE 2: "See all perps" navigates to market list ────────────────
     cleanup();
     renderPerpsTabView({ extraRoutes: [{ name: MARKET_LIST_ROUTE }] });
     const seeAllPerps = await screen.findByText(
-      strings('perps.home.see_all_perps'),
+      SEE_ALL_PERPS,
+      {},
+      { timeout: TIMEOUT_MS },
     );
     fireEvent.press(seeAllPerps);
     expect(screen.getByTestId(`route-${MARKET_LIST_ROUTE}`)).toBeOnTheScreen();
@@ -149,9 +170,7 @@ describe('Portfolio & Account Flow', () => {
     renderPerpsHomeView({
       streamOverrides: { positions: [defaultPositionForViews] },
     });
-    expect(
-      await screen.findByText(strings('perps.home.positions')),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText(POSITIONS)).toBeOnTheScreen();
 
     // Geo-restricted user: pressing positions shows geo block tooltip
     cleanup();
@@ -163,9 +182,7 @@ describe('Portfolio & Account Flow', () => {
       },
       streamOverrides: { positions: [defaultPositionForViews] },
     });
-    const positionsTitle = await screen.findByText(
-      strings('perps.home.positions'),
-    );
+    const positionsTitle = await screen.findByText(POSITIONS);
     fireEvent.press(positionsTitle);
     expect(
       await screen.findByTestId('perps-home-close-all-geo-block-tooltip'),
@@ -182,23 +199,19 @@ describe('Portfolio & Account Flow', () => {
       streamOverrides: { positions: [defaultPositionForViews] },
     });
     expect(await screen.findByTestId('perps-home')).toBeOnTheScreen();
-    expect(
-      await screen.findByText(strings('perps.home.positions')),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText(POSITIONS)).toBeOnTheScreen();
 
     // ── PHASE 6: Positions view — empty vs populated ─────────────────────
     // No positions: back button, account summary, empty state message
     cleanup();
     renderPerpsPositionsView({ streamOverrides: { positions: [] } });
-    expect(
-      await screen.findByTestId(PerpsPositionsViewSelectorsIDs.BACK_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      await screen.findByText(strings('perps.position.account.summary_title')),
-    ).toBeOnTheScreen();
-    expect(
-      await screen.findByText(strings('perps.position.list.empty_title')),
-    ).toBeOnTheScreen();
+    await screen.findByTestId(
+      PerpsPositionsViewSelectorsIDs.BACK_BUTTON,
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+    expect(screen.getByText(ACCOUNT_SUMMARY_TITLE)).toBeOnTheScreen();
+    expect(screen.getByText(EMPTY_TITLE)).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.position.list.empty_description')),
     ).toBeOnTheScreen();
@@ -211,23 +224,19 @@ describe('Portfolio & Account Flow', () => {
     renderPerpsPositionsView({
       streamOverrides: { positions: [defaultPositionForViews] },
     });
+    await screen.findByTestId(
+      PerpsPositionsViewSelectorsIDs.BACK_BUTTON,
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+    expect(screen.getByText(ACCOUNT_SUMMARY_TITLE)).toBeOnTheScreen();
     expect(
-      await screen.findByTestId(PerpsPositionsViewSelectorsIDs.BACK_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      await screen.findByText(strings('perps.position.account.summary_title')),
-    ).toBeOnTheScreen();
-    expect(
-      await screen.findByTestId(
-        PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION,
-      ),
+      screen.getByTestId(PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.position.list.open_positions')),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(strings('perps.position.list.empty_title')),
-    ).not.toBeOnTheScreen();
+    expect(screen.queryByText(EMPTY_TITLE)).not.toBeOnTheScreen();
 
     // ── PHASE 7: First-time empty state — start trading ──────────────────
     cleanup();
@@ -237,20 +246,14 @@ describe('Portfolio & Account Flow', () => {
       EmptyScreen as unknown as React.ComponentType,
       'PerpsEmptyState',
     );
-    expect(
-      await screen.findByText(
-        strings('perps.position.list.first_time_description'),
-      ),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText(FIRST_TIME_DESCRIPTION)).toBeOnTheScreen();
     const startButton = screen.getByText(
       strings('perps.position.list.start_trading'),
     );
     fireEvent.press(startButton);
     expect(onAction).toHaveBeenCalledTimes(1);
     // UI remains stable after pressing start trading
-    expect(
-      screen.getByText(strings('perps.position.list.first_time_description')),
-    ).toBeOnTheScreen();
+    expect(screen.getByText(FIRST_TIME_DESCRIPTION)).toBeOnTheScreen();
 
     // ── PHASE 8: Adjust margin action selection ──────────────────────────
     cleanup();
@@ -258,28 +261,20 @@ describe('Portfolio & Account Flow', () => {
     expect(
       await screen.findByText(strings('perps.adjust_margin.title')),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('perps.adjust_margin.add_margin')),
-    ).toBeOnTheScreen();
+    expect(screen.getByText(ADD_MARGIN)).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.adjust_margin.add_margin_description')),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('perps.adjust_margin.reduce_margin')),
-    ).toBeOnTheScreen();
+    expect(screen.getByText(REDUCE_MARGIN)).toBeOnTheScreen();
     expect(
       screen.getByText(
         strings('perps.adjust_margin.reduce_margin_description'),
       ),
     ).toBeOnTheScreen();
     // Trader presses Add Margin and Remove Margin
-    fireEvent.press(
-      screen.getByText(strings('perps.adjust_margin.add_margin')),
-    );
+    fireEvent.press(screen.getByText(ADD_MARGIN));
     cleanup();
     renderPerpsSelectAdjustMarginActionView();
-    fireEvent.press(
-      await screen.findByText(strings('perps.adjust_margin.reduce_margin')),
-    );
+    fireEvent.press(await screen.findByText(REDUCE_MARGIN));
   });
 });

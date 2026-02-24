@@ -99,6 +99,20 @@ const renderFillTag = (fillType: FillType) =>
   );
 
 describe('Errors, Recovery & Information Flow', () => {
+  let CONNECTION_FAILED_TITLE: string;
+  let CONNECTION_FAILED_RETRY: string;
+  let CONNECTION_FAILED_GO_BACK: string;
+  let GOT_IT_BUTTON: string;
+
+  beforeAll(() => {
+    CONNECTION_FAILED_TITLE = strings('perps.errors.connectionFailed.title');
+    CONNECTION_FAILED_RETRY = strings('perps.errors.connectionFailed.retry');
+    CONNECTION_FAILED_GO_BACK = strings(
+      'perps.errors.connectionFailed.go_back',
+    );
+    GOT_IT_BUTTON = strings('perps.tooltips.got_it_button');
+  });
+
   beforeEach(() => {
     mockOnRetry.mockClear();
   });
@@ -119,16 +133,10 @@ describe('Errors, Recovery & Information Flow', () => {
     // Connection fails — trader sees error title and retry button, no go-back
     cleanup();
     renderPerpsView(ConnectionErrorDefault, 'ConnectionErrorTest');
-    expect(
-      await screen.findByText(strings('perps.errors.connectionFailed.title')),
-    ).toBeOnTheScreen();
-    const retryButton = screen.getByText(
-      strings('perps.errors.connectionFailed.retry'),
-    );
+    expect(await screen.findByText(CONNECTION_FAILED_TITLE)).toBeOnTheScreen();
+    const retryButton = screen.getByText(CONNECTION_FAILED_RETRY);
     expect(retryButton).toBeOnTheScreen();
-    expect(
-      screen.queryByText(strings('perps.errors.connectionFailed.go_back')),
-    ).not.toBeOnTheScreen();
+    expect(screen.queryByText(CONNECTION_FAILED_GO_BACK)).not.toBeOnTheScreen();
 
     // Trader presses retry
     fireEvent.press(retryButton);
@@ -139,31 +147,23 @@ describe('Errors, Recovery & Information Flow', () => {
     mockOnRetry.mockClear();
     renderPerpsView(ConnectionErrorWithBack, 'ConnectionErrorTest');
     expect(
-      await screen.findByText(strings('perps.errors.connectionFailed.go_back')),
+      await screen.findByText(CONNECTION_FAILED_GO_BACK),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('perps.errors.connectionFailed.retry')),
-    ).toBeOnTheScreen();
+    expect(screen.getByText(CONNECTION_FAILED_RETRY)).toBeOnTheScreen();
 
     // Trader retries again — spinner replaces the retry label
     cleanup();
     renderPerpsView(ConnectionErrorRetrying, 'ConnectionErrorTest');
-    await screen.findByText(strings('perps.errors.connectionFailed.title'));
-    expect(
-      screen.queryByText(strings('perps.errors.connectionFailed.retry')),
-    ).not.toBeOnTheScreen();
+    await screen.findByText(CONNECTION_FAILED_TITLE);
+    expect(screen.queryByText(CONNECTION_FAILED_RETRY)).not.toBeOnTheScreen();
 
     // ── PHASE 3: Error state variants ────────────────────────────────────
     // CONNECTION_FAILED error state — retry fires callback
     cleanup();
     const retryFn1 = jest.fn();
     renderErrorState(PerpsErrorType.CONNECTION_FAILED, retryFn1);
-    expect(
-      await screen.findByText(strings('perps.errors.connectionFailed.title')),
-    ).toBeOnTheScreen();
-    fireEvent.press(
-      screen.getByText(strings('perps.errors.connectionFailed.retry')),
-    );
+    expect(await screen.findByText(CONNECTION_FAILED_TITLE)).toBeOnTheScreen();
+    fireEvent.press(screen.getByText(CONNECTION_FAILED_RETRY));
     expect(retryFn1).toHaveBeenCalledTimes(1);
 
     // NETWORK_ERROR — title, description, and retry
@@ -210,9 +210,7 @@ describe('Errors, Recovery & Information Flow', () => {
     expect(
       await screen.findByText(strings('perps.tooltips.leverage.title')),
     ).toBeOnTheScreen();
-    const gotItButton = screen.getByText(
-      strings('perps.tooltips.got_it_button'),
-    );
+    const gotItButton = screen.getByText(GOT_IT_BUTTON);
     fireEvent.press(gotItButton);
 
     // Trader opens margin tooltip
@@ -228,9 +226,7 @@ describe('Errors, Recovery & Information Flow', () => {
     expect(
       await screen.findByText(strings('perps.tooltips.fees.title')),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('perps.tooltips.got_it_button')),
-    ).toBeOnTheScreen();
+    expect(screen.getByText(GOT_IT_BUTTON)).toBeOnTheScreen();
 
     // Trader opens liquidation price tooltip
     cleanup();

@@ -189,6 +189,30 @@ const multipleOrders = [
 ];
 
 describe('Active Trader Flow', () => {
+  let MARKET_ORDERS: string;
+  let LEVERAGE_MODAL_TITLE: string;
+  let LIMIT_PRICE_MODAL_TITLE: string;
+  let LIMIT_PRICE_MID: string;
+  let LIMIT_PRICE_BID: string;
+  let CLOSE_ALL_TITLE: string;
+  let CANCEL_ALL_TITLE: string;
+  let ADJUST_MARGIN_TITLE: string;
+  let ADD_MARGIN: string;
+  let REDUCE_MARGIN: string;
+
+  beforeAll(() => {
+    MARKET_ORDERS = strings('perps.market.orders');
+    LEVERAGE_MODAL_TITLE = strings('perps.order.leverage_modal.title');
+    LIMIT_PRICE_MODAL_TITLE = strings('perps.order.limit_price_modal.title');
+    LIMIT_PRICE_MID = strings('perps.order.limit_price_modal.mid_price');
+    LIMIT_PRICE_BID = strings('perps.order.limit_price_modal.bid_price');
+    CLOSE_ALL_TITLE = strings('perps.close_all_modal.title');
+    CANCEL_ALL_TITLE = strings('perps.cancel_all_modal.title');
+    ADJUST_MARGIN_TITLE = strings('perps.adjust_margin.title');
+    ADD_MARGIN = strings('perps.adjust_margin.add_margin');
+    REDUCE_MARGIN = strings('perps.adjust_margin.reduce_margin');
+  });
+
   beforeEach(() => {
     mockOnSelectAction.mockClear();
   });
@@ -208,9 +232,7 @@ describe('Active Trader Flow', () => {
     expect(
       screen.queryAllByText(strings('perps.market.position')).length,
     ).toBeGreaterThan(0);
-    expect(
-      screen.queryAllByText(strings('perps.market.orders')).length,
-    ).toBeGreaterThan(0);
+    expect(screen.queryAllByText(MARKET_ORDERS).length).toBeGreaterThan(0);
     expect(
       screen.queryAllByText(strings('perps.market.statistics')).length,
     ).toBeGreaterThan(0);
@@ -253,9 +275,7 @@ describe('Active Trader Flow', () => {
     expect(
       await screen.findByTestId(PerpsMarketTabsSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.queryAllByText(strings('perps.market.orders'))).toHaveLength(
-      0,
-    );
+    expect(screen.queryAllByText(MARKET_ORDERS)).toHaveLength(0);
     expect(
       screen.getByTestId(PerpsMarketTabsSelectorsIDs.STATISTICS_CONTENT),
     ).toBeOnTheScreen();
@@ -336,9 +356,7 @@ describe('Active Trader Flow', () => {
     // Trader opens leverage sheet: title, current 5x, presets (2x, 10x), Set
     cleanup();
     renderPerpsView(LeverageVisibleWrapper, 'LeverageTest');
-    expect(
-      await screen.findByText(strings('perps.order.leverage_modal.title')),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText(LEVERAGE_MODAL_TITLE)).toBeOnTheScreen();
     const fiveXElements = screen.getAllByText('5x');
     expect(fiveXElements.length).toBeGreaterThanOrEqual(1);
     expect(
@@ -352,26 +370,18 @@ describe('Active Trader Flow', () => {
     // Trader dismisses leverage sheet — title disappears
     cleanup();
     renderPerpsView(LeverageHiddenWrapper, 'LeverageTest');
-    expect(
-      screen.queryByText(strings('perps.order.leverage_modal.title')),
-    ).not.toBeOnTheScreen();
+    expect(screen.queryByText(LEVERAGE_MODAL_TITLE)).not.toBeOnTheScreen();
 
     // ── PHASE 6: Set limit price ─────────────────────────────────────────
     // Trader sets limit for LONG: title, Set, Mid + Bid presets (no Ask)
     cleanup();
     renderPerpsView(LongLimitPriceWrapper, 'LimitPriceTest');
-    expect(
-      await screen.findByText(strings('perps.order.limit_price_modal.title')),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText(LIMIT_PRICE_MODAL_TITLE)).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.order.limit_price_modal.set')),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('perps.order.limit_price_modal.mid_price')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('perps.order.limit_price_modal.bid_price')),
-    ).toBeOnTheScreen();
+    expect(screen.getByText(LIMIT_PRICE_MID)).toBeOnTheScreen();
+    expect(screen.getByText(LIMIT_PRICE_BID)).toBeOnTheScreen();
     expect(
       screen.queryByText(strings('perps.order.limit_price_modal.ask_price')),
     ).not.toBeOnTheScreen();
@@ -379,23 +389,17 @@ describe('Active Trader Flow', () => {
     // Trader switches to SHORT: presets flip — Mid + Ask visible, Bid hidden
     cleanup();
     renderPerpsView(ShortLimitPriceWrapper, 'LimitPriceTest');
-    await screen.findByText(strings('perps.order.limit_price_modal.title'));
-    expect(
-      screen.getByText(strings('perps.order.limit_price_modal.mid_price')),
-    ).toBeOnTheScreen();
+    await screen.findByText(LIMIT_PRICE_MODAL_TITLE);
+    expect(screen.getByText(LIMIT_PRICE_MID)).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.order.limit_price_modal.ask_price')),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(strings('perps.order.limit_price_modal.bid_price')),
-    ).not.toBeOnTheScreen();
+    expect(screen.queryByText(LIMIT_PRICE_BID)).not.toBeOnTheScreen();
 
     // Trader dismisses limit price sheet
     cleanup();
     renderPerpsView(LimitPriceHiddenWrapper, 'LimitPriceTest');
-    expect(
-      screen.queryByText(strings('perps.order.limit_price_modal.title')),
-    ).not.toBeOnTheScreen();
+    expect(screen.queryByText(LIMIT_PRICE_MODAL_TITLE)).not.toBeOnTheScreen();
 
     // ── PHASE 7: Cross-margin warning ────────────────────────────────────
     // Trader encounters cross-margin warning: title, message, and dismisses
@@ -422,9 +426,7 @@ describe('Active Trader Flow', () => {
     renderPerpsCloseAllPositionsView({
       streamOverrides: { positions: multiplePositions },
     });
-    expect(
-      await screen.findByText(strings('perps.close_all_modal.title')),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText(CLOSE_ALL_TITLE)).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.close_all_modal.description')),
     ).toBeOnTheScreen();
@@ -446,9 +448,7 @@ describe('Active Trader Flow', () => {
     renderPerpsCloseAllPositionsView({
       streamOverrides: { positions: [] },
     });
-    expect(
-      await screen.findByText(strings('perps.close_all_modal.title')),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText(CLOSE_ALL_TITLE)).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.position.no_positions')),
     ).toBeOnTheScreen();
@@ -459,9 +459,7 @@ describe('Active Trader Flow', () => {
     renderPerpsCancelAllOrdersView({
       streamOverrides: { orders: multipleOrders },
     });
-    expect(
-      await screen.findByText(strings('perps.cancel_all_modal.title')),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText(CANCEL_ALL_TITLE)).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.cancel_all_modal.description')),
     ).toBeOnTheScreen();
@@ -477,9 +475,7 @@ describe('Active Trader Flow', () => {
     renderPerpsCancelAllOrdersView({
       streamOverrides: { orders: [] },
     });
-    expect(
-      await screen.findByText(strings('perps.cancel_all_modal.title')),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText(CANCEL_ALL_TITLE)).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.order.no_orders')),
     ).toBeOnTheScreen();
@@ -488,18 +484,10 @@ describe('Active Trader Flow', () => {
     // Trader selects margin adjustment: sees Add/Remove options, selects Add
     cleanup();
     renderPerpsView(AdjustMarginSheetWrapper, 'AdjustMarginSheetTest');
-    expect(
-      await screen.findByText(strings('perps.adjust_margin.title')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('perps.adjust_margin.add_margin')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('perps.adjust_margin.reduce_margin')),
-    ).toBeOnTheScreen();
-    fireEvent.press(
-      screen.getByText(strings('perps.adjust_margin.add_margin')),
-    );
+    expect(await screen.findByText(ADJUST_MARGIN_TITLE)).toBeOnTheScreen();
+    expect(screen.getByText(ADD_MARGIN)).toBeOnTheScreen();
+    expect(screen.getByText(REDUCE_MARGIN)).toBeOnTheScreen();
+    fireEvent.press(screen.getByText(ADD_MARGIN));
     expect(mockOnSelectAction).toHaveBeenCalledWith('add_margin');
   });
 });
