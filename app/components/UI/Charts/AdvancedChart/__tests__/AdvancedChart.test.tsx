@@ -54,9 +54,7 @@ describe('AdvancedChart', () => {
   });
 
   it('sends OHLCV data on WebView load end', () => {
-    const { getByTestId } = render(
-      <AdvancedChart ohlcvData={MOCK_BARS} symbol="ETH/USD" />,
-    );
+    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
 
     const webView = getByTestId('mock-webview');
     act(() => {
@@ -71,7 +69,7 @@ describe('AdvancedChart', () => {
     expect(mockPostMessage).toHaveBeenCalledWith(
       JSON.stringify({
         type: 'SET_OHLCV_DATA',
-        payload: { data: MOCK_BARS, symbol: 'ETH/USD' },
+        payload: { data: MOCK_BARS },
       }),
     );
   });
