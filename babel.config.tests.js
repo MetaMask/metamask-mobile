@@ -35,6 +35,8 @@ const newOverrides = [
       'app/components/UI/Ramp/hooks/useRampTokens.test.ts',
       'app/components/Views/confirmations/hooks/pay/useTransactionPayWithdraw.ts',
       'app/components/Views/confirmations/hooks/pay/useTransactionPayWithdraw.test.ts',
+      'app/util/environment.ts',
+      'app/util/environment.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
     ],

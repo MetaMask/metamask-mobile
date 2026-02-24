@@ -83,7 +83,8 @@ import {
 } from '../../types';
 import useLoadCardData from '../../hooks/useLoadCardData';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
@@ -281,13 +282,8 @@ jest.mock('../../../../../core/Authentication/hooks/useAuthentication', () =>
   })),
 );
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_ADD_FUNDS_CLICKED: 'card_add_funds_clicked',
-    CARD_HOME_VIEWED: 'card_home_viewed',
-    CARD_BUTTON_CLICKED: 'card_button_clicked',
-  },
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 // Mock navigation helper functions
@@ -779,7 +775,7 @@ describe('CardHome Component', () => {
       goToBuy: jest.fn(),
     });
 
-    (useMetrics as jest.Mock).mockReturnValue({
+    (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
@@ -4123,7 +4119,7 @@ describe('CardHome Component', () => {
           expect(mockTrackEvent).toHaveBeenCalledTimes(1);
         });
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          'card_button_clicked',
+          MetaMetricsEvents.CARD_BUTTON_CLICKED,
         );
         expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
           action: 'FREEZE_CARD_BUTTON',
@@ -4325,7 +4321,7 @@ describe('CardHome Component', () => {
           expect(mockTrackEvent).toHaveBeenCalledTimes(1);
         });
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          'card_button_clicked',
+          MetaMetricsEvents.CARD_BUTTON_CLICKED,
         );
         expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
           action: 'UNFREEZE_CARD_BUTTON',
@@ -4410,7 +4406,7 @@ describe('CardHome Component', () => {
           expect(mockTrackEvent).toHaveBeenCalledTimes(1);
         });
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          'card_button_clicked',
+          MetaMetricsEvents.CARD_BUTTON_CLICKED,
         );
         expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
           action: 'UNFREEZE_CARD_BUTTON',

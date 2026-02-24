@@ -12,7 +12,7 @@ import { ModalFooterBlockExplorer } from '../../../../../util/notifications/noti
 import useStyles from '../useStyles';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import onChainAnalyticProperties from '../../../../../util/notifications/methods/notification-analytics';
 import {
   INotification,
@@ -26,7 +26,7 @@ type BlockExplorerFooterProps = ModalFooterBlockExplorer & {
 export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
   const { styles } = useStyles();
   const { notification } = props;
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
