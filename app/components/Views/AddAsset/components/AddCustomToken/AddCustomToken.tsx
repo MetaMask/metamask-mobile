@@ -269,16 +269,11 @@ const AddCustomToken = ({
   const addToken = useCallback(async (): Promise<void> => {
     const { TokensController } = Engine.context;
 
-    const parsedDecimals = parseInt(decimals, 10);
-    if (Number.isNaN(parsedDecimals)) {
-      return;
-    }
-
     trace({ name: TraceName.ImportTokens });
     await TokensController.addToken({
       address: address.trim(),
       symbol,
-      decimals: parsedDecimals,
+      decimals: Number(decimals),
       name,
       networkClientId: networkClientId ?? '',
     });
@@ -327,9 +322,6 @@ const AddCustomToken = ({
     setHasSubmitted(true);
     if (addressError || symbolError || decimalsError || isLoading) return;
 
-    const parsedDecimals = parseInt(decimals, 10);
-    if (Number.isNaN(parsedDecimals)) return;
-
     const trimmedAddress = address.trim();
     const selectedAsset: ImportAsset[] = [
       {
@@ -340,7 +332,7 @@ const AddCustomToken = ({
           tokenAddress: trimmedAddress,
         }),
         name,
-        decimals: parsedDecimals,
+        decimals: Number(decimals),
         chainId: chainId as Hex,
       },
     ];
