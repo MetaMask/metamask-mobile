@@ -4,7 +4,7 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#ffffff",
       "height": "100%",
       "justifyContent": "space-between",
     }
