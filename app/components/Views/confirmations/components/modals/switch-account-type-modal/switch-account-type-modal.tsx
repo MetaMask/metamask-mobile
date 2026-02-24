@@ -44,10 +44,11 @@ interface SwitchAccountTypeModalProps {
 const SwitchAccountTypeModal = ({ route }: SwitchAccountTypeModalProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const address =
-    route?.params?.address ??
-    (Engine.context.AccountsController.getSelectedAccount()?.address as Hex);
-  const { network7702List, pending } = useEIP7702Networks(address);
+  const selectedAccountAddress =
+    Engine.context.AccountsController.getSelectedAccount()?.address;
+  const address: Hex | undefined =
+    route?.params?.address ?? (selectedAccountAddress as Hex | undefined);
+  const { network7702List, pending } = useEIP7702Networks(address ?? '');
   const internalAccounts = useSelector(selectInternalAccounts);
   const account = internalAccounts.find(
     ({ address: accAddress }) => accAddress === address,
@@ -56,6 +57,27 @@ const SwitchAccountTypeModal = ({ route }: SwitchAccountTypeModalProps) => {
   const goBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  // Handle case when no address is available
+  if (!address) {
+    return (
+      <BottomSheet>
+        <TouchableOpacity onPress={goBack} testID="switch-account-goback">
+          <Icon
+            name={IconName.ArrowLeft}
+            size={IconSize.Sm}
+            color={IconColor.Default}
+            style={styles.backIcon}
+          />
+        </TouchableOpacity>
+        <View style={styles.wrapper}>
+          <View style={styles.spinner} testID="no-address-fallback">
+            <Text variant={TextVariant.BodyMD}>No account selected</Text>
+          </View>
+        </View>
+      </BottomSheet>
+    );
+  }
 
   return (
     <BottomSheet>

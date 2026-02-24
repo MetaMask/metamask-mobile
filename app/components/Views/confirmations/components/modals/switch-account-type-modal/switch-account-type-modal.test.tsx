@@ -217,6 +217,36 @@ describe('Switch Account Type Modal', () => {
       // Account name should not be displayed since address doesn't match any account
       expect(queryByText('Account 1')).toBeNull();
     });
+
+    it('displays fallback when no address is available from route or selected account', () => {
+      jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
+        pending: false,
+        network7702List: [],
+        networkSupporting7702Present: false,
+      });
+
+      // Create route with undefined address param
+      const routeWithNoAddress = {
+        params: { address: undefined },
+        key: 'ConfirmationSwitchAccountType',
+        name: 'ConfirmationSwitchAccountType' as const,
+      };
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <SwitchAccountTypeModal
+          route={
+            routeWithNoAddress as unknown as ReturnType<typeof createMockRoute>
+          }
+        />,
+        { state: MOCK_STATE },
+      );
+
+      // Should render fallback UI
+      expect(getByTestId('no-address-fallback')).toBeOnTheScreen();
+      expect(getByText('No account selected')).toBeOnTheScreen();
+      // Should not render the normal content
+      expect(queryByTestId('network-data-loader')).toBeNull();
+    });
   });
 
   describe('navigation', () => {
