@@ -36241,7 +36241,7 @@ __metadata:
     react-native-performance: "npm:^6.0.0"
     react-native-permissions: "npm:^3.7.2"
     react-native-progress: "npm:3.5.0"
-    react-native-qrcode-svg: "npm:5.1.2"
+    react-native-qrcode-svg: "npm:6.3.21"
     react-native-quick-base64: "npm:^2.2.0"
     react-native-quick-crypto: "npm:^0.7.15"
     react-native-randombytes: "npm:^3.5.3"
@@ -40153,7 +40153,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:*, prop-types@npm:^15.5.10, prop-types@npm:^15.5.7, prop-types@npm:^15.5.8, prop-types@npm:^15.5.9, prop-types@npm:^15.6.0, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
+"prop-types@npm:*, prop-types@npm:^15.5.10, prop-types@npm:^15.5.7, prop-types@npm:^15.5.8, prop-types@npm:^15.5.9, prop-types@npm:^15.6.0, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.0, prop-types@npm:^15.8.1":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:
@@ -40396,7 +40396,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qrcode@npm:^1.2.0, qrcode@npm:^1.5.4":
+"qrcode@npm:^1.5.4":
   version: 1.5.4
   resolution: "qrcode@npm:1.5.4"
   dependencies:
@@ -41264,17 +41264,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-qrcode-svg@npm:5.1.2":
-  version: 5.1.2
-  resolution: "react-native-qrcode-svg@npm:5.1.2"
+"react-native-qrcode-svg@npm:6.3.21":
+  version: 6.3.21
+  resolution: "react-native-qrcode-svg@npm:6.3.21"
   dependencies:
-    prop-types: "npm:^15.5.10"
-    qrcode: "npm:^1.2.0"
+    prop-types: "npm:^15.8.0"
+    qrcode: "npm:^1.5.4"
+    text-encoding: "npm:^0.7.0"
   peerDependencies:
     react: "*"
-    react-native: ">=0.46.0"
-    react-native-svg: ^6.5.2
-  checksum: 10/970387889e5b0346ac52d8637a8e191794663c02232f013083187ae823595751bed5970e43dd36c19f37f4e3b46ebc328dac7df9b856548633decd106289eb79
+    react-native: ">=0.63.4"
+    react-native-svg: ">=14.0.0"
+  checksum: 10/83ce3e00502b42ecf7b5a1a3ef4323120532e0635e640ca00b0a5b69b7b61fd117e29604339af3b4a2d869bf00a701f85329f9a123afa81595798f9d7956c181
   languageName: node
   linkType: hard
 
@@ -45467,6 +45468,13 @@ __metadata:
   version: 1.0.2
   resolution: "text-encoding-utf-8@npm:1.0.2"
   checksum: 10/845bb4bd058d6ec7bb9e1f00be7dab394cd7facd270e2bc266912e975ffe29bc3953cce369da70b92bec964ddc48961c3a5146402d094e11a7a4654e4a365204
+  languageName: node
+  linkType: hard
+
+"text-encoding@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "text-encoding@npm:0.7.0"
+  checksum: 10/c61b7a59a54c58f0714da0ef4c1f65732821bb1f761e6f21c3e681e51c6dd56fdefa4fcfccd3254bf47132d87420fbc9898da21a804c89e87861f4e1478d5f18
   languageName: node
   linkType: hard
 

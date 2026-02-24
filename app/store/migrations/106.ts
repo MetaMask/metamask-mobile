@@ -1,5 +1,5 @@
 import { captureException } from '@sentry/react-native';
-import { MMKV } from 'react-native-mmkv';
+import { createMMKV } from 'react-native-mmkv';
 import { ensureValidState } from './util';
 
 const migrationVersion = 106;
@@ -19,7 +19,7 @@ export default function migrate(state: unknown) {
     const ppomStorageId = 'PPOMDB';
 
     // Create MMKV instance with the same ID that was used by PPOM
-    const ppomStorage = new MMKV({ id: ppomStorageId });
+    const ppomStorage = createMMKV({ id: ppomStorageId });
 
     // Get all keys from the PPOM storage
     const allKeys = ppomStorage.getAllKeys();
