@@ -7,7 +7,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import useApprovalRequest from '../useApprovalRequest';
 import { hasTransactionType } from '../../utils/transaction';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { ConfirmationParams } from '../../components/confirm/confirm-component';
+import type { ConfirmationParams } from '../../components/confirm/confirm-component';
 
 const getIsFullScreenConfirmation = (
   approvalRequest: ApprovalRequest<TransactionMeta> | undefined,
