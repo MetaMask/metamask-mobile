@@ -1,28 +1,25 @@
-import Assertions from '../../../tests/framework/Assertions';
-import Gestures from '../../../tests/framework/Gestures';
+import Assertions from '../../framework/Assertions';
+import Gestures from '../../framework/Gestures';
 import {
   getFixturesServerPort,
   getMockServerPortForFixture,
-} from '../../../tests/framework/fixtures/FixtureUtils';
+} from '../../framework/fixtures/FixtureUtils';
 
-import OnboardingView from '../../../tests/page-objects/Onboarding/OnboardingView';
-import OnboardingSheet from '../../../tests/page-objects/Onboarding/OnboardingSheet';
-import SocialLoginView from '../../../tests/page-objects/Onboarding/SocialLoginView';
-import CreatePasswordView from '../../../tests/page-objects/Onboarding/CreatePasswordView';
-import OnboardingSuccessView from '../../../tests/page-objects/Onboarding/OnboardingSuccessView';
-import MetaMetricsOptInView from '../../../tests/page-objects/Onboarding/MetaMetricsOptInView';
-import ExperienceEnhancerBottomSheet from '../../../tests/page-objects/Onboarding/ExperienceEnhancerBottomSheet';
-import TermsOfUseModal from '../../../tests/page-objects/Onboarding/TermsOfUseModal';
-import WalletView from '../../../tests/page-objects/wallet/WalletView';
-import TabBarComponent from '../../../tests/page-objects/wallet/TabBarComponent';
-import LoginView from '../../../tests/page-objects/wallet/LoginView';
-import SettingsView from '../../../tests/page-objects/Settings/SettingsView';
-import ForgotPasswordModal from '../../../tests/page-objects/Common/ForgotPasswordModalView';
-import { loginToApp } from '../../../tests/flows/wallet.flow';
-import {
-  dismissDevScreens,
-  waitForAppReady,
-} from '../../../tests/flows/general.flow';
+import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
+import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
+import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
+import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
+import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
+import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView';
+import ExperienceEnhancerBottomSheet from '../../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
+import TermsOfUseModal from '../../page-objects/Onboarding/TermsOfUseModal';
+import WalletView from '../../page-objects/wallet/WalletView';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import LoginView from '../../page-objects/wallet/LoginView';
+import SettingsView from '../../page-objects/Settings/SettingsView';
+import ForgotPasswordModal from '../../page-objects/Common/ForgotPasswordModalView';
+import { loginToApp } from '../../flows/wallet.flow';
+import { dismissDevScreens, waitForAppReady } from '../../flows/general.flow';
 
 export const TEST_PASSWORD = 'Test123!@#';
 

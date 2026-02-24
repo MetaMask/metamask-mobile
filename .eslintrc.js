@@ -22,11 +22,7 @@ module.exports = {
   ],
   overrides: [
     {
-      files: [
-        'tests/**/*.{js,ts}',
-        'e2e/**/*.{js,ts}',
-        'appwright/**/*.{js,ts}',
-      ],
+      files: ['tests/**/*.{js,ts}', 'appwright/**/*.{js,ts}'],
       extends: ['./tests/framework/.eslintrc.js'],
     },
     {
@@ -103,7 +99,7 @@ module.exports = {
       },
     },
     {
-      files: ['e2e/module-mocking/**/*.{js,ts}'],
+      files: ['tests/module-mocking/**/*.{js,ts}'],
       rules: {
         'no-console': 'off',
       },

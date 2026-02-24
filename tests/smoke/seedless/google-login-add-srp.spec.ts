@@ -1,20 +1,20 @@
 import { Mockttp } from 'mockttp';
 
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import Assertions from '../../../tests/framework/Assertions';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import Assertions from '../../framework/Assertions';
 
-import WalletView from '../../../tests/page-objects/wallet/WalletView';
-import AccountListBottomSheet from '../../../tests/page-objects/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from '../../../tests/page-objects/wallet/AddAccountBottomSheet';
-import ImportSrpView from '../../../tests/page-objects/importSrp/ImportSrpView';
+import WalletView from '../../page-objects/wallet/WalletView';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from '../../page-objects/wallet/AddAccountBottomSheet';
+import ImportSrpView from '../../page-objects/importSrp/ImportSrpView';
 
-import { createOAuthMockttpService } from '../../../tests/api-mocking/seedless-onboarding';
+import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
-import { SmokeWalletPlatform } from '../../../tests/tags';
-import { IDENTITY_TEAM_SEED_PHRASE } from '../../../tests/smoke/identity/utils/constants';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
+import { SmokeWalletPlatform } from '../../tags';
+import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { completeGoogleNewUserOnboarding } from './utils';
 
 const IMPORTED_ACCOUNT_NAME = 'Account 1';

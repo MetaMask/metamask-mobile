@@ -1,35 +1,37 @@
 import { Mockttp } from 'mockttp';
 
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
-import Assertions from '../../../tests/framework/Assertions';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import Assertions from '../../framework/Assertions';
 
-import OnboardingView from '../../../tests/page-objects/Onboarding/OnboardingView';
-import OnboardingSheet from '../../../tests/page-objects/Onboarding/OnboardingSheet';
-import SocialLoginView from '../../../tests/page-objects/Onboarding/SocialLoginView';
+// Page Objects
+import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
+import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
+import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 
-import { createOAuthMockttpService } from '../../../tests/api-mocking/seedless-onboarding';
+// Mocks
+import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
-import { SmokeWalletPlatform } from '../../../tests/tags';
+import { SmokeWalletPlatform } from '../../tags';
 
-describe(SmokeWalletPlatform('Apple Login - Existing User'), () => {
+describe(SmokeWalletPlatform('Google Login - Existing User'), () => {
   beforeAll(async () => {
     jest.setTimeout(300000);
   });
 
   beforeEach(async () => {
     E2EOAuthHelpers.reset();
-    E2EOAuthHelpers.configureAppleExistingUser();
+    E2EOAuthHelpers.configureGoogleExistingUser();
   });
 
-  it('shows Account Already Exists screen for existing Apple user', async () => {
+  it('shows Account Already Exists screen for existing Google user', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder({ onboarding: true }).build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           const oAuthMockttpService = createOAuthMockttpService();
-          oAuthMockttpService.configureAppleExistingUser();
+          oAuthMockttpService.configureGoogleExistingUser();
           await oAuthMockttpService.setup(mockServer);
         },
       },
@@ -45,7 +47,7 @@ describe(SmokeWalletPlatform('Apple Login - Existing User'), () => {
             'Onboarding sheet with social login options should appear',
         });
 
-        await OnboardingSheet.tapAppleLoginButton();
+        await OnboardingSheet.tapGoogleLoginButton();
 
         await SocialLoginView.isAccountFoundScreenVisible();
 
@@ -80,7 +82,7 @@ describe(SmokeWalletPlatform('Apple Login - Existing User'), () => {
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           const oAuthMockttpService = createOAuthMockttpService();
-          oAuthMockttpService.configureAppleExistingUser();
+          oAuthMockttpService.configureGoogleExistingUser();
           await oAuthMockttpService.setup(mockServer);
         },
       },
@@ -95,7 +97,7 @@ describe(SmokeWalletPlatform('Apple Login - Existing User'), () => {
           description: 'Onboarding sheet should appear',
         });
 
-        await OnboardingSheet.tapAppleLoginButton();
+        await OnboardingSheet.tapGoogleLoginButton();
 
         await SocialLoginView.isAccountFoundScreenVisible();
 

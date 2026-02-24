@@ -1,20 +1,20 @@
 import { Mockttp } from 'mockttp';
 
-import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
-import { createOAuthMockttpService } from '../../../tests/api-mocking/seedless-onboarding';
+import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
-import { SmokeWalletPlatform } from '../../../tests/tags';
+import { SmokeWalletPlatform } from '../../tags';
 import {
   completeGoogleNewUserOnboarding,
   lockApp,
-  unlockApp,
+  resetWallet,
   loginWithPassword,
   FIXTURE_PASSWORD,
 } from './utils';
 
-describe(SmokeWalletPlatform('Google Login - Lock and Unlock'), () => {
+describe(SmokeWalletPlatform('Google Login - Reset Wallet'), () => {
   beforeAll(async () => {
     jest.setTimeout(300000);
   });
@@ -24,7 +24,7 @@ describe(SmokeWalletPlatform('Google Login - Lock and Unlock'), () => {
     E2EOAuthHelpers.configureGoogleNewUser();
   });
 
-  it('onboards with Google login, locks, and unlocks the app', async () => {
+  it('onboards with Google login, locks, and resets the wallet', async () => {
     const isIOS = device.getPlatform() === 'ios';
 
     const fixture = isIOS
@@ -51,8 +51,8 @@ describe(SmokeWalletPlatform('Google Login - Lock and Unlock'), () => {
         // Lock the app
         await lockApp();
 
-        // Unlock the app
-        await unlockApp(isIOS ? FIXTURE_PASSWORD : undefined);
+        // Reset the wallet
+        await resetWallet();
       },
     );
   });

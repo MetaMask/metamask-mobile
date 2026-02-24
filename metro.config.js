@@ -141,7 +141,7 @@ module.exports = function (baseConfig) {
                 type: 'sourceFile',
                 filePath: path.resolve(
                   __dirname,
-                  'e2e/module-mocking/seedless/index.ts',
+                  'tests/module-mocking/seedless/index.ts',
                 ),
               };
             }
@@ -156,7 +156,7 @@ module.exports = function (baseConfig) {
                 type: 'sourceFile',
                 filePath: path.resolve(
                   __dirname,
-                  'e2e/module-mocking/oauth/OAuthLoginHandlers/index.ts',
+                  'tests/module-mocking/oauth/OAuthLoginHandlers/index.ts',
                 ),
               };
             }
