@@ -762,8 +762,10 @@ describe('PerpsMarketDetailsView', () => {
 
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
-    ).toBeTruthy();
-    expect(getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER)).toBeTruthy();
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
   });
 
   it('renders statistics items', () => {
@@ -786,24 +788,24 @@ describe('PerpsMarketDetailsView', () => {
     // Now look for statistics elements
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.STATISTICS_HIGH_24H),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.STATISTICS_LOW_24H),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.STATISTICS_VOLUME_24H),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.STATISTICS_OPEN_INTEREST),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_RATE),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_COUNTDOWN,
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('renders long/short buttons when user has available balance', () => {
@@ -818,10 +820,10 @@ describe('PerpsMarketDetailsView', () => {
 
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('shows tooltip when Open Interest info icon is clicked', async () => {
@@ -843,12 +845,12 @@ describe('PerpsMarketDetailsView', () => {
     const openInterestInfoIcon = getByTestId(
       PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON,
     );
-    expect(openInterestInfoIcon).toBeTruthy();
+    expect(openInterestInfoIcon).toBeOnTheScreen();
 
     fireEvent.press(openInterestInfoIcon);
 
     await waitFor(() => {
-      expect(getByTestId('perps-bottom-sheet-tooltip')).toBeTruthy();
+      expect(getByTestId('perps-bottom-sheet-tooltip')).toBeOnTheScreen();
     });
   });
 
@@ -871,12 +873,12 @@ describe('PerpsMarketDetailsView', () => {
     const fundingRateInfoIcon = getByTestId(
       PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON,
     );
-    expect(fundingRateInfoIcon).toBeTruthy();
+    expect(fundingRateInfoIcon).toBeOnTheScreen();
 
     fireEvent.press(fundingRateInfoIcon);
 
     await waitFor(() => {
-      expect(getByTestId('perps-bottom-sheet-tooltip')).toBeTruthy();
+      expect(getByTestId('perps-bottom-sheet-tooltip')).toBeOnTheScreen();
     });
   });
 
@@ -917,10 +919,10 @@ describe('PerpsMarketDetailsView', () => {
       // When balance is zero, trade buttons are still shown so user can trade
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       // No add funds banner
       expect(queryByText('Add funds to start trading perps')).toBeNull();
       expect(
@@ -978,10 +980,10 @@ describe('PerpsMarketDetailsView', () => {
       // Shows modify/close buttons when existing position exists (not long/short buttons)
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.MODIFY_BUTTON),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
 
       // Long/short buttons should NOT be shown when position exists
       expect(
@@ -1006,10 +1008,10 @@ describe('PerpsMarketDetailsView', () => {
       // Shows long/short buttons
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
   });
 
@@ -1328,7 +1330,7 @@ describe('PerpsMarketDetailsView', () => {
       );
       fireEvent.press(longButton);
 
-      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
@@ -1358,7 +1360,7 @@ describe('PerpsMarketDetailsView', () => {
       );
       fireEvent.press(shortButton);
 
-      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
@@ -1388,7 +1390,7 @@ describe('PerpsMarketDetailsView', () => {
       );
       fireEvent.press(longButton);
 
-      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
 
       const tooltip = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP,
@@ -1450,7 +1452,7 @@ describe('PerpsMarketDetailsView', () => {
       );
       fireEvent.press(closeButton);
 
-      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
@@ -1505,7 +1507,7 @@ describe('PerpsMarketDetailsView', () => {
       );
       fireEvent.press(modifyButton);
 
-      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
       // Modify sheet should NOT open when user is not eligible
     });
 
@@ -1555,7 +1557,7 @@ describe('PerpsMarketDetailsView', () => {
       );
       fireEvent.press(autoCloseButton);
 
-      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
       expect(mockNavigate).not.toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({ screen: expect.stringContaining('TPSL') }),
@@ -1606,7 +1608,7 @@ describe('PerpsMarketDetailsView', () => {
       const marginButton = getByTestId('perps-position-card-margin-button');
       fireEvent.press(marginButton);
 
-      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
     });
 
     it('shows geo block modal when add margin from banner is pressed and user is not eligible', () => {
@@ -1668,7 +1670,7 @@ describe('PerpsMarketDetailsView', () => {
       );
       fireEvent.press(addMarginBannerButton);
 
-      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
       expect(mockNavigate).not.toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({ mode: 'add' }),
@@ -1734,7 +1736,7 @@ describe('PerpsMarketDetailsView', () => {
       );
       fireEvent.press(setStopLossBannerButton);
 
-      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
     });
   });
 
@@ -1817,10 +1819,10 @@ describe('PerpsMarketDetailsView', () => {
       // Should show error container and message
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.ERROR),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByText('Market data not found. Please go back and try again.'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('does not render main content when market is undefined', () => {
@@ -1896,7 +1898,7 @@ describe('PerpsMarketDetailsView', () => {
       const durationSelector = getByTestId(
         'perps-market-details-view-candle-period-selector-period-1m',
       );
-      expect(durationSelector).toBeTruthy();
+      expect(durationSelector).toBeOnTheScreen();
     });
 
     it('verifies bottom sheet can be mocked', () => {
@@ -2000,7 +2002,9 @@ describe('PerpsMarketDetailsView', () => {
 
       // Verify modal is now visible by checking for close button
       await waitFor(() => {
-        expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
+        expect(
+          getByTestId('perps-chart-fullscreen-close-button'),
+        ).toBeOnTheScreen();
       });
     });
 
@@ -2022,7 +2026,9 @@ describe('PerpsMarketDetailsView', () => {
 
       // Wait for modal to be visible
       await waitFor(() => {
-        expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
+        expect(
+          getByTestId('perps-chart-fullscreen-close-button'),
+        ).toBeOnTheScreen();
       });
 
       // Press close button
@@ -2053,8 +2059,10 @@ describe('PerpsMarketDetailsView', () => {
 
       // Wait for modal to be visible and verify chart is rendered
       await waitFor(() => {
-        expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
-        expect(getByTestId('fullscreen-chart')).toBeTruthy();
+        expect(
+          getByTestId('perps-chart-fullscreen-close-button'),
+        ).toBeOnTheScreen();
+        expect(getByTestId('fullscreen-chart')).toBeOnTheScreen();
       });
     });
   });
@@ -2104,7 +2112,7 @@ describe('PerpsMarketDetailsView', () => {
       // Assert - component renders with position data
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('handles undefined positionOpenedTimestamp from hook', () => {
@@ -2147,7 +2155,7 @@ describe('PerpsMarketDetailsView', () => {
       // Assert - component still renders correctly
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
   });
 
@@ -2243,7 +2251,7 @@ describe('PerpsMarketDetailsView', () => {
         `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
       );
 
-      expect(chart).toBeTruthy();
+      expect(chart).toBeOnTheScreen();
     });
 
     it('excludes child orders from default SL order selection', () => {
@@ -2327,7 +2335,7 @@ describe('PerpsMarketDetailsView', () => {
         `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
       );
 
-      expect(chart).toBeTruthy();
+      expect(chart).toBeOnTheScreen();
     });
 
     it('includes standalone trigger orders when no child orders exist', () => {
@@ -2409,7 +2417,7 @@ describe('PerpsMarketDetailsView', () => {
         `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
       );
 
-      expect(chart).toBeTruthy();
+      expect(chart).toBeOnTheScreen();
     });
 
     it('handles orders with only takeProfitOrderId', () => {
@@ -2474,7 +2482,7 @@ describe('PerpsMarketDetailsView', () => {
         `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
       );
 
-      expect(chart).toBeTruthy();
+      expect(chart).toBeOnTheScreen();
     });
 
     it('handles orders with only stopLossOrderId', () => {
@@ -2539,7 +2547,7 @@ describe('PerpsMarketDetailsView', () => {
         `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
       );
 
-      expect(chart).toBeTruthy();
+      expect(chart).toBeOnTheScreen();
     });
 
     it('hides reduce-only orders marked isPositionTpsl=true from Orders section', () => {
@@ -2624,7 +2632,7 @@ describe('PerpsMarketDetailsView', () => {
         { state: initialState },
       );
 
-      expect(getByTestId('compact-order-parent-order')).toBeTruthy();
+      expect(getByTestId('compact-order-parent-order')).toBeOnTheScreen();
       expect(queryByTestId('compact-order-full-position-tpsl')).toBeNull();
     });
 
@@ -2694,7 +2702,7 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(
         getByTestId('compact-order-standalone-during-loading'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(queryByTestId('compact-order-full-position-loading')).toBeNull();
     });
 
@@ -2780,8 +2788,8 @@ describe('PerpsMarketDetailsView', () => {
         { state: initialState },
       );
 
-      expect(getByTestId('compact-order-standalone-tpsl')).toBeTruthy();
-      expect(getByText('Take profit limit close long')).toBeTruthy();
+      expect(getByTestId('compact-order-standalone-tpsl')).toBeOnTheScreen();
+      expect(getByText('Take profit limit close long')).toBeOnTheScreen();
     });
 
     it('shows synthetic TP/SL rows when parent metadata exists and size matches existing position', () => {
@@ -2850,13 +2858,13 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(
         getByTestId('compact-order-parent-order-with-metadata'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId('compact-order-parent-order-with-metadata-synthetic-tp'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId('compact-order-parent-order-with-metadata-synthetic-sl'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('uses size fallback when isPositionTpsl is undefined', () => {
@@ -2940,7 +2948,9 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       expect(queryByTestId('compact-order-fallback-full-size')).toBeNull();
-      expect(getByTestId('compact-order-fallback-standalone')).toBeTruthy();
+      expect(
+        getByTestId('compact-order-fallback-standalone'),
+      ).toBeOnTheScreen();
     });
 
     it('handles empty order list', () => {
@@ -2964,7 +2974,7 @@ describe('PerpsMarketDetailsView', () => {
         `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
       );
 
-      expect(chart).toBeTruthy();
+      expect(chart).toBeOnTheScreen();
     });
   });
 
@@ -3013,8 +3023,8 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       // Should show the route market's leverage badge
-      expect(getByText('25x')).toBeTruthy();
-      expect(getByText('ETH-USD')).toBeTruthy();
+      expect(getByText('25x')).toBeOnTheScreen();
+      expect(getByText('ETH-USD')).toBeOnTheScreen();
     });
 
     it('enriches market data from usePerpsMarkets when route has minimal data', async () => {
@@ -3054,12 +3064,12 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       // Verify the header renders with correct market symbol
-      expect(getByTestId('perps-market-header')).toBeTruthy();
-      expect(getByText('BTC-USD')).toBeTruthy();
+      expect(getByTestId('perps-market-header')).toBeOnTheScreen();
+      expect(getByText('BTC-USD')).toBeOnTheScreen();
 
       // Should show the enriched market's leverage badge from usePerpsMarkets
       await waitFor(() => {
-        expect(getByText('40x')).toBeTruthy();
+        expect(getByText('40x')).toBeOnTheScreen();
       });
     });
 
@@ -3089,7 +3099,7 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       // Should show the asset name but no leverage badge (since no maxLeverage available)
-      expect(getByText('UNKNOWN-USD')).toBeTruthy();
+      expect(getByText('UNKNOWN-USD')).toBeOnTheScreen();
       // No leverage badge should be shown
       expect(queryByText('40x')).toBeNull();
       expect(queryByText('25x')).toBeNull();
