@@ -320,7 +320,6 @@ export const PerpsConnectionProvider: React.FC<
       <PerpsConnectionContext.Provider value={contextValue}>
         <PerpsConnectionErrorView
           error={connectionState.error}
-          errorCode={connectionState.error}
           onRetry={handleRetry}
           isRetrying={connectionState.isConnecting}
           showBackButton={shouldShowBackButton}

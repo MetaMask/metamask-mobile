@@ -28,7 +28,6 @@ import styleSheet from './PerpsConnectionErrorView.styles';
 
 interface PerpsConnectionErrorViewProps {
   error: string | Error;
-  errorCode?: string;
   onRetry: () => void;
   isRetrying?: boolean;
   showBackButton?: boolean;
@@ -37,7 +36,6 @@ interface PerpsConnectionErrorViewProps {
 
 const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
   error,
-  errorCode,
   onRetry,
   isRetrying = false,
   showBackButton,
@@ -47,7 +45,12 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
   const navigation = useNavigation();
   const { track } = usePerpsEventTracking();
 
+  const errorMessage =
+    (typeof error === 'string' ? error : error?.message) ||
+    PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.UNKNOWN;
+
   // Track error screen view with error context
+  // resetConditions re-fires the event after retries so retry_attempts is accurate
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
@@ -55,10 +58,10 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
       [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
         PERPS_EVENT_VALUE.SCREEN_NAME.CONNECTION_ERROR,
       [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.NETWORK,
-      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
-        errorCode ?? PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.UNKNOWN,
+      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
       [PERPS_EVENT_PROPERTY.RETRY_ATTEMPTS]: retryAttempts,
     },
+    resetConditions: [retryAttempts > 0],
   });
 
   // Filter debug messages in production - show generic error message
@@ -130,8 +133,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
               [PERPS_EVENT_PROPERTY.ACTION]:
                 PERPS_EVENT_VALUE.ACTION.CONNECTION_RETRY,
               [PERPS_EVENT_PROPERTY.ATTEMPT_NUMBER]: retryAttempts + 1,
-              [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
-                errorCode ?? PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.UNKNOWN,
+              [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
             });
             onRetry();
           }}
@@ -152,8 +154,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
                 [PERPS_EVENT_PROPERTY.ACTION]:
                   PERPS_EVENT_VALUE.ACTION.CONNECTION_GO_BACK,
                 [PERPS_EVENT_PROPERTY.ATTEMPT_NUMBER]: retryAttempts,
-                [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
-                  errorCode ?? PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.UNKNOWN,
+                [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
               });
               handleGoBack();
             }}

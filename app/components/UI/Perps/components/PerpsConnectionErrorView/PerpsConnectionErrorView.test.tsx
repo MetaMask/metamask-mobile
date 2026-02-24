@@ -229,7 +229,6 @@ describe('PerpsConnectionErrorView', () => {
     const { getByText } = render(
       <PerpsConnectionErrorView
         error="Test error"
-        errorCode="ws_timeout"
         onRetry={mockOnRetry}
         showBackButton
         retryAttempts={2}
