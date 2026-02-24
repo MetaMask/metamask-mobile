@@ -109,7 +109,7 @@ export const PerpsConnectionProvider: React.FC<
           component: 'PerpsConnectionManager',
           action: 'connection_connection',
         },
-        context: { name: 'PerpsConnectionProvider.connect' },
+        context: { name: 'PerpsConnectionProvider.connect', data: {} },
       });
     }
     // Always update state after connect attempt
@@ -203,7 +203,10 @@ export const PerpsConnectionProvider: React.FC<
               component: 'PerpsConnectionManager',
               action: 'connection_connection',
             },
-            context: { name: 'PerpsConnectionProvider.lifecycle.onConnect' },
+            context: {
+              name: 'PerpsConnectionProvider.lifecycle.onConnect',
+              data: {},
+            },
           },
         );
       }
