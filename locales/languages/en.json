@@ -2864,7 +2864,7 @@
     "permissions": "Permissions",
     "card_title": "MetaMask Card",
     "settings": "Settings",
-    "networks": "Networks",    
+    "networks": "Networks",
     "log_out": "Log out",
     "notifications": "Notifications",
     "buy": "Buy",
@@ -7725,7 +7725,8 @@
       "nfts": "NFTs",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
-      "more_predictions": "More predictions"
+      "more_predictions": "More predictions",
+      "no_tp_sl": "No TP/SL set"
     },
     "error": {
       "unable_to_load": "Unable to load {{section}}",
