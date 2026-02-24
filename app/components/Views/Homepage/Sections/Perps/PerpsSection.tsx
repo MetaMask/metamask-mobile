@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useState,
 } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +13,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { type Position } from '@metamask/perps-controller';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
+import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
@@ -37,18 +39,30 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const cachedPositions = useSelector(selectCachedPositions);
   const cachedMarkets = useSelector(selectCachedMarketData);
   const title = strings('homepage.sections.perpetuals');
+  const [error, setError] = useState<boolean>(false);
+
+  const startPreload = useCallback(() => {
+    const controller = Engine.context.PerpsController;
+    if (!controller) return;
+
+    setError(false);
+    try {
+      Promise.resolve(controller.startMarketDataPreload()).catch(() =>
+        setError(true),
+      );
+    } catch {
+      setError(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isPerpsEnabled) return;
 
-    const controller = Engine.context.PerpsController;
-    if (!controller) return;
+    startPreload();
+    return () => Engine.context.PerpsController?.stopMarketDataPreload();
+  }, [isPerpsEnabled, startPreload]);
 
-    controller.startMarketDataPreload();
-    return () => controller.stopMarketDataPreload();
-  }, [isPerpsEnabled]);
-
-  const isLoading = cachedPositions === null;
+  const isLoading = cachedPositions === null && !error;
 
   const positions = useMemo(
     () => (cachedPositions ?? []).slice(0, MAX_POSITIONS),
@@ -56,8 +70,8 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   );
 
   const refresh = useCallback(async () => {
-    // Preload cycle handles refresh
-  }, []);
+    startPreload();
+  }, [startPreload]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -88,6 +102,22 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   if (!isPerpsEnabled) {
     return null;
+  }
+
+  const hasError = !isLoading && positions.length === 0 && error;
+
+  if (hasError) {
+    return (
+      <Box gap={3}>
+        <SectionTitle title={title} onPress={handleViewAllPerps} />
+        <ErrorState
+          title={strings('homepage.error.unable_to_load', {
+            section: title.toLowerCase(),
+          })}
+          onRetry={refresh}
+        />
+      </Box>
+    );
   }
 
   return (
