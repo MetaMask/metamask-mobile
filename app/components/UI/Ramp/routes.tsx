@@ -17,7 +17,7 @@ import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
 import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
 import TokenNotAvailableModal from './Views/Modals/TokenNotAvailableModal';
-import ProviderPickerModal from './Views/Modals/ProviderPickerModal';
+import ProviderSelectionModal from './Views/Modals/ProviderSelectionModal';
 import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import RampsOrderDetails from './Views/OrderDetails';
 
@@ -104,8 +104,8 @@ const TokenListModalsRoutes = () => (
       component={TokenNotAvailableModal}
     />
     <ModalsStack.Screen
-      name={Routes.RAMP.MODALS.PROVIDER_PICKER}
-      component={ProviderPickerModal}
+      name={Routes.RAMP.MODALS.PROVIDER_SELECTION}
+      component={ProviderSelectionModal}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.PROCESSING_INFO}
