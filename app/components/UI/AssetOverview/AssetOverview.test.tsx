@@ -196,9 +196,6 @@ jest.mock('../../../core/Engine', () => ({
     MultichainNetworkController: {
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
     },
-    SwapsController: {
-      fetchTokenWithCache: jest.fn().mockResolvedValue(undefined),
-    },
     BridgeController: {
       setLocation: jest.fn(),
     },
