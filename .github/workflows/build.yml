@@ -41,6 +41,9 @@ jobs:
   # Bump version in repo (bitrise.yml, package.json, ios/android) before building
   update-build-version:
     uses: ./.github/workflows/update-latest-build-version.yml
+    permissions:
+      contents: write
+      id-token: write
     with:
       base-branch: ${{ github.ref_name }}
     secrets:
