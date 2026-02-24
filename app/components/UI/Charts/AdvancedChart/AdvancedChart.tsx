@@ -41,7 +41,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
   (
     {
       ohlcvData,
-      symbol = 'ASSET',
       height = DEFAULT_CHART_HEIGHT,
       realtimeBar,
       onRequestMoreHistory,
@@ -91,10 +90,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       (data: OHLCVBar[]) => {
         postMessage({
           type: 'SET_OHLCV_DATA',
-          payload: { data, symbol },
+          payload: { data },
         });
       },
-      [postMessage, symbol],
+      [postMessage],
     );
 
     const addIndicator = useCallback(

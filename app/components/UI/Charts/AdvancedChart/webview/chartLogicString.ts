@@ -40,7 +40,9 @@ window.needMoreHistoryThrottled = false;
 function sendToReactNative(type, payload) {
   payload = payload || {};
   if (window.ReactNativeWebView) {
-    window.ReactNativeWebView.postMessage(JSON.stringify({ type: type, payload: payload }));
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({ type: type, payload: payload }),
+    );
   }
 }
 
@@ -92,9 +94,20 @@ document.addEventListener('message', handleMessage);
 // Data Handlers
 // ============================================
 var INTERVAL_MS_TO_TV = {
-  60000: '1', 180000: '3', 300000: '5', 900000: '15', 1800000: '30',
-  3600000: '60', 7200000: '120', 14400000: '240', 28800000: '480',
-  43200000: '720', 86400000: '1D', 259200000: '3D', 604800000: '1W', 2592000000: '1M',
+  60000: '1',
+  180000: '3',
+  300000: '5',
+  900000: '15',
+  1800000: '30',
+  3600000: '60',
+  7200000: '120',
+  14400000: '240',
+  28800000: '480',
+  43200000: '720',
+  86400000: '1D',
+  259200000: '3D',
+  604800000: '1W',
+  2592000000: '1M',
 };
 
 function detectResolution(data) {
@@ -105,7 +118,9 @@ function detectResolution(data) {
   for (var i = 0; i < len; i++) {
     diffs.push(data[i + 1].time - data[i].time);
   }
-  diffs.sort(function (a, b) { return a - b; });
+  diffs.sort(function (a, b) {
+    return a - b;
+  });
   var median = diffs[Math.floor(diffs.length / 2)];
 
   // Find closest match
@@ -132,22 +147,34 @@ function handleSetOHLCVData(payload) {
 
   var newResolution = detectResolution(window.ohlcvData);
   sendToReactNative('DEBUG', {
-    message: 'SET_OHLCV_DATA: bars=' + window.ohlcvData.length +
-      ' newRes=' + newResolution +
-      ' curRes=' + window.currentResolution +
-      ' widgetExists=' + !!window.chartWidget +
-      ' ready=' + window.isChartReady,
+    message:
+      'SET_OHLCV_DATA: bars=' +
+      window.ohlcvData.length +
+      ' newRes=' +
+      newResolution +
+      ' curRes=' +
+      window.currentResolution +
+      ' widgetExists=' +
+      !!window.chartWidget +
+      ' ready=' +
+      window.isChartReady,
   });
 
   if (window.chartWidget && window.isChartReady) {
     if (window.currentResolution !== newResolution) {
       window.currentResolution = newResolution;
       try {
-        window.chartWidget.activeChart().setResolution(newResolution, function () {
-          sendToReactNative('DEBUG', { message: 'Resolution changed to ' + newResolution });
-        });
+        window.chartWidget
+          .activeChart()
+          .setResolution(newResolution, function () {
+            sendToReactNative('DEBUG', {
+              message: 'Resolution changed to ' + newResolution,
+            });
+          });
       } catch (e) {
-        sendToReactNative('DEBUG', { message: 'setResolution failed, rebuilding widget' });
+        sendToReactNative('DEBUG', {
+          message: 'setResolution failed, rebuilding widget',
+        });
         window.chartWidget.remove();
         window.chartWidget = null;
         window.isChartReady = false;
@@ -306,7 +333,9 @@ function clearPositionLines() {
     }
     window.positionShapeIds = [];
   } catch (error) {
-    sendToReactNative('ERROR', { message: 'Failed to clear position lines: ' + error.message });
+    sendToReactNative('ERROR', {
+      message: 'Failed to clear position lines: ' + error.message,
+    });
   }
 }
 
@@ -327,51 +356,76 @@ function handleSetPositionLines(payload) {
     var lines = [];
 
     if (position.entryPrice) {
-      lines.push({ price: position.entryPrice, text: 'Entry', color: '#858585', lineStyle: 2 });
+      lines.push({
+        price: position.entryPrice,
+        text: 'Entry',
+        color: '#858585',
+        lineStyle: 2,
+      });
     }
     if (position.takeProfitPrice) {
-      lines.push({ price: position.takeProfitPrice, text: 'TP', color: theme.successColor, lineStyle: 2 });
+      lines.push({
+        price: position.takeProfitPrice,
+        text: 'TP',
+        color: theme.successColor,
+        lineStyle: 2,
+      });
     }
     if (position.stopLossPrice) {
-      lines.push({ price: position.stopLossPrice, text: 'SL', color: '#858585', lineStyle: 2 });
+      lines.push({
+        price: position.stopLossPrice,
+        text: 'SL',
+        color: '#858585',
+        lineStyle: 2,
+      });
     }
     if (position.liquidationPrice) {
-      lines.push({ price: position.liquidationPrice, text: 'Liq', color: theme.errorColor, lineStyle: 2 });
+      lines.push({
+        price: position.liquidationPrice,
+        text: 'Liq',
+        color: theme.errorColor,
+        lineStyle: 2,
+      });
     }
 
     for (var i = 0; i < lines.length; i++) {
       (function (line) {
-        chart.createShape(
-          { price: line.price },
-          {
-            shape: 'horizontal_line',
-            lock: true,
-            disableSelection: true,
-            disableSave: true,
-            disableUndo: true,
-            text: line.text,
-            overrides: {
-              linecolor: line.color,
-              linestyle: line.lineStyle,
-              linewidth: 1,
-              showLabel: true,
-              textcolor: line.color,
-              fontsize: 11,
-              horzLabelsAlign: 'right',
-              showPrice: true,
+        chart
+          .createShape(
+            { price: line.price },
+            {
+              shape: 'horizontal_line',
+              lock: true,
+              disableSelection: true,
+              disableSave: true,
+              disableUndo: true,
+              text: line.text,
+              overrides: {
+                linecolor: line.color,
+                linestyle: line.lineStyle,
+                linewidth: 1,
+                showLabel: true,
+                textcolor: line.color,
+                fontsize: 11,
+                horzLabelsAlign: 'right',
+                showPrice: true,
+              },
             },
-          }
-        ).then(function (entityId) {
-          if (entityId) {
-            window.positionShapeIds.push(entityId);
-          }
-        }).catch(function () {
-          // Shape creation can fail silently
-        });
+          )
+          .then(function (entityId) {
+            if (entityId) {
+              window.positionShapeIds.push(entityId);
+            }
+          })
+          .catch(function () {
+            // Shape creation can fail silently
+          });
       })(lines[i]);
     }
   } catch (error) {
-    sendToReactNative('ERROR', { message: 'Failed to add position lines: ' + error.message });
+    sendToReactNative('ERROR', {
+      message: 'Failed to add position lines: ' + error.message,
+    });
   }
 }
 
@@ -385,7 +439,8 @@ function createVolumeStudy() {
   if (window.volumeStudyId) return;
 
   try {
-    window.chartWidget.activeChart()
+    window.chartWidget
+      .activeChart()
       .createStudy('Volume', false, false, {}, { 'volume ma.visible': false })
       .then(function (studyId) {
         window.volumeStudyId = studyId;
@@ -421,7 +476,22 @@ var customDatafeed = {
   onReady: function (callback) {
     setTimeout(function () {
       callback({
-        supported_resolutions: ['1', '3', '5', '15', '30', '60', '120', '240', '480', '720', '1D', '3D', '1W', '1M'],
+        supported_resolutions: [
+          '1',
+          '3',
+          '5',
+          '15',
+          '30',
+          '60',
+          '120',
+          '240',
+          '480',
+          '720',
+          '1D',
+          '3D',
+          '1W',
+          '1M',
+        ],
         supports_marks: false,
         supports_timescale_marks: false,
         supports_time: true,
@@ -448,7 +518,22 @@ var customDatafeed = {
         has_intraday: true,
         has_daily: true,
         has_weekly_and_monthly: true,
-        supported_resolutions: ['1', '3', '5', '15', '30', '60', '120', '240', '480', '720', '1D', '3D', '1W', '1M'],
+        supported_resolutions: [
+          '1',
+          '3',
+          '5',
+          '15',
+          '30',
+          '60',
+          '120',
+          '240',
+          '480',
+          '720',
+          '1D',
+          '3D',
+          '1W',
+          '1M',
+        ],
         volume_precision: 0,
         data_status: 'streaming',
       });
@@ -514,7 +599,9 @@ function loadLibrary() {
     document.getElementById('loading-overlay').innerHTML =
       '<div style="text-align:center;padding:20px;">' +
       '<p style="color:#FF6B6B;margin-bottom:10px;">Failed to load chart library</p>' +
-      '<p style="font-size:12px;color:#888;">URL: ' + scriptUrl + '</p>' +
+      '<p style="font-size:12px;color:#888;">URL: ' +
+      scriptUrl +
+      '</p>' +
       '<p style="font-size:12px;color:#888;">Check S3 access or CORS configuration.</p>' +
       '</div>';
     sendToReactNative('ERROR', { message: window.libraryError });
@@ -639,35 +726,42 @@ function initChart() {
 
       // Set up crosshair move listener for OHLC overlay
       try {
-        window.chartWidget.activeChart().crossHairMoved().subscribe(null, function (params) {
-          if (params && params.price !== undefined && params.time !== undefined) {
-            // Find the bar closest to the crosshair time
-            var targetTime = params.time * 1000;
-            var closestBar = null;
-            var minDiff = Infinity;
-            for (var i = 0; i < window.ohlcvData.length; i++) {
-              var diff = Math.abs(window.ohlcvData[i].time - targetTime);
-              if (diff < minDiff) {
-                minDiff = diff;
-                closestBar = window.ohlcvData[i];
+        window.chartWidget
+          .activeChart()
+          .crossHairMoved()
+          .subscribe(null, function (params) {
+            if (
+              params &&
+              params.price !== undefined &&
+              params.time !== undefined
+            ) {
+              // Find the bar closest to the crosshair time
+              var targetTime = params.time * 1000;
+              var closestBar = null;
+              var minDiff = Infinity;
+              for (var i = 0; i < window.ohlcvData.length; i++) {
+                var diff = Math.abs(window.ohlcvData[i].time - targetTime);
+                if (diff < minDiff) {
+                  minDiff = diff;
+                  closestBar = window.ohlcvData[i];
+                }
               }
+              if (closestBar) {
+                sendToReactNative('CROSSHAIR_MOVE', {
+                  data: {
+                    time: closestBar.time,
+                    open: closestBar.open,
+                    high: closestBar.high,
+                    low: closestBar.low,
+                    close: closestBar.close,
+                    volume: closestBar.volume,
+                  },
+                });
+              }
+            } else {
+              sendToReactNative('CROSSHAIR_MOVE', { data: null });
             }
-            if (closestBar) {
-              sendToReactNative('CROSSHAIR_MOVE', {
-                data: {
-                  time: closestBar.time,
-                  open: closestBar.open,
-                  high: closestBar.high,
-                  low: closestBar.low,
-                  close: closestBar.close,
-                  volume: closestBar.volume,
-                },
-              });
-            }
-          } else {
-            sendToReactNative('CROSSHAIR_MOVE', { data: null });
-          }
-        });
+          });
       } catch (e) {
         // Crosshair subscription not critical
       }
@@ -683,7 +777,6 @@ function initChart() {
       });
       window.pendingMessages = [];
     });
-
   } catch (error) {
     sendToReactNative('ERROR', {
       message: 'Failed to initialize chart: ' + error.message,

@@ -7,9 +7,8 @@ import { chartLogicScript } from './webview';
 
 // Local development server fallback:
 //   npx http-server --cors -p 8000 <dir-containing-charting_library/>
-const CHARTING_LIBRARY_URL = 'http://localhost:8000/charting_library/';
-
 export const CHARTING_LIBRARY_BASE_URL = 'http://localhost:8000/';
+const CHARTING_LIBRARY_URL = `${CHARTING_LIBRARY_BASE_URL}charting_library/`;
 
 interface ChartFeatures {
   enableDrawingTools?: boolean;

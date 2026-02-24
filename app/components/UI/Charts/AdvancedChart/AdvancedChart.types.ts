@@ -125,7 +125,6 @@ export type WebViewToRNMessageType =
 
 export interface SetOHLCVDataPayload {
   data: OHLCVBar[];
-  symbol?: string;
 }
 
 export interface AddIndicatorPayload {
@@ -212,8 +211,6 @@ export interface WebViewToRNMessage {
 export interface AdvancedChartProps {
   /** OHLCV data to display (required) */
   ohlcvData: OHLCVBar[];
-  /** Trading symbol (e.g., 'ETH/USD') */
-  symbol?: string;
   /** Chart height in pixels */
   height?: number;
 
