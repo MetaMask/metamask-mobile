@@ -6459,7 +6459,8 @@
     "exceeding_upper_slippage_error": "You cannot enter a value greater than {{value}}%",
     "custom": "Custom",
     "select_quote": "Select Quote",
-    "select_quote_info": "The total cost is the fiat value of your input tokens plus the fiat value of the network fee."
+    "select_quote_info": "The total cost is the fiat value of your input tokens plus the fiat value of the network fee.",
+    "lowest_cost": "Lowest cost"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",

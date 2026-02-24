@@ -92,6 +92,7 @@ describe('useBridgeQuoteData', () => {
     // Set up mock for this specific test
     (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
       recommendedQuote: mockQuoteWithMetadata,
+      sortedQuotes: [mockQuoteWithMetadata],
       alternativeQuotes: [],
     }));
 
@@ -141,6 +142,7 @@ describe('useBridgeQuoteData', () => {
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: null,
+      validQuotes: [mockQuoteWithMetadata],
     });
   });
 
@@ -224,6 +226,7 @@ describe('useBridgeQuoteData', () => {
       blockaidError: null,
       shouldShowPriceImpactWarning: false,
       quotesLoadingStatus: RequestStatus.FETCHED,
+      validQuotes: [],
     });
   });
 
@@ -302,6 +305,7 @@ describe('useBridgeQuoteData', () => {
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: null,
+      validQuotes: [],
     });
   });
 
@@ -337,6 +341,7 @@ describe('useBridgeQuoteData', () => {
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: RequestStatus.LOADING,
+      validQuotes: [],
     });
   });
 
@@ -373,6 +378,7 @@ describe('useBridgeQuoteData', () => {
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: null,
+      validQuotes: [],
     });
   });
 

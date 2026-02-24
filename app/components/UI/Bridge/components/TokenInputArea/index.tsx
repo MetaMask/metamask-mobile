@@ -49,7 +49,7 @@ import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { useAutoSizingFont } from '../../hooks/useAutoSizingFont';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
-import { useTokenInputAreaFormattedBalance } from '../../hooks/useTokenInputAreaFormattedBalance';
+import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanceWithThreshold';
 
 export const MAX_INPUT_LENGTH = 36;
 
@@ -229,7 +229,7 @@ export const TokenInputArea = forwardRef<
       nonEvmMultichainAssetRates,
     });
 
-    const formattedBalance = useTokenInputAreaFormattedBalance(
+    const formattedBalance = useFormattedBalanceWithThreshold(
       tokenBalance,
       token,
     );
