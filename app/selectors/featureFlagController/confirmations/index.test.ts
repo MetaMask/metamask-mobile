@@ -9,7 +9,6 @@ import {
   selectNonZeroUnusedApprovalsAllowList,
   selectGasFeeTokenFlags,
   GasFeeTokenFlags,
-  selectPayPostQuoteFlags,
   selectPayQuoteConfig,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
@@ -256,98 +255,6 @@ describe('Gas Fee Token Flags', () => {
     const result = selectGasFeeTokenFlags(stateWithUndefinedGasFeeTokens);
 
     expect(result).toEqual({ gasFeeTokens: {} });
-  });
-});
-
-describe('selectPayPostQuoteFlags', () => {
-  it('returns disabled default when confirmations_pay_post_quote is missing', () => {
-    const result = selectPayPostQuoteFlags(mockedEmptyFlagsState);
-
-    expect(result.default).toEqual({ enabled: false, tokens: undefined });
-    expect(result.overrides).toBeUndefined();
-  });
-
-  it('returns default config from feature flag', () => {
-    const state = cloneDeep(mockedEmptyFlagsState);
-    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-      {
-        confirmations_pay_post_quote: {
-          default: {
-            enabled: true,
-            tokens: {
-              '0x1': [
-                '0x0000000000000000000000000000000000000000',
-                '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-              ],
-            },
-          },
-        },
-      };
-
-    const result = selectPayPostQuoteFlags(state);
-    expect(result.default.enabled).toBe(true);
-    expect(result.default.tokens).toEqual({
-      '0x1': [
-        '0x0000000000000000000000000000000000000000',
-        '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      ],
-    });
-    expect(result.overrides).toBeUndefined();
-  });
-
-  it('returns overrides configs from feature flag', () => {
-    const state = cloneDeep(mockedEmptyFlagsState);
-    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-      {
-        confirmations_pay_post_quote: {
-          default: { enabled: true },
-          overrides: {
-            predictWithdraw: {
-              enabled: true,
-              tokens: {
-                '0x89': ['0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'],
-              },
-            },
-            perpsWithdraw: {
-              enabled: false,
-            },
-          },
-        },
-      };
-
-    const result = selectPayPostQuoteFlags(state);
-    expect(result.overrides?.predictWithdraw).toEqual({
-      enabled: true,
-      tokens: {
-        '0x89': ['0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'],
-      },
-    });
-    expect(result.overrides?.perpsWithdraw).toEqual({
-      enabled: false,
-    });
-  });
-
-  it('preserves undefined enabled in overrides when omitted from remote config', () => {
-    const state = cloneDeep(mockedEmptyFlagsState);
-    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-      {
-        confirmations_pay_post_quote: {
-          default: { enabled: true },
-          overrides: {
-            predictWithdraw: {
-              tokens: {
-                '0x1': ['0xaaa'],
-              },
-            },
-          },
-        },
-      };
-
-    const result = selectPayPostQuoteFlags(state);
-    expect(result.overrides?.predictWithdraw.enabled).toBeUndefined();
-    expect(result.overrides?.predictWithdraw.tokens).toEqual({
-      '0x1': ['0xaaa'],
-    });
   });
 });
 

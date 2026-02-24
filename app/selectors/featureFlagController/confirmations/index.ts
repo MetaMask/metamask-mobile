@@ -76,7 +76,7 @@ interface RawPayPostQuoteFlag {
   overrides?: Record<string, PayPostQuoteConfig>;
 }
 
-export const selectPayPostQuoteFlags = createSelector(
+const selectPayPostQuoteFlags = createSelector(
   selectRemoteFeatureFlags,
   (featureFlags): PayPostQuoteFlags => {
     const raw = featureFlags?.confirmations_pay_post_quote as
