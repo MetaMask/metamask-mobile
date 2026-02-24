@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import Text, {
   TextVariant,
@@ -45,33 +45,31 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const orderInfo = useMemo(() => {
-    const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
-    const formattedPrice =
-      priceValue !== null
-        ? formatPerpsFiat(priceValue, {
-            ranges: PRICE_RANGES_MINIMAL_VIEW,
-          })
-        : strings('perps.order.market');
+  const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
+  const formattedPrice =
+    priceValue !== null
+      ? formatPerpsFiat(priceValue, {
+          ranges: PRICE_RANGES_MINIMAL_VIEW,
+        })
+      : strings('perps.order.market');
 
-    const orderTypeLabel = strings(labelKey);
+  const orderTypeLabel = strings(labelKey);
 
-    // Format size
-    const size = Math.abs(parseFloat(order.size));
-    const formattedSize = formatPositionSize(size.toString());
-    const symbol = getPerpsDisplaySymbol(order.symbol);
+  // Format size
+  const size = Math.abs(parseFloat(order.size));
+  const formattedSize = formatPositionSize(size.toString());
+  const symbol = getPerpsDisplaySymbol(order.symbol);
 
-    // Order type display (e.g., "Limit long", "Stop Market")
-    const orderTypeDisplay = formatOrderLabel(order);
+  // Order type display (e.g., "Limit long", "Stop Market")
+  const orderTypeDisplay = formatOrderLabel(order);
 
-    return {
-      orderTypeLabel,
-      formattedPrice,
-      formattedSize,
-      symbol,
-      orderTypeDisplay,
-    };
-  }, [order]);
+  const orderInfo = {
+    orderTypeLabel,
+    formattedPrice,
+    formattedSize,
+    symbol,
+    orderTypeDisplay,
+  };
 
   return (
     <TouchableOpacity
