@@ -460,13 +460,7 @@ class TransactionElement extends PureComponent {
         ? transactions?.find((t) => t.id === requiredTransactionIds[0])?.chainId
         : undefined;
 
-    const predictWithdrawChainId = hasTransactionType(this.props.tx, [
-      TransactionType.predictWithdraw,
-    ])
-      ? this.props.tx.metamaskPay?.chainId
-      : undefined;
-
-    const chainId = perpsDepositChainId ?? predictWithdrawChainId ?? txChainId;
+    const chainId = perpsDepositChainId ?? txChainId;
 
     return (
       <BadgeWrapper

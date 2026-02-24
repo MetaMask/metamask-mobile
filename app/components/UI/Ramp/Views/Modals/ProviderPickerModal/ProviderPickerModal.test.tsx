@@ -1,57 +1,29 @@
 import React from 'react';
-import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import { render, fireEvent } from '@testing-library/react-native';
 import ProviderPickerModal from './ProviderPickerModal';
-import Routes from '../../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { fireEvent } from '@testing-library/react-native';
+import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
-const mockOnCloseBottomSheet = jest.fn();
 const mockSetSelectedProvider = jest.fn();
 
-const MOCK_ASSET_ID =
-  'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-
-const createMockProvider = (
-  id: string,
-  name: string,
-  supportedTokens: Record<string, boolean> = {},
-) => ({
-  id,
-  name,
-  environmentType: 'PRODUCTION',
-  description: `${name} provider`,
-  hqAddress: '123 Test St',
-  links: [],
-  logos: { light: '', dark: '', height: 24, width: 79 },
-  supportedCryptoCurrencies: supportedTokens,
-  supportedFiatCurrencies: {},
-  supportedPaymentMethods: {},
-});
-
-const mockProviderWithToken = createMockProvider(
-  '/providers/transak',
-  'Transak',
-  { [MOCK_ASSET_ID]: true },
-);
-
-const mockProviderWithoutToken = createMockProvider(
-  '/providers/moonpay',
-  'MoonPay',
-  {},
-);
-
-const mockProviderAlsoWithToken = createMockProvider(
-  '/providers/mercuryo',
-  'Mercuryo',
-  { [MOCK_ASSET_ID]: true },
-);
-
 let mockProviders = [
-  mockProviderWithToken,
-  mockProviderWithoutToken,
-  mockProviderAlsoWithToken,
+  {
+    id: 'provider-1',
+    name: 'Provider One',
+    supportedCryptoCurrencies: { 'eip155:1/erc20:0x123': true },
+  },
+  {
+    id: 'provider-2',
+    name: 'Provider Two',
+    supportedCryptoCurrencies: { 'eip155:1/erc20:0x123': true },
+  },
+  {
+    id: 'provider-3',
+    name: 'Provider Three',
+    supportedCryptoCurrencies: { 'eip155:1/erc20:0x456': true },
+  },
 ];
-let mockSelectedProvider = mockProviderWithoutToken;
+
+let mockSelectedProvider: unknown = null;
 
 jest.mock('../../../hooks/useRampsController', () => ({
   useRampsController: () => ({
@@ -61,88 +33,119 @@ jest.mock('../../../hooks/useRampsController', () => ({
   }),
 }));
 
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  createNavigationDetails:
+    (..._args: unknown[]) =>
+    (params: unknown) => ['MockRoute', params],
+  useParams: () => ({
+    assetId: 'eip155:1/erc20:0x123',
+  }),
+}));
+
+jest.mock('../../../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+  I18nEvents: {
+    addListener: jest.fn(),
+  },
+}));
+
 jest.mock(
   '../../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const ReactActual = jest.requireActual('react');
-    return ReactActual.forwardRef(
-      (
-        {
-          children,
-        }: {
-          children: React.ReactNode;
-        },
-        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
-      ) => {
-        ReactActual.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: mockOnCloseBottomSheet,
-        }));
-        return <>{children}</>;
-      },
-    );
+    const { forwardRef } = jest.requireActual('react');
+    return {
+      __esModule: true,
+      default: forwardRef(
+        (
+          { children, ...rest }: { children: React.ReactNode; testID?: string },
+          _ref: unknown,
+        ) =>
+          jest
+            .requireActual('react')
+            .createElement(
+              jest.requireActual('react-native').View,
+              { testID: rest.testID || 'bottom-sheet' },
+              children,
+            ),
+      ),
+    };
   },
 );
 
-function render(
-  component: React.ComponentType,
-  params = { assetId: MOCK_ASSET_ID },
-) {
-  return renderScreen(
-    component,
-    {
-      name: Routes.RAMP.MODALS.PROVIDER_PICKER,
-    },
-    {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    },
-    params,
+jest.mock(
+  '../../../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  () => {
+    const { createElement } = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        children,
+      }: {
+        children: React.ReactNode;
+        onClose?: () => void;
+      }) => createElement(View, { testID: 'bottom-sheet-header' }, children),
+    };
+  },
+);
+
+const renderWithTheme = (component: React.ReactElement) =>
+  render(
+    <ThemeContext.Provider value={mockTheme}>
+      {component}
+    </ThemeContext.Provider>,
   );
-}
 
 describe('ProviderPickerModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectedProvider = null;
     mockProviders = [
-      mockProviderWithToken,
-      mockProviderWithoutToken,
-      mockProviderAlsoWithToken,
+      {
+        id: 'provider-1',
+        name: 'Provider One',
+        supportedCryptoCurrencies: { 'eip155:1/erc20:0x123': true },
+      },
+      {
+        id: 'provider-2',
+        name: 'Provider Two',
+        supportedCryptoCurrencies: { 'eip155:1/erc20:0x123': true },
+      },
+      {
+        id: 'provider-3',
+        name: 'Provider Three',
+        supportedCryptoCurrencies: { 'eip155:1/erc20:0x456': true },
+      },
     ];
-    mockSelectedProvider = mockProviderWithoutToken;
   });
 
-  it('matches snapshot with compatible providers', () => {
-    const { toJSON } = render(ProviderPickerModal);
-
+  it('matches snapshot', () => {
+    const { toJSON } = renderWithTheme(<ProviderPickerModal />);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('only renders providers that support the token', () => {
-    const { getByText, queryByText } = render(ProviderPickerModal);
+  it('renders only providers compatible with the assetId', () => {
+    const { getByText, queryByText } = renderWithTheme(<ProviderPickerModal />);
 
-    expect(getByText('Transak')).toBeOnTheScreen();
-    expect(getByText('Mercuryo')).toBeOnTheScreen();
-    expect(queryByText('MoonPay')).toBeNull();
+    expect(getByText('Provider One')).toBeOnTheScreen();
+    expect(getByText('Provider Two')).toBeOnTheScreen();
+    expect(queryByText('Provider Three')).toBeNull();
   });
 
-  it('selects provider and closes modal when a provider is pressed', () => {
-    const { getByText } = render(ProviderPickerModal);
+  it('calls setSelectedProvider when a provider is pressed', () => {
+    const { getByText } = renderWithTheme(<ProviderPickerModal />);
 
-    fireEvent.press(getByText('Transak'));
+    fireEvent.press(getByText('Provider One'));
 
-    expect(mockSetSelectedProvider).toHaveBeenCalledWith(mockProviderWithToken);
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockSetSelectedProvider).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'provider-1' }),
+    );
   });
 
-  it('closes the modal when the close button is pressed', () => {
-    const { getByTestId } = render(ProviderPickerModal);
-    const closeButton = getByTestId('bottomsheetheader-close-button');
-
-    fireEvent.press(closeButton);
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+  it('renders the title', () => {
+    const { getByText } = renderWithTheme(<ProviderPickerModal />);
+    expect(
+      getByText('fiat_on_ramp.provider_picker_modal.title'),
+    ).toBeOnTheScreen();
   });
 });

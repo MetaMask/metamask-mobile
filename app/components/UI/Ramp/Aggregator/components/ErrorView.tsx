@@ -106,23 +106,19 @@ function ErrorView({
     asScreen,
   });
   const trackEvent = useAnalytics();
-  const sdk = useRampSDK();
   const {
     selectedPaymentMethodId,
     selectedRegion,
     selectedAsset,
     selectedFiatCurrencyId,
     isBuy,
-  } = sdk || {};
+  } = useRampSDK();
 
   const ctaOnPressCallback = useCallback(() => {
     ctaOnPress?.();
   }, [ctaOnPress]);
 
   useEffect(() => {
-    if (!sdk || isBuy === undefined) {
-      return;
-    }
     trackEvent(isBuy ? 'ONRAMP_ERROR' : 'OFFRAMP_ERROR', {
       location,
       message: description,

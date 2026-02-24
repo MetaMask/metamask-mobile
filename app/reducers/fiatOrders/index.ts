@@ -6,7 +6,6 @@ import type {
   DepositCryptoCurrency,
   DepositPaymentMethod,
 } from '@consensys/native-ramps-sdk';
-import type { RampsOrder } from '@metamask/ramps-controller';
 import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
@@ -171,10 +170,6 @@ export const getProviderName = (
     case FIAT_ORDER_PROVIDERS.MOONPAY: {
       return 'MoonPay';
     }
-    case FIAT_ORDER_PROVIDERS.RAMPS_V2: {
-      const providerName = (data as RampsOrder).provider?.name;
-      return providerName ? `${providerName}` : '...';
-    }
     case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
       const providerName = (data as Order).provider?.name;
       return providerName ? `${providerName}` : '...';
@@ -231,17 +226,11 @@ export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
   const providers = orders
     .filter(
       (order) =>
-        (order.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR ||
-          order.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2) &&
+        order.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR &&
         order.state === FIAT_ORDER_STATES.COMPLETED &&
-        ((order.data as Order)?.provider?.id ||
-          (order.data as RampsOrder)?.provider?.id),
+        (order.data as Order)?.provider?.id,
     )
-    .map((order) =>
-      order.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
-        ? (order.data as RampsOrder).provider?.id
-        : (order.data as Order).provider?.id,
-    );
+    .map((order) => (order.data as Order).provider.id);
   return Array.from(new Set(providers));
 });
 

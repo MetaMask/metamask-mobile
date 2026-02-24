@@ -22,6 +22,7 @@ import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
+  AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
   AUTHENTICATION_FAILED_WALLET_CREATION,
   AUTHENTICATION_RESET_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
@@ -37,19 +38,24 @@ import { retryWithExponentialDelay } from '../../util/exponential-retry';
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { uint8ArrayToMnemonic } from '../../util/mnemonic';
+import {
+  convertMnemonicToWordlistIndices,
+  uint8ArrayToMnemonic,
+} from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import OAuthService from '../OAuthService/OAuthService';
 import {
   AccountImportStrategy,
+  KeyringMetadata,
   KeyringTypes,
 } from '@metamask/keyring-controller';
 import {
   SecretType,
   SeedlessOnboardingControllerErrorMessage,
 } from '@metamask/seedless-onboarding-controller';
+import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import {
   SeedlessOnboardingControllerError,
@@ -64,14 +70,11 @@ import { EntropySourceId } from '@metamask/keyring-api';
 import { analytics } from '../../util/analytics/analytics';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
-import {
-  setAllowLoginWithRememberMe,
-  setOsAuthEnabled,
-} from '../../actions/security';
+import { setAllowLoginWithRememberMe } from '../../actions/security';
 import { Alert, Platform } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { mnemonicPhraseToBytes } from '@metamask/key-tree';
+import { IconName } from '../../component-library/components/Icons/Icon';
 import { AuthCapabilities, ReauthenticateErrorType } from './types';
 import {
   isEnrolledAsync,
@@ -80,8 +83,7 @@ import {
   SecurityLevel,
   authenticateAsync,
 } from 'expo-local-authentication';
-import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
-import { IconName } from '@metamask/design-system-react-native';
+import { getAuthToggleLabel } from './utils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -111,15 +113,6 @@ class AuthenticationService {
     await MultichainAccountService.init();
 
     ReduxService.store.dispatch(logIn());
-  }
-
-  /**
-   * Updates the Redux state for OS authentication enabled status.
-   *
-   * @param enabled - whether OS authentication is enabled
-   */
-  updateOsAuthEnabled(enabled: boolean): void {
-    ReduxService.store.dispatch(setOsAuthEnabled(enabled));
   }
 
   private dispatchPasswordSet(): void {
@@ -176,29 +169,25 @@ class AuthenticationService {
   /**
    * This method creates a new vault and restores with seed phrase and existing user data
    * @param password - password provided by user, biometric, pincode
-   * @param seed - provided seed
+   * @param parsedSeed - provided seed
    * @param clearEngine - clear the engine state before restoring vault
    */
   private newWalletVaultAndRestore = async (
     password: string,
-    seed: string,
+    parsedSeed: string,
     clearEngine: boolean,
   ): Promise<void> => {
     // Restore vault with user entered password
+    const { KeyringController } = Engine.context;
     if (clearEngine) await Engine.resetState();
-
-    const { MultichainAccountService } = Engine.context;
-
-    const mnemonic = mnemonicPhraseToBytes(seed);
-
-    await MultichainAccountService.createMultichainAccountWallet({
-      type: 'restore',
+    const parsedSeedUint8Array = mnemonicPhraseToBytes(parsedSeed);
+    await KeyringController.createNewVaultAndRestore(
       password,
-      mnemonic,
-    });
+      parsedSeedUint8Array,
+    );
 
     password = this.wipeSensitiveData();
-    seed = this.wipeSensitiveData();
+    parsedSeed = this.wipeSensitiveData();
   };
 
   private retryAccountDiscovery = async (discovery: () => Promise<void>) => {
@@ -256,14 +245,11 @@ class AuthenticationService {
   private createWalletVaultAndKeychain = async (
     password: string,
   ): Promise<void> => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { KeyringController }: any = Engine.context;
     await Engine.resetState();
-
-    const { MultichainAccountService } = Engine.context;
-
-    await MultichainAccountService.createMultichainAccountWallet({
-      type: 'create',
-      password,
-    });
+    await KeyringController.createNewVaultAndKeychain(password);
 
     password = this.wipeSensitiveData();
   };
@@ -362,23 +348,79 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       // Store password in keychain with appropriate type
-      await SecureKeychain.setGenericPassword(password, authType);
+      switch (authType) {
+        case AUTHENTICATION_TYPE.BIOMETRIC:
+          await SecureKeychain.setGenericPassword(
+            password,
+            SecureKeychain.TYPES.BIOMETRICS,
+          );
 
-      // Remove legacy authentication flags
-      await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
-      await StorageWrapper.removeItem(PASSCODE_DISABLED);
-      await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
-      if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
-        ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
+          // TODO: Remove this once we have a proper way to handle biometrics
+          await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+
+          break;
+        case AUTHENTICATION_TYPE.PASSCODE:
+          await SecureKeychain.setGenericPassword(
+            password,
+            SecureKeychain.TYPES.PASSCODE,
+          );
+
+          // TODO: Remove this once we have a proper way to handle biometrics
+          await StorageWrapper.removeItem(PASSCODE_DISABLED);
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+
+          break;
+        case AUTHENTICATION_TYPE.REMEMBER_ME: {
+          // Store the current auth type before switching to remember me
+          const currentAuthData = await this.checkAuthenticationMethod();
+          // Only store if we're not already on remember me
+          if (
+            currentAuthData.currentAuthType !== AUTHENTICATION_TYPE.REMEMBER_ME
+          ) {
+            await StorageWrapper.setItem(
+              PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
+              currentAuthData.currentAuthType,
+            );
+          }
+
+          await SecureKeychain.setGenericPassword(
+            password,
+            SecureKeychain.TYPES.REMEMBER_ME,
+          );
+
+          // TODO: Remove this once we have a proper way to handle biometrics
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+
+          break;
+        }
+        case AUTHENTICATION_TYPE.PASSWORD: {
+          await SecureKeychain.setGenericPassword(password, undefined);
+
+          // Password only: disable both biometrics and passcode
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+
+          // If remember me is enabled, clear the stored previous auth type
+          // because the user is disabling biometrics/passcode, so we shouldn't restore to them
+          const allowLoginWithRememberMe =
+            ReduxService.store.getState().security?.allowLoginWithRememberMe;
+          if (allowLoginWithRememberMe) {
+            await StorageWrapper.removeItem(
+              PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
+            );
+          }
+          break;
+        }
+        default:
+          await SecureKeychain.setGenericPassword(password, undefined);
+
+          // Default to password behavior: disable both
+          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+          break;
       }
-
-      // Keep Redux in sync with keychain so getAuthCapabilities reflects actual access control
-      this.updateOsAuthEnabled(
-        authType === AUTHENTICATION_TYPE.BIOMETRIC ||
-          authType === AUTHENTICATION_TYPE.PASSCODE ||
-          authType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-      );
-
       this.dispatchPasswordSet();
     } catch (error) {
       if (fallbackToPassword) {
@@ -581,113 +623,81 @@ class AuthenticationService {
 
   /**
    * Fetches the authentication capabilities of the device.
-   * Prioritizes Remember Me first, then respects legacy user choice (biometrics vs passcode),
-   * then falls back to available capabilities.
-   * iOS: "Face ID" | "Touch ID" | "Device Passcode" | "Password"
-   * Android: "Biometrics" | "Device PIN/Pattern" | "Password"
+   * Prioritizes Remember Me first, then biometrics, then passcode/pincode/pattern, then password.
+   * iOS: "Face ID" | "Touch ID" | "Device Passcode"
+   * Android: "Biometrics" | "Device PIN/Pattern"
    *
    * @param osAuthEnabled - Whether the OS-level authentication is enabled from user settings (from user preference state in Redux)
    * @param allowLoginWithRememberMe - Whether Remember Me is enabled from user settings (from user preference state in Redux)
-   * @returns {AuthCapabilities} - The authentication capabilities of the app.
+   * @returns {AuthCapabilities} - The authentication capabilities of the device.
    */
-  getAuthCapabilities = async ({
-    osAuthEnabled,
-    allowLoginWithRememberMe,
-  }: {
-    osAuthEnabled: boolean;
-    allowLoginWithRememberMe: boolean;
-  }): Promise<AuthCapabilities> => {
+  getAuthCapabilities = async (
+    osAuthEnabled: boolean,
+    allowLoginWithRememberMe: boolean,
+  ): Promise<AuthCapabilities> => {
     try {
-      // Fetch all capabilities and legacy flags in parallel
+      // Fetch all capabilities in parallel
       const [
         isBiometricsAvailable,
-        supportedBiometricTypes,
+        supportedOSAuthenticationTypes,
         capabilitySecurityLevel,
-        biometryChoiceDisabled,
-        passcodeDisabled,
       ] = await Promise.all([
         isEnrolledAsync(),
         supportedAuthenticationTypesAsync(),
         getEnrolledLevelAsync(),
-        StorageWrapper.getItem(BIOMETRY_CHOICE_DISABLED),
-        StorageWrapper.getItem(PASSCODE_DISABLED),
       ]);
 
+      // Device supports biometrics but they're not available
+      // iOS: user denied permission for this app
+      // Android: user hasn't enrolled biometrics on device
+      const biometricsDisabledOnOS =
+        !isBiometricsAvailable && supportedOSAuthenticationTypes.length > 0;
+
       // Check if passcode is available
-      // Ex on iOS - if passcode is available
-      // Ex on Android - if pincode/pattern is available
+      // iOS: if passcode is available
+      // Android: if pincode/pattern is available
       const passcodeAvailable = capabilitySecurityLevel >= SecurityLevel.SECRET;
 
-      // Legacy user preference selected device biometrics
-      const legacyUserChoseBiometrics =
-        passcodeDisabled === TRUE && !biometryChoiceDisabled;
+      const isAuthToggleVisible = isBiometricsAvailable || passcodeAvailable;
 
-      // Legacy user preference selected device passcode
-      const legacyUserChosePasscode =
-        biometryChoiceDisabled === TRUE && !passcodeDisabled;
+      // Derive the authentication type for keychain storage based on capabilities + user preference
+      // Priority: REMEMBER_ME > BIOMETRIC > PASSCODE > PASSWORD
+      let authStorageType: AUTHENTICATION_TYPE;
 
-      // The auth type used for keychain storage
-      const authType = getAuthType({
-        allowLoginWithRememberMe,
-        osAuthEnabled,
-        legacyUserChoseBiometrics,
-        legacyUserChosePasscode,
-        isBiometricsAvailable,
-        passcodeAvailable,
-      });
-
-      // Ex - "Face ID", "Device Passcode", "Password"
-      const authLabel = getAuthLabel({
-        allowLoginWithRememberMe,
-        legacyUserChoseBiometrics,
-        legacyUserChosePasscode,
-        isBiometricsAvailable,
-        passcodeAvailable,
-        supportedBiometricTypes,
-      });
-
-      const authDescription =
-        authLabel === 'Device Authentication'
-          ? strings('app_settings.enable_device_authentication_desc')
-          : undefined;
-
-      const authIcon = getAuthIcon({
-        supportedBiometricTypes,
-        legacyUserChoseBiometrics,
-        legacyUserChosePasscode,
-        isBiometricsAvailable,
-        passcodeAvailable,
-      });
-
-      // Device auth cannot be used until user changes device settings
-      const deviceAuthRequiresSettings =
-        (legacyUserChoseBiometrics && !isBiometricsAvailable) ||
-        (legacyUserChosePasscode && !passcodeAvailable) ||
-        (!isBiometricsAvailable && !passcodeAvailable);
+      if (allowLoginWithRememberMe) {
+        authStorageType = AUTHENTICATION_TYPE.REMEMBER_ME;
+      } else if (isBiometricsAvailable && osAuthEnabled) {
+        authStorageType = AUTHENTICATION_TYPE.BIOMETRIC;
+      } else if (passcodeAvailable && osAuthEnabled) {
+        authStorageType = AUTHENTICATION_TYPE.PASSCODE;
+      } else {
+        authStorageType = AUTHENTICATION_TYPE.PASSWORD;
+      }
 
       return {
         isBiometricsAvailable,
-        passcodeAvailable,
-        authIcon,
-        authLabel,
-        authDescription,
+        biometricsDisabledOnOS,
+        isAuthToggleVisible,
+        authToggleLabel: getAuthToggleLabel({
+          isBiometricsAvailable,
+          supportedOSAuthenticationTypes,
+          passcodeAvailable,
+          allowLoginWithRememberMe,
+        }),
         osAuthEnabled,
         allowLoginWithRememberMe,
-        authType,
-        deviceAuthRequiresSettings,
+        authStorageType,
       };
     } catch (error) {
       // On error, default to no capabilities
       return {
         isBiometricsAvailable: false,
-        passcodeAvailable: false,
-        authIcon: IconName.Question,
-        authLabel: '',
-        authDescription: '',
+        biometricsDisabledOnOS: false,
+        isAuthToggleVisible: false,
+        authToggleLabel: '',
         osAuthEnabled,
         allowLoginWithRememberMe,
-        authType: AUTHENTICATION_TYPE.PASSWORD,
-        deviceAuthRequiresSettings: true,
+        authStorageType: AUTHENTICATION_TYPE.PASSWORD,
       };
     }
   };
@@ -826,10 +836,8 @@ class AuthenticationService {
         );
       }
 
-      if (error instanceof Error) {
-        // Track unlockWallet error as analytics.
-        trackErrorAsAnalytics('Unlock Wallet Error', error.message);
-      }
+      // TODO: Use handlePasswordSubmissionError once we have a standard way of displaying error messages in the UI.
+      // handlePasswordSubmissionError(error as Error);
       throw error;
     } finally {
       // Wipe sensitive data.
@@ -998,12 +1006,12 @@ class AuthenticationService {
             const mnemonicToRestore = encodedSrp;
 
             // import the new mnemonic to the current vault
-            const entropySource =
+            const keyringMetadata =
               await this.importSeedlessMnemonicToVault(mnemonicToRestore);
 
             // discover multichain accounts from imported srp
             // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-            this.attemptMultichainAccountWalletDiscovery(entropySource);
+            this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
           } else {
             Logger.error(
               new Error('SeedlessOnboardingController: Unknown secret type'),
@@ -1023,52 +1031,52 @@ class AuthenticationService {
   };
 
   importSeedlessMnemonicToVault = async (
-    seed: string,
-  ): Promise<EntropySourceId> => {
+    mnemonic: string,
+  ): Promise<KeyringMetadata> => {
     const isSeedlessOnboardingFlow =
       Engine.context.SeedlessOnboardingController.state.vault != null;
 
     if (!isSeedlessOnboardingFlow) {
       throw new Error('Not in seedless onboarding flow');
     }
-    const {
-      KeyringController,
-      SeedlessOnboardingController,
-      MultichainAccountService,
-    } = Engine.context;
+    const { KeyringController, SeedlessOnboardingController } = Engine.context;
 
-    const mnemonic = mnemonicPhraseToBytes(seed);
-
-    const wallet = await MultichainAccountService.createMultichainAccountWallet(
+    const keyringMetadata = await KeyringController.addNewKeyring(
+      KeyringTypes.hd,
       {
-        type: 'import',
         mnemonic,
+        numberOfAccounts: 1,
       },
     );
-    const entropySource = wallet.entropySource;
+
+    const id = keyringMetadata.id;
 
     const [newAccountAddress] = await KeyringController.withKeyring(
-      { id: entropySource },
+      { id },
       async ({ keyring }) => keyring.getAccounts(),
     );
 
     // if social backup is requested, add the seed phrase backup
+    const seedPhraseAsBuffer = Buffer.from(mnemonic, 'utf8');
+    const seedPhraseAsUint8Array = convertMnemonicToWordlistIndices(
+      seedPhraseAsBuffer,
+      wordlist,
+    );
+
     try {
       SeedlessOnboardingController.updateBackupMetadataState({
-        keyringId: entropySource,
-        data: mnemonic,
+        keyringId: id,
+        data: seedPhraseAsUint8Array,
         type: SecretType.Mnemonic,
       });
     } catch (error) {
       // handle seedless controller import error by reverting keyring controller mnemonic import
-      await MultichainAccountService.removeMultichainAccountWallet(
-        entropySource,
-        newAccountAddress,
-      );
+      // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
+      await KeyringController.removeAccount(newAccountAddress);
       throw error;
     }
 
-    return entropySource;
+    return keyringMetadata;
   };
 
   addNewPrivateKeyBackup = async (
@@ -1197,7 +1205,7 @@ class AuthenticationService {
 
         await this.newWalletVaultAndRestore(password, seedPhrase, false);
         // add in more srps
-        const entropySources: EntropySourceId[] = [];
+        const keyringMetadataList: KeyringMetadata[] = [];
         if (restOfSeedPhrases.length > 0) {
           for (const item of restOfSeedPhrases) {
             try {
@@ -1209,9 +1217,9 @@ class AuthenticationService {
                 });
               } else if (item.type === SecretType.Mnemonic) {
                 const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
-                const entropySource =
+                const keyringMetadata =
                   await this.importSeedlessMnemonicToVault(mnemonic);
-                entropySources.push(entropySource);
+                keyringMetadataList.push(keyringMetadata);
               } else {
                 Logger.error(
                   new Error(
@@ -1231,9 +1239,9 @@ class AuthenticationService {
         }
         await this.syncKeyringEncryptionKey();
 
-        for (const entropySource of entropySources) {
+        for (const { id } of keyringMetadataList) {
           // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-          this.attemptMultichainAccountWalletDiscovery(entropySource);
+          this.attemptMultichainAccountWalletDiscovery(id);
         }
         this.dispatchOauthReset();
         ReduxService.store.dispatch(setExistingUser(true));
@@ -1535,6 +1543,20 @@ class AuthenticationService {
       );
     } catch (e) {
       const errorWithMessage = e as { message: string };
+
+      // Check if the error is because password is not set with biometrics
+      // Convert it to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS so UI can handle it
+      if (
+        errorWithMessage.message.includes(
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+        )
+      ) {
+        throw new AuthenticationError(
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+          this.authData,
+        );
+      }
 
       if (
         errorWithMessage.message === 'Invalid password' ||

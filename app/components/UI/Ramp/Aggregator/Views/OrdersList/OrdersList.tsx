@@ -83,8 +83,7 @@ function OrdersList() {
       accessible
       style={styles.row}
       onPress={
-        item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR ||
-        item.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+        item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR
           ? () => handleNavigateToAggregatorTxDetails(item.id)
           : item.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
             ? () => handleNavigateToDepositTxDetails(item.id)
