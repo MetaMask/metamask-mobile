@@ -35,7 +35,9 @@ import { getDepositNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
-import useAnalytics, { trackEvent as trackRampsEvent } from '../../hooks/useAnalytics';
+import useAnalytics, {
+  trackEvent as trackRampsEvent,
+} from '../../hooks/useAnalytics';
 import {
   getRampRoutingDecision,
   getDetectedGeolocation,
@@ -134,9 +136,8 @@ function TokenSelection() {
       location: 'Token Selection',
       ramp_type: 'UNIFIED BUY 2',
       ramp_routing: rampRoutingDecision ?? undefined,
-      feature_flag_unified_buy_v2: isV2UnifiedEnabled,
     });
-  }, [isV2UnifiedEnabled, rampRoutingDecision]);
+  }, [rampRoutingDecision]);
 
   useEffect(() => {
     if (debouncedSearchString.trim().length > 0) {
@@ -145,10 +146,9 @@ function TokenSelection() {
         results_count: searchTokenResults?.length ?? 0,
         location: 'Token Selection',
         ramp_type: 'UNIFIED BUY 2',
-        feature_flag_unified_buy_v2: isV2UnifiedEnabled,
       });
     }
-  }, [debouncedSearchString, searchTokenResults?.length, isV2UnifiedEnabled]);
+  }, [debouncedSearchString, searchTokenResults?.length]);
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
@@ -224,20 +224,18 @@ function TokenSelection() {
         network_chain_id: newFilter?.[0] ?? undefined,
         location: 'Token Selection',
         ramp_type: 'UNIFIED BUY 2',
-        feature_flag_unified_buy_v2: isV2UnifiedEnabled,
       });
     },
-    [isV2UnifiedEnabled],
+    [],
   );
 
   const handleUnsupportedInfoPress = useCallback(() => {
     trackRampsEvent('RAMPS_UNSUPPORTED_TOKEN_TOOLTIP_CLICKED', {
       location: 'Token Selection',
       ramp_type: 'UNIFIED BUY 2',
-      feature_flag_unified_buy_v2: isV2UnifiedEnabled,
     });
     navigation.navigate(...createUnsupportedTokenModalNavigationDetails());
-  }, [navigation, isV2UnifiedEnabled]);
+  }, [navigation]);
 
   const renderToken = useCallback(
     ({ item: token }: { item: RampsToken }) => (

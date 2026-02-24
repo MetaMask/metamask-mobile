@@ -53,10 +53,12 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { trackEvent as trackRampsEvent } from '../../hooks/useAnalytics';
 import { useSelector } from 'react-redux';
-import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
+import {
+  getRampRoutingDecision,
+  UnifiedRampRoutingType,
+} from '../../../../../reducers/fiatOrders';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -136,7 +138,6 @@ function BuildQuote() {
     selectedPaymentMethod,
   } = useRampsController();
 
-  const isV2Enabled = useRampsUnifiedV2Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
 
   const isTokenUnavailable = useMemo(
@@ -181,9 +182,8 @@ function BuildQuote() {
       location: 'Amount Input',
       ramp_type: 'UNIFIED BUY 2',
       ramp_routing: rampRoutingDecision ?? undefined,
-      feature_flag_unified_buy_v2: isV2Enabled,
     });
-  }, [rampRoutingDecision, isV2Enabled]);
+  }, [rampRoutingDecision]);
 
   useEffect(() => {
     if (!userHasEnteredAmount && userRegion?.country?.defaultAmount != null) {
@@ -219,13 +219,12 @@ function BuildQuote() {
           trackRampsEvent('RAMPS_SETTINGS_CLICKED', {
             location: 'Amount Input',
             ramp_type: 'UNIFIED BUY 2',
-            feature_flag_unified_buy_v2: isV2Enabled,
           });
           navigation.navigate(...createSettingsModalNavDetails());
         },
       }),
     );
-  }, [navigation, selectedToken, networkInfo, isV2Enabled]);
+  }, [navigation, selectedToken, networkInfo]);
 
   const handleKeypadChange = useCallback(
     ({ value, valueAsNumber }: KeypadChangeData) => {
@@ -248,10 +247,9 @@ function BuildQuote() {
         currency_source: currency,
         location: 'Amount Input',
         ramp_type: 'UNIFIED BUY 2',
-        feature_flag_unified_buy_v2: isV2Enabled,
       });
     },
-    [currency, isV2Enabled],
+    [currency],
   );
 
   const handlePaymentPillPress = useCallback(() => {
@@ -263,7 +261,6 @@ function BuildQuote() {
       current_payment_method: selectedPaymentMethod?.id,
       location: 'Amount Input',
       ramp_type: 'UNIFIED BUY 2',
-      feature_flag_unified_buy_v2: isV2Enabled,
     });
     stopQuotePolling();
     navigation.navigate(
@@ -276,7 +273,6 @@ function BuildQuote() {
     navigation,
     stopQuotePolling,
     selectedPaymentMethod?.id,
-    isV2Enabled,
   ]);
 
   const handleProviderPress = useCallback(() => {
@@ -286,7 +282,6 @@ function BuildQuote() {
       location: 'Amount Input',
       ramp_type: 'UNIFIED BUY 2',
       ramp_routing: rampRoutingDecision ?? undefined,
-      feature_flag_unified_buy_v2: isV2Enabled,
     });
     stopQuotePolling();
     navigation.navigate(
@@ -300,7 +295,6 @@ function BuildQuote() {
     stopQuotePolling,
     selectedProvider?.name,
     rampRoutingDecision,
-    isV2Enabled,
   ]);
 
   useEffect(() => {
@@ -363,17 +357,16 @@ function BuildQuote() {
     }
 
     trackRampsEvent('RAMPS_CONTINUE_BUTTON_CLICKED', {
-      ramp_routing: rampRoutingDecision ?? ('AGGREGATOR' as const),
+      ramp_routing: rampRoutingDecision ?? UnifiedRampRoutingType.AGGREGATOR,
       ramp_type: 'UNIFIED BUY 2',
       amount_source: amountAsNumber,
       payment_method_id: selectedPaymentMethod?.id ?? '',
       provider_onramp: selectedProvider?.name,
-      region: userRegion?.country?.code ?? '',
+      region: userRegion?.regionCode ?? '',
       chain_id: selectedToken?.chainId ?? '',
       currency_destination: selectedToken?.assetId ?? '',
       currency_destination_symbol: selectedToken?.symbol,
       currency_source: currency,
-      feature_flag_unified_buy_v2: isV2Enabled,
     });
 
     if (isNativeProvider(selectedQuote)) {
@@ -471,9 +464,7 @@ function BuildQuote() {
     transakGetBuyQuote,
     transakRouteAfterAuth,
     rampRoutingDecision,
-    selectedProvider?.name,
-    userRegion?.country?.code,
-    isV2Enabled,
+    userRegion?.regionCode,
   ]);
 
   const hasAmount = amountAsNumber > 0;
