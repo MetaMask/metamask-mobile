@@ -15,8 +15,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  TextVariant as DesignSystemTextVariant,
   TextColor as DesignSystemTextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -492,7 +492,7 @@ const PerpsWithdrawView: React.FC = () => {
             value={{
               label: {
                 text: formattedQuoteData?.networkFee || '$1.00',
-                variant: DesignSystemTextVariant.BodyMd,
+                fontWeight: FontWeight.Regular,
                 color: DesignSystemTextColor.TextAlternative,
               },
             }}
@@ -521,7 +521,7 @@ const PerpsWithdrawView: React.FC = () => {
             value={{
               label: {
                 text: formattedQuoteData?.estimatedTime,
-                variant: DesignSystemTextVariant.BodyMd,
+                fontWeight: FontWeight.Regular,
                 color: DesignSystemTextColor.TextAlternative,
               },
             }}
@@ -534,13 +534,13 @@ const PerpsWithdrawView: React.FC = () => {
             field={{
               label: {
                 text: strings('perps.withdrawal.you_will_receive'),
-                variant: DesignSystemTextVariant.BodyMd,
+                fontWeight: FontWeight.Regular,
               },
             }}
             value={{
               label: {
                 text: formatReceiveAmount,
-                variant: DesignSystemTextVariant.BodyMd,
+                fontWeight: FontWeight.Regular,
               },
             }}
           />

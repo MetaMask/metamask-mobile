@@ -28,8 +28,8 @@ import {
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import {
-  TextVariant as DesignSystemTextVariant,
   TextColor as DesignSystemTextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
@@ -154,14 +154,14 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           field={{
             label: {
               text: strings('perps.market.24h_volume'),
-              variant: DesignSystemTextVariant.BodyMd,
+              fontWeight: FontWeight.Regular,
               color: DesignSystemTextColor.TextAlternative,
             },
           }}
           value={{
             label: {
               text: marketStats.volume24h,
-              variant: DesignSystemTextVariant.BodyMd,
+              fontWeight: FontWeight.Regular,
               color: DesignSystemTextColor.TextDefault,
             },
           }}
@@ -195,7 +195,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           value={{
             label: {
               text: marketStats.openInterest,
-              variant: DesignSystemTextVariant.BodyMd,
+              fontWeight: FontWeight.Regular,
               color: DesignSystemTextColor.TextDefault,
             },
           }}
@@ -263,7 +263,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })
                 : '-',
-              variant: DesignSystemTextVariant.BodyMd,
+              fontWeight: FontWeight.Regular,
               color: DesignSystemTextColor.TextDefault,
             },
           }}

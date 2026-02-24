@@ -8,6 +8,7 @@ import styleSheet from './UnstakeTimeCard.styles';
 import { strings } from '../../../../../../../locales/i18n';
 import { useMetrics } from '../../../../../hooks/useMetrics';
 import { createTooltipOpenedEvent } from '../../../utils/metaMetrics/tooltipMetaMetricsUtils';
+import { FontWeight } from '@metamask/design-system-react-native';
 
 const UnstakingTimeCard = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -35,6 +36,7 @@ const UnstakingTimeCard = () => {
         value={{
           label: {
             text: strings('stake.estimated_unstaking_time'),
+            fontWeight: FontWeight.Regular,
           },
         }}
       />

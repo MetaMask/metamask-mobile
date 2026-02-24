@@ -89,7 +89,7 @@ export interface PreDefinedKeyValueRowLabel {
   text: string;
   /**
    * Optional text variant.
-   * @default TextVariant.BodyMD
+   * @default TextVariant.BodyMd
    */
   variant?: TextVariant;
   /**
@@ -99,7 +99,7 @@ export interface PreDefinedKeyValueRowLabel {
   color?: TextColor;
   /**
    * Optional text weight.
-   * @default FontWeight.Regular
+   * @default FontWeight.Medium
    */
   fontWeight?: FontWeight;
 }

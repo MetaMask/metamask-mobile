@@ -196,7 +196,6 @@ const QuoteDetailsCard: React.FC = () => {
             field={{
               label: {
                 text: strings('bridge.network_fee'),
-                fontWeight: FontWeight.Medium,
               },
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
@@ -252,6 +251,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: toSentenceCase(strings('bridge.network_fee')),
                 color: DesignSystemTextColor.TextAlternative,
+                fontWeight: FontWeight.Regular,
               },
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
@@ -263,6 +263,7 @@ const QuoteDetailsCard: React.FC = () => {
             value={{
               label: {
                 text: networkFee,
+                fontWeight: FontWeight.Regular,
                 color: DesignSystemTextColor.TextAlternative,
               },
             }}
@@ -273,6 +274,7 @@ const QuoteDetailsCard: React.FC = () => {
           field={{
             label: {
               text: strings('bridge.slippage'),
+              fontWeight: FontWeight.Regular,
               color: DesignSystemTextColor.TextAlternative,
             },
             tooltip: {
@@ -312,6 +314,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: toSentenceCase(strings('bridge.minimum_received')),
                 color: DesignSystemTextColor.TextAlternative,
+                fontWeight: FontWeight.Regular,
               },
               tooltip: {
                 title: strings('bridge.minimum_received_tooltip_title'),
@@ -324,6 +327,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
                 color: DesignSystemTextColor.TextAlternative,
+                fontWeight: FontWeight.Regular,
               },
             }}
           />
@@ -335,6 +339,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: toSentenceCase(strings('bridge.price_impact')),
                 color: DesignSystemTextColor.TextAlternative,
+                fontWeight: FontWeight.Regular,
               },
               tooltip: {
                 title: strings('bridge.price_impact_info_title'),
@@ -348,6 +353,7 @@ const QuoteDetailsCard: React.FC = () => {
             value={{
               label: {
                 text: priceImpact,
+                fontWeight: FontWeight.Regular,
                 color: shouldShowPriceImpactWarning
                   ? DesignSystemTextColor.ErrorDefault
                   : DesignSystemTextColor.TextAlternative,
@@ -365,6 +371,7 @@ const QuoteDetailsCard: React.FC = () => {
               field={{
                 label: {
                   text: toSentenceCase(strings('bridge.points')),
+                  fontWeight: FontWeight.Regular,
                 },
                 tooltip: {
                   title: strings('bridge.points_tooltip'),

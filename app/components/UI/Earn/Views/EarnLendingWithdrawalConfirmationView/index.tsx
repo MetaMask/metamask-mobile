@@ -482,7 +482,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 field={{
                   label: {
                     text: strings('earn.withdrawal_time'),
-                    fontWeight: FontWeight.Medium,
                   },
                   tooltip: {
                     title: strings('earn.withdrawal_time'),
@@ -493,6 +492,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 value={{
                   label: {
                     text: strings('earn.immediate'),
+                    fontWeight: FontWeight.Regular,
                   },
                 }}
               />
@@ -504,7 +504,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 field={{
                   label: {
                     text: strings('earn.withdrawing_to'),
-                    fontWeight: FontWeight.Medium,
                   },
                 }}
                 value={{
@@ -524,7 +523,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 field={{
                   label: {
                     text: strings('earn.protocol'),
-                    fontWeight: FontWeight.Medium,
                   },
                   tooltip: {
                     title: strings('earn.protocol'),
@@ -549,7 +547,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 field={{
                   label: {
                     text: strings('earn.network'),
-                    fontWeight: FontWeight.Medium,
                   },
                 }}
                 value={{

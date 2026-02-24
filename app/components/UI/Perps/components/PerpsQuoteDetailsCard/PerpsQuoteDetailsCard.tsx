@@ -33,12 +33,12 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
           field={{
             label: {
               text: strings('perps.quote.network_fee'),
-              fontWeight: FontWeight.Medium,
             },
           }}
           value={{
             label: {
               text: networkFee,
+              fontWeight: FontWeight.Regular,
             },
           }}
           style={styles.quoteRow}
@@ -48,7 +48,6 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
           field={{
             label: {
               text: strings('perps.quote.metamask_fee'),
-              fontWeight: FontWeight.Medium,
             },
             tooltip: {
               title: strings('perps.quote.metamask_fee'),
@@ -59,6 +58,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
           value={{
             label: {
               text: metamaskFee,
+              fontWeight: FontWeight.Regular,
             },
           }}
           style={styles.quoteRow}
@@ -69,12 +69,12 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
             field={{
               label: {
                 text: strings('perps.quote.estimated_time'),
-                fontWeight: FontWeight.Medium,
               },
             }}
             value={{
               label: {
                 text: estimatedTime,
+                fontWeight: FontWeight.Regular,
               },
             }}
             style={styles.quoteRow}
@@ -85,12 +85,12 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
           field={{
             label: {
               text: strings('perps.quote.rate'),
-              fontWeight: FontWeight.Medium,
             },
           }}
           value={{
             label: {
               text: rate,
+              fontWeight: FontWeight.Regular,
             },
           }}
           style={styles.quoteRow}

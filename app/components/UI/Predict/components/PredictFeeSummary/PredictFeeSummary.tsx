@@ -3,6 +3,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
@@ -111,6 +112,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
           field={{
             label: {
               text: strings('predict.fee_summary.estimated_points'),
+              fontWeight: FontWeight.Regular,
             },
             tooltip: {
               title: strings('predict.fee_summary.points_tooltip'),

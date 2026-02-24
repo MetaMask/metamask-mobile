@@ -58,7 +58,6 @@ const DepositInfoSection = ({
           field={{
             label: {
               text: strings('earn.apr'),
-              fontWeight: FontWeight.Medium,
             },
             tooltip: {
               title: strings('earn.apr'),
@@ -74,6 +73,7 @@ const DepositInfoSection = ({
           value={{
             label: {
               text: `${earnToken?.experience?.apr}%`,
+              fontWeight: FontWeight.Regular,
               color: DesignSystemTextColor.SuccessDefault,
             },
           }}
@@ -119,6 +119,7 @@ const DepositInfoSection = ({
           value={{
             label: {
               text: strings('earn.every_minute'),
+              fontWeight: FontWeight.Regular,
             },
           }}
         />
@@ -136,6 +137,7 @@ const DepositInfoSection = ({
           value={{
             label: {
               text: strings('earn.immediate'),
+              fontWeight: FontWeight.Regular,
             },
           }}
         />

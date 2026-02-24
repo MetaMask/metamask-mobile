@@ -13,7 +13,10 @@ import styleSheet from './RewardsCard.styles';
 import { RewardsCardProps } from './RewardsCard.types';
 import { createTooltipOpenedEvent } from '../../../utils/metaMetrics/tooltipMetaMetricsUtils';
 import { useMetrics } from '../../../../../hooks/useMetrics';
-import { TextColor as DesignSystemTextColor } from '@metamask/design-system-react-native';
+import {
+  TextColor as DesignSystemTextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 const RewardsCard = ({
   rewardRate,
@@ -41,6 +44,7 @@ const RewardsCard = ({
         value={{
           label: {
             text: rewardRate,
+            fontWeight: FontWeight.Regular,
             color: DesignSystemTextColor.SuccessDefault,
           },
         }}
@@ -72,6 +76,7 @@ const RewardsCard = ({
         value={{
           label: {
             text: strings('stake.12_hours'),
+            fontWeight: FontWeight.Regular,
           },
         }}
       />
