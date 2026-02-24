@@ -27,6 +27,10 @@ import {
 } from '../../utils/formatUtils';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import Tag from '../../../../../component-library/components/Tags/Tag';
+import {
+  TextVariant as DesignSystemTextVariant,
+  TextColor as DesignSystemTextColor,
+} from '@metamask/design-system-react-native';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   symbol,
@@ -150,15 +154,15 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           field={{
             label: {
               text: strings('perps.market.24h_volume'),
-              variant: TextVariant.BodyMD,
-              color: TextColor.Alternative,
+              variant: DesignSystemTextVariant.BodyMd,
+              color: DesignSystemTextColor.TextAlternative,
             },
           }}
           value={{
             label: {
               text: marketStats.volume24h,
-              variant: TextVariant.BodyMD,
-              color: TextColor.Default,
+              variant: DesignSystemTextVariant.BodyMd,
+              color: DesignSystemTextColor.TextDefault,
             },
           }}
           style={[styles.statsRow, !onOrderBookPress && styles.statsRowFirst]}
@@ -191,8 +195,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           value={{
             label: {
               text: marketStats.openInterest,
-              variant: TextVariant.BodyMD,
-              color: TextColor.Default,
+              variant: DesignSystemTextVariant.BodyMd,
+              color: DesignSystemTextColor.TextDefault,
             },
           }}
           style={styles.statsRow}
@@ -259,8 +263,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })
                 : '-',
-              variant: TextVariant.BodyMD,
-              color: TextColor.Default,
+              variant: DesignSystemTextVariant.BodyMd,
+              color: DesignSystemTextColor.TextDefault,
             },
           }}
           style={styles.statsRowLast}
