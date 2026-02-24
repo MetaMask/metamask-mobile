@@ -68,35 +68,21 @@ function ProviderSelectionModal() {
     [displayProviders],
   );
 
-  const quoteFetchParams = useMemo(
-    () =>
-      !skipQuotes && walletAddress && assetId
-        ? {
-            amount,
-            walletAddress,
-            assetId,
-            providers: providerIds,
-            paymentMethods: selectedPaymentMethod
-              ? [selectedPaymentMethod.id]
-              : undefined,
-            forceRefresh: true,
-          }
-        : null,
-    [
-      skipQuotes,
-      amount,
-      walletAddress,
-      assetId,
-      providerIds,
-      selectedPaymentMethod,
-    ],
-  );
-
   const {
     data: quotes,
     loading: quotesLoading,
     error: quotesError,
-  } = useRampsQuotes(quoteFetchParams);
+  } = useRampsQuotes({
+    amount,
+    walletAddress,
+    assetId,
+    providers: providerIds,
+    paymentMethods: selectedPaymentMethod
+      ? [selectedPaymentMethod.id]
+      : undefined,
+    forceRefresh: true,
+    enableFetching: !skipQuotes && !!walletAddress && !!assetId,
+  });
 
   const handleBack = useCallback(() => {
     navigation.goBack();
