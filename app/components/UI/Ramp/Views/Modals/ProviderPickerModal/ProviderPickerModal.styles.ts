@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     content: {
-      paddingBottom: 16,
+      paddingBottom: 24,
     },
   });
 
