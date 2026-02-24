@@ -331,7 +331,7 @@ describe('PerpsOrderDetailsView', () => {
     expect(
       screen.getByText('perps.order_details.price_below'),
     ).toBeOnTheScreen();
-    expect(screen.getByText('$51000.00')).toBeOnTheScreen();
+    expect(screen.getByText('$50000.00')).toBeOnTheScreen();
     expect(screen.getByText('perps.order_details.yes')).toBeOnTheScreen();
   });
 
@@ -358,7 +358,7 @@ describe('PerpsOrderDetailsView', () => {
     expect(screen.getByText('perps.order_details.yes')).toBeOnTheScreen();
   });
 
-  it('falls back to trigger price in Price row when execution price is unavailable', () => {
+  it('shows market in Price row when execution price is unavailable', () => {
     const triggerOrder: Order = {
       ...mockOrder,
       isTrigger: true,
@@ -372,7 +372,7 @@ describe('PerpsOrderDetailsView', () => {
 
     render(<PerpsOrderDetailsView />);
 
-    expect(screen.getByText('$51000.00')).toBeOnTheScreen();
+    expect(screen.getByText('perps.order_details.market')).toBeOnTheScreen();
     expect(screen.getByText('$25500.00')).toBeOnTheScreen();
   });
 
@@ -432,6 +432,7 @@ describe('PerpsOrderDetailsView', () => {
 
     render(<PerpsOrderDetailsView />);
 
+    expect(screen.getByText('$100.00')).toBeOnTheScreen();
     expect(screen.getByText('$200.00')).toBeOnTheScreen();
     expect(screen.queryByText('$160.00')).not.toBeOnTheScreen();
   });

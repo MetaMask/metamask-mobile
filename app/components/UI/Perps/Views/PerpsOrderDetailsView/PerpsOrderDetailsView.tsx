@@ -39,7 +39,6 @@ import {
   getValidTriggerPrice,
   inferTriggerConditionKey,
   isSyntheticOrderCancelable,
-  resolveOrderDisplayPriceAndLabel,
 } from '../../utils/orderUtils';
 
 interface OrderDetailsRouteParams {
@@ -67,7 +66,7 @@ const PerpsOrderDetailsView: React.FC = () => {
   const priceMetrics = useMemo(() => {
     if (!order) {
       return {
-        displayPriceValue: null as number | null,
+        validOrderPrice: null as number | null,
         validTriggerPrice: null as number | null,
         effectivePrice: null as number | null,
       };
@@ -75,11 +74,9 @@ const PerpsOrderDetailsView: React.FC = () => {
 
     const validOrderPrice = getValidOrderPrice(order);
     const validTriggerPrice = getValidTriggerPrice(order);
-    const { priceValue: displayPriceValue } =
-      resolveOrderDisplayPriceAndLabel(order);
     const effectivePrice = validOrderPrice ?? validTriggerPrice;
 
-    return { displayPriceValue, validTriggerPrice, effectivePrice };
+    return { validOrderPrice, validTriggerPrice, effectivePrice };
   }, [order]);
 
   // Calculate size in USD for fee calculation
@@ -117,8 +114,7 @@ const PerpsOrderDetailsView: React.FC = () => {
         ? (parseFloat(order.filledSize) / parseFloat(order.originalSize)) * 100
         : 0;
 
-    const { displayPriceValue, validTriggerPrice, effectivePrice } =
-      priceMetrics;
+    const { validOrderPrice, validTriggerPrice, effectivePrice } = priceMetrics;
     const originalSizeUSD =
       effectivePrice !== null
         ? parseFloat(order.originalSize) * effectivePrice
@@ -129,9 +125,9 @@ const PerpsOrderDetailsView: React.FC = () => {
       (order.detailedOrderType ?? '').toLowerCase().includes('market');
 
     const priceText =
-      isMarketExecution || displayPriceValue === null
+      isMarketExecution || validOrderPrice === null
         ? strings('perps.order_details.market')
-        : formatPerpsFiat(displayPriceValue);
+        : formatPerpsFiat(validOrderPrice);
 
     let triggerCondition: string | undefined;
     if (order.isTrigger && validTriggerPrice !== null) {
