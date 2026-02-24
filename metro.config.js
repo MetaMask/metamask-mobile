@@ -37,6 +37,7 @@ const path = require('path');
 const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
+const { truncate } = require('node:fs');
 
 module.exports = function (baseConfig) {
   const defaultConfig = mergeConfig(baseConfig, getDefaultConfig(__dirname));
@@ -67,6 +68,10 @@ module.exports = function (baseConfig) {
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
       resolver: {
+        // Disable package exports field resolution - it changes module ID assignment
+        // which breaks LavaMoat's lockdownSerializer (hardenIntrinsics fires before require is set up)
+        // See: https://github.com/expo/expo/discussions/36551
+        //unstable_enablePackageExports: true,
         assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
         sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
@@ -99,6 +104,21 @@ module.exports = function (baseConfig) {
           'node:buffer': '@craftzdog/react-native-buffer',
         },
         resolveRequest: (context, moduleName, platform) => {
+          // @ledgerhq packages use exports field subpath mapping (e.g. ./signers/index -> ./lib/signers/index.js)
+          // which doesn't work with unstable_enablePackageExports: false — manually replicate the lib/ mapping
+          // Affected: domain-service, evm-tools, devices, cryptoassets-evm-signatures
+          const ledgerhqSubpathMatch = moduleName.match(/^(@ledgerhq\/[^/]+)\/(.+)$/);
+          if (ledgerhqSubpathMatch) {
+            const [, pkgName, subpath] = ledgerhqSubpathMatch;
+            try {
+              return {
+                filePath: require.resolve(`${pkgName}/lib/${subpath}`),
+                type: 'sourceFile',
+              };
+            } catch {
+              // fall through to default resolution if lib/ mapping doesn't exist
+            }
+          }
           // Use axios browser build so Node-only deps (e.g. http2) are never pulled in
           if (
             moduleName === 'axios' ||
@@ -161,12 +181,17 @@ module.exports = function (baseConfig) {
           },
         }),
       },
-      serializer: lockdownSerializer(
-        { hermesRuntime: true },
-        {
-          getPolyfills,
-        },
-      ),
+      // DEBUG: lockdownSerializer disabled to confirm it's causing the hardenIntrinsics/require crash
+      // TODO: re-enable once LavaMoat is compatible with the new Metro module ID assignment
+      // serializer: lockdownSerializer(
+      //   { hermesRuntime: true },
+      //   {
+      //     getPolyfills,
+      //   },
+      // ),
+      serializer: {
+        getPolyfills,
+      },
       resetCache: true,
       maxWorkers,
     }),

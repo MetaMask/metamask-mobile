@@ -7,7 +7,12 @@ module.exports = {
   ignore: [
     (filename) =>
       !!filename &&
-      (/\/ses\.cjs$/.test(filename) || /\/ses-hermes\.cjs$/.test(filename)),
+      (/\/ses\.cjs$/.test(filename) ||
+        /\/ses-hermes\.cjs$/.test(filename) ||
+        /\/react-native-lockdown\/src\/repair\.js$/.test(filename) ||
+        // expo/virtual/streams.js is a Metro polyfill — no require() available at that stage
+        // Babel must not transform it or it injects require("@babel/runtime/helpers/...")
+        /\/expo\/virtual\/streams\.js$/.test(filename)),
   ],
   presets: ['babel-preset-expo'],
   // Babel can find the plugin without the `babel-plugin-` prefix. Ex. `babel-plugin-react-compiler` -> `react-compiler`
