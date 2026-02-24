@@ -103,8 +103,16 @@
       "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
       "title": "Insufficient funds"
     },
+    "insufficient_pay_token_native_musd_conversion": {
+      "message": "Not enough {{ticker}} to cover fees. Add more {{ticker}} to continue.",
+      "title": "Insufficient funds"
+    },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+      "title": "No quotes"
+    },
+    "no_pay_token_quotes_musd_conversion": {
+      "message": "We couldn't find any quotes for this conversion at this time. Please try again later.",
       "title": "No quotes"
     },
     "perps_hardware_account": {

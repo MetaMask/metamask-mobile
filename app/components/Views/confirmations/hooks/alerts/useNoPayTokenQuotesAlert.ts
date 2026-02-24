@@ -10,6 +10,9 @@ import {
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
 } from '../pay/useTransactionPayData';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '../../utils/transaction';
+import { TransactionType } from '@metamask/transaction-controller';
 
 export function useNoPayTokenQuotesAlert() {
   const { payToken } = useTransactionPayToken();
@@ -17,6 +20,7 @@ export function useNoPayTokenQuotesAlert() {
   const isQuotesLoading = useIsTransactionPayLoading();
   const sourceAmounts = useTransactionPaySourceAmounts();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const transactionMetadata = useTransactionMetadataRequest();
 
   const isOptionalOnly = (sourceAmounts ?? []).every(
     (t) =>
@@ -36,15 +40,26 @@ export function useNoPayTokenQuotesAlert() {
       return [];
     }
 
-    return [
-      {
-        key: AlertKeys.NoPayTokenQuotes,
-        field: RowAlertKey.PayWith,
-        message: strings('alert_system.no_pay_token_quotes.message'),
-        title: strings('alert_system.no_pay_token_quotes.title'),
-        severity: Severity.Danger,
-        isBlocking: true,
-      },
-    ];
-  }, [showAlert]);
+    const baseAlert = {
+      key: AlertKeys.NoPayTokenQuotes,
+      field: RowAlertKey.PayWith,
+      message: strings('alert_system.no_pay_token_quotes.message'),
+      title: strings('alert_system.no_pay_token_quotes.title'),
+      severity: Severity.Danger,
+      isBlocking: true,
+    };
+
+    if (
+      hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
+    ) {
+      baseAlert.message = strings(
+        'alert_system.no_pay_token_quotes_musd_conversion.message',
+      );
+      baseAlert.title = strings(
+        'alert_system.no_pay_token_quotes_musd_conversion.title',
+      );
+    }
+
+    return [baseAlert];
+  }, [showAlert, transactionMetadata]);
 }
