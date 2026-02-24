@@ -3,28 +3,15 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsEntryCard from './MarketInsightsEntryCard';
 
-jest.mock('@react-native-masked-view/masked-view', () => {
-  const { View: MockView } = jest.requireActual('react-native');
-  return ({ children }: { children: React.ReactNode }) => (
-    <MockView>{children}</MockView>
-  );
-});
-
-jest.mock('react-native-linear-gradient', () => {
-  const { View: MockView } = jest.requireActual('react-native');
-  return ({ children }: { children: React.ReactNode }) => (
-    <MockView>{children}</MockView>
-  );
-});
-
 describe('MarketInsightsEntryCard', () => {
-  it('renders report headline and handles press', () => {
+  it('renders summary text and handles press', () => {
     const mockPress = jest.fn();
 
     const report = {
       headline: 'ETH rallies on ETF optimism',
       summary: 'ETF optimism and whale accumulation are driving momentum.',
       trends: [{ title: 'ETF optimism' }, { title: 'whale accumulation' }],
+      sources: [{ name: 'CoinDesk', type: 'news', url: 'coindesk.com' }],
     };
 
     const { getByTestId, getByText } = renderWithProvider(
@@ -36,7 +23,9 @@ describe('MarketInsightsEntryCard', () => {
       />,
     );
 
-    expect(getByText('ETH rallies on ETF optimism')).toBeOnTheScreen();
+    expect(
+      getByText('ETF optimism and whale accumulation are driving momentum.'),
+    ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('market-insights-entry-card'));
     expect(mockPress).toHaveBeenCalledTimes(1);

@@ -61,8 +61,8 @@ interface MarketInsightsRouteParams {
  * It displays the AI-generated market report including:
  * - Price change indicator with token logo
  * - Headline and summary
- * - "What's driving the price?" trends section
- * - "What people are saying" social section
+ * - "A closer look" trends section
+ * - "What's being said" social section
  * - Sources footer with feedback buttons
  * - Trade CTA button (navigates to Swaps with asset pre-filled)
  */
@@ -241,7 +241,7 @@ const MarketInsightsView: React.FC = () => {
           </Text>
         </Box>
 
-        {/* "What's driving the price?" section */}
+        {/* "A closer look" section */}
         <Box twClassName="pb-6">
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -259,7 +259,7 @@ const MarketInsightsView: React.FC = () => {
               fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
-              {strings('market_insights.whats_driving_price')}
+              {strings('market_insights.a_closer_look')}
             </Text>
           </Box>
 
@@ -273,7 +273,7 @@ const MarketInsightsView: React.FC = () => {
           ))}
         </Box>
 
-        {/* "What people are saying" section */}
+        {/* "What's being said" section */}
         {allTweets.length > 0 && (
           <Box twClassName="pb-6">
             <Box
@@ -292,7 +292,7 @@ const MarketInsightsView: React.FC = () => {
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
               >
-                {strings('market_insights.what_people_saying')}
+                {strings('market_insights.whats_being_said')}
               </Text>
             </Box>
 

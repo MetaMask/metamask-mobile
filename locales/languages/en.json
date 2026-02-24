@@ -2059,8 +2059,8 @@
     "title": "Market insights",
     "updated_ago": "Updated {{time}}",
     "disclaimer": "AI insights. Not financial advice.",
-    "whats_driving_price": "What's driving the price?",
-    "what_people_saying": "What people are saying",
+    "a_closer_look": "A closer look",
+    "whats_being_said": "What's being said",
     "trade_button": "Trade",
     "sources_count": "+{{count}} sources",
     "sources_title": "Sources"
