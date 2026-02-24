@@ -24,7 +24,10 @@ import {
 import { store } from '../../../../store';
 import { selectTransactionPayQuotesByTransactionId } from '../../../../selectors/transactionPayController';
 import { getNetworkName } from '../utils/network';
-import { selectPendingMusdConversionsForRelayMatch } from '../selectors/musdConversionStatus';
+import {
+  selectMusdConversions,
+  selectMusdConversionStatuses,
+} from '../selectors/musdConversionStatus';
 import Logger from '../../../../util/Logger';
 
 type PayQuote = TransactionPayQuote<unknown>;
@@ -36,9 +39,10 @@ function chainIdsMatch(a?: Hex, b?: Hex): boolean | undefined {
 }
 
 /**
- * Resolves the single in-flight mUSD conversion tied to a confirmed relay deposit.
+ * Resolves the single pending mUSD conversion tied to a confirmed relay deposit.
  * Current production relay payloads do not include deterministic linkage fields,
- * so we match by sender address and only proceed when there is exactly one candidate.
+ * so we derive pending candidates from the shared relay-aware status selector,
+ * then match by sender address and only proceed when there is exactly one candidate.
  */
 export function findSingleInFlightMusdConversionForRelayDeposit(
   relayDepositTransactionMeta: TransactionMeta,
@@ -53,29 +57,28 @@ export function findSingleInFlightMusdConversionForRelayDeposit(
   }
 
   const state = store.getState();
-  const inFlightMusdConversions =
-    selectPendingMusdConversionsForRelayMatch(state);
+  const conversionStatusesByTokenChainKey = selectMusdConversionStatuses(state);
+  const pendingConversionStatuses = Object.values(
+    conversionStatusesByTokenChainKey,
+  ).filter((conversionStatus) => conversionStatus.isPending);
 
-  const sortedInFlightMusdConversions = [...inFlightMusdConversions].sort(
-    (firstTransaction, secondTransaction) => {
-      const firstTransactionTime = firstTransaction.time ?? 0;
-      const secondTransactionTime = secondTransaction.time ?? 0;
-      return secondTransactionTime - firstTransactionTime;
-    },
-  );
-
-  const inFlightMusdConversionsForFromAddress =
-    sortedInFlightMusdConversions.filter(
-      (transactionMeta) =>
-        transactionMeta.txParams?.from?.toLowerCase() ===
-        relayFromAddress.toLowerCase(),
-    );
-
-  if (inFlightMusdConversionsForFromAddress.length !== 1) {
+  if (pendingConversionStatuses.length !== 1) {
     return undefined;
   }
 
-  const [matchedMusdConversion] = inFlightMusdConversionsForFromAddress;
+  const relayFromAddressLowercase = relayFromAddress.toLowerCase();
+  const pendingTransactionId = pendingConversionStatuses[0].txId;
+  const matchedMusdConversion = selectMusdConversions(state).find(
+    (transactionMeta) =>
+      transactionMeta.id === pendingTransactionId &&
+      transactionMeta.txParams?.from?.toLowerCase() ===
+        relayFromAddressLowercase,
+  );
+
+  if (!matchedMusdConversion) {
+    return undefined;
+  }
+
   Logger.log(
     `${MUSD_TOAST_LOG_PREFIX} matched relay by single from-address fallback`,
     {

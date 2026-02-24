@@ -10,8 +10,7 @@ interface ConversionStatusInfo {
   txId: string;
   status: TransactionStatus;
   /**
-   * True when the conversion is in-flight (not yet in a terminal state).
-   * Used to drive loading UI and disable actions.
+   * Single source of truth for pending state.
    */
   isPending: boolean;
   isConfirmed: boolean;
@@ -36,23 +35,10 @@ const IN_FLIGHT_STATUSES: TransactionStatus[] = [
 /**
  * Selects all mUSD conversion transactions.
  */
-// TODO: Remove if not in use anymore.
 export const selectMusdConversions = createSelector(
   [selectTransactions],
   (transactions): TransactionMeta[] =>
     transactions.filter((tx) => tx.type === TransactionType.musdConversion),
-);
-
-/**
- * Selects pending mUSD conversion intents that can still be matched
- * when a relay confirmation event arrives.
- */
-export const selectPendingMusdConversionsForRelayMatch = createSelector(
-  [selectMusdConversions],
-  (conversions): TransactionMeta[] =>
-    conversions.filter((tx) =>
-      IN_FLIGHT_STATUSES.includes(tx.status as TransactionStatus),
-    ),
 );
 
 /**
@@ -67,7 +53,9 @@ export const createTokenChainKey = (
 /**
  * Selects all mUSD conversion statuses as a map.
  * Key is "tokenAddress-chainId" to handle same token on different chains.
- * Important:Only includes the most recent conversion for each token + chain combination.
+ * Only includes the most recent conversion for each token + chain combination.
+ * Pending is relay-aware: a conversion is no longer pending once a newer
+ * confirmed relay deposit exists for the same sender address.
  *
  * Useful for efficiently rendering status indicators on a list of tokens.
  */
@@ -153,8 +141,8 @@ export const selectMusdConversionStatuses = createSelector(
 );
 
 /**
- * True when any conversion is pending in the UI.
- * This is relay-aware and should be used for loading/disable states.
+ * True when any conversion is pending.
+ * Uses the same relay-aware pending logic as selectMusdConversionStatuses.
  */
 export const selectHasPendingMusdConversion = createSelector(
   [selectMusdConversionStatuses],

@@ -7,7 +7,6 @@ import {
   selectMusdConversions,
   selectHasPendingMusdConversion,
   createTokenChainKey,
-  selectPendingMusdConversionsForRelayMatch,
   selectMusdConversionStatuses,
 } from './musdConversionStatus';
 
@@ -162,42 +161,6 @@ describe('musdConversionStatus selectors', () => {
       const result = createTokenChainKey(tokenAddress, chainId);
 
       expect(result).toBe('0xabcdef-0xabcd');
-    });
-  });
-
-  describe('selectPendingMusdConversionsForRelayMatch', () => {
-    it('returns only pending musdConversion transactions', () => {
-      const transactions = [
-        {
-          id: 'pending-1',
-          type: TransactionType.musdConversion,
-          status: TransactionStatus.approved,
-        },
-        {
-          id: 'pending-2',
-          type: TransactionType.musdConversion,
-          status: TransactionStatus.submitted,
-        },
-        {
-          id: 'confirmed-1',
-          type: TransactionType.musdConversion,
-          status: TransactionStatus.confirmed,
-        },
-        {
-          id: 'failed-1',
-          type: TransactionType.musdConversion,
-          status: TransactionStatus.failed,
-        },
-      ];
-      const state = createState(transactions);
-
-      const result = selectPendingMusdConversionsForRelayMatch(state);
-
-      expect(result).toHaveLength(2);
-      expect(result.map((transactionMeta) => transactionMeta.id)).toEqual([
-        'pending-1',
-        'pending-2',
-      ]);
     });
   });
 

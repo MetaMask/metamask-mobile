@@ -54,7 +54,8 @@ jest.mock('../../../../selectors/transactionPayController', () => ({
   selectTransactionPayQuotesByTransactionId: jest.fn(),
 }));
 jest.mock('../selectors/musdConversionStatus', () => ({
-  selectPendingMusdConversionsForRelayMatch: jest.fn(),
+  selectMusdConversions: jest.fn(),
+  selectMusdConversionStatuses: jest.fn(),
 }));
 
 import { useSelector } from 'react-redux';
@@ -74,15 +75,19 @@ import {
   TransactionPayStrategy,
   type TransactionPayQuote,
 } from '@metamask/transaction-pay-controller';
-import { selectPendingMusdConversionsForRelayMatch } from '../selectors/musdConversionStatus';
+import {
+  selectMusdConversions,
+  selectMusdConversionStatuses,
+} from '../selectors/musdConversionStatus';
 
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
 const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 const mockSelectTransactionPayQuotesByTransactionId = jest.mocked(
   selectTransactionPayQuotesByTransactionId,
 );
-const mockSelectPendingMusdConversionsForRelayMatch = jest.mocked(
-  selectPendingMusdConversionsForRelayMatch,
+const mockSelectMusdConversions = jest.mocked(selectMusdConversions);
+const mockSelectMusdConversionStatuses = jest.mocked(
+  selectMusdConversionStatuses,
 );
 
 const mockUseSelector = jest.mocked(useSelector);
@@ -219,7 +224,8 @@ describe('useMusdConversionStatus', () => {
       showToast: mockShowToast,
       EarnToastOptions: mockEarnToastOptions,
     });
-    mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([]);
+    mockSelectMusdConversions.mockReturnValue([]);
+    mockSelectMusdConversionStatuses.mockReturnValue({});
 
     // Setup useSelector to return different values based on selector
     mockUseSelector.mockImplementation((selector) => {
@@ -244,6 +250,24 @@ describe('useMusdConversionStatus', () => {
       }
       return {};
     });
+  };
+
+  const setPendingRelayMatchCandidates = (transactions: TransactionMeta[]) => {
+    mockSelectMusdConversions.mockReturnValue(transactions);
+    mockSelectMusdConversionStatuses.mockReturnValue(
+      Object.fromEntries(
+        transactions.map((transactionMeta, index) => [
+          `pending-${index}`,
+          {
+            txId: transactionMeta.id,
+            status: transactionMeta.status,
+            isPending: true,
+            isConfirmed: false,
+            isFailed: false,
+          },
+        ]),
+      ),
+    );
   };
 
   afterEach(() => {
@@ -511,9 +535,7 @@ describe('useMusdConversionStatus', () => {
           tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         },
       );
-      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
-        inFlightMusdConversionMeta,
-      ]);
+      setPendingRelayMatchCandidates([inFlightMusdConversionMeta]);
 
       renderHook(() => useMusdConversionStatus());
 
@@ -552,9 +574,7 @@ describe('useMusdConversionStatus', () => {
         },
       );
 
-      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
-        inFlightMusdConversionMeta,
-      ]);
+      setPendingRelayMatchCandidates([inFlightMusdConversionMeta]);
 
       renderHook(() => useMusdConversionStatus());
 
@@ -586,9 +606,7 @@ describe('useMusdConversionStatus', () => {
         TransactionStatus.approved,
         transactionId,
       );
-      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
-        approvedMeta,
-      ]);
+      setPendingRelayMatchCandidates([approvedMeta]);
 
       renderHook(() => useMusdConversionStatus());
 
@@ -678,9 +696,7 @@ describe('useMusdConversionStatus', () => {
         TransactionStatus.approved,
         transactionId,
       );
-      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
-        approvedMeta,
-      ]);
+      setPendingRelayMatchCandidates([approvedMeta]);
 
       renderHook(() => useMusdConversionStatus());
 
@@ -839,7 +855,7 @@ describe('useMusdConversionStatus', () => {
           tokenAddress: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
         },
       );
-      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
+      setPendingRelayMatchCandidates([
         inFlightConversionOne,
         inFlightConversionTwo,
       ]);
@@ -868,9 +884,7 @@ describe('useMusdConversionStatus', () => {
           tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         },
       );
-      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
-        inFlightMusdConversion,
-      ]);
+      setPendingRelayMatchCandidates([inFlightMusdConversion]);
 
       renderHook(() => useMusdConversionStatus());
 
@@ -917,9 +931,7 @@ describe('useMusdConversionStatus', () => {
           tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         },
       );
-      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
-        inFlightMusdConversion,
-      ]);
+      setPendingRelayMatchCandidates([inFlightMusdConversion]);
 
       renderHook(() => useMusdConversionStatus());
 
@@ -1005,9 +1017,7 @@ describe('useMusdConversionStatus', () => {
         TransactionType.musdConversion,
         { chainId, tokenAddress },
       );
-      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
-        inFlightMusdConversionMeta,
-      ]);
+      setPendingRelayMatchCandidates([inFlightMusdConversionMeta]);
 
       renderHook(() => useMusdConversionStatus());
 
@@ -1311,9 +1321,7 @@ describe('useMusdConversionStatus', () => {
         'test-trace-confirmed',
         TransactionType.musdConversion,
       );
-      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
-        inFlightMusdConversion,
-      ]);
+      setPendingRelayMatchCandidates([inFlightMusdConversion]);
 
       renderHook(() => useMusdConversionStatus());
 
@@ -1469,7 +1477,7 @@ describe('useMusdConversionStatus', () => {
           transactionId,
         ),
       });
-      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
+      setPendingRelayMatchCandidates([
         createTransactionMeta(
           TransactionStatus.signed,
           transactionId,
