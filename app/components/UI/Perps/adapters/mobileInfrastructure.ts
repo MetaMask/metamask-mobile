@@ -286,19 +286,30 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
             remoteFeatureFlags: Record<string, unknown>;
           }) => void,
         ) {
-          Engine.controllerMessenger.subscribe(
-            'RemoteFeatureFlagController:stateChange',
-            handler as Parameters<
-              typeof Engine.controllerMessenger.subscribe<'RemoteFeatureFlagController:stateChange'>
-            >[1],
-          );
-          return () => {
-            Engine.controllerMessenger.unsubscribe(
+          const typedHandler = handler as Parameters<
+            typeof Engine.controllerMessenger.subscribe<'RemoteFeatureFlagController:stateChange'>
+          >[1];
+          const doSubscribe = () => {
+            Engine.controllerMessenger.subscribe(
               'RemoteFeatureFlagController:stateChange',
-              handler as Parameters<
-                typeof Engine.controllerMessenger.subscribe<'RemoteFeatureFlagController:stateChange'>
-              >[1],
+              typedHandler,
             );
+          };
+          try {
+            doSubscribe();
+          } catch {
+            // Engine.instance not yet assigned during constructor — defer to next tick
+            setTimeout(doSubscribe, 0);
+          }
+          return () => {
+            try {
+              Engine.controllerMessenger.unsubscribe(
+                'RemoteFeatureFlagController:stateChange',
+                typedHandler,
+              );
+            } catch {
+              // Engine not available during teardown — safe to ignore
+            }
           };
         },
       },
@@ -307,19 +318,30 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
           return Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup();
         },
         onSelectedAccountGroupChange(handler: () => void) {
-          Engine.controllerMessenger.subscribe(
-            'AccountTreeController:selectedAccountGroupChange',
-            handler as Parameters<
-              typeof Engine.controllerMessenger.subscribe<'AccountTreeController:selectedAccountGroupChange'>
-            >[1],
-          );
-          return () => {
-            Engine.controllerMessenger.unsubscribe(
+          const typedHandler = handler as Parameters<
+            typeof Engine.controllerMessenger.subscribe<'AccountTreeController:selectedAccountGroupChange'>
+          >[1];
+          const doSubscribe = () => {
+            Engine.controllerMessenger.subscribe(
               'AccountTreeController:selectedAccountGroupChange',
-              handler as Parameters<
-                typeof Engine.controllerMessenger.subscribe<'AccountTreeController:selectedAccountGroupChange'>
-              >[1],
+              typedHandler,
             );
+          };
+          try {
+            doSubscribe();
+          } catch {
+            // Engine.instance not yet assigned during constructor — defer to next tick
+            setTimeout(doSubscribe, 0);
+          }
+          return () => {
+            try {
+              Engine.controllerMessenger.unsubscribe(
+                'AccountTreeController:selectedAccountGroupChange',
+                typedHandler,
+              );
+            } catch {
+              // Engine not available during teardown — safe to ignore
+            }
           };
         },
       },
