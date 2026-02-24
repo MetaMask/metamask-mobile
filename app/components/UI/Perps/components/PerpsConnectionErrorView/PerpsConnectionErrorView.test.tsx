@@ -225,7 +225,7 @@ describe('PerpsConnectionErrorView', () => {
     expect(backButton).toBeTruthy();
   });
 
-  it('should navigate back and track event when back button is pressed', () => {
+  it('navigates back and tracks event when back button is pressed', () => {
     const { getByText } = render(
       <PerpsConnectionErrorView
         error="Test error"
