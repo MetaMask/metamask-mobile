@@ -12,7 +12,7 @@ import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import {
   createTokenChainKey,
-  selectHasInFlightMusdConversion,
+  selectHasPendingMusdConversion,
   selectMusdConversionStatuses,
 } from '../../selectors/musdConversionStatus';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
@@ -42,7 +42,7 @@ jest.mock('../../selectors/featureFlags', () => ({
 }));
 jest.mock('../../selectors/musdConversionStatus', () => ({
   ...jest.requireActual('../../selectors/musdConversionStatus'),
-  selectHasInFlightMusdConversion: jest.fn(),
+  selectHasPendingMusdConversion: jest.fn(),
   selectMusdConversionStatuses: jest.fn(),
 }));
 const mockGetStakingNavbar = jest.fn<object, unknown[]>(() => ({}));
@@ -91,9 +91,9 @@ const mockUseMusdConversion = useMusdConversion as jest.MockedFunction<
 const mockUseMusdBalance = useMusdBalance as jest.MockedFunction<
   typeof useMusdBalance
 >;
-const mockSelectHasInFlightMusdConversion =
-  selectHasInFlightMusdConversion as jest.MockedFunction<
-    typeof selectHasInFlightMusdConversion
+const mockSelectHasPendingMusdConversion =
+  selectHasPendingMusdConversion as jest.MockedFunction<
+    typeof selectHasPendingMusdConversion
   >;
 const mockSelectMusdConversionStatuses =
   selectMusdConversionStatuses as jest.MockedFunction<
@@ -171,7 +171,7 @@ describe('MusdQuickConvertView', () => {
       fiatBalanceAggregated: undefined,
       fiatBalanceAggregatedFormatted: '$0.00',
     });
-    mockSelectHasInFlightMusdConversion.mockReturnValue(false);
+    mockSelectHasPendingMusdConversion.mockReturnValue(false);
     mockSelectMusdConversionStatuses.mockReturnValue({});
   });
 
@@ -442,7 +442,7 @@ describe('MusdQuickConvertView', () => {
   });
 
   describe('in-flight conversion', () => {
-    it('does not call initiateMaxConversion or initiateCustomConversion when Max or Edit is pressed and hasInFlightMusdConversion is true', async () => {
+    it('does not call initiateMaxConversion or initiateCustomConversion when Max or Edit is pressed and hasPendingMusdConversion is true', async () => {
       const token = createMockToken();
       mockUseMusdConversionTokens.mockReturnValue({
         tokens: [token],
@@ -451,7 +451,7 @@ describe('MusdQuickConvertView', () => {
         isMusdSupportedOnChain: jest.fn(),
         hasConvertibleTokensByChainId: jest.fn(),
       });
-      mockSelectHasInFlightMusdConversion.mockReturnValue(true);
+      mockSelectHasPendingMusdConversion.mockReturnValue(true);
 
       const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
         state: initialRootState,

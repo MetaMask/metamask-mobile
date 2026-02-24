@@ -5,8 +5,9 @@ import {
 import { RootState } from '../../../../reducers';
 import {
   selectMusdConversions,
-  selectHasInFlightMusdConversion,
+  selectHasPendingMusdConversion,
   createTokenChainKey,
+  selectPendingMusdConversionsForRelayMatch,
   selectMusdConversionStatuses,
 } from './musdConversionStatus';
 
@@ -65,18 +66,22 @@ describe('musdConversionStatus selectors', () => {
     });
   });
 
-  describe('selectHasInFlightMusdConversion', () => {
+  describe('selectHasPendingMusdConversion', () => {
     it('returns true when at least one conversion has unapproved status', () => {
       const transactions = [
         {
           id: '1',
           type: TransactionType.musdConversion,
           status: TransactionStatus.unapproved,
+          metamaskPay: {
+            tokenAddress: '0xTokenA',
+            chainId: '0x1',
+          },
         },
       ];
       const state = createState(transactions);
 
-      const result = selectHasInFlightMusdConversion(state);
+      const result = selectHasPendingMusdConversion(state);
 
       expect(result).toBe(true);
     });
@@ -87,11 +92,15 @@ describe('musdConversionStatus selectors', () => {
           id: '1',
           type: TransactionType.musdConversion,
           status: TransactionStatus.submitted,
+          metamaskPay: {
+            tokenAddress: '0xTokenA',
+            chainId: '0x1',
+          },
         },
       ];
       const state = createState(transactions);
 
-      const result = selectHasInFlightMusdConversion(state);
+      const result = selectHasPendingMusdConversion(state);
 
       expect(result).toBe(true);
     });
@@ -106,7 +115,7 @@ describe('musdConversionStatus selectors', () => {
       ];
       const state = createState(transactions);
 
-      const result = selectHasInFlightMusdConversion(state);
+      const result = selectHasPendingMusdConversion(state);
 
       expect(result).toBe(false);
     });
@@ -121,7 +130,7 @@ describe('musdConversionStatus selectors', () => {
       ];
       const state = createState(transactions);
 
-      const result = selectHasInFlightMusdConversion(state);
+      const result = selectHasPendingMusdConversion(state);
 
       expect(result).toBe(false);
     });
@@ -130,7 +139,7 @@ describe('musdConversionStatus selectors', () => {
       const transactions = [{ id: '1', type: TransactionType.simpleSend }];
       const state = createState(transactions);
 
-      const result = selectHasInFlightMusdConversion(state);
+      const result = selectHasPendingMusdConversion(state);
 
       expect(result).toBe(false);
     });
@@ -153,6 +162,42 @@ describe('musdConversionStatus selectors', () => {
       const result = createTokenChainKey(tokenAddress, chainId);
 
       expect(result).toBe('0xabcdef-0xabcd');
+    });
+  });
+
+  describe('selectPendingMusdConversionsForRelayMatch', () => {
+    it('returns only pending musdConversion transactions', () => {
+      const transactions = [
+        {
+          id: 'pending-1',
+          type: TransactionType.musdConversion,
+          status: TransactionStatus.approved,
+        },
+        {
+          id: 'pending-2',
+          type: TransactionType.musdConversion,
+          status: TransactionStatus.submitted,
+        },
+        {
+          id: 'confirmed-1',
+          type: TransactionType.musdConversion,
+          status: TransactionStatus.confirmed,
+        },
+        {
+          id: 'failed-1',
+          type: TransactionType.musdConversion,
+          status: TransactionStatus.failed,
+        },
+      ];
+      const state = createState(transactions);
+
+      const result = selectPendingMusdConversionsForRelayMatch(state);
+
+      expect(result).toHaveLength(2);
+      expect(result.map((transactionMeta) => transactionMeta.id)).toEqual([
+        'pending-1',
+        'pending-2',
+      ]);
     });
   });
 

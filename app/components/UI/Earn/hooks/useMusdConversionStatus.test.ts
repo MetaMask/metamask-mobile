@@ -53,6 +53,9 @@ jest.mock('../../../../store', () => ({
 jest.mock('../../../../selectors/transactionPayController', () => ({
   selectTransactionPayQuotesByTransactionId: jest.fn(),
 }));
+jest.mock('../selectors/musdConversionStatus', () => ({
+  selectPendingMusdConversionsForRelayMatch: jest.fn(),
+}));
 
 import { useSelector } from 'react-redux';
 import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
@@ -71,11 +74,15 @@ import {
   TransactionPayStrategy,
   type TransactionPayQuote,
 } from '@metamask/transaction-pay-controller';
+import { selectPendingMusdConversionsForRelayMatch } from '../selectors/musdConversionStatus';
 
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
 const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 const mockSelectTransactionPayQuotesByTransactionId = jest.mocked(
   selectTransactionPayQuotesByTransactionId,
+);
+const mockSelectPendingMusdConversionsForRelayMatch = jest.mocked(
+  selectPendingMusdConversionsForRelayMatch,
 );
 
 const mockUseSelector = jest.mocked(useSelector);
@@ -212,6 +219,7 @@ describe('useMusdConversionStatus', () => {
       showToast: mockShowToast,
       EarnToastOptions: mockEarnToastOptions,
     });
+    mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([]);
 
     // Setup useSelector to return different values based on selector
     mockUseSelector.mockImplementation((selector) => {
@@ -466,7 +474,7 @@ describe('useMusdConversionStatus', () => {
   });
 
   describe('confirmed transaction status', () => {
-    it('shows success toast when transactionConfirmed event fires with confirmed status', () => {
+    it('ignores transactionConfirmed event when type is musdConversion', () => {
       renderHook(() => useMusdConversionStatus());
 
       const handler = getConfirmedHandler();
@@ -477,10 +485,7 @@ describe('useMusdConversionStatus', () => {
       // transactionConfirmed event receives transactionMeta directly (not wrapped)
       handler(transactionMeta);
 
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
-        mockEarnToastOptions.mUsdConversion.success,
-      );
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
 
     it('ignores transactionConfirmed event when status is failed', () => {
@@ -496,37 +501,107 @@ describe('useMusdConversionStatus', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('prevents duplicate success toast for same transaction', () => {
+    it('prevents duplicate success toast for same relayDeposit match', () => {
+      const inFlightMusdConversionMeta = createTransactionMeta(
+        TransactionStatus.signed,
+        'musd-in-flight-dedupe',
+        TransactionType.musdConversion,
+        {
+          chainId: '0x1',
+          tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        },
+      );
+      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
+        inFlightMusdConversionMeta,
+      ]);
+
       renderHook(() => useMusdConversionStatus());
 
       const handler = getConfirmedHandler();
-      const transactionMeta = createTransactionMeta(
+      const relayDepositMeta = createTransactionMeta(
         TransactionStatus.confirmed,
+        'relay-deposit-dedupe',
+        TransactionType.relayDeposit,
       );
 
-      handler(transactionMeta);
-      handler(transactionMeta);
+      handler(relayDepositMeta);
+      handler(relayDepositMeta);
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
 
-    it('cleans up toast tracking entries after 5 seconds for confirmed status', () => {
+    it('shows success toast when relayDeposit confirms and single in-flight mUSD conversion matches by from address', () => {
+      setupTokensCacheMock({
+        '0x1': {
+          data: {
+            '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
+              symbol: 'USDC',
+              name: 'USD Coin',
+            },
+          },
+        },
+      });
+
+      const inFlightMusdConversionMeta = createTransactionMeta(
+        TransactionStatus.signed,
+        'musd-in-flight-1',
+        TransactionType.musdConversion,
+        {
+          chainId: '0x1',
+          tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        },
+      );
+
+      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
+        inFlightMusdConversionMeta,
+      ]);
+
       renderHook(() => useMusdConversionStatus());
 
-      const statusHandler = getSubscribedHandler();
       const confirmedHandler = getConfirmedHandler();
+      const relayDepositConfirmedMeta = createTransactionMeta(
+        TransactionStatus.confirmed,
+        'relay-deposit-1',
+        TransactionType.relayDeposit,
+      );
+
+      confirmedHandler(relayDepositConfirmedMeta);
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledWith(
+        mockEarnToastOptions.mUsdConversion.success,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction_id: 'musd-in-flight-1',
+          transaction_status: TransactionStatus.signed,
+          transaction_type: TransactionType.musdConversion,
+        }),
+      );
+    });
+
+    it('cleans up toast tracking entries after 5 seconds for confirmed status', () => {
       const transactionId = 'test-transaction-1';
       const approvedMeta = createTransactionMeta(
         TransactionStatus.approved,
         transactionId,
       );
-      const confirmedMeta = createTransactionMeta(
+      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
+        approvedMeta,
+      ]);
+
+      renderHook(() => useMusdConversionStatus());
+
+      const statusHandler = getSubscribedHandler();
+      const confirmedHandler = getConfirmedHandler();
+      const relayDepositConfirmedMeta = createTransactionMeta(
         TransactionStatus.confirmed,
-        transactionId,
+        'relay-deposit-cleanup',
+        TransactionType.relayDeposit,
       );
 
       statusHandler({ transactionMeta: approvedMeta });
-      confirmedHandler(confirmedMeta);
+      confirmedHandler(relayDepositConfirmedMeta);
 
       expect(mockShowToast).toHaveBeenCalledTimes(2);
 
@@ -534,7 +609,7 @@ describe('useMusdConversionStatus', () => {
 
       // After cleanup, should be able to show toasts again for same transaction
       statusHandler({ transactionMeta: approvedMeta });
-      confirmedHandler(confirmedMeta);
+      confirmedHandler(relayDepositConfirmedMeta);
 
       expect(mockShowToast).toHaveBeenCalledTimes(4);
     });
@@ -598,18 +673,23 @@ describe('useMusdConversionStatus', () => {
 
   describe('transaction flow from approved to final status', () => {
     it('shows both in-progress and success toasts for transaction flow', () => {
-      renderHook(() => useMusdConversionStatus());
-
-      const statusHandler = getSubscribedHandler();
-      const confirmedHandler = getConfirmedHandler();
       const transactionId = 'test-transaction-3';
       const approvedMeta = createTransactionMeta(
         TransactionStatus.approved,
         transactionId,
       );
-      const confirmedMeta = createTransactionMeta(
+      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
+        approvedMeta,
+      ]);
+
+      renderHook(() => useMusdConversionStatus());
+
+      const statusHandler = getSubscribedHandler();
+      const confirmedHandler = getConfirmedHandler();
+      const relayDepositConfirmedMeta = createTransactionMeta(
         TransactionStatus.confirmed,
-        transactionId,
+        'relay-deposit-flow',
+        TransactionType.relayDeposit,
       );
 
       statusHandler({ transactionMeta: approvedMeta });
@@ -617,7 +697,7 @@ describe('useMusdConversionStatus', () => {
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast).toHaveBeenCalledWith(mockInProgressToast);
 
-      confirmedHandler(confirmedMeta);
+      confirmedHandler(relayDepositConfirmedMeta);
 
       expect(mockShowToast).toHaveBeenCalledTimes(2);
       expect(mockShowToast).toHaveBeenCalledWith(
@@ -739,72 +819,77 @@ describe('useMusdConversionStatus', () => {
     });
   });
 
-  describe('multiple concurrent transactions', () => {
-    it('tracks and shows toasts for different transactions independently', () => {
+  describe('relay matching guardrails', () => {
+    it('does not show success toast when more than one in-flight conversion exists for same sender', () => {
+      const inFlightConversionOne = createTransactionMeta(
+        TransactionStatus.signed,
+        'transaction-1',
+        TransactionType.musdConversion,
+        {
+          chainId: '0x1',
+          tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        },
+      );
+      const inFlightConversionTwo = createTransactionMeta(
+        TransactionStatus.signed,
+        'transaction-2',
+        TransactionType.musdConversion,
+        {
+          chainId: '0x1',
+          tokenAddress: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+        },
+      );
+      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
+        inFlightConversionOne,
+        inFlightConversionTwo,
+      ]);
+
       renderHook(() => useMusdConversionStatus());
 
-      const statusHandler = getSubscribedHandler();
       const confirmedHandler = getConfirmedHandler();
-      const transaction1Approved = createTransactionMeta(
-        TransactionStatus.approved,
-        'transaction-1',
-      );
-      const transaction2Approved = createTransactionMeta(
-        TransactionStatus.approved,
-        'transaction-2',
-      );
-      const transaction1Confirmed = createTransactionMeta(
+      const relayDepositConfirmedMeta = createTransactionMeta(
         TransactionStatus.confirmed,
-        'transaction-1',
-      );
-      const transaction2Failed = createTransactionMeta(
-        TransactionStatus.failed,
-        'transaction-2',
+        'relay-deposit-ambiguous',
+        TransactionType.relayDeposit,
       );
 
-      statusHandler({ transactionMeta: transaction1Approved });
-      statusHandler({ transactionMeta: transaction2Approved });
-      confirmedHandler(transaction1Confirmed);
-      statusHandler({ transactionMeta: transaction2Failed });
+      confirmedHandler(relayDepositConfirmedMeta);
 
-      expect(mockShowToast).toHaveBeenCalledTimes(4);
-      expect(mockShowToast).toHaveBeenNthCalledWith(1, mockInProgressToast);
-      expect(mockShowToast).toHaveBeenNthCalledWith(2, mockInProgressToast);
-      expect(mockShowToast).toHaveBeenNthCalledWith(
-        3,
-        mockEarnToastOptions.mUsdConversion.success,
-      );
-      expect(mockShowToast).toHaveBeenNthCalledWith(
-        4,
-        mockEarnToastOptions.mUsdConversion.failed,
-      );
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('cleans up only entries for specific transaction after timeout', () => {
+    it('cleans up relay-matched success toast entries after timeout', () => {
+      const inFlightMusdConversion = createTransactionMeta(
+        TransactionStatus.signed,
+        'transaction-1',
+        TransactionType.musdConversion,
+        {
+          chainId: '0x1',
+          tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        },
+      );
+      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
+        inFlightMusdConversion,
+      ]);
+
       renderHook(() => useMusdConversionStatus());
 
       const handler = getConfirmedHandler();
-      const transaction1Confirmed = createTransactionMeta(
+      const relayDepositConfirmed = createTransactionMeta(
         TransactionStatus.confirmed,
-        'transaction-1',
-      );
-      const transaction2Confirmed = createTransactionMeta(
-        TransactionStatus.confirmed,
-        'transaction-2',
+        'relay-deposit-1',
+        TransactionType.relayDeposit,
       );
 
-      handler(transaction1Confirmed);
-      handler(transaction2Confirmed);
+      handler(relayDepositConfirmed);
 
-      expect(mockShowToast).toHaveBeenCalledTimes(2);
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
 
       jest.advanceTimersByTime(5000);
 
-      // Both transactions should be cleaned up after 5 seconds
-      handler(transaction1Confirmed);
-      handler(transaction2Confirmed);
+      handler(relayDepositConfirmed);
 
-      expect(mockShowToast).toHaveBeenCalledTimes(4);
+      expect(mockShowToast).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -823,14 +908,29 @@ describe('useMusdConversionStatus', () => {
     });
 
     it('uses EarnToastOptions from useEarnToasts hook', () => {
+      const inFlightMusdConversion = createTransactionMeta(
+        TransactionStatus.signed,
+        'hook-deps-in-flight',
+        TransactionType.musdConversion,
+        {
+          chainId: '0x1',
+          tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        },
+      );
+      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
+        inFlightMusdConversion,
+      ]);
+
       renderHook(() => useMusdConversionStatus());
 
       const handler = getConfirmedHandler();
-      const transactionMeta = createTransactionMeta(
+      const relayDepositMeta = createTransactionMeta(
         TransactionStatus.confirmed,
+        'hook-deps-relay',
+        TransactionType.relayDeposit,
       );
 
-      handler(transactionMeta);
+      handler(relayDepositMeta);
 
       expect(mockShowToast).toHaveBeenCalledWith(
         mockEarnToastOptions.mUsdConversion.success,
@@ -889,7 +989,7 @@ describe('useMusdConversionStatus', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
 
-    it('tracks status updated event when transaction status is confirmed', () => {
+    it('tracks status updated event when relayDeposit confirms with matched in-flight mUSD conversion', () => {
       const tokenAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
       const chainId = '0x1';
       setupTokensCacheMock({
@@ -899,18 +999,26 @@ describe('useMusdConversionStatus', () => {
           },
         },
       });
-
-      renderHook(() => useMusdConversionStatus());
-
-      const handler = getConfirmedHandler();
-      const transactionMeta = createTransactionMeta(
-        TransactionStatus.confirmed,
+      const inFlightMusdConversionMeta = createTransactionMeta(
+        TransactionStatus.signed,
         'test-tx-metrics-confirmed',
         TransactionType.musdConversion,
         { chainId, tokenAddress },
       );
+      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
+        inFlightMusdConversionMeta,
+      ]);
 
-      handler(transactionMeta);
+      renderHook(() => useMusdConversionStatus());
+
+      const handler = getConfirmedHandler();
+      const relayDepositConfirmedMeta = createTransactionMeta(
+        TransactionStatus.confirmed,
+        'relay-metrics-confirmed',
+        TransactionType.relayDeposit,
+      );
+
+      handler(relayDepositConfirmedMeta);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -921,7 +1029,7 @@ describe('useMusdConversionStatus', () => {
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           transaction_id: 'test-tx-metrics-confirmed',
-          transaction_status: TransactionStatus.confirmed,
+          transaction_status: TransactionStatus.signed,
           transaction_type: TransactionType.musdConversion,
           asset_symbol: 'USDC',
           network_chain_id: '0x1',
@@ -1197,16 +1305,26 @@ describe('useMusdConversionStatus', () => {
       );
     });
 
-    it('ends confirmation trace with success when transaction is confirmed', () => {
+    it('ends confirmation trace with success when relayDeposit confirms with matched in-flight mUSD conversion', () => {
+      const inFlightMusdConversion = createTransactionMeta(
+        TransactionStatus.signed,
+        'test-trace-confirmed',
+        TransactionType.musdConversion,
+      );
+      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
+        inFlightMusdConversion,
+      ]);
+
       renderHook(() => useMusdConversionStatus());
 
       const handler = getConfirmedHandler();
-      const transactionMeta = createTransactionMeta(
+      const relayDepositMeta = createTransactionMeta(
         TransactionStatus.confirmed,
-        'test-trace-confirmed',
+        'relay-trace-confirmed',
+        TransactionType.relayDeposit,
       );
 
-      handler(transactionMeta);
+      handler(relayDepositMeta);
 
       expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.MusdConversionConfirm,
@@ -1338,6 +1456,11 @@ describe('useMusdConversionStatus', () => {
       const statusHandler = getSubscribedHandler();
       const confirmedHandler = getConfirmedHandler();
       const transactionId = 'test-lifecycle-tx';
+      const relayDepositMeta = createTransactionMeta(
+        TransactionStatus.confirmed,
+        'relay-lifecycle-tx',
+        TransactionType.relayDeposit,
+      );
 
       // Transaction approved - starts trace
       statusHandler({
@@ -1346,6 +1469,13 @@ describe('useMusdConversionStatus', () => {
           transactionId,
         ),
       });
+      mockSelectPendingMusdConversionsForRelayMatch.mockReturnValue([
+        createTransactionMeta(
+          TransactionStatus.signed,
+          transactionId,
+          TransactionType.musdConversion,
+        ),
+      ]);
 
       expect(mockTrace).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1355,9 +1485,7 @@ describe('useMusdConversionStatus', () => {
       );
 
       // Transaction confirmed - ends trace (via transactionConfirmed event)
-      confirmedHandler(
-        createTransactionMeta(TransactionStatus.confirmed, transactionId),
-      );
+      confirmedHandler(relayDepositMeta);
 
       expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.MusdConversionConfirm,

@@ -24,12 +24,66 @@ import {
 import { store } from '../../../../store';
 import { selectTransactionPayQuotesByTransactionId } from '../../../../selectors/transactionPayController';
 import { getNetworkName } from '../utils/network';
+import { selectPendingMusdConversionsForRelayMatch } from '../selectors/musdConversionStatus';
+import Logger from '../../../../util/Logger';
 
 type PayQuote = TransactionPayQuote<unknown>;
+const MUSD_TOAST_LOG_PREFIX = '[mUSD Conversion Toast]';
 
 function chainIdsMatch(a?: Hex, b?: Hex): boolean | undefined {
   if (!a || !b) return undefined;
   return a.toLowerCase() === b.toLowerCase();
+}
+
+/**
+ * Resolves the single in-flight mUSD conversion tied to a confirmed relay deposit.
+ * Current production relay payloads do not include deterministic linkage fields,
+ * so we match by sender address and only proceed when there is exactly one candidate.
+ */
+export function findSingleInFlightMusdConversionForRelayDeposit(
+  relayDepositTransactionMeta: TransactionMeta,
+): TransactionMeta | undefined {
+  if (relayDepositTransactionMeta.type !== TransactionType.relayDeposit) {
+    return undefined;
+  }
+
+  const relayFromAddress = relayDepositTransactionMeta.txParams?.from;
+  if (!relayFromAddress) {
+    return undefined;
+  }
+
+  const state = store.getState();
+  const inFlightMusdConversions =
+    selectPendingMusdConversionsForRelayMatch(state);
+
+  const sortedInFlightMusdConversions = [...inFlightMusdConversions].sort(
+    (firstTransaction, secondTransaction) => {
+      const firstTransactionTime = firstTransaction.time ?? 0;
+      const secondTransactionTime = secondTransaction.time ?? 0;
+      return secondTransactionTime - firstTransactionTime;
+    },
+  );
+
+  const inFlightMusdConversionsForFromAddress =
+    sortedInFlightMusdConversions.filter(
+      (transactionMeta) =>
+        transactionMeta.txParams?.from?.toLowerCase() ===
+        relayFromAddress.toLowerCase(),
+    );
+
+  if (inFlightMusdConversionsForFromAddress.length !== 1) {
+    return undefined;
+  }
+
+  const [matchedMusdConversion] = inFlightMusdConversionsForFromAddress;
+  Logger.log(
+    `${MUSD_TOAST_LOG_PREFIX} matched relay by single from-address fallback`,
+    {
+      relayDepositTransactionId: relayDepositTransactionMeta.id,
+      musdConversionTransactionId: matchedMusdConversion.id,
+    },
+  );
+  return matchedMusdConversion;
 }
 
 function getTransactionPayQuotes(transactionId: string): PayQuote[] {
@@ -360,32 +414,55 @@ export const useMusdConversionStatus = () => {
     // ensuring the success toast appears in sync with the balance change in the UI
     // Note: transactionConfirmed can fire with failed status (see useCardDelegation.ts pattern)
     const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
-      // Only handle confirmed status - failed status is handled by transactionStatusUpdated
+      // Only handles confirmed status - failed status is handled by transactionStatusUpdated
       if (transactionMeta.status !== TransactionStatus.confirmed) {
         return;
       }
 
-      const data = getConversionData(
-        transactionMeta,
+      if (transactionMeta.type !== TransactionType.relayDeposit) {
+        return;
+      }
+
+      const matchingMusdConversionTransactionMeta =
+        findSingleInFlightMusdConversionForRelayDeposit(transactionMeta);
+
+      if (!matchingMusdConversionTransactionMeta) {
+        return;
+      }
+
+      const matchingMusdConversionData = getConversionData(
+        matchingMusdConversionTransactionMeta,
         TransactionStatus.confirmed,
       );
-      if (!data) return;
 
-      const { transactionId, tokenData, toastKey } = data;
+      if (!matchingMusdConversionData) {
+        return;
+      }
 
-      submitConversionEvent(transactionMeta, tokenData);
+      const {
+        transactionId: matchingMusdConversionTransactionId,
+        tokenData: matchingMusdConversionTokenData,
+        toastKey: matchingMusdConversionToastKey,
+      } = matchingMusdConversionData;
+
+      submitConversionEvent(
+        matchingMusdConversionTransactionMeta,
+        matchingMusdConversionTokenData,
+      );
       showToast(EarnToastOptions.mUsdConversion.success);
-      shownToastsRef.current.add(toastKey);
-      // End confirmation trace on success
+      shownToastsRef.current.add(matchingMusdConversionToastKey);
       endTrace({
         name: TraceName.MusdConversionConfirm,
-        id: transactionId,
+        id: matchingMusdConversionTransactionId,
         data: {
           success: true,
           status: TransactionStatus.confirmed,
         },
       });
-      scheduleCleanup(transactionId, TransactionStatus.confirmed);
+      scheduleCleanup(
+        matchingMusdConversionTransactionId,
+        TransactionStatus.confirmed,
+      );
     };
 
     Engine.controllerMessenger.subscribe(

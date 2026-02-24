@@ -36,6 +36,7 @@ const IN_FLIGHT_STATUSES: TransactionStatus[] = [
 /**
  * Selects all mUSD conversion transactions.
  */
+// TODO: Remove if not in use anymore.
 export const selectMusdConversions = createSelector(
   [selectTransactions],
   (transactions): TransactionMeta[] =>
@@ -43,24 +44,15 @@ export const selectMusdConversions = createSelector(
 );
 
 /**
- * Selects in-flight mUSD conversions (for loading states).
- * These are conversions that have been submitted/approved and not yet terminal.
+ * Selects pending mUSD conversion intents that can still be matched
+ * when a relay confirmation event arrives.
  */
-const selectInFlightMusdConversions = createSelector(
+export const selectPendingMusdConversionsForRelayMatch = createSelector(
   [selectMusdConversions],
   (conversions): TransactionMeta[] =>
     conversions.filter((tx) =>
       IN_FLIGHT_STATUSES.includes(tx.status as TransactionStatus),
     ),
-);
-
-/**
- * True when any in-flight mUSD conversion exists.
- * Used to globally disable quick-convert actions.
- */
-export const selectHasInFlightMusdConversion = createSelector(
-  [selectInFlightMusdConversions],
-  (inFlight): boolean => inFlight.length > 0,
 );
 
 /**
@@ -80,10 +72,40 @@ export const createTokenChainKey = (
  * Useful for efficiently rendering status indicators on a list of tokens.
  */
 export const selectMusdConversionStatuses = createSelector(
-  [selectMusdConversions],
-  (conversions): Record<string, ConversionStatusInfo> => {
+  [selectTransactions],
+  (transactions): Record<string, ConversionStatusInfo> => {
+    const conversions = transactions.filter(
+      (tx) => tx.type === TransactionType.musdConversion,
+    );
     const statusMap: Record<string, ConversionStatusInfo> = {};
     const latestTimeByKey: Record<string, number> = {};
+    const latestConfirmedRelayTimeByFromAddress: Record<string, number> = {};
+
+    for (const tx of transactions) {
+      if (tx.type !== TransactionType.relayDeposit) {
+        continue;
+      }
+
+      if (tx.status !== TransactionStatus.confirmed) {
+        continue;
+      }
+
+      const fromAddress = tx.txParams?.from?.toLowerCase();
+      if (!fromAddress) {
+        continue;
+      }
+
+      const relayConfirmedTime = tx.time ?? 0;
+      const existingRelayConfirmedTime =
+        latestConfirmedRelayTimeByFromAddress[fromAddress];
+
+      if (
+        existingRelayConfirmedTime === undefined ||
+        relayConfirmedTime > existingRelayConfirmedTime
+      ) {
+        latestConfirmedRelayTimeByFromAddress[fromAddress] = relayConfirmedTime;
+      }
+    }
 
     for (const tx of conversions) {
       const tokenAddress = tx.metamaskPay?.tokenAddress?.toLowerCase();
@@ -106,11 +128,21 @@ export const selectMusdConversionStatuses = createSelector(
       latestTimeByKey[key] = txTime;
 
       const status = tx.status as TransactionStatus;
+      const transactionFromAddress = tx.txParams?.from?.toLowerCase();
+      const latestConfirmedRelayTime = transactionFromAddress
+        ? latestConfirmedRelayTimeByFromAddress[transactionFromAddress]
+        : undefined;
+      const relayConfirmedAfterConversionStarted =
+        latestConfirmedRelayTime !== undefined &&
+        latestConfirmedRelayTime >= txTime;
+      const isPending =
+        IN_FLIGHT_STATUSES.includes(status) &&
+        !relayConfirmedAfterConversionStarted;
 
       statusMap[key] = {
         txId: tx.id,
         status,
-        isPending: IN_FLIGHT_STATUSES.includes(status),
+        isPending,
         isConfirmed: status === TransactionStatus.confirmed,
         isFailed: status === TransactionStatus.failed,
       };
@@ -118,4 +150,16 @@ export const selectMusdConversionStatuses = createSelector(
 
     return statusMap;
   },
+);
+
+/**
+ * True when any conversion is pending in the UI.
+ * This is relay-aware and should be used for loading/disable states.
+ */
+export const selectHasPendingMusdConversion = createSelector(
+  [selectMusdConversionStatuses],
+  (conversionStatusesByTokenChainKey): boolean =>
+    Object.values(conversionStatusesByTokenChainKey).some(
+      (conversionStatus) => conversionStatus.isPending,
+    ),
 );

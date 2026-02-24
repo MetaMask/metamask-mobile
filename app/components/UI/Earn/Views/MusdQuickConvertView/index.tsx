@@ -17,7 +17,7 @@ import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import {
   createTokenChainKey,
-  selectHasInFlightMusdConversion,
+  selectHasPendingMusdConversion,
   selectMusdConversionStatuses,
 } from '../../selectors/musdConversionStatus';
 import ConvertTokenRow from '../../components/Musd/ConvertTokenRow';
@@ -74,9 +74,7 @@ const MusdQuickConvertView = () => {
   // Get convertible tokens
   const { tokens: conversionTokens } = useMusdConversionTokens();
 
-  const hasInFlightMusdConversion = useSelector(
-    selectHasInFlightMusdConversion,
-  );
+  const hasPendingMusdConversion = useSelector(selectHasPendingMusdConversion);
 
   const conversionStatusesByTokenChainKey = useSelector(
     selectMusdConversionStatuses,
@@ -193,7 +191,7 @@ const MusdQuickConvertView = () => {
           token={item}
           onMaxPress={handleMaxPress}
           onEditPress={handleEditPress}
-          isActionsDisabled={hasInFlightMusdConversion}
+          isActionsDisabled={hasPendingMusdConversion}
           isConversionPending={Boolean(txStatusInfo?.isPending)}
         />
       );
@@ -202,7 +200,7 @@ const MusdQuickConvertView = () => {
       conversionStatusesByTokenChainKey,
       handleEditPress,
       handleMaxPress,
-      hasInFlightMusdConversion,
+      hasPendingMusdConversion,
     ],
   );
 
