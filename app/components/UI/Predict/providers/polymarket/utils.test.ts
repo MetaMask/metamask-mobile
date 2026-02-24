@@ -52,6 +52,7 @@ import {
   getMarketsFromPolymarketApi,
   getParsedMarketsFromPolymarketApi,
   getOrderBook,
+  getFeeRateBps,
   getOrderTypedData,
   getPolymarketEndpoints,
   getPredictPositionStatus,
@@ -550,6 +551,45 @@ describe('polymarket utils', () => {
       await expect(getOrderBook({ tokenId: 'test-token' })).rejects.toThrow(
         'Custom error message',
       );
+    });
+  });
+
+  describe('getFeeRateBps', () => {
+    it('returns fee rate from CLOB fee-rate endpoint', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ base_fee: 30 }),
+      });
+
+      const result = await getFeeRateBps({ tokenId: 'test-token' });
+
+      expect(result).toBe('30');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/fee-rate?token_id=test-token',
+        { method: 'GET' },
+      );
+    });
+
+    it('returns zero fee rate when fee-rate endpoint responds with error', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: jest
+          .fn()
+          .mockResolvedValue({ error: 'fee rate not found for market' }),
+      });
+
+      const result = await getFeeRateBps({ tokenId: 'test-token' });
+
+      expect(result).toBe('0');
+    });
+
+    it('returns zero fee rate when fee-rate endpoint throws', async () => {
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      const result = await getFeeRateBps({ tokenId: 'test-token' });
+
+      expect(result).toBe('0');
     });
   });
 
@@ -3253,7 +3293,7 @@ describe('polymarket utils', () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ tags: [] }),
+        json: async () => ({ base_fee: 30 }),
       });
 
       const result = await previewOrder({
@@ -3269,6 +3309,7 @@ describe('polymarket utils', () => {
       expect(result.sharePrice).toBeGreaterThan(0);
       expect(result.maxAmountSpent).toBeGreaterThan(0);
       expect(result.slippage).toBeDefined();
+      expect(result.feeRateBps).toBe('30');
     });
 
     it('previews SELL order successfully', async () => {
@@ -3291,7 +3332,7 @@ describe('polymarket utils', () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ tags: [] }),
+        json: async () => ({ base_fee: 15 }),
       });
 
       const result = await previewOrder({
@@ -3306,6 +3347,7 @@ describe('polymarket utils', () => {
       expect(result.marketId).toBe('market-1');
       expect(result.sharePrice).toBeGreaterThan(0);
       expect(result.fees).toBeUndefined();
+      expect(result.feeRateBps).toBe('15');
     });
 
     it('throws error when orderbook is not available', async () => {
