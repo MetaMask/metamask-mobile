@@ -299,6 +299,17 @@ class BrowserPlaygroundDapp {
   // MULTICHAIN ACTIONS
   // ============================================================
 
+  /**
+   * Wait for the Multichain Connect button to be visible (dapp ready).
+   * Use before tapConnect() to avoid tapping before the dapp has loaded and reduce idle time that can cause auto-lock.
+   * @param {number} timeoutMs - Max time to wait (default 15s)
+   */
+  async waitForConnectButtonVisible(timeoutMs = 15000) {
+    if (!this._device) return;
+    const connectButton = await this.connectButton;
+    await expect(connectButton).toBeVisible({ timeout: timeoutMs });
+  }
+
   async tapConnect() {
     if (!this._device) return;
     const element = await this.connectButton;

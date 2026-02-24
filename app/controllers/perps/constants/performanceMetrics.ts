@@ -41,6 +41,8 @@ export enum PerpsMeasurementName {
   // Tracks data fetch operations
   PerpsGetPositionsOperation = 'perps.operation.get_positions',
   PerpsGetOpenOrdersOperation = 'perps.operation.get_open_orders',
+  PerpsMarketDataPreload = 'perps.operation.market_data_preload',
+  PerpsUserDataPreload = 'perps.operation.user_data_preload',
 
   // Screen Load Metrics (milliseconds)
   // Tracks full screen render performance

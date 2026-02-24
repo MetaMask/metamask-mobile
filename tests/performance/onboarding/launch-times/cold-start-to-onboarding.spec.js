@@ -1,5 +1,5 @@
 import { test } from '../../../framework/fixtures/performance-test.js';
-import TimerHelper from '../../../framework/utils/TimersHelper.js';
+import TimerHelper from '../../../framework/TimerHelper';
 import OnboardingScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
 import {
   PerformanceOnboarding,

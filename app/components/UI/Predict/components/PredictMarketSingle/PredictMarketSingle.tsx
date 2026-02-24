@@ -154,7 +154,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const tw = useTailwind();
 
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: market.providerId,
     navigation,
   });
 

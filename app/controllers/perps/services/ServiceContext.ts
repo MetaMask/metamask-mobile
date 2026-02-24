@@ -26,7 +26,7 @@ import type { Order, Position } from '../types';
  * - Thin controller with pure delegation
  * - Easy testing through mock contexts and constructor injection
  */
-export interface ServiceContext {
+export type ServiceContext = {
   /**
    * Tracing context for performance monitoring
    * Used in trace() calls to tag operations
@@ -101,4 +101,4 @@ export interface ServiceContext {
   }) => void;
   incrementHip3ConfigVersion?: () => number;
   refreshEligibility?: () => Promise<void>;
-}
+};

@@ -1,5 +1,6 @@
-import type { AccountState } from '../types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import type { AccountState } from '../types';
+
 import {
   aggregateAccountStates,
   calculateWeightedReturnOnEquity,

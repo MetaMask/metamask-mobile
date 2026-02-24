@@ -5,7 +5,7 @@ import { ModalFieldType } from '../../../../../util/notifications';
 import { processNotification } from '@metamask/notification-services-controller/notification-services';
 import { createMockNotificationEthReceived } from '@metamask/notification-services-controller/notification-services/mocks';
 import NetworkFeeFieldSkeleton from './Skeletons/NetworkFeeField';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 jest.mock('../../../../../util/notifications/methods/common', () => ({
   getNetworkFees: () =>
@@ -20,7 +20,9 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
       transactionFeeInUsd: '0',
     }),
 }));
-jest.mock('../../../../hooks/useMetrics');
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 const MOCK_NOTIFICATION = processNotification(
   createMockNotificationEthReceived(),
 );
@@ -34,7 +36,7 @@ describe('NetworkFeeField', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+    (useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: jest.fn(),
       enable: jest.fn(),
@@ -45,7 +47,7 @@ describe('NetworkFeeField', () => {
       getDeleteRegulationId: jest.fn(),
       isDataRecorded: jest.fn(),
       isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
+      getAnalyticsId: jest.fn(),
     });
   });
 

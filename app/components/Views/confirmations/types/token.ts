@@ -29,6 +29,47 @@ export interface AssetType extends TokenI {
   rawBalance?: Hex;
 }
 
+export interface HighlightedActionButton {
+  buttonLabel: string;
+  onPress: () => void;
+  isDisabled?: boolean;
+}
+
+export interface HighlightedAssetListItem {
+  type: 'highlighted_asset';
+  icon: string;
+  name: string;
+  name_description: string;
+  fiat: string;
+  fiat_description: string;
+  action: () => void;
+  isSelected?: boolean;
+}
+
+export interface HighlightedActionListItem {
+  type: 'highlighted_action';
+  // Either an IconName or a icon URI string
+  icon: string;
+  name: string;
+  name_description: string;
+  actions: HighlightedActionButton[];
+  // Spinner will be shown regardless of the action buttons
+  isLoading?: boolean;
+}
+
+export type TokenListItem =
+  | AssetType
+  | HighlightedAssetListItem
+  | HighlightedActionListItem;
+
+export const isHighlightedAssetListItem = (
+  item: TokenListItem,
+): item is HighlightedAssetListItem => item.type === 'highlighted_asset';
+
+export const isHighlightedActionListItem = (
+  item: TokenListItem,
+): item is HighlightedActionListItem => item.type === 'highlighted_action';
+
 export interface Nft {
   address: string;
   standard: 'ERC721' | 'ERC1155';

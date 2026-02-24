@@ -201,7 +201,9 @@ function FiatOrders() {
     async () => {
       await Promise.all(
         forceUpdateOrders.map((order) =>
-          processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk),
+          processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk, {
+            forced: true,
+          }),
         ),
       );
     },

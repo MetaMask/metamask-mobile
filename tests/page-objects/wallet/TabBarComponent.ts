@@ -4,16 +4,12 @@ import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testI
 import { Assertions, Utilities } from '../../framework';
 import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
-import BrowserView from '../Browser/BrowserView';
 import WalletView from './WalletView';
 import TrendingView from '../Trending/TrendingView';
 
 class TabBarComponent {
   get tabBarExploreButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);
-  }
-  get tabBarBrowserButton(): DetoxElement {
-    return Matchers.getElementByID(TabBarSelectorIDs.BROWSER);
   }
 
   get tabBarWalletButton(): DetoxElement {
@@ -38,19 +34,6 @@ class TabBarComponent {
 
   get tabBarRewardsButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
-  }
-
-  async tapBrowser(): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        await Gestures.waitAndTap(this.tabBarBrowserButton);
-        await Assertions.expectElementToBeVisible(BrowserView.browserScreenID);
-      },
-      {
-        timeout: 10000,
-        description: 'Tap Browser Button with Validation',
-      },
-    );
   }
 
   async tapHome(): Promise<void> {

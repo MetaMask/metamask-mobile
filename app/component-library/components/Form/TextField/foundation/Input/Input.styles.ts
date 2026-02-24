@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, TextStyle, Platform } from 'react-native';
+import { StyleSheet, TextStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
@@ -45,10 +45,6 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,
         letterSpacing: theme.typography[textVariant].letterSpacing,
-        // iOS-specific fix for custom font baseline alignment
-        ...(Platform.OS === 'ios' && {
-          textAlignVertical: 'center',
-        }),
       },
       style,
     ) as TextStyle,

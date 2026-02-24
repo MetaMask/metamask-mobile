@@ -137,7 +137,10 @@ export const useMerklClaim = (asset: TokenI | undefined) => {
       const { name, code, message } = e as Error & { code?: number };
 
       // Ignore AbortError - component unmounted or request was cancelled
+      // Still reset isClaiming so the spinner doesn't stick if the component
+      // is still mounted (e.g. a stale abort from a deduplicated request).
       if (name === 'AbortError') {
+        setIsClaiming(false);
         return undefined;
       }
 

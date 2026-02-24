@@ -4,8 +4,58 @@ import {
   DEFAULT_FEATURE_FLAG_VALUES,
   FeatureFlagNames,
 } from '../../../constants/featureFlags';
-import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
+import {
+  validatedVersionGatedFeatureFlag,
+  hasMinimumRequiredVersion,
+} from '../../../util/remoteFeatureFlag';
 
+// Valid variants for the layout A/B test
+const VALID_LAYOUT_VARIANTS = ['control', 'treatment'] as const;
+type LayoutVariant = (typeof VALID_LAYOUT_VARIANTS)[number];
+
+const isValidVariant = (value: unknown): value is LayoutVariant =>
+  typeof value === 'string' &&
+  VALID_LAYOUT_VARIANTS.includes(value as LayoutVariant);
+
+/**
+ * Selector for Token Details Layout A/B test variant.
+ *
+ * Reads the version-gated JSON flag from LaunchDarkly:
+ * { "variant": "control"|"treatment", "minimumVersion": "7.66.0" }
+ *
+ * Returns null when the test is inactive (flag unset, invalid, or version gate fails).
+ */
+export const selectTokenDetailsLayoutTestVariant = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string | null => {
+    const remoteFlag = remoteFeatureFlags?.tokenDetailsV2AbTest;
+
+    if (!remoteFlag) {
+      return null;
+    }
+
+    if (typeof remoteFlag === 'object' && 'value' in remoteFlag) {
+      const { variant, minimumVersion } = remoteFlag.value as {
+        variant: unknown;
+        minimumVersion: unknown;
+      };
+      if (
+        typeof minimumVersion === 'string' &&
+        !hasMinimumRequiredVersion(minimumVersion)
+      ) {
+        return null;
+      }
+      return isValidVariant(variant) ? variant : null;
+    }
+
+    return null;
+  },
+);
+
+/**
+ * Keep TokenDetailsV2Enabled - always true since we use the V2 component
+ * The A/B test controls the button layout within V2
+ */
 export const selectTokenDetailsV2Enabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>
@@ -16,10 +66,8 @@ export const selectTokenDetailsV2Enabled = createSelector(
 );
 
 /**
- * Evaluates the tokenDetailsV2ButtonLayout feature flag.
- * Handles both the direct shape { enabled, minimumVersion } and
- * the progressive rollout shape { name, value: { enabled, minimumVersion } }.
- * Uses the shared validatedVersionGatedFeatureFlag utility.
+ * @deprecated Use selectTokenDetailsLayoutTestVariant for A/B test
+ * Keep for backward compatibility during migration
  */
 export const selectTokenDetailsV2ButtonsEnabled = createSelector(
   selectRemoteFeatureFlags,

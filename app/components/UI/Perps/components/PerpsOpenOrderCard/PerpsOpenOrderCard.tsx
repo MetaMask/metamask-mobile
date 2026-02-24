@@ -40,7 +40,8 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 /**
  * PerpsOpenOrderCard Component
@@ -80,7 +81,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   isCancelling = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Used to prevent rapid clicks on the cancel button before it has time to re-render.
   const isLocallyCancellingRef = useRef(false);
