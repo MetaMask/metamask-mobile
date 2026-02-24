@@ -34,25 +34,25 @@ jest.mock('react-redux', () => ({
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockRouteParams = jest.fn().mockReturnValue({
+  address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  chainId: '0x1',
+  symbol: 'DAI',
+  decimals: 18,
+  name: 'Dai Stablecoin',
+  image: 'https://example.com/dai.png',
+  isETH: false,
+  isNative: false,
+  balance: '10.5',
+});
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
-  useRoute: () => ({
-    params: {
-      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-      chainId: '0x1',
-      symbol: 'DAI',
-      decimals: 18,
-      name: 'Dai Stablecoin',
-      image: 'https://example.com/dai.png',
-      isETH: false,
-      isNative: false,
-      balance: '10.5',
-    },
-  }),
+  useRoute: mockRouteParams,
 }));
 
 jest.mock('../hooks/useTokenPrice', () => ({
@@ -312,7 +312,6 @@ describe('TokenDetails', () => {
 
   it('tracks token details opened with market insights hidden for legacy asset view', async () => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectTokenDetailsV2Enabled) return false;
       if (selector === selectNetworkConfigurationByChainId)
         return { name: 'Ethereum' };
       if (selector === selectPerpsEnabledFlag) return false;
@@ -323,7 +322,7 @@ describe('TokenDetails', () => {
       return undefined;
     });
 
-    render(<TokenDetails {...defaultProps} />);
+    render(<TokenDetails />);
 
     await waitFor(() => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -338,7 +337,7 @@ describe('TokenDetails', () => {
   });
 
   it('tracks token details opened for each token when route params change', async () => {
-    const { rerender } = render(<TokenDetails {...defaultProps} />);
+    const { rerender } = render(<TokenDetails />);
 
     await waitFor(() => {
       expect(mockAddProperties).toHaveBeenCalledWith(
@@ -350,20 +349,18 @@ describe('TokenDetails', () => {
       );
     });
 
-    const secondToken = {
-      ...defaultToken,
+    mockRouteParams.mockReturnValue({
       address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
       symbol: 'USDC',
+      decimals: 18,
       name: 'USD Coin',
-    } as TokenI;
+      image: 'https://example.com/usdc.png',
+      isETH: false,
+      isNative: false,
+    });
 
-    rerender(
-      <TokenDetails
-        route={{
-          params: secondToken,
-        }}
-      />,
-    );
+    rerender(<TokenDetails />);
 
     await waitFor(() => {
       expect(mockAddProperties).toHaveBeenCalledWith(
@@ -377,13 +374,13 @@ describe('TokenDetails', () => {
   });
 
   it('does not track token details opened more than once for the same token', async () => {
-    const { rerender } = render(<TokenDetails {...defaultProps} />);
+    const { rerender } = render(<TokenDetails />);
 
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
 
-    rerender(<TokenDetails {...defaultProps} />);
+    rerender(<TokenDetails />);
 
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
