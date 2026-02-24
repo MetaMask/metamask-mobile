@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useImperativeHandle,
   useMemo,
+  useRef,
 } from 'react';
 import { TouchableOpacity, Image, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -31,6 +32,9 @@ import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { isNftFetchingProgressSelector } from '../../../../../reducers/collectibles';
 import gemIcon from './assets/gem.png';
+import useHomepageSectionViewedEvent, {
+  HomepageSectionNames,
+} from '../../hooks/useHomepageSectionViewedEvent';
 
 const MAX_NFTS_DISPLAYED = 6;
 const NFTS_PER_ROW = 3;
@@ -62,124 +66,144 @@ const NftSkeletonRow = () => {
   );
 };
 
-const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
-  const navigation = useNavigation();
-  const ownedNfts = useOwnedNfts();
-  const hasNfts = ownedNfts.length > 0;
-  const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
-  const { onRefresh } = useNftRefresh();
+interface NFTsSectionProps {
+  sectionIndex: number;
+  totalSectionsLoaded: number;
+}
 
-  const title = strings('homepage.sections.nfts');
+const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
+  ({ sectionIndex, totalSectionsLoaded }, ref) => {
+    const navigation = useNavigation();
+    const ownedNfts = useOwnedNfts();
+    const hasNfts = ownedNfts.length > 0;
+    const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
+    const { onRefresh } = useNftRefresh();
+    const sectionViewRef = useRef<View>(null);
 
-  useImperativeHandle(ref, () => ({ refresh: onRefresh }), [onRefresh]);
+    const title = strings('homepage.sections.nfts');
 
-  const displayNfts = useMemo(
-    () => ownedNfts.slice(0, MAX_NFTS_DISPLAYED),
-    [ownedNfts],
-  );
+    useImperativeHandle(ref, () => ({ refresh: onRefresh }), [onRefresh]);
 
-  // Split NFTs into rows of NFTS_PER_ROW
-  const nftRows = useMemo(() => {
-    const rows: (typeof displayNfts)[] = [];
-    for (let i = 0; i < displayNfts.length; i += NFTS_PER_ROW) {
-      rows.push(displayNfts.slice(i, i + NFTS_PER_ROW));
-    }
-    return rows;
-  }, [displayNfts]);
+    useHomepageSectionViewedEvent({
+      sectionRef: sectionViewRef,
+      isLoading: isNftFetchingProgress && !hasNfts,
+      sectionName: HomepageSectionNames.NFTS,
+      sectionIndex,
+      totalSectionsLoaded,
+      isEmpty: !hasNfts,
+      itemCount: ownedNfts.length,
+    });
 
-  const handleViewAllNfts = useCallback(() => {
-    navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
-  }, [navigation]);
+    const displayNfts = useMemo(
+      () => ownedNfts.slice(0, MAX_NFTS_DISPLAYED),
+      [ownedNfts],
+    );
 
-  const handleImportNfts = useCallback(() => {
-    navigation.navigate('AddAsset', { assetType: 'collectible' });
-  }, [navigation]);
+    // Split NFTs into rows of NFTS_PER_ROW
+    const nftRows = useMemo(() => {
+      const rows: (typeof displayNfts)[] = [];
+      for (let i = 0; i < displayNfts.length; i += NFTS_PER_ROW) {
+        rows.push(displayNfts.slice(i, i + NFTS_PER_ROW));
+      }
+      return rows;
+    }, [displayNfts]);
 
-  return (
-    <Box gap={3}>
-      <SectionTitle title={title} onPress={handleViewAllNfts} />
-      {hasNfts ? (
-        <SectionRow>
-          <Box gap={3}>
-            {nftRows.map((row, rowIndex) => (
-              <Box
-                key={`nft-row-${rowIndex}`}
-                flexDirection={BoxFlexDirection.Row}
-                gap={3}
-              >
-                {row.map((nft) => (
+    const handleViewAllNfts = useCallback(() => {
+      navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
+    }, [navigation]);
+
+    const handleImportNfts = useCallback(() => {
+      navigation.navigate('AddAsset', { assetType: 'collectible' });
+    }, [navigation]);
+
+    return (
+      <View ref={sectionViewRef}>
+        <Box gap={3}>
+          <SectionTitle title={title} onPress={handleViewAllNfts} />
+          {hasNfts ? (
+            <SectionRow>
+              <Box gap={3}>
+                {nftRows.map((row, rowIndex) => (
                   <Box
-                    key={`${nft.address}-${nft.tokenId}`}
-                    twClassName="flex-1"
+                    key={`nft-row-${rowIndex}`}
+                    flexDirection={BoxFlexDirection.Row}
+                    gap={3}
                   >
-                    <NftGridItem
-                      item={nft}
-                      onLongPress={noop}
-                      source="mobile-nft-list"
-                    />
+                    {row.map((nft) => (
+                      <Box
+                        key={`${nft.address}-${nft.tokenId}`}
+                        twClassName="flex-1"
+                      >
+                        <NftGridItem
+                          item={nft}
+                          onLongPress={noop}
+                          source="mobile-nft-list"
+                        />
+                      </Box>
+                    ))}
+                    {/* Add empty boxes to maintain grid alignment for incomplete rows */}
+                    {row.length < NFTS_PER_ROW &&
+                      Array.from({ length: NFTS_PER_ROW - row.length }).map(
+                        (__, i) => (
+                          <Box
+                            key={`empty-${rowIndex}-${i}`}
+                            twClassName="flex-1"
+                          />
+                        ),
+                      )}
                   </Box>
                 ))}
-                {/* Add empty boxes to maintain grid alignment for incomplete rows */}
-                {row.length < NFTS_PER_ROW &&
-                  Array.from({ length: NFTS_PER_ROW - row.length }).map(
-                    (__, i) => (
-                      <Box
-                        key={`empty-${rowIndex}-${i}`}
-                        twClassName="flex-1"
+              </Box>
+            </SectionRow>
+          ) : isNftFetchingProgress ? (
+            <SectionRow>
+              <NftSkeletonRow />
+            </SectionRow>
+          ) : (
+            <SectionRow>
+              <TouchableOpacity onPress={handleImportNfts} activeOpacity={0.7}>
+                <SectionCard>
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    gap={4}
+                  >
+                    <Box
+                      alignItems={BoxAlignItems.Center}
+                      justifyContent={BoxJustifyContent.Center}
+                      twClassName="w-10 h-10"
+                    >
+                      <Image
+                        source={gemIcon}
+                        // eslint-disable-next-line react-native/no-inline-styles
+                        style={{ width: 40, height: 40 }}
+                        resizeMode="contain"
                       />
-                    ),
-                  )}
-              </Box>
-            ))}
-          </Box>
-        </SectionRow>
-      ) : isNftFetchingProgress ? (
-        <SectionRow>
-          <NftSkeletonRow />
-        </SectionRow>
-      ) : (
-        <SectionRow>
-          <TouchableOpacity onPress={handleImportNfts} activeOpacity={0.7}>
-            <SectionCard>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={4}
-              >
-                <Box
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Center}
-                  twClassName="w-10 h-10"
-                >
-                  <Image
-                    source={gemIcon}
-                    // eslint-disable-next-line react-native/no-inline-styles
-                    style={{ width: 40, height: 40 }}
-                    resizeMode="contain"
-                  />
-                </Box>
-                <Box twClassName="flex-1">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextDefault}
-                  >
-                    {strings('homepage.sections.import_nfts')}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('homepage.sections.import_nfts_description')}
-                  </Text>
-                </Box>
-              </Box>
-            </SectionCard>
-          </TouchableOpacity>
-        </SectionRow>
-      )}
-    </Box>
-  );
-});
+                    </Box>
+                    <Box twClassName="flex-1">
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        fontWeight={FontWeight.Medium}
+                        color={TextColor.TextDefault}
+                      >
+                        {strings('homepage.sections.import_nfts')}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {strings('homepage.sections.import_nfts_description')}
+                      </Text>
+                    </Box>
+                  </Box>
+                </SectionCard>
+              </TouchableOpacity>
+            </SectionRow>
+          )}
+        </Box>
+      </View>
+    );
+  },
+);
 
 export default NFTsSection;

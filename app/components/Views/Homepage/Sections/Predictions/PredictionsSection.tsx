@@ -39,6 +39,9 @@ import { colorWithOpacity } from '../../../../../util/colors';
 import type { PredictPosition } from '../../../../UI/Predict/types';
 import type { PredictNavigationParamList } from '../../../../UI/Predict/types/navigation';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
+import useHomepageSectionViewedEvent, {
+  HomepageSectionNames,
+} from '../../hooks/useHomepageSectionViewedEvent';
 
 const MAX_MARKETS_DISPLAYED = 5;
 const MAX_POSITIONS_DISPLAYED = 3;
@@ -78,6 +81,11 @@ const styles = StyleSheet.create({
   },
 });
 
+interface PredictionsSectionProps {
+  sectionIndex: number;
+  totalSectionsLoaded: number;
+}
+
 /**
  * PredictionsSection - Displays prediction content on the homepage
  *
@@ -87,7 +95,10 @@ const styles = StyleSheet.create({
  *
  * Returns null if the Predict feature flag is disabled.
  */
-const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
+const PredictionsSection = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation =
@@ -97,6 +108,8 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   // Track scroll position for fade effect
   const [fadeOpacity, setFadeOpacity] = useState(1);
+
+  const sectionViewRef = useRef<View>(null);
 
   // Fetch both positions and markets
   const {
@@ -115,6 +128,34 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   // Determine if user has positions
   const hasPositions = positions.length > 0;
+
+  const isLoading = isLoadingPositions || isLoadingMarkets;
+
+  const hasError =
+    !isLoadingPositions &&
+    !isLoadingMarkets &&
+    !hasPositions &&
+    markets.length === 0 &&
+    (positionsError || marketsError);
+
+  const isEmpty =
+    !isLoading && !hasPositions && markets.length === 0 && !hasError;
+
+  const itemCount = hasPositions ? positions.length : markets.length;
+
+  // Determine whether the section will actually render visible content.
+  // Pass null when the section returns null so the event fires immediately.
+  const willRender = isPredictEnabled && !isEmpty;
+
+  useHomepageSectionViewedEvent({
+    sectionRef: willRender ? sectionViewRef : null,
+    isLoading,
+    sectionName: HomepageSectionNames.PREDICT,
+    sectionIndex,
+    totalSectionsLoaded,
+    isEmpty,
+    itemCount,
+  });
 
   // Use ref so refresh always reads the latest value without stale closures
   const hasPositionsRef = useRef(hasPositions);
@@ -182,50 +223,46 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     return null;
   }
 
-  // Show error state when both hooks fail and nothing is loading
-  const hasError =
-    !isLoadingPositions &&
-    !isLoadingMarkets &&
-    !hasPositions &&
-    markets.length === 0 &&
-    (positionsError || marketsError);
-
   if (hasError) {
     return (
-      <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAllPredictions} />
-        <ErrorState
-          title={strings('homepage.error.unable_to_load', {
-            section: title.toLowerCase(),
-          })}
-          onRetry={refresh}
-        />
-      </Box>
+      <View ref={sectionViewRef}>
+        <Box gap={3}>
+          <SectionTitle title={title} onPress={handleViewAllPredictions} />
+          <ErrorState
+            title={strings('homepage.error.unable_to_load', {
+              section: title.toLowerCase(),
+            })}
+            onRetry={refresh}
+          />
+        </Box>
+      </View>
     );
   }
 
   // Render positions if user has any
   if (hasPositions || isLoadingPositions) {
     return (
-      <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAllPredictions} />
-        <Box>
-          {isLoadingPositions ? (
-            <>
-              <PredictPositionRowSkeleton />
-              <PredictPositionRowSkeleton />
-            </>
-          ) : (
-            positions.map((position) => (
-              <PredictPositionRow
-                key={`${position.outcomeId}:${position.outcomeIndex}`}
-                position={position}
-                onPress={handlePositionPress}
-              />
-            ))
-          )}
+      <View ref={sectionViewRef}>
+        <Box gap={3}>
+          <SectionTitle title={title} onPress={handleViewAllPredictions} />
+          <Box>
+            {isLoadingPositions ? (
+              <>
+                <PredictPositionRowSkeleton />
+                <PredictPositionRowSkeleton />
+              </>
+            ) : (
+              positions.map((position) => (
+                <PredictPositionRow
+                  key={`${position.outcomeId}:${position.outcomeIndex}`}
+                  position={position}
+                  onPress={handlePositionPress}
+                />
+              ))
+            )}
+          </Box>
         </Box>
-      </Box>
+      </View>
     );
   }
 
@@ -236,43 +273,47 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   // Render trending markets if no positions
   return (
-    <Box gap={3}>
-      <SectionTitle title={title} onPress={handleViewAllPredictions} />
-      <View style={styles.scrollContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-3')}
-          snapToOffsets={SNAP_OFFSETS}
-          decelerationRate="fast"
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-        >
-          {isLoadingMarkets ? (
-            SKELETON_KEYS.map((key) => <PredictMarketCardSkeleton key={key} />)
-          ) : (
-            <>
-              {markets.map((market) => (
-                <PredictMarketCard key={market.id} market={market} />
-              ))}
-              <ViewMoreCard onPress={handleViewAllPredictions} />
-            </>
+    <View ref={sectionViewRef}>
+      <Box gap={3}>
+        <SectionTitle title={title} onPress={handleViewAllPredictions} />
+        <View style={styles.scrollContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={tw.style('px-4 gap-3')}
+            snapToOffsets={SNAP_OFFSETS}
+            decelerationRate="fast"
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+          >
+            {isLoadingMarkets ? (
+              SKELETON_KEYS.map((key) => (
+                <PredictMarketCardSkeleton key={key} />
+              ))
+            ) : (
+              <>
+                {markets.map((market) => (
+                  <PredictMarketCard key={market.id} market={market} />
+                ))}
+                <ViewMoreCard onPress={handleViewAllPredictions} />
+              </>
+            )}
+          </ScrollView>
+          {/* Fade overlay on the right edge */}
+          {fadeOpacity > 0 && (
+            <LinearGradient
+              colors={[
+                colorWithOpacity(colors.background.default, 0),
+                colors.background.default,
+              ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.fadeOverlay, { opacity: fadeOpacity }]}
+            />
           )}
-        </ScrollView>
-        {/* Fade overlay on the right edge */}
-        {fadeOpacity > 0 && (
-          <LinearGradient
-            colors={[
-              colorWithOpacity(colors.background.default, 0),
-              colors.background.default,
-            ]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.fadeOverlay, { opacity: fadeOpacity }]}
-          />
-        )}
-      </View>
-    </Box>
+        </View>
+      </Box>
+    </View>
   );
 });
 

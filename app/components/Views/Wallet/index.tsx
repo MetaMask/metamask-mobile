@@ -123,6 +123,11 @@ import {
 } from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
 import { SectionRefreshHandle } from '../Homepage/types';
+import {
+  HomepageScrollContext,
+  HomepageEntryPoint,
+  HomepageEntryPoints,
+} from '../Homepage/context/HomepageScrollContext';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -614,6 +619,24 @@ const Wallet = ({
   const { refreshBalance } = useBalanceRefresh();
   const theme = useTheme();
 
+  // ─── Homepage scroll context state ───────────────────────────────────────
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [entryPoint, setEntryPoint] = useState<HomepageEntryPoint>(
+    HomepageEntryPoints.APP_OPENED,
+  );
+  const [visitId, setVisitId] = useState(0);
+
+  // Tracks whether this is the very first focus (app open) or a revisit.
+  const isFirstFocusRef = useRef(true);
+  // Set by the tabPress listener so useFocusEffect can pick it up.
+  const nextEntryPointRef = useRef<HomepageEntryPoint | null>(null);
+  // Timestamp of the last scroll event — used for JS-level throttling.
+  const lastScrollTickTimeRef = useRef(0);
+  // Callbacks registered by sections to be notified of scroll events.
+  // Using a ref+Set avoids any React state updates (and re-renders) on scroll.
+  const scrollSubscribersRef = useRef<Set<() => void>>(new Set());
+  // ─────────────────────────────────────────────────────────────────────────
+
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsGTMModalEnabled = useSelector(
     selectPerpsGtmOnboardingModalEnabledFlag,
@@ -790,6 +813,30 @@ const Wallet = ({
       isMountedRef.current = false;
     };
   }, []);
+
+  // Detect home-tab press so useFocusEffect can distinguish it from back-nav.
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('tabPress' as never, () => {
+      nextEntryPointRef.current = HomepageEntryPoints.HOME_TAB;
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  // Determine entry point and increment visitId on every homepage focus.
+  useFocusEffect(
+    useCallback(() => {
+      let ep: HomepageEntryPoint;
+      if (isFirstFocusRef.current) {
+        ep = HomepageEntryPoints.APP_OPENED;
+        isFirstFocusRef.current = false;
+      } else {
+        ep = nextEntryPointRef.current ?? HomepageEntryPoints.NAVIGATED_BACK;
+      }
+      nextEntryPointRef.current = null;
+      setEntryPoint(ep);
+      setVisitId((prev) => prev + 1);
+    }, []),
+  );
 
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
   // This handles scrolling in the homepage .map() mode where TokenList can't scroll directly
@@ -1285,6 +1332,21 @@ const Wallet = ({
     }
   }, [refreshBalance, isHomepageSectionsV1Enabled]);
 
+  // Notifies scroll subscribers directly (no React state update = no re-renders).
+  const handleHomepageScroll = useCallback(() => {
+    if (!isHomepageSectionsV1Enabled) return;
+    const now = Date.now();
+    if (now - lastScrollTickTimeRef.current >= 100) {
+      lastScrollTickTimeRef.current = now;
+      scrollSubscribersRef.current.forEach((cb) => cb());
+    }
+  }, [isHomepageSectionsV1Enabled]);
+
+  const subscribeToScroll = useCallback((cb: () => void) => {
+    scrollSubscribersRef.current.add(cb);
+    return () => scrollSubscribersRef.current.delete(cb);
+  }, []);
+
   const content = (
     <>
       <AssetPollingProvider />
@@ -1323,7 +1385,11 @@ const Wallet = ({
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
         {isHomepageSectionsV1Enabled ? (
-          <Homepage ref={homepageRef} />
+          <HomepageScrollContext.Provider
+            value={{ subscribeToScroll, viewportHeight, entryPoint, visitId }}
+          >
+            <Homepage ref={homepageRef} />
+          </HomepageScrollContext.Provider>
         ) : (
           <WalletTokensTabView
             ref={walletTokensTabViewRef}
@@ -1352,6 +1418,7 @@ const Wallet = ({
           <View
             style={styles.wrapper}
             testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+            onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}
           >
             <ConditionalScrollView
               ref={scrollViewRef}
@@ -1359,6 +1426,8 @@ const Wallet = ({
               scrollViewProps={{
                 contentContainerStyle: scrollViewContentStyle,
                 showsVerticalScrollIndicator: false,
+                onScroll: handleHomepageScroll,
+                scrollEventThrottle: 16,
                 refreshControl: shouldEnableParentScroll ? (
                   <RefreshControl
                     colors={[colors.primary.default]}

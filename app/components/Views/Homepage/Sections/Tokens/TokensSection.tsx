@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -18,6 +19,9 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
+import useHomepageSectionViewedEvent, {
+  HomepageSectionNames,
+} from '../../hooks/useHomepageSectionViewedEvent';
 
 const MAX_TOKENS_DISPLAYED = 5;
 
@@ -25,61 +29,85 @@ const MAX_TOKENS_DISPLAYED = 5;
 const noopShowRemoveMenu = () => undefined;
 const noopSetShowScamWarningModal = () => undefined;
 
+interface TokensSectionProps {
+  sectionIndex: number;
+  totalSectionsLoaded: number;
+}
+
 /**
  * TokensSection - Displays user's token balances on the homepage
  * For zero balance accounts, shows popular tokens with buy buttons
  * For accounts with balance, shows the user's token holdings
  */
-const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
-  const navigation = useNavigation();
-  const isZeroBalanceAccount = useIsZeroBalanceAccount();
-  const sortedTokenKeys = useSelector(selectSortedAssetsBySelectedAccountGroup);
-  const privacyMode = useSelector(selectPrivacyMode);
-  const popularTokensListRef = useRef<SectionRefreshHandle>(null);
+const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
+  ({ sectionIndex, totalSectionsLoaded }, ref) => {
+    const navigation = useNavigation();
+    const isZeroBalanceAccount = useIsZeroBalanceAccount();
+    const sortedTokenKeys = useSelector(
+      selectSortedAssetsBySelectedAccountGroup,
+    );
+    const privacyMode = useSelector(selectPrivacyMode);
+    const popularTokensListRef = useRef<SectionRefreshHandle>(null);
+    const sectionViewRef = useRef<View>(null);
 
-  const title = strings('homepage.sections.tokens');
+    const title = strings('homepage.sections.tokens');
 
-  const displayTokenKeys = useMemo(
-    () => sortedTokenKeys.slice(0, MAX_TOKENS_DISPLAYED),
-    [sortedTokenKeys],
-  );
+    const displayTokenKeys = useMemo(
+      () => sortedTokenKeys.slice(0, MAX_TOKENS_DISPLAYED),
+      [sortedTokenKeys],
+    );
 
-  const refresh = useCallback(async () => {
-    if (isZeroBalanceAccount) {
-      await popularTokensListRef.current?.refresh();
-    }
-    // TODO: Implement token refresh logic for non-zero balance accounts
-  }, [isZeroBalanceAccount]);
+    const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
 
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+    useHomepageSectionViewedEvent({
+      sectionRef: sectionViewRef,
+      isLoading: false,
+      sectionName: HomepageSectionNames.TOKENS,
+      sectionIndex,
+      totalSectionsLoaded,
+      isEmpty: isZeroBalanceAccount,
+      itemCount,
+    });
 
-  const handleViewAllTokens = useCallback(() => {
-    navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
-  }, [navigation]);
+    const refresh = useCallback(async () => {
+      if (isZeroBalanceAccount) {
+        await popularTokensListRef.current?.refresh();
+      }
+      // TODO: Implement token refresh logic for non-zero balance accounts
+    }, [isZeroBalanceAccount]);
 
-  return (
-    <Box gap={3}>
-      <SectionTitle title={title} onPress={handleViewAllTokens} />
-      {isZeroBalanceAccount ? (
-        <SectionRow>
-          <PopularTokensList ref={popularTokensListRef} />
-        </SectionRow>
-      ) : (
-        <SectionRow>
-          {displayTokenKeys.map((tokenKey, index) => (
-            <TokenListItem
-              key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
-              assetKey={tokenKey}
-              showRemoveMenu={noopShowRemoveMenu}
-              setShowScamWarningModal={noopSetShowScamWarningModal}
-              privacyMode={privacyMode}
-              showPercentageChange
-            />
-          ))}
-        </SectionRow>
-      )}
-    </Box>
-  );
-});
+    useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+
+    const handleViewAllTokens = useCallback(() => {
+      navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
+    }, [navigation]);
+
+    return (
+      <View ref={sectionViewRef}>
+        <Box gap={3}>
+          <SectionTitle title={title} onPress={handleViewAllTokens} />
+          {isZeroBalanceAccount ? (
+            <SectionRow>
+              <PopularTokensList ref={popularTokensListRef} />
+            </SectionRow>
+          ) : (
+            <SectionRow>
+              {displayTokenKeys.map((tokenKey, index) => (
+                <TokenListItem
+                  key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
+                  assetKey={tokenKey}
+                  showRemoveMenu={noopShowRemoveMenu}
+                  setShowScamWarningModal={noopSetShowScamWarningModal}
+                  privacyMode={privacyMode}
+                  showPercentageChange
+                />
+              ))}
+            </SectionRow>
+          )}
+        </Box>
+      </View>
+    );
+  },
+);
 
 export default TokensSection;
