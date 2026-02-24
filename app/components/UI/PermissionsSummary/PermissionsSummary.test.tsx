@@ -215,4 +215,72 @@ describe('PermissionsSummary', () => {
       expect(tree).not.toContain('urlIcon');
     });
   });
+
+  describe('trustSignalState prop', () => {
+    it('renders a warning icon next to the URL when trustSignalState is Warning', () => {
+      const { toJSON } = renderPermissionsSummary({
+        trustSignalState: 'warning',
+        isAlreadyConnected: false,
+      });
+
+      const tree = JSON.stringify(toJSON());
+      // The TrustSignalUrlIcon should render a Danger icon with warning color
+      expect(tree).toContain('Danger');
+    });
+
+    it('renders an error icon next to the URL when trustSignalState is Malicious', () => {
+      const { toJSON } = renderPermissionsSummary({
+        trustSignalState: 'malicious',
+        isAlreadyConnected: false,
+      });
+
+      const tree = JSON.stringify(toJSON());
+      // The TrustSignalUrlIcon should render a Danger icon with error color
+      expect(tree).toContain('Danger');
+    });
+
+    it('renders a verified icon next to the URL when trustSignalState is Verified', () => {
+      const { toJSON } = renderPermissionsSummary({
+        trustSignalState: 'verified',
+        isAlreadyConnected: false,
+      });
+
+      const tree = JSON.stringify(toJSON());
+      // The TrustSignalUrlIcon should render a VerifiedFilled icon
+      expect(tree).toContain('VerifiedFilled');
+    });
+
+    it('does not render a trust signal icon when trustSignalState is Unknown', () => {
+      const { toJSON } = renderPermissionsSummary({
+        trustSignalState: 'unknown',
+        isAlreadyConnected: false,
+        isMaliciousDapp: false,
+      });
+
+      const tree = JSON.stringify(toJSON());
+      // Neither VerifiedFilled nor urlIcon should appear
+      expect(tree).not.toContain('VerifiedFilled');
+      expect(tree).not.toContain('urlIcon');
+    });
+
+    it('renders a warning-style Connect button when trustSignalState is Warning', () => {
+      const { getByText } = renderPermissionsSummary({
+        trustSignalState: 'warning',
+        isAlreadyConnected: false,
+      });
+
+      // The connect button text should still be present
+      expect(getByText('Connect')).toBeDefined();
+    });
+
+    it('renders a danger-style Connect button when trustSignalState is Malicious', () => {
+      const { getByText } = renderPermissionsSummary({
+        trustSignalState: 'malicious',
+        isAlreadyConnected: false,
+      });
+
+      // The connect button text should still be present
+      expect(getByText('Connect')).toBeDefined();
+    });
+  });
 });

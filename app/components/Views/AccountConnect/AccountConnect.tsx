@@ -74,6 +74,9 @@ import {
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
+import { useOriginTrustSignals } from '../confirmations/hooks/useOriginTrustSignals';
+import { TrustSignalDisplayState } from '../confirmations/types/trustSignals';
+import TrustSignalModal from './TrustSignalModal';
 import {
   getCaip25PermissionsResponse,
   getDefaultAccounts,
@@ -179,6 +182,9 @@ const AccountConnect = (props: AccountConnectProps) => {
     isOriginWalletConnect && wc2Metadata?.verifyContext?.isScam,
   );
 
+  // PhishingController trust signals: check origin against dapp-scanning API cache
+  const { state: trustSignalState } = useOriginTrustSignals(channelIdOrHostname);
+
   const defaultSelectedChainIds = useMemo(
     () =>
       getDefaultSelectedChainIds({
@@ -255,9 +261,30 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const sheetRef = useRef<BottomSheetRef>(null);
+
+  const needsTrustSignalGate =
+    trustSignalState === TrustSignalDisplayState.Warning ||
+    trustSignalState === TrustSignalDisplayState.Malicious;
+
   const [screen, setScreen] = useState<AccountConnectScreens>(
-    AccountConnectScreens.SingleConnect,
+    needsTrustSignalGate
+      ? AccountConnectScreens.TrustSignalWarning
+      : AccountConnectScreens.SingleConnect,
   );
+
+  // If trust signal state arrives after initial render (async scan),
+  // navigate to the warning screen if still on the initial screen.
+  useEffect(() => {
+    if (needsTrustSignalGate && screen === AccountConnectScreens.SingleConnect) {
+      setScreen(AccountConnectScreens.TrustSignalWarning);
+    }
+  }, [needsTrustSignalGate, screen]);
+
+  const trustSignalVariant =
+    trustSignalState === TrustSignalDisplayState.Malicious
+      ? 'malicious'
+      : 'warning';
+
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
   const isMountedRef = useRef(true);
@@ -757,6 +784,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       tabIndex,
       promptToCreateSolanaAccount,
       isMaliciousDapp,
+      trustSignalState,
       onCreateAccount: (clientType, scope) => {
         setMultichainAccountOptions({
           clientType,
@@ -777,6 +805,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     setTabIndex,
     promptToCreateSolanaAccount,
     isMaliciousDapp,
+    trustSignalState,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
@@ -899,6 +928,26 @@ const AccountConnect = (props: AccountConnectProps) => {
     [urlWithProtocol, handleConnectAnyway, handleMaliciousWarningClose],
   );
 
+  const handleTrustSignalDismiss = useCallback(() => {
+    setScreen(AccountConnectScreens.SingleConnect);
+  }, []);
+
+  const handleTrustSignalClose = useCallback(() => {
+    hideSheet(() => cancelPermissionRequest(permissionRequestId));
+  }, [hideSheet, cancelPermissionRequest, permissionRequestId]);
+
+  const renderTrustSignalWarningScreen = useCallback(
+    () => (
+      <TrustSignalModal
+        variant={trustSignalVariant}
+        url={urlWithProtocol}
+        onConnectAnyway={handleTrustSignalDismiss}
+        onClose={handleTrustSignalClose}
+      />
+    ),
+    [trustSignalVariant, urlWithProtocol, handleTrustSignalDismiss, handleTrustSignalClose],
+  );
+
   const renderPhishingModal = useCallback(
     () => (
       <Modal
@@ -947,6 +996,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         return renderMultiConnectNetworkSelectorScreen();
       case AccountConnectScreens.AddNewAccount:
         return renderAddNewAccount();
+      case AccountConnectScreens.TrustSignalWarning:
+        return renderTrustSignalWarningScreen();
       case AccountConnectScreens.MaliciousWarning:
         return renderMaliciousWarningScreen();
     }
@@ -957,6 +1008,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
     renderAddNewAccount,
+    renderTrustSignalWarningScreen,
     renderMaliciousWarningScreen,
   ]);
 

@@ -1,3 +1,4 @@
+import { TrustSignalDisplayState } from '../../Views/confirmations/types/trustSignals';
 import { CaipAccountId } from '@metamask/utils';
 import { USER_INTENT } from '../../../constants/permissions';
 import { Account, EnsByAccountAddress } from '../../hooks/useAccounts';
@@ -39,4 +40,5 @@ export interface PermissionsSummaryProps {
   showAccountsOnly?: boolean;
   promptToCreateSolanaAccount?: boolean;
   isMaliciousDapp?: boolean;
+  trustSignalState?: TrustSignalDisplayState;
 }

@@ -27,6 +27,8 @@ import { SolScope } from '@metamask/keyring-api';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { ConnectedAccountsSelectorsIDs } from './ConnectedAccountModal.testIds';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
+import { TrustSignalModalSelectorsIDs } from './TrustSignalModal/TrustSignalModal.testIds';
+import { TrustSignalDisplayState } from '../confirmations/types/trustSignals';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
   mockAddress1,
@@ -294,6 +296,16 @@ jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
       .fn()
       .mockImplementation(() => mockMultichainWalletSnapClient),
   },
+}));
+
+// Mock useOriginTrustSignals
+const mockUseOriginTrustSignals = jest.fn(() => ({
+  state: TrustSignalDisplayState.Unknown,
+  label: null,
+}));
+jest.mock('../confirmations/hooks/useOriginTrustSignals', () => ({
+  useOriginTrustSignals: (...args: unknown[]) =>
+    mockUseOriginTrustSignals(...args),
 }));
 
 // Set default mock behaviors
@@ -1388,6 +1400,165 @@ describe('AccountConnect', () => {
       expect(
         queryByTestId(AccountConnectMaliciousWarningSelectorsIDs.CONTAINER),
       ).toBeNull();
+    });
+  });
+
+  describe('Trust signal integration', () => {
+    const trustSignalRoute = {
+      params: {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://suspicious-dapp.com',
+            isEip1193Request: true,
+          },
+          permissions: createMockCaip25Permission({
+            'wallet:eip155': {
+              accounts: [],
+            },
+          }),
+        },
+        permissionRequestId: 'test-trust-signal',
+      },
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockGetConnection.mockReturnValue(undefined);
+      mockIsUUID.mockReturnValue(false);
+      // Reset to default unknown state
+      mockUseOriginTrustSignals.mockReturnValue({
+        state: TrustSignalDisplayState.Unknown,
+        label: null,
+      });
+    });
+
+    it('renders TrustSignalModal when trust signal state is Warning', () => {
+      mockUseOriginTrustSignals.mockReturnValue({
+        state: TrustSignalDisplayState.Warning,
+        label: 'Suspicious site',
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <AccountConnect route={trustSignalRoute} />,
+        { state: mockInitialState },
+      );
+
+      // TrustSignalModal should be visible
+      expect(
+        getByTestId(TrustSignalModalSelectorsIDs.CONTAINER),
+      ).toBeDefined();
+      // PermissionsSummary should NOT be visible
+      expect(queryByTestId('permission-summary-container')).toBeNull();
+    });
+
+    it('renders TrustSignalModal when trust signal state is Malicious', () => {
+      mockUseOriginTrustSignals.mockReturnValue({
+        state: TrustSignalDisplayState.Malicious,
+        label: 'Known malicious site',
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <AccountConnect route={trustSignalRoute} />,
+        { state: mockInitialState },
+      );
+
+      // TrustSignalModal should be visible
+      expect(
+        getByTestId(TrustSignalModalSelectorsIDs.CONTAINER),
+      ).toBeDefined();
+      // PermissionsSummary should NOT be visible
+      expect(queryByTestId('permission-summary-container')).toBeNull();
+    });
+
+    it('renders PermissionsSummary (SingleConnect) when trust signal state is Unknown', () => {
+      mockUseOriginTrustSignals.mockReturnValue({
+        state: TrustSignalDisplayState.Unknown,
+        label: null,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <AccountConnect route={trustSignalRoute} />,
+        { state: mockInitialState },
+      );
+
+      // PermissionsSummary should be visible
+      expect(getByTestId('permission-summary-container')).toBeDefined();
+      // TrustSignalModal should NOT be visible
+      expect(
+        queryByTestId(TrustSignalModalSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('renders PermissionsSummary (SingleConnect) when trust signal state is Verified', () => {
+      mockUseOriginTrustSignals.mockReturnValue({
+        state: TrustSignalDisplayState.Verified,
+        label: 'Verified',
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <AccountConnect route={trustSignalRoute} />,
+        { state: mockInitialState },
+      );
+
+      // PermissionsSummary should be visible
+      expect(getByTestId('permission-summary-container')).toBeDefined();
+      // TrustSignalModal should NOT be visible
+      expect(
+        queryByTestId(TrustSignalModalSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('navigates to SingleConnect when Connect Anyway is pressed on TrustSignalModal', async () => {
+      mockUseOriginTrustSignals.mockReturnValue({
+        state: TrustSignalDisplayState.Warning,
+        label: 'Suspicious site',
+      });
+
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <AccountConnect route={trustSignalRoute} />,
+        { state: mockInitialState },
+      );
+
+      // Verify TrustSignalModal is shown
+      expect(
+        getByTestId(TrustSignalModalSelectorsIDs.CONTAINER),
+      ).toBeDefined();
+
+      // Press Connect Anyway
+      const connectAnywayButton = getByTestId(
+        TrustSignalModalSelectorsIDs.CONNECT_ANYWAY_BUTTON,
+      );
+      fireEvent.press(connectAnywayButton);
+
+      // Should now show PermissionsSummary
+      const permissionsContainer = await findByTestId(
+        'permission-summary-container',
+      );
+      expect(permissionsContainer).toBeDefined();
+    });
+
+    it('cancels permission request when Close is pressed on TrustSignalModal', () => {
+      mockUseOriginTrustSignals.mockReturnValue({
+        state: TrustSignalDisplayState.Warning,
+        label: 'Suspicious site',
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <AccountConnect route={trustSignalRoute} />,
+        { state: mockInitialState },
+      );
+
+      // Press Close button
+      const closeButton = getByTestId(
+        TrustSignalModalSelectorsIDs.CLOSE_BUTTON,
+      );
+      fireEvent.press(closeButton);
+
+      // Should reject the permission request
+      expect(
+        Engine.context.PermissionController.rejectPermissionsRequest,
+      ).toHaveBeenCalledWith('test-trust-signal');
     });
   });
 });
