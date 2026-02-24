@@ -2278,13 +2278,13 @@ export class PerpsController extends BaseController<
             Number.parseFloat(withdrawalAmount),
         },
       );
-    }
 
-    this.#debugLog('PerpsController: Updated withdrawal status', {
-      withdrawalId,
-      status,
-      txHash,
-    });
+      this.#debugLog('PerpsController: Updated withdrawal status', {
+        withdrawalId,
+        status,
+        txHash,
+      });
+    }
   }
 
   /**
