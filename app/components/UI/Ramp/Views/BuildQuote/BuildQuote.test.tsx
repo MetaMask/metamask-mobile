@@ -1,13 +1,15 @@
 import React from 'react';
 import { InteractionManager } from 'react-native';
-import { fireEvent, render, act, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, act } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import type { RampsToken } from '../../hooks/useRampTokens';
-import type { Quote } from '../../types';
 import type { CaipChainId } from '@metamask/utils';
 import Logger from '../../../../../util/Logger';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
+
+const flushPromises = () =>
+  new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 const mockUseEffect = jest.requireActual('react').useEffect;
 
@@ -168,21 +170,31 @@ let mockTokens: {
   topTokens: [createMockToken()],
 };
 
-import Engine from '../../../../../core/Engine';
-
-const mockGetQuotes = jest.mocked(
-  Engine.context.RampsController.getQuotes,
-) as jest.MockedFunction<typeof Engine.context.RampsController.getQuotes>;
+let mockQuotesData: {
+  success: Record<string, unknown>[];
+  sorted: unknown[];
+  error: unknown[];
+  customActions: unknown[];
+} | null = null;
+let mockQuotesLoading = false;
+let mockQuotesError: string | null = null;
 
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: () => ({
     userRegion: mockUserRegion,
     selectedProvider: mockSelectedProvider,
     selectedToken: mockTokens?.allTokens?.[0] ?? null,
-    getQuotes: mockGetQuotes,
     getWidgetUrl: mockGetWidgetUrl,
     paymentMethodsLoading: false,
     selectedPaymentMethod: mockSelectedPaymentMethod,
+  }),
+}));
+
+jest.mock('../../hooks/useRampsQuotes', () => ({
+  useRampsQuotes: () => ({
+    data: mockQuotesData,
+    loading: mockQuotesLoading,
+    error: mockQuotesError,
   }),
 }));
 
@@ -236,12 +248,9 @@ describe('BuildQuote', () => {
     mockUserRegion = defaultUserRegion;
     mockSelectedProvider = null;
     mockSelectedPaymentMethod = null;
-    mockGetQuotes.mockResolvedValue({
-      success: [],
-      sorted: [],
-      error: [],
-      customActions: [],
-    });
+    mockQuotesData = null;
+    mockQuotesLoading = false;
+    mockQuotesError = null;
     mockTokens = {
       allTokens: [createMockToken()],
       topTokens: [createMockToken()],
@@ -463,17 +472,15 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockRejectedValue(new Error('Network error'));
+      mockQuotesError = 'Network error';
 
       const { toJSON, getByText } = renderWithTheme(<BuildQuote />);
 
-      await waitFor(
-        () => {
-          expect(getByText('Network error')).toBeOnTheScreen();
-        },
-        { timeout: 3000 },
-      );
+      await act(async () => {
+        await flushPromises();
+      });
 
+      expect(getByText('Network error')).toBeOnTheScreen();
       expect(toJSON()).toMatchSnapshot();
     });
 
@@ -486,17 +493,17 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       const continueButton = getByTestId('build-quote-continue-button');
@@ -512,12 +519,7 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockImplementation(
-        () =>
-          new Promise(() => {
-            /* never resolves */
-          }),
-      );
+      mockQuotesLoading = true;
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
@@ -544,22 +546,21 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [mockQuoteForOtherProvider],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
-      await waitFor(
-        () => {
-          const continueButton = getByTestId('build-quote-continue-button');
-          expect(continueButton).toBeDisabled();
-        },
-        { timeout: 5000 },
-      );
+      await act(async () => {
+        await flushPromises();
+      });
+
+      const disabledButton = getByTestId('build-quote-continue-button');
+      expect(disabledButton).toBeDisabled();
     });
 
     it('enables continue button when quote is selected and matches amount', async () => {
@@ -581,22 +582,21 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [mockQuote],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
-      await waitFor(
-        () => {
-          const continueButton = getByTestId('build-quote-continue-button');
-          expect(continueButton).not.toBeDisabled();
-        },
-        { timeout: 5000 },
-      );
+      await act(async () => {
+        await flushPromises();
+      });
+
+      const continueButton = getByTestId('build-quote-continue-button');
+      expect(continueButton).not.toBeDisabled();
     });
 
     it('navigates to checkout webview for aggregator provider with URL', async () => {
@@ -618,24 +618,22 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [mockQuote],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
-      await waitFor(
-        () => {
-          const continueButton = getByTestId('build-quote-continue-button');
-          expect(continueButton).not.toBeDisabled();
-        },
-        { timeout: 5000 },
-      );
+      await act(async () => {
+        await flushPromises();
+      });
 
       const continueButton = getByTestId('build-quote-continue-button');
+      expect(continueButton).not.toBeDisabled();
+
       mockGetWidgetUrl.mockResolvedValue(
         'https://global.transak.com/?apiKey=test',
       );
@@ -645,7 +643,7 @@ describe('BuildQuote', () => {
       });
 
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -687,30 +685,31 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [mockQuoteWithUserAgent],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
       mockGetWidgetUrl.mockResolvedValue(
         'https://global.transak.com/?apiKey=test',
       );
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
-      await waitFor(
-        () => {
-          const btn = getByTestId('build-quote-continue-button');
-          expect(btn).not.toBeDisabled();
-        },
-        { timeout: 5000 },
-      );
+
+      await act(async () => {
+        await flushPromises();
+      });
+
       const continueButton = getByTestId('build-quote-continue-button');
+      expect(continueButton).not.toBeDisabled();
+
       await act(async () => {
         fireEvent.press(continueButton);
       });
+
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -749,30 +748,28 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [mockNativeQuote],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
-      await waitFor(
-        () => {
-          const btn = getByTestId('build-quote-continue-button');
-          expect(btn).not.toBeDisabled();
-        },
-        { timeout: 5000 },
-      );
+      await act(async () => {
+        await flushPromises();
+      });
+
       const continueButton = getByTestId('build-quote-continue-button');
+      expect(continueButton).not.toBeDisabled();
 
       await act(async () => {
         fireEvent.press(continueButton);
       });
 
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       expect(mockTransakCheckExistingToken).toHaveBeenCalled();
@@ -813,30 +810,28 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [mockNativeQuote],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
-      await waitFor(
-        () => {
-          const btn = getByTestId('build-quote-continue-button');
-          expect(btn).not.toBeDisabled();
-        },
-        { timeout: 5000 },
-      );
+      await act(async () => {
+        await flushPromises();
+      });
+
       const continueButton = getByTestId('build-quote-continue-button');
+      expect(continueButton).not.toBeDisabled();
 
       await act(async () => {
         fireEvent.press(continueButton);
       });
 
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       expect(mockTransakCheckExistingToken).toHaveBeenCalled();
@@ -878,30 +873,28 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [mockNativeQuote],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
-      await waitFor(
-        () => {
-          const btn = getByTestId('build-quote-continue-button');
-          expect(btn).not.toBeDisabled();
-        },
-        { timeout: 5000 },
-      );
+      await act(async () => {
+        await flushPromises();
+      });
+
       const continueButton = getByTestId('build-quote-continue-button');
+      expect(continueButton).not.toBeDisabled();
 
       await act(async () => {
         fireEvent.press(continueButton);
       });
 
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       expect(mockLogger).toHaveBeenCalledWith(
@@ -940,30 +933,28 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [mockQuote],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
-      await waitFor(
-        () => {
-          const btn = getByTestId('build-quote-continue-button');
-          expect(btn).not.toBeDisabled();
-        },
-        { timeout: 5000 },
-      );
+      await act(async () => {
+        await flushPromises();
+      });
+
       const continueButton = getByTestId('build-quote-continue-button');
+      expect(continueButton).not.toBeDisabled();
 
       await act(async () => {
         fireEvent.press(continueButton);
       });
 
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       expect(mockLogger).toHaveBeenCalledWith(
@@ -999,17 +990,17 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [mockQuoteWrongAmount],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       const continueButton = getByTestId('build-quote-continue-button');
@@ -1045,17 +1036,17 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [mockQuoteWrongPaymentMethod],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       const continueButton = getByTestId('build-quote-continue-button');
@@ -1088,17 +1079,17 @@ describe('BuildQuote', () => {
         name: 'Mercuryo',
       };
       mockSelectedPaymentMethod = null;
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [mockQuote],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       const continueButton = getByTestId('build-quote-continue-button');
@@ -1137,30 +1128,28 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [mockQuote],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
-      await waitFor(
-        () => {
-          const btn = getByTestId('build-quote-continue-button');
-          expect(btn).not.toBeDisabled();
-        },
-        { timeout: 5000 },
-      );
+      await act(async () => {
+        await flushPromises();
+      });
+
       const continueButton = getByTestId('build-quote-continue-button');
+      expect(continueButton).not.toBeDisabled();
 
       await act(async () => {
         fireEvent.press(continueButton);
       });
 
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       expect(mockLogger).toHaveBeenCalledWith(
@@ -1181,17 +1170,17 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
+      mockQuotesData = {
         success: [],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       const continueButton = getByTestId('build-quote-continue-button');
@@ -1229,31 +1218,29 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
-        success: [mockSelectedQuote as unknown as Quote],
+      mockQuotesData = {
+        success: [mockSelectedQuote],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
       mockGetWidgetUrl.mockResolvedValue('https://example.com/widget');
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
-      const continueButton = getByTestId('build-quote-continue-button');
+      await act(async () => {
+        await flushPromises();
+      });
 
-      await waitFor(
-        () => {
-          expect(continueButton).not.toBeDisabled();
-        },
-        { timeout: 5000 },
-      );
+      const continueButton = getByTestId('build-quote-continue-button');
+      expect(continueButton).not.toBeDisabled();
 
       await act(async () => {
         fireEvent.press(continueButton);
       });
 
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       expect(mockNavigate).toHaveBeenCalled();
@@ -1283,12 +1270,12 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
-        success: [mockSelectedQuote as unknown as Quote],
+      mockQuotesData = {
+        success: [mockSelectedQuote],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       mockGetWidgetUrl.mockResolvedValue(
         'https://global.transak.com/?apiKey=test',
@@ -1296,21 +1283,19 @@ describe('BuildQuote', () => {
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
-      const continueButton = getByTestId('build-quote-continue-button');
+      await act(async () => {
+        await flushPromises();
+      });
 
-      await waitFor(
-        () => {
-          expect(continueButton).not.toBeDisabled();
-        },
-        { timeout: 5000 },
-      );
+      const continueButton = getByTestId('build-quote-continue-button');
+      expect(continueButton).not.toBeDisabled();
 
       await act(async () => {
         fireEvent.press(continueButton);
       });
 
       await act(async () => {
-        await Promise.resolve();
+        await flushPromises();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -1406,34 +1391,31 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetQuotes.mockResolvedValue({
-        success: [mockSelectedQuote as unknown as Quote],
+      mockQuotesData = {
+        success: [mockSelectedQuote],
         sorted: [],
         error: [],
         customActions: [],
-      });
+      };
 
       const { getByTestId, getByText } = renderWithTheme(<BuildQuote />);
 
-      const continueButton = getByTestId('build-quote-continue-button');
+      await act(async () => {
+        await flushPromises();
+      });
 
-      await waitFor(
-        () => {
-          expect(continueButton).not.toBeDisabled();
-        },
-        { timeout: 5000 },
-      );
+      const continueButton = getByTestId('build-quote-continue-button');
+      expect(continueButton).not.toBeDisabled();
 
       await act(async () => {
         fireEvent.press(continueButton);
       });
 
-      await waitFor(
-        () => {
-          expect(getByText('Network error')).toBeOnTheScreen();
-        },
-        { timeout: 5000 },
-      );
+      await act(async () => {
+        await flushPromises();
+      });
+
+      expect(getByText('Network error')).toBeOnTheScreen();
     });
 
     it('does not render continue button when amount is zero', () => {
@@ -1494,15 +1476,17 @@ describe('BuildQuote', () => {
 
       renderWithTheme(<BuildQuote />);
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          'RampModals',
-          expect.objectContaining({
-            screen: 'RampTokenNotAvailableModal',
-            params: { assetId: MOCK_ASSET_ID },
-          }),
-        );
+      await act(async () => {
+        await flushPromises();
       });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID },
+        }),
+      );
     });
 
     it('does not navigate to token unavailable modal when token is supported by provider', () => {
@@ -1579,17 +1563,16 @@ describe('BuildQuote', () => {
 
       const { rerender } = renderWithTheme(<BuildQuote />);
 
-      await waitFor(
-        () => {
-          expect(mockNavigate).toHaveBeenCalledWith(
-            'RampModals',
-            expect.objectContaining({
-              screen: 'RampTokenNotAvailableModal',
-              params: { assetId: MOCK_ASSET_ID },
-            }),
-          );
-        },
-        { timeout: 5000 },
+      await act(async () => {
+        await flushPromises();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID },
+        }),
       );
 
       mockNavigate.mockClear();
