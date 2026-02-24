@@ -2,7 +2,7 @@ import {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
@@ -23,6 +23,20 @@ import { TokenI } from '../../Tokens/types';
 import StockBadge from '../../shared/StockBadge/StockBadge';
 import { BridgeToken } from '../../Bridge/types';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
+// --- LOCAL TESTING ONLY: remove before pushing ---
+import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
+import {
+  ChartType,
+  type IndicatorType,
+} from '../../Charts/AdvancedChart/AdvancedChart.types';
+import TimeRangeSelector, {
+  TIME_RANGE_CONFIGS,
+  type TimeRange,
+} from '../../Charts/AdvancedChart/TimeRangeSelector';
+import IndicatorToggle from '../../Charts/AdvancedChart/IndicatorToggle';
+import { generateMockOHLCVData } from '../../Charts/AdvancedChart/mockOHLCVData';
+import { useHyperliquidCandles } from '../../Charts/AdvancedChart/useHyperliquidCandles';
+// --- END LOCAL TESTING ---
 
 interface PriceProps {
   asset: TokenI;
@@ -34,6 +48,11 @@ interface PriceProps {
   isLoading: boolean;
   timePeriod: TimePeriod;
 }
+
+// --- LOCAL TESTING ONLY ---
+const USE_LIVE_HL_DATA = true; // toggle: true = Hyperliquid REST, false = mock
+const HL_COIN = 'ETH';
+// --- END LOCAL TESTING ---
 
 const Price = ({
   asset,
@@ -47,6 +66,34 @@ const Price = ({
 }: PriceProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
   const { isStockToken } = useRWAToken();
+
+  // --- LOCAL TESTING ONLY ---
+  const [timeRange, setTimeRange] = useState<TimeRange>('1D');
+  const [indicators, setIndicators] = useState<IndicatorType[]>([]);
+  const handleToggleIndicator = useCallback((ind: IndicatorType) => {
+    setIndicators((prev) =>
+      prev.includes(ind) ? prev.filter((i) => i !== ind) : [...prev, ind],
+    );
+  }, []);
+  const hlConfig = TIME_RANGE_CONFIGS[timeRange];
+
+  const {
+    ohlcvData: hlData,
+    isLoading: hlLoading,
+    fetchMoreHistory,
+  } = useHyperliquidCandles({
+    coin: HL_COIN,
+    interval: hlConfig.hlInterval,
+    count: hlConfig.count,
+    enabled: USE_LIVE_HL_DATA,
+  });
+  const mockData = useMemo(
+    () =>
+      USE_LIVE_HL_DATA ? [] : generateMockOHLCVData(200, 2500, '5', 0.015),
+    [],
+  );
+  const chartData = USE_LIVE_HL_DATA ? hlData : mockData;
+  // --- END LOCAL TESTING ---
 
   const distributedPriceData = useMemo(() => {
     if (prices.length > 0) {
@@ -196,6 +243,24 @@ const Price = ({
         isLoading={isLoading}
         onChartIndexChange={handleChartInteraction}
       />
+      {/* --- LOCAL TESTING ONLY: remove before pushing --- */}
+      <AdvancedChart
+        ohlcvData={chartData}
+        height={450}
+        showVolume
+        chartType={ChartType.Candles}
+        indicators={indicators}
+        isLoading={USE_LIVE_HL_DATA && hlLoading}
+        onRequestMoreHistory={USE_LIVE_HL_DATA ? fetchMoreHistory : undefined}
+      />
+      <IndicatorToggle
+        activeIndicators={indicators}
+        onToggle={handleToggleIndicator}
+      />
+      {USE_LIVE_HL_DATA && (
+        <TimeRangeSelector selected={timeRange} onSelect={setTimeRange} />
+      )}
+      {/* --- END LOCAL TESTING --- */}
     </>
   );
 };
