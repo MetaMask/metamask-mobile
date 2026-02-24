@@ -168,8 +168,6 @@ let mockTokens: {
   topTokens: [createMockToken()],
 };
 
-jest.mock('../../../../../core/Engine');
-
 import Engine from '../../../../../core/Engine';
 
 const mockGetQuotes = jest.mocked(
@@ -456,6 +454,29 @@ describe('BuildQuote', () => {
   });
 
   describe('Continue button', () => {
+    it('displays error banner when quote fetch fails', async () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+      mockGetQuotes.mockRejectedValue(new Error('Network error'));
+
+      const { toJSON, getByText } = renderWithTheme(<BuildQuote />);
+
+      await waitFor(
+        () => {
+          expect(getByText('Network error')).toBeOnTheScreen();
+        },
+        { timeout: 3000 },
+      );
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+
     it('disables continue button when no quote is selected', async () => {
       mockSelectedProvider = {
         id: '/providers/transak',

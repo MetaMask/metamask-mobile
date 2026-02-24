@@ -216,8 +216,11 @@ function BuildQuote() {
     ],
   );
 
-  const { data: quotesResponse, loading: selectedQuoteLoading } =
-    useRampsQuotes(quoteFetchEnabled ? quoteFetchParams : null);
+  const {
+    data: quotesResponse,
+    loading: selectedQuoteLoading,
+    error: quoteFetchError,
+  } = useRampsQuotes(quoteFetchEnabled ? quoteFetchParams : null);
 
   const selectedQuote = useMemo(() => {
     if (!quotesResponse?.success || !selectedProvider || !selectedPaymentMethod)
@@ -359,6 +362,7 @@ function BuildQuote() {
     }
 
     // V2 aggregator: get widget URL via controller and navigate to checkout
+    setIsContinueLoading(true);
     try {
       const fetchedWidgetUrl = await getWidgetUrl(selectedQuote);
 
@@ -396,6 +400,8 @@ function BuildQuote() {
         provider: selectedQuote.provider,
         message: 'Failed to fetch widget URL',
       });
+    } finally {
+      setIsContinueLoading(false);
     }
   }, [
     selectedQuote,
@@ -486,6 +492,16 @@ function BuildQuote() {
             <BannerAlert
               severity={BannerAlertSeverity.Error}
               description={nativeFlowError}
+            />
+          )}
+
+          {quoteFetchError && (
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              description={parseUserFacingError(
+                quoteFetchError,
+                strings('deposit.buildQuote.quoteFetchError'),
+              )}
             />
           )}
 
