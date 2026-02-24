@@ -8,8 +8,8 @@ import { TokenStandard } from '../../types/token';
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { isTestNet } from '../../../../../util/networks';
+import { selectAllTokens } from '../../../../../selectors/tokensController';
 import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -40,12 +40,12 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/tokenListController', () => ({
-  selectERC20TokensByChain: jest.fn(),
+jest.mock('../../../../../selectors/tokensController', () => ({
+  selectAllTokens: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/networkController', () => ({
-  selectEvmNetworkConfigurationsByChainId: jest.fn(),
+jest.mock('../../../../../selectors/tokenListController', () => ({
+  selectERC20TokensByChain: jest.fn(),
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
@@ -104,10 +104,10 @@ describe('useAccountTokens', () => {
       if (selector === selectCurrentCurrency) {
         return 'USD';
       }
-      if (selector === selectERC20TokensByChain) {
+      if (selector === selectAllTokens) {
         return {};
       }
-      if (selector === selectEvmNetworkConfigurationsByChainId) {
+      if (selector === selectERC20TokensByChain) {
         return {};
       }
       return undefined;
@@ -537,10 +537,10 @@ describe('useAccountTokens', () => {
         if (selector === selectCurrentCurrency) {
           return 'USD';
         }
-        if (selector === selectERC20TokensByChain) {
+        if (selector === selectAllTokens) {
           return {};
         }
-        if (selector === selectEvmNetworkConfigurationsByChainId) {
+        if (selector === selectERC20TokensByChain) {
           return {};
         }
         return undefined;
@@ -576,20 +576,9 @@ describe('useAccountTokens', () => {
       },
     };
 
-    const networkConfigs = {
-      '0x1': { nativeCurrency: 'ETH' },
-      '0x89': { nativeCurrency: 'MATIC' },
-    };
-
-    function setupAllTokensMocks(
-      accountAssets = mockAssets,
-      catalog = catalogTokens,
-      configs = networkConfigs,
-    ) {
-      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        accountAssets as any,
-      );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function setupAllTokensMocks(accountAssets: any = mockAssets) {
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(accountAssets);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectAssetsBySelectedAccountGroup) {
           return accountAssets;
@@ -597,11 +586,11 @@ describe('useAccountTokens', () => {
         if (selector === selectCurrentCurrency) {
           return 'USD';
         }
-        if (selector === selectERC20TokensByChain) {
-          return catalog;
+        if (selector === selectAllTokens) {
+          return {};
         }
-        if (selector === selectEvmNetworkConfigurationsByChainId) {
-          return configs;
+        if (selector === selectERC20TokensByChain) {
+          return catalogTokens;
         }
         return undefined;
       });

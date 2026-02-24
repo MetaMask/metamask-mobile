@@ -69,6 +69,17 @@ export function useAccountTokens({
     });
 
     if (includeAllTokens) {
+      let zeroFiat: string;
+      try {
+        zeroFiat = getIntlNumberFormatter(I18n.locale, {
+          style: 'currency',
+          currency: fiatCurrency,
+          minimumFractionDigits: 0,
+        }).format(0);
+      } catch {
+        zeroFiat = `0 ${fiatCurrency}`;
+      }
+
       const existing = new Set(
         flatAssets.map(
           (a) =>
@@ -93,6 +104,7 @@ export function useAccountTokens({
             image: entry.iconUrl ?? '',
             logo: entry.iconUrl ?? undefined,
             balance: '0',
+            balanceInSelectedCurrency: zeroFiat,
             isETH: false,
             isNative: false,
             networkBadgeSource: getNetworkBadgeSource(hex),
