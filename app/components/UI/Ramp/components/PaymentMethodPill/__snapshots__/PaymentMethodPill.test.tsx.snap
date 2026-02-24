@@ -76,7 +76,7 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
 </TouchableOpacity>
 `;
 
-exports[`PaymentMethodPill matches snapshot when loading 1`] = `
+exports[`PaymentMethodPill when isLoading is true matches snapshot when loading 1`] = `
 <View
   style={
     [

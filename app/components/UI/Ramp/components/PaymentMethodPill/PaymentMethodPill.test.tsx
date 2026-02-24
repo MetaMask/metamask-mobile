@@ -42,21 +42,6 @@ describe('PaymentMethodPill', () => {
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call onPress when isLoading is true', () => {
-    const mockOnPress = jest.fn();
-    const { getByTestId } = renderWithTheme(
-      <PaymentMethodPill
-        label="Select payment method"
-        onPress={mockOnPress}
-        isLoading
-      />,
-    );
-
-    fireEvent.press(getByTestId('payment-method-pill'));
-
-    expect(mockOnPress).not.toHaveBeenCalled();
-  });
-
   it('renders without onPress handler', () => {
     const { getByTestId } = renderWithTheme(
       <PaymentMethodPill label="Debit card" />,
@@ -73,11 +58,52 @@ describe('PaymentMethodPill', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('matches snapshot when loading', () => {
-    const { toJSON } = renderWithTheme(
-      <PaymentMethodPill label="Select payment method" isLoading />,
-    );
+  describe('when isLoading is true', () => {
+    it('renders a non-interactive View instead of TouchableOpacity', () => {
+      const mockOnPress = jest.fn();
+      const { getByTestId } = renderWithTheme(
+        <PaymentMethodPill
+          label="Select payment method"
+          onPress={mockOnPress}
+          isLoading
+        />,
+      );
 
-    expect(toJSON()).toMatchSnapshot();
+      fireEvent.press(getByTestId('payment-method-pill'));
+
+      expect(mockOnPress).not.toHaveBeenCalled();
+    });
+
+    it('does not render label or arrow icon', () => {
+      const { queryByText } = renderWithTheme(
+        <PaymentMethodPill label="Select payment method" isLoading />,
+      );
+
+      expect(queryByText('Select payment method')).toBeNull();
+    });
+
+    it('applies loadingContainer style with centered content', () => {
+      const { getByTestId } = renderWithTheme(
+        <PaymentMethodPill label="Select payment method" isLoading />,
+      );
+      const pill = getByTestId('payment-method-pill');
+
+      expect(pill.props.style).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            justifyContent: 'center',
+            minWidth: 120,
+          }),
+        ]),
+      );
+    });
+
+    it('matches snapshot when loading', () => {
+      const { toJSON } = renderWithTheme(
+        <PaymentMethodPill label="Select payment method" isLoading />,
+      );
+
+      expect(toJSON()).toMatchSnapshot();
+    });
   });
 });
