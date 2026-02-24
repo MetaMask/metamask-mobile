@@ -31,7 +31,9 @@ export const TIME_RANGE_CONFIGS: Record<TimeRange, TimeRangeConfig> = {
   '1D': { hlInterval: '15m', count: 96 },
   '1W': { hlInterval: '1h', count: 168 },
   '1M': { hlInterval: '4h', count: 180 },
-  YTD: { hlInterval: '1d', count: Math.min(ytdDays(), 500) },
+  get YTD() {
+    return { hlInterval: '1d' as const, count: Math.min(ytdDays(), 500) };
+  },
   ALL: { hlInterval: '1d', count: 500 },
 };
 

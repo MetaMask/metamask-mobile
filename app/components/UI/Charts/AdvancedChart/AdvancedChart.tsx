@@ -64,7 +64,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const [webViewError, setWebViewError] = useState<string | null>(null);
 
     const activeIndicatorsRef = useRef<Set<IndicatorType>>(new Set());
-    const webViewLoadedRef = useRef(false);
+    const [webViewLoaded, setWebViewLoaded] = useState(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevChartTypeRef = useRef(chartType);
     const prevShowVolumeRef = useRef(showVolume);
@@ -77,6 +77,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         }),
       [theme, enableDrawingTools, showVolume],
     );
+
+    // Reset all chart state when the WebView reloads due to htmlContent changes
+    useEffect(() => {
+      setIsChartReady(false);
+      setWebViewLoaded(false);
+      activeIndicatorsRef.current.clear();
+      prevPositionLinesRef.current = undefined;
+      prevChartTypeRef.current = undefined;
+      prevShowVolumeRef.current = showVolume;
+    }, [htmlContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ---- Helpers ----
 
@@ -133,60 +143,63 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     const handleMessage = useCallback(
       (event: WebViewMessageEvent) => {
+        let message;
         try {
-          const message = JSON.parse(event.nativeEvent.data);
-
-          switch (message.type) {
-            case 'CHART_READY':
-              setIsChartReady(true);
-              setWebViewError(null);
-              onChartReady?.();
-              break;
-
-            case 'INDICATOR_ADDED':
-              if ('name' in message.payload) {
-                activeIndicatorsRef.current.add(
-                  message.payload.name as IndicatorType,
-                );
-              }
-              break;
-
-            case 'INDICATOR_REMOVED':
-              if ('name' in message.payload) {
-                activeIndicatorsRef.current.delete(
-                  message.payload.name as IndicatorType,
-                );
-              }
-              break;
-
-            case 'CROSSHAIR_MOVE':
-              onCrosshairMove?.(
-                (message.payload?.data as CrosshairData) ?? null,
-              );
-              break;
-
-            case 'NEED_MORE_HISTORY':
-              onRequestMoreHistory?.();
-              break;
-
-            case 'ERROR':
-              if ('message' in message.payload) {
-                const errorMessage = message.payload.message as string;
-                setWebViewError(errorMessage);
-                onError?.(errorMessage);
-              }
-              break;
-
-            case 'DEBUG':
-              // eslint-disable-next-line no-console
-              console.log('[AdvancedChart]', JSON.stringify(message.payload));
-              break;
-
-            default:
-              break;
-          }
+          message = JSON.parse(event.nativeEvent.data);
         } catch {
-          // Ignore parse errors from non-JSON messages
+          return;
+        }
+
+        const { type, payload } = message;
+        const hasPayload =
+          payload !== null &&
+          payload !== undefined &&
+          typeof payload === 'object';
+
+        switch (type) {
+          case 'CHART_READY':
+            setIsChartReady(true);
+            setWebViewError(null);
+            onChartReady?.();
+            break;
+
+          case 'INDICATOR_ADDED':
+            if (hasPayload && 'name' in payload) {
+              activeIndicatorsRef.current.add(payload.name as IndicatorType);
+            }
+            break;
+
+          case 'INDICATOR_REMOVED':
+            if (hasPayload && 'name' in payload) {
+              activeIndicatorsRef.current.delete(payload.name as IndicatorType);
+            }
+            break;
+
+          case 'CROSSHAIR_MOVE':
+            onCrosshairMove?.(
+              (hasPayload ? (payload.data as CrosshairData) : null) ?? null,
+            );
+            break;
+
+          case 'NEED_MORE_HISTORY':
+            onRequestMoreHistory?.();
+            break;
+
+          case 'ERROR':
+            if (hasPayload && 'message' in payload) {
+              const errorMessage = payload.message as string;
+              setWebViewError(errorMessage);
+              onError?.(errorMessage);
+            }
+            break;
+
+          case 'DEBUG':
+            // eslint-disable-next-line no-console
+            console.log('[AdvancedChart]', JSON.stringify(payload));
+            break;
+
+          default:
+            break;
         }
       },
       [onChartReady, onError, onCrosshairMove, onRequestMoreHistory],
@@ -202,13 +215,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     );
 
     const handleLoadEnd = useCallback(() => {
-      webViewLoadedRef.current = true;
-      if (ohlcvData.length > 0) {
-        setTimeout(() => {
-          sendOHLCVData(ohlcvData);
-        }, 100);
-      }
-    }, [ohlcvData, sendOHLCVData]);
+      setWebViewLoaded(true);
+    }, []);
 
     // ---- Ref API ----
 
@@ -220,20 +228,25 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         setChartType: setChartTypeInternal,
         reset: () => {
           setIsChartReady(false);
+          setWebViewLoaded(false);
+          setWebViewError(null);
           activeIndicatorsRef.current.clear();
+          prevPositionLinesRef.current = undefined;
+          prevChartTypeRef.current = undefined;
+          prevShowVolumeRef.current = showVolume;
           webViewRef.current?.reload();
         },
       }),
-      [addIndicator, removeIndicator, setChartTypeInternal],
+      [addIndicator, removeIndicator, setChartTypeInternal, showVolume],
     );
 
     // ---- Declarative prop syncing ----
 
     useEffect(() => {
-      if (ohlcvData.length > 0 && webViewLoadedRef.current) {
+      if (ohlcvData.length > 0 && webViewLoaded) {
         sendOHLCVData(ohlcvData);
       }
-    }, [ohlcvData, sendOHLCVData]);
+    }, [ohlcvData, webViewLoaded, sendOHLCVData]);
 
     // Forward real-time bar updates to WebView
     useEffect(() => {
@@ -324,8 +337,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           bounces={false}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
-          allowFileAccessFromFileURLs
-          allowUniversalAccessFromFileURLs
           allowsInlineMediaPlayback
           androidLayerType="hardware"
           mixedContentMode="always"

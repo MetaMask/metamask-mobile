@@ -18,12 +18,12 @@ describe('TimeRangeSelector', () => {
   it('renders all time range buttons by default', () => {
     const { getByText } = render(<TimeRangeSelector {...defaultProps} />);
 
-    expect(getByText('1H')).toBeTruthy();
-    expect(getByText('1D')).toBeTruthy();
-    expect(getByText('1W')).toBeTruthy();
-    expect(getByText('1M')).toBeTruthy();
-    expect(getByText('YTD')).toBeTruthy();
-    expect(getByText('ALL')).toBeTruthy();
+    expect(getByText('1H')).toBeOnTheScreen();
+    expect(getByText('1D')).toBeOnTheScreen();
+    expect(getByText('1W')).toBeOnTheScreen();
+    expect(getByText('1M')).toBeOnTheScreen();
+    expect(getByText('YTD')).toBeOnTheScreen();
+    expect(getByText('ALL')).toBeOnTheScreen();
   });
 
   it('renders only specified ranges when ranges prop is provided', () => {
@@ -31,12 +31,12 @@ describe('TimeRangeSelector', () => {
       <TimeRangeSelector {...defaultProps} ranges={['1H', '1D', '1W']} />,
     );
 
-    expect(getByText('1H')).toBeTruthy();
-    expect(getByText('1D')).toBeTruthy();
-    expect(getByText('1W')).toBeTruthy();
-    expect(queryByText('1M')).toBeNull();
-    expect(queryByText('YTD')).toBeNull();
-    expect(queryByText('ALL')).toBeNull();
+    expect(getByText('1H')).toBeOnTheScreen();
+    expect(getByText('1D')).toBeOnTheScreen();
+    expect(getByText('1W')).toBeOnTheScreen();
+    expect(queryByText('1M')).not.toBeOnTheScreen();
+    expect(queryByText('YTD')).not.toBeOnTheScreen();
+    expect(queryByText('ALL')).not.toBeOnTheScreen();
   });
 
   it('calls onSelect with the tapped range', () => {

@@ -26,44 +26,6 @@ export interface OHLCVBar {
 export type IndicatorType = 'MACD' | 'RSI' | 'MA200';
 
 /**
- * Indicator configuration for TradingView studies
- */
-export interface IndicatorConfig {
-  /** TradingView study name */
-  studyName: string;
-  /** Default input parameters */
-  inputs: Record<string, number | string>;
-  /** Visual overrides */
-  overrides?: Record<string, string | number>;
-}
-
-/**
- * Indicator configurations map
- */
-export const INDICATOR_CONFIGS: Record<IndicatorType, IndicatorConfig> = {
-  MACD: {
-    studyName: 'MACD',
-    inputs: {
-      in_0: 12, // Fast length
-      in_1: 26, // Slow length
-      in_2: 9, // Signal smoothing
-    },
-  },
-  RSI: {
-    studyName: 'Relative Strength Index',
-    inputs: {
-      in_0: 14, // Period
-    },
-  },
-  MA200: {
-    studyName: 'Moving Average',
-    inputs: {
-      in_0: 200, // Period
-    },
-  },
-};
-
-/**
  * Position side for long/short position shapes
  */
 export type PositionSide = 'long' | 'short';

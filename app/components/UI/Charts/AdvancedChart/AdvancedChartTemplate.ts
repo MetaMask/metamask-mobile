@@ -11,6 +11,13 @@ const CHARTING_LIBRARY_URL = `${CHARTING_LIBRARY_BASE_URL}charting_library/`;
 // export const CHARTING_LIBRARY_BASE_URL = 'http://localhost:8000/';
 // const CHARTING_LIBRARY_URL = `${CHARTING_LIBRARY_BASE_URL}charting_library/`;
 
+/**
+ * Strip the alpha channel from a hex color string.
+ * Design tokens may use 9-char hex (#RRGGBBAA); TradingView expects #RRGGBB.
+ */
+const stripHexAlpha = (hex: string): string =>
+  hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
+
 interface ChartFeatures {
   enableDrawingTools?: boolean;
   showVolume?: boolean;
@@ -25,7 +32,7 @@ window.CONFIG = {
   libraryUrl: '${libraryUrl}',
   theme: {
     backgroundColor: '${theme.colors.background.default}',
-    borderColor: '${theme.colors.border.muted.substring(0, 7)}',
+    borderColor: '${stripHexAlpha(theme.colors.border.muted)}',
     textColor: '${theme.colors.text.alternative}',
     successColor: '${theme.colors.success.default}',
     errorColor: '${theme.colors.error.default}',

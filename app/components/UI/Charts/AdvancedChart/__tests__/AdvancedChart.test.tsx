@@ -34,23 +34,18 @@ const MOCK_BARS: OHLCVBar[] = [
 describe('AdvancedChart', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
   });
 
   it('renders without crashing', () => {
     const { getByText } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
-    expect(getByText('Loading chart...')).toBeTruthy();
+    expect(getByText('Loading chart...')).toBeOnTheScreen();
   });
 
   it('shows loading overlay when isLoading is true', () => {
     const { getByText } = render(
       <AdvancedChart ohlcvData={MOCK_BARS} isLoading />,
     );
-    expect(getByText('Loading chart...')).toBeTruthy();
+    expect(getByText('Loading chart...')).toBeOnTheScreen();
   });
 
   it('sends OHLCV data on WebView load end', () => {
@@ -59,11 +54,6 @@ describe('AdvancedChart', () => {
     const webView = getByTestId('mock-webview');
     act(() => {
       webView.props.onLoadEnd();
-    });
-
-    // After the 100ms delay, postMessage should be called with SET_OHLCV_DATA
-    act(() => {
-      jest.advanceTimersByTime(150);
     });
 
     expect(mockPostMessage).toHaveBeenCalledWith(
@@ -307,6 +297,64 @@ describe('AdvancedChart', () => {
     );
   });
 
+  it('resets chart state when htmlContent changes so sync effects re-fire', () => {
+    const onChartReady = jest.fn();
+    const { getByTestId, getByText, rerender } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onChartReady={onChartReady}
+        enableDrawingTools={false}
+        indicators={['RSI']}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(onChartReady).toHaveBeenCalledTimes(1);
+    mockPostMessage.mockClear();
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onChartReady={onChartReady}
+        enableDrawingTools
+        indicators={['RSI']}
+      />,
+    );
+
+    expect(getByText('Loading chart...')).toBeOnTheScreen();
+
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(onChartReady).toHaveBeenCalledTimes(2);
+
+    const addIndicatorCall = mockPostMessage.mock.calls.find((call) => {
+      const parsed = JSON.parse(call[0] as string);
+      return parsed.type === 'ADD_INDICATOR' && parsed.payload.name === 'RSI';
+    });
+    expect(addIndicatorCall).toBeDefined();
+  });
+
   it('displays error when WebView fails', () => {
     const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
 
@@ -324,5 +372,33 @@ describe('AdvancedChart', () => {
 
     // After error, component re-renders with error state
     // The test verifies it doesn't crash
+  });
+
+  it('recovers from error state when reset() is called via ref', () => {
+    const ref = React.createRef<AdvancedChartRef>();
+    const { getByTestId, getByText, queryByText } = render(
+      <AdvancedChart ref={ref} ohlcvData={MOCK_BARS} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'ERROR',
+            payload: { message: 'Load failed' },
+          }),
+        },
+      });
+    });
+
+    expect(getByText(/Load failed/)).toBeOnTheScreen();
+
+    act(() => {
+      ref.current?.reset();
+    });
+
+    expect(queryByText(/Load failed/)).not.toBeOnTheScreen();
+    expect(getByText('Loading chart...')).toBeOnTheScreen();
   });
 });
