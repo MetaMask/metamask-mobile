@@ -6,7 +6,7 @@ import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
 import { Box } from '../../UI/Box/Box';
-import { Label } from '@metamask/design-system-react-native';
+import { FontWeight, Label } from '@metamask/design-system-react-native';
 
 export interface SnapUIInputProps {
   name: string;
@@ -76,7 +76,7 @@ export const SnapUIInput = ({
 
   return (
     <Box style={style}>
-      {label && <Label>{label}</Label>}
+      {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
       <TextField
         {...props}
         isDisabled={disabled}

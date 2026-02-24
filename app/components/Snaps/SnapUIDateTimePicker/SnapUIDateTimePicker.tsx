@@ -1,7 +1,7 @@
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { DateTime } from 'luxon';
-import { Box, Label } from '@metamask/design-system-react-native';
+import { Box, FontWeight, Label } from '@metamask/design-system-react-native';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -291,7 +291,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
 
   return (
     <Box testID={'snap-ui-renderer__date-time-picker'}>
-      {label && <Label>{label}</Label>}
+      {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
       <TextField
         testID={`snap-ui-renderer__date-time-picker--${type}`}
         placeholder={placeholder}

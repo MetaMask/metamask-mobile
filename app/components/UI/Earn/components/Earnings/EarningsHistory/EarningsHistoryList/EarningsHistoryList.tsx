@@ -8,7 +8,7 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../../../../locales/i18n';
 import { EarningsHistoryListProps } from './EarningsHistoryList.types';
 import { EARN_EXPERIENCES } from '../../../../constants/experiences';
-import { Label, TextColor } from '@metamask/design-system-react-native';
+import { FontWeight, Label, TextColor } from '@metamask/design-system-react-native';
 
 const EarningsHistoryList = ({
   type,
@@ -30,18 +30,18 @@ const EarningsHistoryList = ({
           <View key={`earning-history-list-item-${index}`}>
             {isGroupHeaderVisible && (
               <View style={styles.lineItemGroupHeaderContainer}>
-                <Label color={TextColor.TextDefault}>
+                <Label color={TextColor.TextDefault} fontWeight={FontWeight.Medium}>
                   {earning.groupHeader}
                 </Label>
               </View>
             )}
             <View style={styles.lineItemContainer}>
               <View style={styles.leftLineItemBox}>
-                <Label color={TextColor.TextDefault}>{earning.label}</Label>
+                <Label color={TextColor.TextDefault} fontWeight={FontWeight.Medium}>{earning.label}</Label>
               </View>
               <View style={styles.rightLineItemContainer}>
                 <View style={styles.rightLineItemBox}>
-                  <Label color={TextColor.SuccessDefault}>
+                  <Label color={TextColor.SuccessDefault} fontWeight={FontWeight.Medium}>
                     + {earning.amount} {earning.ticker}
                   </Label>
                 </View>
@@ -83,7 +83,7 @@ const EarningsHistoryList = ({
     <View style={styles.earningsHistoryListContainer}>
       {earnings ? (
         <>
-          <Label color={TextColor.TextDefault}>
+          <Label color={TextColor.TextDefault} fontWeight={FontWeight.Bold}>
             {type === EARN_EXPERIENCES.STABLECOIN_LENDING
               ? strings('earn.earnings_history_list_title.lending')
               : strings('earn.earnings_history_list_title.staking')}

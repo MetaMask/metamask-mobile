@@ -73,6 +73,7 @@ import {
 } from '@metamask/seedless-onboarding-controller';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import {
+  FontWeight,
   Label,
   TextColor as DesignSystemTextColor,
 } from '@metamask/design-system-react-native';
@@ -777,6 +778,7 @@ class ResetPassword extends PureComponent {
           <View style={styles.confirmPasswordWrapper}>
             <View style={[styles.content, styles.passwordRequiredContent]}>
               <Label
+                fontWeight={FontWeight.Medium}
                 color={DesignSystemTextColor.TextDefault}
                 style={styles.confirm_label}
               >
@@ -908,6 +910,7 @@ class ResetPassword extends PureComponent {
 
                 <View style={styles.field}>
                   <Label
+                    fontWeight={FontWeight.Medium}
                     color={DesignSystemTextColor.TextDefault}
                     style={styles.passwordLabel}
                   >
@@ -950,6 +953,7 @@ class ResetPassword extends PureComponent {
 
                 <View style={styles.field}>
                   <Label
+                    fontWeight={FontWeight.Medium}
                     color={DesignSystemTextColor.TextDefault}
                     style={styles.passwordLabel}
                   >

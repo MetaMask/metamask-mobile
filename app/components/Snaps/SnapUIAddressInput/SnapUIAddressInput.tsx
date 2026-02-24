@@ -28,7 +28,7 @@ import { useDisplayName } from '../SnapUIAddress/useDisplayName';
 import { AlignItems, FlexDirection } from '../../UI/Box/box.types';
 import { useTheme } from '../../../util/theme';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import { Label } from '@metamask/design-system-react-native';
+import { FontWeight, Label } from '@metamask/design-system-react-native';
 
 export interface SnapUIAddressInputProps {
   name: string;
@@ -82,7 +82,7 @@ const MatchedAccountInfo = ({
   });
   return (
     <Box flexDirection={FlexDirection.Column}>
-      {label && <Label>{label}</Label>}
+      {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
       <Box
         backgroundColor={colors.background.default}
         alignItems={AlignItems.center}
@@ -228,7 +228,7 @@ export const SnapUIAddressInput = ({
 
   return (
     <Box style={style}>
-      {label && <Label>{label}</Label>}
+      {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
       <TextField
         {...props}
         ref={inputRef}

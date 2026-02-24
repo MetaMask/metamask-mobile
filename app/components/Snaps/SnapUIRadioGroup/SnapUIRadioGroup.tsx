@@ -6,7 +6,7 @@ import HelpText, {
 } from '../../../component-library/components/Form/HelpText';
 import RadioButton from '../../../component-library/components/RadioButton';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
-import { Label } from '@metamask/design-system-react-native';
+import { FontWeight, Label } from '@metamask/design-system-react-native';
 
 export interface SnapUIRadioGroupProps {
   name: string;
@@ -50,7 +50,7 @@ export const SnapUIRadioGroup: FunctionComponent<SnapUIRadioGroupProps> = ({
 
   return (
     <Box style={style} testID="snap-ui-renderer__radio">
-      {label && <Label>{label}</Label>}
+      {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
       {options.map((option) => (
         <RadioButton
           key={option.value}

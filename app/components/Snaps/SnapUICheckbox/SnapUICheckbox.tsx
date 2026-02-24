@@ -6,7 +6,7 @@ import { HelpTextSeverity } from '../../../component-library/components/Form/Hel
 import HelpText from '../../../component-library/components/Form/HelpText';
 import { Box } from '../../UI/Box/Box';
 import { ViewStyle } from 'react-native';
-import { Label } from '@metamask/design-system-react-native';
+import { FontWeight, Label } from '@metamask/design-system-react-native';
 
 export interface SnapUICheckboxProps {
   name: string;
@@ -50,7 +50,7 @@ export const SnapUICheckbox: FunctionComponent<SnapUICheckboxProps> = ({
 
   return (
     <Box style={style} flexDirection={FlexDirection.Column}>
-      {fieldLabel && <Label>{fieldLabel}</Label>}
+      {fieldLabel && <Label fontWeight={FontWeight.Medium}>{fieldLabel}</Label>}
       <Checkbox
         {...props}
         onPress={handleChange}

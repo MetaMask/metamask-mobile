@@ -96,6 +96,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import {
   Label,
   TextColor as DesignSystemTextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 
 interface KeyringState {
@@ -670,6 +671,7 @@ const ChoosePassword = () => {
 
                 <View style={styles.field}>
                   <Label
+                    fontWeight={FontWeight.Medium}
                     color={DesignSystemTextColor.TextDefault}
                     style={styles.label}
                   >
@@ -720,6 +722,7 @@ const ChoosePassword = () => {
 
                 <View style={styles.field}>
                   <Label
+                    fontWeight={FontWeight.Medium}
                     color={DesignSystemTextColor.TextDefault}
                     style={styles.label}
                   >

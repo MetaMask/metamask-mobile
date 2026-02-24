@@ -15,7 +15,7 @@ import BottomSheetHeader from '../../../component-library/components/BottomSheet
 import ApprovalModal from '../../Approvals/ApprovalModal';
 import { State } from '@metamask/snaps-sdk';
 import { isObject } from '@metamask/utils';
-import { Label } from '@metamask/design-system-react-native';
+import { FontWeight, Label } from '@metamask/design-system-react-native';
 
 export interface SnapUISelectorProps {
   name: string;
@@ -138,7 +138,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   return (
     <>
       <Box style={style} flexDirection={FlexDirection.Column}>
-        {label && <Label>{label}</Label>}
+        {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
         <ButtonBase
           width={ButtonWidthTypes.Full}
           label={inlineButtonLabel}

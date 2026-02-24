@@ -89,6 +89,7 @@ import { selectImportSrpWordSuggestionEnabledFlag } from '../../../selectors/fea
 import {
   Label,
   TextColor as DesignSystemTextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -653,6 +654,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
               <View style={styles.field}>
                 <Label
+                  fontWeight={FontWeight.Medium}
                   color={DesignSystemTextColor.TextDefault}
                   style={styles.label}
                 >
@@ -701,6 +703,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
               <View style={styles.field}>
                 <Label
+                  fontWeight={FontWeight.Medium}
                   color={DesignSystemTextColor.TextDefault}
                   style={styles.label}
                 >

@@ -97,6 +97,7 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import {
   Label,
   TextColor as DesignSystemTextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 
 const EmptyRecordConstant = {};
@@ -698,6 +699,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
               <View style={styles.field}>
                 <Label
+                  fontWeight={FontWeight.Medium}
                   color={DesignSystemTextColor.TextDefault}
                   style={styles.label}
                 >
