@@ -31,8 +31,6 @@ window.pendingMessages = [];
 window.libraryLoaded = false;
 window.libraryError = null;
 window.realtimeCallback = null;
-window.realtimeListenerGuid = null;
-window.needMoreHistoryThrottled = false;
 
 // ============================================
 // Communication with React Native
@@ -563,12 +561,10 @@ var customDatafeed = {
 
   subscribeBars: function (symbolInfo, resolution, onTick, listenerGuid) {
     window.realtimeCallback = onTick;
-    window.realtimeListenerGuid = listenerGuid;
   },
 
   unsubscribeBars: function () {
     window.realtimeCallback = null;
-    window.realtimeListenerGuid = null;
   },
 };
 
