@@ -1,6 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { Component } from 'react';
-import { View, NativeSyntheticEvent } from 'react-native';
+import { View, NativeSyntheticEvent, Platform } from 'react-native';
 import { WebViewMessageEvent, WebView } from '@metamask/react-native-webview';
 import { createStyles } from './styles';
 import { WebViewInterface } from '@metamask/snaps-controllers/react-native';
@@ -9,6 +9,11 @@ import { PostMessageEvent } from '@metamask/post-message-stream';
 // @ts-expect-error Types are currently broken for this.
 import WebViewHTML from '@metamask/snaps-execution-environments/dist/webpack/webview/index.html';
 import { EmptyObject } from '@metamask/snaps-sdk';
+import {
+  buildE2EProxyPatchScript,
+  getMockServerPortInApp,
+  shouldPatchSnapsWebViewProxy,
+} from './SnapsE2EProxy';
 
 const styles = createStyles();
 
@@ -43,6 +48,16 @@ export class SnapsExecutionWebView extends Component {
   createWebView(jobId: string) {
     const promise = new Promise<WebViewInterface>((resolve, reject) => {
       const onWebViewLoad = () => {
+        if (shouldPatchSnapsWebViewProxy()) {
+          this.webViews[jobId]?.ref?.injectJavaScript(
+            buildE2EProxyPatchScript({
+              mockServerPort: String(getMockServerPortInApp()),
+              platform: Platform.OS,
+              snapId: jobId,
+            }),
+          );
+        }
+
         const api = {
           injectJavaScript: (js: string) => {
             this.webViews[jobId]?.ref?.injectJavaScript(js);
@@ -109,20 +124,31 @@ export class SnapsExecutionWebView extends Component {
   render() {
     return (
       <View style={styles.container}>
-        {Object.entries(this.webViews).map(([key, { props }]) => (
-          <WebView
-            testID={key}
-            key={key}
-            ref={props.ref}
-            source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
-            onMessage={props.onWebViewMessage}
-            onError={props.onWebViewError}
-            onLoadEnd={props.onWebViewLoad}
-            originWhitelist={['*']}
-            javaScriptEnabled
-            webviewDebuggingEnabled={__DEV__}
-          />
-        ))}
+        {Object.entries(this.webViews).map(([key, { props }]) => {
+          const e2eProxyPatchScript = shouldPatchSnapsWebViewProxy()
+            ? buildE2EProxyPatchScript({
+                mockServerPort: String(getMockServerPortInApp()),
+                platform: Platform.OS,
+                snapId: key,
+              })
+            : undefined;
+
+          return (
+            <WebView
+              testID={key}
+              key={key}
+              ref={props.ref}
+              source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
+              injectedJavaScriptBeforeContentLoaded={e2eProxyPatchScript}
+              onMessage={props.onWebViewMessage}
+              onError={props.onWebViewError}
+              onLoadEnd={props.onWebViewLoad}
+              originWhitelist={['*']}
+              javaScriptEnabled
+              webviewDebuggingEnabled={__DEV__}
+            />
+          );
+        })}
       </View>
     );
   }

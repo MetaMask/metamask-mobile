@@ -108,20 +108,19 @@ module.exports = function (baseConfig) {
               type: 'sourceFile',
             };
           }
-          if (
-            !isE2E &&
-            (moduleName === './SnapsE2EProxy' ||
-              moduleName.endsWith('/SnapsE2EProxy'))
-          ) {
-            return {
-              type: 'sourceFile',
-              filePath: path.resolve(
-                __dirname,
-                'app/lib/snaps/SnapsE2EProxy.stub.ts',
-              ),
-            };
-          }
           if (isE2E) {
+            if (
+              moduleName === './SnapsExecutionWebView' ||
+              moduleName.endsWith('/SnapsExecutionWebView')
+            ) {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'app/lib/snaps/SnapsExecutionWebView.e2e.tsx',
+                ),
+              };
+            }
             if (moduleName === '@sentry/react-native') {
               return {
                 type: 'sourceFile',

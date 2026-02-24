@@ -460,7 +460,7 @@ export default class MockServerE2E implements Resource {
             snapId,
           );
 
-          if (!isUrlAllowed(updatedUrl)) {
+          if (!isSnapWebViewProxyRequest && !isUrlAllowed(updatedUrl)) {
             const errorMessage = `Request going to live server: ${updatedUrl}`;
             logger.warn(errorMessage);
             if (method === 'POST') {
@@ -550,7 +550,7 @@ export default class MockServerE2E implements Resource {
           Boolean(trackableProxiedUrl),
           snapId,
         );
-        if (!isUrlAllowed(translatedUrl)) {
+        if (!isSnapWebViewProxyRequest && !isUrlAllowed(translatedUrl)) {
           const errorMessage = `Request going to live server: ${translatedUrl}`;
           logger.warn(errorMessage);
           if (request.method === 'POST') {
