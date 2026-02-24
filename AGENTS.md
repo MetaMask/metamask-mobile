@@ -194,3 +194,39 @@ If the user asks to implement a ticket directly from Jira:
 
 ## Test Guidelines
 When working on tests, read tests/AGENTS.md for testing conventions.
+
+## Cursor Cloud specific instructions
+
+This section is for cloud agents running on Linux VMs without iOS/Android simulators.
+
+### Environment
+
+- **Node.js 20.18.0** is required (see `.nvmrc`). Use nvm: `source ~/.nvm/nvm.sh && nvm use`.
+- **Yarn 4.10.3** is bundled via corepack. Run `corepack enable` if yarn isn't available.
+- **Watchman** must be installed (`sudo apt-get install -y watchman`).
+
+### Development setup
+
+Use the Expo workflow (JS-only, no native builds):
+
+1. `yarn install --immutable` (dependencies)
+2. `node scripts/setup.mjs --no-build-ios --no-build-android` (env files, inpage bridge, patches, foundry, husky, terms of use)
+3. `yarn watch:clean` to start Metro bundler on port 8081
+
+The `.js.env` file is auto-created from `.js.env.example` by the setup script. External service keys (Infura, Firebase, Sentry, Segment) are optional for dev/test; the app runs without them.
+
+### Running checks
+
+| Check      | Command             | Notes                                                                           |
+| ---------- | ------------------- | ------------------------------------------------------------------------------- |
+| Lint       | `yarn lint`         | ESLint; 0 errors expected, warnings are OK                                      |
+| Types      | `yarn lint:tsc`     | TypeScript compiler check                                                       |
+| Unit tests | `yarn test:unit`    | Full suite is large (~1000s of tests); use `yarn jest <path>` for targeted runs |
+| Format     | `yarn format:check` | Prettier check                                                                  |
+
+### Gotchas
+
+- Metro bundler emits warnings about missing optional env vars (`SEGMENT_REGULATIONS_ENDPOINT_QA`, `MM_SENTRY_DSN_DEV`, etc.) — these are safe to ignore.
+- `yarn setup:expo` runs `yarn clean` first (which calls `yarn install --immutable`), so it is an all-in-one command but slower. Prefer running `node scripts/setup.mjs --no-build-ios --no-build-android` directly when dependencies are already installed.
+- Unit tests should use `--forceExit` flag to avoid hanging due to open handles.
+- The pre-commit hook runs `yarn lint-staged`, which is already configured via Husky.
