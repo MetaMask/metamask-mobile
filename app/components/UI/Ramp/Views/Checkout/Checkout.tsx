@@ -268,11 +268,9 @@ const Checkout = () => {
           return;
         }
         _dispatch(addFiatOrder(order));
-        if (providerType !== FIAT_ORDER_PROVIDERS.RAMPS_V2) {
-          const notificationDetails = getNotificationDetails(order);
-          if (notificationDetails) {
-            NotificationManager.showSimpleNotification(notificationDetails);
-          }
+        const notificationDetails = getNotificationDetails(order);
+        if (notificationDetails) {
+          NotificationManager.showSimpleNotification(notificationDetails);
         }
       });
 
