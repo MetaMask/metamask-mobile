@@ -22,7 +22,10 @@ function isAllowlisted(
     return false;
   }
 
-  const addresses = allowlist[chainId];
+  const allowlistKey = Object.keys(allowlist).find(
+    (key) => key.toLowerCase() === chainId,
+  ) as Hex | undefined;
+  const addresses = allowlistKey ? allowlist[allowlistKey] : undefined;
   if (!addresses) {
     return false;
   }
