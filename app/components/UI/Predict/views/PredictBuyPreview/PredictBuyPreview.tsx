@@ -150,6 +150,7 @@ const PredictBuyPreview = () => {
   const previousValueRef = useRef(0);
   const hasInitializedTokenSelectionRef = useRef(false);
   const previousSelectedTokenAddressRef = useRef<string | null>(null);
+  const shouldPreserveActiveOrderOnUnmountRef = useRef(false);
 
   const {
     preview,
@@ -230,7 +231,9 @@ const PredictBuyPreview = () => {
       sharePrice: outcomeToken?.price,
     });
     return () => {
-      controller.clearActiveOrder();
+      if (!shouldPreserveActiveOrderOnUnmountRef.current) {
+        controller.clearActiveOrder();
+      }
     };
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -297,6 +300,7 @@ const PredictBuyPreview = () => {
     }
 
     previousSelectedTokenAddressRef.current = selectedTokenAddress;
+    shouldPreserveActiveOrderOnUnmountRef.current = true;
 
     void depositAndOrder({
       market,
@@ -317,31 +321,11 @@ const PredictBuyPreview = () => {
   const onPlaceBet = useCallback(async () => {
     if (!preview || isBelowMinimum) return;
 
-    if (!isPredictBalanceSelected) {
-      await depositAndOrder({
-        market,
-        outcome,
-        outcomeToken,
-        analyticsProperties,
-      });
-      return;
-    }
-
     await placeOrder({
       analyticsProperties,
       preview,
     });
-  }, [
-    preview,
-    isBelowMinimum,
-    isPredictBalanceSelected,
-    depositAndOrder,
-    market,
-    outcome,
-    outcomeToken,
-    placeOrder,
-    analyticsProperties,
-  ]);
+  }, [preview, isBelowMinimum, placeOrder, analyticsProperties]);
 
   const handleFeesInfoPress = useCallback(() => {
     setIsFeeBreakdownVisible(true);

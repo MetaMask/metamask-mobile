@@ -8,8 +8,6 @@ import { ToastVariants } from '../../../../component-library/components/Toast/To
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
-import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { selectPredictPendingDepositByAddress } from '../selectors/predictController';
 import {
@@ -19,6 +17,7 @@ import {
 import { PlaceOrderParams } from '../providers/types';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { ensureError } from '../utils/predictErrorHandler';
+import { usePredictConfirmNavigation } from './usePredictConfirmNavigation';
 import { usePredictTrading } from './usePredictTrading';
 
 interface PredictDepositAndOrderParams {
@@ -30,7 +29,7 @@ interface PredictDepositAndOrderParams {
 }
 
 export const usePredictDepositAndOrder = () => {
-  const { navigateToConfirmation } = useConfirmNavigation();
+  const { navigateToConfirmation } = usePredictConfirmNavigation();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
   const navigation =
@@ -64,6 +63,7 @@ export const usePredictDepositAndOrder = () => {
           },
         },
       });
+      Engine.context.PredictController.clearActiveOrder();
       navigation.goBack();
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
@@ -98,9 +98,7 @@ export const usePredictDepositAndOrder = () => {
           outcomeToken: params.outcomeToken,
         });
 
-        navigateToConfirmation({
-          loader: ConfirmationLoader.CustomAmount,
-        });
+        navigateToConfirmation();
 
         depositAndOrderWithConfirmation({}).catch((err) => {
           console.error('Failed to initialize deposit and order:', err);

@@ -18,6 +18,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { ActivityIndicator, Linking, ScrollView } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Button, {
   ButtonSize,
@@ -158,6 +159,13 @@ export function PredictDepositAndOrderInfo() {
   useEffect(() => {
     setIsFooterVisible(false);
   }, [setIsFooterVisible]);
+
+  useEffect(
+    () => () => {
+      Engine.context.PredictController.clearActiveOrder();
+    },
+    [],
+  );
 
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
   const isRateLimited = preview?.rateLimited ?? false;
