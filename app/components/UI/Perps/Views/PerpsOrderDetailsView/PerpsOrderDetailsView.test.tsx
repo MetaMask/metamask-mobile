@@ -331,7 +331,7 @@ describe('PerpsOrderDetailsView', () => {
     expect(
       screen.getByText('perps.order_details.price_below'),
     ).toBeOnTheScreen();
-    expect(screen.getByText('$50000.00')).toBeOnTheScreen();
+    expect(screen.getByText('$51000.00')).toBeOnTheScreen();
     expect(screen.getByText('perps.order_details.yes')).toBeOnTheScreen();
   });
 
@@ -396,6 +396,24 @@ describe('PerpsOrderDetailsView', () => {
         amount: '25500',
       }),
     );
+  });
+
+  it('shows non-zero fallback display when both execution and trigger prices are unavailable', () => {
+    const incompleteOrder: Order = {
+      ...mockOrder,
+      orderType: 'limit',
+      detailedOrderType: 'Take Profit Limit',
+      isTrigger: true,
+      price: '0',
+      triggerPrice: '',
+    };
+    mockRouteParams = { order: incompleteOrder };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(screen.getByText('perps.order_details.market')).toBeOnTheScreen();
+    expect(screen.getAllByText('$---')).toHaveLength(2);
+    expect(screen.queryByText('$0.00')).not.toBeOnTheScreen();
   });
 
   it('calculates order value using execution price when both trigger and execution prices exist', () => {

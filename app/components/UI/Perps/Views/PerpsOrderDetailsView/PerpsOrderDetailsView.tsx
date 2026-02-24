@@ -25,7 +25,7 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderFees } from '../../hooks/usePerpsOrderFees';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { TraceName } from '../../../../../util/trace';
-import { type Order } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, type Order } from '@metamask/perps-controller';
 import styleSheet from './PerpsOrderDetailsView.styles';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import {
@@ -39,6 +39,7 @@ import {
   getValidTriggerPrice,
   inferTriggerConditionKey,
   isSyntheticOrderCancelable,
+  resolveOrderDisplayPriceAndLabel,
 } from '../../utils/orderUtils';
 
 interface OrderDetailsRouteParams {
@@ -66,25 +67,24 @@ const PerpsOrderDetailsView: React.FC = () => {
   const priceMetrics = useMemo(() => {
     if (!order) {
       return {
-        parsedPrice: 0,
+        displayPriceValue: null as number | null,
         validTriggerPrice: null as number | null,
-        hasPrice: false,
-        effectivePrice: 0,
+        effectivePrice: null as number | null,
       };
     }
 
     const validOrderPrice = getValidOrderPrice(order);
     const validTriggerPrice = getValidTriggerPrice(order);
-    const parsedPrice = validOrderPrice ?? 0;
-    const hasPrice = validOrderPrice !== null;
-    const effectivePrice = validOrderPrice ?? validTriggerPrice ?? 0;
+    const { priceValue: displayPriceValue } =
+      resolveOrderDisplayPriceAndLabel(order);
+    const effectivePrice = validOrderPrice ?? validTriggerPrice;
 
-    return { parsedPrice, validTriggerPrice, hasPrice, effectivePrice };
+    return { displayPriceValue, validTriggerPrice, effectivePrice };
   }, [order]);
 
   // Calculate size in USD for fee calculation
   const sizeInUSD = useMemo(() => {
-    if (!order) return '0';
+    if (!order || priceMetrics.effectivePrice === null) return '0';
     return (parseFloat(order.size) * priceMetrics.effectivePrice).toString();
   }, [order, priceMetrics.effectivePrice]);
 
@@ -117,17 +117,21 @@ const PerpsOrderDetailsView: React.FC = () => {
         ? (parseFloat(order.filledSize) / parseFloat(order.originalSize)) * 100
         : 0;
 
-    const { parsedPrice, validTriggerPrice, hasPrice, effectivePrice } =
+    const { displayPriceValue, validTriggerPrice, effectivePrice } =
       priceMetrics;
-    const originalSizeUSD = parseFloat(order.originalSize) * effectivePrice;
+    const originalSizeUSD =
+      effectivePrice !== null
+        ? parseFloat(order.originalSize) * effectivePrice
+        : null;
 
     const isMarketExecution =
       order.orderType === 'market' ||
       (order.detailedOrderType ?? '').toLowerCase().includes('market');
 
-    const priceText = isMarketExecution
-      ? strings('perps.order_details.market')
-      : formatPerpsFiat(hasPrice ? parsedPrice : (validTriggerPrice ?? 0));
+    const priceText =
+      isMarketExecution || displayPriceValue === null
+        ? strings('perps.order_details.market')
+        : formatPerpsFiat(displayPriceValue);
 
     let triggerCondition: string | undefined;
     if (order.isTrigger && validTriggerPrice !== null) {
@@ -160,7 +164,10 @@ const PerpsOrderDetailsView: React.FC = () => {
     return {
       orderTypeLabel,
       fillPercentage,
-      originalSizeInUSD: originalSizeUSD,
+      originalSizeInUSDText:
+        originalSizeUSD !== null
+          ? formatPerpsFiat(originalSizeUSD)
+          : PERPS_CONSTANTS.FallbackPriceDisplay,
       dateString,
       triggerCondition,
       priceText,
@@ -288,7 +295,7 @@ const PerpsOrderDetailsView: React.FC = () => {
     {
       key: 'order-value',
       label: strings('perps.order_details.order_value'),
-      value: formatPerpsFiat(orderDetails.originalSizeInUSD),
+      value: orderDetails.originalSizeInUSDText,
     },
     {
       key: 'reduce-only',
@@ -298,7 +305,10 @@ const PerpsOrderDetailsView: React.FC = () => {
     {
       key: 'fee',
       label: strings('perps.order_details.fee'),
-      value: formatPerpsFiat(totalFee),
+      value:
+        priceMetrics.effectivePrice !== null
+          ? formatPerpsFiat(totalFee)
+          : PERPS_CONSTANTS.FallbackPriceDisplay,
     },
   ];
 
