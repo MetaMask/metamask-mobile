@@ -94,4 +94,20 @@ describe('MarketInsightsTrendSourcesBottomSheet', () => {
     expect(onSourcePress).toHaveBeenCalledWith(tweetUrl);
     expect(Linking.openURL).toHaveBeenCalledWith(tweetUrl);
   });
+
+  it('renders safely when hidden and has no callbacks', () => {
+    const onClose = jest.fn();
+
+    const { queryByText } = renderWithProvider(
+      <MarketInsightsTrendSourcesBottomSheet
+        isVisible={false}
+        onClose={onClose}
+        trendTitle="Hidden"
+        articles={[] as never}
+        tweets={[] as never}
+      />,
+    );
+
+    expect(queryByText('Hidden')).toBeOnTheScreen();
+  });
 });

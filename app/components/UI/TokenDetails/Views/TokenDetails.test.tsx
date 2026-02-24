@@ -404,4 +404,18 @@ describe('TokenDetails', () => {
       );
     });
   });
+
+  it('does not track token details opened more than once for the same token', async () => {
+    const { rerender } = render(<TokenDetails {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    rerender(<TokenDetails {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+  });
 });

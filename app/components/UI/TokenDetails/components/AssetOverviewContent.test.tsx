@@ -23,6 +23,8 @@ const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn();
 const mockBuild = jest.fn();
 const mockCreateEventBuilder = jest.fn();
+const mockUseMarketInsights = jest.fn();
+const mockSelectMarketInsightsEnabled = jest.fn(() => true);
 
 jest.mock('../../MarketInsights', () => ({
   __esModule: true,
@@ -33,20 +35,8 @@ jest.mock('../../MarketInsights', () => ({
     onPress?: () => void;
     testID?: string;
   }) => <MockPressable onPress={onPress} testID={testID} />,
-  useMarketInsights: () => ({
-    report: {
-      asset: 'eth',
-      generatedAt: '2026-02-17T11:55:00.000Z',
-      headline: 'ETH outlook stays positive',
-      summary: 'Momentum remains constructive.',
-      trends: [],
-      sources: [],
-    },
-    isLoading: false,
-    error: null,
-    timeAgo: '5m ago',
-  }),
-  selectMarketInsightsEnabled: () => true,
+  useMarketInsights: (...args: unknown[]) => mockUseMarketInsights(...args),
+  selectMarketInsightsEnabled: () => mockSelectMarketInsightsEnabled(),
 }));
 
 jest.mock('../hooks/usePerpsActions', () => ({
@@ -155,6 +145,20 @@ const defaultProps: AssetOverviewContentProps = {
   goToSwaps: jest.fn(),
 };
 
+const defaultMarketInsightsResult = {
+  report: {
+    asset: 'eth',
+    generatedAt: '2026-02-17T11:55:00.000Z',
+    headline: 'ETH outlook stays positive',
+    summary: 'Momentum remains constructive.',
+    trends: [],
+    sources: [],
+  },
+  isLoading: false,
+  error: null,
+  timeAgo: '5m ago',
+};
+
 describe('AssetOverviewContent', () => {
   describe('Long / Short with perps eligibility', () => {
     beforeEach(() => {
@@ -164,6 +168,8 @@ describe('AssetOverviewContent', () => {
       mockCreateEventBuilder.mockReturnValue({
         addProperties: mockAddProperties,
       });
+      mockSelectMarketInsightsEnabled.mockReturnValue(true);
+      mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
     });
 
     it('shows geo block modal and tracks event when Long is pressed and user is not eligible', () => {
@@ -287,6 +293,73 @@ describe('AssetOverviewContent', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({
         category: 'market-insights-opened',
       });
+    });
+
+    it('resolves market insights display as false when feature flag is disabled', () => {
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      const onMarketInsightsDisplayResolved = jest.fn();
+
+      renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
+    });
+
+    it('does not resolve market insights display while market insights is loading', () => {
+      mockUseMarketInsights.mockReturnValue({
+        ...defaultMarketInsightsResult,
+        report: null,
+        isLoading: true,
+      });
+      const onMarketInsightsDisplayResolved = jest.fn();
+
+      renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(onMarketInsightsDisplayResolved).not.toHaveBeenCalled();
+    });
+
+    it('resolves market insights display as true when report is available', () => {
+      const onMarketInsightsDisplayResolved = jest.fn();
+
+      renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(true);
+    });
+
+    it('resolves market insights display as false when report is unavailable after loading', () => {
+      mockUseMarketInsights.mockReturnValue({
+        ...defaultMarketInsightsResult,
+        report: null,
+        isLoading: false,
+      });
+      const onMarketInsightsDisplayResolved = jest.fn();
+
+      renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
     });
   });
 });
