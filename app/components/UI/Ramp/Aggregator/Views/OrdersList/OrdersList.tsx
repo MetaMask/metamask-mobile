@@ -19,7 +19,6 @@ import {
 import { FiatOrder, getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
 import {
   Box,
@@ -76,11 +75,16 @@ function OrdersList() {
     (orderId: string) => {
       const order = orders.find((o) => o.id === orderId);
 
-      if (order?.state === FIAT_ORDER_STATES.CREATED) {
+      // CREATED state means the order is at the bank details step,
+      // which requires the DepositSDKProvider context for cancel/confirm actions
+      if (
+        order?.state === FIAT_ORDER_STATES.CREATED &&
+        order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
+      ) {
         goToDeposit();
       } else {
         navigation.navigate(
-          ...createDepositOrderDetailsNavDetails({
+          ...createRampsOrderDetailsNavDetails({
             orderId,
           }),
         );

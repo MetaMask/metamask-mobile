@@ -90,14 +90,11 @@ describe('OrderContent', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders loading state when data has no fiatAmount', () => {
+  it('renders loading state when order has no amount', () => {
     const pendingOrder: FiatOrder = {
       ...mockOrder,
+      amount: 0,
       state: FIAT_ORDER_STATES.PENDING,
-      data: {
-        ...mockRampsOrderData,
-        fiatAmount: undefined,
-      } as unknown as RampsOrder,
     };
     renderOrder(pendingOrder);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -109,7 +106,9 @@ describe('OrderContent', () => {
     if (copyButton) {
       fireEvent.press(copyButton);
     }
-    expect(Clipboard.setString).toHaveBeenCalledWith('transak_order_abc123');
+    expect(Clipboard.setString).toHaveBeenCalledWith(
+      '/providers/transak/orders/abc123',
+    );
   });
 
   it('opens provider link with InAppBrowser when available', async () => {

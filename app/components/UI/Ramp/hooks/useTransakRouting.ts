@@ -1,14 +1,11 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import {
-  type TransakBuyQuote,
-  TransakOrderIdTransformer,
-} from '@metamask/ramps-controller';
+import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { REDIRECTION_URL } from '../Deposit/constants';
 import { depositOrderToFiatOrder } from '../Deposit/orderProcessor';
 import useHandleNewOrder from '../Deposit/hooks/useHandleNewOrder';
@@ -22,7 +19,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useTransakController } from './useTransakController';
 import { useRampsUserRegion } from './useRampsUserRegion';
 import { useRampsPaymentMethods } from './useRampsPaymentMethods';
-import { getTransakEnvironment } from '../../../../core/Engine/controllers/ramps-controller/transak-service-init';
 import { selectTokens } from '../../../../selectors/rampsController';
 import useRampAccountAddress from './useRampAccountAddress';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
@@ -67,6 +63,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   const handleNewOrder = useHandleNewOrder();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
+  const processingOrderIdRef = useRef<string | null>(null);
 
   const {
     logoutFromProvider,
@@ -89,7 +86,6 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
     selectedToken?.chainId as CaipChainId,
   );
 
-  const transakEnvironment = getTransakEnvironment();
   const fiatCurrency = userRegion?.country?.currency || '';
   const regionIsoCode = userRegion?.regionCode || '';
 
@@ -217,7 +213,12 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
     ({ orderId }: { orderId: string }) => {
       navigation.reset({
         index: 0,
-        routes: [{ name: Routes.RAMP.ORDER_PROCESSING, params: { orderId } }],
+        routes: [
+          {
+            name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+            params: { orderId, showCloseButton: true },
+          },
+        ],
       });
     },
     [navigation],
@@ -255,32 +256,45 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
           const orderId = urlObj.searchParams.get('orderId');
 
           if (orderId) {
-            try {
-              const transformedOrderId =
-                TransakOrderIdTransformer.transakOrderIdToDepositOrderId(
-                  orderId,
-                  transakEnvironment,
-                );
+            if (processingOrderIdRef.current === orderId) {
+              return;
+            }
+            processingOrderIdRef.current = orderId;
 
+            try {
               const order = await getOrder(orderId, walletAddress || '');
 
               if (!order) {
                 throw new Error('Missing order');
               }
 
+              // At runtime, cryptoCurrency and network may be plain strings
+              // instead of the expected objects, depending on the controller version.
+              const rawCryptoCurrency = order.cryptoCurrency as
+                | string
+                | { symbol?: string; assetId?: string };
+              const cryptocurrency =
+                typeof rawCryptoCurrency === 'string'
+                  ? rawCryptoCurrency
+                  : rawCryptoCurrency?.symbol || '';
+
               const processedOrder = {
                 ...depositOrderToFiatOrder(
                   order as Parameters<typeof depositOrderToFiatOrder>[0],
                 ),
                 account: walletAddress || order.walletAddress,
+                cryptocurrency,
               };
 
               await handleNewOrder(processedOrder);
 
               navigateToOrderProcessingCallback({
-                orderId: transformedOrderId,
+                orderId: processedOrder.id,
               });
 
+              const rawNetwork = order.network as
+                | string
+                | { chainId?: string; name?: string; assetId?: string };
               trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
                 ramp_type: 'DEPOSIT',
                 amount_source: Number(order.fiatAmount),
@@ -293,10 +307,19 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                 total_fee: Number(order.totalFeesFiat),
                 payment_method_id: order.paymentMethod.id,
                 country: regionIsoCode,
-                chain_id: order.network?.chainId || '',
-                currency_destination: order.cryptoCurrency.assetId || '',
-                currency_destination_symbol: order.cryptoCurrency.symbol,
-                currency_destination_network: order.network?.name || '',
+                chain_id:
+                  typeof rawNetwork === 'string'
+                    ? rawNetwork
+                    : rawNetwork?.chainId || '',
+                currency_destination:
+                  typeof rawCryptoCurrency === 'string'
+                    ? ''
+                    : rawCryptoCurrency?.assetId || '',
+                currency_destination_symbol: cryptocurrency,
+                currency_destination_network:
+                  typeof rawNetwork === 'string'
+                    ? rawNetwork
+                    : rawNetwork?.name || '',
                 currency_source: order.fiatCurrency,
               });
             } catch (error) {
@@ -320,7 +343,6 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       navigateToOrderProcessingCallback,
       regionIsoCode,
       trackEvent,
-      transakEnvironment,
     ],
   );
 

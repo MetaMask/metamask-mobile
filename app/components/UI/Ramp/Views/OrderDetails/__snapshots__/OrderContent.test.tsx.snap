@@ -468,7 +468,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
         ]
       }
     >
-      $
       2.5 USD
     </Text>
   </View>
@@ -520,7 +519,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
         ]
       }
     >
-      $
       100 USD
     </Text>
   </View>
@@ -592,7 +590,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
 </View>
 `;
 
-exports[`OrderContent renders loading state when data has no fiatAmount 1`] = `
+exports[`OrderContent renders loading state when order has no amount 1`] = `
 <View
   style={
     [

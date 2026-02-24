@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { Linking } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -101,12 +101,22 @@ function SettingsModal() {
     });
   }, [navigation]);
 
-  const handleContactSupport = useCallback(() => {
-    if (supportUrl) {
-      sheetRef.current?.onCloseBottomSheet();
-      Linking.openURL(supportUrl);
+  const handleContactSupport = useCallback(async () => {
+    if (!supportUrl) return;
+    sheetRef.current?.onCloseBottomSheet();
+    try {
+      if (await InAppBrowser.isAvailable()) {
+        await InAppBrowser.open(supportUrl);
+      } else {
+        navigation.navigate('Webview', {
+          screen: 'SimpleWebview',
+          params: { url: supportUrl },
+        });
+      }
+    } catch (error) {
+      Logger.error(error as Error, 'SettingsModal: Failed to open support URL');
     }
-  }, [supportUrl]);
+  }, [supportUrl, navigation]);
 
   const handleLogOut = useCallback(async () => {
     try {

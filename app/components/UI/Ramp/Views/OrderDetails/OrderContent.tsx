@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -24,7 +24,10 @@ import BadgeWrapper, {
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { strings } from '../../../../../../locales/i18n';
 import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
-import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
+import {
+  FIAT_ORDER_STATES,
+  FIAT_ORDER_PROVIDERS,
+} from '../../../../../constants/on-ramp';
 import { toDateFormat } from '../../../../../util/date';
 import { renderFiat } from '../../../../../util/number';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -32,14 +35,45 @@ import Logger from '../../../../../util/Logger';
 import Button, {
   ButtonVariants,
   ButtonSize,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { getOrderAmount } from '../../utils/getOrderAmount';
+import { hasDepositOrderField } from '../../Deposit/utils';
+import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const styles = StyleSheet.create({
   badgeWrapperCenter: {
     alignSelf: 'center',
   },
 });
+
+/**
+ * Extracts provider-specific fields from order.data that aren't available
+ * on the FiatOrder type itself.
+ */
+function getProviderSpecificData(order: FiatOrder) {
+  const data = order.data;
+  if (!data || typeof data !== 'object') {
+    return {};
+  }
+
+  const asRampsOrder = data as Partial<RampsOrder>;
+
+  return {
+    providerOrderLink: asRampsOrder.providerOrderLink,
+    cryptoIconUrl: asRampsOrder.cryptoCurrency?.iconUrl,
+    fiatDecimals: asRampsOrder.fiatCurrency?.decimals ?? 2,
+    providerSupportUrl:
+      asRampsOrder.provider?.links?.find((link) =>
+        link.name.toLowerCase().includes('support'),
+      )?.url ?? asRampsOrder.providerOrderLink,
+    statusDescription: asRampsOrder.statusDescription,
+    paymentDetails: hasDepositOrderField(data, 'paymentDetails')
+      ? data.paymentDetails
+      : undefined,
+  };
+}
 
 interface OrderContentProps {
   order: FiatOrder;
@@ -51,23 +85,22 @@ const OrderContent: React.FC<OrderContentProps> = ({
   showCloseButton = false,
 }) => {
   const navigation = useNavigation();
-  const data = order.data as RampsOrder | undefined;
+  const providerData = useMemo(() => getProviderSpecificData(order), [order]);
 
-  const providerOrderId = data?.providerOrderId;
-  const shortOrderId = providerOrderId
-    ? providerOrderId.length > 8
-      ? `..${providerOrderId.slice(-6)}`
-      : providerOrderId
+  const shortOrderId = order.id
+    ? order.id.length > 8
+      ? `..${order.id.slice(-6)}`
+      : order.id
     : '...';
 
   const handleCopyOrderId = useCallback(() => {
-    if (providerOrderId) {
-      Clipboard.setString(providerOrderId);
+    if (order.id) {
+      Clipboard.setString(order.id);
     }
-  }, [providerOrderId]);
+  }, [order.id]);
 
   const handleProviderLinkPress = useCallback(async () => {
-    const url = data?.providerOrderLink;
+    const url = providerData.providerOrderLink;
     if (!url) return;
     try {
       if (await InAppBrowser.isAvailable()) {
@@ -84,7 +117,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
         link: url,
       });
     }
-  }, [data?.providerOrderLink, navigation]);
+  }, [providerData.providerOrderLink, navigation]);
 
   const getStatusText = () => {
     switch (order.state) {
@@ -117,36 +150,124 @@ const OrderContent: React.FC<OrderContentProps> = ({
     }
   };
 
-  const isLoading = !data?.fiatAmount;
+  const isLoading = !order.amount;
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const providerName = getProviderName(order.provider, order.data);
-  const providerSupportUrl =
-    data?.provider?.links?.find((link) =>
-      link.name.toLowerCase().includes('support'),
-    )?.url ?? data?.providerOrderLink;
 
   const handleInfoPress = useCallback(() => {
     navigation.navigate(
       ...createProcessingInfoModalNavigationDetails({
         providerName,
-        providerSupportUrl,
+        providerSupportUrl: providerData.providerSupportUrl,
+        statusDescription: providerData.statusDescription,
       }),
     );
-  }, [navigation, providerName, providerSupportUrl]);
+  }, [
+    navigation,
+    providerName,
+    providerData.providerSupportUrl,
+    providerData.statusDescription,
+  ]);
 
-  const cryptoSymbol = data?.cryptoCurrency?.symbol || order.cryptocurrency;
-  const fiatDecimals = data?.fiatCurrency?.decimals ?? 2;
-  const fiatDenomSymbol = data?.fiatCurrency?.denomSymbol || '';
-  const fiatSymbol = data?.fiatCurrency?.symbol || order.currency;
+  const fiatDecimals = providerData.fiatDecimals ?? 2;
+  const fiatDenomSymbol = order.currencySymbol || '';
 
-  const networkChainId = data?.cryptoCurrency?.chainId;
-  const networkImageSource = networkChainId
-    ? getNetworkImageSource({ chainId: networkChainId })
+  // Normalize chainId to hex so getNetworkImageSource can find it.
+  // Some providers return plain decimal (e.g., '1'), others return CAIP-2 ('eip155:1') or hex ('0x1').
+  // getNetworkImageSource handles CAIP and hex but not plain decimal.
+  const normalizeChainIdForBadge = (chainId: string): string => {
+    if (!chainId || chainId.includes(':') || chainId.startsWith('0x')) {
+      return chainId;
+    }
+    const decimal = parseInt(chainId, 10);
+    return isNaN(decimal) ? chainId : `0x${decimal.toString(16)}`;
+  };
+
+  const normalizedNetworkChainId = normalizeChainIdForBadge(
+    order.network || '',
+  );
+  const networkImageSource = normalizedNetworkChainId
+    ? getNetworkImageSource({ chainId: normalizedNetworkChainId })
     : null;
+
+  // Bank transfer details helpers
+  const capitalizeWords = useCallback(
+    (text: string): string =>
+      text
+        .split(' ')
+        .map((word) => {
+          if (word === '') {
+            return word;
+          }
+          return word.charAt(0).toUpperCase() + word.slice(1);
+        })
+        .join(' '),
+    [],
+  );
+
+  const getFieldValue = useCallback(
+    (fieldName: string): string | null => {
+      if (
+        !providerData.paymentDetails ||
+        providerData.paymentDetails.length === 0
+      )
+        return null;
+
+      const field = providerData.paymentDetails[0].fields.find(
+        (f) => f.name === fieldName,
+      );
+      if (!field?.value) return null;
+
+      return capitalizeWords(field.value);
+    },
+    [providerData.paymentDetails, capitalizeWords],
+  );
+
+  const hasBankDetails = Boolean(providerData.paymentDetails);
+  const showManageBankTransfer =
+    hasBankDetails &&
+    order.state === FIAT_ORDER_STATES.CREATED &&
+    order.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2;
+
+  const handleManageBankTransfer = useCallback(() => {
+    navigation.navigate(Routes.RAMP.BANK_DETAILS_STANDALONE, {
+      orderId: order.id,
+      shouldUpdate: false,
+    });
+  }, [navigation, order.id]);
+
+  const bankDetailFields = useMemo(() => {
+    if (!hasBankDetails) return null;
+
+    const amount = getFieldValue('Amount');
+    const firstName = getFieldValue('First Name (Beneficiary)');
+    const lastName = getFieldValue('Last Name (Beneficiary)');
+    const accountName =
+      firstName || lastName
+        ? `${firstName ?? ''} ${lastName ?? ''}`.trim()
+        : null;
+    const accountType = getFieldValue('Account Type');
+    const bankName = getFieldValue('Bank Name');
+    const routingNumber = getFieldValue('Routing Number');
+    const accountNumber = getFieldValue('Account Number');
+    const iban = getFieldValue('IBAN');
+    const bic = getFieldValue('BIC');
+
+    return {
+      amount,
+      accountName,
+      accountType,
+      bankName,
+      routingNumber,
+      accountNumber,
+      iban,
+      bic,
+    };
+  }, [hasBankDetails, getFieldValue]);
 
   return (
     <Box twClassName="w-full">
@@ -157,17 +278,17 @@ const OrderContent: React.FC<OrderContentProps> = ({
           badgeElement={
             networkImageSource ? (
               <BadgeNetwork
-                name={networkChainId || ''}
+                name={normalizedNetworkChainId}
                 imageSource={networkImageSource}
               />
             ) : null
           }
         >
           <AvatarToken
-            name={cryptoSymbol}
+            name={order.cryptocurrency}
             imageSource={
-              data?.cryptoCurrency?.iconUrl
-                ? { uri: data.cryptoCurrency.iconUrl }
+              providerData.cryptoIconUrl
+                ? { uri: providerData.cryptoIconUrl }
                 : undefined
             }
             size={AvatarSize.Lg}
@@ -179,7 +300,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
           fontWeight={FontWeight.Bold}
           twClassName="mt-6 text-center"
         >
-          {getOrderAmount(order)} {cryptoSymbol}
+          {getOrderAmount(order)} {order.cryptocurrency}
         </Text>
       </Box>
 
@@ -207,7 +328,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
               >
                 {getStatusText()}
               </Text>
-              {data?.providerOrderLink && (
+              {providerData.providerOrderLink && (
                 <TouchableOpacity onPress={handleProviderLinkPress}>
                   <Box
                     flexDirection={BoxFlexDirection.Row}
@@ -218,7 +339,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
                       twClassName="text-primary-default mr-1"
                     >
                       {strings('ramps_order_details.view_on_provider', {
-                        provider: getProviderName(order.provider, order.data),
+                        provider: providerName,
                       })}
                     </Text>
                     <Icon
@@ -309,7 +430,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {fiatDenomSymbol}
-            {renderFiat(data?.totalFeesFiat ?? 0, fiatSymbol, fiatDecimals)}
+            {renderFiat(Number(order.fee ?? 0), order.currency, fiatDecimals)}
           </Text>
         )}
       </Box>
@@ -332,35 +453,110 @@ const OrderContent: React.FC<OrderContentProps> = ({
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {fiatDenomSymbol}
             {renderFiat(
-              data?.fiatAmount ?? order.amount ?? 0,
-              fiatSymbol,
+              Number(order.amount ?? 0),
+              order.currency,
               fiatDecimals,
             )}
           </Text>
         )}
       </Box>
 
-      <Box twClassName="pt-4 pb-4 items-center">
-        <TouchableOpacity onPress={handleInfoPress}>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="items-center mb-4"
+      {hasBankDetails && bankDetailFields && !isLoading && (
+        <Box twClassName="mt-4 pt-4 border-t border-alternative">
+          <Text
+            variant={TextVariant.HeadingSm}
+            fontWeight={FontWeight.Bold}
+            twClassName="mb-4"
           >
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-              {strings('ramps_order_details.card_processing_info')}
-            </Text>
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              twClassName="text-alternative ml-1"
+            {strings('deposit.bank_details.main_title')}
+          </Text>
+
+          {bankDetailFields.amount && (
+            <BankDetailRow
+              label={strings('deposit.bank_details.transfer_amount')}
+              value={bankDetailFields.amount}
             />
-          </Box>
-        </TouchableOpacity>
+          )}
+          {bankDetailFields.accountName && (
+            <BankDetailRow
+              label={strings('deposit.bank_details.account_holder_name')}
+              value={bankDetailFields.accountName}
+            />
+          )}
+          {bankDetailFields.routingNumber && (
+            <BankDetailRow
+              label={strings('deposit.bank_details.routing_number')}
+              value={bankDetailFields.routingNumber}
+            />
+          )}
+          {bankDetailFields.accountNumber && (
+            <BankDetailRow
+              label={strings('deposit.bank_details.account_number')}
+              value={bankDetailFields.accountNumber}
+            />
+          )}
+          {bankDetailFields.iban && (
+            <BankDetailRow
+              label={strings('deposit.bank_details.iban')}
+              value={bankDetailFields.iban}
+            />
+          )}
+          {bankDetailFields.bic && (
+            <BankDetailRow
+              label={strings('deposit.bank_details.bic')}
+              value={bankDetailFields.bic}
+            />
+          )}
+          {bankDetailFields.accountType && (
+            <BankDetailRow
+              label={strings('deposit.bank_details.account_type')}
+              value={bankDetailFields.accountType}
+            />
+          )}
+          {bankDetailFields.bankName && (
+            <BankDetailRow
+              label={strings('deposit.bank_details.bank_name')}
+              value={bankDetailFields.bankName}
+            />
+          )}
+
+          {showManageBankTransfer && (
+            <Box twClassName="mt-4">
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                label={strings('deposit.bank_details.button')}
+                onPress={handleManageBankTransfer}
+              />
+            </Box>
+          )}
+        </Box>
+      )}
+
+      <Box twClassName="pt-4 pb-4 w-full">
+        {providerData.statusDescription && (
+          <TouchableOpacity onPress={handleInfoPress}>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              twClassName="items-center justify-center mb-4"
+            >
+              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+                {providerData.statusDescription}
+              </Text>
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Sm}
+                twClassName="text-alternative ml-1"
+              />
+            </Box>
+          </TouchableOpacity>
+        )}
 
         {showCloseButton && (
           <Button
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
             label={strings('ramps_order_details.close')}
             onPress={handleClose}
           />

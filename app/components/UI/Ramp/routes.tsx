@@ -19,6 +19,7 @@ import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
 import TokenNotAvailableModal from './Views/Modals/TokenNotAvailableModal';
 import ProviderPickerModal from './Views/Modals/ProviderPickerModal';
 import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
+import RampsOrderDetails from './Views/OrderDetails';
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();
@@ -73,6 +74,10 @@ const MainRoutes = () => (
         gestureEnabled: false,
         detachPreviousScreen: false,
       }}
+    />
+    <Stack.Screen
+      name={Routes.RAMP.RAMPS_ORDER_DETAILS}
+      component={RampsOrderDetails}
     />
   </Stack.Navigator>
 );

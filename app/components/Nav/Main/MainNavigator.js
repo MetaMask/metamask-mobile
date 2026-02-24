@@ -61,8 +61,8 @@ import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
 import TokenListRoutes from '../../UI/Ramp/routes';
 
-import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
+import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
@@ -245,8 +245,8 @@ const TransactionsHome = () => (
       component={RampsOrderDetails}
     />
     <Stack.Screen
-      name={Routes.DEPOSIT.ORDER_DETAILS}
-      component={DepositOrderDetails}
+      name={Routes.RAMP.BANK_DETAILS_STANDALONE}
+      component={V2BankDetails}
     />
     <Stack.Screen
       name={Routes.RAMP.SEND_TRANSACTION}

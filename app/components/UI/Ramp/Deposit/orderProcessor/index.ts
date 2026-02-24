@@ -36,7 +36,7 @@ const depositOrderStateToFiatOrderState = (
 export const depositOrderToFiatOrder = (
   depositOrder: DepositOrder,
 ): FiatOrder => ({
-  id: depositOrder.id,
+  id: depositOrder.providerOrderId || depositOrder.id,
   provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
   createdAt: depositOrder.createdAt,
   amount: depositOrder.fiatAmount,
@@ -46,6 +46,7 @@ export const depositOrderToFiatOrder = (
   cryptoFee: depositOrder.totalFeesFiat || 0,
   currency: depositOrder.fiatCurrency,
   currencySymbol: '',
+  amountInUSD: depositOrder.fiatAmountInUsd?.toString(),
   cryptocurrency: depositOrder.cryptoCurrency?.symbol || '',
   network: depositOrder.network?.chainId || '',
   state: depositOrderStateToFiatOrderState(depositOrder.status),
@@ -65,7 +66,8 @@ export async function processDepositOrder(
   try {
     const sdk = options?.sdk || DepositSDKNoAuth;
 
-    const updatedOrder = await sdk.getOrder(order.id, order.account);
+    const depositData = order.data as DepositOrder;
+    const updatedOrder = await sdk.getOrder(depositData.id, order.account);
     if (!updatedOrder) {
       throw new Error('Deposit order not found');
     }

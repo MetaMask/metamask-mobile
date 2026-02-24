@@ -401,7 +401,7 @@ describe('V2BankDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith('RampAmountInput');
   });
 
-  it('replaces navigation to ORDER_PROCESSING when order state is PENDING', () => {
+  it('navigates to RAMPS_ORDER_DETAILS when order state is PENDING', () => {
     mockOrder = {
       id: 'test-order-id',
       state: FIAT_ORDER_STATES.PENDING,
@@ -414,12 +414,10 @@ describe('V2BankDetails', () => {
 
     renderWithTheme(<V2BankDetails />);
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'Navigation/REPLACE',
-        routeName: 'RampOrderProcessing',
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('RampsOrderDetails', {
+      orderId: 'test-order-id',
+      showCloseButton: true,
+    });
   });
 
   it('handles 401 error during confirm payment', async () => {

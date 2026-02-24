@@ -25,6 +25,7 @@ import { useNavigation } from '@react-navigation/native';
 export interface ProcessingInfoModalParams {
   providerName: string;
   providerSupportUrl?: string;
+  statusDescription?: string;
 }
 
 export const createProcessingInfoModalNavigationDetails =
@@ -35,7 +36,7 @@ export const createProcessingInfoModalNavigationDetails =
 function ProcessingInfoModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const { providerName, providerSupportUrl } =
+  const { providerName, providerSupportUrl, statusDescription } =
     useParams<ProcessingInfoModalParams>();
 
   const handleClose = useCallback(() => {
@@ -70,11 +71,13 @@ function ProcessingInfoModal() {
         closeButtonProps={{ testID: 'processing-info-modal-close-button' }}
       />
 
-      <Box twClassName="px-6 pb-4">
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('ramps_order_details.processing_info_modal_description')}
-        </Text>
-      </Box>
+      {statusDescription && (
+        <Box twClassName="px-6 pb-4">
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {statusDescription}
+          </Text>
+        </Box>
+      )}
 
       <Box twClassName="px-6 pb-6">
         <Button
