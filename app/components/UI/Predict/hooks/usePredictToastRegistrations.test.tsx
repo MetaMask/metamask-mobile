@@ -5,6 +5,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { usePredictToastRegistrations } from './usePredictToastRegistrations';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
+import { selectTickerByChainId } from '../../../../selectors/networkController';
 
 const mockInvalidateQueries = jest.fn();
 jest.mock('@tanstack/react-query', () => ({
@@ -485,13 +486,10 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
-    it('falls back to USDC when metamaskPay is undefined on withdraw toast', () => {
+    it('falls back to original USDC message when metamaskPay is undefined', () => {
       (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue(
         undefined,
       );
-      (
-        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
-      ).mockReturnValue(undefined);
 
       const handler = getHandler();
 
@@ -509,7 +507,154 @@ describe('usePredictToastRegistrations', () => {
         expect.objectContaining({
           labelOptions: expect.arrayContaining([
             expect.objectContaining({
+              label: expect.stringContaining('withdraw_completed_subtitle'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to original USDC message when isPostQuote is false', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: { isPostQuote: false },
+      });
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          amount: 42,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('withdraw_completed_subtitle'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to event amount when targetFiat is invalid on post-quote', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: {
+          isPostQuote: true,
+          targetFiat: undefined,
+          chainId: '0x38',
+          tokenAddress: '0xabc',
+        },
+      });
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue(undefined);
+      (selectTickerByChainId as unknown as jest.Mock).mockReturnValue('BNB');
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-1',
+          amount: 77,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$77'),
+            }),
+            expect.objectContaining({
+              label: expect.stringContaining('BNB'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to USDC when both token selectors return undefined on post-quote', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: {
+          isPostQuote: true,
+          targetFiat: '10',
+          chainId: '0x38',
+          tokenAddress: '0xabc',
+        },
+      });
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue(undefined);
+      (selectTickerByChainId as unknown as jest.Mock).mockReturnValue(
+        undefined,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-no-symbol',
+          amount: 10,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
               label: expect.stringContaining('USDC'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to event amount when targetFiat is zero on post-quote', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: {
+          isPostQuote: true,
+          targetFiat: '0',
+          chainId: '0x1',
+          tokenAddress: '0xabc',
+        },
+      });
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue(undefined);
+      (selectTickerByChainId as unknown as jest.Mock).mockReturnValue('ETH');
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-zero',
+          amount: 30,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$30'),
             }),
           ]),
         }),

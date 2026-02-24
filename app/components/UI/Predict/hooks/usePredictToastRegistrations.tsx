@@ -19,14 +19,11 @@ import type { PredictTransactionStatusChangedPayload } from '../controllers/Pred
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
 import { predictQueries } from '../queries';
-import type { Hex } from '@metamask/utils';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
-import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
-import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
-import { selectTickerByChainId } from '../../../../selectors/networkController';
+import { getWithdrawConfirmedMessage } from '../utils/withdrawConfirmedMessage';
 
 const showPendingToast = ({
   showToast,
@@ -284,38 +281,17 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
-          const state = store.getState();
-          const txMeta = transactionId
-            ? selectTransactionMetadataById(state, transactionId)
-            : undefined;
-          const { metamaskPay } = txMeta ?? {};
-
-          // Post-quote withdrawals use targetFiat which reflects the actual
-          // received USD value after fees. Non-post-quote withdrawals fall
-          // back to the event amount or controller state.
-          let withdrawAmount = amount ?? withdrawTransaction?.amount ?? 0;
-
-          if (metamaskPay?.isPostQuote) {
-            withdrawAmount = Number(metamaskPay.targetFiat);
-          }
-
-          const formattedWithdrawAmount = formatPrice(withdrawAmount);
-
-          const chainId = metamaskPay?.chainId as Hex;
-          const tokenAddress = metamaskPay?.tokenAddress as Hex;
-          const tokenSymbol =
-            selectSingleTokenByAddressAndChainId(state, tokenAddress, chainId)
-              ?.symbol ??
-            selectTickerByChainId(state, chainId) ??
-            'USDC';
+          const fallbackAmount = amount ?? withdrawTransaction?.amount ?? 0;
+          const { title, description } = getWithdrawConfirmedMessage(
+            store.getState(),
+            transactionId,
+            fallbackAmount,
+          );
 
           showSuccessToast({
             showToast,
-            title: strings('predict.withdraw.withdraw_completed'),
-            description: strings(
-              'predict.withdraw.withdraw_any_token_completed_subtitle',
-              { amount: formattedWithdrawAmount, token: tokenSymbol },
-            ),
+            title,
+            description,
             iconColor: theme.colors.success.default,
           });
           return;
