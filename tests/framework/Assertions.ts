@@ -164,8 +164,7 @@ export default class Assertions {
   }
 
   /**
-   * Assert element has specific label with auto-retry.
-   * Uses a per-attempt timeout long enough for UI updates (e.g. network switch).
+   * Assert element has specific label with auto-retry
    */
   static async expectElementToHaveLabel(
     detoxElement: DetoxElement,
@@ -177,12 +176,10 @@ export default class Assertions {
       description = `element has label "${label}"`,
     } = options;
 
-    const waitForLabelMs = 1000;
-
     return Utilities.executeWithRetry(
       async () => {
         const el = (await detoxElement) as Detox.IndexableNativeElement;
-        await waitFor(el).toHaveLabel(label).withTimeout(waitForLabelMs);
+        await waitFor(el).toHaveLabel(label).withTimeout(100);
       },
       {
         timeout,
