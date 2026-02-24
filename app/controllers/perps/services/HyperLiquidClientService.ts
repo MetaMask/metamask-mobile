@@ -399,7 +399,13 @@ export class HyperLiquidClientService {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const timeoutId = setTimeout(
+      () =>
+        controller.abort(
+          new Error(`WebSocket transport ready timeout after ${timeoutMs}ms`),
+        ),
+      timeoutMs,
+    );
 
     try {
       await subscriptionClient.config_.transport.ready(controller.signal);
@@ -409,7 +415,7 @@ export class HyperLiquidClientService {
           `WebSocket transport ready timeout after ${timeoutMs}ms`,
         );
       }
-      throw error;
+      throw ensureError(error, 'HyperLiquidClientService.ensureTransportReady');
     } finally {
       clearTimeout(timeoutId);
     }
