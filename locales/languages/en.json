@@ -2063,7 +2063,21 @@
     "what_people_saying": "What people are saying",
     "trade_button": "Trade",
     "sources_count": "+{{count}} sources",
-    "sources_title": "Sources"
+    "sources_title": "Sources",
+    "feedback_submitted": "Feedback submitted",
+    "feedback": {
+      "title": "Feedback",
+      "description": "Help improve our AI-generated market insights.",
+      "not_relevant": "Not relevant",
+      "not_accurate": "Not accurate",
+      "hard_to_understand": "Hard to understand",
+      "harmful_or_offensive": "Harmful or offensive",
+      "something_else": "Something else",
+      "additional_feedback_label": "Additional feedback (optional)",
+      "additional_feedback_placeholder": "How can we improve?",
+      "characters_remaining": "{{count}} characters remaining",
+      "submit": "Submit"
+    }
   },
   "predict": {
     "title": "MetaMask Predictions",

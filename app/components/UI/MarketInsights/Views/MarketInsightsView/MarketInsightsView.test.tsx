@@ -10,6 +10,7 @@ const mockGoBack = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockTrendSourcesBottomSheet = jest.fn();
+const mockFeedbackBottomSheet = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(
   (eventName: string) =>
@@ -175,6 +176,63 @@ jest.mock('../../components/MarketInsightsTrendSourcesBottomSheet', () => {
   return TrendSourcesBottomSheet;
 });
 
+jest.mock('../../components/MarketInsightsFeedbackBottomSheet', () => {
+  const {
+    View: MockView,
+    Pressable: MockPressable,
+    Text: MockText,
+  } = jest.requireActual('react-native');
+  const FeedbackBottomSheet = (
+    props:
+      | {
+          onSubmit?: (payload: {
+            reason: string;
+            feedbackText?: string;
+          }) => void;
+          onClose?: () => void;
+        }
+      | unknown,
+  ) => {
+    mockFeedbackBottomSheet(props);
+    const typedProps = props as {
+      onSubmit?: (payload: { reason: string; feedbackText?: string }) => void;
+      onClose?: () => void;
+    };
+    return (
+      <MockView testID="market-insights-feedback-bottom-sheet">
+        <MockPressable
+          testID="market-insights-feedback-submit-button"
+          onPress={() =>
+            typedProps.onSubmit?.({
+              reason: 'something_else',
+              feedbackText: 'Need confidence score',
+            })
+          }
+        >
+          <MockText>submit-feedback</MockText>
+        </MockPressable>
+        <MockPressable
+          testID="market-insights-feedback-close-button"
+          onPress={typedProps.onClose}
+        >
+          <MockText>close-feedback</MockText>
+        </MockPressable>
+      </MockView>
+    );
+  };
+  return {
+    __esModule: true,
+    default: FeedbackBottomSheet,
+    MarketInsightsFeedbackReason: {
+      NotRelevant: 'not_relevant',
+      NotAccurate: 'not_accurate',
+      HardToUnderstand: 'hard_to_understand',
+      HarmfulOrOffensive: 'harmful_or_offensive',
+      SomethingElse: 'something_else',
+    },
+  };
+});
+
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
@@ -305,6 +363,10 @@ describe('MarketInsightsView', () => {
 
     fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
     fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON));
+    expect(
+      getByTestId('market-insights-feedback-bottom-sheet'),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId('market-insights-feedback-submit-button'));
     fireEvent.press(getByTestId('market-insights-source-link-button'));
     fireEvent.press(getByTestId('market-insights-trend-source-link-button'));
 
@@ -344,6 +406,8 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
           interaction_type: 'thumbs_down',
+          feedback_reason: 'something_else',
+          feedback_text: 'Need confidence score',
         }),
       }),
     );
