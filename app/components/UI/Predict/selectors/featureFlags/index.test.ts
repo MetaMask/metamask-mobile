@@ -36,6 +36,7 @@ describe('Predict Feature Flag Selectors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     delete process.env.MM_PREDICT_ENABLED;
+    delete process.env.MM_PREDICT_GTM_MODAL_ENABLED;
     mockHasMinimumRequiredVersion = jest.spyOn(
       remoteFeatureFlagModule,
       'hasMinimumRequiredVersion',
@@ -45,6 +46,7 @@ describe('Predict Feature Flag Selectors', () => {
 
   afterEach(() => {
     delete process.env.MM_PREDICT_ENABLED;
+    delete process.env.MM_PREDICT_GTM_MODAL_ENABLED;
     mockHasMinimumRequiredVersion?.mockRestore();
   });
 
