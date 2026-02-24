@@ -1,4 +1,5 @@
 import { hasProperty, isObject } from '@metamask/utils';
+import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
 
 export const migrationVersion = 122;
@@ -51,9 +52,17 @@ const migration = (state: unknown): unknown => {
     return state;
   }
 
-  const tokensControllerState =
-    state?.engine?.backgroundState?.TokensController;
+  if (!hasProperty(state.engine.backgroundState, 'TokensController')) {
+    return state;
+  }
+
+  const tokensControllerState = state.engine.backgroundState.TokensController;
   if (!isObject(tokensControllerState)) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: TokensController state is not an object: ${typeof tokensControllerState}`,
+      ),
+    );
     return state;
   }
 

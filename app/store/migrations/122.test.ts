@@ -1,5 +1,11 @@
 import { cloneDeep } from 'lodash';
 import migrate, { migrationVersion } from './122';
+import { captureException } from '@sentry/react-native';
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+const mockedCaptureException = jest.mocked(captureException);
 
 interface ValidStateShape {
   engine: { backgroundState: Record<string, unknown> };
@@ -22,6 +28,9 @@ const createValidState = (
 });
 
 describe(`Migration ${migrationVersion}: Normalize TokensController decimals to numbers`, () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   const unchangedTestCases: {
     description: string;
     state: unknown;
@@ -42,6 +51,10 @@ describe(`Migration ${migrationVersion}: Normalize TokensController decimals to 
       description:
         'returns state unchanged if TokensController is not an object',
       state: createValidState('invalid'),
+    },
+    {
+      description: 'returns state unchanged if TokensController is null',
+      state: createValidState(null),
     },
     {
       description: 'returns state unchanged if allTokens is missing',
@@ -93,6 +106,44 @@ describe(`Migration ${migrationVersion}: Normalize TokensController decimals to 
     const migratedState = migrate(state);
 
     expect(migratedState).toStrictEqual(orgState);
+  });
+
+  describe('captureException scenarios', () => {
+    it('captures exception when TokensController is not an object (string)', () => {
+      const state = createValidState('invalid');
+      migrate(state);
+
+      expect(mockedCaptureException).toHaveBeenCalledWith(
+        new Error(
+          `Migration ${migrationVersion}: TokensController state is not an object: string`,
+        ),
+      );
+    });
+
+    it('captures exception when TokensController is null', () => {
+      const state = createValidState(null);
+      migrate(state);
+
+      expect(mockedCaptureException).toHaveBeenCalledWith(
+        new Error(
+          `Migration ${migrationVersion}: TokensController state is not an object: object`,
+        ),
+      );
+    });
+
+    it('does not capture exception when TokensController is valid object', () => {
+      const state = createValidState({ allTokens: {} });
+      migrate(state);
+
+      expect(mockedCaptureException).not.toHaveBeenCalled();
+    });
+
+    it('does not capture exception when TokensController is missing', () => {
+      const state = createValidState();
+      migrate(state);
+
+      expect(mockedCaptureException).not.toHaveBeenCalled();
+    });
   });
 
   const successTestCases: {
