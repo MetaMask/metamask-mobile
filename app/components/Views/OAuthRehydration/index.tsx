@@ -152,7 +152,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
   const {
-    componentAuthenticationType,
     unlockWallet,
     getAuthType,
     requestBiometricsAccessControlForIOS,
@@ -531,7 +530,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     passwordLoginAttemptTraceCtxRef,
     track,
     promptBiometricFailedAlert,
-    componentAuthenticationType,
     unlockWallet,
     requestBiometricsAccessControlForIOS,
   ]);
@@ -578,7 +576,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     finalLoading,
     handleLoginError,
     promptBiometricFailedAlert,
-    componentAuthenticationType,
     unlockWallet,
     requestBiometricsAccessControlForIOS,
   ]);
