@@ -9,7 +9,7 @@ import { useLatestBalance } from '.';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants } from 'ethers';
 import { waitFor } from '@testing-library/react-native';
-import { Hex, type CaipAssetId } from '@metamask/utils';
+import { Hex, type CaipAssetId, type CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { cloneDeep } from 'lodash';
 
@@ -664,6 +664,59 @@ describe('useLatestBalance', () => {
   });
 
   describe('balance reset when token address changes', () => {
+    it('does not treat equivalent EVM address casing as token identity change', async () => {
+      let tokenAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+      let tokenBalance = '10.0';
+
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: tokenAddress,
+            decimals: 6,
+            chainId: '0x1' as Hex,
+            balance: tokenBalance,
+          }),
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(result.current?.displayBalance).toBe('1.0');
+      });
+
+      tokenAddress = '0xABCDEFABCDEFABCDEFABCDEFABCDEFABCDEFABCD';
+      tokenBalance = '999.0';
+      rerender({ state: initialState });
+
+      expect(result.current?.displayBalance).toBe('1.0');
+    });
+
+    it('does not treat equivalent EVM chain formats as token identity change', async () => {
+      let chainId: Hex | CaipChainId = '0x1' as Hex;
+      let tokenBalance = '10.0';
+
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: constants.AddressZero,
+            decimals: 18,
+            chainId,
+            balance: tokenBalance,
+          }),
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(result.current?.displayBalance).toBe('1.0');
+      });
+
+      chainId = 'eip155:1' as CaipChainId;
+      tokenBalance = '999.0';
+      rerender({ state: initialState });
+
+      expect(result.current?.displayBalance).toBe('1.0');
+      expect(getProviderByChainId).toHaveBeenCalledTimes(1);
+    });
+
     it('fetches new balance when chainId changes for the same native token address', async () => {
       let chainId = '0x1' as Hex;
       const mainnetProvider = {

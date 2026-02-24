@@ -9,7 +9,11 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../se
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
-import { isNativeAddress, isNonEvmChainId } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  isNativeAddress,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 import { isEthAddress } from '../../../../../util/address';
@@ -50,6 +54,20 @@ interface Balance {
   atomicBalance: BigNumber;
 }
 
+// Non-EVM chains are case sensitive
+const normalizeTokenAddressForIdentity = (address?: string) =>
+  address && isEthAddress(address) ? address.toLowerCase() : address;
+
+// Used in case token and previous token are the same but chainId is in a different format
+const normalizeChainIdForIdentity = (chainId?: Hex | CaipChainId) =>
+  chainId ? formatChainIdToCaip(chainId) : undefined;
+
+const getTokenIdentity = (token?: {
+  address?: string;
+  chainId?: Hex | CaipChainId;
+}) =>
+  `${normalizeTokenAddressForIdentity(token?.address) ?? ''}::${normalizeChainIdForIdentity(token?.chainId) ?? ''}`;
+
 /**
  * A hook that fetches and returns the latest balance for a given token.
  * Latest balance is important because token balances can be cached and may not be updated immediately.
@@ -76,13 +94,9 @@ export const useLatestBalance = (token: {
   const nonEvmTokens = useNonEvmTokensWithBalance();
 
   const chainId = token.chainId;
-  const previousTokenAddress = previousToken?.address;
-  const previousTokenChainId = previousToken?.chainId;
-  const tokenAddress = token.address;
-  const tokenChainId = token.chainId;
-  const tokenIdentityChanged =
-    previousTokenAddress !== tokenAddress ||
-    previousTokenChainId !== tokenChainId;
+  const previousTokenIdentity = getTokenIdentity(previousToken);
+  const tokenIdentity = getTokenIdentity(token);
+  const tokenIdentityChanged = previousTokenIdentity !== tokenIdentity;
 
   const setBalanceIfChanged = useCallback((nextBalance: Balance) => {
     setBalance((currentBalance) => {
@@ -190,13 +204,10 @@ export const useLatestBalance = (token: {
 
   useEffect(() => {
     // Reset balance state when token identity changes to prevent stale balance display.
-    if (
-      previousTokenAddress !== tokenAddress ||
-      previousTokenChainId !== tokenChainId
-    ) {
+    if (tokenIdentityChanged) {
       setBalance(undefined);
     }
-  }, [previousTokenAddress, previousTokenChainId, tokenAddress, tokenChainId]);
+  }, [previousTokenIdentity, tokenIdentity, tokenIdentityChanged]);
 
   useEffect(() => {
     // In case chainId is undefined, exit early to avoid
