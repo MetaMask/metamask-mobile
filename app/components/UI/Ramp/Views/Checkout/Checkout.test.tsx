@@ -15,10 +15,12 @@ jest.mock('react-redux', () => ({
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockPop = jest.fn();
+const mockReset = jest.fn();
 const mockDangerouslyGetParent = jest.fn(() => ({ pop: mockPop }));
 const mockNavigation = {
   goBack: jest.fn(),
   navigate: mockNavigate,
+  reset: mockReset,
   setOptions: mockSetOptions,
   dangerouslyGetParent: mockDangerouslyGetParent,
 };
@@ -381,10 +383,20 @@ describe('Checkout', () => {
         });
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.RAMP.RAMPS_ORDER_DETAILS,
-        expect.objectContaining({ showCloseButton: true }),
+      // For RAMPS_V2, navigation.reset() is used instead of pop() + navigate()
+      // to avoid a race condition where pop() removes the ramp modal before
+      // navigate() can push the order details screen.
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: expect.arrayContaining([
+            expect.objectContaining({
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: expect.objectContaining({ showCloseButton: true }),
+            }),
+          ]),
+        }),
       );
+      expect(mockPop).not.toHaveBeenCalled();
     });
 
     it('does not navigate to Ramps order details when providerType is not RAMPS_V2', async () => {
