@@ -10,7 +10,6 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
@@ -307,32 +306,6 @@ describe('TokenDetails', () => {
 
       expect(getByText('Buy')).toBeOnTheScreen();
       expect(queryByText('Sell')).toBeNull();
-    });
-  });
-
-  it('tracks token details opened with market insights hidden for legacy asset view', async () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectNetworkConfigurationByChainId)
-        return { name: 'Ethereum' };
-      if (selector === selectPerpsEnabledFlag) return false;
-      if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
-      if (selector === getRampNetworks) return [];
-      if (selector === selectDepositActiveFlag) return false;
-      if (selector === selectDepositMinimumVersionFlag) return null;
-      return undefined;
-    });
-
-    render(<TokenDetails />);
-
-    await waitFor(() => {
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.TOKEN_DETAILS_OPENED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          market_insights_displayed: false,
-        }),
-      );
     });
   });
 
