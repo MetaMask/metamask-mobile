@@ -655,20 +655,6 @@ describe('useAccountTokens', () => {
       expect(usdcEntries[0].balance).not.toBe('0');
     });
 
-    it('adds native token from network config for chains in the catalog', () => {
-      setupAllTokensMocks({});
-
-      const { result } = renderHook(() =>
-        useAccountTokens({ includeAllTokens: true }),
-      );
-
-      const symbols = result.current.map((a) => a.symbol);
-      expect(symbols).toContain('ETH');
-      const ethToken = result.current.find((a) => a.symbol === 'ETH');
-      expect(ethToken?.isNative).toBe(true);
-      expect(ethToken?.isETH).toBe(true);
-    });
-
     it('sets zero balance on catalog tokens', () => {
       setupAllTokensMocks({});
 

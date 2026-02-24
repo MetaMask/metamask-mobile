@@ -30,6 +30,23 @@ import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilte
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 
+const mockAddTokens = jest.fn().mockResolvedValue(undefined);
+const mockFindNetworkClientIdByChainId = jest
+  .fn()
+  .mockReturnValue('network-client-1');
+
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    TokensController: {
+      addTokens: (...args: unknown[]) => mockAddTokens(...args),
+    },
+    NetworkController: {
+      findNetworkClientIdByChainId: (...args: unknown[]) =>
+        mockFindNetworkClientIdByChainId(...args),
+    },
+  },
+}));
+
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
@@ -346,6 +363,33 @@ describe('PayWithModal', () => {
 
       expect(withdrawFilterFn).toHaveBeenCalledWith(expect.any(Array));
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
+    });
+
+    it('adds zero-balance token to TokensController on withdraw selection', async () => {
+      const zeroBalanceToken = {
+        accountType: EthAccountType.Eoa,
+        address: '0xZeroBalanceToken',
+        balance: '0',
+        balanceInSelectedCurrency: '$0.00',
+        chainId: CHAIN_ID_1_MOCK,
+        decimals: 6,
+        name: 'Zero Token',
+        standard: TokenStandard.ERC20,
+        symbol: 'ZERO',
+      } as AssetType;
+
+      useWithdrawTokenFilterMock.mockReturnValue(
+        jest.fn(() => [zeroBalanceToken]),
+      );
+
+      const { getByText } = render();
+
+      await waitFor(() => {
+        fireEvent.press(getByText('Zero Token'));
+      });
+
+      expect(mockAddTokens).toHaveBeenCalled();
+      expect(setPayTokenMock).toHaveBeenCalled();
     });
   });
 });
