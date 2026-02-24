@@ -45,6 +45,7 @@ import StockBadge from '../../../shared/StockBadge';
 import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
+import { BridgeToken } from '../../../Bridge/types';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 /**
@@ -309,8 +310,11 @@ const TrendingTokenRowItem = ({
             token.aggregatedUsdVolume ?? 0,
           )}
         </Text>
-        {isStockToken(token) && (
-          <StockBadge style={styles.stockBadgeWrapper} token={token} />
+        {isStockToken(token as unknown as BridgeToken) && (
+          <StockBadge
+            style={styles.stockBadgeWrapper}
+            token={token as unknown as BridgeToken}
+          />
         )}
       </View>
       <View style={styles.rightContainer}>

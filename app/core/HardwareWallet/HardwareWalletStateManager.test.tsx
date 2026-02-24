@@ -1,24 +1,45 @@
-import { renderHook, act } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
+import { act } from '@testing-library/react-hooks';
+import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { useHardwareWalletStateManager } from './HardwareWalletStateManager';
 import { getHardwareWalletTypeForAddress } from './helpers';
-import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import {
+  renderHookWithProvider,
+  DeepPartial,
+} from '../../util/test/renderWithProvider';
+import { RootState } from '../../reducers';
+import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
 
-// Mock react-redux
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
-// Mock helpers
 jest.mock('./helpers', () => ({
   ...jest.requireActual('./helpers'),
   getHardwareWalletTypeForAddress: jest.fn(),
 }));
 
+const MOCK_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678';
+const MOCK_ADDRESS_QR = '0xabcdef1234567890abcdef1234567890abcdef12';
+const MOCK_ADDRESS_SW = '0x0000000000000000000000000000000000000001';
+
+const createStateWithAccount = (address: string): DeepPartial<RootState> => ({
+  engine: {
+    backgroundState: {
+      AccountsController: createMockAccountsControllerState([address]),
+    },
+  },
+});
+
+const EMPTY_ACCOUNTS_STATE: DeepPartial<RootState> = {
+  engine: {
+    backgroundState: {
+      AccountsController: {
+        internalAccounts: {
+          accounts: {},
+          selectedAccount: '',
+        },
+      },
+    },
+  },
+};
+
 describe('useHardwareWalletStateManager', () => {
-  const mockUseSelector = useSelector as jest.MockedFunction<
-    typeof useSelector
-  >;
   const mockGetHardwareWalletType =
     getHardwareWalletTypeForAddress as jest.MockedFunction<
       typeof getHardwareWalletTypeForAddress
@@ -26,77 +47,80 @@ describe('useHardwareWalletStateManager', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default: non-hardware wallet account
-    mockUseSelector.mockReturnValue(null);
     mockGetHardwareWalletType.mockReturnValue(undefined);
   });
 
   describe('initial state', () => {
-    it('should return disconnected connection state', () => {
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+    it('returns disconnected connection state', () => {
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
+      );
 
       expect(result.current.state.connectionState.status).toBe(
         ConnectionStatus.Disconnected,
       );
     });
 
-    it('should return null deviceId', () => {
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+    it('returns null deviceId', () => {
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
+      );
 
       expect(result.current.state.deviceId).toBeNull();
     });
 
-    it('should return null walletType for non-hardware accounts', () => {
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+    it('returns null walletType for non-hardware accounts', () => {
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
+      );
 
       expect(result.current.state.walletType).toBeNull();
     });
   });
 
   describe('wallet type detection', () => {
-    it('should detect Ledger wallet type from selected account', () => {
-      const mockAccount = {
-        address: '0x1234567890abcdef',
-      };
-      mockUseSelector.mockReturnValue(mockAccount);
+    it('detects Ledger wallet type from selected account', () => {
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
 
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: createStateWithAccount(MOCK_ADDRESS) },
+      );
 
       expect(result.current.state.walletType).toBe(HardwareWalletType.Ledger);
-      expect(mockGetHardwareWalletType).toHaveBeenCalledWith(
-        mockAccount.address,
-      );
+      expect(mockGetHardwareWalletType).toHaveBeenCalledWith(MOCK_ADDRESS);
     });
 
-    it('should detect QR wallet type from selected account', () => {
-      const mockAccount = {
-        address: '0xqrwalletaddress',
-      };
-      mockUseSelector.mockReturnValue(mockAccount);
+    it('detects QR wallet type from selected account', () => {
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Qr);
 
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: createStateWithAccount(MOCK_ADDRESS_QR) },
+      );
 
       expect(result.current.state.walletType).toBe(HardwareWalletType.Qr);
     });
 
-    it('should return null for non-hardware accounts', () => {
-      const mockAccount = {
-        address: '0xsoftwarewalletaddress',
-      };
-      mockUseSelector.mockReturnValue(mockAccount);
+    it('returns null for non-hardware accounts', () => {
       mockGetHardwareWalletType.mockReturnValue(undefined);
 
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: createStateWithAccount(MOCK_ADDRESS_SW) },
+      );
 
       expect(result.current.state.walletType).toBeNull();
     });
 
-    it('should handle no selected account', () => {
-      mockUseSelector.mockReturnValue(null);
-
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+    it('handles no selected account', () => {
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
+      );
 
       expect(result.current.state.walletType).toBeNull();
       expect(mockGetHardwareWalletType).not.toHaveBeenCalled();
@@ -105,8 +129,11 @@ describe('useHardwareWalletStateManager', () => {
 
   describe('setters', () => {
     describe('setConnectionState', () => {
-      it('should update connection state', () => {
-        const { result } = renderHook(() => useHardwareWalletStateManager());
+      it('updates connection state', () => {
+        const { result } = renderHookWithProvider(
+          () => useHardwareWalletStateManager(),
+          { state: EMPTY_ACCOUNTS_STATE },
+        );
 
         act(() => {
           result.current.setters.setConnectionState({
@@ -119,8 +146,11 @@ describe('useHardwareWalletStateManager', () => {
         );
       });
 
-      it('should accept function updater', () => {
-        const { result } = renderHook(() => useHardwareWalletStateManager());
+      it('accepts function updater', () => {
+        const { result } = renderHookWithProvider(
+          () => useHardwareWalletStateManager(),
+          { state: EMPTY_ACCOUNTS_STATE },
+        );
 
         act(() => {
           result.current.setters.setConnectionState((prev) => ({
@@ -138,8 +168,11 @@ describe('useHardwareWalletStateManager', () => {
     });
 
     describe('setDeviceId', () => {
-      it('should update device ID', () => {
-        const { result } = renderHook(() => useHardwareWalletStateManager());
+      it('updates device ID', () => {
+        const { result } = renderHookWithProvider(
+          () => useHardwareWalletStateManager(),
+          { state: EMPTY_ACCOUNTS_STATE },
+        );
 
         act(() => {
           result.current.setters.setDeviceId('my-device-id');
@@ -148,8 +181,11 @@ describe('useHardwareWalletStateManager', () => {
         expect(result.current.state.deviceId).toBe('my-device-id');
       });
 
-      it('should allow clearing device ID', () => {
-        const { result } = renderHook(() => useHardwareWalletStateManager());
+      it('allows clearing device ID', () => {
+        const { result } = renderHookWithProvider(
+          () => useHardwareWalletStateManager(),
+          { state: EMPTY_ACCOUNTS_STATE },
+        );
 
         act(() => {
           result.current.setters.setDeviceId('device-123');
@@ -164,29 +200,41 @@ describe('useHardwareWalletStateManager', () => {
   });
 
   describe('refs', () => {
-    it('should provide adapter ref', () => {
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+    it('provides adapter ref', () => {
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
+      );
 
       expect(result.current.refs.adapterRef).toBeDefined();
       expect(result.current.refs.adapterRef.current).toBeNull();
     });
 
-    it('should provide isConnecting ref', () => {
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+    it('provides isConnecting ref', () => {
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
+      );
 
       expect(result.current.refs.isConnectingRef).toBeDefined();
       expect(result.current.refs.isConnectingRef.current).toBe(false);
     });
 
-    it('should provide abortController ref', () => {
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+    it('provides abortController ref', () => {
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
+      );
 
       expect(result.current.refs.abortControllerRef).toBeDefined();
       expect(result.current.refs.abortControllerRef.current).toBeNull();
     });
 
-    it('should allow mutating refs', () => {
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+    it('allows mutating refs', () => {
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
+      );
 
       act(() => {
         result.current.refs.isConnectingRef.current = true;
@@ -197,10 +245,12 @@ describe('useHardwareWalletStateManager', () => {
   });
 
   describe('resetState', () => {
-    it('should reset connection state to disconnected', () => {
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+    it('resets connection state to disconnected', () => {
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
+      );
 
-      // Set some state first
       act(() => {
         result.current.setters.setConnectionState({
           status: ConnectionStatus.Connected,
@@ -209,7 +259,6 @@ describe('useHardwareWalletStateManager', () => {
         result.current.setters.setDeviceId('device-123');
       });
 
-      // Reset
       act(() => {
         result.current.resetState();
       });
@@ -219,8 +268,11 @@ describe('useHardwareWalletStateManager', () => {
       );
     });
 
-    it('should reset device ID', () => {
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+    it('resets device ID', () => {
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
+      );
 
       act(() => {
         result.current.setters.setDeviceId('device-123');
@@ -232,11 +284,15 @@ describe('useHardwareWalletStateManager', () => {
       expect(result.current.state.deviceId).toBeNull();
     });
 
-    it('should reset refs', () => {
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+    it('resets refs', () => {
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
+      );
 
       act(() => {
         result.current.refs.isConnectingRef.current = true;
+        result.current.refs.adapterRef.current = {} as never;
         result.current.refs.abortControllerRef.current = new AbortController();
       });
       act(() => {
@@ -244,50 +300,56 @@ describe('useHardwareWalletStateManager', () => {
       });
 
       expect(result.current.refs.isConnectingRef.current).toBe(false);
+      expect(result.current.refs.adapterRef.current).toBeNull();
       expect(result.current.refs.abortControllerRef.current).toBeNull();
     });
   });
 
   describe('memoization', () => {
-    it('should memoize state object', () => {
-      const { result, rerender } = renderHook(() =>
-        useHardwareWalletStateManager(),
+    it('memoizes state object', () => {
+      const { result, rerender } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
       );
 
       const state1 = result.current.state;
-      rerender();
+      rerender({});
       const state2 = result.current.state;
 
-      // State object should be the same reference if nothing changed
       expect(state1).toBe(state2);
     });
 
-    it('should memoize refs object', () => {
-      const { result, rerender } = renderHook(() =>
-        useHardwareWalletStateManager(),
+    it('memoizes refs object', () => {
+      const { result, rerender } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
       );
 
       const refs1 = result.current.refs;
-      rerender();
+      rerender({});
       const refs2 = result.current.refs;
 
       expect(refs1).toBe(refs2);
     });
 
-    it('should memoize setters object', () => {
-      const { result, rerender } = renderHook(() =>
-        useHardwareWalletStateManager(),
+    it('memoizes setters object', () => {
+      const { result, rerender } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
       );
 
       const setters1 = result.current.setters;
-      rerender();
+      rerender({});
       const setters2 = result.current.setters;
 
       expect(setters1).toBe(setters2);
     });
 
-    it('should return new state object when state changes', () => {
-      const { result } = renderHook(() => useHardwareWalletStateManager());
+    it('returns new state object when state changes', () => {
+      const { result } = renderHookWithProvider(
+        () => useHardwareWalletStateManager(),
+        { state: EMPTY_ACCOUNTS_STATE },
+      );
 
       const state1 = result.current.state;
 

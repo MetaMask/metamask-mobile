@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { useCallback } from 'react';
 import {
   HardwareWalletError,
@@ -14,80 +13,48 @@ import {
   HardwareWalletRefs,
 } from './HardwareWalletStateManager';
 import { parseErrorByType, createHardwareWalletError } from './errors';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 
-/**
- * Options for the device event handlers hook
- */
+/** Options for the {@link useDeviceEventHandlers} hook. */
 export interface UseDeviceEventHandlersOptions {
+  /** Mutable refs shared across the hardware wallet system. */
   refs: HardwareWalletRefs;
+  /** State setter functions for connection state, device ID, etc. */
   setters: HardwareWalletStateSetters;
+  /** Current wallet type, used for error parsing context. */
   walletType: HardwareWalletType | null;
 }
 
-/**
- * Return type of the useDeviceEventHandlers hook
- */
+/** Return value of the {@link useDeviceEventHandlers} hook. */
 export interface DeviceEventHandlersResult {
-  /** Update the connection state with change detection */
+  /** Directly sets the connection state (no dedup — callers control when to update). */
   updateConnectionState: (newState: HardwareWalletConnectionState) => void;
-  /** Handle device events from the adapter */
+  /** Routes a device event payload to the appropriate state transition. */
   handleDeviceEvent: (payload: DeviceEventPayload) => void;
-  /** Handle errors and update connection state */
+  /** Parses an error into a HardwareWalletError and transitions to ErrorState. */
   handleError: (error: unknown) => void;
-  /** Clear any error state */
+  /** Clears the current error, returning to Disconnected if in ErrorState. */
   clearError: () => void;
 }
 
 /**
- * Hook to handle device events from hardware wallet adapters.
+ * Hook that provides device event handlers for the hardware wallet state machine.
  *
- * This hook provides handlers for all device events emitted by adapters,
- * translating them into connection state updates.
- *
- * @example
- * ```typescript
- * const { handleDeviceEvent, handleError, clearError } = useDeviceEventHandlers({
- *   refs,
- *   setters,
- *   walletType: HardwareWalletType.Ledger,
- * });
- *
- * // Use in adapter options
- * const adapter = createAdapter(walletType, {
- *   onDeviceEvent: handleDeviceEvent,
- *   onDisconnect: (error) => error && handleError(error),
- * });
- * ```
+ * Translates raw device events (Connected, Disconnected, AppOpened, etc.) into
+ * connection state transitions and handles error parsing/normalization.
  */
 export const useDeviceEventHandlers = ({
   refs,
   setters,
   walletType,
 }: UseDeviceEventHandlersOptions): DeviceEventHandlersResult => {
-  /**
-   * Update connection state with change detection to avoid unnecessary re-renders
-   */
   const updateConnectionState = useCallback(
     (newState: HardwareWalletConnectionState) => {
-      setters.setConnectionState((prev) => {
-        // Avoid unnecessary updates if status hasn't changed
-        // For error states, always update since the error might be different
-        if (prev.status === newState.status && newState.status !== 'error') {
-          return prev;
-        }
-        return newState;
-      });
+      setters.setConnectionState(newState);
     },
     [setters],
   );
 
-  /**
-   * Handle errors by parsing them and updating connection state.
-   *
-   * Note: If the adapter's flowComplete flag is true (success was shown),
-   * we still parse the error but don't update the connection state to avoid
-   * showing error UI after the user has already seen success.
-   */
   const handleError = useCallback(
     (error: unknown) => {
       let hwError: HardwareWalletError;
@@ -95,10 +62,11 @@ export const useDeviceEventHandlers = ({
       if (error instanceof HardwareWalletError) {
         hwError = error;
       } else {
-        // Use parseErrorByType which handles unknown errors
         hwError = parseErrorByType(
           error,
-          walletType ?? HardwareWalletType.Ledger,
+          walletType ??
+            refs.adapterRef.current?.walletType ??
+            HardwareWalletType.Ledger,
         );
       }
 
@@ -107,40 +75,38 @@ export const useDeviceEventHandlers = ({
         error: hwError,
       });
 
-      // Reset connecting flag
       refs.isConnectingRef.current = false;
     },
     [updateConnectionState, walletType, refs],
   );
 
-  /**
-   * Clear error state and return to disconnected
-   */
   const clearError = useCallback(() => {
     setters.setConnectionState((prev) => {
-      if (prev.status === 'error') {
+      if (prev.status === ConnectionStatus.ErrorState) {
         return { status: ConnectionStatus.Disconnected };
       }
       return prev;
     });
   }, [setters]);
 
-  /**
-   * Main event handler for device events from adapters
-   */
   const handleDeviceEvent = useCallback(
     (payload: DeviceEventPayload) => {
       switch (payload.event) {
-        case DeviceEvent.Connected:
-          if (payload.deviceId) {
-            setters.setDeviceId(payload.deviceId);
-            updateConnectionState({
-              status: ConnectionStatus.Connected,
-              deviceId: payload.deviceId,
-            });
+        case DeviceEvent.Connected: {
+          const connectedDeviceId =
+            payload.deviceId ??
+            refs.adapterRef.current?.getConnectedDeviceId() ??
+            '';
+          if (connectedDeviceId) {
+            setters.setDeviceId(connectedDeviceId);
           }
+          updateConnectionState({
+            status: ConnectionStatus.Connected,
+            deviceId: connectedDeviceId,
+          });
           refs.isConnectingRef.current = false;
           break;
+        }
 
         case DeviceEvent.Disconnected:
           updateConnectionState({ status: ConnectionStatus.Disconnected });
@@ -169,16 +135,18 @@ export const useDeviceEventHandlers = ({
           if (payload.error) {
             handleError(payload.error);
           } else {
-            // Create a device locked error using the proper ErrorCode
             const lockedError = createHardwareWalletError(
               ErrorCode.AuthenticationDeviceLocked,
-              walletType ?? HardwareWalletType.Ledger,
+              walletType ??
+                refs.adapterRef.current?.walletType ??
+                HardwareWalletType.Ledger,
             );
             updateConnectionState({
               status: ConnectionStatus.ErrorState,
               error: lockedError,
             });
           }
+          refs.isConnectingRef.current = false;
           break;
 
         case DeviceEvent.ConfirmationRequired:
@@ -189,7 +157,6 @@ export const useDeviceEventHandlers = ({
           break;
 
         case DeviceEvent.ConfirmationReceived:
-          // Return to connected state after confirmation
           updateConnectionState({
             status: ConnectionStatus.Connected,
             deviceId: refs.adapterRef.current?.getConnectedDeviceId() ?? '',
@@ -199,12 +166,19 @@ export const useDeviceEventHandlers = ({
         case DeviceEvent.ConfirmationRejected:
           if (payload.error) {
             handleError(payload.error);
+          } else {
+            updateConnectionState({
+              status: ConnectionStatus.Connected,
+              deviceId: refs.adapterRef.current?.getConnectedDeviceId() ?? '',
+            });
           }
           break;
 
         case DeviceEvent.ConnectionFailed:
           if (payload.error) {
             handleError(payload.error);
+          } else {
+            updateConnectionState({ status: ConnectionStatus.Disconnected });
           }
           refs.isConnectingRef.current = false;
           break;
@@ -213,16 +187,15 @@ export const useDeviceEventHandlers = ({
           if (payload.error) {
             handleError(payload.error);
           }
+          refs.isConnectingRef.current = false;
           break;
 
         case DeviceEvent.PermissionChanged:
-          // Permission changes are handled separately through permission checks
           break;
 
         default:
-          // Log unknown events in development
           if (__DEV__) {
-            console.warn(
+            DevLogger.log(
               '[HardwareWallet] Unknown device event:',
               payload.event,
             );

@@ -25,6 +25,9 @@ export interface ReplacementTxParams {
     maxFeePerGas?: string;
     maxPriorityFeePerGas?: string;
   };
+  legacyGasFee?: {
+    gasPrice?: string;
+  };
 }
 
 export interface LedgerTransactionModalParams {
@@ -49,14 +52,14 @@ const LedgerTransactionModal = () => {
   }, [navigation]);
 
   const executeOnLedger = useCallback(async () => {
+    const gasFeeParams =
+      replacementParams?.legacyGasFee ?? replacementParams?.eip1559GasFee;
+
     if (replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
       //@ts-expect-error Will defer this typescript issue to the hardware wallet team, confirmations or transactions team
-      await speedUpTransaction(transactionId, replacementParams.eip1559GasFee);
+      await speedUpTransaction(transactionId, gasFeeParams);
     } else if (replacementParams?.type === LedgerReplacementTxTypes.CANCEL) {
-      await TransactionController.stopTransaction(
-        transactionId,
-        replacementParams.eip1559GasFee,
-      );
+      await TransactionController.stopTransaction(transactionId, gasFeeParams);
     } else {
       // This requires the user to confirm on the ledger device
       await ApprovalController.accept(transactionId, undefined, {
