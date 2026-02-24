@@ -473,7 +473,7 @@ describe('Smart Transactions utils', () => {
       });
     });
 
-    it('returns empty object if smartTransaction is not found and waitForSmartTransaction is false', async () => {
+    it('returns is_smart_transaction true if smartTransaction is not found and waitForSmartTransaction is false', async () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       (
         smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
@@ -485,7 +485,7 @@ describe('Smart Transactions utils', () => {
         false,
         controllerMessenger,
       );
-      expect(result).toEqual({});
+      expect(result).toEqual({ is_smart_transaction: true });
     });
 
     it('returns correct object if smartTransaction is found but statusMetadata is undefined', async () => {
