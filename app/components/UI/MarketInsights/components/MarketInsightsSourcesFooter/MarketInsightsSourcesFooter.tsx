@@ -26,6 +26,7 @@ import type {
 } from './MarketInsightsSourcesFooter.types';
 import type { MarketInsightsSource } from '@metamask/ai-controllers';
 import { getFaviconUrl } from '../../utils/marketInsightsFormatting';
+import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 
 // Maximum number of source icons to show in the pill before "+N"
 const MAX_VISIBLE_SOURCES = 4;
@@ -54,7 +55,7 @@ const SourceIcon: React.FC<{
 // MarketInsightsSourcesBottomSheet renders a scrollable list of all sources
 const MarketInsightsSourcesBottomSheet: React.FC<
   MarketInsightsSourcesBottomSheetProps
-> = ({ isVisible, onClose, sources }) => {
+> = ({ isVisible, onClose, sources, onSourcePress }) => {
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -67,9 +68,13 @@ const MarketInsightsSourcesBottomSheet: React.FC<
     }
   }, [isVisible]);
 
-  const handleSourcePress = useCallback((url: string) => {
-    Linking.openURL(url);
-  }, []);
+  const handleSourcePress = useCallback(
+    (url: string) => {
+      onSourcePress?.(url);
+      Linking.openURL(url);
+    },
+    [onSourcePress],
+  );
 
   const uniqueSources = sources.reduce<MarketInsightsSource[]>(
     (acc, source) => {
@@ -139,7 +144,7 @@ const MarketInsightsSourcesBottomSheet: React.FC<
 
 const MarketInsightsSourcesFooter: React.FC<
   MarketInsightsSourcesFooterProps
-> = ({ sources, testID }) => {
+> = ({ sources, onSourcePress, onThumbsUp, onThumbsDown, testID }) => {
   const tw = useTailwind();
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
@@ -200,16 +205,28 @@ const MarketInsightsSourcesFooter: React.FC<
           alignItems={BoxAlignItems.Center}
           gap={4}
         >
-          <Icon
-            name={IconName.ThumbUp}
-            size={IconSize.Md}
-            color={IconColor.IconAlternative}
-          />
-          <Icon
-            name={IconName.ThumbDown}
-            size={IconSize.Md}
-            color={IconColor.IconAlternative}
-          />
+          <Pressable
+            onPress={onThumbsUp}
+            style={({ pressed }) => tw.style(pressed && 'opacity-70')}
+            testID={MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON}
+          >
+            <Icon
+              name={IconName.ThumbUp}
+              size={IconSize.Md}
+              color={IconColor.IconAlternative}
+            />
+          </Pressable>
+          <Pressable
+            onPress={onThumbsDown}
+            style={({ pressed }) => tw.style(pressed && 'opacity-70')}
+            testID={MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON}
+          >
+            <Icon
+              name={IconName.ThumbDown}
+              size={IconSize.Md}
+              color={IconColor.IconAlternative}
+            />
+          </Pressable>
         </Box>
       </Box>
 
@@ -218,6 +235,7 @@ const MarketInsightsSourcesFooter: React.FC<
           isVisible={isBottomSheetVisible}
           onClose={handleCloseSources}
           sources={sources}
+          onSourcePress={onSourcePress}
         />
       )}
     </>
