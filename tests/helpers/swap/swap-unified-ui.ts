@@ -22,11 +22,12 @@ export async function submitSwapUnifiedUI(
   await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
     timeout: 20000,
   });
-  await QuoteView.enterAmount(quantity);
   if (sourceTokenSymbol !== 'ETH') {
     await QuoteView.tapSourceToken();
     await QuoteView.tapToken(chainId, sourceTokenSymbol);
   }
+  await QuoteView.tapSourceAmountInput();
+  await QuoteView.enterAmount(quantity);
   await QuoteView.tapDestinationToken();
   await QuoteView.tapToken(chainId, destTokenSymbol);
 
