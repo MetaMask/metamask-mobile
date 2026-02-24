@@ -104,16 +104,23 @@ class NavigationService {
     // See docs/perps/perps-agentic-feedback-loop.md for the full workflow.
     if (__DEV__) {
       Logger.log('[NavigationService] __AGENTIC__ bridge installed');
+      // Use this.#navigation (the deferred-wrapped proxy) so navigate/goBack
+      // honour the requestAnimationFrame deferral, matching production behaviour.
+      const deferredNav = this.#navigation;
       (globalThis as Record<string, unknown>).__AGENTIC__ = {
         platform: Platform.OS,
         navigate: (name: string, params?: object) =>
-          navRef.navigate(name as never, params as never),
+          deferredNav.navigate(name as never, params as never),
         getRoute: () => navRef.getCurrentRoute(),
         getState: () => navRef.dangerouslyGetState(),
         canGoBack: () => navRef.canGoBack(),
-        goBack: () => navRef.goBack(),
+        goBack: () => deferredNav.goBack(),
       };
-      (globalThis as Record<string, unknown>).store = ReduxService.store;
+      try {
+        (globalThis as Record<string, unknown>).store = ReduxService.store;
+      } catch {
+        // ReduxService.store may not be initialized yet (e.g. in tests); skip.
+      }
       (globalThis as Record<string, unknown>).Engine = Engine;
     }
   }
