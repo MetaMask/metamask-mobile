@@ -38,14 +38,14 @@ async function switchChainFlow(device, { targetChainId, expectedChainId }) {
     device,
     async () => {
       await WalletConnectDapp.tapOpenNetworkPicker();
-      await AppwrightGestures.wait(2000);
+      await AppwrightGestures.wait(1000);
       await WalletConnectDapp.tapNetworkItem(targetChainId);
     },
     WC_TEST_DAPP_URL,
   );
 
   // Wait for MetaMask to receive the switch request
-  await AppwrightGestures.wait(2000);
+  await AppwrightGestures.wait(1000);
 
   // Switch to MetaMask and approve the chain switch
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -53,7 +53,7 @@ async function switchChainFlow(device, { targetChainId, expectedChainId }) {
   });
 
   // Switch back to browser and verify chainId updated
-  await AppwrightGestures.wait(2000);
+  await AppwrightGestures.wait(1000);
   await launchMobileBrowser(device);
 
   await AppwrightHelpers.withWebAction(
@@ -85,7 +85,7 @@ test('WalletConnect v2 - switch Ethereum chain', async ({ device }) => {
   // ── Switch to Linea ───────────────────────────────────────────────
   await switchChainFlow(device, {
     targetChainId: LINEA_CHAIN_ID,
-    expectedChainId: Number(LINEA_CHAIN_ID),
+    expectedChainId: Number(LINEA_CHAIN_ID).toString(10),
   });
 
   // ── Cleanup: Disconnect ───────────────────────────────────────────
@@ -93,7 +93,7 @@ test('WalletConnect v2 - switch Ethereum chain', async ({ device }) => {
     device,
     async () => {
       await WalletConnectDapp.tapDisconnectButton();
-      await AppwrightGestures.wait(2000);
+      await AppwrightGestures.wait(1000);
       await WalletConnectDapp.assertDisconnected();
     },
     WC_TEST_DAPP_URL,
