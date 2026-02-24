@@ -147,6 +147,9 @@ describe('UnifiedTransactionsView', () => {
         },
         TokensController: {
           tokens: [],
+          allTokens: {},
+          allIgnoredTokens: {},
+          allDetectedTokens: {},
         },
         CurrencyRateController: {
           currentCurrency: 'USD',
@@ -160,8 +163,11 @@ describe('UnifiedTransactionsView', () => {
           bridgeHistoryForAccount: {},
         },
         NetworkEnablementController: {
-          enabledEVMNetworks: ['0x1'],
-          enabledNonEVMNetworks: [],
+          enabledNetworkMap: {
+            eip155: {
+              '0x1': true,
+            },
+          },
         },
       },
     },
@@ -192,7 +198,7 @@ describe('UnifiedTransactionsView', () => {
     });
 
     // Assert
-    expect(getByText("You don't have any transactions yet.")).toBeOnTheScreen();
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
   });
 
   it('renders header component when provided', () => {
@@ -244,8 +250,11 @@ describe('UnifiedTransactionsView', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           NetworkEnablementController: {
-            enabledEVMNetworks: [],
-            enabledNonEVMNetworks: ['solana:mainnet'],
+            enabledNetworkMap: {
+              solana: {
+                'solana:mainnet': true,
+              },
+            },
           },
         },
       },
@@ -327,6 +336,9 @@ describe('UnifiedTransactionsView with transactions', () => {
         },
         TokensController: {
           tokens: [],
+          allTokens: {},
+          allIgnoredTokens: {},
+          allDetectedTokens: {},
         },
         CurrencyRateController: {
           currentCurrency: 'USD',
@@ -340,8 +352,11 @@ describe('UnifiedTransactionsView with transactions', () => {
           bridgeHistoryForAccount: {},
         },
         NetworkEnablementController: {
-          enabledEVMNetworks: ['0x1'],
-          enabledNonEVMNetworks: [],
+          enabledNetworkMap: {
+            eip155: {
+              '0x1': true,
+            },
+          },
         },
       },
     },
