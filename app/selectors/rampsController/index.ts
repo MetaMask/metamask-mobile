@@ -7,8 +7,7 @@ import {
   type RampsToken,
   type TokensResponse,
   type ResourceState,
-  type Quote,
-  type QuotesResponse,
+  type TransakState,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
 
@@ -90,11 +89,15 @@ export const selectPaymentMethods = createSelector(
 );
 
 /**
- * Selects the quotes resource state (data, selected, isLoading, error).
+ * Selects the transak native provider state (isAuthenticated, userDetails, buyQuote, kycRequirement).
  */
-export const selectQuotes = createSelector(
+export const selectTransak = createSelector(
   selectRampsControllerState,
-  (rampsControllerState): ResourceState<QuotesResponse | null, Quote | null> =>
-    rampsControllerState?.quotes ??
-    createDefaultResourceState<QuotesResponse | null, Quote | null>(null, null),
+  (rampsControllerState): TransakState =>
+    rampsControllerState?.nativeProviders?.transak ?? {
+      isAuthenticated: false,
+      userDetails: createDefaultResourceState(null),
+      buyQuote: createDefaultResourceState(null),
+      kycRequirement: createDefaultResourceState(null),
+    },
 );

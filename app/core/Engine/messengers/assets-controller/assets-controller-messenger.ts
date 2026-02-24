@@ -1,7 +1,10 @@
 import type { AssetsControllerMessenger as PackageAssetsControllerMessenger } from '@metamask/assets-controller';
 import { Messenger } from '@metamask/messenger';
 import { AuthenticationController } from '@metamask/profile-sync-controller';
-import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
+import type {
+  PreferencesControllerGetStateAction,
+  PreferencesControllerStateChangeEvent,
+} from '@metamask/preferences-controller';
 import type {
   NetworkControllerGetStateAction,
   NetworkControllerGetNetworkClientByIdAction,
@@ -36,7 +39,12 @@ import type {
   HandleSnapRequest,
   GetRunnableSnaps,
 } from '@metamask/snaps-controllers';
+import type {
+  TransactionControllerTransactionConfirmedEvent,
+  TransactionControllerIncomingTransactionsReceivedEvent,
+} from '@metamask/transaction-controller';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
+import type { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import { RootExtendedMessenger, RootMessenger } from '../../types';
 
 /**
@@ -54,7 +62,6 @@ type AssetsControllerAllowedActions =
   | HandleSnapRequest
   | GetRunnableSnaps
   | GetPermissions;
-
 /**
  * Events that AssetsController and its data sources subscribe to.
  * Aligned with extension: core + RpcDataSource + BackendWebsocketDataSource + SnapDataSource.
@@ -62,10 +69,13 @@ type AssetsControllerAllowedActions =
 type AssetsControllerAllowedEvents =
   | KeyringControllerUnlockEvent
   | KeyringControllerLockEvent
+  | PreferencesControllerStateChangeEvent
   | AccountTreeControllerSelectedAccountGroupChangeEvent
   | NetworkEnablementControllerEvents
   | BackendWebSocketServiceEvents
   | NetworkControllerStateChangeEvent
+  | TransactionControllerTransactionConfirmedEvent
+  | TransactionControllerIncomingTransactionsReceivedEvent
   | AccountsControllerAccountBalancesUpdatesEvent
   | PermissionControllerStateChange;
 
@@ -111,7 +121,10 @@ export function getAssetsControllerMessenger(
       'NetworkEnablementController:stateChange',
       'KeyringController:lock',
       'KeyringController:unlock',
+      'PreferencesController:stateChange',
       'NetworkController:stateChange',
+      'TransactionController:transactionConfirmed',
+      'TransactionController:incomingTransactionsReceived',
       'BackendWebSocketService:connectionStateChanged',
       'AccountsController:accountBalancesUpdated',
       'PermissionController:stateChange',
@@ -141,7 +154,8 @@ export function getAssetsControllerInitMessenger(
     'AssetsControllerInit',
     | AuthenticationController.AuthenticationControllerGetBearerToken
     | PreferencesControllerGetStateAction
-    | RemoteFeatureFlagControllerGetStateAction,
+    | RemoteFeatureFlagControllerGetStateAction
+    | AnalyticsControllerActions,
     never,
     RootMessenger
   >({
@@ -153,6 +167,7 @@ export function getAssetsControllerInitMessenger(
       'AuthenticationController:getBearerToken',
       'PreferencesController:getState',
       'RemoteFeatureFlagController:getState',
+      'AnalyticsController:trackEvent',
     ],
     events: [],
     messenger,

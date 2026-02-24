@@ -22,8 +22,8 @@ import {
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
-import type { OrderPreview } from '../providers/types';
 import {
+  type OrderPreview,
   PredictBalance,
   PredictClaimStatus,
   PredictPosition,

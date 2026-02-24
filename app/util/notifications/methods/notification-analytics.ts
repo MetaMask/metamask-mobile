@@ -1,4 +1,4 @@
-import { INotification } from '../types';
+import { INotification } from '@metamask/notification-services-controller/notification-services';
 
 const onChainAnalyticProperties = (item: INotification) => {
   if (

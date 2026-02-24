@@ -1,12 +1,9 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
-import { render } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { TokenI } from '../../Tokens/types';
-import {
-  selectTokenDetailsV2Enabled,
-  selectTokenDetailsV2ButtonsEnabled,
-} from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
@@ -15,12 +12,22 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
 // Mock feature flags
-const mockSelectTokenDetailsV2ButtonsEnabled = jest.fn().mockReturnValue(true);
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsV2Enabled: jest.fn(() => true),
-  selectTokenDetailsV2ButtonsEnabled: mockSelectTokenDetailsV2ButtonsEnabled,
+  selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
+}));
+
+// Mock useTokenDetailsABTest hook
+const mockUseTokenDetailsABTest = jest.fn().mockReturnValue({
+  useNewLayout: true,
+  variantName: 'treatment',
+  isTestActive: true,
+});
+jest.mock('../hooks/useTokenDetailsABTest', () => ({
+  useTokenDetailsABTest: () => mockUseTokenDetailsABTest(),
 }));
 
 // Mock react-redux with proper selector handling
@@ -103,10 +110,25 @@ jest.mock('../components/TokenDetailsInlineHeader', () => ({
   TokenDetailsInlineHeader: () => null,
 }));
 
-jest.mock('../components/AssetOverviewContent', () => ({
-  __esModule: true,
-  default: () => null,
-}));
+jest.mock('../components/AssetOverviewContent', () => {
+  const ReactLib = jest.requireActual('react');
+  const AssetOverviewContentMock = ({
+    onMarketInsightsDisplayResolved,
+  }: {
+    onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
+  }) => {
+    ReactLib.useEffect(() => {
+      onMarketInsightsDisplayResolved?.(true);
+    }, [onMarketInsightsDisplayResolved]);
+
+    return null;
+  };
+
+  return {
+    __esModule: true,
+    default: AssetOverviewContentMock,
+  };
+});
 
 jest.mock('../../../Views/Asset/ActivityHeader', () => ({
   __esModule: true,
@@ -115,7 +137,7 @@ jest.mock('../../../Views/Asset/ActivityHeader', () => ({
 
 jest.mock('../../Transactions', () => ({
   __esModule: true,
-  default: () => null,
+  default: ({ header }: { header?: React.ReactNode }) => header ?? null,
 }));
 
 jest.mock(
@@ -158,6 +180,25 @@ jest.mock('../../Ramp/Aggregator/utils', () => ({
   isNetworkRampSupported: jest.fn(() => true),
 }));
 
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+const mockIsTokenTradingOpen = jest.fn().mockReturnValue(true);
+jest.mock('../../Bridge/hooks/useRWAToken', () => ({
+  useRWAToken: () => ({
+    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isStockToken: jest.fn(() => false),
+  }),
+}));
+
 describe('TokenDetails', () => {
   const defaultToken: TokenI = {
     address: '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -179,7 +220,17 @@ describe('TokenDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(true);
+    mockBuild.mockReturnValue({ category: 'token-details-opened' });
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+    mockUseTokenDetailsABTest.mockReturnValue({
+      useNewLayout: true,
+      variantName: 'treatment',
+      isTestActive: true,
+    });
+    mockIsTokenTradingOpen.mockReturnValue(true);
     mockUseTokenTransactions.mockReturnValue(defaultUseTokenTransactionsReturn);
 
     // Setup default useTokenBalance mock
@@ -192,8 +243,6 @@ describe('TokenDetails', () => {
     // Setup default selector returns
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectTokenDetailsV2Enabled) return true;
-      if (selector === selectTokenDetailsV2ButtonsEnabled)
-        return mockSelectTokenDetailsV2ButtonsEnabled();
       if (selector === selectNetworkConfigurationByChainId)
         return { name: 'Ethereum' };
       if (selector === selectPerpsEnabledFlag) return false;
@@ -217,7 +266,7 @@ describe('TokenDetails', () => {
   });
 
   describe('Buy/Sell sticky buttons', () => {
-    it('shows sticky buttons when selectTokenDetailsV2ButtonsEnabled is true', () => {
+    it('shows sticky buttons when useNewLayout is true (treatment variant)', () => {
       const { getByTestId, getByText } = render(
         <TokenDetails {...defaultProps} />,
       );
@@ -226,8 +275,20 @@ describe('TokenDetails', () => {
       expect(getByText('Buy')).toBeOnTheScreen();
     });
 
-    it('does not show sticky buttons when selectTokenDetailsV2ButtonsEnabled is false', () => {
-      mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(false);
+    it('does not show sticky buttons when useNewLayout is false (control variant)', () => {
+      mockUseTokenDetailsABTest.mockReturnValue({
+        useNewLayout: false,
+        variantName: 'control',
+        isTestActive: true,
+      });
+
+      const { queryByTestId } = render(<TokenDetails {...defaultProps} />);
+
+      expect(queryByTestId('bottomsheetfooter')).toBeNull();
+    });
+
+    it('does not show sticky buttons when RWA token trading is not open', () => {
+      mockIsTokenTradingOpen.mockReturnValue(false);
 
       const { queryByTestId } = render(<TokenDetails {...defaultProps} />);
 
@@ -275,6 +336,86 @@ describe('TokenDetails', () => {
 
       expect(getByText('Buy')).toBeOnTheScreen();
       expect(queryByText('Sell')).toBeNull();
+    });
+  });
+
+  it('tracks token details opened with market insights hidden for legacy asset view', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectTokenDetailsV2Enabled) return false;
+      if (selector === selectNetworkConfigurationByChainId)
+        return { name: 'Ethereum' };
+      if (selector === selectPerpsEnabledFlag) return false;
+      if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+      if (selector === getRampNetworks) return [];
+      if (selector === selectDepositActiveFlag) return false;
+      if (selector === selectDepositMinimumVersionFlag) return null;
+      return undefined;
+    });
+
+    render(<TokenDetails {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.TOKEN_DETAILS_OPENED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          market_insights_displayed: false,
+        }),
+      );
+    });
+  });
+
+  it('tracks token details opened for each token when route params change', async () => {
+    const { rerender } = render(<TokenDetails {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+          token_symbol: 'DAI',
+          market_insights_displayed: true,
+        }),
+      );
+    });
+
+    const secondToken = {
+      ...defaultToken,
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      symbol: 'USDC',
+      name: 'USD Coin',
+    } as TokenI;
+
+    rerender(
+      <TokenDetails
+        route={{
+          params: secondToken,
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          token_symbol: 'USDC',
+          market_insights_displayed: true,
+        }),
+      );
+    });
+  });
+
+  it('does not track token details opened more than once for the same token', async () => {
+    const { rerender } = render(<TokenDetails {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    rerender(<TokenDetails {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -265,6 +265,17 @@ describe('bridge slice', () => {
 
       expect(newState).toEqual(initialState);
     });
+
+    it('resets visible pill chain IDs when bridge state resets', () => {
+      const stateWithVisiblePills = {
+        ...initialState,
+        visiblePillChainIds: ['eip155:137', 'eip155:1'] as CaipChainId[],
+      };
+
+      const newState = reducer(stateWithVisiblePills, resetBridgeState());
+
+      expect(newState.visiblePillChainIds).toBeUndefined();
+    });
   });
 
   describe('selectBip44DefaultPair', () => {
