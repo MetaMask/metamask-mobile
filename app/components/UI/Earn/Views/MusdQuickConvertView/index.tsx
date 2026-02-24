@@ -213,7 +213,11 @@ const MusdQuickConvertView = () => {
     ],
   );
 
-  const { fiatBalanceFormattedByChain, tokenBalanceByChain } = useMusdBalance();
+  const {
+    fiatBalanceFormattedByChain,
+    tokenBalanceByChain,
+    hasMusdBalanceOnAnyChain,
+  } = useMusdBalance();
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: TokenSection }) => (
@@ -271,25 +275,27 @@ const MusdQuickConvertView = () => {
             </Text>
           </Text>
         </View>
-        <View>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            style={styles.balanceCardHeader}
-          >
-            {strings('earn.musd_conversion.your_musd')}
-          </Text>
-          {Object.keys(tokenBalanceByChain).map((chainId) => (
-            <View key={chainId} style={styles.balanceCardContainer}>
-              <MusdBalanceCard
-                chainId={chainId as Hex}
-                balance={
-                  fiatBalanceFormattedByChain[chainId as Hex] ??
-                  tokenBalanceByChain[chainId as Hex]
-                }
-              />
-            </View>
-          ))}
-        </View>
+        {hasMusdBalanceOnAnyChain && (
+          <View>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.balanceCardHeader}
+            >
+              {strings('earn.musd_conversion.your_musd')}
+            </Text>
+            {Object.keys(tokenBalanceByChain).map((chainId) => (
+              <View key={chainId} style={styles.balanceCardContainer}>
+                <MusdBalanceCard
+                  chainId={chainId as Hex}
+                  balance={
+                    fiatBalanceFormattedByChain[chainId as Hex] ??
+                    tokenBalanceByChain[chainId as Hex]
+                  }
+                />
+              </View>
+            ))}
+          </View>
+        )}
       </View>
 
       {/* Token list */}
