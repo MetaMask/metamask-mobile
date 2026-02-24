@@ -9,10 +9,13 @@ import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState } from '../types';
 
 export function findEvmAccount(
-  accounts: InternalAccount[],
-): InternalAccount | null {
+  // Accept any array of objects with address and type properties
+  // to handle type mismatches between package versions
+  accounts: { address: string; type: string }[],
+): { address: string; type: string } | null {
   const evmAccount = accounts.find(
-    (account) => account && isEvmAccountType(account.type),
+    (account) =>
+      account && isEvmAccountType(account.type as InternalAccount['type']),
   );
   return evmAccount ?? null;
 }
@@ -31,11 +34,17 @@ type AccountTreeMessenger = {
 };
 
 export function getSelectedEvmAccount(
-  messenger: AccountTreeMessenger,
+  messenger:
+    | AccountTreeMessenger
+    | {
+        call: (
+          action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        ) => unknown[];
+      },
 ): { address: string } | undefined {
   const accounts = messenger.call(
     'AccountTreeController:getAccountsFromSelectedAccountGroup',
-  );
+  ) as InternalAccount[];
   return getEvmAccountFromAccountGroup(accounts);
 }
 

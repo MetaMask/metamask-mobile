@@ -2,13 +2,13 @@
  * Unit tests for Perps account utilities
  * Tests EVM account filtering and selection helpers (pure functions)
  */
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   findEvmAccount,
   getEvmAccountFromAccountGroup,
   getSelectedEvmAccount,
   calculateWeightedReturnOnEquity,
 } from '@metamask/perps-controller';
-import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 describe('accountUtils', () => {
   describe('findEvmAccount', () => {

@@ -11,7 +11,24 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockCanGoBack = jest.fn();
 
-let mockRoute = {
+let mockRoute: {
+  params: {
+    activity?: {
+      type: string;
+      amountUsd: number;
+      marketTitle: string;
+      outcome?: string;
+      entry: {
+        timestamp: number;
+        amount?: number;
+        price?: number;
+      };
+      priceImpactPercentage?: number;
+      netPnlUsd?: number;
+      totalNetPnlUsd?: number;
+    };
+  };
+} = {
   params: {
     activity: {
       type: 'BUY',
@@ -72,17 +89,22 @@ const mockSellActivity = {
     price: 0.75,
   },
   netPnlUsd: 50,
+  priceImpactPercentage: 1.2,
 };
 
 const mockClaimActivity = {
   type: PredictActivityType.CLAIM,
   amountUsd: 200,
   marketTitle: 'Test Claim Market',
+  outcome: 'Yes',
   entry: {
     timestamp: 1706745600,
+    amount: 200,
+    price: 1.0,
   },
   totalNetPnlUsd: 200,
   netPnlUsd: 200,
+  priceImpactPercentage: 0,
 };
 
 describe('PredictActivityDetails', () => {

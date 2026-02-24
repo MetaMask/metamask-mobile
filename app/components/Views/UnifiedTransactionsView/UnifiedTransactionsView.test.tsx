@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { ComponentType } from 'react';
+import { TransactionStatus } from '@metamask/transaction-controller';
 import UnifiedTransactionsView from './UnifiedTransactionsView';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
+
+// Type helper for UNSAFE_queryByType with mocked string components
+const asComponentType = (name: string) => name as unknown as ComponentType;
 
 const mockNavigate = jest.fn();
 
@@ -98,78 +102,9 @@ jest.mock(
 );
 
 describe('UnifiedTransactionsView', () => {
-  const mockAccount = {
-    address: '0x1234567890123456789012345678901234567890',
-    type: 'eip155:eoa' as const,
-    metadata: {
-      importTime: Date.now(),
-    },
-  };
-
   const initialState = {
     engine: {
-      backgroundState: {
-        ...backgroundState,
-        AccountsController: {
-          internalAccounts: {
-            selectedAccount: 'account-1',
-            accounts: {
-              'account-1': mockAccount,
-            },
-          },
-        },
-        AccountTreeController: {
-          accountGroupTree: {
-            selectedAccountGroupId: 'group-1',
-            accountGroups: {
-              'group-1': {
-                id: 'group-1',
-                internalAccountIds: ['account-1'],
-              },
-            },
-          },
-        },
-        NetworkController: {
-          providerConfig: {
-            chainId: '0x1' as const,
-            type: 'mainnet',
-          },
-          networkConfigurationsByChainId: {
-            '0x1': {
-              chainId: '0x1' as const,
-              blockExplorerUrls: ['https://etherscan.io'],
-              defaultBlockExplorerUrlIndex: 0,
-            },
-          },
-        },
-        TransactionController: {
-          transactions: [],
-        },
-        TokensController: {
-          tokens: [],
-          allTokens: {},
-          allIgnoredTokens: {},
-          allDetectedTokens: {},
-        },
-        CurrencyRateController: {
-          currentCurrency: 'USD',
-        },
-        MultichainNetworkController: {
-          nonEvmTransactions: {
-            transactions: [],
-          },
-        },
-        BridgeStatusController: {
-          bridgeHistoryForAccount: {},
-        },
-        NetworkEnablementController: {
-          enabledNetworkMap: {
-            eip155: {
-              '0x1': true,
-            },
-          },
-        },
-      },
+      backgroundState,
     },
   };
 
@@ -238,18 +173,19 @@ describe('UnifiedTransactionsView', () => {
     );
 
     // Assert
-    expect(UNSAFE_queryByType('TransactionsFooter')).toBeTruthy();
+    expect(
+      UNSAFE_queryByType(asComponentType('TransactionsFooter')),
+    ).toBeTruthy();
   });
 
   it('renders MultichainTransactionsFooter when only non-EVM chains enabled', () => {
     // Arrange
     const nonEvmState = {
-      ...initialState,
       engine: {
-        ...initialState.engine,
         backgroundState: {
-          ...initialState.engine.backgroundState,
+          ...backgroundState,
           NetworkEnablementController: {
+            ...backgroundState.NetworkEnablementController,
             enabledNetworkMap: {
               solana: {
                 'solana:mainnet': true,
@@ -269,94 +205,33 @@ describe('UnifiedTransactionsView', () => {
     );
 
     // Assert
-    expect(UNSAFE_queryByType('MultichainTransactionsFooter')).toBeTruthy();
+    expect(
+      UNSAFE_queryByType(asComponentType('MultichainTransactionsFooter')),
+    ).toBeTruthy();
   });
 });
 
 describe('UnifiedTransactionsView with transactions', () => {
-  const mockAccount = {
-    address: '0x1234567890123456789012345678901234567890',
-    type: 'eip155:eoa' as const,
-    metadata: {
-      importTime: Date.now(),
-    },
-  };
-
-  const mockTransaction = {
-    id: 'tx-1',
-    chainId: '0x1' as const,
-    status: 'confirmed',
-    time: Date.now(),
-    txParams: {
-      from: '0x1234567890123456789012345678901234567890',
-      to: '0x0987654321098765432109876543210987654321',
-      value: '0x0',
-      nonce: '0x1',
-    },
-  };
-
   const stateWithTransactions = {
     engine: {
       backgroundState: {
         ...backgroundState,
-        AccountsController: {
-          internalAccounts: {
-            selectedAccount: 'account-1',
-            accounts: {
-              'account-1': mockAccount,
-            },
-          },
-        },
-        AccountTreeController: {
-          accountGroupTree: {
-            selectedAccountGroupId: 'group-1',
-            accountGroups: {
-              'group-1': {
-                id: 'group-1',
-                internalAccountIds: ['account-1'],
+        TransactionController: {
+          ...backgroundState.TransactionController,
+          transactions: [
+            {
+              id: 'tx-1',
+              chainId: '0x1' as const,
+              status: TransactionStatus.confirmed,
+              time: Date.now(),
+              txParams: {
+                from: '0x1234567890123456789012345678901234567890',
+                to: '0x0987654321098765432109876543210987654321',
+                value: '0x0',
+                nonce: '0x1',
               },
             },
-          },
-        },
-        NetworkController: {
-          providerConfig: {
-            chainId: '0x1' as const,
-            type: 'mainnet',
-          },
-          networkConfigurationsByChainId: {
-            '0x1': {
-              chainId: '0x1' as const,
-              blockExplorerUrls: ['https://etherscan.io'],
-              defaultBlockExplorerUrlIndex: 0,
-            },
-          },
-        },
-        TransactionController: {
-          transactions: [mockTransaction],
-        },
-        TokensController: {
-          tokens: [],
-          allTokens: {},
-          allIgnoredTokens: {},
-          allDetectedTokens: {},
-        },
-        CurrencyRateController: {
-          currentCurrency: 'USD',
-        },
-        MultichainNetworkController: {
-          nonEvmTransactions: {
-            transactions: [],
-          },
-        },
-        BridgeStatusController: {
-          bridgeHistoryForAccount: {},
-        },
-        NetworkEnablementController: {
-          enabledNetworkMap: {
-            eip155: {
-              '0x1': true,
-            },
-          },
+          ],
         },
       },
     },
@@ -376,7 +251,9 @@ describe('UnifiedTransactionsView with transactions', () => {
     );
 
     // Assert - The component renders transaction elements
-    const transactionElements = UNSAFE_queryAllByType('TransactionElement');
+    const transactionElements = UNSAFE_queryAllByType(
+      asComponentType('TransactionElement'),
+    );
     expect(transactionElements.length).toBeGreaterThanOrEqual(0);
   });
 });

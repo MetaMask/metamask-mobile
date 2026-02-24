@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { ComponentType } from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import PredictHomeFeaturedList from './PredictHomeFeaturedList';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
+
+// Type helper for UNSAFE_getByType with mocked string components
+const asComponentType = (name: string) => name as unknown as ComponentType;
 
 const mockNavigate = jest.fn();
 
@@ -103,7 +106,9 @@ describe('PredictHomeFeaturedList', () => {
     );
 
     // Assert
-    const marketItems = UNSAFE_getAllByType('PredictMarketRowItem');
+    const marketItems = UNSAFE_getAllByType(
+      asComponentType('PredictMarketRowItem'),
+    );
     expect(marketItems).toHaveLength(mockMarkets.length);
   });
 
@@ -117,7 +122,9 @@ describe('PredictHomeFeaturedList', () => {
     );
 
     // Assert
-    const marketItems = UNSAFE_getAllByType('PredictMarketRowItem');
+    const marketItems = UNSAFE_getAllByType(
+      asComponentType('PredictMarketRowItem'),
+    );
     marketItems.forEach((item) => {
       expect(item.props.entryPoint).toBe(
         PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
@@ -160,7 +167,9 @@ describe('PredictHomeFeaturedList', () => {
     );
 
     // Assert
-    expect(UNSAFE_getByType('PredictHomeSkeleton')).toBeTruthy();
+    expect(
+      UNSAFE_getByType(asComponentType('PredictHomeSkeleton')),
+    ).toBeTruthy();
   });
 
   it('returns null when no markets and not loading', () => {

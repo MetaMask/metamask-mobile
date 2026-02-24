@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { ComponentType } from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import PerpsMarketTypeSection from './PerpsMarketTypeSection';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
+
+// Type helper for UNSAFE_getByType with mocked string components
+const asComponentType = (name: string) => name as unknown as ComponentType;
 
 const mockNavigate = jest.fn();
 
@@ -19,16 +22,22 @@ jest.mock('../PerpsRowSkeleton', () => 'PerpsRowSkeleton');
 
 const mockMarkets = [
   {
-    id: 'BTC-USD',
     symbol: 'BTC-USD',
-    price: 50000,
-    volume24h: 1000000,
+    name: 'Bitcoin',
+    maxLeverage: '40x',
+    price: '$50,000.00',
+    change24h: '+$1,250.00',
+    change24hPercent: '+2.5%',
+    volume: '$1.2B',
   },
   {
-    id: 'ETH-USD',
     symbol: 'ETH-USD',
-    price: 3000,
-    volume24h: 500000,
+    name: 'Ethereum',
+    maxLeverage: '25x',
+    price: '$3,000.00',
+    change24h: '+$75.00',
+    change24hPercent: '+2.5%',
+    volume: '$500M',
   },
 ];
 
@@ -76,7 +85,7 @@ describe('PerpsMarketTypeSection', () => {
     );
 
     // Assert
-    const marketList = UNSAFE_getByType('PerpsMarketList');
+    const marketList = UNSAFE_getByType(asComponentType('PerpsMarketList'));
     expect(marketList.props.markets).toEqual(mockMarkets);
   });
 
@@ -93,7 +102,7 @@ describe('PerpsMarketTypeSection', () => {
     );
 
     // Assert
-    const skeleton = UNSAFE_getByType('PerpsRowSkeleton');
+    const skeleton = UNSAFE_getByType(asComponentType('PerpsRowSkeleton'));
     expect(skeleton.props.count).toBe(5);
   });
 
@@ -147,7 +156,7 @@ describe('PerpsMarketTypeSection', () => {
       />,
       { state: initialState },
     );
-    const marketList = UNSAFE_getByType('PerpsMarketList');
+    const marketList = UNSAFE_getByType(asComponentType('PerpsMarketList'));
 
     // Act
     marketList.props.onMarketPress(mockMarkets[0]);
@@ -166,14 +175,14 @@ describe('PerpsMarketTypeSection', () => {
         title="Crypto"
         markets={mockMarkets}
         marketType="crypto"
-        sortBy="price"
+        sortBy="priceChange"
       />,
       { state: initialState },
     );
 
     // Assert
-    const marketList = UNSAFE_getByType('PerpsMarketList');
-    expect(marketList.props.sortBy).toBe('price');
+    const marketList = UNSAFE_getByType(asComponentType('PerpsMarketList'));
+    expect(marketList.props.sortBy).toBe('priceChange');
   });
 
   it('uses default sortBy of volume', () => {
@@ -188,7 +197,7 @@ describe('PerpsMarketTypeSection', () => {
     );
 
     // Assert
-    const marketList = UNSAFE_getByType('PerpsMarketList');
+    const marketList = UNSAFE_getByType(asComponentType('PerpsMarketList'));
     expect(marketList.props.sortBy).toBe('volume');
   });
 

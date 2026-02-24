@@ -40,45 +40,10 @@ jest.mock('../../hooks', () => ({
   }),
 }));
 
-const mockSelectedAccount = {
-  id: 'account-1',
-  address: '0x1234567890123456789012345678901234567890',
-  type: 'eip155:eoa' as const,
-  metadata: {
-    name: 'Account 1',
-    keyring: { type: 'HD Key Tree' },
-  },
-  scopes: ['eip155:1'],
-};
-
 describe('PerpsFundingTransactionView', () => {
   const initialState = {
     engine: {
-      backgroundState: {
-        ...backgroundState,
-        AccountsController: {
-          internalAccounts: {
-            selectedAccount: 'account-1',
-            accounts: {
-              'account-1': mockSelectedAccount,
-            },
-          },
-        },
-        AccountTreeController: {
-          accountTree: {
-            selectedAccountGroup: 'wallet-1/group-1',
-            wallets: {
-              'wallet-1': {
-                groups: {
-                  'wallet-1/group-1': {
-                    accounts: ['account-1'],
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+      backgroundState,
     },
   };
 

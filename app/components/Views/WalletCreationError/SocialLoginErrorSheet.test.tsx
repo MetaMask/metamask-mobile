@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { ComponentType } from 'react';
+import { Image, Linking } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import SocialLoginErrorSheet from './SocialLoginErrorSheet';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { Authentication } from '../../../core';
 import AppConstants from '../../../core/AppConstants';
 import Routes from '../../../constants/navigation/Routes';
+
+// Type helper for UNSAFE_getAllByType with mocked string components
+const asComponentType = (name: string) => name as unknown as ComponentType;
 
 const mockReset = jest.fn();
 
@@ -122,7 +125,7 @@ describe('SocialLoginErrorSheet', () => {
     );
 
     // Assert
-    const images = UNSAFE_getAllByType('Image');
+    const images = UNSAFE_getAllByType(Image);
     expect(images.length).toBeGreaterThan(0);
   });
 
@@ -136,7 +139,7 @@ describe('SocialLoginErrorSheet', () => {
     );
 
     // Assert
-    const icons = UNSAFE_getAllByType('SvgMock');
+    const icons = UNSAFE_getAllByType(asComponentType('SvgMock'));
     expect(icons.length).toBeGreaterThan(0);
   });
 });

@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { ComponentType } from 'react';
 import PredictHomePositionList from './PredictHomePositionList';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PredictPositionsSelectorsIDs } from '../../Predict.testIds';
+import { PredictPosition, PredictPositionStatus } from '../../types';
+
+// Type helper for UNSAFE_getByType with mocked string components
+const asComponentType = (name: string) => name as unknown as ComponentType;
 
 const mockNavigate = jest.fn();
 
@@ -22,34 +26,68 @@ jest.mock(
 );
 jest.mock('../PredictNewButton', () => 'PredictNewButton');
 
-const mockActivePositions = [
-  {
+const createMockPosition = (
+  overrides: Partial<PredictPosition>,
+): PredictPosition => ({
+  id: 'position-1',
+  providerId: 'provider-1',
+  marketId: 'market-1',
+  outcomeId: 'outcome-1',
+  outcome: 'Yes',
+  outcomeTokenId: 'token-1',
+  currentValue: 100,
+  title: 'Test Market',
+  icon: 'https://example.com/icon.png',
+  amount: 50,
+  price: 0.5,
+  status: PredictPositionStatus.OPEN,
+  size: 100,
+  outcomeIndex: 0,
+  percentPnl: 10,
+  cashPnl: 5,
+  claimable: false,
+  initialValue: 45,
+  avgPrice: 0.45,
+  endDate: '2025-12-31',
+  ...overrides,
+});
+
+const mockActivePositions: PredictPosition[] = [
+  createMockPosition({
+    id: 'position-1',
     marketId: 'market-1',
     outcomeId: 'outcome-1',
     outcomeIndex: 0,
     endDate: '2025-12-31',
-  },
-  {
+  }),
+  createMockPosition({
+    id: 'position-2',
     marketId: 'market-2',
     outcomeId: 'outcome-2',
     outcomeIndex: 1,
     endDate: '2025-06-30',
-  },
+  }),
 ];
 
-const mockClaimablePositions = [
-  {
+const mockClaimablePositions: PredictPosition[] = [
+  createMockPosition({
+    id: 'position-3',
     marketId: 'market-3',
     outcomeId: 'outcome-3',
     outcomeIndex: 0,
     endDate: '2025-01-15',
-  },
-  {
+    claimable: true,
+    status: PredictPositionStatus.WON,
+  }),
+  createMockPosition({
+    id: 'position-4',
     marketId: 'market-4',
     outcomeId: 'outcome-4',
     outcomeIndex: 1,
     endDate: '2025-01-20',
-  },
+    claimable: true,
+    status: PredictPositionStatus.WON,
+  }),
 ];
 
 describe('PredictHomePositionList', () => {
@@ -100,7 +138,7 @@ describe('PredictHomePositionList', () => {
     );
 
     // Assert
-    const positions = UNSAFE_getAllByType('PredictPosition');
+    const positions = UNSAFE_getAllByType(asComponentType('PredictPosition'));
     expect(positions).toHaveLength(mockActivePositions.length);
   });
 
@@ -115,7 +153,7 @@ describe('PredictHomePositionList', () => {
     );
 
     // Assert
-    expect(UNSAFE_getByType('PredictNewButton')).toBeTruthy();
+    expect(UNSAFE_getByType(asComponentType('PredictNewButton'))).toBeTruthy();
   });
 
   it('renders claimable positions list when claimable positions exist', () => {
@@ -176,7 +214,9 @@ describe('PredictHomePositionList', () => {
     );
 
     // Assert
-    const resolvedPositions = UNSAFE_getAllByType('PredictPositionResolved');
+    const resolvedPositions = UNSAFE_getAllByType(
+      asComponentType('PredictPositionResolved'),
+    );
     expect(resolvedPositions).toHaveLength(mockClaimablePositions.length);
   });
 
@@ -189,7 +229,7 @@ describe('PredictHomePositionList', () => {
       />,
       { state: initialState },
     );
-    const positions = UNSAFE_getAllByType('PredictPosition');
+    const positions = UNSAFE_getAllByType(asComponentType('PredictPosition'));
 
     // Act
     positions[0].props.onPress();
@@ -214,7 +254,9 @@ describe('PredictHomePositionList', () => {
       />,
       { state: initialState },
     );
-    const resolvedPositions = UNSAFE_getAllByType('PredictPositionResolved');
+    const resolvedPositions = UNSAFE_getAllByType(
+      asComponentType('PredictPositionResolved'),
+    );
 
     // Act
     resolvedPositions[0].props.onPress();
@@ -254,7 +296,7 @@ describe('PredictHomePositionList', () => {
     );
 
     // Assert
-    const positions = UNSAFE_getAllByType('PredictPosition');
+    const positions = UNSAFE_getAllByType(asComponentType('PredictPosition'));
     positions.forEach((position) => {
       expect(position.props.privacyMode).toBe(true);
     });
@@ -262,19 +304,25 @@ describe('PredictHomePositionList', () => {
 
   it('sorts claimable positions by end date descending', () => {
     // Arrange
-    const unsortedClaimable = [
-      {
+    const unsortedClaimable: PredictPosition[] = [
+      createMockPosition({
+        id: 'position-a',
         marketId: 'market-a',
         outcomeId: 'outcome-a',
         outcomeIndex: 0,
         endDate: '2025-01-10',
-      },
-      {
+        claimable: true,
+        status: PredictPositionStatus.WON,
+      }),
+      createMockPosition({
+        id: 'position-b',
         marketId: 'market-b',
         outcomeId: 'outcome-b',
         outcomeIndex: 1,
         endDate: '2025-01-25',
-      },
+        claimable: true,
+        status: PredictPositionStatus.WON,
+      }),
     ];
 
     // Act
@@ -287,7 +335,9 @@ describe('PredictHomePositionList', () => {
     );
 
     // Assert - First rendered should be the one with later end date
-    const resolvedPositions = UNSAFE_getAllByType('PredictPositionResolved');
+    const resolvedPositions = UNSAFE_getAllByType(
+      asComponentType('PredictPositionResolved'),
+    );
     expect(resolvedPositions[0].props.position.marketId).toBe('market-b');
     expect(resolvedPositions[1].props.position.marketId).toBe('market-a');
   });

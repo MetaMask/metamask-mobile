@@ -784,12 +784,12 @@ export class RewardsController extends BaseController<
         for (const account of sortedAccounts) {
           try {
             const subscriptionId = await this.performSilentAuth(
-              account,
+              account as InternalAccount,
               false,
               true,
             );
             if (subscriptionId && !successAccount) {
-              successAccount = account;
+              successAccount = account as InternalAccount;
               break;
             }
           } catch {
@@ -799,7 +799,7 @@ export class RewardsController extends BaseController<
 
         // Set the active account to the first successful account or the first account in the sorted accounts array
         const activeAccountCandidate: InternalAccount =
-          successAccount || sortedAccounts[0];
+          successAccount || (sortedAccounts[0] as InternalAccount);
         this.setActiveAccountFromCandidate(activeAccountCandidate);
       }
     } catch (error) {
