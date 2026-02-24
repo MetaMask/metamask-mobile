@@ -320,7 +320,7 @@ describe('TokenList', () => {
     expect(flashList.props.contentContainerStyle).toBeDefined();
   });
 
-  it('uses TokenListItemBip44 when multichain accounts state 2 is enabled', () => {
+  it('renders token list correctly', () => {
     // Reset and set new mock implementation for this test
     mockUseSelector.mockReset();
     mockUseSelector.mockImplementation((selector) => {

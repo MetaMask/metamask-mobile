@@ -127,7 +127,6 @@ describe('TrendingView', () => {
     (
       overrides: {
         browserTabsCount?: number;
-        multichainEnabled?: boolean;
         basicFunctionalityEnabled?: boolean;
       } = {},
     ) =>
