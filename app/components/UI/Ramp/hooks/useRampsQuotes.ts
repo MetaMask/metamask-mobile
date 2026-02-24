@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { QuotesResponse } from '@metamask/ramps-controller';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
@@ -17,14 +17,6 @@ export interface GetQuotesOptions {
   redirectUrl?: string;
   forceRefresh?: boolean;
   ttl?: number;
-}
-
-/**
- * Hook-level options that extend GetQuotesOptions with fetch control.
- */
-export interface UseRampsQuotesOptions extends GetQuotesOptions {
-  /** When false, the hook skips fetching and clears data/error. Defaults to true. */
-  enableFetching?: boolean;
 }
 
 /**
@@ -54,16 +46,14 @@ export interface UseRampsQuotesResult {
  * Hook to get quote-related functions from RampsController.
  * Components call getQuotes() and manage quotes/selection locally.
  *
- * When options is provided (and enableFetching is not false), runs an effect
- * to fetch quotes and returns data, loading, and error. Callers do not need
- * to memoize options — the hook stabilizes the reference internally via
- * serialization.
+ * When options is provided, runs an effect to fetch quotes and returns data, loading, and error.
+ * Loading is reset when the fetch settles unless the effect was cancelled (avoids setState on unmounted component).
  *
- * @param options - UseRampsQuotesOptions to fetch, or null/undefined to skip fetch.
+ * @param options - GetQuotesOptions to fetch, or null/undefined to skip fetch.
  * @returns getQuotes, getWidgetUrl, and when options used: data, loading, error.
  */
 export function useRampsQuotes(
-  options?: UseRampsQuotesOptions | null,
+  options?: GetQuotesOptions | null,
 ): UseRampsQuotesResult {
   const getQuotes = useCallback(
     (opts: GetQuotesOptions) => Engine.context.RampsController.getQuotes(opts),
@@ -75,24 +65,12 @@ export function useRampsQuotes(
     [],
   );
 
-  const enableFetching = options?.enableFetching !== false;
-
-  const optionsKey = JSON.stringify(options ?? null);
-  const stableOptions = useMemo<GetQuotesOptions | null>(() => {
-    if (!enableFetching || options == null) {
-      return null;
-    }
-    const { enableFetching: _, ...fetchOptions } = options;
-    return fetchOptions;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [optionsKey]);
-
   const [data, setData] = useState<QuotesResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (stableOptions == null) {
+    if (options == null) {
       setData(null);
       setLoading(false);
       setError(null);
@@ -104,7 +82,7 @@ export function useRampsQuotes(
     setData(null);
     setError(null);
 
-    getQuotes(stableOptions)
+    getQuotes(options)
       .then((response) => {
         if (!cancelled) {
           setData(response);
@@ -127,7 +105,7 @@ export function useRampsQuotes(
     return () => {
       cancelled = true;
     };
-  }, [stableOptions, getQuotes]);
+  }, [options, getQuotes]);
 
   return {
     getQuotes,

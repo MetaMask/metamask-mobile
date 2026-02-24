@@ -182,27 +182,45 @@ function BuildQuote() {
 
   const debouncedPollingAmount = useDebouncedValue(amountAsNumber, 500);
 
+  const quoteFetchEnabled = !!(
+    isOnBuildQuoteScreen &&
+    walletAddress &&
+    selectedPaymentMethod &&
+    selectedProvider &&
+    selectedToken?.assetId &&
+    debouncedPollingAmount > 0
+  );
+
+  const quoteFetchParams = useMemo(
+    () =>
+      selectedToken?.assetId &&
+      walletAddress &&
+      selectedPaymentMethod &&
+      selectedProvider
+        ? {
+            assetId: selectedToken.assetId,
+            amount: debouncedPollingAmount,
+            walletAddress,
+            redirectUrl: getRampCallbackBaseUrl(),
+            paymentMethods: [selectedPaymentMethod.id],
+            providers: [selectedProvider.id],
+            forceRefresh: true,
+          }
+        : null,
+    [
+      selectedToken?.assetId,
+      debouncedPollingAmount,
+      walletAddress,
+      selectedPaymentMethod,
+      selectedProvider,
+    ],
+  );
+
   const {
     data: quotesResponse,
     loading: selectedQuoteLoading,
     error: quoteFetchError,
-  } = useRampsQuotes({
-    assetId: selectedToken?.assetId ?? '',
-    amount: debouncedPollingAmount,
-    walletAddress: walletAddress ?? '',
-    redirectUrl: getRampCallbackBaseUrl(),
-    paymentMethods: selectedPaymentMethod ? [selectedPaymentMethod.id] : [],
-    providers: selectedProvider ? [selectedProvider.id] : [],
-    forceRefresh: true,
-    enableFetching: !!(
-      isOnBuildQuoteScreen &&
-      walletAddress &&
-      selectedPaymentMethod &&
-      selectedProvider &&
-      selectedToken?.assetId &&
-      debouncedPollingAmount > 0
-    ),
-  });
+  } = useRampsQuotes(quoteFetchEnabled ? quoteFetchParams : null);
 
   const selectedQuote = useMemo(() => {
     if (!quotesResponse?.success || !selectedProvider || !selectedPaymentMethod)

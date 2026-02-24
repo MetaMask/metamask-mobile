@@ -77,20 +77,33 @@ function PaymentSelectionModal() {
     [paymentMethods],
   );
 
-  const { data: quotes, loading: quotesLoading } = useRampsQuotes({
-    amount,
-    walletAddress,
-    assetId,
-    providers: selectedProvider ? [selectedProvider.id] : undefined,
-    paymentMethods: paymentMethodIds,
-    forceRefresh: true,
-    enableFetching: !!(
+  const quoteFetchParams = useMemo(
+    () =>
       walletAddress &&
       assetId &&
       !paymentMethodsLoading &&
       paymentMethodIds.length > 0
-    ),
-  });
+        ? {
+            amount,
+            walletAddress,
+            assetId,
+            providers: selectedProvider ? [selectedProvider.id] : undefined,
+            paymentMethods: paymentMethodIds,
+            forceRefresh: true,
+          }
+        : null,
+    [
+      amount,
+      walletAddress,
+      assetId,
+      selectedProvider,
+      paymentMethodIds,
+      paymentMethodsLoading,
+    ],
+  );
+
+  const { data: quotes, loading: quotesLoading } =
+    useRampsQuotes(quoteFetchParams);
 
   const handleChangeProviderPress = useCallback(() => {
     navigation.navigate(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });

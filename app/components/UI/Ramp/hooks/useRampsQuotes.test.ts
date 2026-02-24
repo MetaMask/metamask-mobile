@@ -2,11 +2,7 @@ import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
-import {
-  useRampsQuotes,
-  type GetQuotesOptions,
-  type UseRampsQuotesOptions,
-} from './useRampsQuotes';
+import { useRampsQuotes, type GetQuotesOptions } from './useRampsQuotes';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 
@@ -279,119 +275,6 @@ describe('useRampsQuotes', () => {
       expect(result.current.data).toBeNull();
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
-    });
-  });
-
-  describe('enableFetching', () => {
-    const baseOptions: UseRampsQuotesOptions = {
-      amount: 100,
-      walletAddress: '0x123',
-      assetId: 'eip155:1/slip44:60',
-    };
-
-    it('skips fetch when enableFetching is false', () => {
-      const store = createMockStore();
-      const { result } = renderHook(
-        () => useRampsQuotes({ ...baseOptions, enableFetching: false }),
-        { wrapper: wrapper(store) },
-      );
-
-      expect(result.current.data).toBeNull();
-      expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBeNull();
-      expect(Engine.context.RampsController.getQuotes).not.toHaveBeenCalled();
-    });
-
-    it('fetches when enableFetching is true', async () => {
-      const store = createMockStore();
-      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
-        mockQuotesResponse,
-      );
-
-      const { result } = renderHook(
-        () => useRampsQuotes({ ...baseOptions, enableFetching: true }),
-        { wrapper: wrapper(store) },
-      );
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(result.current.data).toEqual(mockQuotesResponse);
-    });
-
-    it('does not pass enableFetching to the controller', async () => {
-      const store = createMockStore();
-      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
-        mockQuotesResponse,
-      );
-
-      renderHook(
-        () => useRampsQuotes({ ...baseOptions, enableFetching: true }),
-        { wrapper: wrapper(store) },
-      );
-
-      await waitFor(() => {
-        expect(Engine.context.RampsController.getQuotes).toHaveBeenCalledTimes(
-          1,
-        );
-      });
-
-      const calledWith = (Engine.context.RampsController.getQuotes as jest.Mock)
-        .mock.calls[0][0];
-      expect(calledWith).not.toHaveProperty('enableFetching');
-    });
-
-    it('clears data when enableFetching transitions from true to false', async () => {
-      const store = createMockStore();
-      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
-        mockQuotesResponse,
-      );
-
-      const { result, rerender } = renderHook(
-        ({ params }: { params: UseRampsQuotesOptions }) =>
-          useRampsQuotes(params),
-        {
-          wrapper: wrapper(store),
-          initialProps: {
-            params: { ...baseOptions, enableFetching: true },
-          },
-        },
-      );
-
-      await waitFor(() => {
-        expect(result.current.data).toEqual(mockQuotesResponse);
-      });
-
-      rerender({ params: { ...baseOptions, enableFetching: false } });
-
-      expect(result.current.data).toBeNull();
-      expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBeNull();
-    });
-
-    it('does not re-fetch when options object is a new reference with same values', async () => {
-      const store = createMockStore();
-      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
-        mockQuotesResponse,
-      );
-
-      const { result, rerender } = renderHook(
-        ({ params }: { params: UseRampsQuotesOptions }) =>
-          useRampsQuotes(params),
-        {
-          wrapper: wrapper(store),
-          initialProps: { params: { ...baseOptions } },
-        },
-      );
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      rerender({ params: { ...baseOptions } });
-
-      expect(Engine.context.RampsController.getQuotes).toHaveBeenCalledTimes(1);
     });
   });
 });
