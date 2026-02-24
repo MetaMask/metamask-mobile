@@ -95,10 +95,5 @@ exports[`PaymentMethodPill matches snapshot when loading 1`] = `
     ]
   }
   testID="payment-method-pill"
->
-  <ActivityIndicator
-    color="#ffffff"
-    size="small"
-  />
-</View>
+/>
 `;
