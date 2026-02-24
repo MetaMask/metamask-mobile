@@ -18154,21 +18154,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/bn.js@npm:^5.1.0, @types/bn.js@npm:^5.1.5":
+"@types/bn.js@npm:^5.1.0, @types/bn.js@npm:^5.1.5, @types/bnjs5@npm:@types/bn.js@^5.2.0":
   version: 5.2.0
   resolution: "@types/bn.js@npm:5.2.0"
   dependencies:
     "@types/node": "npm:*"
   checksum: 10/06c93841f74e4a5e5b81b74427d56303b223c9af36389b4cd3c562bda93f43c425c7e241aee1b0b881dde57238dc2e07f21d30d412b206a7dae4435af4c054e8
-  languageName: node
-  linkType: hard
-
-"@types/bnjs5@npm:@types/bn.js@^5.1.6":
-  version: 5.1.6
-  resolution: "@types/bn.js@npm:5.1.6"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10/db565b5a2af59b09459d74441153bf23a0e80f1fb2d070330786054e7ce1a7285dc40afcd8f289426c61a83166bdd70814f70e2d439744686aac5d3ea75daf13
   languageName: node
   linkType: hard
 
@@ -23107,14 +23098,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bn.js@npm:5.2.1, bnjs5@npm:bn.js@^5.2.1":
+"bn.js@npm:5.2.1":
   version: 5.2.1
   resolution: "bn.js@npm:5.2.1"
   checksum: 10/7a7e8764d7a6e9708b8b9841b2b3d6019cc154d2fc23716d0efecfe1e16921b7533c6f7361fb05471eab47986c4aa310c270f88e3507172104632ac8df2cfd84
   languageName: node
   linkType: hard
 
-"bn.js@npm:^4.0.0, bn.js@npm:^4.1.0, bn.js@npm:^4.11.0, bn.js@npm:^4.11.8, bn.js@npm:^4.11.9, bnjs4@npm:bn.js@^4.12.0":
+"bn.js@npm:^4.0.0, bn.js@npm:^4.1.0, bn.js@npm:^4.11.0, bn.js@npm:^4.11.8, bn.js@npm:^4.11.9":
   version: 4.12.0
   resolution: "bn.js@npm:4.12.0"
   checksum: 10/10f8db196d3da5adfc3207d35d0a42aa29033eb33685f20ba2c36cadfe2de63dad05df0a20ab5aae01b418d1c4b3d4d205273085262fa020d17e93ff32b67527
@@ -23125,6 +23116,20 @@ __metadata:
   version: 5.2.2
   resolution: "bn.js@npm:5.2.2"
   checksum: 10/51ebb2df83b33e5d8581165206e260d5e9c873752954616e5bf3758952b84d7399a9c6d00852815a0aeefb1150a7f34451b62d4287342d457fa432eee869e83e
+  languageName: node
+  linkType: hard
+
+"bnjs4@npm:bn.js@^4.12.3":
+  version: 4.12.3
+  resolution: "bn.js@npm:4.12.3"
+  checksum: 10/57ed5a055f946f3e009f1589c45a5242db07f3dddfc72e4506f0dd9d8b145f0dbee4edabc2499288f3fc338eb712fb96a1c623a2ed2bcd49781df1a64db64dd1
+  languageName: node
+  linkType: hard
+
+"bnjs5@npm:bn.js@^5.2.3":
+  version: 5.2.3
+  resolution: "bn.js@npm:5.2.3"
+  checksum: 10/dfb3927e0d531e6ec4f191597ce6f7f7665310c356fef5f968ada676b8058027f959af42eaa37b5f5c63617e819d3741813025ab15dd71a90f2e74698df0b58e
   languageName: node
   linkType: hard
 
@@ -35504,7 +35509,7 @@ __metadata:
     "@tommasini/react-native-scrollable-tab-view": "npm:^1.1.1"
     "@tradle/react-native-http": "npm:2.0.1"
     "@types/bnjs4": "npm:@types/bn.js@^4.11.6"
-    "@types/bnjs5": "npm:@types/bn.js@^5.1.6"
+    "@types/bnjs5": "npm:@types/bn.js@^5.2.0"
     "@types/enzyme": "npm:^3.10.12"
     "@types/eth-url-parser": "npm:^1.0.0"
     "@types/he": "npm:^1.2.3"
@@ -35560,8 +35565,8 @@ __metadata:
     base64-js: "npm:^1.5.1"
     bignumber.js: "npm:^9.0.1"
     bitcoin-address-validation: "npm:2.2.3"
-    bnjs4: "npm:bn.js@^4.12.0"
-    bnjs5: "npm:bn.js@^5.2.1"
+    bnjs4: "npm:bn.js@^4.12.3"
+    bnjs5: "npm:bn.js@^5.2.3"
     buffer: "npm:6.0.3"
     chromedriver: "npm:^123.0.1"
     cockatiel: "npm:^3.1.2"
