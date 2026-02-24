@@ -159,6 +159,12 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
         await Assertions.expectElementToBeVisible(
           RowComponents.SimulationDetails,
         );
+
+        // Scroll to reveal GasFeesDetails on Android due to taller From/To row
+        if (device.getPlatform() === 'android') {
+          await Gestures.swipe(RowComponents.SimulationDetails, 'up');
+        }
+
         await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
 
         // Scroll to Advanced Details section on Android
