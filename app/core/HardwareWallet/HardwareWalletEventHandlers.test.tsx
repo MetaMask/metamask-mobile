@@ -42,6 +42,10 @@ describe('useDeviceEventHandlers', () => {
       stopDeviceDiscovery: jest.fn(),
       isTransportAvailable: jest.fn(() => Promise.resolve(true)),
       getRequiredAppName: jest.fn().mockReturnValue('Ethereum'),
+      getTransportDisabledErrorCode: jest
+        .fn()
+        .mockReturnValue(ErrorCode.BluetoothDisabled),
+      getConnectionTips: jest.fn().mockReturnValue([]),
     };
 
     // Create mock refs
