@@ -6,7 +6,11 @@ import {
 } from '@metamask/ramps-controller';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 import { hasMinimumRequiredVersion } from '../../../../components/UI/Ramp/utils/hasMinimumRequiredVersion';
-import type { RampsUnifiedBuyV2Config } from '../../../../selectors/featureFlagController/ramps/rampsUnifiedBuyV2';
+
+interface RampsUnifiedBuyV2Config {
+  active?: boolean;
+  minimumVersion?: string;
+}
 
 const RAMPS_UNIFIED_BUY_V2_FLAG_KEY = 'rampsUnifiedBuyV2';
 
