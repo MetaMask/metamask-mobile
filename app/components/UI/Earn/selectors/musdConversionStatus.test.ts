@@ -5,7 +5,7 @@ import {
 import { RootState } from '../../../../reducers';
 import {
   selectMusdConversions,
-  selectHasInFlightMusdConversion,
+  selectHasUnapprovedMusdConversion,
   createTokenChainKey,
   selectMusdConversionStatuses,
 } from './musdConversionStatus';
@@ -65,7 +65,7 @@ describe('musdConversionStatus selectors', () => {
     });
   });
 
-  describe('selectHasInFlightMusdConversion', () => {
+  describe('selectHasUnapprovedMusdConversion', () => {
     it('returns true when at least one conversion has unapproved status', () => {
       const transactions = [
         {
@@ -76,12 +76,12 @@ describe('musdConversionStatus selectors', () => {
       ];
       const state = createState(transactions);
 
-      const result = selectHasInFlightMusdConversion(state);
+      const result = selectHasUnapprovedMusdConversion(state);
 
       expect(result).toBe(true);
     });
 
-    it('returns true when at least one conversion has submitted status', () => {
+    it('returns false when conversion status is submitted', () => {
       const transactions = [
         {
           id: '1',
@@ -91,37 +91,7 @@ describe('musdConversionStatus selectors', () => {
       ];
       const state = createState(transactions);
 
-      const result = selectHasInFlightMusdConversion(state);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when all conversions are confirmed', () => {
-      const transactions = [
-        {
-          id: '1',
-          type: TransactionType.musdConversion,
-          status: TransactionStatus.confirmed,
-        },
-      ];
-      const state = createState(transactions);
-
-      const result = selectHasInFlightMusdConversion(state);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when all conversions are failed', () => {
-      const transactions = [
-        {
-          id: '1',
-          type: TransactionType.musdConversion,
-          status: TransactionStatus.failed,
-        },
-      ];
-      const state = createState(transactions);
-
-      const result = selectHasInFlightMusdConversion(state);
+      const result = selectHasUnapprovedMusdConversion(state);
 
       expect(result).toBe(false);
     });
@@ -130,7 +100,7 @@ describe('musdConversionStatus selectors', () => {
       const transactions = [{ id: '1', type: TransactionType.simpleSend }];
       const state = createState(transactions);
 
-      const result = selectHasInFlightMusdConversion(state);
+      const result = selectHasUnapprovedMusdConversion(state);
 
       expect(result).toBe(false);
     });
@@ -250,7 +220,6 @@ describe('musdConversionStatus selectors', () => {
 
     it('sets isPending true for in-flight statuses', () => {
       const inFlightStatuses = [
-        TransactionStatus.unapproved,
         TransactionStatus.approved,
         TransactionStatus.signed,
         TransactionStatus.submitted,

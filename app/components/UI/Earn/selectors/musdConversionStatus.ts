@@ -22,7 +22,6 @@ interface ConversionStatusInfo {
  * Transaction statuses that indicate an in-flight conversion.
  */
 const IN_FLIGHT_STATUSES: TransactionStatus[] = [
-  TransactionStatus.unapproved,
   TransactionStatus.approved,
   TransactionStatus.signed,
   TransactionStatus.submitted,
@@ -38,24 +37,15 @@ export const selectMusdConversions = createSelector(
 );
 
 /**
- * Selects in-flight mUSD conversions (for loading states).
- * These are conversions that have been submitted/approved and not yet terminal.
+ * True when any mUSD conversion is awaiting user approval.
+ * Used to disable quick-convert actions while approval is pending.
  */
-const selectInFlightMusdConversions = createSelector(
+export const selectHasUnapprovedMusdConversion = createSelector(
   [selectMusdConversions],
-  (conversions): TransactionMeta[] =>
-    conversions.filter((tx) =>
-      IN_FLIGHT_STATUSES.includes(tx.status as TransactionStatus),
+  (conversions): boolean =>
+    conversions.some(
+      (tx) => tx.status === (TransactionStatus.unapproved as TransactionStatus),
     ),
-);
-
-/**
- * True when any in-flight mUSD conversion exists.
- * Used to globally disable quick-convert actions.
- */
-export const selectHasInFlightMusdConversion = createSelector(
-  [selectInFlightMusdConversions],
-  (inFlight): boolean => inFlight.length > 0,
 );
 
 /**

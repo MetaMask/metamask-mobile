@@ -11,7 +11,7 @@ import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import {
   createTokenChainKey,
-  selectHasInFlightMusdConversion,
+  selectHasUnapprovedMusdConversion,
   selectMusdConversionStatuses,
 } from '../../selectors/musdConversionStatus';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
@@ -41,7 +41,7 @@ jest.mock('../../selectors/featureFlags', () => ({
 }));
 jest.mock('../../selectors/musdConversionStatus', () => ({
   ...jest.requireActual('../../selectors/musdConversionStatus'),
-  selectHasInFlightMusdConversion: jest.fn(),
+  selectHasUnapprovedMusdConversion: jest.fn(),
   selectMusdConversionStatuses: jest.fn(),
 }));
 const mockGetStakingNavbar = jest.fn<object, unknown[]>(() => ({}));
@@ -90,9 +90,9 @@ const mockUseMusdConversion = useMusdConversion as jest.MockedFunction<
 const mockUseMusdBalance = useMusdBalance as jest.MockedFunction<
   typeof useMusdBalance
 >;
-const mockSelectHasInFlightMusdConversion =
-  selectHasInFlightMusdConversion as jest.MockedFunction<
-    typeof selectHasInFlightMusdConversion
+const mockSelectHasUnapprovedMusdConversion =
+  selectHasUnapprovedMusdConversion as jest.MockedFunction<
+    typeof selectHasUnapprovedMusdConversion
   >;
 const mockSelectMusdConversionStatuses =
   selectMusdConversionStatuses as jest.MockedFunction<
@@ -170,7 +170,7 @@ describe('MusdQuickConvertView', () => {
       fiatBalanceAggregated: undefined,
       fiatBalanceAggregatedFormatted: '$0.00',
     });
-    mockSelectHasInFlightMusdConversion.mockReturnValue(false);
+    mockSelectHasUnapprovedMusdConversion.mockReturnValue(false);
     mockSelectMusdConversionStatuses.mockReturnValue({});
   });
 
@@ -461,8 +461,8 @@ describe('MusdQuickConvertView', () => {
     });
   });
 
-  describe('in-flight conversion', () => {
-    it('does not call initiateMaxConversion or initiateCustomConversion when Max or Edit is pressed and hasInFlightMusdConversion is true', async () => {
+  describe('unapproved conversion', () => {
+    it('does not call initiateMaxConversion or initiateCustomConversion when Max or Edit is pressed and hasUnapprovedMusdConversion is true', async () => {
       const token = createMockToken();
       mockUseMusdConversionTokens.mockReturnValue({
         tokens: [token],
@@ -471,7 +471,7 @@ describe('MusdQuickConvertView', () => {
         isMusdSupportedOnChain: jest.fn(),
         hasConvertibleTokensByChainId: jest.fn(),
       });
-      mockSelectHasInFlightMusdConversion.mockReturnValue(true);
+      mockSelectHasUnapprovedMusdConversion.mockReturnValue(true);
 
       const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
         state: initialRootState,
