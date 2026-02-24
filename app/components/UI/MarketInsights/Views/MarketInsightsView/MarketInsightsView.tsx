@@ -34,7 +34,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { useMarketInsights } from '../../hooks/useMarketInsights';
 import MarketInsightsTrendItem from '../../components/MarketInsightsTrendItem';
 import MarketInsightsTweetCard from '../../components/MarketInsightsTweetCard';
-import MarketInsightsSourcesFooter from '../../components/MarketInsightsSourcesFooter';
+import MarketInsightsSourcesFooter, {
+  MarketInsightsSourcesBottomSheet,
+} from '../../components/MarketInsightsSourcesFooter';
 import MarketInsightsTrendSourcesBottomSheet from '../../components/MarketInsightsTrendSourcesBottomSheet';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import {
@@ -49,7 +51,10 @@ import type {
 import { selectMarketInsightsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { ToastContext , ToastVariants } from '../../../../../component-library/components/Toast';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
 import { IconName as ComponentLibraryIconName } from '../../../../../component-library/components/Icons/Icon';
 import { useAppThemeFromContext } from '../../../../../util/theme';
 import MarketInsightsFeedbackBottomSheet, {
@@ -106,6 +111,7 @@ const MarketInsightsView: React.FC = () => {
   const hasTrackedViewRef = useRef(false);
   const [selectedTrend, setSelectedTrend] =
     useState<MarketInsightsTrend | null>(null);
+  const [isSourcesSheetVisible, setIsSourcesSheetVisible] = useState(false);
   const [isFeedbackSheetVisible, setIsFeedbackSheetVisible] = useState(false);
 
   // Build BridgeToken from route params for swap navigation
@@ -180,6 +186,14 @@ const MarketInsightsView: React.FC = () => {
 
   const handleCloseTrendSources = useCallback(() => {
     setSelectedTrend(null);
+  }, []);
+
+  const handleOpenSources = useCallback(() => {
+    setIsSourcesSheetVisible(true);
+  }, []);
+
+  const handleCloseSources = useCallback(() => {
+    setIsSourcesSheetVisible(false);
   }, []);
 
   const trackMarketInsightsInteraction = useCallback(
@@ -314,7 +328,7 @@ const MarketInsightsView: React.FC = () => {
       </Box>
 
       <ScrollView
-        contentContainerStyle={tw.style(`pb-[${insets.bottom + 80}px]`)}
+        contentContainerStyle={tw.style('pb-6')}
         showsVerticalScrollIndicator={false}
       >
         <Box twClassName="px-4 pt-4 pb-3">
@@ -435,28 +449,35 @@ const MarketInsightsView: React.FC = () => {
             </Box>
           </Box>
         )}
+      </ScrollView>
 
+      <Box twClassName={`bg-default pt-2 pb-[${insets.bottom}px]`}>
         <MarketInsightsSourcesFooter
           sources={report.sources}
-          onSourcePress={handleSourcePress}
+          onSourcesPress={handleOpenSources}
           onThumbsUp={handleThumbsUpPress}
           onThumbsDown={handleThumbsDownPress}
           testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
         />
-      </ScrollView>
-
-      <Box
-        twClassName={`absolute bottom-0 left-0 right-0 bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
-      >
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleTradePress}
-          testID={MarketInsightsSelectorsIDs.TRADE_BUTTON}
-        >
-          {strings('market_insights.trade_button')}
-        </Button>
+        <Box twClassName="px-4">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleTradePress}
+            testID={MarketInsightsSelectorsIDs.TRADE_BUTTON}
+          >
+            {strings('market_insights.trade_button')}
+          </Button>
+          <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings('market_insights.fixed_footer_disclaimer')}
+            </Text>
+          </Box>
+        </Box>
       </Box>
 
       {selectedTrend ? (
@@ -466,6 +487,15 @@ const MarketInsightsView: React.FC = () => {
           trendTitle={selectedTrend.title}
           articles={selectedTrend.articles}
           tweets={selectedTrend.tweets ?? []}
+          onSourcePress={handleSourcePress}
+        />
+      ) : null}
+
+      {isSourcesSheetVisible ? (
+        <MarketInsightsSourcesBottomSheet
+          isVisible
+          onClose={handleCloseSources}
+          sources={report.sources}
           onSourcePress={handleSourcePress}
         />
       ) : null}

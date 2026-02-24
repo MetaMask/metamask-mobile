@@ -116,21 +116,21 @@ jest.mock('../../components/MarketInsightsSourcesFooter', () => {
 
   const SourcesFooter = ({
     testID,
-    onSourcePress,
+    onSourcesPress,
     onThumbsUp,
     onThumbsDown,
   }: {
     testID?: string;
-    onSourcePress?: (url: string) => void;
+    onSourcesPress?: () => void;
     onThumbsUp?: () => void;
     onThumbsDown?: () => void;
   }) => (
     <MockView testID={testID ?? 'sources-footer'}>
       <MockPressable
-        testID="market-insights-source-link-button"
-        onPress={() => onSourcePress?.('https://coindesk.com/article-1')}
+        testID="market-insights-open-sources-button"
+        onPress={onSourcesPress}
       >
-        <MockText>source-link</MockText>
+        <MockText>open-sources</MockText>
       </MockPressable>
       <MockPressable
         testID="market-insights-thumbs-up-button"
@@ -146,7 +146,30 @@ jest.mock('../../components/MarketInsightsSourcesFooter', () => {
       </MockPressable>
     </MockView>
   );
-  return SourcesFooter;
+
+  const SourcesBottomSheet = (
+    props: { onSourcePress?: (url: string) => void } | unknown,
+  ) => {
+    const typedProps = props as { onSourcePress?: (url: string) => void };
+    return (
+      <MockView testID="market-insights-sources-bottom-sheet">
+        <MockPressable
+          testID="market-insights-source-link-button"
+          onPress={() =>
+            typedProps.onSourcePress?.('https://coindesk.com/article-1')
+          }
+        >
+          <MockText>source-link</MockText>
+        </MockPressable>
+      </MockView>
+    );
+  };
+
+  return {
+    __esModule: true,
+    default: SourcesFooter,
+    MarketInsightsSourcesBottomSheet: SourcesBottomSheet,
+  };
 });
 
 jest.mock('../../components/MarketInsightsTrendSourcesBottomSheet', () => {
@@ -321,7 +344,9 @@ describe('MarketInsightsView', () => {
       timeAgo: '5m ago',
     });
 
-    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+    const { getByTestId, getByText } = renderWithProvider(
+      <MarketInsightsView />,
+    );
 
     expect(
       getByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER),
@@ -335,6 +360,7 @@ describe('MarketInsightsView', () => {
     expect(
       getByTestId(MarketInsightsSelectorsIDs.SOURCES_FOOTER),
     ).toBeOnTheScreen();
+    expect(getByText('AI summary • Not financial advice')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TWEET_CARD}-0`));
     expect(Linking.openURL).toHaveBeenCalledWith(
@@ -367,6 +393,7 @@ describe('MarketInsightsView', () => {
       getByTestId('market-insights-feedback-bottom-sheet'),
     ).toBeOnTheScreen();
     fireEvent.press(getByTestId('market-insights-feedback-submit-button'));
+    fireEvent.press(getByTestId('market-insights-open-sources-button'));
     fireEvent.press(getByTestId('market-insights-source-link-button'));
     fireEvent.press(getByTestId('market-insights-trend-source-link-button'));
 
