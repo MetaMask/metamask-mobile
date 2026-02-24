@@ -2,8 +2,6 @@ import { useSelector } from 'react-redux';
 import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
-
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { isTestNet } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
@@ -13,7 +11,6 @@ import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
 import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 
 export function useAccountTokens({
   includeNoBalance = false,
@@ -25,7 +22,6 @@ export function useAccountTokens({
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
   const fiatCurrency = useSelector(selectCurrentCurrency);
   const tokensChainsCache = useSelector(selectERC20TokensByChain);
-  const networkConfigs = useSelector(selectEvmNetworkConfigurationsByChainId);
 
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
@@ -74,8 +70,9 @@ export function useAccountTokens({
 
     if (includeAllTokens) {
       const existing = new Set(
-        processedAssets.map(
-          (a) => `${a.chainId?.toLowerCase()}:${a.address?.toLowerCase()}`,
+        flatAssets.map(
+          (a) =>
+            `${String(a.chainId).toLowerCase()}:${String('address' in a ? a.address : a.assetId).toLowerCase()}`,
         ),
       );
 
@@ -102,28 +99,6 @@ export function useAccountTokens({
             standard: TokenStandard.ERC20,
           } as AssetType);
         }
-
-        // Add native token if not already present
-        const nativeAddr = getNativeTokenAddress(hex).toLowerCase();
-        if (!existing.has(`${chainId.toLowerCase()}:${nativeAddr}`)) {
-          const config = networkConfigs?.[hex];
-          if (config) {
-            processedAssets.push({
-              address: getNativeTokenAddress(hex),
-              chainId: hex,
-              name: config.nativeCurrency ?? '',
-              symbol: config.nativeCurrency ?? '',
-              decimals: 18,
-              image: '',
-              logo: undefined,
-              balance: '0',
-              isETH: hex === '0x1',
-              isNative: true,
-              networkBadgeSource: getNetworkBadgeSource(hex),
-              standard: TokenStandard.ERC20,
-            } as AssetType);
-          }
-        }
       }
     }
 
@@ -139,6 +114,5 @@ export function useAccountTokens({
     includeAllTokens,
     fiatCurrency,
     tokensChainsCache,
-    networkConfigs,
   ]) as unknown as AssetType[];
 }
