@@ -39,17 +39,25 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const cachedMarkets = useSelector(selectCachedMarketData);
   const title = strings('homepage.sections.perpetuals');
 
-  const refreshData = useCallback(() => {
+  const startPreload = useCallback(() => {
     const controller = Engine.context.PerpsController;
     if (!controller) return;
 
     controller.startMarketDataPreload();
   }, []);
 
+  const refreshData = useCallback(() => {
+    const controller = Engine.context.PerpsController;
+    if (!controller) return;
+
+    controller.stopMarketDataPreload();
+    controller.startMarketDataPreload();
+  }, []);
+
   useEffect(() => {
     if (!isPerpsEnabled) return;
-    refreshData();
-  }, [isPerpsEnabled, refreshData]);
+    startPreload();
+  }, [isPerpsEnabled, startPreload]);
 
   // Re-fetch when positions change (e.g., user closes a position in perps)
   useEffect(() => {
@@ -129,9 +137,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
           <PerpsPositionSkeleton />
         ) : (
           <View testID="homepage-perps-positions">
-            {positions.map((position) => (
+            {positions.map((position, index) => (
               <PerpsPositionCard
-                key={`pos-${position.symbol}-${position.size}`}
+                key={`${position.symbol}-${index}`}
                 position={position}
                 compact
                 compactVariant="position"

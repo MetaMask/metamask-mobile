@@ -227,7 +227,13 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       secondaryValue = (
         <Text
           variant={TextVariant.BodySM}
-          color={roe >= 0 ? TextColor.Success : TextColor.Error}
+          color={
+            hasValidRoe
+              ? roeRaw >= 0
+                ? TextColor.Success
+                : TextColor.Error
+              : TextColor.Alternative
+          }
         >
           {roeDisplay}
         </Text>

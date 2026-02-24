@@ -226,16 +226,16 @@ export function buildTpSlLabel(
   const sl = position.stopLossPrice ? parseFloat(position.stopLossPrice) : 0;
   const entry = parseFloat(position.entryPrice);
 
-  if (!entry || entry <= 0) return null;
+  if (!Number.isFinite(entry) || entry <= 0) return null;
 
   const parts: string[] = [];
 
-  if (tp > 0) {
+  if (Number.isFinite(tp) && tp > 0) {
     const tpPct = Math.abs(((tp - entry) / entry) * 100);
     parts.push(`${tpLabel} ${tpPct.toFixed(0)}%`);
   }
 
-  if (sl > 0) {
+  if (Number.isFinite(sl) && sl > 0) {
     const slPct = Math.abs(((sl - entry) / entry) * 100);
     parts.push(`${slLabel} ${slPct.toFixed(0)}%`);
   }
