@@ -124,14 +124,14 @@ describe('PredictActivityDetails', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders buy activity header title', () => {
+  it('renders predict activity header title', () => {
     // Arrange & Act
     const { getByText } = renderWithProvider(<PredictActivityDetails />, {
       state: initialState,
     });
 
     // Assert
-    expect(getByText('Bought')).toBeOnTheScreen();
+    expect(getByText('Predicted')).toBeOnTheScreen();
   });
 
   it('renders date row', () => {
@@ -262,14 +262,14 @@ describe('PredictActivityDetails - Sell Activity', () => {
     };
   });
 
-  it('renders sell activity header title', () => {
+  it('renders cash out activity header title', () => {
     // Arrange & Act
     const { getByText } = renderWithProvider(<PredictActivityDetails />, {
       state: initialState,
     });
 
     // Assert
-    expect(getByText('Sold')).toBeOnTheScreen();
+    expect(getByText('Cashed out')).toBeOnTheScreen();
   });
 
   it('renders amount display for sell activity', () => {
@@ -334,7 +334,7 @@ describe('PredictActivityDetails - Claim Activity', () => {
     });
 
     // Assert
-    expect(getByText('Claimed')).toBeOnTheScreen();
+    expect(getByText('Claimed winnings')).toBeOnTheScreen();
   });
 
   it('renders total net PnL for claim activity', () => {
