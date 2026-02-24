@@ -172,16 +172,8 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
-// Mock MetaMetrics for data deletion methods still used by useMetrics
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-    getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
-    updateDataRecordingFlag: jest.fn(),
-  }),
+  getInstance: () => ({}),
   MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')
     .MetaMetricsEvents,
 }));

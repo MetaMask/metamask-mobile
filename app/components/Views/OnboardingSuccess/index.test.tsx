@@ -160,9 +160,9 @@ describe('OnboardingSuccessComponent', () => {
       OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
     );
     fireEvent.press(button);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.SUCCESS_FLOW, {
-      screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.ONBOARDING.DEFAULT_SETTINGS,
+    );
   });
 
   it('displays correct title for SETTINGS_BACKUP flow', () => {

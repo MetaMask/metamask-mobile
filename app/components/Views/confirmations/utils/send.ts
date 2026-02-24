@@ -16,8 +16,9 @@ import { v4 as uuid } from 'uuid';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import ppomUtil from '../../../../lib/ppom/ppom-util';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { addTransaction } from '../../../../util/transaction-controller';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 import {
@@ -49,9 +50,8 @@ export interface SendNavigationParams {
 }
 
 const captureSendStartedEvent = (location: string) => {
-  const { trackEvent } = MetaMetrics.getInstance();
-  trackEvent(
-    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.SEND_STARTED)
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.SEND_STARTED)
       .addProperties({ location })
       .build(),
   );

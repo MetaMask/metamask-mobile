@@ -15,7 +15,7 @@ import { SettingsViewSelectorsIDs } from './SettingsView.testIds';
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
 import { TextColor } from '../../../component-library/components/Texts/Text';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
@@ -35,7 +35,7 @@ const createStyles = (colors: Colors) =>
 
 const Settings = () => {
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -20,7 +20,7 @@ import {
 import { createPushProvisioningService, ProvisioningOptions } from '../service';
 import { getCardProvider, getWalletProvider } from '../providers';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardActions } from '../../util/metrics';
 import { useCardSDK } from '../../sdk';
 import {
@@ -66,7 +66,7 @@ export function usePushProvisioning(
 
   const [status, setStatus] = useState<ProvisioningStatus>('idle');
   const [error, setError] = useState<ProvisioningError | null>(null);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Track current status in ref for use in activation listener
   const statusRef = useRef<ProvisioningStatus>(status);

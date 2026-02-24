@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -18,7 +18,8 @@ import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../TokenListItem/ScamWarningIcon/ScamWarningIcon';
@@ -64,6 +65,7 @@ import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
 import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
+import { selectMultichainAssetsRates } from '../../../../../selectors/multichain/multichain';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -106,10 +108,15 @@ const createStyles = (colors: Colors) =>
     assetNameContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      flexShrink: 1,
     },
     assetName: {
       flexDirection: 'row',
       gap: 8,
+      flexShrink: 1,
+    },
+    assetNameText: {
+      flexShrink: 1,
     },
     percentageChange: {
       flexDirection: 'row',
@@ -152,13 +159,17 @@ export const TokenListItemV2 = React.memo(
     showPercentageChange = true,
     isFullView = false,
   }: TokenListItemV2Props) => {
-    const { trackEvent, createEventBuilder } = useMetrics();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
     const { colors } = useTheme();
     const styles = createStyles(colors);
 
     const tokenMarketData = useSelector(selectTokenMarketData);
     const currencyRates = useSelector(selectCurrencyRates);
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+    ///: END:ONLY_INCLUDE_IF
 
     const asset = useSelector((state: RootState) =>
       selectAsset(state, {
@@ -226,11 +237,48 @@ export const TokenListItemV2 = React.memo(
         !merklData.hasPendingClaim,
     );
 
+    const handleClaimBonus = useCallback(() => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
+          .addProperties({
+            location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+            action_type: 'claim_bonus',
+            button_text: strings('earn.claim_bonus'),
+            network_chain_id: asset?.chainId,
+            network_name: networkName,
+            asset_symbol: asset?.symbol,
+          })
+          .build(),
+      );
+      merklData.claimRewards();
+    }, [
+      trackEvent,
+      createEventBuilder,
+      asset?.chainId,
+      asset?.symbol,
+      networkName,
+      merklData,
+    ]);
+
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
     // Calculate token price in fiat currency
     const tokenPriceInFiat = useMemo(() => {
-      if (!asset?.address || !asset?.chainId || !nativeCurrency) {
+      if (!asset?.address || !asset?.chainId) {
+        return undefined;
+      }
+
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      // Non-EVM: use MultichainAssetsRatesController (rate is already in fiat)
+      const multichainRate =
+        multichainAssetsRates?.[asset.address as CaipAssetType]?.rate;
+      if (multichainRate !== undefined) {
+        return multichainRate;
+      }
+      ///: END:ONLY_INCLUDE_IF
+
+      // EVM: convert token price from native currency to fiat
+      if (!nativeCurrency) {
         return undefined;
       }
 
@@ -252,7 +300,15 @@ export const TokenListItemV2 = React.memo(
 
       // Calculate final fiat price
       return tokenPriceInNative * nativeToFiatRate;
-    }, [asset, tokenMarketData, currencyRates, nativeCurrency]);
+    }, [
+      asset,
+      tokenMarketData,
+      currencyRates,
+      nativeCurrency,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      multichainAssetsRates,
+      ///: END:ONLY_INCLUDE_IF
+    ]);
 
     const handleConvertToMUSD = useCallback(async () => {
       const submitCtaPressedEvent = () => {
@@ -349,7 +405,7 @@ export const TokenListItemV2 = React.memo(
         return {
           text: strings('earn.claim_bonus'),
           color: TextColor.Primary,
-          onPress: merklData.claimRewards,
+          onPress: handleClaimBonus,
         };
       }
 
@@ -401,7 +457,7 @@ export const TokenListItemV2 = React.memo(
       earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
-      merklData.claimRewards,
+      handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
     ]);
@@ -491,7 +547,11 @@ export const TokenListItemV2 = React.memo(
                */}
               <View style={styles.assetNameContainer}>
                 <View style={styles.assetName}>
-                  <Text variant={TextVariant.BodyMDBold} numberOfLines={1}>
+                  <Text
+                    variant={TextVariant.BodyMDBold}
+                    numberOfLines={1}
+                    style={styles.assetNameText}
+                  >
                     {asset.name || asset.symbol}
                   </Text>
                   {label && (
@@ -502,7 +562,10 @@ export const TokenListItemV2 = React.memo(
                 {renderEarnCta()}
 
                 {isStockToken(asset as BridgeToken) && (
-                  <StockBadge style={styles.stockBadgeWrapper} token={asset} />
+                  <StockBadge
+                    style={styles.stockBadgeWrapper}
+                    token={asset as BridgeToken}
+                  />
                 )}
               </View>
 

@@ -1,12 +1,12 @@
 import { test as base } from 'appwright';
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
-import QualityGatesValidator from '../../framework/utils/QualityGatesValidator.js';
-import { getTeamInfoFromTags } from '../../../tests/teams-config.js';
+import { PerformanceTracker } from '../../reporters/PerformanceTracker';
 import {
+  QualityGatesValidator,
   markQualityGateFailure,
   hasQualityGateFailure,
   getTestId,
-} from '../../framework/utils/QualityGateError.js';
+} from '../quality-gates';
+import { getTeamInfoFromTags } from '../../../tests/teams-config.js';
 
 // Create a custom test fixture that handles performance tracking and cleanup
 export const test = base.extend({
@@ -113,7 +113,6 @@ export const test = base.extend({
         contentType: 'application/json',
       });
 
-      await performanceTracker.storeSessionData(sessionId, testInfo.title);
       console.log(`✅ Session data stored: ${sessionId}`);
     } else {
       console.log('⚠️ No session ID found - video URL cannot be retrieved');

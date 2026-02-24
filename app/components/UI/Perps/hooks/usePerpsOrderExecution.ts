@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
-import { MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,

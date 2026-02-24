@@ -36,6 +36,7 @@ buildscript {
         }
         maven { url "https://jitpack.io" }
         maven { url "file://${rootDir}/libs" }
+				maven { url "https://cdn.veriff.me/android/" }
     }
 	}
 }

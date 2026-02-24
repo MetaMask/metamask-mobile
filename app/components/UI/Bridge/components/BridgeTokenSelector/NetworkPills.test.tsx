@@ -2,11 +2,17 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { NetworkPills } from './NetworkPills';
 import { CaipChainId } from '@metamask/utils';
-import { useSelector } from 'react-redux';
-import { TokenSelectorType } from '../../types';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  selectAllowedChainRanking,
+  selectVisiblePillChainIds,
+} from '../../../../../core/redux/slices/bridge';
+
+const mockDispatch = jest.fn();
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 const mockUseSelector = useSelector as jest.Mock;
@@ -33,6 +39,15 @@ const mockSmallChainRanking = [
   { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
   { chainId: 'eip155:137' as CaipChainId, name: 'Polygon' },
 ];
+
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  selectAllowedChainRanking: jest.fn(),
+  selectVisiblePillChainIds: jest.fn(),
+  setVisiblePillChainIds: jest.fn((ids) => ({
+    type: 'bridge/setVisiblePillChainIds',
+    payload: ids,
+  })),
+}));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
@@ -89,7 +104,16 @@ describe('NetworkPills', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(mockChainRanking);
+    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectAllowedChainRanking) {
+        return mockChainRanking;
+      }
+      if (selector === selectVisiblePillChainIds) {
+        return undefined; // default: use first N from chainRanking
+      }
+      return undefined;
+    });
   });
 
   describe('rendering', () => {
@@ -99,7 +123,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -121,7 +144,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -138,7 +160,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -147,17 +168,40 @@ describe('NetworkPills', () => {
     });
 
     it('does not render "+X more" when all networks are visible', () => {
-      mockUseSelector.mockReturnValue(mockSmallChainRanking);
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectVisiblePillChainIds) return undefined;
+        return mockSmallChainRanking;
+      });
 
       const { queryByTestId } = render(
         <NetworkPills
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
+      expect(queryByTestId('network-pills-more-button')).toBeNull();
+    });
+
+    it('does not render "+X more" when one network is supported', () => {
+      const singleChainRanking = [
+        { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
+      ];
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectVisiblePillChainIds) return undefined;
+        return singleChainRanking;
+      });
+
+      const { getByText, queryByTestId } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(getByText('Ethereum')).toBeOnTheScreen();
       expect(queryByTestId('network-pills-more-button')).toBeNull();
     });
 
@@ -169,14 +213,16 @@ describe('NetworkPills', () => {
         { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
         { chainId: 'eip155:56' as CaipChainId, name: 'BNB Chain' },
       ];
-      mockUseSelector.mockReturnValue(customRanking);
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectVisiblePillChainIds) return undefined;
+        return customRanking;
+      });
 
       const { getByText, queryByText } = render(
         <NetworkPills
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -197,7 +243,6 @@ describe('NetworkPills', () => {
           selectedChainId={'eip155:1' as CaipChainId}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -212,7 +257,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -227,7 +271,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -244,7 +287,6 @@ describe('NetworkPills', () => {
           selectedChainId={'eip155:56' as CaipChainId}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -257,7 +299,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -266,43 +307,46 @@ describe('NetworkPills', () => {
   });
 
   describe('visible pills update on selection', () => {
-    it('adds non-visible chain to front of visible list when selected', () => {
-      const { rerender, getByText, queryByText } = render(
+    it('dispatches new visible list when non-visible chain is selected', () => {
+      const { rerender } = render(
         <NetworkPills
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
-      // Initially Polygon is not visible
-      expect(queryByText('Polygon')).toBeNull();
-
-      // Select Polygon (non-visible chain) by passing it as selectedChainId
+      // Select Polygon (non-visible chain)
       rerender(
         <NetworkPills
           selectedChainId={'eip155:137' as CaipChainId}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
-      // Now Polygon should be visible (pushed to front, Solana popped)
-      expect(getByText('Polygon')).toBeTruthy();
-      expect(queryByText('Solana')).toBeNull();
+      // Should dispatch with Polygon at front, Solana popped
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'bridge/setVisiblePillChainIds',
+        payload: [
+          'eip155:137', // Polygon pushed to front
+          'eip155:1', // Ethereum
+          'eip155:56', // BNB Chain
+          'bip122:000000000019d6689c085ae165831e93', // Bitcoin
+        ],
+      });
     });
 
-    it('does not change visible list when selecting an already visible chain', () => {
-      const { rerender, getByText } = render(
+    it('does not dispatch when selecting an already visible chain', () => {
+      const { rerender } = render(
         <NetworkPills
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
+
+      mockDispatch.mockClear();
 
       // Select Ethereum (already visible)
       rerender(
@@ -310,15 +354,77 @@ describe('NetworkPills', () => {
           selectedChainId={'eip155:1' as CaipChainId}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
-      // All original 4 should still be visible
-      expect(getByText('Ethereum')).toBeTruthy();
-      expect(getByText('BNB Chain')).toBeTruthy();
-      expect(getByText('Bitcoin')).toBeTruthy();
-      expect(getByText('Solana')).toBeTruthy();
+      // Should not dispatch setVisiblePillChainIds
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'bridge/setVisiblePillChainIds',
+        }),
+      );
+    });
+
+    it('dispatches rolling order for consecutive non-visible selections', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectAllowedChainRanking) {
+          return mockChainRanking;
+        }
+        if (selector === selectVisiblePillChainIds) {
+          return undefined;
+        }
+        return undefined;
+      });
+
+      const { rerender } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      rerender(
+        <NetworkPills
+          selectedChainId={'eip155:137' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      const firstSelectionPayload = mockDispatch.mock.calls.find(
+        ([action]) => action.type === 'bridge/setVisiblePillChainIds',
+      )?.[0]?.payload as CaipChainId[] | undefined;
+      expect(firstSelectionPayload).toEqual([
+        'eip155:137',
+        'eip155:1',
+        'eip155:56',
+        'bip122:000000000019d6689c085ae165831e93',
+      ]);
+
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectAllowedChainRanking) {
+          return mockChainRanking;
+        }
+        if (selector === selectVisiblePillChainIds) {
+          return firstSelectionPayload;
+        }
+        return undefined;
+      });
+      mockDispatch.mockClear();
+
+      rerender(
+        <NetworkPills
+          selectedChainId={'eip155:10' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'bridge/setVisiblePillChainIds',
+        payload: ['eip155:10', 'eip155:137', 'eip155:1', 'eip155:56'],
+      });
     });
   });
 });

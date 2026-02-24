@@ -46,6 +46,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
           "textAlign": "center",
         }
       }
+      testID="tabs_opened_title"
     >
       Opened tabs
     </Text>
@@ -453,6 +454,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
           "textAlign": "center",
         }
       }
+      testID="tabs_opened_title"
     >
       Opened tabs
     </Text>
