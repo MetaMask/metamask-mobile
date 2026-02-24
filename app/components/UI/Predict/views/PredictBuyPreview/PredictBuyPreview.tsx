@@ -4,6 +4,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   ButtonSize as ButtonSizeHero,
+  FontWeight,
   Icon,
   IconName,
   IconSize,
@@ -50,7 +51,21 @@ import {
 } from '../../constants/eventNames';
 import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
-import PredictFeeSummary from '../../components/PredictFeeSummary';
+import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconColor,
+  IconName as IconNameLegacy,
+} from '../../../../../component-library/components/Icons/Icon';
+import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
+import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
+import {
+  TextVariant as LegacyTextVariant,
+  TextColor as LegacyTextColor,
+} from '../../../../../component-library/components/Texts/Text/Text.types';
+import RewardsAnimations, {
+  RewardAnimationState,
+} from '../../../Rewards/components/RewardPointsAnimation';
+import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictKeypad, {
@@ -408,31 +423,6 @@ const PredictBuyPreview = () => {
     </ScrollView>
   );
 
-  const renderErrorMessage = () => {
-    if (isBalanceLoading) return null;
-
-    if (isBelowMinimum) {
-      return (
-        <Box twClassName="px-12 pb-4">
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            style={tw.style('text-center')}
-          >
-            {strings('predict.order.prediction_minimum_bet', {
-              amount: formatPrice(MINIMUM_BET, {
-                minimumDecimals: 2,
-                maximumDecimals: 2,
-              }),
-            })}
-          </Text>
-        </Box>
-      );
-    }
-
-    return null;
-  };
-
   const renderActionButton = () => {
     if (isLoading) {
       return (
@@ -484,11 +474,110 @@ const PredictBuyPreview = () => {
       return null;
     }
 
+    const isLoadingRewardsState =
+      (isCalculating && isUserInputChange) || isRewardsLoading;
     return (
       <Box
         flexDirection={BoxFlexDirection.Column}
         twClassName="border-t border-muted p-4 pb-0 gap-4"
       >
+        <Box twClassName="flex-row justify-between items-center">
+          <Box twClassName="flex-col">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              color={TextColor.TextDefault}
+            >
+              {strings('predict.fee_summary.total')}
+            </Text>
+            <TouchableOpacity
+              onPress={handleFeesInfoPress}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Box twClassName="flex-row items-center gap-1">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('predict.fee_summary.total_incl_fees')}
+                </Text>
+                <ButtonIcon
+                  size={TooltipSizes.Sm}
+                  iconColor={IconColor.Alternative}
+                  iconName={IconNameLegacy.Info}
+                  onPress={handleFeesInfoPress}
+                />
+              </Box>
+            </TouchableOpacity>
+          </Box>
+          <Text
+            variant={TextVariant.HeadingMd}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
+          >
+            {formatPrice(total, { maximumDecimals: 2 })}
+          </Text>
+        </Box>
+
+        {shouldShowRewardsRow &&
+          (isAccountOptedIntoRewards || rewardsAccountScope) && (
+            <KeyValueRow
+              field={{
+                label: {
+                  text: strings('predict.fee_summary.estimated_points'),
+                  variant: LegacyTextVariant.BodyMD,
+                  color: LegacyTextColor.Default,
+                },
+                tooltip: {
+                  title: strings('predict.fee_summary.points_tooltip'),
+                  content: `${strings(
+                    'predict.fee_summary.points_tooltip_content_1',
+                  )}\n\n${strings(
+                    'predict.fee_summary.points_tooltip_content_2',
+                  )}`,
+                  size: TooltipSizes.Sm,
+                  iconName: IconNameLegacy.Info,
+                },
+              }}
+              value={{
+                label: (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Center}
+                    gap={1}
+                  >
+                    {isAccountOptedIntoRewards ? (
+                      <RewardsAnimations
+                        value={estimatedRewardsPoints ?? 0}
+                        state={
+                          isLoadingRewardsState
+                            ? RewardAnimationState.Loading
+                            : isRewardsError
+                              ? RewardAnimationState.ErrorState
+                              : RewardAnimationState.Idle
+                        }
+                      />
+                    ) : rewardsAccountScope ? (
+                      <AddRewardsAccount account={rewardsAccountScope} />
+                    ) : (
+                      <></>
+                    )}
+                  </Box>
+                ),
+                ...(isRewardsError && {
+                  tooltip: {
+                    title: strings('predict.fee_summary.points_error'),
+                    content: strings(
+                      'predict.fee_summary.points_error_content',
+                    ),
+                    size: TooltipSizes.Sm,
+                    iconName: IconNameLegacy.Info,
+                  },
+                }),
+              }}
+            />
+          )}
         <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
           {errorMessage && (
             <Text
@@ -497,6 +586,20 @@ const PredictBuyPreview = () => {
               style={tw.style('text-center pb-2')}
             >
               {errorMessage}
+            </Text>
+          )}
+          {!isBalanceLoading && isBelowMinimum && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              style={tw.style('text-center pb-2')}
+            >
+              {strings('predict.order.prediction_minimum_bet', {
+                amount: formatPrice(MINIMUM_BET, {
+                  minimumDecimals: 2,
+                  maximumDecimals: 2,
+                }),
+              })}
             </Text>
           )}
           <Box twClassName="w-full h-12">{renderActionButton()}</Box>
@@ -526,22 +629,6 @@ const PredictBuyPreview = () => {
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       {renderHeader()}
       {renderAmount()}
-      <PredictFeeSummary
-        disabled={isInputFocused}
-        total={total}
-        metamaskFee={metamaskFee}
-        providerFee={providerFee}
-        shouldShowRewardsRow={shouldShowRewardsRow}
-        rewardsAccountScope={rewardsAccountScope}
-        accountOptedIn={isAccountOptedIntoRewards}
-        estimatedPoints={estimatedRewardsPoints}
-        isLoadingRewards={
-          (isCalculating && isUserInputChange) || isRewardsLoading
-        }
-        hasRewardsError={isRewardsError}
-        onFeesInfoPress={handleFeesInfoPress}
-      />
-      {renderErrorMessage()}
       <PredictKeypad
         ref={keypadRef}
         isInputFocused={isInputFocused}
@@ -558,6 +645,10 @@ const PredictBuyPreview = () => {
           ref={feeBreakdownSheetRef}
           providerFee={providerFee}
           metamaskFee={metamaskFee}
+          sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+          contractCount={preview?.minAmountReceived ?? 0}
+          betAmount={currentValue}
+          total={total}
           onClose={handleFeeBreakdownClose}
         />
       )}

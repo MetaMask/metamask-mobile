@@ -10,46 +10,98 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPrice } from '../../utils/format';
+import { SLIPPAGE_BUY } from '../../providers/polymarket/constants';
 
 interface PredictFeeBreakdownSheetProps {
   providerFee: number;
   metamaskFee: number;
+  sharePrice: number;
+  contractCount: number;
+  betAmount: number;
+  total: number;
   onClose?: () => void;
 }
 
 const PredictFeeBreakdownSheet = forwardRef<
   BottomSheetRef,
   PredictFeeBreakdownSheetProps
->(({ providerFee, metamaskFee, onClose }, ref) => (
-  <BottomSheet ref={ref} onClose={onClose} shouldNavigateBack={false}>
-    <SheetHeader title={strings('predict.fee_summary.fees')} />
-    <Box twClassName="px-4 pb-6 flex-col gap-4">
-      {/* Provider Fee Row */}
-      <Box twClassName="flex-row justify-between items-center">
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-          {strings('predict.fee_summary.provider_fee_label')}
-        </Text>
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-          {formatPrice(providerFee, {
-            maximumDecimals: 2,
-          })}
-        </Text>
-      </Box>
+>(
+  (
+    {
+      providerFee,
+      metamaskFee,
+      sharePrice,
+      contractCount,
+      betAmount,
+      total,
+      onClose,
+    },
+    ref,
+  ) => (
+    <BottomSheet ref={ref} onClose={onClose} shouldNavigateBack={false}>
+      <SheetHeader title={strings('predict.fee_summary.price_details')} />
+      <Box twClassName="px-4 pb-6 flex-col gap-4">
+        <Box twClassName="flex-col gap-1">
+          <Box twClassName="flex-row justify-between items-center">
+            <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
+              {strings('predict.fee_summary.contracts_price', {
+                count: contractCount.toFixed(2),
+                price: formatPrice(sharePrice, { maximumDecimals: 2 }),
+              })}
+            </Text>
+            <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
+              {formatPrice(betAmount, { maximumDecimals: 2 })}
+            </Text>
+          </Box>
+          <Text color={TextColor.Alternative} variant={TextVariant.BodyXS}>
+            {strings('predict.fee_summary.contracts_price_description', {
+              slippage: Math.round(SLIPPAGE_BUY * 100),
+            })}
+          </Text>
+        </Box>
 
-      {/* MetaMask Fee Row */}
-      <Box twClassName="flex-row justify-between items-center">
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-          {strings('predict.fee_summary.metamask_fee')}
-        </Text>
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-          {formatPrice(metamaskFee, {
-            maximumDecimals: 2,
-          })}
-        </Text>
+        <Box twClassName="flex-col gap-1">
+          <Box twClassName="flex-row justify-between items-center">
+            <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
+              {strings('predict.fee_summary.metamask_fee')}
+            </Text>
+            <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
+              {formatPrice(metamaskFee, { maximumDecimals: 2 })}
+            </Text>
+          </Box>
+          <Text color={TextColor.Alternative} variant={TextVariant.BodyXS}>
+            {strings('predict.fee_summary.metamask_fee_description')}
+          </Text>
+        </Box>
+
+        <Box twClassName="flex-col gap-1">
+          <Box twClassName="flex-row justify-between items-center">
+            <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
+              {strings('predict.fee_summary.exchange_fee')}
+            </Text>
+            <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
+              {formatPrice(providerFee, { maximumDecimals: 2 })}
+            </Text>
+          </Box>
+          <Text color={TextColor.Alternative} variant={TextVariant.BodyXS}>
+            {strings('predict.fee_summary.exchange_fee_description')}
+          </Text>
+        </Box>
+
+        <Box twClassName="border-t border-muted" />
+
+        <Box twClassName="flex-row justify-between items-center">
+          <Text color={TextColor.Default} variant={TextVariant.BodyMDBold}>
+            {strings('predict.fee_summary.total')}
+          </Text>
+          <Text color={TextColor.Default} variant={TextVariant.BodyMDBold}>
+            {formatPrice(total, { maximumDecimals: 2 })}
+          </Text>
+        </Box>
       </Box>
-    </Box>
-  </BottomSheet>
-));
+    </BottomSheet>
+  ),
+);
 
 PredictFeeBreakdownSheet.displayName = 'PredictFeeBreakdownSheet';
 
