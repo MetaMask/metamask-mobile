@@ -481,6 +481,11 @@ describe('usePerpsToasts', () => {
           iconName: IconName.Loading,
           hapticsType: NotificationFeedbackType.Warning,
         });
+
+        act(() => {
+          config.closeButtonOptions?.onPress?.();
+        });
+        expect(mockCloseToast).toHaveBeenCalled();
       });
 
       it('returns cancellation in progress configuration with detailed order type', () => {
