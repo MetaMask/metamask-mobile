@@ -33,7 +33,7 @@ describe('trackSnapAccountEvent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (analytics.trackEvent as jest.Mock).mockImplementation(mockTrackEvent);
+    jest.mocked(analytics.trackEvent).mockImplementation(mockTrackEvent);
     (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockImplementation(
       mockCreateEventBuilder,
     );
