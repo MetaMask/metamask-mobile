@@ -14,7 +14,10 @@ import {
   MUSD_TOKEN_ADDRESS,
 } from '../constants/musd';
 import { getClaimedAmountFromContract } from '../components/MerklRewards/merkl-client';
-import { DISTRIBUTOR_CLAIM_ABI } from '../components/MerklRewards/constants';
+import {
+  DISTRIBUTOR_CLAIM_ABI,
+  MERKL_DISTRIBUTOR_ADDRESS,
+} from '../components/MerklRewards/constants';
 
 /**
  * Parameters for checking if a transaction is a mUSD claim for the current view.
@@ -74,7 +77,7 @@ export function isMusdClaimForCurrentView({
  * Parameters for converting mUSD claim amount to user's currency.
  */
 export interface ConvertMusdClaimParams {
-  /** Raw claim amount from decodeMerklClaimAmount (wei string) */
+  /** Raw claim amount in wei string */
   claimAmountRaw: string;
   /** Native-to-user-currency conversion rate (e.g., ETH to EUR) */
   conversionRate: BigNumber | number;
@@ -233,15 +236,73 @@ export function decodeMerklClaimParams(
   }
 }
 
+// ERC-20 Transfer(address,address,uint256) event topic
+const ERC20_TRANSFER_TOPIC =
+  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
 /**
- * Decode the claim amount from a Merkl claim transaction data.
- * Convenience wrapper around decodeMerklClaimParams that returns only the amount.
- *
- * @param data - The transaction data hex string
- * @returns The first claim amount as a string (raw value, not adjusted for decimals), or null if decoding fails
+ * Log entry from a transaction receipt.
+ * The `topics` field is typed as `string` in TransactionController types,
+ * but at runtime it's `string[]` (raw JSON-RPC response).
  */
-export function decodeMerklClaimAmount(
-  data: string | undefined,
+interface ReceiptLog {
+  address?: string;
+  data?: string;
+  topics?: string | string[];
+}
+
+/**
+ * Extract the actual mUSD payout from a confirmed claim transaction's receipt logs.
+ *
+ * The Merkl distributor calls the mUSD token's `transfer`, which emits an
+ * ERC-20 `Transfer(from=distributor, to=user, amount)` event. The `amount`
+ * in this event is the real per-transaction payout (not the cumulative total
+ * stored in calldata).
+ *
+ * @param logs - Receipt logs from txReceipt.logs
+ * @param userAddress - The claiming user's address (to match the Transfer `to` field)
+ * @returns The payout amount as a raw decimal string, or null if not found
+ */
+export function getClaimPayoutFromReceipt(
+  logs: ReceiptLog[] | undefined,
+  userAddress: string | undefined,
 ): string | null {
-  return decodeMerklClaimParams(data)?.totalAmount ?? null;
+  if (!logs?.length || !userAddress) {
+    return null;
+  }
+
+  for (const log of logs) {
+    const topics = normalizeTopics(log.topics);
+    if (!topics || topics.length < 3) continue;
+
+    const isTransferEvent = topics[0]?.toLowerCase() === ERC20_TRANSFER_TOPIC;
+    const isFromDistributor =
+      addressFromTopic(topics[1]) === MERKL_DISTRIBUTOR_ADDRESS.toLowerCase();
+    const isToUser = addressFromTopic(topics[2]) === userAddress.toLowerCase();
+    const isMuSDToken =
+      log.address?.toLowerCase() === MUSD_TOKEN_ADDRESS.toLowerCase();
+
+    if (isTransferEvent && isFromDistributor && isToUser && isMuSDToken) {
+      const amount = log.data;
+      if (!amount) continue;
+      return BigInt(amount).toString();
+    }
+  }
+
+  return null;
+}
+
+function normalizeTopics(
+  topics: string | string[] | undefined,
+): string[] | null {
+  if (!topics) return null;
+  if (Array.isArray(topics)) return topics;
+  // Shouldn't happen at runtime, but guard against the type definition
+  return null;
+}
+
+function addressFromTopic(topic: string | undefined): string | undefined {
+  if (!topic || topic.length < 42) return undefined;
+  // Topic is a 32-byte hex, address is the last 20 bytes
+  return `0x${topic.slice(-40)}`.toLowerCase();
 }

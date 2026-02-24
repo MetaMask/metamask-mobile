@@ -46,4 +46,28 @@ describe('MarketInsightsTrendItem', () => {
     fireEvent.press(getByTestId('trend-item'));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  it('shows X icon when trend has only tweets and no articles', () => {
+    const trend = {
+      title: 'Developer debates',
+      description: 'Discussions heat up on consensus.',
+      articles: [],
+      tweets: [
+        {
+          author: 'adam3us',
+          contentSummary: 'Minority protections matter.',
+          date: '2026-02-17',
+          url: 'https://x.com/adam3us/status/123',
+        },
+      ],
+    };
+
+    const { getByText, UNSAFE_getAllByType } = renderWithProvider(
+      <MarketInsightsTrendItem trend={trend as never} testID="trend-item" />,
+    );
+
+    expect(getByText(trend.title)).toBeOnTheScreen();
+    const sourceIcons = UNSAFE_getAllByType(Image);
+    expect(sourceIcons).toHaveLength(1);
+  });
 });
