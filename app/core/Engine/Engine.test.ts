@@ -26,6 +26,8 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
 }));
 
+jest.mock('redux-persist-filesystem-storage');
+
 jest.mock('../BackupVault', () => ({
   backupVault: jest.fn().mockResolvedValue({ success: true, vault: 'vault' }),
 }));
@@ -42,6 +44,9 @@ jest.unmock('./Engine');
 jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(() => ({
+      onboarding: {
+        completedOnboarding: true,
+      },
       engine: {
         backgroundState: {
           RemoteFeatureFlagController: {

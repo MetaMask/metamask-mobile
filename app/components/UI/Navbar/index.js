@@ -866,6 +866,7 @@ export function getWalletNavbarOptions(
     },
     actionButtonsContainer: {
       flexDirection: 'row',
+      gap: 8,
     },
     // Minimum 44px touch area for accessibility
     touchAreaSlop: {
@@ -1007,7 +1008,7 @@ export function getWalletNavbarOptions(
                   iconProps={{ color: MMDSIconColor.Default }}
                   onPress={openQRScanner}
                   iconName={IconName.QrCode}
-                  size={ButtonIconSize.Lg}
+                  size={ButtonIconSize.Md}
                   testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
                   hitSlop={innerStyles.touchAreaSlop}
                 />
@@ -1027,7 +1028,7 @@ export function getWalletNavbarOptions(
                       iconProps={{ color: MMDSIconColor.Default }}
                       onPress={handleNotificationOnPress}
                       iconName={IconName.Notification}
-                      size={ButtonIconSize.Lg}
+                      size={ButtonIconSize.Md}
                       testID={
                         WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
                       }
@@ -1039,7 +1040,7 @@ export function getWalletNavbarOptions(
                   iconProps={{ color: MMDSIconColor.Default }}
                   onPress={handleHamburgerPress}
                   iconName={IconName.Menu}
-                  size={ButtonIconSize.Lg}
+                  size={ButtonIconSize.Md}
                   testID="navbar-hamburger-menu-button"
                   hitSlop={innerStyles.touchAreaSlop}
                 />

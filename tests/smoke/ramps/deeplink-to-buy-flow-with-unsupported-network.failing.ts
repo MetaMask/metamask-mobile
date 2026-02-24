@@ -1,15 +1,15 @@
-import TestHelpers from '../../../e2e/helpers';
-import { loginToApp } from '../../../e2e/viewHelper';
+import TestHelpers from '../../helpers';
+import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { SmokeTrade } from '../../../e2e/tags';
+import { SmokeTrade } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import SellGetStartedView from '../../../e2e/pages/Ramps/SellGetStartedView';
-import BuyGetStartedView from '../../../e2e/pages/Ramps/BuyGetStartedView';
+import SellGetStartedView from '../../page-objects/Ramps/SellGetStartedView';
+import BuyGetStartedView from '../../page-objects/Ramps/BuyGetStartedView';
 import Assertions from '../../framework/Assertions';
-import NetworkAddedBottomSheet from '../../../e2e/pages/Network/NetworkAddedBottomSheet';
-import NetworkApprovalBottomSheet from '../../../e2e/pages/Network/NetworkApprovalBottomSheet';
-import NetworkEducationModal from '../../../e2e/pages/Network/NetworkEducationModal';
-import NetworkListModal from '../../../e2e/pages/Network/NetworkListModal';
+import NetworkAddedBottomSheet from '../../page-objects/Network/NetworkAddedBottomSheet';
+import NetworkApprovalBottomSheet from '../../page-objects/Network/NetworkApprovalBottomSheet';
+import NetworkEducationModal from '../../page-objects/Network/NetworkEducationModal';
+import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly

@@ -2,16 +2,16 @@
 /* eslint-disable no-console */
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNode, LocalNodeType } from '../../framework/types';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { SmokeTrade } from '../../../e2e/tags';
+import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import QuoteView from '../../../e2e/pages/swaps/QuoteView';
+import QuoteView from '../../page-objects/swaps/QuoteView';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import DeeplinkModal from '../../../e2e/pages/swaps/Deeplink';
+import WalletView from '../../page-objects/wallet/WalletView';
+import DeeplinkModal from '../../page-objects/swaps/Deeplink';
 
 // Deep link URLs for testing unified swap/bridge experience
 // Note: URLs use 'swap' terminology for backward compatibility but redirect to unified bridge experience

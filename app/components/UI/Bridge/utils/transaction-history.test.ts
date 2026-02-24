@@ -42,15 +42,15 @@ describe('getBridgeTxActivityTitle', () => {
           assetId: 'eip155:1/erc20:0x123',
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        destChainId: 999 as any, // Non-existent chain ID
+        destChainId: 123456789 as any, // Non-existent chain ID
         destAsset: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          chainId: 999 as any,
+          chainId: 123456789 as any,
           address: '0x456',
           decimals: 18,
           symbol: 'TOKEN',
           name: 'Test Token',
-          assetId: 'eip155:999/erc20:0x456',
+          assetId: 'eip155:123456789/erc20:0x456',
         },
         srcTokenAmount: '1000000000000000000',
         destTokenAmount: '2000000000000000000',
@@ -79,7 +79,7 @@ describe('getBridgeTxActivityTitle', () => {
         },
         destChain: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          chainId: 999 as any,
+          chainId: 123456789 as any,
           txHash: '0x456',
         },
         status: StatusTypes.COMPLETE,

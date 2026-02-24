@@ -328,9 +328,9 @@ export class Engine {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
+        SnapsRegistry: snapsRegistryInit,
         SnapController: snapControllerInit,
         SnapInterfaceController: snapInterfaceControllerInit,
-        SnapsRegistry: snapsRegistryInit,
         NotificationServicesController: notificationServicesControllerInit,
         NotificationServicesPushController:
           notificationServicesPushControllerInit,

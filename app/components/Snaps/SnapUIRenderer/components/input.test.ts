@@ -15,8 +15,8 @@ jest.mock('../../../../core/Engine/Engine', () => ({
 }));
 
 describe('SnapUIInput', () => {
-  const clearBorderColor = '#b7bbc8';
-  const focusedBorderColor = '#4459ff';
+  const clearBorderColor = '#b7bbc866';
+  const focusedBorderColor = '#b7bbc8';
 
   beforeEach(() => {
     jest.resetAllMocks();

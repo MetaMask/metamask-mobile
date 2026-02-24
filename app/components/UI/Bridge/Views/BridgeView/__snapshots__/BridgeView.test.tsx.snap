@@ -407,6 +407,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                         onBlur={[Function]}
                                         onFocus={[Function]}
                                         placeholder="0"
+                                        placeholderTextColor="#686e7d"
                                         showSoftInputOnFocus={false}
                                         style={
                                           {
@@ -771,6 +772,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                         onBlur={[Function]}
                                         onFocus={[Function]}
                                         placeholder="0"
+                                        placeholderTextColor="#686e7d"
                                         selection={
                                           {
                                             "end": 0,
@@ -2248,6 +2250,7 @@ exports[`BridgeView renders 1`] = `
                                         onBlur={[Function]}
                                         onFocus={[Function]}
                                         placeholder="0"
+                                        placeholderTextColor="#686e7d"
                                         showSoftInputOnFocus={false}
                                         style={
                                           {
@@ -2612,6 +2615,7 @@ exports[`BridgeView renders 1`] = `
                                         onBlur={[Function]}
                                         onFocus={[Function]}
                                         placeholder="0"
+                                        placeholderTextColor="#686e7d"
                                         selection={
                                           {
                                             "end": 0,

@@ -19,9 +19,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -129,7 +127,6 @@ export const AddressFields = ({
           autoCapitalize={'none'}
           onChangeText={handleAddressLine1Change}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           autoComplete="one-time-code"
           value={addressLine1}
           keyboardType="default"
@@ -151,7 +148,6 @@ export const AddressFields = ({
           autoCapitalize={'none'}
           onChangeText={handleAddressLine2Change}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           autoComplete="one-time-code"
           value={addressLine2}
           keyboardType="default"
@@ -171,7 +167,6 @@ export const AddressFields = ({
           autoCapitalize={'none'}
           onChangeText={handleCityChange}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           autoComplete="one-time-code"
           value={city}
           keyboardType="default"
@@ -207,7 +202,6 @@ export const AddressFields = ({
           autoCapitalize={'none'}
           onChangeText={handleZipCodeChange}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           autoComplete="one-time-code"
           value={zipCode}
           keyboardType="default"

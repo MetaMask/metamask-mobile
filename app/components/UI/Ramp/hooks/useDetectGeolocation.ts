@@ -10,7 +10,7 @@ const GEOLOCATION_URLS = {
   PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
 };
 
-export default function useDetectGeolocation() {
+export default function useDetectGeolocation(): void {
   const nativeRampEnvironment = getSdkEnvironment();
   const dispatch = useDispatch();
   const url =
@@ -22,7 +22,9 @@ export default function useDetectGeolocation() {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`Network response was not ok: ${response.statusText}`);
+        // HTTP error responses (502, 404, etc.) are server-side issues —
+        // not actionable by the mobile client, so don't report to Sentry.
+        return;
       }
       const geolocation = await response.text();
 
@@ -30,7 +32,7 @@ export default function useDetectGeolocation() {
     } catch (error) {
       Logger.error(
         error as Error,
-        'useDetectedGeolocation: Failed to detect geolocation',
+        'useDetectGeolocation: Failed to detect geolocation',
       );
     }
   }, [dispatch, url]);

@@ -1,13 +1,13 @@
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { SmokeTrade } from '../../../e2e/tags';
-import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView';
+import { SmokeTrade } from '../../tags';
+import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
 import Assertions from '../../framework/Assertions';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import FundActionMenu from '../../../e2e/pages/UI/FundActionMenu';
-import SelectPaymentMethodView from '../../../e2e/pages/Ramps/SelectPaymentMethodView';
-import SellGetStartedView from '../../../e2e/pages/Ramps/SellGetStartedView';
+import WalletView from '../../page-objects/wallet/WalletView';
+import FundActionMenu from '../../page-objects/UI/FundActionMenu';
+import SelectPaymentMethodView from '../../page-objects/Ramps/SelectPaymentMethodView';
+import SellGetStartedView from '../../page-objects/Ramps/SellGetStartedView';
 import {
   EventPayload,
   findEvent,

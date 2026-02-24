@@ -6,14 +6,30 @@ import {
   PerpsControllerMessenger,
   PerpsControllerState,
   InitializationState,
-} from '../../../../components/UI/Perps/controllers';
-import { MARKET_SORTING_CONFIG } from '../../../../components/UI/Perps/constants/perpsConfig';
+  MARKET_SORTING_CONFIG,
+} from '@metamask/perps-controller';
 import { perpsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-jest.mock('../../../../components/UI/Perps/controllers', () => {
+// Mock mobile-specific modules that ./index.ts imports to avoid pulling in
+// Engine and React Native dependencies in the test environment
+jest.mock(
+  '../../../../components/UI/Perps/adapters/mobileInfrastructure',
+  () => ({
+    createMobileInfrastructure: jest.fn(() => ({})),
+  }),
+);
+jest.mock('../../../../components/UI/Perps/utils/e2eBridgePerps', () => ({
+  applyE2EControllerMocks: jest.fn(),
+}));
+
+jest.mock('@metamask/perps-controller', () => {
   const actualPerpsController = jest.requireActual(
-    '../../../../components/UI/Perps/controllers',
+    '@metamask/perps-controller/PerpsController',
+  );
+  const actualUtils = jest.requireActual('@metamask/perps-controller/utils');
+  const actualConstants = jest.requireActual(
+    '@metamask/perps-controller/constants',
   );
 
   return {
@@ -22,6 +38,8 @@ jest.mock('../../../../components/UI/Perps/controllers', () => {
       actualPerpsController.getDefaultPerpsControllerState,
     InitializationState: actualPerpsController.InitializationState,
     PerpsController: jest.fn(),
+    parseCommaSeparatedString: actualUtils.parseCommaSeparatedString,
+    MARKET_SORTING_CONFIG: actualConstants.MARKET_SORTING_CONFIG,
   };
 });
 
@@ -65,7 +83,7 @@ describe('perps controller init', () => {
 
   it('controller state should be default state when no initial state is passed in', () => {
     const defaultPerpsControllerState = jest
-      .requireActual('../../../../components/UI/Perps/controllers')
+      .requireActual('@metamask/perps-controller/PerpsController')
       .getDefaultPerpsControllerState();
 
     perpsControllerInit(initRequestMock);

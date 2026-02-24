@@ -1,7 +1,6 @@
-import { SmokeWalletPlatform } from '../../../e2e/tags';
-import TestHelpers from '../../../e2e/helpers';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { SmokeWalletPlatform } from '../../tags';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { loginToApp } from '../../flows/wallet.flow';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import {
@@ -10,10 +9,10 @@ import {
   type WithFixturesOptions,
 } from '../../framework/types';
 import { AnvilManager } from '../../seeder/anvil-manager';
-import TransactionPayConfirmation from '../../../e2e/pages/Confirmation/TransactionPayConfirmation';
-import FooterActions from '../../../e2e/pages/Browser/Confirmations/FooterActions';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation';
+import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { setupMusdMocks } from '../../api-mocking/mock-responses/musd/musd-mocks';
 import {
   createMusdFixture,
@@ -39,6 +38,8 @@ function withMusdFixturesOptions(
       },
     ],
     restartDevice: true,
+    // Skip reload in cleanup to avoid native crash (SIGSEGV) when sync was disabled during test (same as snaps)
+    skipReactNativeReload: true,
     testSpecificMock: setupMusdMocks,
   };
 }
@@ -46,7 +47,10 @@ function withMusdFixturesOptions(
 describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.launchApp();
+    // Do not launch app here: launch happens inside withFixtures (restartDevice: true)
+    // so that setupMusdMocks and fixture are ready first. Launching in beforeAll causes
+    // NetworkIdlingResource timeout on Android CI because the app hits real/slow APIs
+    // before mocks are available.
   });
 
   it('converts USDC to mUSD successfully (First Time User)', async () => {
@@ -113,6 +117,8 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         // Go to Activity and verify mUSD conversion is confirmed (same pattern as send-native-token: no swipeDown)
         await TabBarComponent.tapActivity();
         await ActivitiesView.verifyMusdConversionConfirmed(0);
+        // gets back to wallet to avoid waiting fora rpc updated in the activity view
+        await TabBarComponent.tapWallet();
       },
     );
   });
@@ -133,8 +139,6 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
           description: 'Wallet view should be visible',
         });
 
-        // Scroll to top then to USDC row (UI shows symbol "USDC" on token row). tapTokenListItemConvertToMusdCta uses checkStability + delay so list is ready before tap.
-        await WalletView.scrollToTopOfTokensList();
         await WalletView.scrollToToken('USDCoin');
         await Assertions.expectElementToBeVisible(
           WalletView.tokenListItemConvertToMusdCta,
@@ -172,6 +176,8 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         // Go to Activity and verify mUSD conversion is confirmed
         await TabBarComponent.tapActivity();
         await ActivitiesView.verifyMusdConversionConfirmed(0);
+        // gets back to wallet to avoid waiting fora rpc updated in the activity view
+        await TabBarComponent.tapWallet();
       },
     );
   });
@@ -230,6 +236,8 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         // Go to Activity and verify mUSD conversion is confirmed
         await TabBarComponent.tapActivity();
         await ActivitiesView.verifyMusdConversionConfirmed(0);
+        // gets back to wallet to avoid waiting fora rpc updated in the activity view
+        await TabBarComponent.tapWallet();
       },
     );
   });

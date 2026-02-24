@@ -21,20 +21,18 @@ import {
   formatWithSignificantDigits,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_CONSTANTS,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
-import {
-  PERPS_CONSTANTS,
-  LIMIT_PRICE_CONFIG,
-} from '../../constants/perpsConfig';
+import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
 import { BigNumber } from 'bignumber.js';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
 
 interface PerpsLimitPriceBottomSheetProps {
   isVisible: boolean;

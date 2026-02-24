@@ -15,6 +15,7 @@ import {
   useRampsPaymentMethods,
   type UseRampsPaymentMethodsResult,
 } from './useRampsPaymentMethods';
+import { useRampsQuotes, type UseRampsQuotesResult } from './useRampsQuotes';
 
 /**
  * Result returned by the useRampsController hook.
@@ -52,6 +53,17 @@ export interface UseRampsControllerResult {
   setSelectedPaymentMethod: UseRampsPaymentMethodsResult['setSelectedPaymentMethod'];
   paymentMethodsLoading: UseRampsPaymentMethodsResult['isLoading'];
   paymentMethodsError: UseRampsPaymentMethodsResult['error'];
+
+  // Quotes
+  quotes: UseRampsQuotesResult['quotes'];
+  selectedQuote: UseRampsQuotesResult['selectedQuote'];
+  getQuotes: UseRampsQuotesResult['getQuotes'];
+  setSelectedQuote: UseRampsQuotesResult['setSelectedQuote'];
+  startQuotePolling: UseRampsQuotesResult['startQuotePolling'];
+  stopQuotePolling: UseRampsQuotesResult['stopQuotePolling'];
+  getWidgetUrl: UseRampsQuotesResult['getWidgetUrl'];
+  quotesLoading: UseRampsQuotesResult['isLoading'];
+  quotesError: UseRampsQuotesResult['error'];
 }
 
 /**
@@ -93,6 +105,16 @@ export interface UseRampsControllerResult {
  *   paymentMethodsLoading,
  *   paymentMethodsError,
  *
+ *   // Quotes
+ *   quotes,
+ *   selectedQuote,
+ *   startQuotePolling,
+ *   stopQuotePolling,
+ *   quotesLoading,
+ *   quotesError,
+ *   getQuotes,
+ *   setSelectedQuote,
+ *
  * } = useRampsController();
  * ```
  */
@@ -129,6 +151,18 @@ export function useRampsController(): UseRampsControllerResult {
     error: paymentMethodsError,
   } = useRampsPaymentMethods();
 
+  const {
+    quotes,
+    selectedQuote,
+    startQuotePolling,
+    stopQuotePolling,
+    getWidgetUrl,
+    isLoading: quotesLoading,
+    error: quotesError,
+    getQuotes,
+    setSelectedQuote,
+  } = useRampsQuotes();
+
   return {
     // User region
     userRegion,
@@ -160,6 +194,17 @@ export function useRampsController(): UseRampsControllerResult {
     setSelectedPaymentMethod,
     paymentMethodsLoading,
     paymentMethodsError,
+
+    // Quotes
+    quotes,
+    selectedQuote,
+    getQuotes,
+    setSelectedQuote,
+    startQuotePolling,
+    stopQuotePolling,
+    getWidgetUrl,
+    quotesLoading,
+    quotesError,
   };
 }
 

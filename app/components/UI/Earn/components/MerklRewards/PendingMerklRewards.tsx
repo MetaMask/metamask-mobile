@@ -18,6 +18,9 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import useTooltipModal from '../../../../hooks/useTooltipModal';
 import AppConstants from '../../../../../core/AppConstants';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
+import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
 
 interface PendingMerklRewardsProps {
   claimableReward: string | null;
@@ -26,16 +29,30 @@ interface PendingMerklRewardsProps {
 /**
  * Component to display pending Merkl rewards information (annual bonus and claimable bonus)
  */
+const TOOLTIP_NAME_CLAIM_BONUS_INFO = 'Claim Bonus Info';
+const EXPERIENCE_MUSD_BONUS = 'MUSD_BONUS';
+
 const PendingMerklRewards: React.FC<PendingMerklRewardsProps> = ({
   claimableReward,
 }) => {
   const { openTooltipModal } = useTooltipModal();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleTermsPress = useCallback(() => {
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
   }, []);
 
   const handleInfoPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(EVENT_NAME.TOOLTIP_OPENED)
+        .addProperties({
+          text: strings('asset_overview.merkl_rewards.claimable_bonus'),
+          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_OVERVIEW,
+          tooltip_name: TOOLTIP_NAME_CLAIM_BONUS_INFO,
+          experience: EXPERIENCE_MUSD_BONUS,
+        })
+        .build(),
+    );
     openTooltipModal(
       strings('asset_overview.merkl_rewards.claimable_bonus'),
       <Text variant={TextVariant.BodyMd}>
@@ -53,7 +70,7 @@ const PendingMerklRewards: React.FC<PendingMerklRewardsProps> = ({
       undefined,
       strings('asset_overview.merkl_rewards.ok'),
     );
-  }, [openTooltipModal, handleTermsPress]);
+  }, [openTooltipModal, handleTermsPress, trackEvent, createEventBuilder]);
 
   // Don't render anything if there's no claimable reward
   if (!claimableReward) {

@@ -94,9 +94,9 @@ exports[`SnapUIInput handles disabled input 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#b7bbc8",
-                    "borderRadius": 8,
+                    "backgroundColor": "#3c4d9d0f",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
                     "flexGrow": 1,
@@ -121,9 +121,12 @@ exports[`SnapUIInput handles disabled input 1`] = `
                     autoFocus={false}
                     editable={false}
                     id="testInput"
+                    multiline={false}
+                    numberOfLines={1}
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
+                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -136,7 +139,6 @@ exports[`SnapUIInput handles disabled input 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }
@@ -252,9 +254,9 @@ exports[`SnapUIInput renders with initial value 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#b7bbc8",
-                    "borderRadius": 8,
+                    "backgroundColor": "#3c4d9d0f",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
                     "flexGrow": 1,
@@ -279,9 +281,12 @@ exports[`SnapUIInput renders with initial value 1`] = `
                     autoFocus={false}
                     editable={true}
                     id="testInput"
+                    multiline={false}
+                    numberOfLines={1}
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
+                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -294,7 +299,6 @@ exports[`SnapUIInput renders with initial value 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }

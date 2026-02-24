@@ -334,6 +334,18 @@ jest.mock('../../hooks', () => ({
 }));
 
 // Mock direct hook imports (when imported from specific file paths)
+jest.mock('../../hooks/usePerpsConnection', () => ({
+  usePerpsConnection: jest.fn(() => ({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/usePerpsPaymentTokens', () => ({
   usePerpsPaymentTokens: jest.fn(() => [
     {
@@ -637,16 +649,16 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () =>
 jest.mock(
   '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount',
   () => {
-    const React = jest.requireActual('react');
+    const ReactActual = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
     return {
       __esModule: true,
       default: ({ account }: { account?: unknown }) =>
         account
-          ? React.createElement(
+          ? ReactActual.createElement(
               View,
               { testID: 'add-rewards-account' },
-              React.createElement(Text, {}, 'Add Rewards Account'),
+              ReactActual.createElement(Text, {}, 'Add Rewards Account'),
             )
           : null,
     };
@@ -679,6 +691,7 @@ const defaultMockHooks = {
     placeOrder: jest.fn(),
     depositWithConfirmation: jest.fn().mockResolvedValue(undefined),
     withdrawWithConfirmation: jest.fn(),
+    subscribeToPrices: jest.fn(() => jest.fn()),
     getMarkets: jest.fn().mockResolvedValue([
       {
         name: 'ETH',
@@ -1068,6 +1081,69 @@ describe('PerpsOrderView', () => {
     // Since our mock setup already has valid values, we can just verify the mock was set up
     expect(mockPlaceOrder).toBeDefined();
     expect(mockGetPositions).toBeDefined();
+  });
+
+  it('shows submitted toast when order execution hook invokes onSubmitted', async () => {
+    const mockShowToast = jest.fn();
+    const submittedToast = { id: 'order-submitted-toast' };
+    (usePerpsToasts as jest.Mock).mockReturnValue({
+      showToast: mockShowToast,
+      PerpsToastOptions: {
+        formValidation: {
+          orderForm: {
+            limitPriceRequired: {},
+            validationError: jest.fn(),
+          },
+        },
+        orderManagement: {
+          market: {
+            submitted: jest.fn(() => submittedToast),
+            confirmed: jest.fn(),
+            creationFailed: jest.fn(),
+          },
+          limit: {
+            submitted: jest.fn(),
+            confirmed: jest.fn(),
+            creationFailed: jest.fn(),
+          },
+        },
+        positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
+        dataFetching: {
+          market: { error: { marketDataUnavailable: jest.fn() } },
+        },
+        accountManagement: {
+          deposit: {
+            inProgress: jest.fn(),
+            takingLonger: {},
+            tradeCanceled: {},
+            error: {},
+          },
+        },
+      },
+    });
+
+    (usePerpsOrderExecution as jest.Mock).mockImplementation(
+      (options: { onSubmitted?: () => void }) => ({
+        placeOrder: jest.fn().mockImplementation(async () => {
+          options?.onSubmitted?.();
+          return { success: true };
+        }),
+        isPlacing: false,
+      }),
+    );
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalledWith(submittedToast);
+    });
   });
 
   it('handles failed order placement', async () => {
@@ -3153,7 +3229,9 @@ describe('PerpsOrderView', () => {
 
       // Assert - Should NOT show "No funds available" warning while loading
       expect(
-        queryByText('No funds available. Please deposit first.'),
+        queryByText(
+          'Not enough funds available. Deposit funds or select a different payment method',
+        ),
       ).toBeNull();
     });
 

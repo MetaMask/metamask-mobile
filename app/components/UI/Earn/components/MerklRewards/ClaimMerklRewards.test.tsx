@@ -265,8 +265,8 @@ describe('ClaimMerklRewards', () => {
   });
 
   it('does not navigate to home page when claim submission fails', async () => {
-    const error = new Error('Claim failed');
-    mockClaimRewards.mockRejectedValue(error);
+    // claimRewards returns undefined on failure (no longer throws)
+    mockClaimRewards.mockResolvedValue(undefined);
 
     const { getByText } = render(<ClaimMerklRewards asset={mockAsset} />);
 

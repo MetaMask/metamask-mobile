@@ -15,7 +15,6 @@ import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/const
 // Mock dependencies
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
-import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { BIOMETRY_CHOICE_DISABLED } from '../../../constants/storage';
 import { EndTraceRequest } from '../../../util/trace';
@@ -24,8 +23,6 @@ import { RecursivePartial } from '../../../core/Authentication/Authentication.te
 import { RootState } from '../../../reducers';
 import { ReduxStore } from '../../../core/redux/types';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
-
-const mockEngine = jest.mocked(Engine);
 
 jest.mock('../../../util/Logger');
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
@@ -37,6 +34,8 @@ const mockLockApp = jest.fn();
 const mockReauthenticate = jest.fn();
 const mockRevealSRP = jest.fn();
 const mockRevealPrivateKey = jest.fn();
+const mockCheckIsSeedlessPasswordOutdated = jest.fn();
+const mockUpdateAuthPreference = jest.fn();
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -48,6 +47,8 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
     reauthenticate: mockReauthenticate,
     revealSRP: mockRevealSRP,
     revealPrivateKey: mockRevealPrivateKey,
+    checkIsSeedlessPasswordOutdated: mockCheckIsSeedlessPasswordOutdated,
+    updateAuthPreference: mockUpdateAuthPreference,
   }),
 }));
 
@@ -190,6 +191,8 @@ describe('Login test suite 2', () => {
     // Mock Redux store for all tests
     const mockStore = createMockReduxStore();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
+    // Default mock for checkIsSeedlessPasswordOutdated - returns false (password not outdated)
+    mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
   });
 
   afterEach(() => {
@@ -359,38 +362,6 @@ describe('Login test suite 2', () => {
       });
 
       expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
-    });
-  });
-
-  describe('updateBiometryChoice', () => {
-    it('updates biometry choice to disabled when biometric auth is cancelled', async () => {
-      mockGetAuthType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-      });
-
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
-      });
-      mockEngine.context.KeyringController.verifyPassword.mockResolvedValue(
-        undefined,
-      );
-
-      mockUnlockWallet.mockRejectedValue(new Error('Error: Cancel'));
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      mockRoute.mockClear();
     });
   });
 

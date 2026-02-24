@@ -176,10 +176,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   const React = jest.requireActual('react');
   const { TextInput } = jest.requireActual('react-native');
 
-  const TextFieldSize = {
-    Lg: 'lg',
-  };
-
   const MockTextField = ({
     testID,
     onChangeText,
@@ -212,7 +208,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   return {
     __esModule: true,
     default: MockTextField,
-    TextFieldSize,
   };
 });
 

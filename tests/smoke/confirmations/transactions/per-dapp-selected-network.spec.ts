@@ -4,16 +4,17 @@ import {
   buildPermissions,
   AnvilPort,
 } from '../../../framework/fixtures/FixtureUtils';
-import Browser from '../../../../e2e/pages/Browser/BrowserView';
-import ConfirmationFooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
-import ConfirmationUITypes from '../../../../e2e/pages/Browser/Confirmations/ConfirmationUITypes';
-import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
-import NetworkListModal from '../../../../e2e/pages/Network/NetworkListModal';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
-import { SmokeConfirmations } from '../../../../e2e/tags.js';
+import Browser from '../../../page-objects/Browser/BrowserView';
+import ConfirmationFooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
+import ConfirmationUITypes from '../../../page-objects/Browser/Confirmations/ConfirmationUITypes';
+import TestDApp from '../../../page-objects/Browser/TestDApp';
+import NetworkListModal from '../../../page-objects/Network/NetworkListModal';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import WalletView from '../../../page-objects/wallet/WalletView';
+import { SmokeConfirmations } from '../../../tags.js';
 import Assertions from '../../../framework/Assertions';
-import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../flows/browser.flow';
 import { DappVariants } from '../../../framework/Constants';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';

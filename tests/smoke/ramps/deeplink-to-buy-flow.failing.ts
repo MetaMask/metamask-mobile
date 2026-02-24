@@ -1,15 +1,16 @@
-import TestHelpers from '../../../e2e/helpers';
-import { loginToApp } from '../../../e2e/viewHelper';
+import TestHelpers from '../../helpers';
+import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { SmokeRamps } from '../../../e2e/tags';
+import { SmokeRamps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import SellGetStartedView from '../../../e2e/pages/Ramps/SellGetStartedView';
-import BuyGetStartedView from '../../../e2e/pages/Ramps/BuyGetStartedView';
-import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView';
-import TokenSelectBottomSheet from '../../../e2e/pages/Ramps/TokenSelectBottomSheet';
+import SellGetStartedView from '../../page-objects/Ramps/SellGetStartedView';
+import BuyGetStartedView from '../../page-objects/Ramps/BuyGetStartedView';
+import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
+import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
+
 import Assertions from '../../framework/Assertions';
 import { PopularNetworksList } from '../../resources/networks.e2e';
-import NetworkEducationModal from '../../../e2e/pages/Network/NetworkEducationModal';
+import NetworkEducationModal from '../../page-objects/Network/NetworkEducationModal';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
@@ -47,7 +48,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
         );
         await BuildQuoteView.tapTokenDropdown('Ethereum');
 
-        await TokenSelectBottomSheet.tapTokenByName('DAI');
+        await TokenSelectScreen.tapTokenByName('DAI');
         await Assertions.expectTextDisplayed('Dai Stablecoin');
         await Assertions.expectTextDisplayed('$275');
       },

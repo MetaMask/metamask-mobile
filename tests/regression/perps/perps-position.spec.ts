@@ -1,15 +1,15 @@
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { RegressionTrade } from '../../../e2e/tags';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import { RegressionTrade } from '../../tags';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { PerpsHelpers } from '../../helpers/perps/perps-helpers';
-import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
-import PerpsMarketListView from '../../../e2e/pages/Perps/PerpsMarketListView';
+import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
+import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
-import PerpsMarketDetailsView from '../../../e2e/pages/Perps/PerpsMarketDetailsView';
-import PerpsOrderView from '../../../e2e/pages/Perps/PerpsOrderView';
-import PerpsView from '../../../e2e/pages/Perps/PerpsView';
+import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
+import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
+import PerpsView from '../../page-objects/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework/logger';
 
 // E2E environment setup - mocks auto-configure via isE2E flag

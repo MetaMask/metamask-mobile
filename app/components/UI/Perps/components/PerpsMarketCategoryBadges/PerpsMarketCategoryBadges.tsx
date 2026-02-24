@@ -8,7 +8,7 @@ import type {
   PerpsMarketCategoryBadgesProps,
   CategoryBadgeConfig,
 } from './PerpsMarketCategoryBadges.types';
-import type { MarketTypeFilter } from '../../controllers/types';
+import { type MarketTypeFilter } from '@metamask/perps-controller';
 
 // Animation configuration
 const ANIMATION_DURATION = 250;

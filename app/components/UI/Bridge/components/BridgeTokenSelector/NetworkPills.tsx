@@ -2,6 +2,18 @@ import React, { useRef } from 'react';
 import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  AvatarBaseShape,
+  AvatarNetwork,
+  AvatarNetworkSize,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
   selectSourceChainRanking,
@@ -12,6 +24,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 import { TokenSelectorType } from '../../types';
+import { getNetworkImageSource } from '../../../../../util/networks';
 
 const PILL_WIDTH = 90; // Average pill width including gap
 
@@ -75,11 +88,37 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   const renderChainPills = () =>
     chainRanking.map((chain: { chainId: CaipChainId; name: string }) => {
       const isSelected = selectedChainId === chain.chainId;
+      const imageSource = getNetworkImageSource({ chainId: chain.chainId });
 
       return (
         <ButtonToggle
           key={chain.chainId}
-          label={chain.name}
+          label={
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+            >
+              {/* translateY corrects optical misalignment between icon and text
+                 caused by font line-height metrics */}
+              <AvatarNetwork
+                src={imageSource}
+                size={AvatarNetworkSize.Xs}
+                name={chain.name}
+                shape={AvatarBaseShape.Square}
+                twClassName="rounded translate-y-[1px]"
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={
+                  isSelected ? TextColor.PrimaryInverse : TextColor.TextDefault
+                }
+              >
+                {chain.name}
+              </Text>
+            </Box>
+          }
           isActive={isSelected}
           onPress={() => handleChainPress(chain.chainId)}
           size={ButtonSize.Md}

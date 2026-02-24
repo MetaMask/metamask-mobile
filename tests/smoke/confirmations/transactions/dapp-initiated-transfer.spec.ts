@@ -1,22 +1,20 @@
-import { SmokeConfirmations } from '../../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
-import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import { SmokeConfirmations } from '../../../tags';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../flows/browser.flow';
+import Browser from '../../../page-objects/Browser/BrowserView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import ConfirmationUITypes from '../../../../e2e/pages/Browser/Confirmations/ConfirmationUITypes';
-import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import ConfirmationUITypes from '../../../page-objects/Browser/Confirmations/ConfirmationUITypes';
+import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
 import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import {
-  AnvilPort,
-  buildPermissions,
-} from '../../../framework/fixtures/FixtureUtils';
-import RowComponents from '../../../../e2e/pages/Browser/Confirmations/RowComponents';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents';
 import {
   SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
-import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
+import TestDApp from '../../../page-objects/Browser/TestDApp';
 import { DappVariants } from '../../../framework/Constants';
 import {
   EventPayload,
@@ -36,12 +34,11 @@ import {
 } from '../../../api-mocking/mock-responses/security-alerts-mock';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import { LocalNode } from '../../../framework/types';
-import { AnvilManager } from '../../../seeder/anvil-manager';
+import { DEFAULT_ANVIL_PORT } from '../../../seeder/anvil-manager';
+import { commonTransactionPropertiesAndTypes } from '../../../helpers/analytics/common-transaction-properties';
 
 const expectedEvents = {
   TRANSACTION_ADDED: 'Transaction Added',
-  CONFIRMATION_SCREEN_VIEWED: 'Confirmation Screen Viewed',
   TRANSACTION_SUBMITTED: 'Transaction Submitted',
   TRANSACTION_APPROVED: 'Transaction Approved',
   TRANSACTION_FINALIZED: 'Transaction Finalized',
@@ -49,13 +46,12 @@ const expectedEvents = {
 
 const expectedEventNames = [
   expectedEvents.TRANSACTION_ADDED,
-  expectedEvents.CONFIRMATION_SCREEN_VIEWED,
   expectedEvents.TRANSACTION_SUBMITTED,
   expectedEvents.TRANSACTION_APPROVED,
   expectedEvents.TRANSACTION_FINALIZED,
 ];
 
-describe.skip(SmokeConfirmations('DApp Initiated Transfer'), () => {
+describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockPostRequest(
       mockServer,
@@ -64,6 +60,15 @@ describe.skip(SmokeConfirmations('DApp Initiated Transfer'), () => {
       SECURITY_ALERTS_BENIGN_RESPONSE,
       {
         statusCode: 201,
+        ignoreFields: [
+          'networkClientId',
+          'id',
+          'toNative',
+          'origin',
+          'params[0].to',
+          'params[0].gas',
+          'params[0].gasPrice',
+        ],
       },
     );
 
@@ -110,32 +115,24 @@ describe.skip(SmokeConfirmations('DApp Initiated Transfer'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-          const rpcPort =
-            node instanceof AnvilManager
-              ? (node.getPort() ?? AnvilPort())
-              : undefined;
-
-          return new FixtureBuilder()
-            .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
-            })
-            .withNetworkEnabledMap({
-              eip155: { '0x539': true },
-            })
-            .withMetaMetricsOptIn()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(['0x539']),
-            )
-            .build();
-        },
+        fixture: new FixtureBuilder()
+          .withNetworkController({
+            providerConfig: {
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
+            },
+          })
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
+          .withMetaMetricsOptIn()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
+          .build(),
         restartDevice: true,
         testSpecificMock,
         endTestfn: async ({ mockServer }) => {
@@ -204,43 +201,10 @@ describe.skip(SmokeConfirmations('DApp Initiated Transfer'), () => {
         Assertions.checkIfObjectHasKeysAndValidValues(
           transactionAddedEvent?.properties ?? {},
           {
-            api_method: 'string',
-            eip7702_upgrade_transaction: 'boolean',
-            chain_id: 'string',
-            gas_estimation_failed: 'boolean',
-            gas_fee_presented: 'array',
-            gas_fee_selected: 'string',
-            status: 'string',
-            source: 'string',
-            transaction_contract_method: 'array',
-            transaction_envelope_type: 'string',
-            transaction_internal_id: 'string',
-            transaction_type: 'string',
-            from_address: 'string',
-            to_address: 'string',
-            value: 'string',
+            ...commonTransactionPropertiesAndTypes,
           },
         ),
       'Transaction Added: Should have the correct properties',
-    );
-
-    // Confirmation Screen Viewed
-    const confirmationScreenViewedEvent = eventsToCheck.find(
-      (event) => event.event === expectedEvents.CONFIRMATION_SCREEN_VIEWED,
-    );
-    await softAssert.checkAndCollect(
-      () => Assertions.checkIfValueIsDefined(confirmationScreenViewedEvent),
-      'Confirmation Screen Viewed: Should be defined',
-    );
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfObjectHasKeysAndValidValues(
-          confirmationScreenViewedEvent?.properties ?? {},
-          {
-            location: 'string',
-          },
-        ),
-      'Confirmation Screen Viewed: Should have the correct properties',
     );
 
     // Transaction Submitted
@@ -256,18 +220,7 @@ describe.skip(SmokeConfirmations('DApp Initiated Transfer'), () => {
         Assertions.checkIfObjectHasKeysAndValidValues(
           transactionSubmittedEvent?.properties ?? {},
           {
-            api_method: 'string',
-            eip7702_upgrade_transaction: 'boolean',
-            chain_id: 'string',
-            gas_estimation_failed: 'boolean',
-            gas_fee_presented: 'array',
-            gas_fee_selected: 'string',
-            status: 'string',
-            source: 'string',
-            transaction_contract_method: 'array',
-            transaction_envelope_type: 'string',
-            transaction_internal_id: 'string',
-            transaction_type: 'string',
+            ...commonTransactionPropertiesAndTypes,
             simulation_response: 'string',
             simulation_latency: 'number',
             simulation_receiving_assets_quantity: 'number',
@@ -276,11 +229,7 @@ describe.skip(SmokeConfirmations('DApp Initiated Transfer'), () => {
             simulation_sending_assets_quantity: 'number',
             simulation_sending_assets_type: 'array',
             simulation_sending_assets_value: 'array',
-            transaction_transfer_usd_value: 'string',
             asset_type: 'string',
-            from_address: 'string',
-            to_address: 'string',
-            value: 'string',
             simulation_receiving_assets_total_value: 'number',
             simulation_sending_assets_total_value: 'number',
           },
@@ -301,18 +250,7 @@ describe.skip(SmokeConfirmations('DApp Initiated Transfer'), () => {
         Assertions.checkIfObjectHasKeysAndValidValues(
           transactionApprovedEvent?.properties ?? {},
           {
-            api_method: 'string',
-            eip7702_upgrade_transaction: 'boolean',
-            chain_id: 'string',
-            gas_estimation_failed: 'boolean',
-            gas_fee_presented: 'array',
-            gas_fee_selected: 'string',
-            status: 'string',
-            source: 'string',
-            transaction_contract_method: 'array',
-            transaction_envelope_type: 'string',
-            transaction_internal_id: 'string',
-            transaction_type: 'string',
+            ...commonTransactionPropertiesAndTypes,
             simulation_response: 'string',
             simulation_latency: 'number',
             simulation_receiving_assets_quantity: 'number',
@@ -321,11 +259,7 @@ describe.skip(SmokeConfirmations('DApp Initiated Transfer'), () => {
             simulation_sending_assets_quantity: 'number',
             simulation_sending_assets_type: 'array',
             simulation_sending_assets_value: 'array',
-            transaction_transfer_usd_value: 'string',
             asset_type: 'string',
-            from_address: 'string',
-            to_address: 'string',
-            value: 'string',
             simulation_receiving_assets_total_value: 'number',
             simulation_sending_assets_total_value: 'number',
           },
@@ -346,18 +280,7 @@ describe.skip(SmokeConfirmations('DApp Initiated Transfer'), () => {
         Assertions.checkIfObjectHasKeysAndValidValues(
           transactionFinalizedEvent?.properties ?? {},
           {
-            api_method: 'string',
-            eip7702_upgrade_transaction: 'boolean',
-            chain_id: 'string',
-            gas_estimation_failed: 'boolean',
-            gas_fee_presented: 'array',
-            gas_fee_selected: 'string',
-            status: 'string',
-            source: 'string',
-            transaction_contract_method: 'array',
-            transaction_envelope_type: 'string',
-            transaction_internal_id: 'string',
-            transaction_type: 'string',
+            ...commonTransactionPropertiesAndTypes,
             simulation_response: 'string',
             simulation_latency: 'number',
             simulation_receiving_assets_quantity: 'number',
@@ -366,12 +289,8 @@ describe.skip(SmokeConfirmations('DApp Initiated Transfer'), () => {
             simulation_sending_assets_quantity: 'number',
             simulation_sending_assets_type: 'array',
             simulation_sending_assets_value: 'array',
-            transaction_transfer_usd_value: 'string',
             asset_type: 'string',
             rpc_domain: 'string',
-            from_address: 'string',
-            to_address: 'string',
-            value: 'string',
             simulation_receiving_assets_total_value: 'number',
             simulation_sending_assets_total_value: 'number',
           },

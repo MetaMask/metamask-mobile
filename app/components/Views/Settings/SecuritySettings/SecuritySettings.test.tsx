@@ -15,6 +15,7 @@ import {
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
   TURN_ON_REMEMBER_ME,
 } from './SecuritySettings.constants';
+import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
@@ -81,6 +82,13 @@ jest.mock(
   }),
 );
 
+jest.mock(
+  '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled',
+  () => ({
+    useAccountMenuEnabled: jest.fn(() => false),
+  }),
+);
+
 describe('SecuritySettings', () => {
   beforeEach(() => {
     mockUseParamsValues = {
@@ -109,7 +117,7 @@ describe('SecuritySettings', () => {
     });
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
-  it('renders all sections', () => {
+  it('renders all sections when account menu is disabled', () => {
     const { getByText, getByTestId } = renderWithProvider(
       <SecuritySettings />,
       {
@@ -124,6 +132,31 @@ describe('SecuritySettings', () => {
     expect(getByTestId(LOGIN_OPTIONS)).toBeTruthy();
     expect(getByTestId(TURN_ON_REMEMBER_ME)).toBeTruthy();
     expect(getByTestId(SDK_SECTION)).toBeTruthy();
+    expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
+    expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();
+    expect(getByTestId(META_METRICS_SECTION)).toBeTruthy();
+    expect(getByTestId(DELETE_METRICS_BUTTON)).toBeTruthy();
+    expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeTruthy();
+    expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
+  });
+
+  it('renders all sections without SDK section when account menu is enabled', () => {
+    jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+    const { getByText, getByTestId, queryByTestId } = renderWithProvider(
+      <SecuritySettings />,
+      {
+        state: initialState,
+      },
+    );
+    expect(getByText(strings('app_settings.protect_title'))).toBeTruthy();
+    expect(
+      getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
+    ).toBeTruthy();
+    expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
+    expect(getByTestId(LOGIN_OPTIONS)).toBeTruthy();
+    expect(getByTestId(TURN_ON_REMEMBER_ME)).toBeTruthy();
+    expect(queryByTestId(SDK_SECTION)).toBeNull();
     expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();
     expect(getByTestId(META_METRICS_SECTION)).toBeTruthy();

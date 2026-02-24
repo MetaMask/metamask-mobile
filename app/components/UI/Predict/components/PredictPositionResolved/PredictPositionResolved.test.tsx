@@ -62,12 +62,17 @@ const basePosition: PredictPositionType = {
   endDate: '2020-01-01T00:00:00Z', // Past date so it shows "Ended X ago" instead of "Resolved early"
 };
 
-const renderComponent = (overrides?: Partial<PredictPositionType>) => {
+const renderComponent = (
+  overrides?: Partial<PredictPositionType>,
+  privacyMode = false,
+) => {
   const position: PredictPositionType = {
     ...basePosition,
     ...overrides,
   } as PredictPositionType;
-  return render(<PredictPositionResolved position={position} />);
+  return render(
+    <PredictPositionResolved position={position} privacyMode={privacyMode} />,
+  );
 };
 
 describe('PredictPositionResolved', () => {
@@ -112,7 +117,11 @@ describe('PredictPositionResolved', () => {
   it('calls onPress when position is tapped', () => {
     const mockOnPress = jest.fn();
     render(
-      <PredictPositionResolved position={basePosition} onPress={mockOnPress} />,
+      <PredictPositionResolved
+        position={basePosition}
+        onPress={mockOnPress}
+        privacyMode={false}
+      />,
     );
 
     const touchableElement = screen.getByText(basePosition.title);
@@ -128,5 +137,28 @@ describe('PredictPositionResolved', () => {
     const touchableElement = screen.getByText(basePosition.title);
     // Should not throw when onPress is not provided
     expect(() => fireEvent.press(touchableElement)).not.toThrow();
+  });
+
+  describe('privacy mode', () => {
+    it('hides won amount and position info when privacy mode is enabled', () => {
+      const { queryByText, getByText, queryAllByText } = renderComponent(
+        undefined,
+        true,
+      );
+
+      expect(queryByText(/\$123\.45 on Yes/)).toBeNull();
+      expect(queryByText(/Ended 2 days ago/)).toBeNull();
+      expect(queryByText(/Won\s+\$2,345\.67/)).toBeNull();
+      expect(getByText(basePosition.title)).toBeOnTheScreen();
+      expect(queryAllByText(/•+/).length).toBeGreaterThan(0);
+    });
+
+    it('displays won amount and position info when privacy mode is disabled', () => {
+      renderComponent();
+
+      expect(screen.getByText(/\$123\.45 on Yes/)).toBeOnTheScreen();
+      expect(screen.getByText(/Ended 2 days ago/)).toBeOnTheScreen();
+      expect(screen.getByText(/Won\s+\$2,345\.67/)).toBeOnTheScreen();
+    });
   });
 });

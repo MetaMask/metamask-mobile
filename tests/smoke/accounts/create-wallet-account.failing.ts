@@ -1,10 +1,10 @@
-import { SmokeAccounts } from '../../../e2e/tags.js';
-import WalletView from '../../../e2e/pages/wallet/WalletView.js';
-import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet.js';
+import { SmokeAccounts } from '../../tags.js';
+import WalletView from '../../page-objects/wallet/WalletView.js';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import Assertions from '../../framework/Assertions.js';
 import { withMultichainAccountDetailsV2EnabledFixtures } from '../../helpers/multichain-accounts/common.js';
-import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails.js';
-import AddressList from '../../../e2e/pages/MultichainAccounts/AddressList.js';
+import AccountDetails from '../../page-objects/MultichainAccounts/AccountDetails.js';
+import AddressList from '../../page-objects/MultichainAccounts/AddressList.js';
 import { defaultGanacheOptions } from '../../framework/Constants.js';
 import { completeSrpQuiz } from '../../flows/accounts.flow.js';
 

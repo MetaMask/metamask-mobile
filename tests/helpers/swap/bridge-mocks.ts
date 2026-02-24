@@ -21,9 +21,9 @@ export const testSpecificMock: TestSpecificMock = async (
     bridgeConfigV2: {
       chainRanking: [
         { chainId: 'eip155:1', name: 'Ethereum' },
+        { chainId: 'eip155:8453', name: 'Base' },
         { chainId: 'eip155:10', name: 'OP Mainnet' },
         { chainId: 'eip155:137', name: 'Polygon' },
-        { chainId: 'eip155:8453', name: 'Base' },
         { chainId: 'eip155:42161', name: 'Arbitrum One' },
         { chainId: 'eip155:43114', name: 'Avalanche' },
         { chainId: 'eip155:59144', name: 'Linea' },

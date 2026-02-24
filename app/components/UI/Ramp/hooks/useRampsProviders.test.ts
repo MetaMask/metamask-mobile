@@ -16,6 +16,16 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroupWithInternalAccountsAddresses: () => [],
+  }),
+);
+
 jest.mock('../utils/determinePreferredProvider', () => ({
   determinePreferredProvider: jest.fn(),
 }));
@@ -23,7 +33,7 @@ jest.mock('../utils/determinePreferredProvider', () => ({
 const emptyOrders: FiatOrder[] = [];
 jest.mock('../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../reducers/fiatOrders'),
-  getOrders: jest.fn((_state: unknown) => emptyOrders),
+  getOrders: jest.fn((_state: unknown) => []),
 }));
 
 const mockProviders: RampProvider[] = [
@@ -72,6 +82,9 @@ const createMockStore = (providersState = {}) =>
             },
           },
         },
+      }),
+      fiatOrders: () => ({
+        orders: [],
       }),
     },
   });
