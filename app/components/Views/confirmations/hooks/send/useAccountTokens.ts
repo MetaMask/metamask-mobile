@@ -13,6 +13,9 @@ import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
 import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
 
+const EMPTY_CACHE = {} as ReturnType<typeof selectERC20TokensByChain>;
+const selectEmptyCache = () => EMPTY_CACHE;
+
 export function useAccountTokens({
   includeNoBalance = false,
   includeAllTokens = false,
@@ -22,7 +25,9 @@ export function useAccountTokens({
 } = {}): AssetType[] {
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
   const fiatCurrency = useSelector(selectCurrentCurrency);
-  const tokensChainsCache = useSelector(selectERC20TokensByChain);
+  const tokensChainsCache = useSelector(
+    includeAllTokens ? selectERC20TokensByChain : selectEmptyCache,
+  );
 
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
