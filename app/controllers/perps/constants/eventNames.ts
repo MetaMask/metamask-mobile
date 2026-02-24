@@ -268,6 +268,7 @@ export const PERPS_EVENT_VALUE = {
     POSITION_UPDATE_FAILED: 'position_update_failed',
     TP_SL_UPDATE_FAILED: 'tp_sl_update_failed',
     MARGIN_UPDATE_FAILED: 'margin_update_failed',
+    UNKNOWN: 'unknown',
   },
   INTERACTION_TYPE: {
     TAP: 'tap',

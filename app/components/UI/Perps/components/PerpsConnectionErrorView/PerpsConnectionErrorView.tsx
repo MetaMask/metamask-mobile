@@ -55,7 +55,8 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
       [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
         PERPS_EVENT_VALUE.SCREEN_NAME.CONNECTION_ERROR,
       [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.NETWORK,
-      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorCode ?? 'unknown',
+      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+        errorCode ?? PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.UNKNOWN,
       [PERPS_EVENT_PROPERTY.RETRY_ATTEMPTS]: retryAttempts,
     },
   });
@@ -129,7 +130,8 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
               [PERPS_EVENT_PROPERTY.ACTION]:
                 PERPS_EVENT_VALUE.ACTION.CONNECTION_RETRY,
               [PERPS_EVENT_PROPERTY.ATTEMPT_NUMBER]: retryAttempts + 1,
-              [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorCode ?? 'unknown',
+              [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+                errorCode ?? PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.UNKNOWN,
             });
             onRetry();
           }}
@@ -150,7 +152,8 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
                 [PERPS_EVENT_PROPERTY.ACTION]:
                   PERPS_EVENT_VALUE.ACTION.CONNECTION_GO_BACK,
                 [PERPS_EVENT_PROPERTY.ATTEMPT_NUMBER]: retryAttempts,
-                [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorCode ?? 'unknown',
+                [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+                  errorCode ?? PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.UNKNOWN,
               });
               handleGoBack();
             }}
