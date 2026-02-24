@@ -8221,10 +8221,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-tokens@npm:^8.1.1":
-  version: 8.1.1
-  resolution: "@metamask/design-tokens@npm:8.1.1"
-  checksum: 10/2b392f6c3dd364fa7df02e629214d7d8c862059fcccfe761005777fbdf6069ea99dae10c7d9b85184f9d04b432fdf2d521906e8141990f21da58542624fc8d5e
+"@metamask/design-tokens@npm:^8.2.0":
+  version: 8.2.0
+  resolution: "@metamask/design-tokens@npm:8.2.0"
+  checksum: 10/cc80fd485c8eadcf5e1e380212b852be1eda2ad925ab50ff2cc992c04a0148c2ac755fffecf6dae96b350b6b7a6fa4aeaa91cbe3ca5cd58eb4fba17c68d94449
   languageName: node
   linkType: hard
 
@@ -35406,7 +35406,7 @@ __metadata:
     "@metamask/delegation-deployments": "npm:^0.15.0"
     "@metamask/design-system-react-native": "npm:^0.7.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.3.0"
-    "@metamask/design-tokens": "npm:^8.1.1"
+    "@metamask/design-tokens": "npm:^8.2.0"
     "@metamask/earn-controller": "npm:^10.0.0"
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
