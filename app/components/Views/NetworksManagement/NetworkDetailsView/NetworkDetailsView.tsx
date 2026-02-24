@@ -156,9 +156,9 @@ const NetworkDetailsView = () => {
   }, []);
 
   const confirmDelete = useCallback(async () => {
-    const { chainId, rpcUrl } = formHook.form;
-    if (!chainId || !rpcUrl) return;
-    await operations.removeNetwork(rpcUrl);
+    const { chainId } = formHook.form;
+    if (!chainId) return;
+    await operations.removeNetwork(chainId);
     const caipChainId: CaipChainId = `eip155:${parseInt(chainId, 16)}`;
     disableNetwork(caipChainId);
     setShowDeleteModal(false);

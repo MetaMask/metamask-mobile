@@ -287,7 +287,7 @@ describe('useNetworkOperations', () => {
       const { result } = renderHook(() => useNetworkOperations());
 
       await act(async () => {
-        await result.current.removeNetwork('https://rpc.example.com');
+        await result.current.removeNetwork('0x2a');
       });
 
       expect(mockRemoveNetwork).toHaveBeenCalledWith('0x2a');
@@ -300,7 +300,7 @@ describe('useNetworkOperations', () => {
 
       await expect(
         act(async () => {
-          await result.current.removeNetwork('https://nonexistent.rpc.io');
+          await result.current.removeNetwork('0xdead');
         }),
       ).rejects.toThrow('Unable to find network');
     });

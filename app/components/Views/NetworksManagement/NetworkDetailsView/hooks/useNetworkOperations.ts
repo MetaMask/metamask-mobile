@@ -57,7 +57,7 @@ export interface UseNetworkOperationsReturn {
     },
   ) => Promise<void>;
   /** Remove the current network and navigate back. */
-  removeNetwork: (rpcUrl: string) => Promise<void>;
+  removeNetwork: (chainId: string) => Promise<void>;
   /** Navigate to the edit screen for the current network. */
   goToNetworkEdit: (rpcUrl: string) => void;
 }
@@ -289,9 +289,22 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
 
   // ---- Remove network -----------------------------------------------------
   const removeNetwork = useCallback(
-    async (rpcUrl: string) => {
+    async (chainId: string) => {
+      const hexChainId = chainId as Hex;
+      const networkConfiguration = networkConfigurations[hexChainId];
+
+      if (!networkConfiguration) {
+        throw new Error(`Unable to find network with chain ID ${chainId}`);
+      }
+
+      const defaultRpcUrl =
+        networkConfiguration.rpcEndpoints[
+          networkConfiguration.defaultRpcEndpointIndex
+        ]?.url;
+
       if (
-        compareSanitizedUrl(rpcUrl, providerConfig.rpcUrl ?? '') &&
+        defaultRpcUrl &&
+        compareSanitizedUrl(defaultRpcUrl, providerConfig.rpcUrl ?? '') &&
         providerConfig.type === RPC
       ) {
         const { MultichainNetworkController } = Engine.context;
@@ -306,19 +319,10 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         }, 1000);
       }
 
-      const entry = Object.entries(networkConfigurations).find(
-        ([, cfg]) =>
-          cfg.rpcEndpoints[cfg.defaultRpcEndpointIndex]?.url === rpcUrl,
-      );
-
-      if (!entry) {
-        throw new Error(`Unable to find network with RPC URL ${rpcUrl}`);
-      }
-      const [, networkConfiguration] = entry;
       const { NetworkController } = Engine.context;
-      NetworkController.removeNetwork(networkConfiguration.chainId);
+      NetworkController.removeNetwork(hexChainId);
 
-      addTraitsToUser(removeItemFromChainIdList(networkConfiguration.chainId));
+      addTraitsToUser(removeItemFromChainIdList(hexChainId));
 
       navigation.goBack();
     },

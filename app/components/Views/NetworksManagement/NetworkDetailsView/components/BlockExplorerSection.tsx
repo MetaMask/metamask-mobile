@@ -177,7 +177,13 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
   };
 
   const handleFormSubmit = () => {
-    if (!blockExplorerUrlForm) return;
+    if (
+      !blockExplorerUrlForm ||
+      !isUrl(blockExplorerUrlForm) ||
+      blockExplorerUrls.includes(blockExplorerUrlForm)
+    ) {
+      return;
+    }
     onBlockExplorerItemAdd(blockExplorerUrlForm);
     if (hadListWhenFormOpened.current) {
       setShowForm(false);

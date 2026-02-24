@@ -763,7 +763,7 @@ describe('NetworkDetailsView', () => {
       // Confirm delete
       fireEvent.press(getByTestId('networks-settings-delete-confirm-button'));
 
-      expect(ops.removeNetwork).toHaveBeenCalledWith('https://rpc.example.com');
+      expect(ops.removeNetwork).toHaveBeenCalledWith('0x2a');
     });
   });
 

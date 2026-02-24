@@ -32,8 +32,6 @@ const RpcUrlInput = forwardRef<TextInput, RpcUrlInputProps>((props, ref) => {
 
   const validateRpcUrl = useCallback(
     async (rpcUrl: string) => {
-      const isNetworkExists = await checkIfNetworkExists(rpcUrl);
-      const isRpcExists = await checkIfRpcUrlExists(rpcUrl);
       if (!isWebUri(rpcUrl)) {
         const appendedRpc = `http://${rpcUrl}`;
         if (isWebUri(appendedRpc)) {
@@ -44,6 +42,9 @@ const RpcUrlInput = forwardRef<TextInput, RpcUrlInputProps>((props, ref) => {
         onValidationChange(false);
         return false;
       }
+
+      const isNetworkExists = await checkIfNetworkExists(rpcUrl);
+      const isRpcExists = await checkIfRpcUrlExists(rpcUrl);
       if (isRpcExists.length > 0) {
         setWarningRpcUrl(strings('app_settings.invalid_rpc_url'));
         onValidationChange(false);

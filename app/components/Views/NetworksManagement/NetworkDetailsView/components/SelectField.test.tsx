@@ -17,14 +17,14 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('SelectField', () => {
   it('renders the value text', () => {
     const { getByText } = render(<SelectField value="Ethereum Mainnet" />);
-    expect(getByText('Ethereum Mainnet')).toBeTruthy();
+    expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
   });
 
   it('renders secondary text when provided', () => {
     const { getByText } = render(
       <SelectField value="RPC" secondaryText="https://rpc.example.com" />,
     );
-    expect(getByText('https://rpc.example.com')).toBeTruthy();
+    expect(getByText('https://rpc.example.com')).toBeOnTheScreen();
   });
 
   it('does not render secondary text when not provided', () => {
@@ -34,7 +34,7 @@ describe('SelectField', () => {
 
   it('renders the default ArrowDown icon', () => {
     const { getByText } = render(<SelectField value="Test" />);
-    expect(getByText('ArrowDown')).toBeTruthy();
+    expect(getByText('ArrowDown')).toBeOnTheScreen();
   });
 
   it('renders custom endContent instead of default icon', () => {
@@ -42,7 +42,7 @@ describe('SelectField', () => {
     const { getByText, queryByText } = render(
       <SelectField value="Test" endContent={<RNText>Custom End</RNText>} />,
     );
-    expect(getByText('Custom End')).toBeTruthy();
+    expect(getByText('Custom End')).toBeOnTheScreen();
     expect(queryByText('ArrowDown')).toBeNull();
   });
 

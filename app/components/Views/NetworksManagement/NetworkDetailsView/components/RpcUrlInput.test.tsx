@@ -16,7 +16,7 @@ describe('RpcUrlInput', () => {
 
   it('renders the text input', () => {
     const { getByTestId } = render(<RpcUrlInput {...defaultProps} />);
-    expect(getByTestId('rpc-url-input')).toBeTruthy();
+    expect(getByTestId('rpc-url-input')).toBeOnTheScreen();
   });
 
   it('does not show warning initially', () => {
@@ -34,7 +34,7 @@ describe('RpcUrlInput', () => {
     await waitFor(() => {
       expect(
         getByTestId(NetworkDetailsViewSelectorsIDs.RPC_WARNING_BANNER),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
     expect(defaultProps.onValidationChange).toHaveBeenCalledWith(false);
   });
@@ -47,7 +47,7 @@ describe('RpcUrlInput', () => {
     await waitFor(() => {
       expect(
         getByTestId(NetworkDetailsViewSelectorsIDs.RPC_WARNING_BANNER),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
     expect(defaultProps.onValidationChange).toHaveBeenCalledWith(false);
   });
