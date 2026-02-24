@@ -32,11 +32,19 @@ interface MarketInsightsTrendSourcesBottomSheetProps {
   trendTitle: string;
   articles: MarketInsightsArticle[];
   tweets?: MarketInsightsTweet[];
+  onSourcePress?: (url: string) => void;
 }
 
 const MarketInsightsTrendSourcesBottomSheet: React.FC<
   MarketInsightsTrendSourcesBottomSheetProps
-> = ({ isVisible, onClose, trendTitle, articles, tweets = [] }) => {
+> = ({
+  isVisible,
+  onClose,
+  trendTitle,
+  articles,
+  tweets = [],
+  onSourcePress,
+}) => {
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -49,9 +57,13 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
     }
   }, [isVisible]);
 
-  const handleSourcePress = useCallback((url: string) => {
-    Linking.openURL(url);
-  }, []);
+  const handleSourcePress = useCallback(
+    (url: string) => {
+      onSourcePress?.(url);
+      Linking.openURL(url);
+    },
+    [onSourcePress],
+  );
 
   return (
     <BottomSheet
