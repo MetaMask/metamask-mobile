@@ -50,6 +50,7 @@ const mockRampsOrderData: Partial<RampsOrder> = {
     chainId: 'eip155:1',
   },
   fiatCurrency: { symbol: 'USD', decimals: 2, denomSymbol: '$' },
+  statusDescription: 'Card purchases typically take a few minutes',
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   provider: { id: '/providers/transak', name: 'Transak', links: [] } as any,
 };
@@ -173,10 +174,24 @@ describe('OrderContent', () => {
     expect(screen.getByText('Processing')).toBeOnTheScreen();
   });
 
-  it('renders card processing info text', () => {
+  it('renders status description with info icon', () => {
     renderOrder(mockOrder);
     expect(
       screen.getByText('Card purchases typically take a few minutes'),
     ).toBeOnTheScreen();
+  });
+
+  it('does not render info row when statusDescription is absent', () => {
+    const orderWithoutDescription: FiatOrder = {
+      ...mockOrder,
+      data: {
+        ...mockRampsOrderData,
+        statusDescription: undefined,
+      } as RampsOrder,
+    };
+    renderOrder(orderWithoutDescription);
+    expect(
+      screen.queryByText('Card purchases typically take a few minutes'),
+    ).toBeNull();
   });
 });

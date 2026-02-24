@@ -32,6 +32,8 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: () => ({
     providerName: 'Transak',
     providerSupportUrl: 'https://transak.com/support',
+    statusDescription:
+      'Card purchases typically take a few minutes. You can contact support if you have questions.',
   }),
 }));
 

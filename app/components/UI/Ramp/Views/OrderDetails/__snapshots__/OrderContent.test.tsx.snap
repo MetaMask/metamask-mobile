@@ -526,10 +526,10 @@ exports[`OrderContent renders completed state correctly 1`] = `
     style={
       [
         {
-          "alignItems": "center",
           "display": "flex",
           "paddingBottom": 16,
           "paddingTop": 16,
+          "width": "100%",
         },
         undefined,
       ]
@@ -545,6 +545,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
               "alignItems": "center",
               "display": "flex",
               "flexDirection": "row",
+              "justifyContent": "center",
               "marginBottom": 16,
             },
             undefined,
@@ -1013,10 +1014,10 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
     style={
       [
         {
-          "alignItems": "center",
           "display": "flex",
           "paddingBottom": 16,
           "paddingTop": 16,
+          "width": "100%",
         },
         undefined,
       ]
@@ -1032,6 +1033,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
               "alignItems": "center",
               "display": "flex",
               "flexDirection": "row",
+              "justifyContent": "center",
               "marginBottom": 16,
             },
             undefined,
