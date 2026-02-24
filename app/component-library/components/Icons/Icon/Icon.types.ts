@@ -138,6 +138,7 @@ export enum IconName {
   Connect = 'Connect',
   CopySuccess = 'CopySuccess',
   Copy = 'Copy',
+  CorporateFare = 'CorporateFare',
   CreditCheck = 'CreditCheck',
   CurrencyFranc = 'CurrencyFranc',
   CurrencyLira = 'CurrencyLira',
