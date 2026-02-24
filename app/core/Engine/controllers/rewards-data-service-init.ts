@@ -5,6 +5,7 @@ import {
 } from './rewards-controller/services';
 import I18n from '../../../../locales/i18n';
 import type { RewardsControllerState } from './rewards-controller/types';
+import { selectRewardsEnvironmentSelectorFlag } from '../../../selectors/featureFlagController/rewards/rewardsEnabled';
 
 /**
  * Initialize the rewards data service.
@@ -17,19 +18,21 @@ import type { RewardsControllerState } from './rewards-controller/types';
 export const rewardsDataServiceInit: ControllerInitFunction<
   RewardsDataService,
   RewardsDataServiceMessenger
-> = ({ controllerMessenger, persistedState }) => {
+> = ({ controllerMessenger, persistedState, getState }) => {
   const controller = new RewardsDataService({
     messenger: controllerMessenger,
     locale: I18n.locale,
     fetch,
+    isEnvSelectorEnabled: () =>
+      selectRewardsEnvironmentSelectorFlag(getState()),
   });
 
-  // Restore persisted UAT backend preference from RewardsController state
+  // Restore persisted env override from RewardsController state
   const rewardsState = persistedState?.RewardsController as
     | Partial<RewardsControllerState>
     | undefined;
-  if (rewardsState?.useUatBackend) {
-    controller.setUseUatBackend(true);
+  if (rewardsState?.rewardsEnvUrl) {
+    controller.setRewardsEnvUrl(rewardsState.rewardsEnvUrl);
   }
 
   return {

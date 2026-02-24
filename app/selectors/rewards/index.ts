@@ -42,12 +42,6 @@ export const selectRewardsSubscriptionId = createSelector(
   },
 );
 
-export const selectRewardsUseUatBackend = createSelector(
-  selectRewardsControllerState,
-  (rewardsControllerState): boolean =>
-    rewardsControllerState.useUatBackend ?? false,
-);
-
 export const selectRewardsActiveAccountAddress = createSelector(
   selectRewardsControllerState,
   (rewardsControllerState): string | null => {

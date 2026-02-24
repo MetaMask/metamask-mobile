@@ -1,60 +1,172 @@
-import React, { useCallback, useState } from 'react';
-import { Switch } from 'react-native';
-import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import {
   Box,
-  Text,
-  TextVariant,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import { selectRewardsUseUatBackend } from '../../../../../selectors/rewards';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectRewardsEnvironmentSelectorFlag } from '../../../../../selectors/featureFlagController/rewards';
+import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+import AppConstants from '../../../../../core/AppConstants';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
+import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem';
+import { cancelBulkLink } from '../../../../../store/sagas/rewardsBulkLinkAccountGroups';
+import {
+  resetRewardsState,
+  setCandidateSubscriptionId,
+} from '../../../../../reducers/rewards';
 
-const isRcBuild = process.env.METAMASK_ENVIRONMENT === 'rc';
+const styles = StyleSheet.create({
+  sheetTitle: {
+    alignItems: 'center',
+    paddingTop: 16,
+    paddingBottom: 16,
+  },
+});
+
+const ENV_OPTIONS: string[] = [
+  AppConstants.REWARDS_API_URL.DEV,
+  AppConstants.REWARDS_API_URL.UAT,
+  AppConstants.REWARDS_API_URL.PRD,
+];
+
+if (
+  process.env.REWARDS_API_URL &&
+  !ENV_OPTIONS.includes(process.env.REWARDS_API_URL)
+) {
+  ENV_OPTIONS.push(process.env.REWARDS_API_URL);
+}
 
 const RewardsEnvironmentToggle: React.FC = () => {
-  const { colors } = useTheme();
-  const persistedValue = useSelector(selectRewardsUseUatBackend);
-  const [isEnabled, setIsEnabled] = useState(persistedValue);
+  const isEnvSelectorEnabled = useSelector(
+    selectRewardsEnvironmentSelectorFlag,
+  );
+  const [canChangeEnv, setCanChangeEnv] = useState<boolean | null>(null);
+  const [currentEnv, setCurrentEnv] = useState<string | null>(null);
+  const [defaultEnv, setDefaultEnv] = useState<string | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const handleToggle = useCallback((enabled: boolean) => {
-    setIsEnabled(enabled);
-    Engine.controllerMessenger.call(
-      'RewardsController:setUseUatBackend',
-      enabled,
+  const dispatch = useDispatch();
+  const sheetRef = useRef<BottomSheetRef>(null);
+
+  useEffect(() => {
+    const allowed = Engine.controllerMessenger.call(
+      'RewardsController:canChangeRewardsEnvUrl',
     );
+    setCanChangeEnv(allowed);
+    if (allowed) {
+      const env = Engine.controllerMessenger.call(
+        'RewardsController:getRewardsEnvUrl',
+      );
+      setCurrentEnv(env);
+      const def = Engine.controllerMessenger.call(
+        'RewardsController:getDefaultRewardsEnvUrl',
+      );
+      setDefaultEnv(def);
+    }
   }, []);
 
-  if (!isRcBuild) {
+  const handleEnvSelect = useCallback(
+    async (env: string) => {
+      if (env !== currentEnv) {
+        await Engine.controllerMessenger.call(
+          'RewardsController:setRewardsEnvUrl',
+          env,
+        );
+        setCurrentEnv(env);
+        // Mirror the delete-wallet reset flow: cancel any in-flight bulk link
+        // saga and wipe the Redux rewards slice so stale data from the previous
+        // environment doesn't bleed into the new one.
+        dispatch(cancelBulkLink());
+        dispatch(resetRewardsState());
+        // resetRewardsState() sets candidateSubscriptionId back to 'pending',
+        // but useCandidateSubscriptionId only re-fetches on 'retry'. Override
+        // to 'retry' so the hook immediately re-fetches for the new env and
+        // the onboarding skeleton resolves instead of getting stuck.
+        dispatch(setCandidateSubscriptionId('retry'));
+      }
+      sheetRef.current?.onCloseBottomSheet();
+    },
+    [currentEnv, dispatch],
+  );
+
+  // Don't render if the feature flag is disabled, until the data service has been queried, or if env change is not allowed
+  if (!isEnvSelectorEnabled || canChangeEnv === null || !canChangeEnv)
     return null;
-  }
 
   return (
     <Box
       testID="rewards-environment-toggle"
       twClassName="gap-4 flex-col py-4 px-4 border-t border-muted"
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
+      <Text variant={TextVariant.HeadingSm}>
+        {strings('rewards.settings.environment_selector')}
+      </Text>
+      <Button
+        testID="rewards-environment-toggle-trigger"
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Md}
+        isFullWidth
+        onPress={() => setIsSheetOpen(true)}
+        accessibilityLabel={`${strings('rewards.settings.environment_selector')}: ${currentEnv ?? '...'}`}
       >
-        <Text variant={TextVariant.HeadingSm}>
-          {strings('rewards.settings.uat_backend_toggle')}
-        </Text>
-        <Switch
-          value={isEnabled}
-          onValueChange={handleToggle}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-        />
-      </Box>
+        {currentEnv ?? '...'}
+      </Button>
+
+      {isSheetOpen && (
+        <BottomSheet
+          shouldNavigateBack={false}
+          ref={sheetRef}
+          onClose={() => setIsSheetOpen(false)}
+        >
+          <View style={styles.sheetTitle}>
+            <Text variant={TextVariant.HeadingSm}>
+              {strings('rewards.settings.environment_selector')}
+            </Text>
+          </View>
+          {ENV_OPTIONS.map((env) => (
+            <ListItemSelect
+              key={env}
+              onPress={() => handleEnvSelect(env)}
+              isSelected={env === currentEnv}
+              isDisabled={false}
+              gap={8}
+              verticalAlignment={VerticalAlignment.Center}
+            >
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="flex-1"
+              >
+                <Text variant={TextVariant.BodyMd}>{env}</Text>
+                {env === defaultEnv && (
+                  <Box twClassName="px-2 py-0.5 rounded bg-muted">
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('rewards.settings.environment_default')}
+                    </Text>
+                  </Box>
+                )}
+              </Box>
+            </ListItemSelect>
+          ))}
+        </BottomSheet>
+      )}
     </Box>
   );
 };

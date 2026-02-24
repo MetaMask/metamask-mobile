@@ -756,7 +756,7 @@
     "seasons": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
-    "useUatBackend": false
+    "rewardsEnvUrl": null
   },
   "PredictController": {
     "eligibility": { "eligible": false },

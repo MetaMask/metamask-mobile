@@ -7481,7 +7481,9 @@
       "linking_progress": "Adding accounts... ({{current}}/{{total}})",
       "accounts_linked_count": "{{linked}}/{{total}} enrolled",
       "add_all_accounts": "Add all accounts",
-      "uat_backend_toggle": "Use UAT backend"
+      "environment_selector": "Environment",
+      "environment_cancel": "Cancel",
+      "environment_default": "Default"
     },
     "referred_by_code": {
       "title": "Referral Code",

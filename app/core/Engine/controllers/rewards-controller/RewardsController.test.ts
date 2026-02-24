@@ -449,20 +449,22 @@ describe('RewardsController', () => {
 
       expect(controller.state).toEqual({
         ...getRewardsControllerDefaultState(),
-        useUatBackend: false,
+        rewardsEnvUrl: null,
       });
     });
 
-    it('preserves useUatBackend across resetState', () => {
+    it('preserves rewardsEnvUrl across resetState', () => {
       controller = new RewardsController({
         messenger: mockMessenger,
-        state: { useUatBackend: true },
+        state: { rewardsEnvUrl: 'https://rewards.uat-api.cx.metamask.io' },
         isDisabled: () => false,
       });
 
       controller.resetState();
 
-      expect(controller.state.useUatBackend).toBe(true);
+      expect(controller.state.rewardsEnvUrl).toBe(
+        'https://rewards.uat-api.cx.metamask.io',
+      );
       expect(controller.state.accounts).toEqual({});
       expect(controller.state.activeAccount).toBeNull();
     });
@@ -493,41 +495,75 @@ describe('RewardsController', () => {
     });
   });
 
-  describe('setUseUatBackend', () => {
-    it('updates controller state to true', async () => {
-      // Arrange
-      expect(controller.state.useUatBackend).toBe(false);
+  describe('setRewardsEnvUrl', () => {
+    const UAT_URL = 'https://rewards.uat-api.cx.metamask.io';
+    const PRD_URL = 'https://rewards.api.cx.metamask.io';
 
-      // Act
-      await controller.setUseUatBackend(true);
-
-      // Assert
-      expect(controller.state.useUatBackend).toBe(true);
+    beforeEach(() => {
+      // Allow env changes by default for these tests (non-production build)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:canChangeRewardsEnvUrl') return true;
+        return undefined;
+      });
     });
 
-    it('updates controller state to false', async () => {
+    it('does nothing on production builds where env URL cannot be changed', async () => {
+      // Arrange
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:canChangeRewardsEnvUrl')
+          return false;
+        return undefined;
+      });
+      const resetAllSpy = jest.spyOn(controller, 'resetAll');
+
+      // Act
+      await controller.setRewardsEnvUrl(UAT_URL);
+
+      // Assert — state untouched, data service not called, resetAll not triggered
+      expect(controller.state.rewardsEnvUrl).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:setRewardsEnvUrl',
+        expect.anything(),
+      );
+      expect(resetAllSpy).not.toHaveBeenCalled();
+    });
+
+    it('updates controller state to UAT URL', async () => {
+      // Arrange
+      expect(controller.state.rewardsEnvUrl).toBeNull();
+
+      // Act
+      await controller.setRewardsEnvUrl(UAT_URL);
+
+      // Assert
+      expect(controller.state.rewardsEnvUrl).toBe(UAT_URL);
+    });
+
+    it('updates controller state to PRD URL', async () => {
       // Arrange
       controller = new RewardsController({
         messenger: mockMessenger,
-        state: { useUatBackend: true },
+        state: { rewardsEnvUrl: UAT_URL },
         isDisabled: () => false,
       });
 
       // Act
-      await controller.setUseUatBackend(false);
+      await controller.setRewardsEnvUrl(PRD_URL);
 
       // Assert
-      expect(controller.state.useUatBackend).toBe(false);
+      expect(controller.state.rewardsEnvUrl).toBe(PRD_URL);
     });
 
-    it('syncs the flag to the data service via messenger', async () => {
+    it('syncs the env URL to the data service via messenger', async () => {
       // Act
-      await controller.setUseUatBackend(true);
+      await controller.setRewardsEnvUrl(UAT_URL);
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:setUseUatBackend',
-        true,
+        'RewardsDataService:setRewardsEnvUrl',
+        UAT_URL,
       );
     });
 
@@ -536,13 +572,13 @@ describe('RewardsController', () => {
       const resetAllSpy = jest.spyOn(controller, 'resetAll');
 
       // Act
-      await controller.setUseUatBackend(true);
+      await controller.setRewardsEnvUrl(UAT_URL);
 
       // Assert
       expect(resetAllSpy).toHaveBeenCalled();
     });
 
-    it('preserves useUatBackend after resetAll clears other state', async () => {
+    it('preserves rewardsEnvUrl after resetAll clears other state', async () => {
       // Arrange — set up some state that resetAll will clear
       controller = new RewardsController({
         messenger: mockMessenger,
@@ -560,16 +596,16 @@ describe('RewardsController', () => {
       });
 
       // Act
-      await controller.setUseUatBackend(true);
+      await controller.setRewardsEnvUrl(UAT_URL);
 
-      // Assert — useUatBackend persists, but other state is cleared
-      expect(controller.state.useUatBackend).toBe(true);
+      // Assert — rewardsEnvUrl persists, but other state is cleared
+      expect(controller.state.rewardsEnvUrl).toBe(UAT_URL);
       expect(controller.state.subscriptions).toEqual({});
     });
 
     it('registers the action handler', () => {
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:setUseUatBackend',
+        'RewardsController:setRewardsEnvUrl',
         expect.any(Function),
       );
     });
@@ -13218,7 +13254,7 @@ describe('RewardsController', () => {
     });
   });
 
-  describe('linkAccountsToSubscriptionCandidate', () => {
+  describe('linkAccountsToSubscriptionCandidate - feature flag and cache behavior', () => {
     const mockInternalAccount1 = {
       address: '0x123',
       type: 'eip155:eoa' as const,
@@ -15488,13 +15524,13 @@ describe('RewardsController', () => {
           "activeBoosts": {},
           "pointsEstimateHistory": [],
           "pointsEvents": {},
+          "rewardsEnvUrl": null,
           "seasonStatuses": {},
           "seasons": {},
           "snapshots": {},
           "subscriptionReferralDetails": {},
           "subscriptions": {},
           "unlockedRewards": {},
-          "useUatBackend": false,
         }
       `);
   });
@@ -15512,13 +15548,13 @@ describe('RewardsController', () => {
           "activeAccount": null,
           "activeBoosts": {},
           "pointsEvents": {},
+          "rewardsEnvUrl": null,
           "seasonStatuses": {},
           "seasons": {},
           "snapshots": {},
           "subscriptionReferralDetails": {},
           "subscriptions": {},
           "unlockedRewards": {},
-          "useUatBackend": false,
         }
       `);
   });

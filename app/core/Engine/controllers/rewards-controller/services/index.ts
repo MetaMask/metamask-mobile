@@ -17,7 +17,6 @@ export type {
   RewardsDataServiceOptOutAction,
   RewardsDataServiceGetUnlockedRewardsAction,
   RewardsDataServiceClaimRewardAction,
-  RewardsDataServiceSetUseUatBackendAction,
 } from './rewards-data-service';
 
 export { RewardsDataService } from './rewards-data-service';

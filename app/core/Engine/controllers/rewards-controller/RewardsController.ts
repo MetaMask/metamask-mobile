@@ -172,7 +172,7 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: false,
   },
-  useUatBackend: {
+  rewardsEnvUrl: {
     includeInStateLogs: false,
     persist: true,
     includeInDebugSnapshot: false,
@@ -195,7 +195,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   pointsEvents: {},
   snapshots: {},
   pointsEstimateHistory: [],
-  useUatBackend: false,
+  rewardsEnvUrl: null,
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -587,8 +587,20 @@ export class RewardsController extends BaseController<
       this.applyReferralCode.bind(this),
     );
     this.messenger.registerActionHandler(
-      'RewardsController:setUseUatBackend',
-      this.setUseUatBackend.bind(this),
+      'RewardsController:getRewardsEnvUrl',
+      this.getRewardsEnvUrl.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:canChangeRewardsEnvUrl',
+      this.canChangeRewardsEnvUrl.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:setRewardsEnvUrl',
+      this.setRewardsEnvUrl.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getDefaultRewardsEnvUrl',
+      this.getDefaultRewardsEnvUrl.bind(this),
     );
   }
 
@@ -612,24 +624,50 @@ export class RewardsController extends BaseController<
    * Reset controller state to default
    */
   resetState(): void {
-    const { useUatBackend } = this.state;
+    const { rewardsEnvUrl } = this.state;
     this.update(() => ({
       ...getRewardsControllerDefaultState(),
-      useUatBackend,
+      rewardsEnvUrl,
     }));
   }
 
   /**
-   * Toggle targeting the UAT backend (RC builds only).
-   * Updates controller state, syncs the flag to the data service, and resets all cached data.
+   * Returns the rewards API base URL the data service is currently targeting.
    */
-  async setUseUatBackend(enabled: boolean): Promise<void> {
+  getRewardsEnvUrl(): string {
+    return this.messenger.call('RewardsDataService:getRewardsEnvUrl');
+  }
+
+  /**
+   * Returns whether the current MetaMask build allows manually overriding the
+   * rewards API environment (true for non-RC / non-production builds).
+   */
+  canChangeRewardsEnvUrl(): boolean {
+    return this.messenger.call('RewardsDataService:canChangeRewardsEnvUrl');
+  }
+
+  /**
+   * Returns the default rewards API base URL for the current MetaMask
+   * environment, ignoring any manual override.
+   */
+  getDefaultRewardsEnvUrl(): string {
+    return this.messenger.call('RewardsDataService:getDefaultRewardsEnvUrl');
+  }
+
+  /**
+   * Switches the active rewards API URL, persists the choice, and
+   * resets all cached state so the next fetches target the new environment.
+   *
+   * No-ops on production builds where the environment URL cannot be changed.
+   */
+  async setRewardsEnvUrl(url: string): Promise<void> {
+    if (!this.canChangeRewardsEnvUrl()) {
+      return;
+    }
     this.update((state: RewardsControllerState) => {
-      state.useUatBackend = enabled;
+      state.rewardsEnvUrl = url;
     });
-
-    this.messenger.call('RewardsDataService:setUseUatBackend', enabled);
-
+    this.messenger.call('RewardsDataService:setRewardsEnvUrl', url);
     await this.resetAll();
   }
 

@@ -41,38 +41,40 @@ describe('RewardsDataServiceInit', () => {
       messenger: expect.any(Object),
       locale: expect.any(String),
       fetch: expect.any(Function),
+      isEnvSelectorEnabled: expect.any(Function),
     });
   });
 
-  it('restores persisted UAT backend preference when useUatBackend is true', () => {
+  it('restores persisted env override when rewardsEnvUrl is set', () => {
     // Arrange
     const requestMock = getInitRequestMock();
+    const persistedUrl = 'https://uat.rewards.metamask.io';
     requestMock.persistedState = {
-      RewardsController: { useUatBackend: true },
+      RewardsController: { rewardsEnvUrl: persistedUrl },
     } as typeof requestMock.persistedState;
 
     // Act
     const { controller } = rewardsDataServiceInit(requestMock);
 
     // Assert
-    expect(controller.setUseUatBackend).toHaveBeenCalledWith(true);
+    expect(controller.setRewardsEnvUrl).toHaveBeenCalledWith(persistedUrl);
   });
 
-  it('does not call setUseUatBackend when useUatBackend is false', () => {
+  it('does not call setRewardsEnvUrl when rewardsEnvUrl is null', () => {
     // Arrange
     const requestMock = getInitRequestMock();
     requestMock.persistedState = {
-      RewardsController: { useUatBackend: false },
+      RewardsController: { rewardsEnvUrl: null },
     } as typeof requestMock.persistedState;
 
     // Act
     const { controller } = rewardsDataServiceInit(requestMock);
 
     // Assert
-    expect(controller.setUseUatBackend).not.toHaveBeenCalled();
+    expect(controller.setRewardsEnvUrl).not.toHaveBeenCalled();
   });
 
-  it('does not call setUseUatBackend when RewardsController state is missing', () => {
+  it('does not call setRewardsEnvUrl when RewardsController state is missing', () => {
     // Arrange
     const requestMock = getInitRequestMock();
     requestMock.persistedState = {} as typeof requestMock.persistedState;
@@ -81,6 +83,6 @@ describe('RewardsDataServiceInit', () => {
     const { controller } = rewardsDataServiceInit(requestMock);
 
     // Assert
-    expect(controller.setUseUatBackend).not.toHaveBeenCalled();
+    expect(controller.setRewardsEnvUrl).not.toHaveBeenCalled();
   });
 });

@@ -23,6 +23,10 @@ import type {
   SnapshotDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
+import {
+  canChangeRewardsEnvUrl,
+  getDefaultRewardsApiBaseUrlForMetaMaskEnv,
+} from '../utils/rewards-api-url';
 import type { CaipAccountId } from '@metamask/utils';
 import AppConstants from '../../../../AppConstants';
 import { successfulFetch } from '@metamask/controller-utils';
@@ -43,6 +47,11 @@ jest.mock('react-native-device-info', () => ({
 jest.mock('@metamask/controller-utils', () => ({
   successfulFetch: jest.fn(),
 }));
+jest.mock('../utils/rewards-api-url', () => ({
+  ...jest.requireActual('../utils/rewards-api-url'),
+  canChangeRewardsEnvUrl: jest.fn(),
+  getDefaultRewardsApiBaseUrlForMetaMaskEnv: jest.fn(),
+}));
 
 const mockGetSubscriptionToken = getSubscriptionToken as jest.MockedFunction<
   typeof getSubscriptionToken
@@ -50,6 +59,13 @@ const mockGetSubscriptionToken = getSubscriptionToken as jest.MockedFunction<
 const mockSuccessfulFetch = successfulFetch as jest.MockedFunction<
   typeof successfulFetch
 >;
+const mockCanChangeRewardsEnv = canChangeRewardsEnvUrl as jest.MockedFunction<
+  typeof canChangeRewardsEnvUrl
+>;
+const mockGetDefaultRewardsApiBaseUrlForMetaMaskEnv =
+  getDefaultRewardsApiBaseUrlForMetaMaskEnv as jest.MockedFunction<
+    typeof getDefaultRewardsApiBaseUrlForMetaMaskEnv
+  >;
 
 describe('RewardsDataService', () => {
   const originalEnv = process.env;
@@ -61,6 +77,17 @@ describe('RewardsDataService', () => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
     process.env.GITHUB_ACTIONS = 'false';
+
+    // Allow env overrides by default (canChange = true).
+    // getRewardsEnvUrl reads canChange from the tuple, so the second element
+    // must be true here.  Tests that want the guard to block override both
+    // mocks individually.
+    mockGetDefaultRewardsApiBaseUrlForMetaMaskEnv.mockReturnValue([
+      AppConstants.REWARDS_API_URL.UAT,
+      true,
+    ]);
+    // canChangeRewardsEnvUrl is still called independently by setRewardsEnvUrl.
+    mockCanChangeRewardsEnv.mockReturnValue(true);
 
     mockMessenger = {
       registerActionHandler: jest.fn(),
@@ -164,66 +191,104 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsDataService:setUseUatBackend',
+        'RewardsDataService:getRewardsEnvUrl',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:canChangeRewardsEnvUrl',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:setRewardsEnvUrl',
         expect.any(Function),
       );
     });
   });
 
-  describe('setUseUatBackend', () => {
-    it('routes requests to UAT URL when enabled', async () => {
-      // Arrange
-      const mockResponse = {
-        ok: true,
-        json: jest.fn().mockResolvedValue({
-          previous: null,
-          current: null,
-          next: null,
-        }),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
+  describe('setRewardsEnvUrl', () => {
+    it('stores the override URL when the build allows env changes', () => {
+      // mockCanChangeRewardsEnv is already set to return true in beforeEach
+      service.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.UAT);
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.UAT);
+    });
 
-      // Act
-      service.setUseUatBackend(true);
-      await service.getDiscoverSeasons();
+    it('is a no-op when the build does not allow env changes', () => {
+      mockCanChangeRewardsEnv.mockReturnValue(false);
+      mockGetDefaultRewardsApiBaseUrlForMetaMaskEnv.mockReturnValue([
+        AppConstants.REWARDS_API_URL.PRD,
+        false,
+      ]);
+      service.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.UAT);
+      // override was not stored; guard returns defaultUrl (PRD)
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.PRD);
+    });
 
-      // Assert — request uses the UAT URL
-      const calledUrl = mockFetch.mock.calls[0][0] as string;
-      expect(calledUrl).toBe(
-        `${AppConstants.REWARDS_API_URL.UAT}/public/seasons/status`,
+    it('getRewardsEnvUrl reflects the stored override', () => {
+      service.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.PRD);
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.PRD);
+
+      service.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.UAT);
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.UAT);
+    });
+  });
+
+  describe('getRewardsEnvUrl', () => {
+    it('returns UAT URL by default when no override is set', () => {
+      // No override stored; mock returns [UAT, true] → defaultUrl is UAT
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.UAT);
+    });
+
+    it('returns override URL when build allows env changes', () => {
+      // getDefaultRewardsApiBaseUrlForMetaMaskEnv returns [UAT, true] by default (beforeEach)
+      service.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.DEV);
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.DEV);
+    });
+
+    it('locks to default URL and ignores override when build does not allow changes', () => {
+      // Simulate a PRD build where env changes are not permitted
+      mockGetDefaultRewardsApiBaseUrlForMetaMaskEnv.mockReturnValue([
+        AppConstants.REWARDS_API_URL.PRD,
+        false,
+      ]);
+      mockCanChangeRewardsEnv.mockReturnValue(false);
+      service.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.UAT);
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.PRD);
+    });
+
+    it('returns default PRD URL with no override when build does not allow changes', () => {
+      mockGetDefaultRewardsApiBaseUrlForMetaMaskEnv.mockReturnValue([
+        AppConstants.REWARDS_API_URL.PRD,
+        false,
+      ]);
+      mockCanChangeRewardsEnv.mockReturnValue(false);
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.PRD);
+    });
+
+    it('returns default URL when feature flag is disabled, ignoring any stored override', () => {
+      const serviceWithFlagOff = new RewardsDataService({
+        messenger: mockMessenger,
+        fetch: mockFetch,
+        appType: 'mobile',
+        locale: 'en-US',
+        isEnvSelectorEnabled: () => false,
+      });
+      serviceWithFlagOff.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.DEV);
+      expect(serviceWithFlagOff.getRewardsEnvUrl()).toBe(
+        AppConstants.REWARDS_API_URL.UAT,
       );
     });
 
-    it('reverts to env-based URL when disabled', async () => {
-      // Arrange
-      const mockResponse = {
-        ok: true,
-        json: jest.fn().mockResolvedValue({
-          previous: null,
-          current: null,
-          next: null,
-        }),
-      } as unknown as Response;
-
-      // First request with flag on — captures UAT URL
-      mockFetch.mockResolvedValue(mockResponse);
-      service.setUseUatBackend(true);
-      await service.getDiscoverSeasons();
-      const uatUrl = mockFetch.mock.calls[0][0] as string;
-      expect(uatUrl).toContain(AppConstants.REWARDS_API_URL.UAT);
-
-      // Second request with flag off — should use env-default URL
-      mockFetch.mockClear();
-      mockFetch.mockResolvedValue(mockResponse);
-      service.setUseUatBackend(false);
-      await service.getDiscoverSeasons();
-      const defaultUrl = mockFetch.mock.calls[0][0] as string;
-
-      // Assert — both resolve to UAT in this test env (undefined env defaults to UAT),
-      // but the code path is different. With distinct mock URLs, a misroute to PRD
-      // would fail this assertion.
-      expect(defaultUrl).toBe(
-        `${AppConstants.REWARDS_API_URL.UAT}/public/seasons/status`,
+    it('returns override URL when feature flag is enabled', () => {
+      const serviceWithFlagOn = new RewardsDataService({
+        messenger: mockMessenger,
+        fetch: mockFetch,
+        appType: 'mobile',
+        locale: 'en-US',
+        isEnvSelectorEnabled: () => true,
+      });
+      serviceWithFlagOn.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.DEV);
+      expect(serviceWithFlagOn.getRewardsEnvUrl()).toBe(
+        AppConstants.REWARDS_API_URL.DEV,
       );
     });
   });
