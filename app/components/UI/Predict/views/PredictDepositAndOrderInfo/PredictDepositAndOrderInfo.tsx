@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -17,7 +16,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { useNavigation } from '@react-navigation/native';
 import { ActivityIndicator, Linking, ScrollView } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -26,11 +24,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import { PredictBuyPreviewHeaderTitle } from '../../components/PredictBuyPreviewHeader';
@@ -44,10 +37,9 @@ import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import { usePredictOrderDepositTracking } from '../../hooks/usePredictOrderDepositTracking';
+import { usePredictDepositAndOrderExecution } from '../../hooks/usePredictDepositAndOrderExecution';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictRewards } from '../../hooks/usePredictRewards';
-import { usePredictTrading } from '../../hooks/usePredictTrading';
 import { Side } from '../../types';
 import { formatCents, formatPrice } from '../../utils/format';
 import { BigNumber } from 'bignumber.js';
@@ -69,7 +61,6 @@ import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hoo
 import useNavbar from '../../../../Views/confirmations/hooks/ui/useNavbar';
 import { NavbarOverrides } from '../../../../Views/confirmations/components/UI/navbar/navbar';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
-import useApprovalRequest from '../../../../Views/confirmations/hooks/useApprovalRequest';
 
 const MINIMUM_BET = 1;
 
@@ -120,11 +111,6 @@ export function PredictDepositAndOrderInfo() {
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const previousValueRef = useRef(0);
   const { setIsFooterVisible } = useConfirmationContext();
-  const { toastRef } = useContext(ToastContext);
-
-  const navigation = useNavigation();
-  const { trackDeposit } = usePredictOrderDepositTracking();
-  const { placeOrder } = usePredictTrading();
 
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();
@@ -135,8 +121,6 @@ export function PredictDepositAndOrderInfo() {
   const [isInputFocused, setIsInputFocused] = useState(true);
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
-  const [isConfirming, setIsConfirming] = useState(false);
-  const [confirmError, setConfirmError] = useState<string>();
 
   const {
     preview,
@@ -225,7 +209,6 @@ export function PredictDepositAndOrderInfo() {
   ]);
 
   const payTotals = useTransactionPayTotals();
-  const { onConfirm: onApprovalConfirm } = useApprovalRequest();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const shouldWaitForPayFees = !isPredictBalanceSelected;
   const isPayFeesLoading = shouldWaitForPayFees && isPayTotalsLoading;
@@ -240,6 +223,13 @@ export function PredictDepositAndOrderInfo() {
 
   const totalWithDepositFee = total + depositFeeUsd;
 
+  const { isConfirming, confirmError, handleConfirm } =
+    usePredictDepositAndOrderExecution({
+      marketId: market?.id,
+      outcome: outcome?.id,
+      preview,
+    });
+
   const canPlaceBet =
     currentValue >= MINIMUM_BET &&
     preview &&
@@ -247,112 +237,6 @@ export function PredictDepositAndOrderInfo() {
     !isBalanceLoading &&
     !isRateLimited &&
     !isPayFeesLoading;
-
-  const previewRef = useRef(preview);
-  previewRef.current = preview;
-
-  const showOrderPlacedToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Check,
-      labelOptions: [
-        { label: strings('predict.order.prediction_placed'), isBold: true },
-      ],
-      hasNoTimeout: false,
-    });
-  }, [toastRef]);
-
-  const handleConfirm = useCallback(async () => {
-    if (isConfirming) return;
-
-    setIsConfirming(true);
-    setConfirmError(undefined);
-
-    const analyticsProps = {
-      marketId: market?.id,
-      outcome: outcome?.id,
-    };
-
-    if (isPredictBalanceSelected) {
-      try {
-        const latestPreview = previewRef.current;
-        if (!latestPreview) return;
-
-        await placeOrder({
-          preview: latestPreview,
-          analyticsProperties: analyticsProps,
-        });
-        showOrderPlacedToast();
-      } catch (err) {
-        setConfirmError(
-          err instanceof Error
-            ? err.message
-            : strings('predict.deposit.error_description'),
-        );
-      } finally {
-        setIsConfirming(false);
-        navigation.goBack();
-      }
-      return;
-    }
-
-    if (!activeTransactionMeta) return;
-
-    try {
-      trackDeposit({
-        transactionMeta: activeTransactionMeta,
-        onConfirmed: async () => {
-          const latestPreview = previewRef.current;
-          if (!latestPreview) return;
-
-          try {
-            await placeOrder({
-              preview: latestPreview,
-              analyticsProperties: analyticsProps,
-            });
-            showOrderPlacedToast();
-          } catch (err) {
-            setConfirmError(
-              err instanceof Error
-                ? err.message
-                : strings('predict.deposit.error_description'),
-            );
-          } finally {
-            setIsConfirming(false);
-            navigation.goBack();
-          }
-        },
-        onFailed: () => {
-          setConfirmError(strings('predict.deposit.error_description'));
-          setIsConfirming(false);
-        },
-      });
-
-      onApprovalConfirm({
-        deleteAfterResult: true,
-        waitForResult: true,
-        handleErrors: false,
-      });
-    } catch (err) {
-      setConfirmError(
-        err instanceof Error
-          ? err.message
-          : strings('predict.deposit.error_description'),
-      );
-      setIsConfirming(false);
-    }
-  }, [
-    isConfirming,
-    isPredictBalanceSelected,
-    activeTransactionMeta,
-    trackDeposit,
-    onApprovalConfirm,
-    placeOrder,
-    showOrderPlacedToast,
-    market?.id,
-    outcome?.id,
-    navigation,
-  ]);
 
   const availableBalanceDisplay = useMemo(
     () =>
@@ -418,7 +302,7 @@ export function PredictDepositAndOrderInfo() {
           />
         </Box>
         <Box twClassName="text-center mt-2">
-          {isBalanceLoading ? (
+          {isBalanceLoading || (!isPredictBalanceSelected && !payToken) ? (
             <Skeleton width={120} height={20} />
           ) : (
             <Text

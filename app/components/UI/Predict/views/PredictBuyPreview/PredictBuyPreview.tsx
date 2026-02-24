@@ -149,7 +149,7 @@ const PredictBuyPreview = () => {
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
   const previousValueRef = useRef(0);
   const hasInitializedTokenSelectionRef = useRef(false);
-  const hasTriggeredDepositFlowRef = useRef(false);
+  const previousSelectedTokenAddressRef = useRef<string | null>(null);
 
   const {
     preview,
@@ -279,21 +279,24 @@ const PredictBuyPreview = () => {
   }, [dispatch, result]);
 
   useEffect(() => {
+    const selectedTokenAddress = selectedPaymentToken?.address ?? null;
+
     if (!hasInitializedTokenSelectionRef.current) {
       hasInitializedTokenSelectionRef.current = true;
+      previousSelectedTokenAddressRef.current = selectedTokenAddress;
       return;
     }
 
-    if (isPredictBalanceSelected) {
-      hasTriggeredDepositFlowRef.current = false;
+    if (isPredictBalanceSelected || !selectedTokenAddress) {
+      previousSelectedTokenAddressRef.current = selectedTokenAddress;
       return;
     }
 
-    if (hasTriggeredDepositFlowRef.current) {
+    if (previousSelectedTokenAddressRef.current === selectedTokenAddress) {
       return;
     }
 
-    hasTriggeredDepositFlowRef.current = true;
+    previousSelectedTokenAddressRef.current = selectedTokenAddress;
 
     void depositAndOrder({
       market,

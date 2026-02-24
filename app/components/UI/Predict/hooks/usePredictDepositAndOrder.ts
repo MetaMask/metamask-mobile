@@ -48,8 +48,49 @@ export const usePredictDepositAndOrder = () => {
     }),
   );
 
+  const handleDepositError = useCallback(
+    (err: unknown, action: string) => {
+      Logger.error(ensureError(err), {
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+          component: 'usePredictDepositAndOrder',
+        },
+        context: {
+          name: 'usePredictDepositAndOrder',
+          data: {
+            method: 'depositAndOrder',
+            action,
+            operation: 'financial_operations',
+          },
+        },
+      });
+      navigation.goBack();
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('predict.deposit.error_title'), isBold: true },
+          { label: '\n', isBold: false },
+          {
+            label: strings('predict.deposit.error_description'),
+            isBold: false,
+          },
+        ],
+        iconName: IconName.Error,
+        iconColor: theme.colors.error.default,
+        backgroundColor: theme.colors.accent04.normal,
+        hasNoTimeout: false,
+      });
+    },
+    [
+      navigation,
+      theme.colors.accent04.normal,
+      theme.colors.error.default,
+      toastRef,
+    ],
+  );
+
   const depositAndOrder = useCallback(
-    async (params: PredictDepositAndOrderParams) => {
+    (params: PredictDepositAndOrderParams) => {
       try {
         Engine.context.PredictController.setActiveOrder({
           market: params.market,
@@ -63,80 +104,17 @@ export const usePredictDepositAndOrder = () => {
 
         depositAndOrderWithConfirmation({}).catch((err) => {
           console.error('Failed to initialize deposit and order:', err);
-
-          Logger.error(ensureError(err), {
-            tags: {
-              feature: PREDICT_CONSTANTS.FEATURE_NAME,
-              component: 'usePredictDepositAndOrder',
-            },
-            context: {
-              name: 'usePredictDepositAndOrder',
-              data: {
-                method: 'depositAndOrder',
-                action: 'deposit_and_order_initialization',
-                operation: 'financial_operations',
-              },
-            },
-          });
-          navigation.goBack();
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Icon,
-            labelOptions: [
-              { label: strings('predict.deposit.error_title'), isBold: true },
-              { label: '\n', isBold: false },
-              {
-                label: strings('predict.deposit.error_description'),
-                isBold: false,
-              },
-            ],
-            iconName: IconName.Error,
-            iconColor: theme.colors.error.default,
-            backgroundColor: theme.colors.accent04.normal,
-            hasNoTimeout: false,
-          });
+          handleDepositError(err, 'deposit_and_order_initialization');
         });
       } catch (err) {
         console.error('Failed to proceed with deposit and order:', err);
-        navigation.goBack();
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            { label: strings('predict.deposit.error_title'), isBold: true },
-            { label: '\n', isBold: false },
-            {
-              label: strings('predict.deposit.error_description'),
-              isBold: false,
-            },
-          ],
-          iconName: IconName.Error,
-          iconColor: theme.colors.error.default,
-          backgroundColor: theme.colors.accent04.normal,
-          hasNoTimeout: false,
-        });
-
-        Logger.error(ensureError(err), {
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            component: 'usePredictDepositAndOrder',
-          },
-          context: {
-            name: 'usePredictDepositAndOrder',
-            data: {
-              method: 'depositAndOrder',
-              action: 'deposit_and_order_navigation',
-              operation: 'financial_operations',
-            },
-          },
-        });
+        handleDepositError(err, 'deposit_and_order_navigation');
       }
     },
     [
       depositAndOrderWithConfirmation,
+      handleDepositError,
       navigateToConfirmation,
-      navigation,
-      theme.colors.accent04.normal,
-      theme.colors.error.default,
-      toastRef,
     ],
   );
 

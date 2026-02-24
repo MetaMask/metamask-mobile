@@ -1,5 +1,5 @@
 import { Hex } from '@metamask/utils';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
@@ -19,7 +19,7 @@ export interface UsePredictPaymentTokenResult {
 }
 
 export function usePredictPaymentToken(): UsePredictPaymentTokenResult {
-  const { setPayToken } = useTransactionPayToken();
+  const { payToken, setPayToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const selectedPaymentToken = useSelector(selectPredictSelectedPaymentToken);
   const isPredictBalanceSelected = selectedPaymentToken === null;
@@ -49,6 +49,32 @@ export function usePredictPaymentToken(): UsePredictPaymentTokenResult {
     },
     [setPayToken, transactionMeta?.id],
   );
+
+  useEffect(() => {
+    if (!transactionMeta || isPredictBalanceSelected || !selectedPaymentToken) {
+      return;
+    }
+
+    const hasSelectedTokenApplied =
+      payToken?.address?.toLowerCase() ===
+        selectedPaymentToken.address.toLowerCase() &&
+      payToken?.chainId?.toLowerCase() ===
+        selectedPaymentToken.chainId.toLowerCase();
+
+    if (!hasSelectedTokenApplied) {
+      setPayToken({
+        address: selectedPaymentToken.address as Hex,
+        chainId: selectedPaymentToken.chainId as Hex,
+      });
+    }
+  }, [
+    transactionMeta,
+    isPredictBalanceSelected,
+    selectedPaymentToken,
+    payToken?.address,
+    payToken?.chainId,
+    setPayToken,
+  ]);
 
   return {
     onPaymentTokenChange,
