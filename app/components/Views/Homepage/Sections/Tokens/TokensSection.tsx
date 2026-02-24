@@ -21,7 +21,6 @@ import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
-import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
@@ -53,9 +52,6 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const selectedSolanaAccount =
     useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
   const isSolanaSelected = selectedSolanaAccount !== null;
-  const accountGroupBalance = useSelector(
-    selectAccountGroupBalanceForEmptyState,
-  );
 
   const title = strings('homepage.sections.tokens');
 
@@ -69,10 +65,7 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   // failed to load data). The accountGroupBalance null-check prevents a false
   // positive on cold start before the balance selectors have initialized.
   const showTokensError =
-    hasTokensError ||
-    (accountGroupBalance !== null &&
-      !isZeroBalanceAccount &&
-      displayTokenKeys.length === 0);
+    hasTokensError || (!isZeroBalanceAccount && displayTokenKeys.length === 0);
 
   const refresh = useCallback(async () => {
     if (isZeroBalanceAccount) {
