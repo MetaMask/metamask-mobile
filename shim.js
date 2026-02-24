@@ -9,7 +9,6 @@ import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
-  FALLBACK_MOCKSERVER_PORT,
   isE2E,
   isTest,
   enableApiCallLogs,
@@ -67,9 +66,6 @@ if (isTest) {
   testConfig.commandQueueServerPort = raw?.commandQueueServerPort
     ? raw.commandQueueServerPort
     : FALLBACK_COMMAND_QUEUE_SERVER_PORT;
-  testConfig.mockServerPort = raw?.mockServerPort
-    ? raw.mockServerPort
-    : FALLBACK_MOCKSERVER_PORT;
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667
@@ -164,8 +160,7 @@ if (typeof localStorage !== 'undefined') {
 if (enableApiCallLogs || isTest) {
   (async () => {
     const raw = LaunchArguments.value();
-    const mockServerPort =
-      testConfig.mockServerPort ?? raw?.mockServerPort ?? defaultMockPort;
+    const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
     const { fetch: originalFetch } = global;
 
     // eslint-disable-next-line no-console
