@@ -81,6 +81,10 @@ import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
+import { PredictPayWithRow } from '../../components/PredictPayWithRow';
+import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
+import { usePredictDepositAndOrder } from '../../hooks/usePredictDepositAndOrder';
+
 export const MINIMUM_BET = 1; // $1 minimum bet
 
 const PredictBuyPreview = () => {
@@ -131,6 +135,9 @@ const PredictBuyPreview = () => {
 
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();
+  const { isPredictBalanceSelected, selectedPaymentToken } =
+    usePredictPaymentToken();
+  const { depositAndOrder } = usePredictDepositAndOrder();
 
   const { deposit } = usePredictDeposit();
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
@@ -141,6 +148,8 @@ const PredictBuyPreview = () => {
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
   const previousValueRef = useRef(0);
+  const hasInitializedTokenSelectionRef = useRef(false);
+  const hasTriggeredDepositFlowRef = useRef(false);
 
   const {
     preview,
@@ -208,11 +217,21 @@ const PredictBuyPreview = () => {
   useEffect(() => {
     const controller = Engine.context.PredictController;
 
+    controller.setActiveOrder({
+      market,
+      outcome,
+      outcomeToken,
+    });
+    controller.setSelectedPaymentToken(null);
+
     controller.trackPredictOrderEvent({
       status: PredictTradeStatus.INITIATED,
       analyticsProperties,
       sharePrice: outcomeToken?.price,
     });
+    return () => {
+      controller.clearActiveOrder();
+    };
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -259,14 +278,67 @@ const PredictBuyPreview = () => {
     }
   }, [dispatch, result]);
 
+  useEffect(() => {
+    if (!hasInitializedTokenSelectionRef.current) {
+      hasInitializedTokenSelectionRef.current = true;
+      return;
+    }
+
+    if (isPredictBalanceSelected) {
+      hasTriggeredDepositFlowRef.current = false;
+      return;
+    }
+
+    if (hasTriggeredDepositFlowRef.current) {
+      return;
+    }
+
+    hasTriggeredDepositFlowRef.current = true;
+
+    void depositAndOrder({
+      market,
+      outcome,
+      outcomeToken,
+      analyticsProperties,
+    });
+  }, [
+    isPredictBalanceSelected,
+    selectedPaymentToken?.address,
+    depositAndOrder,
+    market,
+    outcome,
+    outcomeToken,
+    analyticsProperties,
+  ]);
+
   const onPlaceBet = useCallback(async () => {
     if (!preview || isBelowMinimum) return;
+
+    if (!isPredictBalanceSelected) {
+      await depositAndOrder({
+        market,
+        outcome,
+        outcomeToken,
+        analyticsProperties,
+      });
+      return;
+    }
 
     await placeOrder({
       analyticsProperties,
       preview,
     });
-  }, [preview, isBelowMinimum, placeOrder, analyticsProperties]);
+  }, [
+    preview,
+    isBelowMinimum,
+    isPredictBalanceSelected,
+    depositAndOrder,
+    market,
+    outcome,
+    outcomeToken,
+    placeOrder,
+    analyticsProperties,
+  ]);
 
   const handleFeesInfoPress = useCallback(() => {
     setIsFeeBreakdownVisible(true);
@@ -342,6 +414,13 @@ const PredictBuyPreview = () => {
                 maximumDecimals: 2,
               })}
             </Text>
+          )}
+        </Box>
+        <Box twClassName="mt-4 w-full">
+          {isBalanceLoading ? (
+            <Skeleton width={220} height={40} />
+          ) : (
+            <PredictPayWithRow />
           )}
         </Box>
       </Box>

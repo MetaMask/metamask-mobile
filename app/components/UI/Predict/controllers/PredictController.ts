@@ -162,6 +162,7 @@ export type PredictControllerState = {
   selectedPaymentToken: {
     address: string;
     chainId: string;
+    symbol?: string;
   } | null;
 
   // Persisted data
@@ -2084,8 +2085,6 @@ export class PredictController extends BaseController<
 
     try {
       const signer = this.getSigner();
-
-      this.setSelectedPaymentToken(null);
 
       const depositPreparation = await provider.prepareDeposit({
         signer,

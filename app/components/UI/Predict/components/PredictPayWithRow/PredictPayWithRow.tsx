@@ -30,7 +30,8 @@ export function PredictPayWithRow() {
   const transactionMeta = useTransactionMetadataRequest();
   const from = transactionMeta?.txParams?.from;
   const canEdit = !isHardwareAccount((from as string) ?? '');
-  const { isPredictBalanceSelected } = usePredictPaymentToken();
+  const { isPredictBalanceSelected, selectedPaymentToken } =
+    usePredictPaymentToken();
 
   const handlePress = useCallback(() => {
     if (!canEdit) return;
@@ -40,7 +41,7 @@ export function PredictPayWithRow() {
   const label = strings('confirm.label.pay_with');
   const displaySymbol = isPredictBalanceSelected
     ? 'Predict balance'
-    : (payToken?.symbol ?? '');
+    : (selectedPaymentToken?.symbol ?? payToken?.symbol ?? '');
 
   return (
     <TouchableOpacity onPress={handlePress} disabled={!canEdit}>

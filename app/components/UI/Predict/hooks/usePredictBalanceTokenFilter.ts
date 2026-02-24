@@ -12,9 +12,9 @@ import {
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
 
-export function usePredictBalanceTokenFilter(): (
-  tokens: AssetType[],
-) => AssetType[] {
+export function usePredictBalanceTokenFilter(
+  forceEnabled = false,
+): (tokens: AssetType[]) => AssetType[] {
   const transactionMeta = useTransactionMetadataRequest();
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
@@ -23,6 +23,7 @@ export function usePredictBalanceTokenFilter(): (
   return useCallback(
     (tokens: AssetType[]): AssetType[] => {
       if (
+        !forceEnabled &&
         !hasTransactionType(transactionMeta, [PREDICT_DEPOSIT_AND_ORDER_TYPE])
       ) {
         return tokens;
@@ -57,6 +58,12 @@ export function usePredictBalanceTokenFilter(): (
 
       return [predictBalanceToken, ...mappedTokens];
     },
-    [transactionMeta, isPredictBalanceSelected, predictBalance, formatFiat],
+    [
+      forceEnabled,
+      transactionMeta,
+      isPredictBalanceSelected,
+      predictBalance,
+      formatFiat,
+    ],
   );
 }

@@ -26,7 +26,6 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictDepositAndOrder } from '../../hooks/usePredictDepositAndOrder';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PREDICT_CONSTANTS } from '../../constants/errors';
 import { ensureError } from '../../utils/predictErrorHandler';
@@ -78,8 +77,6 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   const { executeGuardedAction } = usePredictActionGuard({
     navigation,
   });
-
-  const { depositAndOrder } = usePredictDepositAndOrder();
 
   // filter resolved outcomes
   const filteredOutcomes = market.outcomes.filter(
@@ -141,10 +138,14 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   ) => {
     executeGuardedAction(
       () => {
-        depositAndOrder({
-          market,
-          outcome,
-          outcomeToken,
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome,
+            outcomeToken,
+            entryPoint: resolvedEntryPoint,
+          },
         });
       },
       {
