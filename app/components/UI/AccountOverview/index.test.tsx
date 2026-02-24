@@ -5,6 +5,7 @@ import AccountOverview from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
+import { formatAddress } from '../../../util/address';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1,
@@ -115,8 +116,7 @@ describe('AccountOverview', () => {
     );
 
     mockTrackEvent.mockClear();
-    // Short format (renderShortAddress with chars=5) is 0xe7E12...6B0a1
-    const addressText = getByText('0xe7E12...6B0a1');
+    const addressText = getByText(formatAddress(account.address, 'short'));
     fireEvent.press(addressText);
 
     await waitFor(() => {

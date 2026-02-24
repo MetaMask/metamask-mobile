@@ -196,6 +196,6 @@ describe('AccountApproval', () => {
     );
 
     const warningText = await findByText('Deceptive site ahead');
-    expect(warningText).toBeTruthy();
+    expect(warningText).toBeOnTheScreen();
   });
 });
