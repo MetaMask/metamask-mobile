@@ -1,0 +1,41 @@
+diff --git a/dist/providers/appium.js b/dist/providers/appium.js
+index 2d8e8924124b882d44ab0aa11fede4d4094b7a65..ede2b39e43473e431d5a64a682de77b4dbc2c77f 100644
+--- a/dist/providers/appium.js
++++ b/dist/providers/appium.js
+@@ -21,16 +21,26 @@ const util_1 = require("util");
+ const utils_1 = require("../utils");
+ const execPromise = (0, util_1.promisify)(child_process_1.exec);
+ async function installDriver(driverName) {
+-    // uninstall the driver first to avoid conflicts
+-    await new Promise((resolve) => {
+-        const installProcess = (0, child_process_1.spawn)("npx", ["appium", "driver", "uninstall", driverName], {
+-            stdio: "pipe",
+-        });
+-        installProcess.on("exit", (code) => {
+-            resolve(code);
+-        });
+-    });
+-    // install the driver
++    // Check if driver is already installed by reading the Appium extensions manifest.
++    // This avoids the slow npx appium driver uninstall/install cycle (~2+ minutes)
++    // that runs on every test invocation even when the driver is already present.
++    try {
++        const fs = require("fs");
++        const yaml = require("js-yaml");
++        const manifestPath = path_1.default.join(process.cwd(), "node_modules", ".cache", "appium", "extensions.yaml");
++        if (fs.existsSync(manifestPath)) {
++            const manifest = yaml.load(fs.readFileSync(manifestPath, "utf8"));
++            const drivers = manifest?.drivers || {};
++            if (Object.keys(drivers).some((name) => name === driverName)) {
++                logger_1.logger.log(`Appium driver "${driverName}" is already installed, skipping reinstall.`);
++                return;
++            }
++        }
++    }
++    catch (e) {
++        logger_1.logger.log(`Could not check driver manifest, proceeding with install: ${e.message}`);
++    }
++    // install the driver (only runs if not already installed)
+     await new Promise((resolve) => {
+         const installProcess = (0, child_process_1.spawn)("npx", ["appium", "driver", "install", driverName], {
+             stdio: "pipe",
