@@ -141,9 +141,6 @@ function handleSetOHLCVData(payload) {
   if (!payload || !payload.data || payload.data.length === 0) return;
 
   window.ohlcvData = payload.data;
-  if (payload.symbol) {
-    window.currentSymbol = payload.symbol;
-  }
 
   var newResolution = detectResolution(window.ohlcvData);
   sendToReactNative('DEBUG', {
