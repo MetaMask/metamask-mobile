@@ -2,13 +2,14 @@ import type { Theme } from '../../../../util/theme/models';
 import { chartLogicScript } from './webview';
 
 // AWS S3 - CORS configured to allow origin: null from WebView iframes
-// const CHARTING_LIBRARY_URL =
-//   'https://va-mmcx-terminal.s3.us-east-2.amazonaws.com/charting_library/charting_library/';
+export const CHARTING_LIBRARY_BASE_URL =
+  'https://va-mmcx-terminal.s3.us-east-2.amazonaws.com/charting_library/';
+const CHARTING_LIBRARY_URL = `${CHARTING_LIBRARY_BASE_URL}charting_library/`;
 
 // Local development server fallback:
 //   npx http-server --cors -p 8000 <dir-containing-charting_library/>
-export const CHARTING_LIBRARY_BASE_URL = 'http://localhost:8000/';
-const CHARTING_LIBRARY_URL = `${CHARTING_LIBRARY_BASE_URL}charting_library/`;
+// export const CHARTING_LIBRARY_BASE_URL = 'http://localhost:8000/';
+// const CHARTING_LIBRARY_URL = `${CHARTING_LIBRARY_BASE_URL}charting_library/`;
 
 interface ChartFeatures {
   enableDrawingTools?: boolean;

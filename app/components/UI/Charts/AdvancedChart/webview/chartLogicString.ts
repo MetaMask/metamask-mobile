@@ -672,8 +672,6 @@ function initChart() {
       autosize: true,
       theme: 'Dark',
 
-      custom_css_url: 'custom.css',
-
       disabled_features: disabledFeatures,
       enabled_features: ['study_templates', 'iframe_loading_same_origin'],
 
