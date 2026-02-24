@@ -7,7 +7,6 @@ import KeyValueRow, {
 } from '../../../../../../../component-library/components-temp/KeyValueRow';
 import Text, {
   TextColor,
-  TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import InfoSection from '../../../../../../Views/confirmations/components/UI/info-row/info-section';
@@ -16,6 +15,10 @@ import { TokenI } from '../../../../../Tokens/types';
 import useEarnToken from '../../../../hooks/useEarnToken';
 import styleSheet from './DepositInfoSection.styles';
 import { selectAvatarAccountType } from '../../../../../../../selectors/settings';
+import {
+  FontWeight,
+  TextColor as DesignSystemTextColor,
+} from '@metamask/design-system-react-native';
 
 export const DEPOSIT_DETAILS_SECTION_TEST_ID = 'depositDetailsSection';
 
@@ -55,7 +58,7 @@ const DepositInfoSection = ({
           field={{
             label: {
               text: strings('earn.apr'),
-              variant: TextVariant.BodyMDMedium,
+              fontWeight: FontWeight.Medium,
             },
             tooltip: {
               title: strings('earn.apr'),
@@ -71,8 +74,7 @@ const DepositInfoSection = ({
           value={{
             label: {
               text: `${earnToken?.experience?.apr}%`,
-              variant: TextVariant.BodyMD,
-              color: TextColor.Success,
+              color: DesignSystemTextColor.SuccessDefault,
             },
           }}
         />
@@ -117,7 +119,6 @@ const DepositInfoSection = ({
           value={{
             label: {
               text: strings('earn.every_minute'),
-              variant: TextVariant.BodyMD,
             },
           }}
         />
@@ -135,7 +136,6 @@ const DepositInfoSection = ({
           value={{
             label: {
               text: strings('earn.immediate'),
-              variant: TextVariant.BodyMD,
             },
           }}
         />

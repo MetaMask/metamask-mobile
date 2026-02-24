@@ -6,7 +6,6 @@ import KeyValueRow, {
 } from '../../../../../../component-library/components-temp/KeyValueRow';
 import Text, {
   TextColor,
-  TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Card from '../../../../../../component-library/components/Cards/Card';
@@ -14,6 +13,7 @@ import styleSheet from './RewardsCard.styles';
 import { RewardsCardProps } from './RewardsCard.types';
 import { createTooltipOpenedEvent } from '../../../utils/metaMetrics/tooltipMetaMetricsUtils';
 import { useMetrics } from '../../../../../hooks/useMetrics';
+import { TextColor as DesignSystemTextColor } from '@metamask/design-system-react-native';
 
 const RewardsCard = ({
   rewardRate,
@@ -41,8 +41,7 @@ const RewardsCard = ({
         value={{
           label: {
             text: rewardRate,
-            color: TextColor.Success,
-            variant: TextVariant.BodyMD,
+            color: DesignSystemTextColor.SuccessDefault,
           },
         }}
       />
@@ -73,7 +72,6 @@ const RewardsCard = ({
         value={{
           label: {
             text: strings('stake.12_hours'),
-            variant: TextVariant.BodyMD,
           },
         }}
       />

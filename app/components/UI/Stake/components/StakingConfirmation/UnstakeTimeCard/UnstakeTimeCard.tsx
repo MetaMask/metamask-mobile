@@ -5,7 +5,6 @@ import KeyValueRow, {
 import Card from '../../../../../../component-library/components/Cards/Card';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './UnstakeTimeCard.styles';
-import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import { useMetrics } from '../../../../../hooks/useMetrics';
 import { createTooltipOpenedEvent } from '../../../utils/metaMetrics/tooltipMetaMetricsUtils';
@@ -36,7 +35,6 @@ const UnstakingTimeCard = () => {
         value={{
           label: {
             text: strings('stake.estimated_unstaking_time'),
-            variant: TextVariant.BodyMD,
           },
         }}
       />

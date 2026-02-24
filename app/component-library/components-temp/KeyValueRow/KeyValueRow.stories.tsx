@@ -4,10 +4,15 @@ import KeyValueRowComponent, {
   KeyValueRowFieldIconSides,
   TooltipSizes,
 } from './index';
-import Text, { TextColor, TextVariant } from '../../components/Texts/Text';
+import Text, { TextVariant } from '../../components/Texts/Text';
 import Title from '../../../components/Base/Title';
 import { IconColor, IconName, IconSize } from '../../components/Icons/Icon';
 import Button, { ButtonVariants } from '../../components/Buttons/Button';
+import {
+  TextColor as DesignSystemTextColor,
+  TextVariant as DesignSystemTextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 const KeyValueRowMeta = {
   title: 'Components Temp / KeyValueRow',
@@ -47,15 +52,16 @@ export const KeyValueRow = {
           field={{
             label: {
               text: 'Sample Key Text',
-              variant: TextVariant.BodySM,
-              color: TextColor.Alternative,
+              variant: DesignSystemTextVariant.BodySm,
+              color: DesignSystemTextColor.TextAlternative,
             },
           }}
           value={{
             label: {
               text: 'Sample Value Text',
-              variant: TextVariant.BodySMBold,
-              color: TextColor.Success,
+              variant: DesignSystemTextVariant.BodySm,
+              color: DesignSystemTextColor.SuccessDefault,
+              fontWeight: FontWeight.Bold,
             },
             tooltip: {
               title: 'Sample Title',

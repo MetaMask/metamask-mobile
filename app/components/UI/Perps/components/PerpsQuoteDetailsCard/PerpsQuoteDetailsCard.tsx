@@ -1,11 +1,11 @@
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../Box/Box';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './PerpsQuoteDetailsCard.styles';
+import { FontWeight } from '@metamask/design-system-react-native';
 
 export type QuoteDirection = 'deposit' | 'withdrawal';
 
@@ -33,13 +33,12 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
           field={{
             label: {
               text: strings('perps.quote.network_fee'),
-              variant: TextVariant.BodyMDMedium,
+              fontWeight: FontWeight.Medium,
             },
           }}
           value={{
             label: {
               text: networkFee,
-              variant: TextVariant.BodyMD,
             },
           }}
           style={styles.quoteRow}
@@ -49,7 +48,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
           field={{
             label: {
               text: strings('perps.quote.metamask_fee'),
-              variant: TextVariant.BodyMDMedium,
+              fontWeight: FontWeight.Medium,
             },
             tooltip: {
               title: strings('perps.quote.metamask_fee'),
@@ -60,7 +59,6 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
           value={{
             label: {
               text: metamaskFee,
-              variant: TextVariant.BodyMD,
             },
           }}
           style={styles.quoteRow}
@@ -71,13 +69,12 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
             field={{
               label: {
                 text: strings('perps.quote.estimated_time'),
-                variant: TextVariant.BodyMDMedium,
+                fontWeight: FontWeight.Medium,
               },
             }}
             value={{
               label: {
                 text: estimatedTime,
-                variant: TextVariant.BodyMD,
               },
             }}
             style={styles.quoteRow}
@@ -88,13 +85,12 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
           field={{
             label: {
               text: strings('perps.quote.rate'),
-              variant: TextVariant.BodyMDMedium,
+              fontWeight: FontWeight.Medium,
             },
           }}
           value={{
             label: {
               text: rate,
-              variant: TextVariant.BodyMD,
             },
           }}
           style={styles.quoteRow}

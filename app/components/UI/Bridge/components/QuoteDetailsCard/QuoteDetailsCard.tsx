@@ -20,7 +20,8 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  TextVariant as DesignSystemTextVariant,
+  FontWeight,
+  TextColor as DesignSystemTextColor,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -195,7 +196,7 @@ const QuoteDetailsCard: React.FC = () => {
             field={{
               label: {
                 text: strings('bridge.network_fee'),
-                variant: TextVariant.BodyMDMedium,
+                fontWeight: FontWeight.Medium,
               },
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
@@ -250,8 +251,7 @@ const QuoteDetailsCard: React.FC = () => {
             field={{
               label: {
                 text: toSentenceCase(strings('bridge.network_fee')),
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
+                color: DesignSystemTextColor.TextAlternative,
               },
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
@@ -263,8 +263,7 @@ const QuoteDetailsCard: React.FC = () => {
             value={{
               label: {
                 text: networkFee,
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
+                color: DesignSystemTextColor.TextAlternative,
               },
             }}
           />
@@ -274,8 +273,7 @@ const QuoteDetailsCard: React.FC = () => {
           field={{
             label: {
               text: strings('bridge.slippage'),
-              variant: TextVariant.BodyMD,
-              color: TextColor.Alternative,
+              color: DesignSystemTextColor.TextAlternative,
             },
             tooltip: {
               title: strings('bridge.slippage_info_title'),
@@ -313,8 +311,7 @@ const QuoteDetailsCard: React.FC = () => {
             field={{
               label: {
                 text: toSentenceCase(strings('bridge.minimum_received')),
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
+                color: DesignSystemTextColor.TextAlternative,
               },
               tooltip: {
                 title: strings('bridge.minimum_received_tooltip_title'),
@@ -326,8 +323,7 @@ const QuoteDetailsCard: React.FC = () => {
             value={{
               label: {
                 text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
+                color: DesignSystemTextColor.TextAlternative,
               },
             }}
           />
@@ -338,8 +334,7 @@ const QuoteDetailsCard: React.FC = () => {
             field={{
               label: {
                 text: toSentenceCase(strings('bridge.price_impact')),
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
+                color: DesignSystemTextColor.TextAlternative,
               },
               tooltip: {
                 title: strings('bridge.price_impact_info_title'),
@@ -353,10 +348,9 @@ const QuoteDetailsCard: React.FC = () => {
             value={{
               label: {
                 text: priceImpact,
-                variant: TextVariant.BodyMD,
                 color: shouldShowPriceImpactWarning
-                  ? TextColor.Error
-                  : TextColor.Alternative,
+                  ? DesignSystemTextColor.ErrorDefault
+                  : DesignSystemTextColor.TextAlternative,
               },
             }}
           />
@@ -371,7 +365,6 @@ const QuoteDetailsCard: React.FC = () => {
               field={{
                 label: {
                   text: toSentenceCase(strings('bridge.points')),
-                  variant: TextVariant.BodyMD,
                 },
                 tooltip: {
                   title: strings('bridge.points_tooltip'),

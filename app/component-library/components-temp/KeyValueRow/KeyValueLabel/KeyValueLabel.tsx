@@ -14,6 +14,7 @@ import {
   Label,
   TextVariant as DesignSystemTextVariant,
   TextColor as DesignSystemTextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 
 /**
@@ -46,6 +47,7 @@ const KeyValueRowLabel = ({ label, tooltip }: KeyValueRowLabelProps) => {
         <Label
           variant={label?.variant ?? DesignSystemTextVariant.BodyMd}
           color={label?.color ?? DesignSystemTextColor.TextDefault}
+          fontWeight={label?.fontWeight ?? FontWeight.Regular}
         >
           {label.text}
         </Label>

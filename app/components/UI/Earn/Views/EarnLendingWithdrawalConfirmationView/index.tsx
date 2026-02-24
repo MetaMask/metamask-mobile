@@ -18,9 +18,7 @@ import { AvatarSize } from '../../../../../component-library/components/Avatars/
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import Text from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   IMetaMetricsEvent,
@@ -54,6 +52,7 @@ import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { FontWeight } from '@metamask/design-system-react-native';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -483,7 +482,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 field={{
                   label: {
                     text: strings('earn.withdrawal_time'),
-                    variant: TextVariant.BodyMDMedium,
+                    fontWeight: FontWeight.Medium,
                   },
                   tooltip: {
                     title: strings('earn.withdrawal_time'),
@@ -494,7 +493,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 value={{
                   label: {
                     text: strings('earn.immediate'),
-                    variant: TextVariant.BodyMD,
                   },
                 }}
               />
@@ -506,7 +504,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 field={{
                   label: {
                     text: strings('earn.withdrawing_to'),
-                    variant: TextVariant.BodyMDMedium,
+                    fontWeight: FontWeight.Medium,
                   },
                 }}
                 value={{
@@ -526,7 +524,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 field={{
                   label: {
                     text: strings('earn.protocol'),
-                    variant: TextVariant.BodyMDMedium,
+                    fontWeight: FontWeight.Medium,
                   },
                   tooltip: {
                     title: strings('earn.protocol'),
@@ -551,7 +549,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 field={{
                   label: {
                     text: strings('earn.network'),
-                    variant: TextVariant.BodyMDMedium,
+                    fontWeight: FontWeight.Medium,
                   },
                 }}
                 value={{

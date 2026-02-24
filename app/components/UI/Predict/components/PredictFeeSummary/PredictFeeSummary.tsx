@@ -111,8 +111,6 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
           field={{
             label: {
               text: strings('predict.fee_summary.estimated_points'),
-              variant: TextVariant.BodyMD,
-              color: TextColor.Default,
             },
             tooltip: {
               title: strings('predict.fee_summary.points_tooltip'),
