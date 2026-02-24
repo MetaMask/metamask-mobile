@@ -137,9 +137,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
           <PerpsPositionSkeleton />
         ) : (
           <View testID="homepage-perps-positions">
-            {positions.map((position, index) => (
+            {positions.map((position) => (
               <PerpsPositionCard
-                key={`${position.symbol}-${index}`}
+                key={position.symbol}
                 position={position}
                 compact
                 compactVariant="position"
