@@ -1,6 +1,5 @@
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
-import { MusdConversionVariant } from '../../../UI/Earn/types/musd.types';
 
 export const MMM_ORIGIN = 'metamask';
 export const MM_MOBILE_ORIGIN = 'Metamask Mobile';
@@ -93,11 +92,3 @@ export const RELAY_DEPOSIT_TYPES = [
   TransactionType.perpsRelayDeposit,
   TransactionType.predictRelayDeposit,
 ];
-
-export const FORCE_BOTTOM_SHEET_BY_VARIANT: Partial<
-Record<TransactionType, Partial<Record<string, boolean>>>
-> = {
-    [TransactionType.musdConversion]: {
-        [MusdConversionVariant.QUICK_CONVERT]: true,
-    },
-};

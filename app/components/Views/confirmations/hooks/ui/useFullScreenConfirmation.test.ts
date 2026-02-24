@@ -6,22 +6,20 @@ import {
   transferConfirmationState,
 } from '../../../../../util/test/confirm-data-helpers';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import { MMM_ORIGIN } from '../../constants/confirmations';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
-import { useParams } from '../../../../../util/navigation/navUtils';
-import { MusdConversionVariant } from '../../../../UI/Earn/types/musd.types';
-import type { ConfirmationParams } from '../../components/confirm/confirm-component';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
-  useParams: jest.fn().mockReturnValue({}),
+  useParams: jest.fn().mockReturnValue({
+    forceBottomSheet: false,
+  }),
 }));
 
 describe('useFullScreenConfirmation', () => {
-  const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
-
   beforeEach(() => {
-    mockUseParams.mockReturnValue({});
+    (useParams as jest.Mock).mockReturnValue({ forceBottomSheet: false });
   });
 
   it('returns true for staking confirmation', async () => {
@@ -35,6 +33,16 @@ describe('useFullScreenConfirmation', () => {
   it('returns false for personal sign request', async () => {
     const { result } = renderHookWithProvider(useFullScreenConfirmation, {
       state: personalSignatureConfirmationState,
+    });
+
+    expect(result.current.isFullScreenConfirmation).toBe(false);
+  });
+
+  it('returns false when forceBottomSheet is true', async () => {
+    (useParams as jest.Mock).mockReturnValue({ forceBottomSheet: true });
+
+    const { result } = renderHookWithProvider(useFullScreenConfirmation, {
+      state: stakingDepositConfirmationState,
     });
 
     expect(result.current.isFullScreenConfirmation).toBe(false);
@@ -75,58 +83,6 @@ describe('useFullScreenConfirmation', () => {
       });
 
       expect(result.current.isFullScreenConfirmation).toBe(false);
-    });
-  });
-
-  describe('musd conversion variants', () => {
-    it('returns false for quick convert variant', async () => {
-      mockUseParams.mockReturnValue({
-        variant: MusdConversionVariant.QUICK_CONVERT,
-      } as ConfirmationParams);
-
-      const { result } = renderHookWithProvider(useFullScreenConfirmation, {
-        state: merge({}, transferConfirmationState, {
-          engine: {
-            backgroundState: {
-              TransactionController: {
-                transactions: [
-                  {
-                    origin: MMM_ORIGIN,
-                    type: TransactionType.musdConversion,
-                  },
-                ],
-              },
-            },
-          },
-        }),
-      });
-
-      expect(result.current.isFullScreenConfirmation).toBe(false);
-    });
-
-    it('returns true for non-overridden variant', async () => {
-      mockUseParams.mockReturnValue({
-        variant: undefined,
-      } as ConfirmationParams);
-
-      const { result } = renderHookWithProvider(useFullScreenConfirmation, {
-        state: merge({}, transferConfirmationState, {
-          engine: {
-            backgroundState: {
-              TransactionController: {
-                transactions: [
-                  {
-                    origin: MMM_ORIGIN,
-                    type: TransactionType.musdConversion,
-                  },
-                ],
-              },
-            },
-          },
-        }),
-      });
-
-      expect(result.current.isFullScreenConfirmation).toBe(true);
     });
   });
 });
