@@ -223,14 +223,18 @@ function BuildQuote() {
     if (!quotesResponse?.success || !selectedProvider || !selectedPaymentMethod)
       return null;
     const { success } = quotesResponse;
-    if (success.length === 1) return success[0];
+    const providerMatches = (q: (typeof success)[0]) =>
+      q.provider === selectedProvider.id;
+    if (success.length === 1) {
+      return providerMatches(success[0]) ? success[0] : null;
+    }
     if (success.length > 1) {
       const match = success.find(
         (q) =>
-          q.provider === selectedProvider.id &&
+          providerMatches(q) &&
           q.quote?.paymentMethod === selectedPaymentMethod.id,
       );
-      return match ?? success[0];
+      return match ?? null;
     }
     return null;
   }, [quotesResponse, selectedProvider, selectedPaymentMethod]);
@@ -285,7 +289,7 @@ function BuildQuote() {
   }, [debouncedPollingAmount, navigation]);
 
   const handleContinuePress = useCallback(async () => {
-    if (!selectedQuote) return;
+    if (!selectedQuote || !selectedProvider) return;
 
     const quoteAmount =
       selectedQuote.quote?.amountIn ??
@@ -293,6 +297,9 @@ function BuildQuote() {
     const quotePaymentMethod =
       selectedQuote.quote?.paymentMethod ??
       (selectedQuote as { paymentMethod?: string }).paymentMethod;
+
+    // Validate provider matches (prevents proceeding with wrong-provider quote)
+    if (selectedQuote.provider !== selectedProvider.id) return;
 
     // Validate amount matches
     if (quoteAmount !== amountAsNumber) {
@@ -411,7 +418,7 @@ function BuildQuote() {
     debouncedPollingAmount === amountAsNumber && debouncedPollingAmount > 0;
 
   const quoteMatchesCurrentContext = useMemo(() => {
-    if (!selectedQuote) return false;
+    if (!selectedQuote || !selectedProvider) return false;
 
     const quoteAmount =
       selectedQuote.quote?.amountIn ??
@@ -419,6 +426,9 @@ function BuildQuote() {
     const quotePaymentMethod =
       selectedQuote.quote?.paymentMethod ??
       (selectedQuote as { paymentMethod?: string }).paymentMethod;
+
+    // Provider must match (prevents using a stale quote for a different provider)
+    if (selectedQuote.provider !== selectedProvider.id) return false;
 
     // Amount must match
     if (quoteAmount !== amountAsNumber) return false;
@@ -435,7 +445,7 @@ function BuildQuote() {
     }
 
     return true;
-  }, [selectedQuote, amountAsNumber, selectedPaymentMethod]);
+  }, [selectedQuote, selectedProvider, amountAsNumber, selectedPaymentMethod]);
 
   const canContinue =
     hasAmount &&

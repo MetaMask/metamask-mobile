@@ -504,6 +504,43 @@ describe('BuildQuote', () => {
       expect(continueButton).toBeDisabled();
     });
 
+    it('disables continue button when quote provider does not match selected provider', async () => {
+      const mockQuoteForOtherProvider = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+      };
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+      mockGetQuotes.mockResolvedValue({
+        success: [mockQuoteForOtherProvider],
+        sorted: [],
+        error: [],
+        customActions: [],
+      });
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      await waitFor(
+        () => {
+          const continueButton = getByTestId('build-quote-continue-button');
+          expect(continueButton).toBeDisabled();
+        },
+        { timeout: 5000 },
+      );
+    });
+
     it('enables continue button when quote is selected and matches amount', async () => {
       const mockQuote = {
         provider: '/providers/transak',
