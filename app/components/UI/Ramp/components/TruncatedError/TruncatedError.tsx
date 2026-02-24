@@ -42,7 +42,7 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   const handleTextLayout = useCallback(
     (event: NativeSyntheticEvent<TextLayoutEventData>) => {
       const { lines } = event.nativeEvent;
-      setIsTruncated(lines.length >= maxLines);
+      setIsTruncated(lines.length > maxLines);
     },
     [maxLines],
   );
