@@ -7941,7 +7941,7 @@ __metadata:
 
 "@metamask/bridge-controller@patch:@metamask/bridge-controller@npm%3A66.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-66.2.0-8ed148964f.patch":
   version: 66.2.0
-  resolution: "@metamask/bridge-controller@patch:@metamask/bridge-controller@npm%3A66.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-66.2.0-8ed148964f.patch::version=66.2.0&hash=dc3767"
+  resolution: "@metamask/bridge-controller@patch:@metamask/bridge-controller@npm%3A66.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-66.2.0-8ed148964f.patch::version=66.2.0&hash=b845b2"
   dependencies:
     "@ethersproject/address": "npm:^5.7.0"
     "@ethersproject/bignumber": "npm:^5.7.0"
@@ -7966,7 +7966,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.1.1"
     uuid: "npm:^8.3.2"
-  checksum: 10/f5f683eb37d11574a43ed240e4488ba9c100e8406ab7df643a5eb0ba65e1067530ab706740aa808a9f466ea751a7f44cbc0126199cbccd6eec27547a31c00e50
+  checksum: 10/f8105319ffdc0baa8c8296ba202c6e41b06c21b5fdd75bcfa26b5c1e11b4edc8d6fabda8664763c39accff6c451b599c0d6597cb52150a6540dce37ef2c3c339
   languageName: node
   linkType: hard
 
@@ -7993,7 +7993,7 @@ __metadata:
 
 "@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A66.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-66.1.0-a2a478ef94.patch":
   version: 66.1.0
-  resolution: "@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A66.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-66.1.0-a2a478ef94.patch::version=66.1.0&hash=2fba3f"
+  resolution: "@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A66.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-66.1.0-a2a478ef94.patch::version=66.1.0&hash=9714c3"
   dependencies:
     "@metamask/accounts-controller": "npm:^36.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
@@ -8008,7 +8008,7 @@ __metadata:
     "@metamask/utils": "npm:^11.9.0"
     bignumber.js: "npm:^9.1.2"
     uuid: "npm:^8.3.2"
-  checksum: 10/4fd82bb7bbaf9c66c1ef26672e30571d49b983d39861b9a0bfc71ad42a3cdbf23a6dbbf2fb04398ab4d88734fd3036f4b429e15a6a5b49e6576eb7dc300055cd
+  checksum: 10/565497f76832922bca943653aee2d1c0fc770bace5aaf8d298e0f96a4a5bddab284039098d16e084820f034df6175d89f31ae9b39e5c74f5258c1800697e0335
   languageName: node
   linkType: hard
 
