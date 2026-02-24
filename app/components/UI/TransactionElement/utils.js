@@ -288,9 +288,9 @@ function getPostQuoteDisplay(tx, currentCurrency) {
   }
 
   const destRate = selectConversionRateByChainId(state, destChainId);
+  const isConverted = destRate && nativeUsdRate;
   const receivedAmount = fiatUsd / tokenUsdRate;
-  const userFiat =
-    destRate && nativeUsdRate ? fiatUsd * (destRate / nativeUsdRate) : fiatUsd;
+  const userFiat = isConverted ? fiatUsd * (destRate / nativeUsdRate) : fiatUsd;
 
   if (!Number.isFinite(receivedAmount) || !Number.isFinite(userFiat)) {
     return undefined;
@@ -298,7 +298,10 @@ function getPostQuoteDisplay(tx, currentCurrency) {
 
   return {
     value: `${receivedAmount >= 1 ? receivedAmount.toFixed(2) : receivedAmount.toPrecision(4)} ${destSymbol}`,
-    fiatValue: addCurrencySymbol(userFiat.toFixed(2), currentCurrency),
+    fiatValue: addCurrencySymbol(
+      userFiat.toFixed(2),
+      isConverted ? currentCurrency : 'usd',
+    ),
   };
 }
 
