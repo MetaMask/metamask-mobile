@@ -245,6 +245,7 @@ export function getNavigationOptionsTitle(
   return {
     title,
     headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>,
+    headerTitleAlign: 'center',
     headerRight: () =>
       isFullScreenModal ? (
         <ButtonIcon
