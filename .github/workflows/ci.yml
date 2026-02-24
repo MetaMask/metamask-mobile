@@ -521,8 +521,8 @@ jobs:
       - name: SonarCloud Scan
         if: ${{ env.HAVE_SONAR_TOKEN == 'true' }}
         continue-on-error: true
-        # This is SonarSource/sonarqube-scan-action@v5.3.1
-        uses: SonarSource/sonarqube-scan-action@1a6d90ebcb0e6a6b1d87e37ba693fe453195ae25
+        # This is SonarSource/sonarqube-scan-action@v7.0.0
+        uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
         env:
           HAVE_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

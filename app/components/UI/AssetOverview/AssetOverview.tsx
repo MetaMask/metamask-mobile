@@ -17,7 +17,6 @@ import Engine from '../../../core/Engine';
 import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
-  selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import {
   selectCurrentCurrency,
@@ -53,7 +52,7 @@ import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import {
   trackActionButtonClick,
   ActionButtonType,
@@ -120,6 +119,9 @@ import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../Bridge/types';
+import MarketClosedActionButton from './MarketClosedActionButton';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useRWAToken } from '../Bridge/hooks/useRWAToken';
 import { useTokenBuyability } from '../Ramp/hooks/useTokenBuyability';
 
 /**
@@ -207,7 +209,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -220,7 +222,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const multiChainTokenBalance = useSelector(selectTokensBalances);
 
   const chainId = asset.chainId as Hex;
-  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
@@ -250,6 +251,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       : undefined,
   );
   ///: END:ONLY_INCLUDE_IF
+
+  const { isTokenTradingOpen } = useRWAToken();
 
   const currentAddress = asset.address as Hex;
   const { goToBuy } = useRampNavigation();
@@ -288,25 +291,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
   }, []);
-
-  useEffect(() => {
-    const { SwapsController } = Engine.context;
-    const fetchTokenWithCache = async () => {
-      try {
-        await SwapsController.fetchTokenWithCache({
-          networkClientId: selectedNetworkClientId,
-        });
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        Logger.error(
-          error,
-          'Swaps: error while fetching tokens with cache in AssetOverview',
-        );
-      }
-    };
-    fetchTokenWithCache();
-  }, [selectedNetworkClientId]);
 
   const onReceive = () => {
     trackActionButtonClick(trackEvent, createEventBuilder, {
@@ -725,6 +709,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const { isBuyable: isAssetBuyable } = useTokenBuyability(asset as TokenI);
 
+  const handleMarketClosedButtonPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+    });
+  };
+
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {asset.hasBalanceError ? (
@@ -744,9 +734,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
+          {!isTokenTradingOpen(asset as BridgeToken) && (
+            <View style={styles.marketClosedActionButtonContainer}>
+              <MarketClosedActionButton
+                iconName={IconName.Info}
+                label={strings('asset_overview.market_closed')}
+                onPress={handleMarketClosedButtonPress}
+              />
+            </View>
+          )}
           <AssetDetailsActions
             displayBuyButton={displayBuyButton && isAssetBuyable}
-            displaySwapsButton={displaySwapsButton}
+            displaySwapsButton={
+              displaySwapsButton && isTokenTradingOpen(asset as BridgeToken)
+            }
             goToSwaps={goToSwaps}
             onBuy={onBuy}
             onReceive={onReceive}

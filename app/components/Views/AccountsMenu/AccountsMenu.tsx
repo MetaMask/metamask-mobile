@@ -45,6 +45,7 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
+import { useNetworkManagementEnabled } from '../../../selectors/featureFlagController/networkManagement/useNetworkManagementEnabled';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
@@ -121,6 +122,7 @@ const AccountsMenu = () => {
     readNotificationCount,
     isBackupAndSyncEnabled,
   ]);
+  const isNetworkManagementEnabled = useNetworkManagementEnabled();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -140,6 +142,10 @@ const AccountsMenu = () => {
     trackEvent(createEventBuilder(EVENT_NAME.CARD_HOME_CLICKED).build());
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation, trackEvent, createEventBuilder]);
+
+  const onPressNetworks = useCallback(() => {
+    navigation.navigate(Routes.SETTINGS.NETWORKS_MANAGEMENT);
+  }, [navigation]);
 
   const onPressPermissions = useCallback(() => {
     // TODO: Will add events in follow up PR
@@ -449,6 +455,19 @@ const AccountsMenu = () => {
             endAccessory={arrowRightIcon}
             onPress={onPressPermissions}
             testID={AccountsMenuSelectorsIDs.PERMISSIONS}
+          />
+        )}
+
+        {/* Networks Row */}
+        {isNetworkManagementEnabled && (
+          <ActionListItem
+            startAccessory={
+              <Icon name={IconName.Hierarchy} size={IconSize.Lg} />
+            }
+            label={strings('accounts_menu.networks')}
+            endAccessory={arrowRightIcon}
+            onPress={onPressNetworks}
+            testID={AccountsMenuSelectorsIDs.NETWORKS}
           />
         )}
 

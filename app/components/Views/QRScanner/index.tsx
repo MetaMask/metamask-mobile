@@ -42,8 +42,8 @@ import { useTheme } from '../../../util/theme';
 import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 import SDKConnectV2 from '../../../core/SDKConnectV2';
 import { ChainType } from '../confirmations/utils/send';
-import useMetrics from '../../../components/hooks/useMetrics/useMetrics';
-import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import { getQRType } from './utils';
 
@@ -78,7 +78,7 @@ const QRScanner = ({
 
   const theme = useTheme();
   const styles = createStyles(theme);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const hasTrackedScannerOpened = useRef(false);
 
