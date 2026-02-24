@@ -3,11 +3,11 @@ import { usePredictDeposit } from './usePredictDeposit';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { PredictTradeStatus } from '../constants/eventNames';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 const mockGoBack = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockDepositWithConfirmation = jest.fn();
-const mockShowToast = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -41,15 +41,21 @@ jest.mock('../../../../util/theme', () => ({
   }),
 }));
 
-jest.mock('../../../../component-library/components/Toast', () => ({
-  ToastContext: {
-    Consumer: ({
-      children,
-    }: {
-      children: (value: { toastRef: { current: null } }) => React.ReactNode;
-    }) => children({ toastRef: { current: null } }),
-  },
-}));
+jest.mock('../../../../component-library/components/Toast', () => {
+  const actualReact = jest.requireActual('react');
+  return {
+    ToastContext: actualReact.createContext({
+      toastRef: {
+        current: {
+          showToast: jest.fn(),
+        },
+      },
+    }),
+    ToastVariants: {
+      Icon: 'icon',
+    },
+  };
+});
 
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: () => ({
@@ -84,6 +90,12 @@ jest.mock(
   () => ({
     __esModule: true,
     default: () => null,
+    ConfirmationLoader: {
+      Default: 'default',
+      CustomAmount: 'customAmount',
+      PredictClaim: 'predictClaim',
+      Transfer: 'transfer',
+    },
   }),
 );
 
@@ -111,21 +123,6 @@ jest.mock('../../../UI/Ramp/hooks/useRampNavigation', () => ({
     goToBuy: jest.fn(),
   }),
 }));
-
-// Mock useContext for ToastContext
-jest.mock('react', () => {
-  const actualReact = jest.requireActual('react');
-  return {
-    ...actualReact,
-    useContext: () => ({
-      toastRef: {
-        current: {
-          showToast: mockShowToast,
-        },
-      },
-    }),
-  };
-});
 
 describe('usePredictDeposit', () => {
   beforeEach(() => {
@@ -158,7 +155,7 @@ describe('usePredictDeposit', () => {
 
     // Assert
     expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-      loader: expect.any(String),
+      loader: ConfirmationLoader.CustomAmount,
     });
   });
 
@@ -169,6 +166,8 @@ describe('usePredictDeposit', () => {
     // Act
     await act(async () => {
       await result.current.deposit();
+      // Allow fire-and-forget depositWithConfirmation to be called
+      await Promise.resolve();
     });
 
     // Assert
@@ -188,6 +187,8 @@ describe('usePredictDeposit', () => {
     // Act
     await act(async () => {
       await result.current.deposit(analyticsParams);
+      // Allow fire-and-forget operations to be called
+      await Promise.resolve();
     });
 
     // Assert
@@ -219,14 +220,14 @@ describe('usePredictDeposit', () => {
   it('logs error and shows toast when deposit fails', async () => {
     // Arrange
     const mockError = new Error('Deposit failed');
-    mockDepositWithConfirmation.mockReturnValue(Promise.reject(mockError));
+    mockDepositWithConfirmation.mockRejectedValue(mockError);
     const { result } = renderHook(() => usePredictDeposit());
 
     // Act
     await act(async () => {
       await result.current.deposit();
-      // Allow promise to settle
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      // Allow fire-and-forget promise to settle and error handler to run
+      await new Promise((resolve) => setTimeout(resolve, 10));
     });
 
     // Assert
@@ -236,14 +237,14 @@ describe('usePredictDeposit', () => {
   it('navigates back when deposit fails', async () => {
     // Arrange
     const mockError = new Error('Deposit failed');
-    mockDepositWithConfirmation.mockReturnValue(Promise.reject(mockError));
+    mockDepositWithConfirmation.mockRejectedValue(mockError);
     const { result } = renderHook(() => usePredictDeposit());
 
     // Act
     await act(async () => {
       await result.current.deposit();
-      // Allow promise to settle
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      // Allow fire-and-forget promise to settle and error handler to run
+      await new Promise((resolve) => setTimeout(resolve, 10));
     });
 
     // Assert
