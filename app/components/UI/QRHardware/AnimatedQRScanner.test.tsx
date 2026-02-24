@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
@@ -605,6 +606,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       const mockUseCameraPermission = jest.requireMock(
         'react-native-vision-camera',
       ).useCameraPermission;
+      const openSettingsSpy = jest
+        .spyOn(Linking, 'openSettings')
+        .mockResolvedValue();
 
       const mockRequestPermission = jest.fn().mockResolvedValue(false);
       mockUseCameraPermission.mockReturnValue({
@@ -621,8 +625,15 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       });
 
       expect(mockOnScanError).not.toHaveBeenCalled();
-      expect(getByText('transaction.no_camera_permission')).toBeTruthy();
-      expect(getByTestId('open-settings-button')).toBeTruthy();
+      expect(getByText('transaction.no_camera_permission')).toBeOnTheScreen();
+      expect(getByTestId('open-settings-button')).toBeOnTheScreen();
+
+      await act(async () => {
+        getByTestId('open-settings-button').props.onPress();
+      });
+      expect(openSettingsSpy).toHaveBeenCalledTimes(1);
+
+      openSettingsSpy.mockRestore();
     });
 
     it('does not call onScanError when requestPermission is granted', async () => {
