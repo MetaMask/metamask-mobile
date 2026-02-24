@@ -172,7 +172,9 @@
     "@metamask/bridge-controller@npm:^65.2.0": "patch:@metamask/bridge-controller@npm%3A65.3.0#~/.yarn/patches/@metamask-bridge-controller-npm-65.3.0-f766782954.patch",
     "@metamask/bridge-controller@npm:^65.1.0": "patch:@metamask/bridge-controller@npm%3A65.3.0#~/.yarn/patches/@metamask-bridge-controller-npm-65.3.0-f766782954.patch",
     "@metamask/accounts-controller": "^36.0.0",
-    "@metamask/core-backend": "^5.0.0"
+    "@metamask/core-backend": "^5.0.0",
+    "bn.js@npm:4.11.6": "4.12.3",
+    "bn.js@npm:5.2.1": "5.2.3"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -348,8 +350,8 @@
     "axios": "^1.13.5",
     "bignumber.js": "^9.0.1",
     "bitcoin-address-validation": "2.2.3",
-    "bnjs4": "npm:bn.js@^4.12.0",
-    "bnjs5": "npm:bn.js@^5.2.1",
+    "bnjs4": "npm:bn.js@^4.12.3",
+    "bnjs5": "npm:bn.js@^5.2.3",
     "buffer": "6.0.3",
     "cockatiel": "^3.1.2",
     "compare-versions": "^3.6.0",
@@ -533,7 +535,7 @@
     "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/react-native": "^13.2.0",
     "@types/bnjs4": "npm:@types/bn.js@^4.11.6",
-    "@types/bnjs5": "npm:@types/bn.js@^5.1.6",
+    "@types/bnjs5": "npm:@types/bn.js@^5.2.0",
     "@types/enzyme": "^3.10.12",
     "@types/eth-url-parser": "^1.0.0",
     "@types/i18n-js": "^3.8.4",
