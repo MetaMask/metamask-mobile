@@ -38,8 +38,20 @@ permissions:
   id-token: write
 
 jobs:
+  # Bump version in repo (bitrise.yml, package.json, ios/android) before building
+  update-build-version:
+    uses: ./.github/workflows/update-latest-build-version.yml
+    permissions:
+      contents: write
+      id-token: write
+    with:
+      base-branch: ${{ github.ref_name }}
+    secrets:
+      PR_TOKEN: ${{ secrets.PR_TOKEN }}
+
   # Load config
   prepare:
+    needs: [update-build-version]
     runs-on: ubuntu-latest
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
@@ -73,7 +85,7 @@ jobs:
 
   # Build
   build:
-    needs: [prepare]
+    needs: [prepare, update-build-version]
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
@@ -81,7 +93,17 @@ jobs:
     runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     steps:
+      - name: Validate version-bump commit
+        run: |
+          COMMIT_HASH="${{ needs.update-build-version.outputs.commit-hash }}"
+          if [ -z "$COMMIT_HASH" ]; then
+            echo "::error::update-build-version did not produce commit-hash; refusing to build to avoid using pre-bump version numbers."
+            exit 1
+          fi
+          echo "Building at version-bump commit: $COMMIT_HASH"
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.update-build-version.outputs.commit-hash }}
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
