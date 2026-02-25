@@ -1,15 +1,19 @@
 import { test as base } from 'appwright';
-import { PerformanceTracker } from '../../reporters/PerformanceTracker';
+import { PerformanceTracker } from '../../../reporters/PerformanceTracker.js';
 import {
   QualityGatesValidator,
   markQualityGateFailure,
   hasQualityGateFailure,
   getTestId,
-} from '../quality-gates';
-import { getTeamInfoFromTags } from '../../../tests/teams-config.js';
+} from '../../quality-gates';
+import { getTeamInfoFromTags } from '../../utils/teams';
+
+interface PerformanceFixtures {
+  performanceTracker: PerformanceTracker;
+}
 
 // Create a custom test fixture that handles performance tracking and cleanup
-export const test = base.extend({
+export const test = base.extend<PerformanceFixtures>({
   // eslint-disable-next-line no-empty-pattern
   performanceTracker: async ({}, use, testInfo) => {
     const testId = getTestId(testInfo);
@@ -53,14 +57,19 @@ export const test = base.extend({
 
     // Always try to attach performance metrics, even if test failed
     try {
-      const metrics = await performanceTracker.attachToTest(testInfo);
+      const metrics = (await performanceTracker.attachToTest(
+        testInfo,
+      )) as unknown as { steps: unknown[]; total: number };
       console.log(
         `✅ Performance metrics attached: ${
           metrics.steps.length
         } steps, ${metrics.total.toFixed(2)}s total`,
       );
     } catch (error) {
-      console.error('❌ Failed to attach performance metrics:', error.message);
+      console.error(
+        '❌ Failed to attach performance metrics:',
+        (error as Error).message,
+      );
     }
 
     // Validate quality gates if any timer has thresholds defined
@@ -77,7 +86,9 @@ export const test = base.extend({
         console.log('✅ Quality gates PASSED');
       } catch (error) {
         // Mark this test as failed due to quality gates so retries are skipped
-        if (error.isQualityGateError) {
+        if (
+          (error as Error & { isQualityGateError?: boolean }).isQualityGateError
+        ) {
           markQualityGateFailure(testId);
           console.log(
             '🚫 Quality gates FAILED - retries will be skipped for this test',
@@ -89,12 +100,13 @@ export const test = base.extend({
 
     console.log('🔍 Looking for session ID...');
 
-    let sessionId = null;
+    let sessionId: string | null = null;
 
-    if (testInfo && testInfo.annotations) {
-      sessionId = testInfo.annotations.find(
-        (annotation) => annotation.type === 'sessionId',
-      )?.description;
+    if (testInfo?.annotations) {
+      sessionId =
+        testInfo.annotations.find(
+          (annotation) => annotation.type === 'sessionId',
+        )?.description ?? null;
     }
 
     if (sessionId) {
@@ -119,5 +131,3 @@ export const test = base.extend({
     }
   },
 });
-
-export { expect } from 'appwright';

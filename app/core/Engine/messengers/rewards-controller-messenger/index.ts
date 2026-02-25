@@ -18,6 +18,7 @@ import {
   RewardsDataServiceLogoutAction,
   RewardsDataServiceFetchGeoLocationAction,
   RewardsDataServiceValidateReferralCodeAction,
+  RewardsDataServiceValidateBonusCodeAction,
   RewardsDataServiceMobileJoinAction,
   RewardsDataServiceOptOutAction,
 } from '../../controllers/rewards-controller/services';
@@ -46,6 +47,7 @@ import {
   RewardsDataServiceGetSeasonMetadataAction,
   RewardsDataServiceGetSeasonOneLineaRewardTokensAction,
   RewardsDataServiceApplyReferralCodeAction,
+  RewardsDataServiceApplyBonusCodeAction,
   RewardsDataServiceGetSnapshotsAction,
   RewardsDataServiceGetRewardsEnvUrlAction,
   RewardsDataServiceCanChangeRewardsEnvUrlAction,
@@ -74,6 +76,7 @@ type AllowedActions =
   | RewardsDataServiceLogoutAction
   | RewardsDataServiceFetchGeoLocationAction
   | RewardsDataServiceValidateReferralCodeAction
+  | RewardsDataServiceValidateBonusCodeAction
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
   | RewardsDataServiceOptOutAction
@@ -88,7 +91,9 @@ type AllowedActions =
   | RewardsDataServiceGetRewardsEnvUrlAction
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
-  | RewardsDataServiceGetDefaultRewardsEnvUrlAction;
+  | RewardsDataServiceGetDefaultRewardsEnvUrlAction
+  | RewardsDataServiceApplyBonusCodeAction
+  | RewardsDataServiceGetSnapshotsAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -133,6 +138,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:logout',
       'RewardsDataService:fetchGeoLocation',
       'RewardsDataService:validateReferralCode',
+      'RewardsDataService:validateBonusCode',
       'RewardsDataService:mobileJoin',
       'RewardsDataService:getOptInStatus',
       'RewardsDataService:optOut',
@@ -143,6 +149,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getSeasonMetadata',
       'RewardsDataService:getSeasonOneLineaRewardTokens',
       'RewardsDataService:applyReferralCode',
+      'RewardsDataService:applyBonusCode',
       'RewardsDataService:getSnapshots',
       'RewardsDataService:getRewardsEnvUrl',
       'RewardsDataService:canChangeRewardsEnvUrl',
