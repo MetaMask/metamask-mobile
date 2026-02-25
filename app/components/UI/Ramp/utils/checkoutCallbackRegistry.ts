@@ -18,3 +18,7 @@ export function getCheckoutCallback(key: string): NavStateCallback | undefined {
 export function removeCheckoutCallback(key: string): void {
   callbacks.delete(key);
 }
+
+export function clearAllCheckoutCallbacks(): void {
+  callbacks.clear();
+}

@@ -70,14 +70,14 @@ interface CheckoutParams {
   /** V2: fiat currency code (e.g., "USD"). Fallback when the callback order has no fiatCurrency yet. */
   currency?: string;
   /** V2: crypto currency symbol (e.g., "ETH"). Fallback when the callback order has no cryptoCurrency yet. */
+  cryptocurrency?: string;
+  /** V2: the Redux provider type for this order. Defaults to AGGREGATOR. */
+  providerType?: FIAT_ORDER_PROVIDERS;
   /**
    * Key into the checkout callback registry. Used by Transak/Deposit flows.
    * The actual callback lives outside navigation state so that route params stay serializable.
    */
   callbackKey?: string;
-  cryptocurrency?: string;
-  /** V2: the Redux provider type for this order. Defaults to AGGREGATOR. */
-  providerType?: FIAT_ORDER_PROVIDERS;
   /** Optional callback invoked on every navigation state change (e.g. to intercept redirect URLs). */
   onNavigationStateChange?: (navState: { url: string }) => void;
 }
@@ -237,14 +237,14 @@ const Checkout = () => {
   const callbackKeyRef = useRef(callbackKey);
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
 
-  useEffect(
-    () => () => {
-      if (callbackKeyRef.current) {
-        removeCheckoutCallback(callbackKeyRef.current);
+  useEffect(() => {
+    callbackKeyRef.current = callbackKey;
+    return () => {
+      if (callbackKey) {
+        removeCheckoutCallback(callbackKey);
       }
-    },
-    [],
-  );
+    };
+  }, [callbackKey]);
 
   useEffect(() => {
     navigation.setOptions(

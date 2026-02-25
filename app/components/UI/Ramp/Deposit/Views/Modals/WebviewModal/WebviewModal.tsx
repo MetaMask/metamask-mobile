@@ -48,14 +48,14 @@ function WebviewModal() {
 
   const [webviewError, setWebviewError] = useState<string | null>(null);
 
-  useEffect(
-    () => () => {
-      if (callbackKeyRef.current) {
-        removeCheckoutCallback(callbackKeyRef.current);
+  useEffect(() => {
+    callbackKeyRef.current = callbackKey;
+    return () => {
+      if (callbackKey) {
+        removeCheckoutCallback(callbackKey);
       }
-    },
-    [],
-  );
+    };
+  }, [callbackKey]);
 
   const handleNavigationStateChangeWithDedup = useCallback(
     (navState: { url: string }) => {

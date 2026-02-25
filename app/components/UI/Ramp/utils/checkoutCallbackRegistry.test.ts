@@ -2,12 +2,12 @@ import {
   registerCheckoutCallback,
   getCheckoutCallback,
   removeCheckoutCallback,
+  clearAllCheckoutCallbacks,
 } from './checkoutCallbackRegistry';
 
 describe('checkoutCallbackRegistry', () => {
   afterEach(() => {
-    // Clean up any registered callbacks between tests
-    // Register and remove to avoid leaking state between test files
+    clearAllCheckoutCallbacks();
   });
 
   it('registers a callback and retrieves it by key', () => {

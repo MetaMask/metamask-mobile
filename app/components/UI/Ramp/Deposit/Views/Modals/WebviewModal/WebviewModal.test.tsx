@@ -6,7 +6,10 @@ import { useParams } from '../../../../../../../util/navigation/navUtils';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import Logger from '../../../../../../../util/Logger';
-import { registerCheckoutCallback } from '../../../../utils/checkoutCallbackRegistry';
+import {
+  registerCheckoutCallback,
+  removeCheckoutCallback,
+} from '../../../../utils/checkoutCallbackRegistry';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -62,14 +65,19 @@ jest.mock('react-native', () => ({
 describe('WebviewModal Component', () => {
   const mockHandleNavigationStateChange = jest.fn();
   const mockSourceUrl = 'https://example.com';
+  let callbackKey: string;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    const key = registerCheckoutCallback(mockHandleNavigationStateChange);
+    callbackKey = registerCheckoutCallback(mockHandleNavigationStateChange);
     (useParams as jest.Mock).mockReturnValue({
       sourceUrl: mockSourceUrl,
-      callbackKey: key,
+      callbackKey,
     });
+  });
+
+  afterEach(() => {
+    removeCheckoutCallback(callbackKey);
   });
 
   it('renders correctly and matches snapshot', () => {
