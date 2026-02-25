@@ -6,7 +6,11 @@ import { useTransactionMetadataRequest } from '../../../Views/confirmations/hook
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { PERPS_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/perpsConfig';
-import type { AssetType } from '../../../Views/confirmations/types/token';
+import {
+  type AssetType,
+  isHighlightedActionListItem,
+  type TokenListItem,
+} from '../../../Views/confirmations/types/token';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -76,11 +80,11 @@ describe('usePerpsBalanceTokenFilter', () => {
 
       const { result } = renderHook(() => usePerpsBalanceTokenFilter());
       const filter = result.current;
-      const output = filter(inputTokens);
+      const output: TokenListItem[] = filter(inputTokens);
 
       expect(output).toBe(inputTokens);
       expect(output).toHaveLength(1);
-      expect(output[0].address).toBe('0xabc');
+      expect((output[0] as AssetType).address).toBe('0xabc');
     });
 
     it('returns tokens unchanged when transaction meta is undefined', () => {
@@ -123,7 +127,7 @@ describe('usePerpsBalanceTokenFilter', () => {
       const output = result.current(inputTokens);
 
       expect(output).toHaveLength(2);
-      const perpsToken = output[0];
+      const perpsToken = output[0] as AssetType;
       expect(perpsToken.address).toBe(PERPS_BALANCE_PLACEHOLDER_ADDRESS);
       expect(perpsToken.tokenId).toBe(PERPS_BALANCE_PLACEHOLDER_ADDRESS);
       expect(perpsToken.name).toBe('perps.adjust_margin.perps_balance');
@@ -148,8 +152,10 @@ describe('usePerpsBalanceTokenFilter', () => {
       const { result } = renderHook(() => usePerpsBalanceTokenFilter());
       const output = result.current(inputTokens);
 
-      expect(output[0].balance).toBe('999.99');
-      expect(output[0].balanceInSelectedCurrency).toBe('$999.99');
+      expect((output[0] as AssetType).balance).toBe('999.99');
+      expect((output[0] as AssetType).balanceInSelectedCurrency).toBe(
+        '$999.99',
+      );
     });
 
     it('uses zero balance when perps account is null', () => {
@@ -164,8 +170,8 @@ describe('usePerpsBalanceTokenFilter', () => {
       const { result } = renderHook(() => usePerpsBalanceTokenFilter());
       const output = result.current(inputTokens);
 
-      expect(output[0].balance).toBe('0');
-      expect(output[0].balanceInSelectedCurrency).toBe('$0.00');
+      expect((output[0] as AssetType).balance).toBe('0');
+      expect((output[0] as AssetType).balanceInSelectedCurrency).toBe('$0.00');
     });
 
     it('clears isSelected on other tokens when perps balance is selected', () => {
@@ -195,8 +201,8 @@ describe('usePerpsBalanceTokenFilter', () => {
       const { result } = renderHook(() => usePerpsBalanceTokenFilter());
       const output = result.current(inputTokens);
 
-      expect(output[1].isSelected).toBe(false);
-      expect(output[2].isSelected).toBe(false);
+      expect((output[1] as AssetType).isSelected).toBe(false);
+      expect((output[2] as AssetType).isSelected).toBe(false);
     });
 
     it('keeps token isSelected when perps balance is not selected', () => {
@@ -220,7 +226,7 @@ describe('usePerpsBalanceTokenFilter', () => {
       const { result } = renderHook(() => usePerpsBalanceTokenFilter());
       const output = result.current(inputTokens);
 
-      expect(output[1].isSelected).toBe(true);
+      expect((output[1] as AssetType).isSelected).toBe(true);
     });
 
     it('filters to only allowlisted tokens when allowlist is set', () => {
@@ -253,9 +259,65 @@ describe('usePerpsBalanceTokenFilter', () => {
       const output = result.current(inputTokens);
 
       expect(output).toHaveLength(2);
-      expect(output[0].address).toBe(PERPS_BALANCE_PLACEHOLDER_ADDRESS);
-      expect(output[1].address).toBe('0xusdc');
-      expect(output[1].symbol).toBe('USDC');
+      expect((output[0] as AssetType).address).toBe(
+        PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+      );
+      expect((output[1] as AssetType).address).toBe('0xusdc');
+      expect((output[1] as AssetType).symbol).toBe('USDC');
+    });
+
+    it('prepends highlighted action with Add button when onDepositPress is provided', () => {
+      mockUseSelector.mockReturnValue({
+        availableBalance: '500.00',
+      });
+      const onDepositPress = jest.fn();
+      const inputTokens: AssetType[] = [
+        {
+          address: '0xusdc',
+          chainId,
+          symbol: 'USDC',
+          name: 'USD Coin',
+          balance: '100',
+        } as AssetType,
+      ];
+
+      const { result } = renderHook(() =>
+        usePerpsBalanceTokenFilter({ onDepositPress }),
+      );
+      const output = result.current(inputTokens);
+
+      expect(output).toHaveLength(3);
+      expect(isHighlightedActionListItem(output[0])).toBe(true);
+      const highlightedAction = output[0];
+      if (isHighlightedActionListItem(highlightedAction)) {
+        expect(highlightedAction.type).toBe('highlighted_action');
+        expect(highlightedAction.name).toBe('perps.adjust_margin.perps_balance');
+        expect(highlightedAction.name_description).toBe('$500.00');
+        expect(highlightedAction.actions).toHaveLength(1);
+        expect(highlightedAction.actions[0].buttonLabel).toBe('perps.add_funds');
+        highlightedAction.actions[0].onPress();
+        expect(onDepositPress).toHaveBeenCalledTimes(1);
+      }
+      expect((output[1] as AssetType).address).toBe(
+        PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+      );
+      expect((output[2] as AssetType).address).toBe('0xusdc');
+    });
+
+    it('does not prepend highlighted action when onDepositPress is not provided', () => {
+      mockUseSelector.mockReturnValue({
+        availableBalance: '100.00',
+      });
+      const inputTokens: AssetType[] = [];
+
+      const { result } = renderHook(() => usePerpsBalanceTokenFilter());
+      const output = result.current(inputTokens);
+
+      expect(output).toHaveLength(1);
+      expect(isHighlightedActionListItem(output[0])).toBe(false);
+      expect((output[0] as AssetType).address).toBe(
+        PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+      );
     });
   });
 });

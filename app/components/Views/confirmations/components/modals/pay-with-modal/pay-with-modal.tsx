@@ -27,6 +27,9 @@ import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { usePerpsTrading } from '../../../../../UI/Perps/hooks/usePerpsTrading';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { useConfirmNavigation } from '../../../hooks/useConfirmNavigation';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -43,7 +46,23 @@ export function PayWithModal() {
     useMusdPaymentToken();
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
-  const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
+  const { depositWithConfirmation } = usePerpsTrading();
+  const { navigateToConfirmation } = useConfirmNavigation();
+
+  const handlePerpsDepositPress = useCallback(() => {
+    navigateToConfirmation({ stack: Routes.PERPS.ROOT });
+    depositWithConfirmation().catch(() => {
+      // Deposit flow handles errors (e.g. user rejection).
+    });
+  }, [navigateToConfirmation, depositWithConfirmation]);
+
+  const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
+    TransactionType.perpsDepositAndOrder,
+  ]);
+
+  const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter({
+    onDepositPress: isPerpsDepositAndOrder ? handlePerpsDepositPress : undefined,
+  });
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
