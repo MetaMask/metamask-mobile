@@ -490,6 +490,8 @@
       "activeWithdrawalId": null
     },
     "lastWithdrawResult": null,
+    "lastCompletedWithdrawalTimestamp": null,
+    "lastCompletedDepositTimestamp": null,
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
