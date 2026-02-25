@@ -17,7 +17,6 @@ const mockDeviceSelection = {
 };
 const mockActions = {
   retryLastOperation: jest.fn(),
-  closeDeviceSelection: jest.fn(),
   selectDevice: jest.fn(),
   rescan: jest.fn(),
   connect: jest.fn(),
@@ -317,7 +316,7 @@ describe('HardwareWalletBottomSheet', () => {
       lastBottomSheetOnClose = undefined;
     });
 
-    it('calls closeDeviceSelection and onClose when sheet closes during scanning', () => {
+    it('calls onClose when sheet closes during scanning', () => {
       const onClose = jest.fn();
       mockConnectionState.status = ConnectionStatus.Scanning;
       render(
@@ -327,11 +326,10 @@ describe('HardwareWalletBottomSheet', () => {
       expect(lastBottomSheetOnClose).toBeDefined();
       lastBottomSheetOnClose?.();
 
-      expect(mockActions.closeDeviceSelection).toHaveBeenCalled();
       expect(onClose).toHaveBeenCalled();
     });
 
-    it('calls closeDeviceSelection and onClose when sheet closes during connecting', () => {
+    it('calls onClose when sheet closes during connecting', () => {
       const onClose = jest.fn();
       mockConnectionState.status = ConnectionStatus.Connecting;
       render(
@@ -341,11 +339,10 @@ describe('HardwareWalletBottomSheet', () => {
       expect(lastBottomSheetOnClose).toBeDefined();
       lastBottomSheetOnClose?.();
 
-      expect(mockActions.closeDeviceSelection).toHaveBeenCalled();
       expect(onClose).toHaveBeenCalled();
     });
 
-    it('calls closeDeviceSelection and onClose when sheet closes during awaiting app', () => {
+    it('calls onClose when sheet closes during awaiting app', () => {
       const onClose = jest.fn();
       Object.assign(mockConnectionState, {
         status: ConnectionStatus.AwaitingApp,
@@ -358,11 +355,10 @@ describe('HardwareWalletBottomSheet', () => {
       expect(lastBottomSheetOnClose).toBeDefined();
       lastBottomSheetOnClose?.();
 
-      expect(mockActions.closeDeviceSelection).toHaveBeenCalled();
       expect(onClose).toHaveBeenCalled();
     });
 
-    it('calls closeDeviceSelection and onClose when sheet closes during error state', () => {
+    it('calls onClose when sheet closes during error state', () => {
       const onClose = jest.fn();
       const error = new HardwareWalletError('Test error', {
         code: ErrorCode.Unknown,
@@ -381,11 +377,10 @@ describe('HardwareWalletBottomSheet', () => {
       expect(lastBottomSheetOnClose).toBeDefined();
       lastBottomSheetOnClose?.();
 
-      expect(mockActions.closeDeviceSelection).toHaveBeenCalled();
       expect(onClose).toHaveBeenCalled();
     });
 
-    it('only calls onClose when sheet closes during success state', () => {
+    it('calls onClose when sheet closes during success state', () => {
       const onClose = jest.fn();
       Object.assign(mockConnectionState, {
         status: ConnectionStatus.Ready,
@@ -395,11 +390,29 @@ describe('HardwareWalletBottomSheet', () => {
         <HardwareWalletBottomSheet {...createDefaultProps({ onClose })} />,
       );
 
-      mockActions.closeDeviceSelection.mockClear();
       expect(lastBottomSheetOnClose).toBeDefined();
       lastBottomSheetOnClose?.();
 
-      expect(mockActions.closeDeviceSelection).not.toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('calls onAwaitingConfirmationCancel and onClose when sheet closes during confirmation', () => {
+      const onClose = jest.fn();
+      const onAwaitingConfirmationCancel = jest.fn();
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.AwaitingConfirmation,
+        deviceId: 'device-123',
+      });
+      render(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ onClose, onAwaitingConfirmationCancel })}
+        />,
+      );
+
+      expect(lastBottomSheetOnClose).toBeDefined();
+      lastBottomSheetOnClose?.();
+
+      expect(onAwaitingConfirmationCancel).toHaveBeenCalled();
       expect(onClose).toHaveBeenCalled();
     });
   });
@@ -443,19 +456,18 @@ describe('HardwareWalletBottomSheet', () => {
       expect(mockActions.rescan).toHaveBeenCalled();
     });
 
-    it('calls closeDeviceSelection and onCancel when cancel is triggered', () => {
-      const onCancel = jest.fn();
+    it('calls onClose when cancel is triggered', () => {
+      const onClose = jest.fn();
       mockConnectionState.status = ConnectionStatus.Scanning;
       render(
-        <HardwareWalletBottomSheet {...createDefaultProps({ onCancel })} />,
+        <HardwareWalletBottomSheet {...createDefaultProps({ onClose })} />,
       );
 
       const onCancelSelection = lastDeviceSelectionProps.onCancel as () => void;
       expect(onCancelSelection).toBeDefined();
       onCancelSelection();
 
-      expect(mockActions.closeDeviceSelection).toHaveBeenCalled();
-      expect(onCancel).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
     });
 
     it('calls connect when device selection is confirmed', async () => {
@@ -499,7 +511,8 @@ describe('HardwareWalletBottomSheet', () => {
       expect(mockActions.retryLastOperation).toHaveBeenCalled();
     });
 
-    it('calls closeDeviceSelection when error dismiss is triggered', () => {
+    it('calls onClose when error dismiss is triggered', () => {
+      const onClose = jest.fn();
       const error = new HardwareWalletError('Test error', {
         code: ErrorCode.Unknown,
         severity: Severity.Err,
@@ -510,13 +523,15 @@ describe('HardwareWalletBottomSheet', () => {
         status: ConnectionStatus.ErrorState,
         error,
       });
-      render(<HardwareWalletBottomSheet {...createDefaultProps()} />);
+      render(
+        <HardwareWalletBottomSheet {...createDefaultProps({ onClose })} />,
+      );
 
       const onDismiss = lastErrorContentProps.onDismiss as () => void;
       expect(onDismiss).toBeDefined();
       onDismiss();
 
-      expect(mockActions.closeDeviceSelection).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
     });
 
     it('calls onConnectionSuccess when success dismiss is triggered', () => {

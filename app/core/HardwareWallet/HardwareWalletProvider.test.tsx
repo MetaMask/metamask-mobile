@@ -337,8 +337,7 @@ describe('HardwareWalletProvider', () => {
           ConnectionStatus.Scanning,
         );
 
-        const internalClose =
-          capturedBottomSheetProps.closeDeviceSelection as () => void;
+        const internalClose = capturedBottomSheetProps.onClose as () => void;
         await act(async () => {
           internalClose();
         });

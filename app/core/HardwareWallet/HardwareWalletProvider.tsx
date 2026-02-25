@@ -330,6 +330,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       pendingReadyResolveRef.current(false);
       pendingReadyResolveRef.current = null;
     }
+    lastOperationRef.current = null;
     setters.setTargetWalletType(null);
     updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [setters, updateConnectionState]);
@@ -344,11 +345,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const rescan = useCallback(() => {
     startDiscovery();
   }, [startDiscovery]);
-
-  const closeBottomSheet = useCallback(() => {
-    setters.setTargetWalletType(null);
-    updateConnectionState({ status: ConnectionStatus.Disconnected });
-  }, [setters, updateConnectionState]);
 
   const connect = useCallback(
     async (targetDeviceId: string): Promise<void> => {
@@ -371,6 +367,14 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         }
 
         await adapter.connect(targetDeviceId);
+
+        if (!lastOperationRef.current) {
+          DevLogger.log(
+            '[HardwareWalletProvider] Connect completed but flow was cancelled — ignoring',
+          );
+          return;
+        }
+
         setters.setDeviceId(targetDeviceId);
 
         if (pendingReadyResolveRef.current) {
@@ -694,12 +698,10 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         walletType={effectiveWalletType}
         connectionTips={connectionTips}
         retryLastOperation={retryLastOperation}
-        closeDeviceSelection={closeDeviceSelection}
         selectDevice={selectDevice}
         rescan={rescan}
         connect={connect}
-        onCancel={closeBottomSheet}
-        onClose={closeBottomSheet}
+        onClose={closeDeviceSelection}
         onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
         onConnectionSuccess={handleConnectionSuccess}
       />
