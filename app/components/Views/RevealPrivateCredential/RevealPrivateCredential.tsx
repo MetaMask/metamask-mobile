@@ -116,14 +116,14 @@ const RevealPrivateCredential = ({
     }
   }, [hasNavigation, navigation, cancel, trackEvent]);
 
-  // Only when user reaches the action view (after quiz): track, then attempt
+  // Only when user reaches the action view (after quiz): track once, then attempt reveal once.
+  const hasRunRevealForActionView = useRef(false);
   useEffect(() => {
-    if (revealSrpStage === RevealSrpStage.ActionViewScreen) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.REVEAL_SRP_SCREEN).build(),
-      );
-      revealCredential();
-    }
+    if (revealSrpStage !== RevealSrpStage.ActionViewScreen) return;
+    if (hasRunRevealForActionView.current) return;
+    hasRunRevealForActionView.current = true;
+    trackEvent(createEventBuilder(MetaMetricsEvents.REVEAL_SRP_SCREEN).build());
+    revealCredential();
   }, [revealSrpStage, revealCredential, trackEvent, createEventBuilder]);
 
   useEffect(() => {
@@ -207,7 +207,7 @@ const RevealPrivateCredential = ({
   );
 
   const lastCopyTimeRef = useRef<number>(0);
-  const COPY_THROTTLE_MS = 5000;
+  const COPY_THROTTLE_MS = 2000;
 
   const copyPrivateCredentialToClipboard = useCallback(async () => {
     const now = Date.now();
