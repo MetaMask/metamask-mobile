@@ -50,7 +50,7 @@ export function useAccountTokens({
       return haveBalance || isTestNetAsset;
     });
 
-    const processedAssets: AssetType[] = assetsWithBalance.map((asset) => {
+    const processedAssets = assetsWithBalance.map((asset) => {
       const fiatAmount = new BigNumber(asset.fiat?.balance || 0);
       const hasDecimals = !fiatAmount.isInteger();
 
@@ -115,7 +115,7 @@ export function useAccountTokens({
             isNative: false,
             networkBadgeSource: getNetworkBadgeSource(chainId as Hex),
             standard: TokenStandard.ERC20,
-          } as AssetType);
+          });
         }
       }
     }
