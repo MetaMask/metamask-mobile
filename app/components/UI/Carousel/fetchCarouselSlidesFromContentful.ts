@@ -1,7 +1,6 @@
 import { createClient, type EntrySkeletonType } from 'contentful';
 import compareVersions from 'compare-versions';
 import { getVersion } from 'react-native-device-info';
-import { isProduction } from '../../../util/environment';
 import { CarouselSlide } from './types';
 import { ACCESS_TOKEN, SPACE_ID } from './constants';
 import { getContentPreviewToken } from '../../../actions/notification/helpers';
@@ -34,10 +33,8 @@ export const getContentfulEnvironmentDetails = () => {
     };
   }
 
-  const isProd = isProduction();
-
   // If production, show prod master content
-  if (isProd) {
+  if (process.env.METAMASK_ENVIRONMENT === 'rc') {
     return {
       environment: 'master',
       domain: 'cdn.contentful.com',
