@@ -15,8 +15,8 @@ interface RampsUnifiedBuyV2Config {
 const RAMPS_UNIFIED_BUY_V2_FLAG_KEY = 'rampsUnifiedBuyV2';
 
 /**
- * Determines whether the ramps unified buy V2 feature is enabled.
- * Checks build-time override first, then falls back to remote feature flag.
+ * Determines whether the ramps unified buy V2 feature is enabled
+ * by reading the remote feature flag state.
  *
  * @param initMessenger - The init messenger to read RemoteFeatureFlagController state.
  * @returns Whether V2 is enabled.
@@ -24,11 +24,6 @@ const RAMPS_UNIFIED_BUY_V2_FLAG_KEY = 'rampsUnifiedBuyV2';
 function getIsRampsUnifiedBuyV2Enabled(
   initMessenger: RampsControllerInitMessenger,
 ): boolean {
-  const buildFlag = process.env.MM_RAMPS_UNIFIED_BUY_V2_ENABLED;
-  if (buildFlag === 'true' || buildFlag === 'false') {
-    return buildFlag === 'true';
-  }
-
   try {
     const remoteState = initMessenger.call(
       'RemoteFeatureFlagController:getState',
