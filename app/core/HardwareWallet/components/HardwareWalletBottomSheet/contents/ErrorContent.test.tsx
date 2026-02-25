@@ -127,34 +127,34 @@ describe('ErrorContent', () => {
       userMessage: userMessage ?? message,
     });
 
-  it('should render with test ID', () => {
+  it('renders with test ID', () => {
     const error = createError('Test error');
     const { getByTestId } = render(
       <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
     );
 
-    expect(getByTestId(ERROR_CONTENT_TEST_ID)).toBeTruthy();
+    expect(getByTestId(ERROR_CONTENT_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('should render error icon', () => {
+  it('renders error icon', () => {
     const error = createError('Test error');
     const { getByTestId } = render(
       <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
     );
 
-    expect(getByTestId(ERROR_CONTENT_ICON_TEST_ID)).toBeTruthy();
+    expect(getByTestId(ERROR_CONTENT_ICON_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('should render error title', () => {
+  it('renders error title', () => {
     const error = createError('Test error');
     const { getByTestId } = render(
       <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
     );
 
-    expect(getByTestId(ERROR_CONTENT_TITLE_TEST_ID)).toBeTruthy();
+    expect(getByTestId(ERROR_CONTENT_TITLE_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('should render error message when available', () => {
+  it('renders error message when available', () => {
     const error = createError(
       'Test error',
       ErrorCode.Unknown,
@@ -164,10 +164,10 @@ describe('ErrorContent', () => {
       <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
     );
 
-    expect(getByTestId(ERROR_CONTENT_MESSAGE_TEST_ID)).toBeTruthy();
+    expect(getByTestId(ERROR_CONTENT_MESSAGE_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('should not render message when not available', () => {
+  it('does not render message when not available', () => {
     // Create error without userMessage by setting it to empty string
     const error = new HardwareWalletError('Test error', {
       code: ErrorCode.Unknown,
@@ -182,7 +182,7 @@ describe('ErrorContent', () => {
     expect(queryByTestId(ERROR_CONTENT_MESSAGE_TEST_ID)).toBeNull();
   });
 
-  it('should return null when error is null', () => {
+  it('returns null when error is null', () => {
     const { queryByTestId } = render(
       <ErrorContent error={null} deviceType={HardwareWalletType.Ledger} />,
     );
@@ -190,16 +190,18 @@ describe('ErrorContent', () => {
     expect(queryByTestId(ERROR_CONTENT_TEST_ID)).toBeNull();
   });
 
-  it('should render Continue button', () => {
+  it('renders Continue button', () => {
     const error = createError('Test error');
     const { getByTestId } = render(
       <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
     );
 
-    expect(getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID)).toBeTruthy();
+    expect(
+      getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID),
+    ).toBeOnTheScreen();
   });
 
-  it('should call onContinue when continue button pressed', async () => {
+  it('calls onContinue when continue button pressed', async () => {
     const onContinue = jest.fn().mockResolvedValue(undefined);
     const error = createError('Test error');
     const { getByTestId } = render(
@@ -217,7 +219,7 @@ describe('ErrorContent', () => {
     });
   });
 
-  it('should disable button when isLoading is true', () => {
+  it('disables button when isLoading is true', () => {
     const onContinue = jest.fn();
     const error = createError('Test error');
     const { getByTestId } = render(
@@ -235,7 +237,7 @@ describe('ErrorContent', () => {
     expect(onContinue).not.toHaveBeenCalled();
   });
 
-  it('should prevent double-tap while retrying', async () => {
+  it('prevents double-tap while retrying', async () => {
     // eslint-disable-next-line no-empty-function
     let resolveRetry: () => void = () => {};
     const retryPromise = new Promise<void>((resolve) => {

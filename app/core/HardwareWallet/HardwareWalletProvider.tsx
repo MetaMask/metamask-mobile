@@ -60,6 +60,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const discoveryCleanupRef = useRef<(() => void) | null>(null);
 
+  const [connectionTips, setConnectionTips] = useState<string[]>([]);
   const [isTransportAvailable, setIsTransportAvailable] = useState(false);
   const previousTransportAvailableRef = useRef<boolean | null>(null);
 
@@ -189,6 +190,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         });
 
     refs.adapterRef.current = adapter;
+    setConnectionTips(adapter.getConnectionTips());
 
     let transportCleanup: (() => void) | undefined;
     if (adapter.onTransportStateChange) {
@@ -331,7 +333,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
       refs.isConnectingRef.current = true;
       lastOperationRef.current = {
-        type: 'ensureReady',
+        type: 'connect',
         deviceId: targetDeviceId,
       };
 
@@ -638,14 +640,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
     updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [refs, updateConnectionState]);
-
-  // Get connection tips from the adapter for the bottom sheet
-  const connectionTips = useMemo(
-    () => refs.adapterRef.current?.getConnectionTips() ?? [],
-    // Re-derive when adapter changes (effectiveWalletType drives adapter creation)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [effectiveWalletType],
-  );
 
   const contextValue = useMemo(
     () => ({

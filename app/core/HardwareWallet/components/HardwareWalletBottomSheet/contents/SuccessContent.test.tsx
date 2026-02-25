@@ -65,41 +65,41 @@ describe('SuccessContent', () => {
     jest.useRealTimers();
   });
 
-  it('should render with test ID', () => {
+  it('renders with test ID', () => {
     const { getByTestId } = render(
       <SuccessContent deviceType={HardwareWalletType.Ledger} />,
     );
 
-    expect(getByTestId(SUCCESS_CONTENT_TEST_ID)).toBeTruthy();
+    expect(getByTestId(SUCCESS_CONTENT_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('should render success icon', () => {
+  it('renders success icon', () => {
     const { getByTestId } = render(
       <SuccessContent deviceType={HardwareWalletType.Ledger} />,
     );
 
-    expect(getByTestId(SUCCESS_CONTENT_ICON_TEST_ID)).toBeTruthy();
+    expect(getByTestId(SUCCESS_CONTENT_ICON_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('should render default message', () => {
+  it('renders default message', () => {
     const { getByText } = render(
       <SuccessContent deviceType={HardwareWalletType.Ledger} />,
     );
 
     // Component renders hardware_wallet.success.title with device param
-    expect(getByText('hardware_wallet.success.title')).toBeTruthy();
+    expect(getByText('hardware_wallet.success.title')).toBeOnTheScreen();
   });
 
-  it('should render with device type', () => {
+  it('renders with device type', () => {
     const { getByText } = render(
       <SuccessContent deviceType={HardwareWalletType.Ledger} />,
     );
 
     // Component renders hardware_wallet.success.title with device param
-    expect(getByText('hardware_wallet.success.title')).toBeTruthy();
+    expect(getByText('hardware_wallet.success.title')).toBeOnTheScreen();
   });
 
-  it('should not render any button (auto-dismiss only)', () => {
+  it('does not render any button (auto-dismiss only)', () => {
     const onDismiss = jest.fn();
     const { queryByText } = render(
       <SuccessContent
@@ -113,7 +113,7 @@ describe('SuccessContent', () => {
     expect(queryByText('hardware_wallet.common.continue')).toBeNull();
   });
 
-  it('should auto-dismiss after specified time', () => {
+  it('auto-dismisses after specified time', () => {
     const onDismiss = jest.fn();
     render(
       <SuccessContent
@@ -132,7 +132,7 @@ describe('SuccessContent', () => {
     expect(onDismiss).toHaveBeenCalled();
   });
 
-  it('should not auto-dismiss when autoDismissMs is 0', () => {
+  it('does not auto-dismiss when autoDismissMs is 0', () => {
     const onDismiss = jest.fn();
     render(
       <SuccessContent
@@ -149,7 +149,7 @@ describe('SuccessContent', () => {
     expect(onDismiss).not.toHaveBeenCalled();
   });
 
-  it('should not auto-dismiss when onDismiss not provided', () => {
+  it('does not auto-dismiss when onDismiss not provided', () => {
     // This should not throw
     render(
       <SuccessContent

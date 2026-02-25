@@ -57,28 +57,36 @@ describe('ConnectingContent', () => {
       false,
     );
 
-  it('should render with test ID', () => {
+  it('renders with test ID', () => {
     const { getByTestId } = renderComponent();
 
-    expect(getByTestId(CONNECTING_CONTENT_TEST_ID)).toBeTruthy();
+    expect(getByTestId(CONNECTING_CONTENT_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('should render activity indicator', () => {
+  it('renders activity indicator', () => {
     const { getByTestId } = renderComponent();
 
-    expect(getByTestId(CONNECTING_CONTENT_SPINNER_TEST_ID)).toBeTruthy();
+    expect(getByTestId(CONNECTING_CONTENT_SPINNER_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('should render tips', () => {
+  it('renders tips', () => {
     const { getByText } = renderComponent();
 
-    expect(getByText('hardware_wallet.connecting.tips_header')).toBeTruthy();
+    expect(
+      getByText('hardware_wallet.connecting.tips_header'),
+    ).toBeOnTheScreen();
     // All tips are rendered with { device: deviceName } interpolation params
-    expect(getByText(/hardware_wallet\.connecting\.tip_unlock/)).toBeTruthy();
-    expect(getByText(/hardware_wallet\.connecting\.tip_open_app/)).toBeTruthy();
+    expect(
+      getByText(/hardware_wallet\.connecting\.tip_unlock/),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(/hardware_wallet\.connecting\.tip_open_app/),
+    ).toBeOnTheScreen();
     expect(
       getByText(/hardware_wallet\.connecting\.tip_enable_bluetooth/),
-    ).toBeTruthy();
-    expect(getByText(/hardware_wallet\.connecting\.tip_dnd_off/)).toBeTruthy();
+    ).toBeOnTheScreen();
+    expect(
+      getByText(/hardware_wallet\.connecting\.tip_dnd_off/),
+    ).toBeOnTheScreen();
   });
 });

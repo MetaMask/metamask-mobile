@@ -122,6 +122,7 @@ export const HardwareWalletBottomSheet: React.FC<
     if (
       connectionState.status === ConnectionStatus.Scanning ||
       connectionState.status === ConnectionStatus.Connecting ||
+      connectionState.status === ConnectionStatus.Connected ||
       connectionState.status === ConnectionStatus.AwaitingApp ||
       connectionState.status === ConnectionStatus.ErrorState
     ) {

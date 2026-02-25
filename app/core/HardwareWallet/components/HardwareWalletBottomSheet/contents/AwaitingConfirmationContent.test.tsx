@@ -47,43 +47,47 @@ describe('AwaitingConfirmationContent', () => {
       false,
     );
 
-  it('should render with test ID', () => {
+  it('renders with test ID', () => {
     const { getByTestId } = renderComponent();
 
-    expect(getByTestId(AWAITING_CONFIRMATION_CONTENT_TEST_ID)).toBeTruthy();
+    expect(
+      getByTestId(AWAITING_CONFIRMATION_CONTENT_TEST_ID),
+    ).toBeOnTheScreen();
   });
 
-  it('should render activity indicator', () => {
+  it('renders activity indicator', () => {
     const { getByTestId } = renderComponent();
 
-    expect(getByTestId(AWAITING_CONFIRMATION_SPINNER_TEST_ID)).toBeTruthy();
+    expect(
+      getByTestId(AWAITING_CONFIRMATION_SPINNER_TEST_ID),
+    ).toBeOnTheScreen();
   });
 
-  it('should render review message', () => {
+  it('renders review message', () => {
     const { getByText } = renderComponent();
 
     expect(
       getByText(/hardware_wallet\.awaiting_confirmation\.message/),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
-  it('should show transaction title by default', () => {
+  it('shows transaction title by default', () => {
     const { getByText } = renderComponent();
 
     expect(
       getByText(/hardware_wallet\.awaiting_confirmation\.title_transaction/),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
-  it('should show message title for message operation', () => {
+  it('shows message title for message operation', () => {
     const { getByText } = renderComponent({ operationType: 'message' });
 
     expect(
       getByText(/hardware_wallet\.awaiting_confirmation\.title_message/),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
-  it('should render cancel button when onCancel provided', () => {
+  it('renders cancel button when onCancel provided', () => {
     const onCancel = jest.fn();
     const { getByText } = renderComponent({ onCancel });
 
@@ -92,7 +96,7 @@ describe('AwaitingConfirmationContent', () => {
     expect(onCancel).toHaveBeenCalled();
   });
 
-  it('should not render cancel button when onCancel not provided', () => {
+  it('does not render cancel button when onCancel not provided', () => {
     const { queryByText } = renderComponent();
 
     expect(queryByText('hardware_wallet.common.cancel')).toBeNull();
