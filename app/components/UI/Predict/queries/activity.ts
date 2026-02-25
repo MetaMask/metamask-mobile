@@ -13,5 +13,4 @@ export const predictActivityOptions = ({ address }: { address: string }) =>
     queryKey: predictActivityKeys.byAddress(address),
     queryFn: async (): Promise<PredictActivity[]> =>
       Engine.context.PredictController.getActivity({ address }),
-    staleTime: 5_000,
   });
