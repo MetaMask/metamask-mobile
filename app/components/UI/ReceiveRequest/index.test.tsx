@@ -211,6 +211,12 @@ describe('ReceiveRequest', () => {
     // Arrange
     const mockNavigate = jest.fn();
     const receiveAsset = { symbol: 'ETH' };
+    const stateWithReceiveAsset = {
+      ...initialState,
+      modals: {
+        receiveAsset,
+      },
+    };
 
     // Act
     const { getByTestId } = renderScreen(
@@ -218,14 +224,13 @@ describe('ReceiveRequest', () => {
         React.createElement(ReceiveRequest, {
           navigation: { navigate: mockNavigate },
           selectedAddress: '0x123',
-          receiveAsset,
           metrics: {
             trackEvent: jest.fn(),
             createEventBuilder: jest.fn(() => ({ build: jest.fn() })),
           },
         }),
       { name: 'ReceiveRequest' },
-      { state: initialState },
+      { state: stateWithReceiveAsset },
     );
     const requestButton = getByTestId(
       RequestPaymentModalSelectorsIDs.REQUEST_BUTTON,
@@ -233,12 +238,9 @@ describe('ReceiveRequest', () => {
     fireEvent.press(requestButton);
 
     // Assert
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'PaymentRequestView',
-      expect.objectContaining({
-        screen: 'PaymentRequest',
-        params: expect.any(Object),
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('PaymentRequestView', {
+      screen: 'PaymentRequest',
+      params: { receiveAsset },
+    });
   });
 });
