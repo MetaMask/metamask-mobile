@@ -19,6 +19,14 @@ import Utilities from '../Utilities';
 import { dismissDevScreens } from '../../flows/general.flow';
 import TestHelpers from '../../helpers';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
+import TransparentProxy from '../../api-mocking/TransparentProxy';
+import {
+  configureAndroidProxy,
+  removeAndroidProxy,
+  installCACertAndroid,
+  configureIOSProxy,
+  removeIOSProxy,
+} from './DeviceProxyConfig';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import {
@@ -509,6 +517,7 @@ export async function withFixtures(
     endTestfn,
     skipReactNativeReload = false,
     useCommandQueueServer = false,
+    useTransparentProxy = false,
   } = options;
 
   // Clean up any stale port forwarding from previous failed tests
@@ -542,6 +551,7 @@ export async function withFixtures(
   let mockServerPort;
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
+  let transparentProxyInstance: TransparentProxy | undefined;
   let testError: Error | null = null;
 
   try {
@@ -576,6 +586,21 @@ export async function withFixtures(
     const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
+
+    // Step 5: (optional) Start transparent proxy server
+    // Only start the server here; device proxy configuration is deferred until
+    // after launchApp() so Detox synchronization can settle during app startup.
+    // Skip on BrowserStack — the tunnel handles routing there
+    const isBrowserStack =
+      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+    if (useTransparentProxy && !isBrowserStack) {
+      transparentProxyInstance = new TransparentProxy({ testSpecificMock });
+      await startResourceWithRetry(
+        ResourceType.TRANSPARENT_PROXY,
+        transparentProxyInstance,
+      );
+    }
+
     // Resolve fixture after local nodes are started so dynamic ports are known
     let resolvedFixture: FixtureBuilder;
     if (typeof fixtureOption === 'function') {
@@ -627,8 +652,31 @@ export async function withFixtures(
     }
 
     // Dismiss dev screens if running locally (not in CI)
+    // This runs BEFORE proxy config so Detox sync is still active and reliable.
     if (process.env.CI !== 'true') {
       await dismissDevScreens();
+    }
+
+    // Configure device proxy AFTER launchApp + dismissDevScreens so Detox sync
+    // can settle during startup. Then disable sync before the test callback.
+    if (useTransparentProxy && transparentProxyInstance && !isBrowserStack) {
+      logger.debug('Configuring device proxy after app launch...');
+      const proxyPort = transparentProxyInstance.getServerPort();
+      const certPem = transparentProxyInstance.getCACertPem();
+      const isAndroid = device.getPlatform() === 'android';
+
+      if (isAndroid) {
+        const deviceId = (device as { id?: string }).id || '';
+        await installCACertAndroid(deviceId, certPem);
+        await configureAndroidProxy(deviceId, proxyPort);
+      } else {
+        const simulatorId = (device as { id?: string }).id || 'booted';
+        await configureIOSProxy(simulatorId, proxyPort, certPem);
+      }
+
+      await device.setURLBlacklist(['.*']);
+      await device.disableSynchronization();
+      logger.debug('Device proxy configured and Detox sync disabled.');
     }
 
     await testSuite({
@@ -636,6 +684,7 @@ export async function withFixtures(
       mockServer: mockServerInstance.server,
       localNodes,
       commandQueueServer,
+      transparentProxy: transparentProxyInstance?.server,
     });
   } catch (error) {
     testError = error as Error;
@@ -702,6 +751,23 @@ export async function withFixtures(
         mockServerInstance.validateLiveRequests();
       } catch (cleanupError) {
         logger.error('Error during live request validation:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
+    }
+
+    // Clean up the transparent proxy (remove device proxy config first, then stop server)
+    if (transparentProxyInstance?.isStarted()) {
+      try {
+        const isAndroid = device.getPlatform() === 'android';
+        if (isAndroid) {
+          const deviceId = (device as { id?: string }).id || '';
+          await removeAndroidProxy(deviceId);
+        } else {
+          await removeIOSProxy();
+        }
+        await transparentProxyInstance.stop();
+      } catch (cleanupError) {
+        logger.error('Error during transparent proxy cleanup:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
       }
     }

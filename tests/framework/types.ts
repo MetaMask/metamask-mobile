@@ -251,6 +251,7 @@ export interface TestSuiteParams {
   mockServer: Mockttp;
   localNodes?: LocalNode[];
   commandQueueServer?: CommandQueueServer;
+  transparentProxy?: Mockttp;
 }
 
 /**
@@ -334,4 +335,13 @@ export interface WithFixturesOptions {
    */
   skipReactNativeReload?: boolean;
   useCommandQueueServer?: boolean;
+  /**
+   * When true, starts a transparent HTTPS MITM proxy (mockttp) and configures
+   * the device/simulator to route all traffic through it.
+   * The same `testSpecificMock` function is used to register mocks.
+   * Unmatched requests pass through to the real server.
+   * Not applicable on BrowserStack (tunnel handles routing).
+   * @default false
+   */
+  useTransparentProxy?: boolean;
 }
