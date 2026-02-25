@@ -23,10 +23,22 @@ export default function useSubmitBridgeTx() {
 
     // check whether quoteResponse is an intent transaction
     if (quoteResponse.quote.intent) {
-      return Engine.context.BridgeStatusController.submitIntent({
+      const submitIntent = Engine.context.BridgeStatusController
+        .submitIntent as (params: {
+        quoteResponse: Parameters<
+          typeof Engine.context.BridgeStatusController.submitTx
+        >[1];
+        accountAddress: string;
+        location?: MetaMetricsSwapsEventSource;
+        signature?: string;
+      }) => ReturnType<
+        typeof Engine.context.BridgeStatusController.submitIntent
+      >;
+
+      return submitIntent({
         quoteResponse: quoteResponse as unknown as Parameters<
-          typeof Engine.context.BridgeStatusController.submitIntent
-        >[0]['quoteResponse'],
+          typeof Engine.context.BridgeStatusController.submitTx
+        >[1],
         accountAddress: walletAddress,
         location,
       });
