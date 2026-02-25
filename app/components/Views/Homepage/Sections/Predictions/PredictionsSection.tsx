@@ -41,7 +41,6 @@ import type { PredictNavigationParamList } from '../../../../UI/Predict/types/na
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 
 const MAX_MARKETS_DISPLAYED = 5;
-const MAX_POSITIONS_DISPLAYED = 3;
 
 // Card dimensions for snap offsets
 const CARD_WIDTH = 280;
@@ -104,7 +103,7 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     isLoading: isLoadingPositions,
     error: positionsError,
     refresh: refreshPositions,
-  } = usePredictPositionsForHomepage(MAX_POSITIONS_DISPLAYED);
+  } = usePredictPositionsForHomepage();
 
   const {
     markets,

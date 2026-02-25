@@ -42,7 +42,7 @@ const Routes = {
       SETTINGS: 'RampSettingsModal',
       BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
       TOKEN_NOT_AVAILABLE: 'RampTokenNotAvailableModal',
-      PROVIDER_PICKER: 'RampProviderPickerModal',
+      PROVIDER_SELECTION: 'RampProviderSelectionModal',
     },
   },
   DEPOSIT: {
@@ -254,6 +254,7 @@ const Routes = {
     NFTS_FULL_VIEW: 'NftFullView',
     TOKENS_FULL_VIEW: 'TokensFullView',
     TRENDING_TOKENS_FULL_VIEW: 'TrendingTokensFullView',
+    DEFI_FULL_VIEW: 'DeFiFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
