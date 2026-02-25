@@ -108,6 +108,16 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
+    // Don't render if DeFi is disabled
+    if (!isDeFiEnabled) {
+      return null;
+    }
+
+    // Don't render if error or empty (and not loading)
+    if (!isLoading && (hasError || isEmpty)) {
+      return null;
+    }
+
     return (
       <View ref={sectionViewRef}>
         <Box gap={3}>

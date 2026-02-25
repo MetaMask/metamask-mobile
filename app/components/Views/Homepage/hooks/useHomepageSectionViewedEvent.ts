@@ -66,6 +66,12 @@ const useHomepageSectionViewedEvent = ({
 
   const fireEvent = useCallback(() => {
     if (hasFiredRef.current) return;
+    // Wallet initializes visitId to 0 and useFocusEffect sets it to 1 on first
+    // focus. Child effects run before parent effects, so sections can run with
+    // visitId=0 and fire; then the focus effect runs, visitId becomes 1, the
+    // reset effect clears hasFiredRef, and the event fires again. Skip firing
+    // when visitId is 0 so we only fire after the homepage has been focused.
+    if (visitId === 0) return;
     // sectionIndex is -1 when the section's feature flag is OFF and it is
     // not included in enabledSections. Don't fire the event in that case.
     if (sectionIndex < 0) return;
@@ -86,6 +92,7 @@ const useHomepageSectionViewedEvent = ({
         .build(),
     );
   }, [
+    visitId,
     sectionName,
     sectionIndex,
     totalSectionsLoaded,

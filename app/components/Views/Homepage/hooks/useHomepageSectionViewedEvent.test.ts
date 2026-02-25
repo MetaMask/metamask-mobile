@@ -85,11 +85,24 @@ describe('useHomepageSectionViewedEvent', () => {
       subscribeToScroll: mockSubscribeToScroll,
       viewportHeight: 800,
       entryPoint: HomepageEntryPointsValues.APP_OPENED,
-      visitId: 0,
+      visitId: 1, // Use 1 as default so "event fires" tests pass; 0 = pre-focus, no fire
     };
   });
 
   describe('null sectionRef — non-rendered sections', () => {
+    it('does not fire when visitId is 0 (pre-focus; avoids duplicate on first load)', () => {
+      mockContextValue = { ...mockContextValue, visitId: 0 };
+      renderHook(() =>
+        useHomepageSectionViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          isLoading: false,
+        }),
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
     it('fires immediately when sectionRef is null and not loading', () => {
       renderHook(() =>
         useHomepageSectionViewedEvent({
@@ -324,9 +337,14 @@ describe('useHomepageSectionViewedEvent', () => {
         });
       });
 
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).not.toHaveBeenCalled(); // visitId=0: pre-focus, no fire
 
       currentVisitId = 1;
+      rerender();
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+
+      currentVisitId = 2;
       rerender();
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(2);
@@ -343,15 +361,21 @@ describe('useHomepageSectionViewedEvent', () => {
         });
       });
 
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).not.toHaveBeenCalled(); // visitId=0: pre-focus, no fire
 
       currentVisitId = 1;
+      rerender();
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+
+      currentVisitId = 2;
       rerender();
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(2);
     });
 
     it('does not re-fire when visitId stays the same', () => {
+      mockContextValue = { ...mockContextValue, visitId: 1 };
       const { rerender } = renderHook(() =>
         useHomepageSectionViewedEvent({
           ...defaultParams,
