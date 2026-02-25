@@ -95,7 +95,8 @@ const PredictBuyPreview = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const { market, outcome, outcomeToken, entryPoint } = route.params;
+  const { market, outcome, outcomeToken, entryPoint, autoPlaceOrderAmountUsd } =
+    route.params;
 
   const analyticsProperties = useMemo(
     () => ({
@@ -147,10 +148,17 @@ const PredictBuyPreview = () => {
   const [isInputFocused, setIsInputFocused] = useState(true);
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+  const [isAutoPlaceLoading, setIsAutoPlaceLoading] = useState(
+    () =>
+      typeof autoPlaceOrderAmountUsd === 'number' &&
+      autoPlaceOrderAmountUsd > 0,
+  );
   const previousValueRef = useRef(0);
   const hasInitializedTokenSelectionRef = useRef(false);
   const previousSelectedTokenAddressRef = useRef<string | null>(null);
   const shouldPreserveActiveOrderOnUnmountRef = useRef(false);
+  const hasInitializedAutoPlaceOrderRef = useRef(false);
+  const hasTriggeredAutoPlaceOrderRef = useRef(false);
 
   const {
     preview,
@@ -210,6 +218,28 @@ const PredictBuyPreview = () => {
     previousValueRef.current = currentValue;
   }, [currentValue, isCalculating]);
 
+  const shouldAutoPlaceOrder = useMemo(
+    () =>
+      typeof autoPlaceOrderAmountUsd === 'number' &&
+      autoPlaceOrderAmountUsd > 0,
+    [autoPlaceOrderAmountUsd],
+  );
+
+  useEffect(() => {
+    if (
+      typeof autoPlaceOrderAmountUsd !== 'number' ||
+      autoPlaceOrderAmountUsd <= 0 ||
+      hasInitializedAutoPlaceOrderRef.current
+    ) {
+      return;
+    }
+
+    hasInitializedAutoPlaceOrderRef.current = true;
+    setCurrentValue(autoPlaceOrderAmountUsd);
+    setCurrentValueUSDString(autoPlaceOrderAmountUsd.toString());
+    setIsInputFocused(false);
+  }, [autoPlaceOrderAmountUsd]);
+
   const errorMessage = isOrderNotFilled
     ? undefined
     : (previewError ?? placeOrderError);
@@ -247,10 +277,11 @@ const PredictBuyPreview = () => {
   const total = currentValue + providerFee + metamaskFee;
 
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
+  const isPlacingOrder = isLoading || isAutoPlaceLoading;
   const canPlaceBet =
     currentValue >= MINIMUM_BET &&
     preview &&
-    !isLoading &&
+    !isPlacingOrder &&
     !isBalanceLoading &&
     !isRateLimited;
 
@@ -262,7 +293,7 @@ const PredictBuyPreview = () => {
     estimatedPoints: estimatedRewardsPoints,
     hasError: isRewardsError,
   } = usePredictRewards(
-    isLoading || previewError ? undefined : (preview?.fees?.totalFee ?? 0),
+    isPlacingOrder || previewError ? undefined : (preview?.fees?.totalFee ?? 0),
   );
 
   // Show rewards row if we have a valid amount
@@ -326,6 +357,53 @@ const PredictBuyPreview = () => {
       preview,
     });
   }, [preview, isBelowMinimum, placeOrder, analyticsProperties]);
+
+  useEffect(() => {
+    if (!shouldAutoPlaceOrder) {
+      setIsAutoPlaceLoading(false);
+    }
+  }, [shouldAutoPlaceOrder]);
+
+  useEffect(() => {
+    if (!shouldAutoPlaceOrder || hasTriggeredAutoPlaceOrderRef.current) {
+      return;
+    }
+
+    if (
+      !isPredictBalanceSelected ||
+      !preview ||
+      isBelowMinimum ||
+      isLoading ||
+      isBalanceLoading ||
+      isRateLimited ||
+      isCalculating
+    ) {
+      return;
+    }
+
+    hasTriggeredAutoPlaceOrderRef.current = true;
+    void (async () => {
+      try {
+        await placeOrder({
+          analyticsProperties,
+          preview,
+        });
+      } finally {
+        setIsAutoPlaceLoading(false);
+      }
+    })();
+  }, [
+    analyticsProperties,
+    isBalanceLoading,
+    isBelowMinimum,
+    isCalculating,
+    isLoading,
+    isPredictBalanceSelected,
+    isRateLimited,
+    placeOrder,
+    preview,
+    shouldAutoPlaceOrder,
+  ]);
 
   const handleFeesInfoPress = useCallback(() => {
     setIsFeeBreakdownVisible(true);
@@ -415,7 +493,7 @@ const PredictBuyPreview = () => {
   );
 
   const renderActionButton = () => {
-    if (isLoading) {
+    if (isPlacingOrder) {
       return (
         <Button
           label={
@@ -445,7 +523,7 @@ const PredictBuyPreview = () => {
         testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
         onPress={onPlaceBet}
         disabled={!canPlaceBet}
-        isLoading={isLoading}
+        isLoading={isPlacingOrder}
         size={ButtonSizeHero.Lg}
         style={tw.style('w-full')}
       >

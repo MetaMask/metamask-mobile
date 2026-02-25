@@ -55,6 +55,7 @@ export interface PredictBuyPreviewParams {
   outcome: PredictOutcome;
   outcomeToken: PredictOutcomeToken;
   entryPoint?: PredictEntryPoint;
+  autoPlaceOrderAmountUsd?: number;
 }
 
 /** Predict sell preview parameters */

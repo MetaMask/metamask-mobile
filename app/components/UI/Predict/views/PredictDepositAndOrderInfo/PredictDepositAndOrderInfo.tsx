@@ -233,8 +233,10 @@ export function PredictDepositAndOrderInfo() {
 
   const { isConfirming, confirmError, handleConfirm } =
     usePredictDepositAndOrderExecution({
-      marketId: market?.id,
-      outcome: outcome?.id,
+      market,
+      outcome,
+      outcomeToken,
+      orderAmountUsd: currentValue,
       preview,
     });
 

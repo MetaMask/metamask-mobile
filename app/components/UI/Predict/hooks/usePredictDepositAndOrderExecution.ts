@@ -1,4 +1,8 @@
-import { useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  StackActions,
+  useNavigation,
+} from '@react-navigation/native';
 import { useCallback, useContext, useRef, useState } from 'react';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
@@ -12,10 +16,17 @@ import { usePredictPaymentToken } from './usePredictPaymentToken';
 import { OrderPreview } from '../providers/types';
 import { usePredictOrderDepositTracking } from './usePredictOrderDepositTracking';
 import { usePredictTrading } from './usePredictTrading';
+import Routes from '../../../../constants/navigation/Routes';
+import {
+  PredictBuyPreviewParams,
+  PredictNavigationParamList,
+} from '../types/navigation';
 
 interface UsePredictDepositAndOrderExecutionParams {
-  marketId?: string;
-  outcome?: string;
+  market?: PredictBuyPreviewParams['market'];
+  outcome?: PredictBuyPreviewParams['outcome'];
+  outcomeToken?: PredictBuyPreviewParams['outcomeToken'];
+  orderAmountUsd: number;
   preview?: OrderPreview | null;
 }
 
@@ -26,17 +37,22 @@ interface UsePredictDepositAndOrderExecutionResult {
 }
 
 export function usePredictDepositAndOrderExecution({
-  marketId,
+  market,
   outcome,
+  outcomeToken,
+  orderAmountUsd,
   preview,
 }: UsePredictDepositAndOrderExecutionParams): UsePredictDepositAndOrderExecutionResult {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { toastRef } = useContext(ToastContext);
   const { trackDeposit } = usePredictOrderDepositTracking();
   const { placeOrder } = usePredictTrading();
   const { onConfirm: onApprovalConfirm } = useApprovalRequest();
   const activeTransactionMeta = useTransactionMetadataRequest();
   const { isPredictBalanceSelected } = usePredictPaymentToken();
+  const marketId = market?.id;
+  const outcomeId = outcome?.id;
 
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string>();
@@ -55,6 +71,24 @@ export function usePredictDepositAndOrderExecution({
     });
   }, [toastRef]);
 
+  const redirectToBuyPreviewForAutoOrder = useCallback(() => {
+    if (!market || !outcome || !outcomeToken || orderAmountUsd <= 0) {
+      setConfirmError(strings('predict.deposit.error_description'));
+      setIsConfirming(false);
+      return;
+    }
+
+    setIsConfirming(false);
+    navigation.dispatch(
+      StackActions.replace(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+        market,
+        outcome,
+        outcomeToken,
+        autoPlaceOrderAmountUsd: orderAmountUsd,
+      }),
+    );
+  }, [market, navigation, orderAmountUsd, outcome, outcomeToken]);
+
   const handleOrderSuccess = useCallback(async () => {
     const latestPreview = previewRef.current;
     if (!latestPreview) {
@@ -67,7 +101,7 @@ export function usePredictDepositAndOrderExecution({
         preview: latestPreview,
         analyticsProperties: {
           marketId,
-          outcome,
+          outcome: outcomeId,
         },
       });
       showOrderPlacedToast();
@@ -81,7 +115,7 @@ export function usePredictDepositAndOrderExecution({
       setIsConfirming(false);
       navigation.goBack();
     }
-  }, [marketId, navigation, outcome, placeOrder, showOrderPlacedToast]);
+  }, [marketId, navigation, outcomeId, placeOrder, showOrderPlacedToast]);
 
   const handleConfirm = useCallback(async () => {
     if (isConfirming) {
@@ -105,7 +139,7 @@ export function usePredictDepositAndOrderExecution({
       trackDeposit({
         transactionMeta: activeTransactionMeta,
         onConfirmed: () => {
-          void handleOrderSuccess();
+          redirectToBuyPreviewForAutoOrder();
         },
         onFailed: () => {
           setConfirmError(strings('predict.deposit.error_description'));
@@ -132,6 +166,7 @@ export function usePredictDepositAndOrderExecution({
     isConfirming,
     isPredictBalanceSelected,
     onApprovalConfirm,
+    redirectToBuyPreviewForAutoOrder,
     trackDeposit,
   ]);
 
