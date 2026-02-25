@@ -1204,6 +1204,215 @@ describe('HyperLiquidProvider', () => {
     });
   });
 
+  describe('Pre-flight margin check', () => {
+    it('rejects order when withdrawable margin is insufficient for new position', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          clearinghouseState: jest.fn().mockResolvedValue({
+            marginSummary: {
+              totalMarginUsed: '9500',
+              accountValue: '10000',
+            },
+            withdrawable: '50',
+            assetPositions: [],
+            crossMarginSummary: {
+              accountValue: '10000',
+              totalMarginUsed: '9500',
+            },
+          }),
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'ETH',
+        isBuy: true,
+        size: '10',
+        orderType: 'market',
+        currentPrice: 3000,
+        leverage: 10,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(PERPS_ERROR_CODES.INSUFFICIENT_MARGIN);
+    });
+
+    it('allows order when withdrawable margin is sufficient', async () => {
+      const orderParams: OrderParams = {
+        symbol: 'ETH',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 3000,
+        leverage: 10,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('accounts for existing position margin when increasing same-direction position', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          clearinghouseState: jest.fn().mockResolvedValue({
+            marginSummary: {
+              totalMarginUsed: '500',
+              accountValue: '1000',
+            },
+            withdrawable: '400',
+            assetPositions: [
+              {
+                position: {
+                  coin: 'ETH',
+                  szi: '1.0',
+                  entryPx: '3000',
+                  positionValue: '3000',
+                  unrealizedPnl: '0',
+                  marginUsed: '300',
+                  leverage: { type: 'isolated', value: 10 },
+                  liquidationPx: '2700',
+                  maxLeverage: 50,
+                  returnOnEquity: '0',
+                  cumFunding: {
+                    allTime: '0',
+                    sinceOpen: '0',
+                    sinceChange: '0',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+            crossMarginSummary: {
+              accountValue: '1000',
+              totalMarginUsed: '500',
+            },
+          }),
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'ETH',
+        isBuy: true,
+        size: '1.0',
+        orderType: 'market',
+        currentPrice: 3000,
+        leverage: 10,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('skips margin check for reduce-only orders', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          clearinghouseState: jest.fn().mockResolvedValue({
+            marginSummary: {
+              totalMarginUsed: '500',
+              accountValue: '600',
+            },
+            withdrawable: '0',
+            assetPositions: [
+              {
+                position: {
+                  coin: 'BTC',
+                  szi: '0.1',
+                  entryPx: '50000',
+                  positionValue: '5000',
+                  unrealizedPnl: '0',
+                  marginUsed: '500',
+                  leverage: { type: 'cross', value: 10 },
+                  liquidationPx: '45000',
+                  maxLeverage: 50,
+                  returnOnEquity: '0',
+                  cumFunding: {
+                    allTime: '0',
+                    sinceOpen: '0',
+                    sinceChange: '0',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+            crossMarginSummary: {
+              accountValue: '600',
+              totalMarginUsed: '500',
+            },
+          }),
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: false,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+        reduceOnly: true,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('skips margin check for opposite-direction orders that reduce position', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          clearinghouseState: jest.fn().mockResolvedValue({
+            marginSummary: {
+              totalMarginUsed: '500',
+              accountValue: '600',
+            },
+            withdrawable: '10',
+            assetPositions: [
+              {
+                position: {
+                  coin: 'ETH',
+                  szi: '2.0',
+                  entryPx: '3000',
+                  positionValue: '6000',
+                  unrealizedPnl: '0',
+                  marginUsed: '600',
+                  leverage: { type: 'isolated', value: 10 },
+                  liquidationPx: '2700',
+                  maxLeverage: 50,
+                  returnOnEquity: '0',
+                  cumFunding: {
+                    allTime: '0',
+                    sinceOpen: '0',
+                    sinceChange: '0',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+            crossMarginSummary: {
+              accountValue: '600',
+              totalMarginUsed: '500',
+            },
+          }),
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'ETH',
+        isBuy: false,
+        size: '1.0',
+        orderType: 'market',
+        currentPrice: 3000,
+        leverage: 10,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(true);
+    });
+  });
+
   describe('closePosition with TP/SL handling', () => {
     beforeEach(() => {
       // Clear debugLogger mock to capture logs for this test suite

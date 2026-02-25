@@ -1322,8 +1322,8 @@ const Wallet = ({
 
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
-        {isHomepageSectionsV1Enabled ? (
-          <Homepage ref={homepageRef} />
+        <Homepage ref={homepageRef} />
+        {/* {isHomepageSectionsV1Enabled ? (
         ) : (
           <WalletTokensTabView
             ref={walletTokensTabViewRef}
@@ -1332,7 +1332,7 @@ const Wallet = ({
             defiEnabled={defiEnabled}
             collectiblesEnabled={collectiblesEnabled}
           />
-        )}
+        )} */}
       </>
     </>
   );
