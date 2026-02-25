@@ -15,6 +15,7 @@ const createStyles = (colors: Colors, insets: EdgeInsets) =>
       paddingHorizontal: Device.getDeviceWidth() * 0.07,
     },
     header: {
+      marginTop: Device.isAndroid() ? insets.top : 0,
       flexDirection: 'row',
       width: '100%',
       alignItems: 'center',
