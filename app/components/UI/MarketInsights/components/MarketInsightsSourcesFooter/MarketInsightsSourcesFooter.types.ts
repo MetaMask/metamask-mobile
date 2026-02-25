@@ -3,8 +3,8 @@ import type { MarketInsightsSource } from '@metamask/ai-controllers';
 export interface MarketInsightsSourcesFooterProps {
   /** List of sources used for the report */
   sources: MarketInsightsSource[];
-  /** Callback when a source URL is pressed */
-  onSourcePress?: (url: string) => void;
+  /** Callback when sources pill is pressed */
+  onSourcesPress?: () => void;
   /** Callback for thumbs up interaction */
   onThumbsUp?: () => void;
   /** Callback for thumbs down interaction */

@@ -124,6 +124,7 @@ import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
+import BonusCodeBottomSheet from '../../UI/Rewards/components/Tabs/OverviewTab/WaysToEarn/BonusCodeBottomSheet';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
@@ -261,6 +262,10 @@ const RewardsHome = () => (
       component={RewardsBottomSheetModal}
     />
     <Stack.Screen
+      name={Routes.MODAL.REWARDS_BONUS_CODE_BOTTOM_SHEET}
+      component={BonusCodeBottomSheet}
+    />
+    <Stack.Screen
       name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
       component={RewardsClaimBottomSheetModal}
     />
@@ -390,7 +395,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="SecuritySettings"
         component={SecuritySettings}
-        options={SecuritySettings.navigationOptions}
+        options={{ headerShown: false }}
       />
 
       <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
@@ -461,7 +466,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="ResetPassword"
         component={ResetPassword}
-        options={ResetPassword.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="WalletRecovery"
@@ -501,7 +506,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.BACKUP_AND_SYNC}
         component={BackupAndSyncSettings}
-        options={BackupAndSyncSettings.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.SETTINGS.REGION_SELECTOR}
