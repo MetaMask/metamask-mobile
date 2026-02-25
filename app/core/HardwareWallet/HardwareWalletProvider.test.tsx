@@ -9,18 +9,16 @@ import { getHardwareWalletTypeForAddress } from './helpers';
 import { createAdapter } from './adapters';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
 
-// Mock react-redux
 jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 
-// Mock helpers
 jest.mock('./helpers', () => ({
   ...jest.requireActual('./helpers'),
   getHardwareWalletTypeForAddress: jest.fn(),
 }));
 
-// Mock adapters
 const mockAdapterInstance = {
   walletType: 'Ledger',
   requiresDeviceDiscovery: false,
@@ -60,7 +58,6 @@ jest.mock('./adapters', () => ({
   createAdapter: jest.fn(() => mockAdapterInstance),
 }));
 
-// Mock the BLE transport
 jest.mock('@ledgerhq/react-native-hw-transport-ble', () => ({
   __esModule: true,
   default: {
@@ -73,43 +70,8 @@ jest.mock('@ledgerhq/react-native-hw-transport-ble', () => ({
   },
 }));
 
-// Mock errors
-jest.mock('./errors', () => {
-  const { HardwareWalletError, ErrorCode, Severity, Category } =
-    jest.requireActual('@metamask/hw-wallet-sdk');
-  return {
-    createHardwareWalletError: jest.fn((error: unknown) => {
-      if (error instanceof HardwareWalletError) {
-        return error;
-      }
-      return new HardwareWalletError(
-        error instanceof Error ? error.message : String(error),
-        {
-          code: ErrorCode.Unknown,
-          severity: Severity.Err,
-          category: Category.Unknown,
-          userMessage: String(error),
-        },
-      );
-    }),
-    parseErrorByType: jest.fn(
-      (error: unknown) =>
-        new HardwareWalletError(
-          error instanceof Error ? error.message : String(error),
-          {
-            code: ErrorCode.Unknown,
-            severity: Severity.Err,
-            category: Category.Unknown,
-            userMessage: String(error),
-          },
-        ),
-    ),
-    isUserCancellation: jest.fn().mockReturnValue(false),
-  };
-});
-
-// Mock react-native
 jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
   Linking: {
     openURL: jest.fn(),
     openSettings: jest.fn(),
