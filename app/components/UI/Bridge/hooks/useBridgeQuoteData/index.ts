@@ -1,4 +1,4 @@
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   selectBridgeControllerState,
   selectSourceToken,
@@ -10,6 +10,8 @@ import {
   selectBridgeFeatureFlags,
   selectIsSolanaSwap,
   selectIsSolanaToNonSolana,
+  selectSelectedQuoteRequestId,
+  setSelectedQuoteRequestId,
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
 import { areAddressesEqual } from '../../../../../util/address';
@@ -38,6 +40,7 @@ interface UseBridgeQuoteDataParams {
 export const useBridgeQuoteData = ({
   latestSourceAtomicBalance,
 }: UseBridgeQuoteDataParams = {}) => {
+  const dispatch = useDispatch();
   const bridgeControllerState = useSelector(selectBridgeControllerState);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -49,6 +52,7 @@ export const useBridgeQuoteData = ({
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
   const isSolanaToNonSolana = useSelector(selectIsSolanaToNonSolana);
+  const selectedQuoteRequestId = useSelector(selectSelectedQuoteRequestId);
   const { validateBridgeTx } = useValidateBridgeTx();
 
   const [blockaidError, setBlockaidError] = useState<string | null>(null);
@@ -82,8 +86,20 @@ export const useBridgeQuoteData = ({
   const bestQuote = quotes?.recommendedQuote;
   const allQuotes = quotes?.sortedQuotes ?? [];
 
+  // Determine the active quote:
+  // 1. If user manually selected a quote, use that
+  // 2. Otherwise, use the best quote
+  // 3. If expired and not refreshing, use undefined
+  const manuallySelectedQuote = selectedQuoteRequestId
+    ? allQuotes.find(
+        (quote) => quote.quote.requestId === selectedQuoteRequestId,
+      )
+    : undefined;
+
   const activeQuote =
-    isExpired && !willRefresh && !isSubmittingTx ? undefined : bestQuote;
+    isExpired && !willRefresh && !isSubmittingTx
+      ? undefined
+      : (manuallySelectedQuote ?? bestQuote);
 
   // Validate that the quote's source asset matches the selected source token
   // This prevents showing stale quote data when user changes source token on the same chain
@@ -276,6 +292,12 @@ export const useBridgeQuoteData = ({
   useEffect(() => {
     validateQuote();
   }, [validateQuote]);
+
+  useEffect(() => {
+    if (!manuallySelectedQuote) {
+      dispatch(setSelectedQuoteRequestId(undefined));
+    }
+  }, [manuallySelectedQuote, dispatch]);
 
   return {
     bestQuote,

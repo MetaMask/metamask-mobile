@@ -76,6 +76,12 @@ export interface BridgeState {
    * When undefined, defaults to the first N entries from chainRanking.
    */
   visiblePillChainIds: CaipChainId[] | undefined;
+  /**
+   * The requestId of the quote manually selected by the user.
+   * When set, this quote becomes the active quote across all components.
+   * When undefined, the recommended quote (best quote) is used.
+   */
+  selectedQuoteRequestId: string | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -98,6 +104,7 @@ export const initialState: BridgeState = {
   abTestContext: undefined,
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
+  selectedQuoteRequestId: undefined,
 };
 
 const name = 'bridge';
@@ -205,6 +212,16 @@ const slice = createSlice({
       action: PayloadAction<CaipChainId[] | undefined>,
     ) => {
       state.visiblePillChainIds = action.payload;
+    },
+    /**
+     * Sets the requestId of the manually selected quote.
+     * Pass undefined to reset to the recommended quote.
+     */
+    setSelectedQuoteRequestId: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      state.selectedQuoteRequestId = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -418,6 +435,11 @@ export const selectDestAddress = createSelector(
   (bridgeState) => bridgeState.destAddress,
 );
 
+export const selectSelectedQuoteRequestId = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.selectedQuoteRequestId,
+);
+
 // Selectors for gas included STX/SendBundle support
 export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
   state.bridge.isGasIncludedSTXSendBundleSupported;
@@ -442,11 +464,38 @@ const selectControllerFields = (state: RootState) => ({
 
 export const selectBridgeQuotes = createSelector(
   selectControllerFields,
-  (requiredControllerFields) =>
-    selectBridgeQuotesBase(requiredControllerFields, {
-      sortOrder: SortOrder.COST_ASC, // TODO for v1 we don't allow user to select alternative quotes, hardcode for now
-      selectedQuote: null, // TODO for v1 we don't allow user to select alternative quotes, pass in null for now
-    }),
+  selectSelectedQuoteRequestId,
+  (
+    requiredControllerFields,
+    selectedQuoteRequestId,
+  ): ReturnType<typeof selectBridgeQuotesBase> => {
+    // First get all quotes
+    const allQuotesResult = selectBridgeQuotesBase(requiredControllerFields, {
+      sortOrder: SortOrder.COST_ASC,
+      selectedQuote: null,
+    });
+
+    // If no selectedQuoteRequestId, return the default result
+    if (!selectedQuoteRequestId) {
+      return allQuotesResult;
+    }
+
+    // Find the quote with the matching requestId
+    const selectedQuote = allQuotesResult.sortedQuotes?.find(
+      (quote) => quote.quote.requestId === selectedQuoteRequestId,
+    );
+
+    // If found, recalculate with the selected quote
+    if (selectedQuote) {
+      return selectBridgeQuotesBase(requiredControllerFields, {
+        sortOrder: SortOrder.COST_ASC,
+        selectedQuote,
+      });
+    }
+
+    // If not found, return default result
+    return allQuotesResult;
+  },
 );
 
 export const selectIsSolanaSourced = createSelector(
@@ -678,4 +727,5 @@ export const {
   setAbTestContext,
   setTokenSelectorNetworkFilter,
   setVisiblePillChainIds,
+  setSelectedQuoteRequestId,
 } = actions;

@@ -816,4 +816,195 @@ describe('useBridgeQuoteData', () => {
       expect(result.current.blockaidError).toBe(null);
     });
   });
+
+  describe('manual quote selection', () => {
+    it('uses manually selected quote when selectedQuoteRequestId is set', () => {
+      const manuallySelectedQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          requestId: 'manual-quote-123',
+          destTokenAmount: '60000000', // Different amount
+        },
+      };
+
+      const allQuotes = [mockQuoteWithMetadata, manuallySelectedQuote];
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithMetadata,
+        sortedQuotes: allQuotes,
+        alternativeQuotes: [manuallySelectedQuote],
+      }));
+
+      const bridgeControllerOverrides = {
+        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+      };
+
+      const bridgeReducerOverrides = {
+        selectedQuoteRequestId: 'manual-quote-123',
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      };
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides,
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      // Verify that activeQuote is the manually selected quote, not the best quote
+      expect(result.current.activeQuote).toEqual(manuallySelectedQuote);
+      expect(result.current.bestQuote).toEqual(mockQuoteWithMetadata);
+
+      // Verify that destTokenAmount is calculated from the manually selected quote
+      expect(result.current.destTokenAmount).toEqual('60');
+    });
+
+    it('falls back to bestQuote when selectedQuoteRequestId does not match any quote', () => {
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithMetadata,
+        sortedQuotes: [mockQuoteWithMetadata],
+        alternativeQuotes: [],
+      }));
+
+      const bridgeControllerOverrides = {
+        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+      };
+
+      const bridgeReducerOverrides = {
+        selectedQuoteRequestId: 'non-existent-quote-id',
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      };
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides,
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      // Should fall back to bestQuote
+      expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+      expect(result.current.bestQuote).toEqual(mockQuoteWithMetadata);
+    });
+
+    it('calculates isGasless from manually selected quote', () => {
+      const gaslessQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          requestId: 'gasless-quote-456',
+          gasIncluded: true,
+        },
+      };
+
+      const allQuotes = [mockQuoteWithMetadata, gaslessQuote];
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithMetadata,
+        sortedQuotes: allQuotes,
+        alternativeQuotes: [gaslessQuote],
+      }));
+
+      const bridgeControllerOverrides = {
+        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+      };
+
+      const bridgeReducerOverrides = {
+        selectedQuoteRequestId: 'gasless-quote-456',
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      };
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides,
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.activeQuote).toEqual(gaslessQuote);
+      // Note: The actual isGasless calculation is done where it's used in formattedQuoteData
+      // We can verify the quote has the gasIncluded flag
+      expect(result.current.activeQuote?.quote.gasIncluded).toBe(true);
+    });
+
+    it('returns undefined activeQuote when quote is expired even with manual selection', () => {
+      (isQuoteExpired as jest.Mock).mockReturnValue(true);
+      (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
+
+      const manuallySelectedQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          requestId: 'manual-quote-789',
+        },
+      };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithMetadata,
+        sortedQuotes: [mockQuoteWithMetadata, manuallySelectedQuote],
+        alternativeQuotes: [manuallySelectedQuote],
+      }));
+
+      const bridgeControllerOverrides = {
+        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+      };
+
+      const bridgeReducerOverrides = {
+        selectedQuoteRequestId: 'manual-quote-789',
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      };
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides,
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      // Even with manual selection, expired quotes should return undefined
+      expect(result.current.activeQuote).toBeUndefined();
+      expect(result.current.isExpired).toBe(true);
+    });
+  });
 });

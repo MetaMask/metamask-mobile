@@ -3,7 +3,6 @@ import { render } from '@testing-library/react-native';
 import { QuoteSelectorView } from './index';
 import { strings } from '../../../../../../locales/i18n';
 import { BigNumber } from 'ethers';
-import { BridgeQuoteWithSentAmount } from '../../types';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -39,6 +38,13 @@ jest.mock('../../utils/isGaslessQuote', () => ({
   isGaslessQuote: (quote: unknown) => mockIsGaslessQuote(quote),
 }));
 
+const mockTrackAllQuotesSortedEvent = jest.fn();
+const mockUseTrackAllQuotesSortedEvent = jest.fn();
+jest.mock('../../hooks/useTrackAllQuotesSortedEvent', () => ({
+  useTrackAllQuotesSortedEvent: (params: unknown) =>
+    mockUseTrackAllQuotesSortedEvent(params),
+}));
+
 const mockSourceToken = {
   address: '0x1234',
   decimals: 18,
@@ -47,21 +53,37 @@ const mockSourceToken = {
 };
 
 const mockCurrency = 'USD';
+const mockDispatch = jest.fn();
+
+const mockSelectedQuoteRequestId: string | null = null;
 
 jest.mock('react-redux', () => {
   const actual = jest.requireActual('react-redux');
   return {
     ...actual,
     useSelector: jest.fn((selector) => {
-      const selectorString = selector.toString();
-      if (selectorString.includes('selectSourceToken')) {
-        return mockSourceToken;
+      // Call the selector with a mock state to see which selector it is
+      const mockState = {
+        bridge: {
+          sourceToken: mockSourceToken,
+          selectedQuoteRequestId: mockSelectedQuoteRequestId,
+        },
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currentCurrency: mockCurrency,
+            },
+          },
+        },
+      };
+
+      try {
+        return selector(mockState);
+      } catch {
+        return null;
       }
-      if (selectorString.includes('selectCurrentCurrency')) {
-        return mockCurrency;
-      }
-      return null;
     }),
+    useDispatch: () => mockDispatch,
   };
 });
 
@@ -87,10 +109,9 @@ jest.mock('./QuoteList', () => ({
 }));
 
 describe('QuoteSelectorView', () => {
-  const mockQuote: BridgeQuoteWithSentAmount = {
+  const mockQuote = {
     quote: {
       requestId: 'quote-1',
-      bridgeId: 'Lifi',
       srcChainId: 1,
       destChainId: 137,
       srcTokenAmount: '1000000000000000000',
@@ -124,7 +145,6 @@ describe('QuoteSelectorView', () => {
           },
         },
       },
-      bridgeId: 'Lifi',
       bridges: ['lifi'],
       steps: [],
       refuel: undefined,
@@ -132,10 +152,12 @@ describe('QuoteSelectorView', () => {
     sentAmount: {
       amount: '1',
       usd: '2000',
+      valueInCurrency: '2000',
     },
     totalNetworkFee: {
       amount: '0.01',
       usd: '20',
+      valueInCurrency: '20',
     },
     estimatedProcessingTimeInSeconds: 60,
     adjustedReturn: {
@@ -155,13 +177,16 @@ describe('QuoteSelectorView', () => {
       validQuotes: [],
       bestQuote: null,
       isLoading: false,
-      isNoQuotesAvailable: false,
+      blockaidError: null,
+      quoteFetchError: null,
       isExpired: false,
-      willRefresh: false,
     });
     mockUseLatestBalance.mockReturnValue(mockLatestBalance);
     mockFormatNetworkFee.mockReturnValue('$20.00');
     mockIsGaslessQuote.mockReturnValue(false);
+    mockUseTrackAllQuotesSortedEvent.mockReturnValue(
+      mockTrackAllQuotesSortedEvent,
+    );
   });
 
   describe('rendering', () => {
@@ -199,19 +224,20 @@ describe('QuoteSelectorView', () => {
   });
 
   describe('quote data transformation', () => {
-    it('transforms empty validQuotes to empty data array', () => {
+    it('shows placeholder data when validQuotes is empty', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         validQuotes: [],
         bestQuote: null,
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       const { getByTestId } = render(<QuoteSelectorView />);
 
-      expect(getByTestId('quote-list-count')).toHaveTextContent('0');
+      // QUOTES_PLACEHOLDER_DATA has 2 items
+      expect(getByTestId('quote-list-count')).toHaveTextContent('2');
     });
 
     it('transforms single validQuote to data array with one item', () => {
@@ -219,9 +245,9 @@ describe('QuoteSelectorView', () => {
         validQuotes: [mockQuote],
         bestQuote: mockQuote,
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       const { getByTestId } = render(<QuoteSelectorView />);
@@ -240,9 +266,9 @@ describe('QuoteSelectorView', () => {
         validQuotes: quotes,
         bestQuote: quotes[0],
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       const { getByTestId } = render(<QuoteSelectorView />);
@@ -257,9 +283,9 @@ describe('QuoteSelectorView', () => {
         validQuotes: [mockQuote],
         bestQuote: mockQuote,
         isLoading: true,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       const { getByTestId } = render(<QuoteSelectorView />);
@@ -267,59 +293,14 @@ describe('QuoteSelectorView', () => {
       expect(getByTestId('quote-list')).toBeTruthy();
     });
 
-    it('sets loading to true when isExpired is true', () => {
+    it('sets loading to false when isLoading is false', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         validQuotes: [mockQuote],
         bestQuote: mockQuote,
         isLoading: false,
-        isNoQuotesAvailable: false,
-        isExpired: true,
-        willRefresh: false,
-      });
-
-      const { getByTestId } = render(<QuoteSelectorView />);
-
-      expect(getByTestId('quote-list')).toBeTruthy();
-    });
-
-    it('sets loading to true when isNoQuotesAvailable is true', () => {
-      mockUseBridgeQuoteData.mockReturnValue({
-        validQuotes: [],
-        bestQuote: null,
-        isLoading: false,
-        isNoQuotesAvailable: true,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
-      });
-
-      const { getByTestId } = render(<QuoteSelectorView />);
-
-      expect(getByTestId('quote-list')).toBeTruthy();
-    });
-
-    it('sets loading to true when willRefresh is true', () => {
-      mockUseBridgeQuoteData.mockReturnValue({
-        validQuotes: [mockQuote],
-        bestQuote: mockQuote,
-        isLoading: false,
-        isNoQuotesAvailable: false,
-        isExpired: false,
-        willRefresh: true,
-      });
-
-      const { getByTestId } = render(<QuoteSelectorView />);
-
-      expect(getByTestId('quote-list')).toBeTruthy();
-    });
-
-    it('sets loading to false when all loading flags are false', () => {
-      mockUseBridgeQuoteData.mockReturnValue({
-        validQuotes: [mockQuote],
-        bestQuote: mockQuote,
-        isLoading: false,
-        isNoQuotesAvailable: false,
-        isExpired: false,
-        willRefresh: false,
       });
 
       const { getByTestId } = render(<QuoteSelectorView />);
@@ -329,10 +310,14 @@ describe('QuoteSelectorView', () => {
   });
 
   describe('useLatestBalance integration', () => {
-    it('calls useLatestBalance hook', () => {
+    it('calls useLatestBalance hook with correct parameters', () => {
       render(<QuoteSelectorView />);
 
-      expect(mockUseLatestBalance).toHaveBeenCalled();
+      expect(mockUseLatestBalance).toHaveBeenCalledWith({
+        address: mockSourceToken.address,
+        decimals: mockSourceToken.decimals,
+        chainId: mockSourceToken.chainId,
+      });
     });
 
     it('uses latestBalance in quote data', () => {
@@ -340,9 +325,9 @@ describe('QuoteSelectorView', () => {
         validQuotes: [mockQuote],
         bestQuote: mockQuote,
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       render(<QuoteSelectorView />);
@@ -357,14 +342,17 @@ describe('QuoteSelectorView', () => {
         validQuotes: [mockQuote],
         bestQuote: mockQuote,
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       render(<QuoteSelectorView />);
 
-      expect(mockFormatNetworkFee).toHaveBeenCalled();
+      expect(mockFormatNetworkFee).toHaveBeenCalledWith(
+        mockCurrency,
+        mockQuote,
+      );
     });
 
     it('calls formatNetworkFee for multiple quotes', () => {
@@ -377,9 +365,9 @@ describe('QuoteSelectorView', () => {
         validQuotes: quotes,
         bestQuote: quotes[0],
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       render(<QuoteSelectorView />);
@@ -394,9 +382,9 @@ describe('QuoteSelectorView', () => {
         validQuotes: [mockQuote],
         bestQuote: mockQuote,
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       render(<QuoteSelectorView />);
@@ -410,9 +398,9 @@ describe('QuoteSelectorView', () => {
         validQuotes: [mockQuote],
         bestQuote: mockQuote,
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       render(<QuoteSelectorView />);
@@ -427,9 +415,9 @@ describe('QuoteSelectorView', () => {
         validQuotes: [mockQuote],
         bestQuote: mockQuote,
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       render(<QuoteSelectorView />);
@@ -447,9 +435,9 @@ describe('QuoteSelectorView', () => {
         validQuotes: [mockQuote, anotherQuote],
         bestQuote: anotherQuote,
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       const { getByTestId } = render(<QuoteSelectorView />);
@@ -459,14 +447,14 @@ describe('QuoteSelectorView', () => {
   });
 
   describe('quote data fields', () => {
-    it('includes provider name from bridgeId', () => {
+    it('includes provider name from bridges', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         validQuotes: [mockQuote],
         bestQuote: mockQuote,
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       render(<QuoteSelectorView />);
@@ -479,9 +467,9 @@ describe('QuoteSelectorView', () => {
         validQuotes: [mockQuote],
         bestQuote: mockQuote,
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       render(<QuoteSelectorView />);
@@ -499,9 +487,9 @@ describe('QuoteSelectorView', () => {
         validQuotes: [sponsoredQuote],
         bestQuote: sponsoredQuote,
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       const { getByTestId } = render(<QuoteSelectorView />);
@@ -518,9 +506,9 @@ describe('QuoteSelectorView', () => {
         validQuotes: [mockQuote],
         bestQuote: mockQuote,
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       rerender(<QuoteSelectorView />);
@@ -533,14 +521,101 @@ describe('QuoteSelectorView', () => {
         validQuotes: [mockQuote],
         bestQuote: mockQuote,
         isLoading: false,
-        isNoQuotesAvailable: false,
+        blockaidError: null,
+        quoteFetchError: null,
         isExpired: false,
-        willRefresh: false,
       });
 
       const { getByTestId } = render(<QuoteSelectorView />);
 
       expect(getByTestId('quote-list-count')).toHaveTextContent('1');
+    });
+  });
+
+  describe('navigation back behavior', () => {
+    it('navigates back when quoteFetchError exists and not loading', () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        validQuotes: [],
+        bestQuote: null,
+        isLoading: false,
+        blockaidError: null,
+        quoteFetchError: 'Network error',
+        isExpired: false,
+      });
+
+      render(<QuoteSelectorView />);
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('navigates back when blockaidError exists and not loading', () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        validQuotes: [],
+        bestQuote: null,
+        isLoading: false,
+        blockaidError: 'Blockaid validation failed',
+        quoteFetchError: null,
+        isExpired: false,
+      });
+
+      render(<QuoteSelectorView />);
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('navigates back when quotes are expired and not loading', () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        validQuotes: [],
+        bestQuote: null,
+        isLoading: false,
+        blockaidError: null,
+        quoteFetchError: null,
+        isExpired: true,
+      });
+
+      render(<QuoteSelectorView />);
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('does not navigate back when loading even if error exists', () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        validQuotes: [],
+        bestQuote: null,
+        isLoading: true,
+        blockaidError: null,
+        quoteFetchError: 'Network error',
+        isExpired: false,
+      });
+
+      render(<QuoteSelectorView />);
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate back when no errors and not expired', () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        validQuotes: [],
+        bestQuote: null,
+        isLoading: false,
+        blockaidError: null,
+        quoteFetchError: null,
+        isExpired: false,
+      });
+
+      render(<QuoteSelectorView />);
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('useTrackAllQuotesSortedEvent integration', () => {
+    it('calls useTrackAllQuotesSortedEvent with latestSourceBalance', () => {
+      render(<QuoteSelectorView />);
+
+      expect(mockUseTrackAllQuotesSortedEvent).toHaveBeenCalledWith(
+        mockLatestBalance,
+      );
     });
   });
 });

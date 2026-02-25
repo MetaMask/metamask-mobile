@@ -19,6 +19,8 @@ import reducer, {
   selectTokenSelectorNetworkFilter,
   setVisiblePillChainIds,
   selectVisiblePillChainIds,
+  setSelectedQuoteRequestId,
+  selectSelectedQuoteRequestId,
 } from '.';
 import {
   BridgeToken,
@@ -72,6 +74,8 @@ describe('bridge slice', () => {
         isDestTokenManuallySet: false,
         tokenSelectorNetworkFilter: undefined,
         visiblePillChainIds: undefined,
+        selectedQuoteRequestId: undefined,
+        abTestContext: undefined,
       });
     });
   });
@@ -742,6 +746,77 @@ describe('bridge slice', () => {
       );
 
       expect(result).toEqual(['eip155:1', 'eip155:10']);
+    });
+  });
+
+  describe('setSelectedQuoteRequestId', () => {
+    it('sets the selected quote request ID', () => {
+      const requestId = 'quote-request-123';
+      const action = setSelectedQuoteRequestId(requestId);
+      const state = reducer(initialState, action);
+
+      expect(state.selectedQuoteRequestId).toBe(requestId);
+    });
+
+    it('clears the selected quote request ID when set to undefined', () => {
+      const stateWithSelection = {
+        ...initialState,
+        selectedQuoteRequestId: 'quote-request-123',
+      };
+      const action = setSelectedQuoteRequestId(undefined);
+      const state = reducer(stateWithSelection, action);
+
+      expect(state.selectedQuoteRequestId).toBeUndefined();
+    });
+
+    it('updates the selected quote request ID from one to another', () => {
+      const stateWithSelection = {
+        ...initialState,
+        selectedQuoteRequestId: 'quote-request-123',
+      };
+      const action = setSelectedQuoteRequestId('quote-request-456');
+      const state = reducer(stateWithSelection, action);
+
+      expect(state.selectedQuoteRequestId).toBe('quote-request-456');
+    });
+  });
+
+  describe('selectSelectedQuoteRequestId', () => {
+    it('returns undefined when no quote is selected', () => {
+      const mockState = {
+        bridge: initialState,
+      } as RootState;
+
+      const result = selectSelectedQuoteRequestId(mockState);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns the selected quote request ID', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          selectedQuoteRequestId: 'quote-request-789',
+        },
+      } as RootState;
+
+      const result = selectSelectedQuoteRequestId(mockState);
+
+      expect(result).toBe('quote-request-789');
+    });
+  });
+
+  describe('resetBridgeState with selectedQuoteRequestId', () => {
+    it('resets selectedQuoteRequestId when bridge state resets', () => {
+      const stateWithSelection = {
+        ...initialState,
+        selectedQuoteRequestId: 'quote-request-123',
+        sourceAmount: '1.5',
+      };
+
+      const newState = reducer(stateWithSelection, resetBridgeState());
+
+      expect(newState.selectedQuoteRequestId).toBeUndefined();
     });
   });
 
