@@ -49,7 +49,7 @@ const expectedEventNames = [
 ];
 
 describe(SmokeRamps('Onramp Unified Buy'), () => {
-  it('build quote', async () => {
+  it('place ETH order', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
