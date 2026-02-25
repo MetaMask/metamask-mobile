@@ -66,11 +66,11 @@ describe('DeviceSelectionContent', () => {
       { state: mockInitialState },
     );
 
-    expect(getByTestId(DEVICE_SELECTION_CONTENT_TEST_ID)).toBeDefined();
-    expect(getByText('Select Ledger')).toBeDefined();
-    expect(getByText('Nano X 1234')).toBeDefined();
-    expect(getByText('Nano X 5678')).toBeDefined();
-    expect(getByText('Nano S Plus')).toBeDefined();
+    expect(getByTestId(DEVICE_SELECTION_CONTENT_TEST_ID)).toBeOnTheScreen();
+    expect(getByText('Select Ledger')).toBeOnTheScreen();
+    expect(getByText('Nano X 1234')).toBeOnTheScreen();
+    expect(getByText('Nano X 5678')).toBeOnTheScreen();
+    expect(getByText('Nano S Plus')).toBeOnTheScreen();
   });
 
   it('renders empty state when no devices', () => {
@@ -79,8 +79,8 @@ describe('DeviceSelectionContent', () => {
       { state: mockInitialState },
     );
 
-    expect(getByTestId(DEVICE_SELECTION_EMPTY_TEST_ID)).toBeDefined();
-    expect(getByText('No devices found')).toBeDefined();
+    expect(getByTestId(DEVICE_SELECTION_EMPTY_TEST_ID)).toBeOnTheScreen();
+    expect(getByText('No devices found')).toBeOnTheScreen();
   });
 
   it('shows scanning indicator when scanning', () => {
@@ -89,7 +89,7 @@ describe('DeviceSelectionContent', () => {
       { state: mockInitialState },
     );
 
-    expect(getByTestId(DEVICE_SELECTION_SCANNING_TEST_ID)).toBeDefined();
+    expect(getByTestId(DEVICE_SELECTION_SCANNING_TEST_ID)).toBeOnTheScreen();
     expect(getAllByText('Scanning...').length).toBeGreaterThan(0);
   });
 
@@ -132,7 +132,7 @@ describe('DeviceSelectionContent', () => {
       { state: mockInitialState },
     );
 
-    expect(getByText('Connect')).toBeDefined();
+    expect(getByText('Connect')).toBeOnTheScreen();
   });
 
   it('calls onConfirmSelection when connect button is pressed', () => {
@@ -194,7 +194,7 @@ describe('DeviceSelectionContent', () => {
       { state: mockInitialState },
     );
 
-    expect(getByTestId(DEVICE_SELECTION_CONTENT_TEST_ID)).toBeDefined();
+    expect(getByTestId(DEVICE_SELECTION_CONTENT_TEST_ID)).toBeOnTheScreen();
     expect(queryByText('Scan Again')).toBeNull();
     expect(queryByText('Cancel')).toBeNull();
   });

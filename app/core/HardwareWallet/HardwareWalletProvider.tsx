@@ -411,6 +411,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
               existingAdapter?.walletType,
               ')',
             );
+            // eslint-disable-next-line no-empty-function
+            existingAdapter?.disconnect().catch(() => {});
             const newAdapter = createAdapterWithCallbacks(targetType);
             refs.adapterRef.current = newAdapter;
             return newAdapter;

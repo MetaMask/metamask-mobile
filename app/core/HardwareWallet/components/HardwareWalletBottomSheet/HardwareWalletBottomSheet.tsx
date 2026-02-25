@@ -127,9 +127,18 @@ export const HardwareWalletBottomSheet: React.FC<
       connectionState.status === ConnectionStatus.ErrorState
     ) {
       closeDeviceSelection();
+    } else if (
+      connectionState.status === ConnectionStatus.AwaitingConfirmation
+    ) {
+      onAwaitingConfirmationCancel?.();
     }
     onClose?.();
-  }, [connectionState.status, closeDeviceSelection, onClose]);
+  }, [
+    connectionState.status,
+    closeDeviceSelection,
+    onAwaitingConfirmationCancel,
+    onClose,
+  ]);
 
   const handleAwaitingConfirmationCancel = useCallback(() => {
     onAwaitingConfirmationCancel?.();
