@@ -1,8 +1,18 @@
 import React, { createRef } from 'react';
-import { screen, act } from '@testing-library/react-native';
+import { screen, act, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import DeFiSection from './DeFiSection';
 import { SectionRefreshHandle } from '../../types';
+import Routes from '../../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 jest.mock(
   '../../../../../selectors/featureFlagController/assetsDefiPositions',
@@ -151,7 +161,7 @@ describe('DeFiSection', () => {
     expect(screen.getByText('Uniswap')).toBeOnTheScreen();
   });
 
-  it('title is not interactive (no drill-down for DeFi)', () => {
+  it('navigates to DeFi full view when title is pressed', () => {
     mockUseDeFiPositionsForHomepage.mockReturnValue({
       positions: [createMockPosition('Aave')],
       isLoading: false,
@@ -161,10 +171,9 @@ describe('DeFiSection', () => {
 
     renderWithProvider(<DeFiSection />);
 
-    // DeFi section title exists but is not interactive - no onPress passed to SectionTitle
-    expect(screen.getByText('DeFi')).toBeOnTheScreen();
-    // Verify no arrow icon is rendered (arrow only shows when onPress is provided)
-    expect(screen.queryByTestId('icon-arrow-right')).toBeNull();
+    fireEvent.press(screen.getByText('DeFi'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.DEFI_FULL_VIEW);
   });
 
   it('exposes refresh function via ref', async () => {

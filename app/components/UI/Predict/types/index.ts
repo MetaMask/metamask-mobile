@@ -463,6 +463,7 @@ export interface OrderPreview {
   tickSize: number;
   minOrderSize: number;
   negRisk: boolean;
+  feeRateBps?: string;
   fees?: PredictFees;
   rateLimited?: boolean;
   // For sell orders, we can store the position ID

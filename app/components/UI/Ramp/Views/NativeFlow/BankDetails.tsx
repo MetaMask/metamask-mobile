@@ -3,7 +3,7 @@ import { View, TouchableOpacity, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
 import styleSheet from '../../Deposit/Views/BankDetails/BankDetails.styles';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -142,11 +142,11 @@ const V2BankDetails = () => {
       order.state === FIAT_ORDER_STATES.COMPLETED ||
       order.state === FIAT_ORDER_STATES.FAILED
     ) {
-      navigation.dispatch(
-        StackActions.replace(Routes.RAMP.ORDER_PROCESSING, {
-          orderId: order.id,
-        }),
-      );
+      // @ts-expect-error navigation prop mismatch
+      navigation.replace(Routes.RAMP.RAMPS_ORDER_DETAILS, {
+        orderId: order.id,
+        showCloseButton: true,
+      });
     }
   }, [order?.state, navigation, order?.id]);
 
