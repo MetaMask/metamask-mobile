@@ -197,31 +197,67 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.SnapsRegistry',
     'engine.backgroundState.SubjectMetadataController',
 
-    // ── Dynamic per-wallet IDs and addresses ──
+    // ── Per-wallet secrets and dynamic IDs (change every onboarding) ──
     'engine.backgroundState.AccountsController.internalAccounts.selectedAccount',
     'engine.backgroundState.AccountsController.internalAccounts.accounts',
+    'engine.backgroundState.AccountsController.internalAccounts.accounts.*.metadata.importTime',
     'engine.backgroundState.PreferencesController.selectedAddress',
     'engine.backgroundState.PreferencesController.identities',
+    'engine.backgroundState.PreferencesController.identities.*.importTime',
     'engine.backgroundState.AccountTrackerController.accountsByChainId',
-    'engine.backgroundState.KeyringController.keyrings.*.accounts',
+    'engine.backgroundState.KeyringController.keyrings',
     'engine.backgroundState.KeyringController.vault',
+    'engine.backgroundState.KeyringController.isUnlocked',
+    'engine.backgroundState.KeyringController.encryptionKey',
+    'engine.backgroundState.KeyringController.encryptionSalt',
+    'engine.backgroundState.AccountTreeController.accountTree.wallets',
+    'engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup',
+    'engine.backgroundState.AccountTreeController.accountGroupsMetadata',
+    'engine.backgroundState.AccountTreeController.accountWalletsMetadata',
+    'engine.backgroundState.TokenBalancesController.tokenBalances',
+    'engine.backgroundState.DeFiPositionsController.allDeFiPositions',
+    'engine.backgroundState.DeFiPositionsController.allDeFiPositionsCount',
+    'engine.backgroundState.MultichainNetworkController.networksWithTransactionActivity',
+    'engine.backgroundState.RewardsController.activeAccount',
+    'engine.backgroundState.RewardsController.accounts',
     'browser.activeTab',
 
-    // ── Timestamps ──
+    // ── Random IDs (generated fresh each onboarding) ──
+    'engine.backgroundState.AnalyticsController.analyticsId',
+    'engine.backgroundState.PerpsController.cachedUserDataAddress',
+
+    // ── Timestamps (non-deterministic) ──
     'engine.backgroundState.CurrencyRateController.currencyRates.ETH.conversionDate',
     'engine.backgroundState.PhishingController.hotlistLastFetched',
     'engine.backgroundState.PhishingController.stalelistLastFetched',
-    'engine.backgroundState.PhishingController.listState.lastUpdated',
-    'engine.backgroundState.AccountsController.internalAccounts.accounts.*.metadata.importTime',
-    'engine.backgroundState.PreferencesController.identities.*.importTime',
+    'engine.backgroundState.PhishingController.c2DomainBlocklistLastFetched',
+    'engine.backgroundState.PerpsController.lastUpdateTimestamp',
+    'engine.backgroundState.PerpsController.cachedMarketDataTimestamp',
+    'engine.backgroundState.PerpsController.cachedUserDataTimestamp',
     'legalNotices.newPrivacyPolicyToastShownDate',
+    'engine.backgroundState.RemoteFeatureFlagController.cacheTimestamp',
+    'engine.backgroundState.EarnController.lastUpdated',
+    'cronjobController.storage.events.*.date',
+    'cronjobController.storage.events.*.scheduledAt',
 
-    // ── Live exchange rates and market data ──
+    // ── Live-fetched server data (changes every run) ──
     'engine.backgroundState.CurrencyRateController.currencyRates',
     'engine.backgroundState.MultichainAssetsRatesController.conversionRates',
     'engine.backgroundState.MultichainAssetsRatesController.historicalPrices',
+    'engine.backgroundState.PhishingController.listState',
+    'engine.backgroundState.PhishingController.phishingLists',
+    'engine.backgroundState.PhishingController.urlScanCache',
+    'engine.backgroundState.PhishingController.tokenScanCache',
+    'engine.backgroundState.PhishingController.addressScanCache',
+    'engine.backgroundState.PhishingController.whitelistPaths',
+    'engine.backgroundState.RemoteFeatureFlagController.rawRemoteFeatureFlags',
+    'engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags',
+    'engine.backgroundState.RemoteFeatureFlagController.thresholdCache',
+    'engine.backgroundState.TokenListController.tokensChainsCache',
+    'engine.backgroundState.TokenRatesController.marketData',
+    'engine.backgroundState.TokenSearchDiscoveryDataController',
 
-    // ── Multichain runtime state (UUID-keyed, fetched live) ──
+    // ── Multichain runtime state (address-keyed, fetched live) ──
     'engine.backgroundState.MultichainAssetsController.accountsAssets',
     'engine.backgroundState.MultichainAssetsController.assetsMetadata',
     'engine.backgroundState.MultichainAssetsController.allIgnoredAssets',
@@ -231,11 +267,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Runtime sync/metrics state ──
     'engine.backgroundState.ProfileMetricsController',
     'engine.backgroundState.UserStorageController',
-
-    // ── Token data (fetched live per chain) ──
-    'engine.backgroundState.TokenListController.tokensChainsCache',
-    'engine.backgroundState.TokenRatesController.marketData',
-    'engine.backgroundState.TokenSearchDiscoveryDataController',
+    'engine.backgroundState.AuthenticationController',
 
     // ── Transaction runtime state ──
     'engine.backgroundState.TransactionController.transactions',
@@ -244,43 +276,38 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.TransactionController.submitHistory',
     'engine.backgroundState.TransactionPayController',
 
-    // ── Authentication & notifications (session/push state) ──
-    'engine.backgroundState.AuthenticationController',
+    // ── Session-based state ──
+    'engine.backgroundState.PermissionController.subjects',
+    'engine.backgroundState.SelectedNetworkController.domains',
+    'engine.backgroundState.SmartTransactionsController.smartTransactionsState',
     'engine.backgroundState.NotificationServicesController.metamaskNotificationsList',
     'engine.backgroundState.NotificationServicesController.subscriptionAccountsSeen',
     'engine.backgroundState.NotificationServicesPushController',
 
     // ── Cron jobs and ramps (runtime-populated) ──
+    'engine.backgroundState.CronJobController',
     'engine.backgroundState.CronjobController',
     'engine.backgroundState.RampsController',
-
-    // ── Phishing list state (fetched at runtime) ──
-    'engine.backgroundState.PhishingController.listState',
-
-    // ── Remote feature flags (fetched from server, always changing) ──
-    'engine.backgroundState.RemoteFeatureFlagController.rawRemoteFeatureFlags',
-    'engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags',
-
-    // ── Dapp permissions & selected networks (session-based) ──
-    'engine.backgroundState.PermissionController.subjects',
-    'engine.backgroundState.SelectedNetworkController.domains',
-
-    // ── Smart transactions runtime state ──
-    'engine.backgroundState.SmartTransactionsController.smartTransactionsState',
 
     // ── Dynamic network client IDs and port-dependent URLs ──
     'engine.backgroundState.NetworkController.networkConfigurationsByChainId.*.rpcEndpoints.*.networkClientId',
     'engine.backgroundState.NetworkController.networkConfigurationsByChainId.*.rpcEndpoints.*.url',
+    'engine.backgroundState.NetworkController.networksMetadata',
     'browser.tabs',
+
+    // ── Post-onboarding runtime UI state (non-deterministic between runs) ──
+    'legalNotices.isPna25Acknowledged',
+    'modals.shouldNetworkSwitchPopToWallet',
+    'user.seedphraseBackedUp',
+    'user.backUpSeedphraseVisible',
+    'user.multichainAccountsIntroModalSeen',
+    'swaps.hasOnboarded',
+    'navigation.currentRoute',
+    'inpageProvider.networkId',
+    'engine.backgroundState.SwapsController.pollingCyclesLeft',
 
     // ── Redux-persist internals ──
     '_persist',
-
-    // ── Runtime redux slices (not part of fixture state) ──
-    'cronjobController',
-    'rewards',
-    'performance',
-    'confirmationMetrics',
   ];
 }
 
@@ -317,7 +344,10 @@ export function computeSchemaDiff(
     } else if (candidateTypes[key] === 'array') {
       const baseArr = getNestedValue(baseline, key);
       const candArr = getNestedValue(candidate, key);
-      if (JSON.stringify(baseArr) !== JSON.stringify(candArr)) {
+      if (
+        JSON.stringify(sortObjectKeysDeep(baseArr)) !==
+        JSON.stringify(sortObjectKeysDeep(candArr))
+      ) {
         diff.valueMismatches.push({
           key,
           expected: baseArr,
@@ -462,4 +492,24 @@ export function readFixtureFile(fixtureName: string): Record<string, unknown> {
   const fixturePath = path.resolve(__dirname, 'json', fixtureName);
   const content = fs.readFileSync(fixturePath, 'utf-8');
   return JSON.parse(content) as Record<string, unknown>;
+}
+
+/**
+ * Normalizes the exported app state (from CommandQueueServer) into the same
+ * shape as fixture JSON's `state` subtree so they can be compared.
+ *
+ * Exported:  { redux: { alert, browser, ... }, engine: { AccountTrackerController, ... } }
+ * Fixture:   { state: { alert, browser, ..., engine: { backgroundState: { AccountTrackerController, ... } } } }
+ */
+export function normalizeExportedState(
+  exported: Record<string, unknown>,
+): Record<string, unknown> {
+  const redux = exported.redux as Record<string, unknown>;
+  const engine = exported.engine as Record<string, unknown>;
+  return {
+    ...redux,
+    engine: {
+      backgroundState: engine,
+    },
+  };
 }

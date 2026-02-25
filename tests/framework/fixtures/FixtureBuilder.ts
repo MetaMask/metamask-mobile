@@ -215,9 +215,24 @@ class FixtureBuilder {
     this.fixture.state.browser.tabs[0].url = `http://localhost:${getMockServerPortForFixture()}/health-check`;
 
     // 3. Ganache port for localhost network RPC URL
-    this.fixture.state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
-      '0x539'
-    ].rpcEndpoints[0].url = `http://localhost:${getGanachePortForFixture()}`;
+    const networkConfigs =
+      this.fixture.state.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId;
+    if (!networkConfigs['0x539']) {
+      networkConfigs['0x539'] = {
+        blockExplorerUrls: ['https://localhost'],
+        chainId: '0x539',
+        defaultBlockExplorerUrlIndex: 0,
+        defaultRpcEndpointIndex: 0,
+        name: 'Localhost',
+        nativeCurrency: 'ETH',
+        rpcEndpoints: [
+          { name: 'Localhost default RPC', type: 'custom', url: '' },
+        ],
+      };
+    }
+    networkConfigs['0x539'].rpcEndpoints[0].url =
+      `http://localhost:${getGanachePortForFixture()}`;
 
     return this;
   }

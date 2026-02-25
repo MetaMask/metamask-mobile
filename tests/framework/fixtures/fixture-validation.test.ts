@@ -6,6 +6,7 @@ import {
   formatSchemaDiff,
   readFixtureFile,
   getMobileFixtureIgnoredKeys,
+  normalizeExportedState,
   FixtureSchemaDiff,
 } from './fixture-validation';
 
@@ -343,6 +344,48 @@ describe('fixture-validation', () => {
       const b = getMobileFixtureIgnoredKeys();
       expect(a).not.toBe(b);
       expect(a).toEqual(b);
+    });
+  });
+
+  describe('normalizeExportedState', () => {
+    it('merges redux slices and wraps engine in backgroundState', () => {
+      const exported = {
+        redux: { alert: 'val1', browser: 'val2' },
+        engine: { AccountTrackerController: { accounts: {} } },
+      };
+      const result = normalizeExportedState(exported);
+      expect(result).toEqual({
+        alert: 'val1',
+        browser: 'val2',
+        engine: {
+          backgroundState: {
+            AccountTrackerController: { accounts: {} },
+          },
+        },
+      });
+    });
+
+    it('spreads all redux keys at the top level', () => {
+      const exported = {
+        redux: { a: 1, b: 2, c: 3 },
+        engine: {},
+      };
+      const result = normalizeExportedState(exported);
+      expect(result.a).toBe(1);
+      expect(result.b).toBe(2);
+      expect(result.c).toBe(3);
+    });
+
+    it('nests engine controllers under engine.backgroundState', () => {
+      const exported = {
+        redux: {},
+        engine: { FooController: { x: 1 }, BarController: { y: 2 } },
+      };
+      const result = normalizeExportedState(exported);
+      const bg = (result.engine as Record<string, unknown>)
+        .backgroundState as Record<string, unknown>;
+      expect(bg.FooController).toEqual({ x: 1 });
+      expect(bg.BarController).toEqual({ y: 2 });
     });
   });
 
