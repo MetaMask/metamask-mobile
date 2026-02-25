@@ -234,6 +234,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         refs.adapterRef.current.disconnect().catch(() => {
           // Ignore cleanup errors
         });
+        refs.adapterRef.current = null;
       }
     };
   }, [
