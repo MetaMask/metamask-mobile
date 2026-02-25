@@ -1,27 +1,27 @@
 import React from 'react';
 import BigNumber from 'bignumber.js';
 
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import initialRootState from '../../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import initialRootState from '../../../../../../../util/test/initial-root-state';
 import {
   MusdMaxConversionAssetHeader,
   MusdMaxConversionAssetHeaderSkeleton,
   MusdMaxConversionAssetHeaderTestIds,
 } from './musd-max-conversion-asset-header';
-import { AssetType } from '../../../types/token';
-import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
-import { getNetworkImageSource } from '../../../../../../util/networks';
-import { useStyles } from '../../../../../hooks/useStyles';
+import { AssetType } from '../../../../types/token';
+import { useIsTransactionPayLoading } from '../../../../hooks/pay/useTransactionPayData';
+import { getNetworkImageSource } from '../../../../../../../util/networks';
+import { useStyles } from '../../../../../../hooks/useStyles';
 
-jest.mock('../../../../../hooks/useStyles', () => ({
+jest.mock('../../../../../../hooks/useStyles', () => ({
   useStyles: jest.fn(),
 }));
 
-jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
+jest.mock('../../../../hooks/pay/useTransactionPayData', () => ({
   useIsTransactionPayLoading: jest.fn(),
 }));
 
-jest.mock('../../../../../../util/networks', () => ({
+jest.mock('../../../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'mock-network-image' })),
 }));
 

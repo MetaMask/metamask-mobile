@@ -1,31 +1,31 @@
 import React, { memo, useMemo } from 'react';
 import { View } from 'react-native';
-import { useStyles } from '../../../../../hooks/useStyles';
+import { useStyles } from '../../../../../../hooks/useStyles';
 import Badge, {
   BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
+} from '../../../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper, {
   BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+} from '../../../../../../../component-library/components/Badges/BadgeWrapper';
+import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { getNetworkImageSource } from '../../../../../../util/networks';
+} from '../../../../../../../component-library/components/Texts/Text';
+import { getNetworkImageSource } from '../../../../../../../util/networks';
 import BigNumber from 'bignumber.js';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
-import { AssetType } from '../../../types/token';
+import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
+import { AssetType } from '../../../../types/token';
 import styleSheet from './musd-max-conversion-asset-header.styles';
-import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
+import { useIsTransactionPayLoading } from '../../../../hooks/pay/useTransactionPayData';
 import {
   Icon,
   IconColor,
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { MUSD_TOKEN } from '../../../../../UI/Earn/constants/musd';
+import { MUSD_TOKEN } from '../../../../../../UI/Earn/constants/musd';
 
 export const MusdMaxConversionAssetHeaderTestIds = {
   ASSET_HEADER_SKELETON: 'musd-max-conversion-asset-header-skeleton',
