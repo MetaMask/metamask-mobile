@@ -23,6 +23,9 @@ export const createStyles = (theme: Theme, colors: Colors) =>
       marginBottom: 8,
     },
     quizButtonContainer: {
+      flex: 1,
+      alignItems: 'flex-end',
+      justifyContent: 'flex-end',
       width: '100%',
     },
     quizAnsweredContainer: {
