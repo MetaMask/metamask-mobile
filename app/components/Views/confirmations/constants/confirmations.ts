@@ -87,4 +87,8 @@ export const POST_QUOTE_TRANSACTION_TYPES = [
  */
 export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;
 
-export const RELAY_DEPOSIT_TYPES = [TransactionType.relayDeposit];
+export const RELAY_DEPOSIT_TYPES = [
+  TransactionType.relayDeposit,
+  TransactionType.perpsRelayDeposit,
+  TransactionType.predictRelayDeposit,
+];

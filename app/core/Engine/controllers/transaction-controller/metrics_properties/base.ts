@@ -58,20 +58,6 @@ export function getTransactionTypeValue(
   transactionType: TransactionType | undefined,
   transactionMeta?: TransactionMeta,
 ) {
-  if (
-    transactionType === TransactionType.relayDeposit &&
-    hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])
-  ) {
-    return 'perps_relay_deposit';
-  }
-
-  if (
-    transactionType === TransactionType.relayDeposit &&
-    hasTransactionType(transactionMeta, [TransactionType.predictDeposit])
-  ) {
-    return 'predict_relay_deposit';
-  }
-
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
     return 'predict_deposit';
   }
@@ -105,6 +91,10 @@ export function getTransactionTypeValue(
       return 'perps_deposit';
     case TransactionType.perpsDepositAndOrder:
       return 'perps_deposit_and_order';
+    case TransactionType.perpsRelayDeposit:
+      return 'perps_relay_deposit';
+    case TransactionType.predictRelayDeposit:
+      return 'predict_relay_deposit';
     case TransactionType.signTypedData:
       return 'eth_sign_typed_data';
     case TransactionType.relayDeposit:
