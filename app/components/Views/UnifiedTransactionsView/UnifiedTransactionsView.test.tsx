@@ -1,5 +1,6 @@
 import React, { ComponentType } from 'react';
 import { TransactionStatus } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import UnifiedTransactionsView from './UnifiedTransactionsView';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -99,6 +100,34 @@ jest.mock(
 jest.mock(
   '../MultichainTransactionsView/MultichainTransactionsFooter',
   () => 'MultichainTransactionsFooter',
+);
+
+// Mocked so that filterByAddress / buildTrustedAddressSet can be spied on.
+// sortTransactions is a plain function (not jest.fn) so jest.resetAllMocks()
+// in the first describe's afterEach can't make it return undefined and break
+// the selectSortedTransactions Redux selector.
+jest.mock('../../../util/activity', () => ({
+  filterByAddress: jest.fn(() => true),
+  isTransactionOnChains: jest.fn(() => true),
+  sortTransactions: (arr: unknown[]) => arr ?? [],
+  buildTrustedAddressSet: jest.fn(() => new Set<string>()),
+}));
+
+// Partially mock accountTreeController: preserve real exports so other selectors
+// (e.g. selectBridgeHistoryForAccount) that depend on them don't break at module
+// load time. Override selectSelectedAccountGroupInternalAccounts with a plain
+// (non-jest.fn) function so jest.resetAllMocks() can't make it return undefined
+// and crash the component's .map() call.
+jest.mock(
+  '../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroupInternalAccounts: () => [
+      { address: '0xabc', type: 'eip155:eoa' },
+    ],
+  }),
 );
 
 describe('UnifiedTransactionsView', () => {
@@ -275,5 +304,135 @@ describe('UnifiedTransactionsView with transactions', () => {
       asComponentType('TransactionElement'),
     );
     expect(transactionElements.length).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('UnifiedTransactionsView - token poisoning protection', () => {
+  const {
+    buildTrustedAddressSet: mockBuildTrustedAddressSet,
+    filterByAddress: mockFilterByAddress,
+    isTransactionOnChains: mockIsTransactionOnChains,
+  } = jest.requireMock('../../../util/activity');
+
+  const FRIEND_ADDRESS = '0x1234000000000000000000000000000000000001';
+
+  const baseState = { engine: { backgroundState } };
+
+  // State with a single incoming ERC-20 transfer from an unknown sender
+  const stateWithIncomingTransfer = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        TransactionController: {
+          ...backgroundState.TransactionController,
+          transactions: [
+            {
+              id: 'tx-erc20',
+              chainId: '0x1' as const,
+              status: TransactionStatus.confirmed,
+              time: Date.now(),
+              isTransfer: true,
+              transferInformation: {
+                contractAddress: '0x3333333333333333333333333333333333333333',
+                decimals: 18,
+                symbol: 'TKN',
+              },
+              txParams: {
+                from: '0x9999999999999999999999999999999999999999',
+                to: '0xabc',
+                value: '0x0',
+                nonce: '0x1',
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Re-set implementations after any prior resetAllMocks() calls
+    (mockBuildTrustedAddressSet as jest.Mock).mockReturnValue(
+      new Set<string>(),
+    );
+    (mockFilterByAddress as jest.Mock).mockReturnValue(true);
+    // isTransactionOnChains gates the second chain filter at line 252 of the
+    // component; restore it so confirmed transactions aren't silently dropped
+    (mockIsTransactionOnChains as jest.Mock).mockReturnValue(true);
+  });
+
+  it('calls buildTrustedAddressSet on every render', () => {
+    renderWithProvider(<UnifiedTransactionsView />, { state: baseState });
+
+    expect(mockBuildTrustedAddressSet).toHaveBeenCalled();
+  });
+
+  it('calls buildTrustedAddressSet with the addressBook from state and an array of account addresses', () => {
+    const mockAddressBook = {
+      '0x1': {
+        [FRIEND_ADDRESS]: {
+          address: FRIEND_ADDRESS,
+          name: 'Friend',
+          chainId: '0x1' as Hex,
+          memo: '',
+          isEns: false,
+        },
+      },
+    };
+    const stateWithAddressBook = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AddressBookController: { addressBook: mockAddressBook },
+        },
+      },
+    };
+
+    renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateWithAddressBook,
+    });
+
+    expect(mockBuildTrustedAddressSet).toHaveBeenCalledWith(
+      mockAddressBook,
+      expect.any(Array),
+    );
+  });
+
+  it('passes a pre-built Set to filterByAddress (not the raw addressBook)', () => {
+    renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateWithIncomingTransfer,
+    });
+
+    expect(mockFilterByAddress).toHaveBeenCalled();
+    (mockFilterByAddress as jest.Mock).mock.calls.forEach((args) => {
+      // arg[5] is trustedAddresses — must be a Set, not a plain object
+      expect(args[5]).toBeInstanceOf(Set);
+      // There is no arg[6]; the old addressBook + internalAccountAddresses
+      // params have been replaced by a single Set
+      expect(args[6]).toBeUndefined();
+    });
+  });
+
+  it('hides incoming ERC-20 transfer when filterByAddress returns false (unknown sender)', () => {
+    (mockFilterByAddress as jest.Mock).mockReturnValue(false);
+
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateWithIncomingTransfer,
+    });
+
+    // Transaction is filtered out → data is empty → empty state is shown
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
+  });
+
+  it('shows incoming ERC-20 transfer when filterByAddress returns true (trusted sender)', () => {
+    (mockFilterByAddress as jest.Mock).mockReturnValue(true);
+
+    const { queryByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateWithIncomingTransfer,
+    });
+
+    // Transaction passes filter → data is non-empty → empty state is absent
+    expect(queryByText('You have no transactions')).toBeNull();
   });
 });
