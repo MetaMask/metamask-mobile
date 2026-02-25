@@ -116,12 +116,25 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
     }
 
     const trimmedFeedback = additionalFeedback.trim();
+    const shouldIncludeFeedbackText =
+      selectedReason === MarketInsightsFeedbackReason.SomethingElse &&
+      Boolean(trimmedFeedback);
 
     onSubmit({
       reason: selectedReason,
-      ...(trimmedFeedback ? { feedbackText: trimmedFeedback } : {}),
+      ...(shouldIncludeFeedbackText ? { feedbackText: trimmedFeedback } : {}),
     });
   }, [selectedReason, additionalFeedback, onSubmit]);
+
+  const handleReasonPress = useCallback(
+    (reason: MarketInsightsFeedbackReason) => {
+      setSelectedReason(reason);
+      if (reason !== MarketInsightsFeedbackReason.SomethingElse) {
+        setAdditionalFeedback('');
+      }
+    },
+    [],
+  );
 
   return (
     <BottomSheet
@@ -157,7 +170,7 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
             return (
               <Pressable
                 key={option.reason}
-                onPress={() => setSelectedReason(option.reason)}
+                onPress={() => handleReasonPress(option.reason)}
                 style={({ pressed }) => tw.style(pressed && 'opacity-70')}
                 testID={option.testID}
               >

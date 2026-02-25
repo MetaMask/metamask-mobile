@@ -92,4 +92,39 @@ describe('MarketInsightsFeedbackBottomSheet', () => {
       feedbackText: 'Please include source confidence',
     });
   });
+
+  it('does not submit stale additional feedback after switching reason', () => {
+    const onSubmit = jest.fn();
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MarketInsightsFeedbackBottomSheet
+        isVisible
+        onClose={jest.fn()}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId(MarketInsightsSelectorsIDs.FEEDBACK_OPTION_SOMETHING_ELSE),
+    );
+    fireEvent.changeText(
+      getByTestId(MarketInsightsSelectorsIDs.FEEDBACK_ADDITIONAL_INPUT),
+      'stale feedback',
+    );
+
+    fireEvent.press(
+      getByTestId(MarketInsightsSelectorsIDs.FEEDBACK_OPTION_NOT_RELEVANT),
+    );
+    expect(
+      queryByTestId(MarketInsightsSelectorsIDs.FEEDBACK_ADDITIONAL_INPUT),
+    ).toBeNull();
+
+    fireEvent.press(
+      getByTestId(MarketInsightsSelectorsIDs.FEEDBACK_SUBMIT_BUTTON),
+    );
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      reason: MarketInsightsFeedbackReason.NotRelevant,
+    });
+  });
 });
