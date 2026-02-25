@@ -2239,6 +2239,7 @@ export class PerpsController extends BaseController<
   ): void {
     let withdrawalAmount: string | undefined;
     let shouldTrack = false;
+    let found = false;
 
     this.update((state) => {
       const withdrawalIndex = state.withdrawalRequests.findIndex(
@@ -2246,6 +2247,7 @@ export class PerpsController extends BaseController<
       );
 
       if (withdrawalIndex >= 0) {
+        found = true;
         const request = state.withdrawalRequests[withdrawalIndex];
         withdrawalAmount = request.amount;
         shouldTrack =
@@ -2279,7 +2281,9 @@ export class PerpsController extends BaseController<
             Number.parseFloat(withdrawalAmount),
         },
       );
+    }
 
+    if (found) {
       this.#debugLog('PerpsController: Updated withdrawal status', {
         withdrawalId,
         status,
