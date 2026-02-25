@@ -23,7 +23,7 @@ interface RampsDepositCashButtonClicked {
 
 interface RampsPaymentMethodSelected {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
   user_id?: string;
   region: string;
   payment_method_id: string;

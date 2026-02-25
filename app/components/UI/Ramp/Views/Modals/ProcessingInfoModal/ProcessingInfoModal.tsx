@@ -21,6 +21,7 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import { trackEvent as trackRampsEvent } from '../../../hooks/useAnalytics';
 
 export interface ProcessingInfoModalParams {
   providerName: string;
@@ -45,6 +46,12 @@ function ProcessingInfoModal() {
 
   const handleGoToSupport = useCallback(async () => {
     if (!providerSupportUrl) return;
+    trackRampsEvent('RAMPS_EXTERNAL_LINK_CLICKED', {
+      location: 'Order Details',
+      text: 'Provider Support',
+      url_domain: new URL(providerSupportUrl).hostname,
+      ramp_type: 'UNIFIED_BUY_2',
+    });
     if (await InAppBrowser.isAvailable()) {
       // Close the sheet before the InAppBrowser overlay opens so the two don't overlap.
       handleClose();

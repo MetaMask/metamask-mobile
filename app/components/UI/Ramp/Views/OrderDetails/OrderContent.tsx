@@ -170,6 +170,11 @@ const OrderContent: React.FC<OrderContentProps> = ({
   const providerName = getProviderName(order.provider, order.data);
 
   const handleInfoPress = useCallback(() => {
+    trackRampsEvent('RAMPS_EXTERNAL_LINK_CLICKED', {
+      location: 'Order Details',
+      text: 'Processing Info',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
     navigation.navigate(
       ...createProcessingInfoModalNavigationDetails({
         providerName,

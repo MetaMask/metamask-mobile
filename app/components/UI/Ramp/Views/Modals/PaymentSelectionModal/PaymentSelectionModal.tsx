@@ -31,6 +31,7 @@ import PaymentSelectionAlert from './PaymentSelectionAlert';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
+import { trackEvent as trackRampsEvent } from '../../../hooks/useAnalytics';
 
 export interface PaymentSelectionModalParams {
   amount?: number;
@@ -106,17 +107,28 @@ function PaymentSelectionModal() {
     useRampsQuotes(quoteFetchParams);
 
   const handleChangeProviderPress = useCallback(() => {
+    trackRampsEvent('RAMPS_CHANGE_PROVIDER_BUTTON_CLICKED', {
+      current_provider: selectedProvider?.name,
+      location: 'Payment Selection',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
     navigation.navigate(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });
-  }, [navigation, amount]);
+  }, [navigation, amount, selectedProvider?.name]);
 
   const handlePaymentMethodPress = useCallback(
     (paymentMethod: PaymentMethod) => {
+      trackRampsEvent('RAMPS_PAYMENT_METHOD_SELECTED', {
+        payment_method_id: paymentMethod.id,
+        ramp_type: 'UNIFIED_BUY_2',
+        region: userRegion?.regionCode ?? '',
+        is_authenticated: false,
+      });
       setSelectedPaymentMethod(paymentMethod);
       sheetRef.current?.onCloseBottomSheet(() => {
         onPaymentMethodSelect?.();
       });
     },
-    [setSelectedPaymentMethod, onPaymentMethodSelect],
+    [setSelectedPaymentMethod, onPaymentMethodSelect, userRegion?.regionCode],
   );
 
   const currency = userRegion?.country?.currency ?? 'USD';
