@@ -158,23 +158,151 @@ _code_fencing_flask: &code_fencing_flask
 # LaunchDarkly will override these at runtime
 # Production (conservative) defaults - override in dev/exp builds as needed
 # =============================================================================
-_remote_feature_flags: &remote_feature_flags # Perps
-  perpsPerpTradingEnabled: false
-  perpsPerpTradingServiceInterruptionBannerEnabled: false
-  perpsPerpGtmOnboardingModalEnabled: false
-  perpsOrderBookEnabled: false
-  perpsFeedbackEnabled: false
+_remote_feature_flags: &remote_feature_flags
+  # Bitcoin/Tron/Multichain accounts (prod LD values — each uses a custom type-guard validator)
+  bitcoinAccounts:
+    enabled: true
+    minimumVersion: '7.59.0'
+  tronAccounts:
+    enabled: true
+    minimumVersion: '7.61.6'
+  # enableMultichainAccounts requires the extra featureVersion field (assertMultichainAccountsFeatureFlagType)
+  enableMultichainAccounts:
+    enabled: true
+    featureVersion: '1'
+    minimumVersion: '7.53.0'
+  enableMultichainAccountsState2:
+    enabled: true
+    featureVersion: '2'
+    minimumVersion: '7.57.0'
+  # Perps (prod LD values — version gates preserved for safety)
+  perpsPerpTradingEnabled:
+    enabled: true
+    minimumVersion: '7.56.2'
+  perpsPerpTradingServiceInterruptionBannerEnabled:
+    enabled: false
+    minimumVersion: '0.0.0'
+  perpsPerpGtmOnboardingModalEnabled:
+    enabled: false
+    minimumVersion: '0.0.0'
+  perpsOrderBookEnabled:
+    enabled: false
+    minimumVersion: '0.0.0'
+  perpsFeedbackEnabled:
+    enabled: true
+    minimumVersion: '7.62.0'
+  perpsHip3Enabled:
+    enabled: true
+    minimumVersion: '7.60.4'
+  # LD sends { enabled: false } without minimumVersion — keeping minimumVersion for selector type-guard
+  perpsTradeWithAnyTokenIsEnabled:
+    enabled: false
+    minimumVersion: '7.66.0'
+  perpsMyxProviderEnabled:
+    enabled: false
+    minimumVersion: '0.0.0'
+  rewardsReferralCodeEnabled:
+    enabled: false
+    minimumVersion: '0.0.0'
   # Earn/Staking
-  earnPooledStakingEnabled: true
-  earnPooledStakingServiceInterruptionBannerEnabled: false
-  earnStablecoinLendingEnabled: true
-  earnStablecoinLendingServiceInterruptionBannerEnabled: false
-  earnMusdConversionFlowEnabled: false
-  earnMusdCtaEnabled: false
-  earnMusdConversionAssetOverviewCtaEnabled: false
-  earnMusdConversionTokenListItemCtaEnabled: false
-  earnMusdConversionRewardsUiEnabled: false
-  earnMerklCampaignClaiming: false
+  earnPooledStakingEnabled:
+    enabled: true
+    minimumVersion: '7.47.0'
+  earnPooledStakingServiceInterruptionBannerEnabled:
+    enabled: false
+    minimumVersion: '0.0.0'
+  earnStablecoinLendingEnabled:
+    enabled: true
+    minimumVersion: '7.51.0'
+  earnStablecoinLendingServiceInterruptionBannerEnabled:
+    enabled: false
+    minimumVersion: '0.0.0'
+  earnMusdConversionFlowEnabled:
+    enabled: true
+    minimumVersion: '7.65.0'
+  earnMusdCtaEnabled:
+    enabled: true
+    minimumVersion: '7.65.0'
+  earnMusdConversionAssetOverviewCtaEnabled:
+    enabled: true
+    minimumVersion: '7.65.0'
+  earnMusdConversionTokenListItemCtaEnabled:
+    enabled: true
+    minimumVersion: '7.65.0'
+  earnMusdConversionRewardsUiEnabled:
+    enabled: false
+    minimumVersion: '0.0.0'
+  earnMerklCampaignClaiming:
+    enabled: false
+    minimumVersion: '0.0.0'
+  # Predict
+  predictHotTab:
+    enabled: false
+    minimumVersion: '0.0.0'
+  # predictHomeFeaturedVariant has an extended structure: variant controls which layout is shown
+  predictHomeFeaturedVariant:
+    enabled: true
+    minimumVersion: '7.65.0'
+    variant: 'carousel'
+  predictGtmOnboardingModalEnabled:
+    enabled: true
+    minimumVersion: '7.60.0'
+  predictTradingEnabled:
+    enabled: true
+    minimumVersion: '7.60.0'
+  # Market Insights
+  aiSocialMarketAnalysisEnabled:
+    enabled: true
+    minimumVersion: '7.66.0'
+  # Card Features
+  # displayCardButton is a phased rollout in LD (10% enabled) — conservative disabled default
+  displayCardButton:
+    enabled: false
+    minimumVersion: '0.0.0'
+  cardExperimentalSwitch2:
+    enabled: true
+    minimumVersion: '7.58.1'
+  metalCardCheckoutEnabled:
+    enabled: false
+    minimumVersion: '0.0.0'
+  galileoAppleWalletInAppProvisioningEnabled:
+    enabled: false
+    minimumVersion: '0.0.0'
+  galileoGoogleWalletInAppProvisioningEnabled:
+    enabled: false
+    minimumVersion: '0.0.0'
+  # Homepage
+  homepageRedesignV1:
+    enabled: true
+    minimumVersion: '7.59.0'
+  homepageSectionsV1:
+    enabled: false
+    minimumVersion: '0.0.0'
+  # OTA Updates
+  otaUpdatesEnabled:
+    enabled: true
+    minimumVersion: '7.63.90'
+  # Token Details
+  tokenDetailsV2ButtonLayout:
+    enabled: false
+    minimumVersion: '7.67.0'
+  tokenListItemV2AbtestVersioned:
+    enabled: false
+    minimumVersion: '7.67.0'
+  # Tron Staking
+  trxStakingEnabled:
+    enabled: true
+    minimumVersion: '7.61.6'
+  # Assets
+  assetsAccountApiBalances:
+    - '0x1'
+    - '0xe708'
+    - '0x2105'
+    - '0x89'
+    - '0xa4b1'
+    - '0xa'
+    - '0x38'
+  additionalNetworksBlacklist: []
 
 # =============================================================================
 # Build Configurations
@@ -283,19 +411,7 @@ builds:
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
-    remote_feature_flags:
-      <<: *remote_feature_flags
-      # Override for experimental testing
-      perpsPerpTradingEnabled: true
-      perpsPerpGtmOnboardingModalEnabled: true
-      perpsOrderBookEnabled: true
-      perpsFeedbackEnabled: true
-      earnMusdConversionFlowEnabled: true
-      earnMusdCtaEnabled: true
-      earnMusdConversionAssetOverviewCtaEnabled: true
-      earnMusdConversionTokenListItemCtaEnabled: true
-      earnMusdConversionRewardsUiEnabled: true
-      earnMerklCampaignClaiming: true
+    remote_feature_flags: *remote_feature_flags
 
   # Local development / Expo development build (Runway .app for simulator)
   main-dev:
@@ -317,19 +433,7 @@ builds:
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
-    remote_feature_flags:
-      <<: *remote_feature_flags
-      # Override for dev testing
-      perpsPerpTradingEnabled: true
-      perpsPerpGtmOnboardingModalEnabled: true
-      perpsOrderBookEnabled: true
-      perpsFeedbackEnabled: true
-      earnMusdConversionFlowEnabled: true
-      earnMusdCtaEnabled: true
-      earnMusdConversionAssetOverviewCtaEnabled: true
-      earnMusdConversionTokenListItemCtaEnabled: true
-      earnMusdConversionRewardsUiEnabled: true
-      earnMerklCampaignClaiming: true
+    remote_feature_flags: *remote_feature_flags
 
   # ---------------------------------------------------------------------------
   # FLASK BUILDS
@@ -409,19 +513,7 @@ builds:
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
-    remote_feature_flags:
-      <<: *remote_feature_flags
-      # Override for dev testing
-      perpsPerpTradingEnabled: true
-      perpsPerpGtmOnboardingModalEnabled: true
-      perpsOrderBookEnabled: true
-      perpsFeedbackEnabled: true
-      earnMusdConversionFlowEnabled: true
-      earnMusdCtaEnabled: true
-      earnMusdConversionAssetOverviewCtaEnabled: true
-      earnMusdConversionTokenListItemCtaEnabled: true
-      earnMusdConversionRewardsUiEnabled: true
-      earnMerklCampaignClaiming: true
+    remote_feature_flags: *remote_feature_flags
 
   # ─────────────────────────────────────────────────────────────────────────────
   # QA Builds (legacy - for internal testing)
@@ -485,16 +577,5 @@ builds:
       ANDROID_GOOGLE_SERVER_CLIENT_ID: MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT
       MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
     code_fencing: *code_fencing_main
-    remote_feature_flags:
-      <<: *remote_feature_flags
-      # Override for dev testing
-      perpsPerpTradingEnabled: true
-      perpsPerpGtmOnboardingModalEnabled: true
-      perpsOrderBookEnabled: true
-      perpsFeedbackEnabled: true
-      earnMusdConversionFlowEnabled: true
-      earnMusdCtaEnabled: true
-      earnMusdConversionAssetOverviewCtaEnabled: true
-      earnMusdConversionTokenListItemCtaEnabled: true
-      earnMusdConversionRewardsUiEnabled: true
-      earnMerklCampaignClaiming: true
+    remote_feature_flags: *remote_feature_flags
+
