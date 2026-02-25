@@ -129,6 +129,8 @@ describe('perps controller init', () => {
       hip3ConfigVersion: 0,
       withdrawInProgress: false,
       lastWithdrawResult: null,
+      lastCompletedWithdrawalTimestamp: null,
+      lastCompletedDepositTimestamp: null,
       withdrawalRequests: [],
       withdrawalProgress: {
         progress: 0,
