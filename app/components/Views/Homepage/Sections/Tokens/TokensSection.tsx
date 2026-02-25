@@ -25,25 +25,25 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
-import useHomepageSectionViewedEvent, {
-  HomepageSectionNames,
-} from '../../hooks/useHomepageSectionViewedEvent';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { refreshTokens } from '../../../../UI/Tokens/util/refreshTokens';
+import useHomepageSectionViewedEvent, {
+  HomepageSectionNames,
+} from '../../hooks/useHomepageSectionViewedEvent';
+
+interface TokensSectionProps {
+  sectionIndex: number;
+  totalSectionsLoaded: number;
+}
 
 const MAX_TOKENS_DISPLAYED = 5;
 
 // No-op functions for TokenListItem props we don't need in the homepage section
 const noopShowRemoveMenu = () => undefined;
 const noopSetShowScamWarningModal = () => undefined;
-
-interface TokensSectionProps {
-  sectionIndex: number;
-  totalSectionsLoaded: number;
-}
 
 /**
  * TokensSection - Displays user's token balances on the homepage
@@ -93,6 +93,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     );
 
     const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
+
     // Show error when an explicit refresh failed, or when balance data has loaded
     // and the account has balance but the selector returned no tokens (controllers
     // failed to load data). The accountGroupBalance null-check prevents a false
@@ -136,47 +137,49 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       itemCount,
     });
 
+    const handleViewAllTokens = useCallback(() => {
+      navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
+    }, [navigation]);
+
     const handleTokensRetry = useCallback(async () => {
       setHasTokensError(false);
       await refresh();
     }, [refresh]);
 
-    const handleViewAllTokens = useCallback(() => {
-      navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
-    }, [navigation]);
-
     return (
-      <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAllTokens} />
-        {showTokensError ? (
-          <ErrorState
-            title={strings('homepage.error.unable_to_load', {
-              section: title.toLowerCase(),
-            })}
-            onRetry={handleTokensRetry}
-          />
-        ) : isZeroBalanceAccount ? (
-          <SectionRow>
-            <PopularTokensList
-              ref={popularTokensListRef}
-              onError={setHasTokensError}
+      <View ref={sectionViewRef}>
+        <Box gap={3}>
+          <SectionTitle title={title} onPress={handleViewAllTokens} />
+          {showTokensError ? (
+            <ErrorState
+              title={strings('homepage.error.unable_to_load', {
+                section: title.toLowerCase(),
+              })}
+              onRetry={handleTokensRetry}
             />
-          </SectionRow>
-        ) : (
-          <SectionRow>
-            {displayTokenKeys.map((tokenKey, index) => (
-              <ListItemComponent
-                key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
-                assetKey={tokenKey}
-                showRemoveMenu={noopShowRemoveMenu}
-                setShowScamWarningModal={noopSetShowScamWarningModal}
-                privacyMode={privacyMode}
-                showPercentageChange
+          ) : isZeroBalanceAccount ? (
+            <SectionRow>
+              <PopularTokensList
+                ref={popularTokensListRef}
+                onError={setHasTokensError}
               />
-            ))}
-          </SectionRow>
-        )}
-      </Box>
+            </SectionRow>
+          ) : (
+            <SectionRow>
+              {displayTokenKeys.map((tokenKey, index) => (
+                <ListItemComponent
+                  key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
+                  assetKey={tokenKey}
+                  showRemoveMenu={noopShowRemoveMenu}
+                  setShowScamWarningModal={noopSetShowScamWarningModal}
+                  privacyMode={privacyMode}
+                  showPercentageChange
+                />
+              ))}
+            </SectionRow>
+          )}
+        </Box>
+      </View>
     );
   },
 );

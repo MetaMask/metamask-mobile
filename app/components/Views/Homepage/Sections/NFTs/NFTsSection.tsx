@@ -73,26 +73,16 @@ interface NFTsSectionProps {
 
 const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
+    const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation();
     const ownedNfts = useOwnedNfts();
     const hasNfts = ownedNfts.length > 0;
     const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
     const { onRefresh } = useNftRefresh();
-    const sectionViewRef = useRef<View>(null);
 
     const title = strings('homepage.sections.nfts');
 
     useImperativeHandle(ref, () => ({ refresh: onRefresh }), [onRefresh]);
-
-    useHomepageSectionViewedEvent({
-      sectionRef: sectionViewRef,
-      isLoading: isNftFetchingProgress && !hasNfts,
-      sectionName: HomepageSectionNames.NFTS,
-      sectionIndex,
-      totalSectionsLoaded,
-      isEmpty: !hasNfts,
-      itemCount: ownedNfts.length,
-    });
 
     const displayNfts = useMemo(
       () => ownedNfts.slice(0, MAX_NFTS_DISPLAYED),
@@ -115,6 +105,16 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     const handleImportNfts = useCallback(() => {
       navigation.navigate('AddAsset', { assetType: 'collectible' });
     }, [navigation]);
+
+    useHomepageSectionViewedEvent({
+      sectionRef: sectionViewRef,
+      isLoading: isNftFetchingProgress && !hasNfts,
+      sectionName: HomepageSectionNames.NFTS,
+      sectionIndex,
+      totalSectionsLoaded,
+      isEmpty: !hasNfts,
+      itemCount: ownedNfts.length,
+    });
 
     return (
       <View ref={sectionViewRef}>
