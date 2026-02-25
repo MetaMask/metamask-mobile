@@ -153,7 +153,9 @@ describe('PredictHomePositionList', () => {
     );
 
     // Assert
-    expect(UNSAFE_getByType(asComponentType('PredictNewButton'))).toBeTruthy();
+    expect(
+      UNSAFE_getByType(asComponentType('PredictNewButton')),
+    ).toBeOnTheScreen();
   });
 
   it('renders claimable positions list when claimable positions exist', () => {

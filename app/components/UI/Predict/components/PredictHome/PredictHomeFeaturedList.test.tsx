@@ -169,7 +169,7 @@ describe('PredictHomeFeaturedList', () => {
     // Assert
     expect(
       UNSAFE_getByType(asComponentType('PredictHomeSkeleton')),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('returns null when no markets and not loading', () => {
