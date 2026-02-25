@@ -214,11 +214,7 @@ export const HardwareWalletBottomSheet: React.FC<
         return (
           <AwaitingAppContent
             deviceType={deviceType}
-            requiredApp={
-              connectionState.status === 'awaiting_app'
-                ? connectionState.appName
-                : undefined
-            }
+            requiredApp={connectionState.appName}
             onContinue={handleErrorContinue}
           />
         );
@@ -227,11 +223,7 @@ export const HardwareWalletBottomSheet: React.FC<
         return (
           <AwaitingConfirmationContent
             deviceType={deviceType}
-            operationType={
-              connectionState.status === 'awaiting_confirmation'
-                ? connectionState.operationType
-                : undefined
-            }
+            operationType={connectionState.operationType}
             onCancel={handleAwaitingConfirmationCancel}
           />
         );
@@ -239,9 +231,7 @@ export const HardwareWalletBottomSheet: React.FC<
       case ConnectionStatus.ErrorState:
         return (
           <ErrorContent
-            error={
-              connectionState.status === 'error' ? connectionState.error : null
-            }
+            error={connectionState.error}
             deviceType={deviceType}
             onContinue={handleErrorContinue}
             onDismiss={handleErrorDismiss}

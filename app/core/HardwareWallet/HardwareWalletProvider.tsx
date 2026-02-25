@@ -58,6 +58,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const awaitingConfirmationRejectRef = useRef<(() => void) | null>(null);
 
+  const discoveryCleanupRef = useRef<(() => void) | null>(null);
+
   const [isTransportAvailable, setIsTransportAvailable] = useState(false);
   const previousTransportAvailableRef = useRef<boolean | null>(null);
 
@@ -216,91 +218,85 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     refs,
   ]);
 
-  // Device discovery
-  useEffect(() => {
-    let cleanupFn: (() => void) | undefined;
+  const stopDiscovery = useCallback(() => {
+    discoveryCleanupRef.current?.();
+    discoveryCleanupRef.current = null;
+  }, []);
 
+  const startDiscovery = useCallback(() => {
     const adapter = refs.adapterRef.current;
 
-    if (
-      connectionState.status === ConnectionStatus.Scanning &&
-      adapter?.requiresDeviceDiscovery
-    ) {
-      DevLogger.log('[HardwareWalletProvider] Scanning state entered');
+    stopDiscovery();
 
-      setDeviceSelectionState((prev) => ({
-        ...prev,
-        devices: [],
-        isScanning: true,
-        scanError: null,
-      }));
+    setDeviceSelectionState((prev) => ({
+      ...prev,
+      devices: [],
+      selectedDevice: null,
+      isScanning: true,
+      scanError: null,
+    }));
 
-      DevLogger.log(
-        '[HardwareWalletProvider] Starting adapter device discovery',
-      );
+    if (!adapter?.requiresDeviceDiscovery) return;
 
-      cleanupFn = adapter.startDeviceDiscovery(
-        (device: DiscoveredDevice) => {
-          DevLogger.log(
-            '[HardwareWalletProvider] Device found:',
-            device.name,
-            device.id,
-          );
-          setDeviceSelectionState((prev) => {
-            const exists = prev.devices.some((d) => d.id === device.id);
-            if (exists) return prev;
-            return {
-              ...prev,
-              devices: [...prev.devices, device],
-            };
-          });
-        },
-        (error: Error) => {
-          DevLogger.log(
-            '[HardwareWalletProvider] Device discovery error:',
-            error,
-          );
-          const scanError = parseErrorByType(
-            error,
-            effectiveWalletType ??
-              adapter.walletType ??
-              HardwareWalletType.Ledger,
-          );
-          updateConnectionState({
-            status: ConnectionStatus.ErrorState,
-            error: scanError,
-          });
-        },
-      );
+    DevLogger.log('[HardwareWalletProvider] Starting adapter device discovery');
 
-      return () => {
-        DevLogger.log('[HardwareWalletProvider] Cleaning up device discovery');
-        cleanupFn?.();
-        adapter.stopDeviceDiscovery();
-      };
-    }
+    const cleanupFn = adapter.startDeviceDiscovery(
+      (device: DiscoveredDevice) => {
+        DevLogger.log(
+          '[HardwareWalletProvider] Device found:',
+          device.name,
+          device.id,
+        );
+        setDeviceSelectionState((prev) => {
+          const exists = prev.devices.some((d) => d.id === device.id);
+          if (exists) return prev;
+          return {
+            ...prev,
+            devices: [...prev.devices, device],
+          };
+        });
+      },
+      (error: Error) => {
+        DevLogger.log(
+          '[HardwareWalletProvider] Device discovery error:',
+          error,
+        );
+        const scanError = parseErrorByType(
+          error,
+          effectiveWalletType ??
+            adapter.walletType ??
+            HardwareWalletType.Ledger,
+        );
+        updateConnectionState({
+          status: ConnectionStatus.ErrorState,
+          error: scanError,
+        });
+      },
+    );
 
-    if (connectionState.status !== ConnectionStatus.Scanning) {
-      setDeviceSelectionState({
-        devices: [],
-        selectedDevice: null,
-        isScanning: false,
-        scanError: null,
-      });
-    }
-
-    return () => {
+    discoveryCleanupRef.current = () => {
       cleanupFn?.();
-      if (adapter) {
-        adapter.stopDeviceDiscovery();
-      }
+      adapter.stopDeviceDiscovery();
     };
-  }, [
-    connectionState.status,
-    effectiveWalletType,
-    refs,
-    updateConnectionState,
-  ]);
+  }, [refs, effectiveWalletType, updateConnectionState, stopDiscovery]);
+
+  // Device discovery — start/stop based on connection status
+  useEffect(() => {
+    if (connectionState.status === ConnectionStatus.Scanning) {
+      DevLogger.log('[HardwareWalletProvider] Scanning state entered');
+      startDiscovery();
+      return () => stopDiscovery();
+    }
+
+    stopDiscovery();
+    setDeviceSelectionState({
+      devices: [],
+      selectedDevice: null,
+      isScanning: false,
+      scanError: null,
+    });
+    return undefined;
+  }, [connectionState.status, startDiscovery, stopDiscovery]);
 
   const closeDeviceSelection = useCallback(() => {
     if (pendingReadyResolveRef.current) {
@@ -319,13 +315,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   }, []);
 
   const rescan = useCallback(() => {
-    setDeviceSelectionState({
-      devices: [],
-      selectedDevice: null,
-      isScanning: true,
-      scanError: null,
-    });
-  }, []);
+    startDiscovery();
+  }, [startDiscovery]);
 
   const closeBottomSheet = useCallback(() => {
     setters.setTargetWalletType(null);
