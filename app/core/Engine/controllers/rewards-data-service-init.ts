@@ -5,7 +5,6 @@ import {
 } from './rewards-controller/services';
 import I18n from '../../../../locales/i18n';
 import type { RewardsControllerState } from './rewards-controller/types';
-import { selectRewardsEnvironmentSelectorFlag } from '../../../selectors/featureFlagController/rewards/rewardsEnabled';
 
 /**
  * Initialize the rewards data service.
@@ -18,13 +17,11 @@ import { selectRewardsEnvironmentSelectorFlag } from '../../../selectors/feature
 export const rewardsDataServiceInit: ControllerInitFunction<
   RewardsDataService,
   RewardsDataServiceMessenger
-> = ({ controllerMessenger, persistedState, getState }) => {
+> = ({ controllerMessenger, persistedState }) => {
   const controller = new RewardsDataService({
     messenger: controllerMessenger,
     locale: I18n.locale,
     fetch,
-    isEnvSelectorEnabled: () =>
-      selectRewardsEnvironmentSelectorFlag(getState()),
   });
 
   // Restore persisted env override from RewardsController state

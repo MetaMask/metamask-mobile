@@ -21,11 +21,9 @@ jest.mock('../../../../../core/AppConstants', () => ({
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
-let mockIsEnvSelectorEnabled = true;
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
-  useSelector: () => mockIsEnvSelectorEnabled,
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -188,19 +186,6 @@ describe('RewardsEnvironmentToggle', () => {
     jest.clearAllMocks();
     mockDispatch.mockClear();
     mockNavigate.mockClear();
-    mockIsEnvSelectorEnabled = true;
-  });
-
-  it('renders nothing when the rewards-environment-selector feature flag is disabled', () => {
-    // Arrange
-    mockIsEnvSelectorEnabled = false;
-    mockCall.mockReturnValue(true);
-
-    // Act
-    const { toJSON } = render(<RewardsEnvironmentToggle />);
-
-    // Assert
-    expect(toJSON()).toBeNull();
   });
 
   it('renders nothing when canChangeRewardsEnvUrl returns false', () => {

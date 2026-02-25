@@ -272,27 +272,21 @@ export class RewardsDataService {
   /** Explicit API URL override; null means use the build-default mapping */
   #rewardsApiUrl: string | null = null;
 
-  readonly #isEnvSelectorEnabled: () => boolean;
-
   constructor({
     messenger,
     fetch: fetchFunction,
     appType = 'mobile',
     locale = 'en-US',
-    isEnvSelectorEnabled = () => true,
   }: {
     messenger: RewardsDataServiceMessenger;
     fetch: typeof fetch;
     appType?: 'mobile' | 'extension';
     locale?: string;
-    /** Returns whether the rewards environment selector feature flag is enabled. */
-    isEnvSelectorEnabled?: () => boolean;
   }) {
     this.#messenger = messenger;
     this.#fetch = fetchFunction;
     this.#appType = appType;
     this.#locale = locale;
-    this.#isEnvSelectorEnabled = isEnvSelectorEnabled;
     // Register all action handlers
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
@@ -409,8 +403,6 @@ export class RewardsDataService {
     );
     // PRD builds are locked — never allow an override to take effect.
     if (!canChange) return defaultUrl;
-    // Feature flag disabled — always use the default env URL.
-    if (!this.#isEnvSelectorEnabled()) return defaultUrl;
     return this.#rewardsApiUrl ?? defaultUrl;
   }
 
@@ -419,10 +411,7 @@ export class RewardsDataService {
    * rewards API environment (true for non-RC / non-production builds).
    */
   canChangeRewardsEnvUrl(): boolean {
-    return (
-      this.#isEnvSelectorEnabled() &&
-      canChangeRewardsEnvUrl(process.env.METAMASK_ENVIRONMENT)
-    );
+    return canChangeRewardsEnvUrl(process.env.METAMASK_ENVIRONMENT);
   }
 
   /**

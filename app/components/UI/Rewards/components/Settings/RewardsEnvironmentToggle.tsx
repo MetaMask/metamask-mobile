@@ -12,8 +12,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { selectRewardsEnvironmentSelectorFlag } from '../../../../../selectors/featureFlagController/rewards';
+import { useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import AppConstants from '../../../../../core/AppConstants';
@@ -50,9 +49,6 @@ if (
 }
 
 const RewardsEnvironmentToggle: React.FC = () => {
-  const isEnvSelectorEnabled = useSelector(
-    selectRewardsEnvironmentSelectorFlag,
-  );
   const [canChangeEnv, setCanChangeEnv] = useState<boolean | null>(null);
   const [currentEnv, setCurrentEnv] = useState<string | null>(null);
   const [defaultEnv, setDefaultEnv] = useState<string | null>(null);
@@ -102,9 +98,8 @@ const RewardsEnvironmentToggle: React.FC = () => {
     [currentEnv, dispatch],
   );
 
-  // Don't render if the feature flag is disabled, until the data service has been queried, or if env change is not allowed
-  if (!isEnvSelectorEnabled || canChangeEnv === null || !canChangeEnv)
-    return null;
+  // Don't render until the data service has been queried, or if env change is not allowed
+  if (canChangeEnv === null || !canChangeEnv) return null;
 
   return (
     <Box

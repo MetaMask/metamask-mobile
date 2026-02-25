@@ -263,34 +263,6 @@ describe('RewardsDataService', () => {
       mockCanChangeRewardsEnv.mockReturnValue(false);
       expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.PRD);
     });
-
-    it('returns default URL when feature flag is disabled, ignoring any stored override', () => {
-      const serviceWithFlagOff = new RewardsDataService({
-        messenger: mockMessenger,
-        fetch: mockFetch,
-        appType: 'mobile',
-        locale: 'en-US',
-        isEnvSelectorEnabled: () => false,
-      });
-      serviceWithFlagOff.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.DEV);
-      expect(serviceWithFlagOff.getRewardsEnvUrl()).toBe(
-        AppConstants.REWARDS_API_URL.UAT,
-      );
-    });
-
-    it('returns override URL when feature flag is enabled', () => {
-      const serviceWithFlagOn = new RewardsDataService({
-        messenger: mockMessenger,
-        fetch: mockFetch,
-        appType: 'mobile',
-        locale: 'en-US',
-        isEnvSelectorEnabled: () => true,
-      });
-      serviceWithFlagOn.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.DEV);
-      expect(serviceWithFlagOn.getRewardsEnvUrl()).toBe(
-        AppConstants.REWARDS_API_URL.DEV,
-      );
-    });
   });
 
   // Test for mobileJoin function

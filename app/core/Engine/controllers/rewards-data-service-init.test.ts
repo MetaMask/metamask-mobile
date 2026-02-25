@@ -41,7 +41,6 @@ describe('RewardsDataServiceInit', () => {
       messenger: expect.any(Object),
       locale: expect.any(String),
       fetch: expect.any(Function),
-      isEnvSelectorEnabled: expect.any(Function),
     });
   });
 
