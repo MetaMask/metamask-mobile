@@ -3,13 +3,15 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import ProviderSelection from './ProviderSelection';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import type { Provider, Quote } from '@metamask/ramps-controller';
+import type {
+  Provider,
+  Quote,
+  QuotesResponse,
+} from '@metamask/ramps-controller';
 import {
   useRampsController,
   type UseRampsControllerResult,
 } from '../../../hooks/useRampsController';
-
-const mockSetSelectedQuote = jest.fn();
 
 jest.mock('../../../hooks/useRampsController', () => ({
   useRampsController: jest.fn(),
@@ -59,15 +61,8 @@ const defaultMockController: UseRampsControllerResult = {
   setSelectedPaymentMethod: jest.fn(),
   paymentMethodsLoading: false,
   paymentMethodsError: null,
-  quotes: null,
-  selectedQuote: null,
   getQuotes: jest.fn(),
-  setSelectedQuote: mockSetSelectedQuote,
-  startQuotePolling: jest.fn(),
-  stopQuotePolling: jest.fn(),
   getWidgetUrl: jest.fn(),
-  quotesLoading: false,
-  quotesError: null,
 };
 
 const transakProvider: Provider = {
@@ -105,20 +100,35 @@ function createMockQuote(
 
 const mockOnBack = jest.fn();
 
+interface RenderOptions {
+  providers?: Provider[];
+  selectedProvider?: Provider | null;
+  quotes?: QuotesResponse | null;
+  quotesLoading?: boolean;
+  quotesError?: string | null;
+}
+
 function renderWithProvider(
   providers: Provider[] = mockProviders,
   selectedProvider: Provider | null = mockProviders[0],
-  controllerOverrides?: Partial<UseRampsControllerResult>,
+  options: RenderOptions = {},
 ) {
+  const { quotes = null, quotesLoading = false, quotesError = null } = options;
+
   jest.mocked(useRampsController).mockReturnValue({
     ...defaultMockController,
-    ...controllerOverrides,
     providers,
     selectedProvider,
   });
   return renderScreen(
     () => (
-      <ProviderSelection onProviderSelect={jest.fn()} onBack={mockOnBack} />
+      <ProviderSelection
+        quotes={quotes}
+        quotesLoading={quotesLoading}
+        quotesError={quotesError}
+        onProviderSelect={jest.fn()}
+        onBack={mockOnBack}
+      />
     ),
     {
       name: 'ProviderSelection',
@@ -147,24 +157,45 @@ describe('ProviderSelection', () => {
   });
 
   it('matches snapshot when quotes are loading', () => {
-    const { toJSON } = renderWithProvider(mockProviders, mockProviders[0], {
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
       userRegion: mockUserRegion,
       selectedToken: mockSelectedToken,
+      providers: mockProviders,
+      selectedProvider: mockProviders[0],
+    });
+    const { toJSON } = renderWithProvider(mockProviders, mockProviders[0], {
       quotesLoading: true,
     });
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('renders providers immediately when quotes are loading', () => {
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: mockSelectedToken,
+      providers: mockProviders,
+      selectedProvider: mockProviders[0],
+    });
+    const { getByText } = renderWithProvider(mockProviders, mockProviders[0], {
+      quotesLoading: true,
+    });
+    expect(getByText('Transak')).toBeOnTheScreen();
+  });
+
   it('matches snapshot when quotes fail to load', async () => {
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: mockSelectedToken,
+      providers: mockProviders,
+      selectedProvider: mockProviders[0],
+    });
     const { toJSON, getByText } = renderWithProvider(
       mockProviders,
       mockProviders[0],
-      {
-        userRegion: mockUserRegion,
-        selectedToken: mockSelectedToken,
-        quotesError: 'Failed to load quotes',
-        quotesLoading: false,
-      },
+      { quotesError: 'Failed to load quotes' },
     );
 
     await waitFor(() => {
@@ -183,19 +214,24 @@ describe('ProviderSelection', () => {
     const transakQuote = createMockQuote('/providers/transak', 'Transak');
     const stripeQuote = createMockQuote('/providers/stripe', 'Stripe');
 
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: mockSelectedToken,
+      providers: [transakProvider],
+      selectedProvider: null,
+    });
+
     const { getByText, queryByText } = renderWithProvider(
       [transakProvider],
       null,
       {
-        userRegion: mockUserRegion,
-        selectedToken: mockSelectedToken,
         quotes: {
           success: [transakQuote, stripeQuote],
           sorted: [],
           error: [],
           customActions: [],
         },
-        quotesLoading: false,
       },
     );
 
