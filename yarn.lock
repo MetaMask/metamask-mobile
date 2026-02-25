@@ -7942,6 +7942,38 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/bridge-controller@npm:^67.2.0":
+  version: 67.2.0
+  resolution: "@metamask/bridge-controller@npm:67.2.0"
+  dependencies:
+    "@ethersproject/address": "npm:^5.7.0"
+    "@ethersproject/bignumber": "npm:^5.7.0"
+    "@ethersproject/constants": "npm:^5.7.0"
+    "@ethersproject/contracts": "npm:^5.7.0"
+    "@ethersproject/providers": "npm:^5.7.0"
+    "@metamask/accounts-controller": "npm:^36.0.1"
+    "@metamask/assets-controllers": "npm:^100.0.2"
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.19.0"
+    "@metamask/gas-fee-controller": "npm:^26.0.3"
+    "@metamask/keyring-api": "npm:^21.5.0"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/metamask-eth-abis": "npm:^3.1.1"
+    "@metamask/multichain-network-controller": "npm:^3.0.4"
+    "@metamask/network-controller": "npm:^30.0.0"
+    "@metamask/polling-controller": "npm:^16.0.3"
+    "@metamask/profile-sync-controller": "npm:^27.1.0"
+    "@metamask/remote-feature-flag-controller": "npm:^4.0.0"
+    "@metamask/snaps-controllers": "npm:^17.2.0"
+    "@metamask/transaction-controller": "npm:^62.18.0"
+    "@metamask/utils": "npm:^11.9.0"
+    bignumber.js: "npm:^9.1.2"
+    reselect: "npm:^5.1.1"
+    uuid: "npm:^8.3.2"
+  checksum: 10/524ed3663b3e1f87a34171dc0b43b7b5751288d410d90b5d266923e71c974b47f3ec4e87d95baf6aa83ff41120b7625488f563e1c63048657241b24711089a95
+  languageName: node
+  linkType: hard
+
 "@metamask/bridge-status-controller@npm:^66.1.0":
   version: 66.1.0
   resolution: "@metamask/bridge-status-controller@npm:66.1.0"
@@ -10101,16 +10133,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^16.0.0":
-  version: 16.0.0
-  resolution: "@metamask/transaction-pay-controller@npm:16.0.0"
+"@metamask/transaction-pay-controller@npm:^16.1.0":
+  version: 16.1.0
+  resolution: "@metamask/transaction-pay-controller@npm:16.1.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/assets-controllers": "npm:^100.0.2"
+    "@metamask/assets-controllers": "npm:^100.0.3"
     "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/bridge-controller": "npm:^67.1.1"
+    "@metamask/bridge-controller": "npm:^67.2.0"
     "@metamask/bridge-status-controller": "npm:^67.0.1"
     "@metamask/controller-utils": "npm:^11.19.0"
     "@metamask/gas-fee-controller": "npm:^26.0.3"
@@ -10118,13 +10150,13 @@ __metadata:
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/network-controller": "npm:^30.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.0.0"
-    "@metamask/transaction-controller": "npm:^62.18.0"
+    "@metamask/transaction-controller": "npm:^62.19.0"
     "@metamask/utils": "npm:^11.9.0"
     bignumber.js: "npm:^9.1.2"
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/c23b5ffd00a6cb60ed306ad6f0d24a1b6744f8b00db6475a5c46c22860ed68653fa1f1c1e633de7b38b161a07a441c674761c30a1f7ff37e8e01f218703f2344
+  checksum: 10/bfba59abf458bd7af18741b7697d2f0aedb3cc6a86c275626d4cbcac4f4b5b6b96ceb28809b7d1316e466e96c913f8cef3b2f1e73f154ea9aa3eb66856e5bc3d
   languageName: node
   linkType: hard
 
@@ -35423,7 +35455,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^62.19.0"
-    "@metamask/transaction-pay-controller": "npm:^16.0.0"
+    "@metamask/transaction-pay-controller": "npm:^16.1.0"
     "@metamask/tron-wallet-snap": "npm:^1.21.1"
     "@metamask/utils": "npm:^11.8.1"
     "@myx-trade/sdk": "npm:^0.1.265"
