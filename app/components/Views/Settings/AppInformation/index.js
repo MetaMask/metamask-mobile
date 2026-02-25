@@ -248,6 +248,12 @@ class AppInformation extends PureComponent {
                   {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
                 </Text>
                 <Text style={styles.branchInfo}>
+                  {`Features Announcements Access Token (first 5): ${(process.env.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN ?? '').slice(0, 5) || 'N/A'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`Features Announcements Space ID (first 5): ${(process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID ?? '').slice(0, 5) || 'N/A'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
                   {`Remote Feature Flag Env: ${getFeatureFlagAppEnvironment()}`}
                 </Text>
                 <Text style={styles.branchInfo}>
