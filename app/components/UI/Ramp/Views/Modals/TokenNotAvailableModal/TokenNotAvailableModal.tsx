@@ -23,7 +23,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import styleSheet from './TokenNotAvailableModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useRampsController } from '../../../hooks/useRampsController';
-import { createProviderPickerModalNavigationDetails } from '../ProviderPickerModal';
+import { createProviderSelectionModalNavigationDetails } from '../ProviderSelectionModal';
 
 export interface TokenNotAvailableModalParams {
   assetId: string;
@@ -55,7 +55,10 @@ function TokenNotAvailableModal() {
   const handleChangeProvider = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate(
-        ...createProviderPickerModalNavigationDetails({ assetId }),
+        ...createProviderSelectionModalNavigationDetails({
+          assetId,
+          skipQuotes: true,
+        }),
       );
     });
   }, [navigation, assetId]);
