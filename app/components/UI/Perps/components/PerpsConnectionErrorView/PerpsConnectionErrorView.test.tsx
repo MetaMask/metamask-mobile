@@ -240,7 +240,12 @@ describe('PerpsConnectionErrorView', () => {
       fireEvent.press(backButton.parent);
     }
 
-    expect(mockTrack).toHaveBeenCalled();
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: 'connection_go_back',
+      }),
+    );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
