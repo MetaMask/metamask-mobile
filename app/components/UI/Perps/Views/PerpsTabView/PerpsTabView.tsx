@@ -78,6 +78,7 @@ const PerpsTabView = () => {
 
   const { orders } = usePerpsLiveOrders({
     hideTpSl: true, // Filter out TP/SL orders
+    hideReduceOnly: true, // Filter out all reduce-only orders
     throttleMs: 1000, // Update orders every second
   });
 
