@@ -8,24 +8,19 @@ import {
   CardExternalWalletDetailsResponse,
 } from '../types';
 import Logger from '../../../../util/Logger';
+import { cardKeys } from '../queries';
 
-// Mock dependencies
+const mockInvalidateQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: jest.fn(),
+}));
+
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
 
-jest.mock('react-redux', () => ({
-  useDispatch: () => jest.fn(),
-}));
-
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
-}));
-
-jest.mock('../../../../core/redux/slices/card', () => ({
-  setAuthenticatedPriorityToken: jest.fn(),
-  setAuthenticatedPriorityTokenLastFetched: jest.fn(),
-  clearCacheData: jest.fn(),
 }));
 
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
@@ -92,6 +87,15 @@ describe('useUpdateTokenPriority', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    mockInvalidateQueries.mockResolvedValue(undefined);
+    (
+      jest.requireMock('@tanstack/react-query') as {
+        useQueryClient: jest.Mock;
+      }
+    ).useQueryClient.mockReturnValue({
+      invalidateQueries: mockInvalidateQueries,
+    });
+
     mockSDK = {
       updateWalletPriority: jest.fn().mockResolvedValue({}),
     };
@@ -133,6 +137,9 @@ describe('useUpdateTokenPriority', () => {
         { id: 2, priority: 2 },
         { id: 1, priority: 1 },
       ]);
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: cardKeys.externalWalletDetails(),
+      });
       expect(mockOnSuccess).toHaveBeenCalled();
       expect(mockOnError).not.toHaveBeenCalled();
     });

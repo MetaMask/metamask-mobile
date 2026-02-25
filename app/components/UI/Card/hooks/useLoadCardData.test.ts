@@ -18,6 +18,7 @@ import {
   DelegationSettingsResponse,
   CardErrorType,
 } from '../types';
+import { cardKeys } from '../queries';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
@@ -32,6 +33,11 @@ jest.mock('./useGetCardExternalWalletDetails');
 jest.mock('./useGetDelegationSettings');
 jest.mock('./useGetLatestAllowanceForPriorityToken');
 jest.mock('./useGetUserKYCStatus');
+
+const mockRefetchQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: jest.fn(),
+}));
 
 const mockUseIsBaanxLoginEnabled =
   useIsBaanxLoginEnabled as jest.MockedFunction<typeof useIsBaanxLoginEnabled>;
@@ -57,6 +63,9 @@ const mockUseGetLatestAllowanceForPriorityToken =
 const mockUseGetUserKYCStatus = useGetUserKYCStatus as jest.MockedFunction<
   typeof useGetUserKYCStatus
 >;
+
+let mockIsAuthenticated = false;
+const mockSelectedAddress = '0xMockAddress';
 
 describe('useLoadCardData', () => {
   const mockPriorityToken: CardTokenAllowance = {
@@ -123,8 +132,21 @@ describe('useLoadCardData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Default mocks for all hooks
-    mockUseSelector.mockReturnValue(false); // isAuthenticated = false by default
+    mockRefetchQueries.mockResolvedValue(undefined);
+    (
+      jest.requireMock('@tanstack/react-query') as {
+        useQueryClient: jest.Mock;
+      }
+    ).useQueryClient.mockReturnValue({
+      refetchQueries: mockRefetchQueries,
+    });
+
+    mockIsAuthenticated = false;
+    mockUseSelector.mockImplementation(() => {
+      const callIndex = mockUseSelector.mock.calls.length;
+      if (callIndex % 2 === 1) return mockIsAuthenticated;
+      return () => ({ address: mockSelectedAddress });
+    });
 
     mockUseIsBaanxLoginEnabled.mockReturnValue(true);
 
@@ -180,7 +202,7 @@ describe('useLoadCardData', () => {
 
   describe('Unauthenticated Mode', () => {
     beforeEach(() => {
-      mockUseSelector.mockReturnValue(false); // Not authenticated
+      mockIsAuthenticated = false; // Not authenticated
     });
 
     it('returns priority token and all tokens from on-chain data', () => {
@@ -333,20 +355,25 @@ describe('useLoadCardData', () => {
       expect(result.current.isBaanxLoginEnabled).toBe(true);
     });
 
-    it('does not call fetchExternalWalletDetails in unauthenticated mode', async () => {
+    it('refetches only on-chain priority token in unauthenticated mode', async () => {
       const { result } = renderHook(() => useLoadCardData());
 
       await act(async () => {
         await result.current.fetchAllData();
       });
 
-      expect(mockFetchExternalWalletDetails).not.toHaveBeenCalled();
+      expect(mockRefetchQueries).toHaveBeenCalledWith({
+        queryKey: cardKeys.priorityTokenOnChain(mockSelectedAddress),
+      });
+      expect(mockRefetchQueries).not.toHaveBeenCalledWith({
+        queryKey: cardKeys.externalWalletDetails(),
+      });
     });
   });
 
   describe('Authenticated Mode', () => {
     beforeEach(() => {
-      mockUseSelector.mockReturnValue(true); // Authenticated
+      mockIsAuthenticated = true; // Authenticated
     });
 
     it('returns priority token and all tokens from API data', () => {
@@ -422,26 +449,29 @@ describe('useLoadCardData', () => {
       expect(result.current.allTokens).toEqual([]);
     });
 
-    it('calls all fetch functions when fetchAllData is invoked', async () => {
+    it('refetches all queries when fetchAllData is invoked', async () => {
       const { result } = renderHook(() => useLoadCardData());
 
       await act(async () => {
         await result.current.fetchAllData();
       });
 
-      expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
-      expect(mockFetchCardDetails).toHaveBeenCalledTimes(1);
-      expect(mockFetchExternalWalletDetails).toHaveBeenCalledTimes(1);
+      expect(mockRefetchQueries).toHaveBeenCalledWith({
+        queryKey: cardKeys.delegationSettings(),
+      });
+      expect(mockRefetchQueries).toHaveBeenCalledWith({
+        queryKey: cardKeys.externalWalletDetails(),
+      });
+      expect(mockRefetchQueries).toHaveBeenCalledWith({
+        queryKey: cardKeys.cardDetails(),
+      });
+      expect(mockRefetchQueries).toHaveBeenCalledWith({
+        queryKey: cardKeys.kycStatus(),
+      });
     });
 
     it('handles fetchAllData errors gracefully', async () => {
-      mockFetchPriorityToken.mockRejectedValue(
-        new Error('Priority token error'),
-      );
-      mockFetchCardDetails.mockRejectedValue(new Error('Card details error'));
-      mockFetchExternalWalletDetails.mockRejectedValue(
-        new Error('External wallet error'),
-      );
+      mockRefetchQueries.mockRejectedValue(new Error('Refetch failed'));
 
       const { result } = renderHook(() => useLoadCardData());
 
@@ -489,7 +519,7 @@ describe('useLoadCardData', () => {
     });
 
     it('handles null delegation settings gracefully in authenticated mode', () => {
-      mockUseSelector.mockReturnValue(true); // Authenticated
+      mockIsAuthenticated = true; // Authenticated
       mockUseGetDelegationSettings.mockReturnValue({
         data: null,
         isLoading: false,
@@ -503,7 +533,7 @@ describe('useLoadCardData', () => {
     });
 
     it('handles null external wallet details gracefully in authenticated mode', () => {
-      mockUseSelector.mockReturnValue(true); // Authenticated
+      mockIsAuthenticated = true; // Authenticated
       mockUseGetCardExternalWalletDetails.mockReturnValue({
         data: null,
         isLoading: false,
@@ -589,7 +619,7 @@ describe('useLoadCardData', () => {
 
   describe('Mode Switching', () => {
     it('switches from unauthenticated to authenticated mode', () => {
-      mockUseSelector.mockReturnValue(false); // Start unauthenticated
+      mockIsAuthenticated = false; // Start unauthenticated
 
       const { result, rerender } = renderHook(() => useLoadCardData());
 
@@ -597,7 +627,7 @@ describe('useLoadCardData', () => {
       expect(result.current.delegationSettings).toBeNull();
       expect(result.current.externalWalletDetailsData).toBeNull();
 
-      mockUseSelector.mockReturnValue(true); // Switch to authenticated
+      mockIsAuthenticated = true; // Switch to authenticated
 
       rerender();
 
@@ -609,14 +639,14 @@ describe('useLoadCardData', () => {
     });
 
     it('switches from authenticated to unauthenticated mode', () => {
-      mockUseSelector.mockReturnValue(true); // Start authenticated
+      mockIsAuthenticated = true; // Start authenticated
 
       const { result, rerender } = renderHook(() => useLoadCardData());
 
       expect(result.current.isAuthenticated).toBe(true);
       expect(result.current.delegationSettings).toEqual(mockDelegationSettings);
 
-      mockUseSelector.mockReturnValue(false); // Switch to unauthenticated
+      mockIsAuthenticated = false; // Switch to unauthenticated
 
       rerender();
 
@@ -638,7 +668,7 @@ describe('useLoadCardData', () => {
         },
       ];
 
-      mockUseSelector.mockReturnValue(false); // Unauthenticated
+      mockIsAuthenticated = false; // Unauthenticated
       mockUseGetPriorityCardToken.mockReturnValue({
         priorityToken: unauthenticatedTokens[0],
         allTokensWithAllowances: unauthenticatedTokens,
@@ -652,7 +682,7 @@ describe('useLoadCardData', () => {
 
       expect(result.current.allTokens).toEqual(unauthenticatedTokens);
 
-      mockUseSelector.mockReturnValue(true); // Authenticated
+      mockIsAuthenticated = true; // Authenticated
 
       rerender();
 
@@ -663,7 +693,7 @@ describe('useLoadCardData', () => {
   describe('Latest Allowance', () => {
     describe('Authenticated Mode', () => {
       beforeEach(() => {
-        mockUseSelector.mockReturnValue(true); // Authenticated
+        mockIsAuthenticated = true; // Authenticated
       });
 
       it('adds totalAllowance to priority token when latest allowance is available', () => {
@@ -767,7 +797,7 @@ describe('useLoadCardData', () => {
 
     describe('Unauthenticated Mode', () => {
       beforeEach(() => {
-        mockUseSelector.mockReturnValue(false); // Unauthenticated
+        mockIsAuthenticated = false; // Unauthenticated
       });
 
       it('returns priority token without totalAllowance property', () => {
@@ -801,7 +831,7 @@ describe('useLoadCardData', () => {
       });
 
       it('ignores latest allowance when switching from authenticated to unauthenticated', () => {
-        mockUseSelector.mockReturnValue(true); // Start authenticated
+        mockIsAuthenticated = true; // Start authenticated
         const latestAllowance = '2000000000000';
         mockUseGetLatestAllowanceForPriorityToken.mockReturnValue({
           latestAllowance,
@@ -816,7 +846,7 @@ describe('useLoadCardData', () => {
           latestAllowance,
         );
 
-        mockUseSelector.mockReturnValue(false); // Switch to unauthenticated
+        mockIsAuthenticated = false; // Switch to unauthenticated
 
         rerender();
 
@@ -836,8 +866,8 @@ describe('useLoadCardData', () => {
       mockFetchExternalWalletDetails.mockReset().mockResolvedValue(undefined);
     });
 
-    it('fetchAllData executes all fetches in parallel for unauthenticated mode', async () => {
-      mockUseSelector.mockReturnValue(false); // Unauthenticated
+    it('fetchAllData refetches on-chain priority token for unauthenticated mode', async () => {
+      mockIsAuthenticated = false; // Unauthenticated
 
       const { result } = renderHook(() => useLoadCardData());
 
@@ -845,13 +875,14 @@ describe('useLoadCardData', () => {
         await result.current.fetchAllData();
       });
 
-      expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
-      expect(mockFetchCardDetails).not.toHaveBeenCalled();
-      expect(mockFetchExternalWalletDetails).not.toHaveBeenCalled();
+      expect(mockRefetchQueries).toHaveBeenCalledTimes(1);
+      expect(mockRefetchQueries).toHaveBeenCalledWith({
+        queryKey: cardKeys.priorityTokenOnChain(mockSelectedAddress),
+      });
     });
 
-    it('fetchAllData executes all fetches in parallel for authenticated mode', async () => {
-      mockUseSelector.mockReturnValue(true); // Authenticated
+    it('fetchAllData refetches all queries for authenticated mode', async () => {
+      mockIsAuthenticated = true; // Authenticated
 
       const { result } = renderHook(() => useLoadCardData());
 
@@ -859,17 +890,26 @@ describe('useLoadCardData', () => {
         await result.current.fetchAllData();
       });
 
-      expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
-      expect(mockFetchCardDetails).toHaveBeenCalledTimes(1);
-      expect(mockFetchExternalWalletDetails).toHaveBeenCalledTimes(1);
-      expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
+      expect(mockRefetchQueries).toHaveBeenCalledTimes(4);
+      expect(mockRefetchQueries).toHaveBeenCalledWith({
+        queryKey: cardKeys.delegationSettings(),
+      });
+      expect(mockRefetchQueries).toHaveBeenCalledWith({
+        queryKey: cardKeys.externalWalletDetails(),
+      });
+      expect(mockRefetchQueries).toHaveBeenCalledWith({
+        queryKey: cardKeys.cardDetails(),
+      });
+      expect(mockRefetchQueries).toHaveBeenCalledWith({
+        queryKey: cardKeys.kycStatus(),
+      });
     });
   });
 
   describe('KYC Status', () => {
     describe('Authenticated Mode', () => {
       beforeEach(() => {
-        mockUseSelector.mockReturnValue(true); // Authenticated
+        mockIsAuthenticated = true; // Authenticated
       });
 
       it('returns KYC status when user is verified', () => {
@@ -1013,16 +1053,16 @@ describe('useLoadCardData', () => {
         });
       });
 
-      it('fetches KYC status when fetchAllData is called', async () => {
-        mockFetchKYCStatus.mockReset().mockResolvedValue(undefined);
-
+      it('refetches KYC status when fetchAllData is called', async () => {
         const { result } = renderHook(() => useLoadCardData());
 
         await act(async () => {
           await result.current.fetchAllData();
         });
 
-        expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
+        expect(mockRefetchQueries).toHaveBeenCalledWith({
+          queryKey: cardKeys.kycStatus(),
+        });
       });
 
       it('handles KYC status update when status changes', () => {
@@ -1060,7 +1100,7 @@ describe('useLoadCardData', () => {
 
     describe('Unauthenticated Mode', () => {
       beforeEach(() => {
-        mockUseSelector.mockReturnValue(false); // Unauthenticated
+        mockIsAuthenticated = false; // Unauthenticated
       });
 
       it('returns null KYC status', () => {
@@ -1110,28 +1150,28 @@ describe('useLoadCardData', () => {
         expect(result.current.error).toBeFalsy();
       });
 
-      it('does not fetch KYC status when fetchAllData is called', async () => {
-        mockFetchKYCStatus.mockReset().mockResolvedValue(undefined);
-
+      it('does not refetch KYC status when fetchAllData is called', async () => {
         const { result } = renderHook(() => useLoadCardData());
 
         await act(async () => {
           await result.current.fetchAllData();
         });
 
-        expect(mockFetchKYCStatus).not.toHaveBeenCalled();
+        expect(mockRefetchQueries).not.toHaveBeenCalledWith({
+          queryKey: cardKeys.kycStatus(),
+        });
       });
     });
 
     describe('Mode Switching', () => {
       it('returns KYC status when switching from unauthenticated to authenticated', () => {
-        mockUseSelector.mockReturnValue(false); // Start unauthenticated
+        mockIsAuthenticated = false; // Start unauthenticated
 
         const { result, rerender } = renderHook(() => useLoadCardData());
 
         expect(result.current.kycStatus).toBeNull();
 
-        mockUseSelector.mockReturnValue(true); // Switch to authenticated
+        mockIsAuthenticated = true; // Switch to authenticated
 
         rerender();
 
@@ -1143,7 +1183,7 @@ describe('useLoadCardData', () => {
       });
 
       it('returns null KYC status when switching from authenticated to unauthenticated', () => {
-        mockUseSelector.mockReturnValue(true); // Start authenticated
+        mockIsAuthenticated = true; // Start authenticated
         mockUseGetUserKYCStatus.mockReturnValue({
           kycStatus: {
             verificationState: 'VERIFIED',
@@ -1163,7 +1203,7 @@ describe('useLoadCardData', () => {
           userDetails: { id: 'user-123' },
         });
 
-        mockUseSelector.mockReturnValue(false); // Switch to unauthenticated
+        mockIsAuthenticated = false; // Switch to unauthenticated
 
         rerender();
 

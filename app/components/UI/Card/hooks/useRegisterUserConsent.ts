@@ -1,10 +1,12 @@
 import { useCallback, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
 import { selectSelectedCountry } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import AppConstants from '../../../../core/AppConstants';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { Consent, ConsentSet } from '../types';
+import { cardKeys } from '../queries/keys';
 
 interface UseRegisterUserConsentState {
   isLoading: boolean;
@@ -40,6 +42,7 @@ interface UseRegisterUserConsentReturn extends UseRegisterUserConsentState {
  */
 export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
   const { sdk } = useCardSDK();
+  const queryClient = useQueryClient();
   const selectedCountry = useSelector(selectSelectedCountry);
   const [state, setState] = useState<UseRegisterUserConsentState>({
     isLoading: false,
@@ -73,15 +76,20 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
         throw new Error('Card SDK not initialized');
       }
 
-      const consentSetResponse =
-        await sdk.getConsentSetByOnboardingId(onboardingId);
-      if (!consentSetResponse) {
-        return null;
-      }
-
-      return consentSetResponse.consentSets[0];
+      return queryClient.fetchQuery({
+        queryKey: cardKeys.consentSet(onboardingId),
+        queryFn: async () => {
+          const consentSetResponse =
+            await sdk.getConsentSetByOnboardingId(onboardingId);
+          if (!consentSetResponse) {
+            return null;
+          }
+          return consentSetResponse.consentSets[0];
+        },
+        staleTime: 30_000,
+      });
     },
-    [sdk],
+    [sdk, queryClient],
   );
 
   /**

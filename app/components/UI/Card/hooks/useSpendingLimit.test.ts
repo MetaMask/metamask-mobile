@@ -5,7 +5,6 @@ import {
   useFocusEffect,
   StackActions,
 } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
 import { SolScope } from '@metamask/keyring-api';
 import useSpendingLimit, { UseSpendingLimitParams } from './useSpendingLimit';
 import { useCardDelegation } from './useCardDelegation';
@@ -16,7 +15,7 @@ import { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
-import { clearCacheData } from '../../../../core/redux/slices/card';
+import { cardKeys } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -29,8 +28,9 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
-jest.mock('react-redux', () => ({
-  useDispatch: jest.fn(),
+const mockInvalidateQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: jest.fn(),
 }));
 
 // Create the mock class inside the factory to avoid hoisting issues
@@ -71,10 +71,6 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../../../core/redux/slices/card', () => ({
-  clearCacheData: jest.fn(),
-}));
-
 jest.mock('../components/AssetSelectionBottomSheet', () => ({
   createAssetSelectionModalNavigationDetails: jest.fn(),
 }));
@@ -85,7 +81,6 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
   typeof useFocusEffect
 >;
-const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockUseCardDelegation = useCardDelegation as jest.MockedFunction<
   typeof useCardDelegation
 >;
@@ -147,7 +142,6 @@ describe('useSpendingLimit', () => {
     dispatch: jest.Mock;
     setParams: jest.Mock;
   };
-  let mockDispatch: jest.Mock;
   let mockSubmitDelegation: jest.Mock;
   let mockTrackEvent: jest.Mock;
   let mockCreateEventBuilder: jest.Mock;
@@ -159,6 +153,15 @@ describe('useSpendingLimit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+
+    mockInvalidateQueries.mockResolvedValue(undefined);
+    (
+      jest.requireMock('@tanstack/react-query') as {
+        useQueryClient: jest.Mock;
+      }
+    ).useQueryClient.mockReturnValue({
+      invalidateQueries: mockInvalidateQueries,
+    });
 
     // Setup navigation mock
     mockNavigation = {
@@ -173,10 +176,6 @@ describe('useSpendingLimit', () => {
     mockUseFocusEffect.mockImplementation((callback) => {
       callback();
     });
-
-    // Setup dispatch mock
-    mockDispatch = jest.fn();
-    mockUseDispatch.mockReturnValue(mockDispatch);
 
     // Setup delegation mock
     mockSubmitDelegation = jest.fn().mockResolvedValue(undefined);
@@ -647,9 +646,9 @@ describe('useSpendingLimit', () => {
         await submitPromise;
       });
 
-      expect(mockDispatch).toHaveBeenCalledWith(
-        clearCacheData('card-external-wallet-details'),
-      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: cardKeys.externalWalletDetails(),
+      });
     });
 
     it('shows success toast for non-onboarding flow', async () => {

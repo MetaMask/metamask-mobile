@@ -18,4 +18,6 @@ export const cardKeys = {
     [...cardKeys.all(), 'registrationSettings'] as const,
   registrationStatus: (onboardingId: string) =>
     [...cardKeys.all(), 'registrationStatus', onboardingId] as const,
+  consentSet: (onboardingId: string) =>
+    [...cardKeys.all(), 'consentSet', onboardingId] as const,
 };

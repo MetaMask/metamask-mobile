@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
+import { useQuery } from '@tanstack/react-query';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import { useCardSDK } from '../sdk';
-import { useWrapWithCache } from './useWrapWithCache';
 import Logger from '../../../../util/Logger';
 import {
   CardExternalWalletDetail,
@@ -10,8 +10,8 @@ import {
   DelegationSettingsNetwork,
 } from '../types';
 import { CaipChainId } from '@metamask/utils';
+import { cardKeys } from '../queries';
 
-// Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -20,8 +20,14 @@ jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
 
-jest.mock('./useWrapWithCache', () => ({
-  useWrapWithCache: jest.fn(),
+const mockRefetch = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQuery: jest.fn().mockReturnValue({
+    data: undefined,
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  }),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -30,14 +36,10 @@ jest.mock('../../../../util/Logger', () => ({
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
-const mockUseWrapWithCache = useWrapWithCache as jest.MockedFunction<
-  typeof useWrapWithCache
->;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
 
 describe('useGetCardExternalWalletDetails', () => {
   const mockGetCardExternalWalletDetails = jest.fn();
-  const mockFetchData = jest.fn();
 
   const mockSDK = {
     getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
@@ -95,39 +97,30 @@ describe('useGetCardExternalWalletDetails', () => {
     network: 'linea',
   };
 
-  const mockCacheReturn = {
-    data: null,
-    isLoading: false,
-    error: null,
-    fetchData: mockFetchData,
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
 
-    mockUseSelector.mockReturnValue(true); // isAuthenticated
+    mockUseSelector.mockReturnValue(true);
 
     mockUseCardSDK.mockReturnValue({
       ...jest.requireMock('../sdk'),
       sdk: mockSDK,
     });
 
-    mockUseWrapWithCache.mockImplementation((_key, fetchFn, _options) => {
-      // Store the fetch function for later use
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockCacheReturn as any).actualFetchFn = fetchFn;
-      return mockCacheReturn;
+    (useQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
+      refetch: mockRefetch,
     });
   });
 
   afterEach(() => {
     jest.resetAllMocks();
-    jest.useRealTimers();
   });
 
   describe('Initial State', () => {
-    it('returns cache data from useWrapWithCache', () => {
+    it('returns default state from useQuery', () => {
       const { result } = renderHook(() =>
         useGetCardExternalWalletDetails(mockDelegationSettings),
       );
@@ -135,25 +128,21 @@ describe('useGetCardExternalWalletDetails', () => {
       expect(result.current.data).toBeNull();
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
-      expect(result.current.fetchData).toBe(mockFetchData);
+      expect(typeof result.current.fetchData).toBe('function');
     });
 
-    it('passes correct cache configuration to useWrapWithCache', () => {
+    it('passes correct query configuration to useQuery', () => {
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      expect(mockUseWrapWithCache).toHaveBeenCalledWith(
-        'card-external-wallet-details',
-        expect.any(Function),
-        {
-          cacheDuration: 60000,
-          fetchOnMount: false,
-        },
-      );
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      expect(queryConfig.queryKey).toEqual(cardKeys.externalWalletDetails());
+      expect(queryConfig.staleTime).toBe(60000);
+      expect(queryConfig.enabled).toBe(true);
     });
   });
 
   describe('Prerequisites Check', () => {
-    it('returns null when SDK is not available', async () => {
+    it('disables query when SDK is not available', () => {
       mockUseCardSDK.mockReturnValue({
         ...jest.requireMock('../sdk'),
         sdk: null,
@@ -161,34 +150,31 @@ describe('useGetCardExternalWalletDetails', () => {
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      // Get the fetch function from the mock
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
-
-      expect(result).toBeNull();
-      expect(mockGetCardExternalWalletDetails).not.toHaveBeenCalled();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      expect(queryConfig.enabled).toBe(false);
     });
 
-    it('returns null when user is not authenticated', async () => {
+    it('disables query when user is not authenticated', () => {
       mockUseSelector.mockReturnValue(false);
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
-
-      expect(result).toBeNull();
-      expect(mockGetCardExternalWalletDetails).not.toHaveBeenCalled();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      expect(queryConfig.enabled).toBe(false);
     });
 
-    it('returns null when delegation settings are not available', async () => {
+    it('disables query when delegation settings are not available', () => {
       renderHook(() => useGetCardExternalWalletDetails(null));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      expect(queryConfig.enabled).toBe(false);
+    });
+
+    it('returns null from queryFn when delegation settings ref is null', async () => {
+      renderHook(() => useGetCardExternalWalletDetails(null));
+
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result).toBeNull();
       expect(mockGetCardExternalWalletDetails).not.toHaveBeenCalled();
@@ -201,9 +187,8 @@ describe('useGetCardExternalWalletDetails', () => {
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      await queryConfig.queryFn();
 
       expect(mockGetCardExternalWalletDetails).toHaveBeenCalledWith(
         mockDelegationSettings.networks,
@@ -215,14 +200,13 @@ describe('useGetCardExternalWalletDetails', () => {
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result).toEqual({
         walletDetails: [],
         mappedWalletDetails: [],
-        priorityWalletDetail: null,
+        priorityWalletDetail: undefined,
       });
     });
 
@@ -231,9 +215,8 @@ describe('useGetCardExternalWalletDetails', () => {
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result?.walletDetails).toEqual([mockWalletDetail1]);
       expect(result?.mappedWalletDetails).toHaveLength(1);
@@ -250,9 +233,8 @@ describe('useGetCardExternalWalletDetails', () => {
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result?.priorityWalletDetail?.address).toBe('0xtoken1');
     });
@@ -274,9 +256,8 @@ describe('useGetCardExternalWalletDetails', () => {
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result?.priorityWalletDetail?.address).toBe('0xtoken2');
     });
@@ -289,9 +270,8 @@ describe('useGetCardExternalWalletDetails', () => {
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result?.priorityWalletDetail?.address).toBe('0xtoken1');
     });
@@ -304,9 +284,8 @@ describe('useGetCardExternalWalletDetails', () => {
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result?.priorityWalletDetail?.address).toBe('0xtoken2');
     });
@@ -319,9 +298,8 @@ describe('useGetCardExternalWalletDetails', () => {
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      const result = await queryConfig.queryFn();
 
       expect(result?.priorityWalletDetail?.address).toBe('0xtoken2');
     });
@@ -334,10 +312,9 @@ describe('useGetCardExternalWalletDetails', () => {
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
 
-      await expect(fetchFn()).rejects.toThrow('API error');
+      await expect(queryConfig.queryFn()).rejects.toThrow('API error');
       expect(mockLogger.error).toHaveBeenCalledWith(
         apiError,
         'useGetCardExternalWalletDetails: Failed to fetch external wallet details',
@@ -349,10 +326,9 @@ describe('useGetCardExternalWalletDetails', () => {
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
 
-      await expect(fetchFn()).rejects.toThrow('string error');
+      await expect(queryConfig.queryFn()).rejects.toThrow('string error');
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.objectContaining({ message: 'string error' }),
         'useGetCardExternalWalletDetails: Failed to fetch external wallet details',
@@ -362,28 +338,12 @@ describe('useGetCardExternalWalletDetails', () => {
 
   describe('Auto-fetch Behavior', () => {
     it('does not auto-fetch when all prerequisites are ready and no data exists', () => {
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
-        isLoading: false,
-        error: null,
-        fetchData: mockFetchData,
-      });
-
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      // Auto-fetch is intentionally disabled (fetchOnMount: false)
-      expect(mockFetchData).not.toHaveBeenCalled();
+      expect(mockGetCardExternalWalletDetails).not.toHaveBeenCalled();
     });
 
     it('does not auto-fetch when prerequisites change from unavailable to available', () => {
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
-        isLoading: false,
-        error: null,
-        fetchData: mockFetchData,
-      });
-
-      // Start with SDK unavailable
       mockUseCardSDK.mockReturnValue({
         ...jest.requireMock('../sdk'),
         sdk: null,
@@ -393,7 +353,6 @@ describe('useGetCardExternalWalletDetails', () => {
         useGetCardExternalWalletDetails(mockDelegationSettings),
       );
 
-      // SDK becomes available
       mockUseCardSDK.mockReturnValue({
         ...jest.requireMock('../sdk'),
         sdk: mockSDK,
@@ -401,44 +360,23 @@ describe('useGetCardExternalWalletDetails', () => {
 
       rerender();
 
-      // Auto-fetch is intentionally disabled (fetchOnMount: false)
-      expect(mockFetchData).not.toHaveBeenCalled();
+      expect(mockGetCardExternalWalletDetails).not.toHaveBeenCalled();
     });
   });
 
   describe('Cache Integration', () => {
-    it('uses 60 second cache duration', () => {
+    it('uses 60 second staleTime', () => {
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      expect(mockUseWrapWithCache).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(Function),
-        expect.objectContaining({
-          cacheDuration: 60000,
-        }),
-      );
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      expect(queryConfig.staleTime).toBe(60000);
     });
 
-    it('disables fetch on mount', () => {
+    it('uses correct query key', () => {
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
-      expect(mockUseWrapWithCache).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(Function),
-        expect.objectContaining({
-          fetchOnMount: false,
-        }),
-      );
-    });
-
-    it('uses correct cache key', () => {
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      expect(mockUseWrapWithCache).toHaveBeenCalledWith(
-        'card-external-wallet-details',
-        expect.any(Function),
-        expect.any(Object),
-      );
+      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
+      expect(queryConfig.queryKey).toEqual(cardKeys.externalWalletDetails());
     });
   });
 });
