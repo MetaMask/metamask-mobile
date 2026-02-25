@@ -235,7 +235,7 @@ const MarketInsightsView: React.FC = () => {
       labelOptions: [{ label: strings('market_insights.feedback_submitted') }],
       hasNoTimeout: false,
     });
-  }, [toastRef, theme.colors.accent03.dark, theme.colors.accent03.normal]);
+  }, [toastRef, theme.colors.success.default, theme.colors.background.section]);
 
   useEffect(() => {
     hasTrackedViewRef.current = false;
