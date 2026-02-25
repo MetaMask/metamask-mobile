@@ -8,9 +8,9 @@ import {
   IconSize,
   IconName,
   IconColor,
+  Label,
 } from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import Label from '../../../../../component-library/components/Form/Label';
 import { strings } from '../../../../../../locales/i18n';
 import { NetworkDetailsViewSelectorsIDs } from '../NetworkDetailsView.testIds';
 import { CHAIN_LIST_URL } from '../NetworkDetailsView.constants';
