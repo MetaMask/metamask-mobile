@@ -1,14 +1,15 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import ExploreSearchResults from './ExploreSearchResults';
 import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { useSelector } from 'react-redux';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
   }),
 }));
 
@@ -345,6 +346,100 @@ describe('ExploreSearchResults', () => {
       // Act & Assert - should not throw
       const { getByText } = render(<ExploreSearchResults searchQuery="btc" />);
       expect(getByText('Trending tokens')).toBeDefined();
+    });
+  });
+
+  describe('view all and item limit', () => {
+    it('shows "View all" when a section has more than 3 items', () => {
+      mockUseExploreSearch.mockReturnValue({
+        data: {
+          tokens: [
+            { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
+            { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
+            { assetId: '3', symbol: 'SOL', name: 'Solana' },
+            { assetId: '4', symbol: 'USDC', name: 'USD Coin' },
+          ],
+          perps: [],
+          predictions: [],
+          sites: [],
+        },
+        isLoading: {
+          tokens: false,
+          perps: false,
+          predictions: false,
+          sites: false,
+        },
+        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+      });
+
+      const { getByText } = render(<ExploreSearchResults searchQuery="test" />);
+
+      expect(getByText('View all')).toBeDefined();
+    });
+
+    it('does not show "View all" when a section has 3 or fewer items', () => {
+      mockUseExploreSearch.mockReturnValue({
+        data: {
+          tokens: [
+            { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
+            { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
+          ],
+          perps: [],
+          predictions: [],
+          sites: [],
+        },
+        isLoading: {
+          tokens: false,
+          perps: false,
+          predictions: false,
+          sites: false,
+        },
+        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+      });
+
+      const { queryByText } = render(
+        <ExploreSearchResults searchQuery="test" />,
+      );
+
+      expect(queryByText('View all')).toBeNull();
+    });
+
+    it('navigates to full view with section params when "View all" is pressed', () => {
+      mockUseExploreSearch.mockReturnValue({
+        data: {
+          tokens: [
+            { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
+            { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
+            { assetId: '3', symbol: 'SOL', name: 'Solana' },
+            { assetId: '4', symbol: 'USDC', name: 'USD Coin' },
+          ],
+          perps: [],
+          predictions: [],
+          sites: [],
+        },
+        isLoading: {
+          tokens: false,
+          perps: false,
+          predictions: false,
+          sites: false,
+        },
+        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+      });
+
+      const { getByText } = render(
+        <ExploreSearchResults searchQuery="bitcoin" />,
+      );
+
+      fireEvent.press(getByText('View all'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'ExploreSectionResultsFullView',
+        {
+          sectionId: 'tokens',
+          title: 'Trending tokens',
+          searchQuery: 'bitcoin',
+        },
+      );
     });
   });
 });

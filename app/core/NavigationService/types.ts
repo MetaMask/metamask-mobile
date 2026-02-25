@@ -296,6 +296,11 @@ export interface RootStackParamList extends ParamListBase {
   TrendingFeed: undefined;
   SitesFullView: undefined;
   ExploreSearch: undefined;
+  ExploreSectionResultsFullView: {
+    sectionId: string;
+    title: string;
+    searchQuery: string;
+  };
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
   RewardsOnboarding1: undefined;
