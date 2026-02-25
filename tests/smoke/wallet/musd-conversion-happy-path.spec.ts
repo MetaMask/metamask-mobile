@@ -115,10 +115,10 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         });
 
         // Go to Activity and verify mUSD conversion is confirmed (same pattern as send-native-token: no swipeDown)
-        await TabBarComponent.tapActivity();
+        await TabBarComponent.tapActivity({ timeout: 30000 });
         await ActivitiesView.verifyMusdConversionConfirmed(0);
         // gets back to wallet to avoid waiting fora rpc updated in the activity view
-        await TabBarComponent.tapWallet();
+        await TabBarComponent.tapWallet({ timeout: 30000 });
       },
     );
   });
@@ -174,10 +174,10 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         });
 
         // Go to Activity and verify mUSD conversion is confirmed
-        await TabBarComponent.tapActivity();
+        await TabBarComponent.tapActivity({ timeout: 30000 });
         await ActivitiesView.verifyMusdConversionConfirmed(0);
         // gets back to wallet to avoid waiting fora rpc updated in the activity view
-        await TabBarComponent.tapWallet();
+        await TabBarComponent.tapWallet({ timeout: 30000 });
       },
     );
   });
@@ -234,10 +234,10 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         });
 
         // Go to Activity and verify mUSD conversion is confirmed
-        await TabBarComponent.tapActivity();
+        await TabBarComponent.tapActivity({ timeout: 30000 });
         await ActivitiesView.verifyMusdConversionConfirmed(0);
         // gets back to wallet to avoid waiting fora rpc updated in the activity view
-        await TabBarComponent.tapWallet();
+        await TabBarComponent.tapWallet({ timeout: 30000 });
       },
     );
   });

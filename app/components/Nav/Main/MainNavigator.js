@@ -14,6 +14,7 @@ import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import NetworksManagementView from '../../Views/NetworksManagement/NetworksManagementView';
+import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
 import RegionSelector from '../../UI/Ramp/Views/Settings/RegionSelector/RegionSelector';
@@ -25,12 +26,12 @@ import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
-import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset/AddAsset';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
+import DeFiFullView from '../../Views/DeFiFullView';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -45,7 +46,6 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
@@ -124,6 +124,7 @@ import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
+import BonusCodeBottomSheet from '../../UI/Rewards/components/Tabs/OverviewTab/WaysToEarn/BonusCodeBottomSheet';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
@@ -261,6 +262,10 @@ const RewardsHome = () => (
       component={RewardsBottomSheetModal}
     />
     <Stack.Screen
+      name={Routes.MODAL.REWARDS_BONUS_CODE_BOTTOM_SHEET}
+      component={BonusCodeBottomSheet}
+    />
+    <Stack.Screen
       name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
       component={RewardsClaimBottomSheetModal}
     />
@@ -297,7 +302,7 @@ const BrowserFlow = (props) => (
     />
     <Stack.Screen
       name={Routes.BROWSER.ASSET_VIEW}
-      component={Asset}
+      component={TokenDetails}
       initialParams={props.route.params}
     />
   </Stack.Navigator>
@@ -378,6 +383,11 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="NetworksManagement"
         component={NetworksManagementView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.NETWORK_DETAILS}
+        component={NetworkDetailsView}
         options={{ headerShown: false }}
       />
       <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
@@ -944,6 +954,11 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.WALLET.TOKENS_FULL_VIEW}
         component={TokensFullView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.WALLET.DEFI_FULL_VIEW}
+        component={DeFiFullView}
         options={{ headerShown: false }}
       />
       <Stack.Screen name="AddAsset" component={AddAsset} />
