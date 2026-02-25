@@ -140,12 +140,26 @@ const RevealPrivateCredential = ({
   }, []);
 
   const navigateBack = useCallback(() => {
-    if (hasNavigation && shouldUpdateNav) {
-      navigation.pop();
-    } else {
+    if (!hasNavigation) {
       cancel?.();
+      return;
     }
-  }, [hasNavigation, shouldUpdateNav, navigation, cancel]);
+    if (route?.params?.popToTopOnDone) {
+      navigation.popToTop();
+      return;
+    }
+    if (shouldUpdateNav) {
+      navigation.pop();
+      return;
+    }
+    navigation.pop();
+  }, [
+    hasNavigation,
+    shouldUpdateNav,
+    navigation,
+    cancel,
+    route?.params?.popToTopOnDone,
+  ]);
 
   const cancelReveal = useCallback(() => {
     if (!unlocked)
