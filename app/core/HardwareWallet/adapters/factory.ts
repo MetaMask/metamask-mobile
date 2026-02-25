@@ -27,12 +27,3 @@ export function createAdapter(
       return new NonHardwareAdapter(options);
   }
 }
-
-/**
- * Check if a wallet type requires Bluetooth
- */
-export function requiresBluetooth(
-  walletType: HardwareWalletType | null,
-): boolean {
-  return walletType === HardwareWalletType.Ledger;
-}
