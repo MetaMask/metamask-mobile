@@ -140,7 +140,7 @@ const ImportPrivateKey = () => {
   };
 
   return (
-    <SafeAreaView style={styles.mainWrapper}>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
         style={styles.topOverlay}

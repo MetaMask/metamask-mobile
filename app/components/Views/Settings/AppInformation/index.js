@@ -203,6 +203,7 @@ class AppInformation extends PureComponent {
 
     return (
       <SafeAreaView
+        edges={{ bottom: 'additive' }}
         style={styles.wrapper}
         testID={AboutMetaMaskSelectorsIDs.CONTAINER}
       >

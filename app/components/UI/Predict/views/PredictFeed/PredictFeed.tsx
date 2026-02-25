@@ -680,7 +680,10 @@ const PredictFeed: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-default')}>
+    <SafeAreaView
+      edges={{ bottom: 'additive' }}
+      style={tw.style('flex-1 bg-default')}
+    >
       <Box
         testID={PredictMarketListSelectorsIDs.CONTAINER}
         twClassName="flex-1"

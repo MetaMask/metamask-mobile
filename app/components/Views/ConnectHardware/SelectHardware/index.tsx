@@ -155,7 +155,7 @@ const SelectHardwareWallet = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
       <HeaderStackedStandard
         includesTopInset
         onBack={navigation.goBack}
