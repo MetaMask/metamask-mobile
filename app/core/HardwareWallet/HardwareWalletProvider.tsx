@@ -558,14 +558,12 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       adapter.resetFlowState();
     }
 
-    clearErrorState();
-
     const lastOp = lastOperationRef.current;
     if (!lastOp) {
+      clearErrorState();
       return;
     }
 
-    // Check transport before retrying
     if (adapter) {
       const isTransportReady = await adapter.isTransportAvailable();
       const retryTransportError = createTransportError();
