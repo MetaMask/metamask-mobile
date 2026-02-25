@@ -62,6 +62,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const [connectionTips, setConnectionTips] = useState<string[]>([]);
   const [isTransportAvailable, setIsTransportAvailable] = useState(false);
   const previousTransportAvailableRef = useRef<boolean | null>(null);
+  const transportCleanupRef = useRef<(() => void) | null>(null);
 
   const { handleDeviceEvent, handleError, clearError, updateConnectionState } =
     useDeviceEventHandlers({
@@ -90,26 +91,30 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   /**
    * Store an adapter as the current adapter, sync connection tips, and
-   * register transport state monitoring.
-   * Returns a cleanup function to unsubscribe from transport state changes.
+   * register transport state monitoring. Automatically cleans up any
+   * previous transport subscription before registering a new one.
    */
   const initializeAdapter = useCallback(
-    (adapter: ReturnType<typeof createAdapter>): (() => void) | undefined => {
+    (adapter: ReturnType<typeof createAdapter>): void => {
+      transportCleanupRef.current?.();
+      transportCleanupRef.current = null;
+
       refs.adapterRef.current = adapter;
       setConnectionTips(adapter.getConnectionTips());
 
       if (adapter.onTransportStateChange) {
-        return adapter.onTransportStateChange((isAvailable) => {
-          DevLogger.log(
-            '[HardwareWalletProvider] Transport state changed:',
-            isAvailable,
-          );
-          setIsTransportAvailable(isAvailable);
-        });
+        transportCleanupRef.current = adapter.onTransportStateChange(
+          (isAvailable) => {
+            DevLogger.log(
+              '[HardwareWalletProvider] Transport state changed:',
+              isAvailable,
+            );
+            setIsTransportAvailable(isAvailable);
+          },
+        );
+      } else {
+        setIsTransportAvailable(true);
       }
-
-      setIsTransportAvailable(true);
-      return undefined;
     },
     [refs],
   );
@@ -220,10 +225,11 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           onDeviceEvent: handleDeviceEvent,
         });
 
-    const transportCleanup = initializeAdapter(adapter);
+    initializeAdapter(adapter);
 
     return () => {
-      transportCleanup?.();
+      transportCleanupRef.current?.();
+      transportCleanupRef.current = null;
       if (refs.adapterRef.current) {
         refs.adapterRef.current.disconnect().catch(() => {
           // Ignore cleanup errors
