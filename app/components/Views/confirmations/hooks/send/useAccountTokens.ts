@@ -100,22 +100,9 @@ export function useAccountTokens({
           ) {
             continue;
           }
-          processedAssets.push({
-            address,
-            chainId: chainId as Hex,
-            accountType: EthAccountType.Eoa,
-            name: entry.name ?? '',
-            symbol: entry.symbol ?? '',
-            decimals: entry.decimals ?? 18,
-            image: entry.iconUrl ?? '',
-            logo: entry.iconUrl ?? undefined,
-            balance: '0',
-            balanceInSelectedCurrency: zeroFiat,
-            isETH: false,
-            isNative: false,
-            networkBadgeSource: getNetworkBadgeSource(chainId as Hex),
-            standard: TokenStandard.ERC20,
-          });
+          processedAssets.push(
+            buildNoBalanceAsset(chainId as Hex, address, entry, zeroFiat),
+          );
         }
       }
     }
@@ -133,4 +120,33 @@ export function useAccountTokens({
     fiatCurrency,
     tokensChainsCache,
   ]) as unknown as AssetType[];
+}
+
+function buildNoBalanceAsset(
+  chainId: Hex,
+  address: string,
+  entry: {
+    name?: string;
+    symbol?: string;
+    decimals?: number;
+    iconUrl?: string;
+  },
+  zeroFiat: string,
+): AssetType {
+  return {
+    address,
+    chainId,
+    accountType: EthAccountType.Eoa,
+    name: entry.name ?? '',
+    symbol: entry.symbol ?? '',
+    decimals: entry.decimals ?? 18,
+    image: entry.iconUrl ?? '',
+    logo: entry.iconUrl ?? undefined,
+    balance: '0',
+    balanceInSelectedCurrency: zeroFiat,
+    isETH: false,
+    isNative: false,
+    networkBadgeSource: getNetworkBadgeSource(chainId),
+    standard: TokenStandard.ERC20,
+  } as AssetType;
 }
