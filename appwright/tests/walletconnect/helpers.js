@@ -12,13 +12,14 @@ import { getPasswordForScenario } from '../../utils/TestConstants.js';
 import { launchMobileBrowser } from '../../utils/MobileBrowser.js';
 import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures.js';
+import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors.js';
 import MobileBrowserScreen from '../../../wdio/screen-objects/MobileBrowser.js';
 import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
 import WalletConnectDapp from '../../../wdio/screen-objects/WalletConnectDapp.js';
 
-export const WC_TEST_DAPP_URL = 'http://192.168.1.65:9011/'; //'localhost:9011';
+export const WC_TEST_DAPP_URL = 'https://metamask.github.io/test-dapp/'; //'localhost:9011';
 export const WC_SESSION_NAME = 'metamask.github.io';
 
 /**
@@ -185,6 +186,47 @@ export async function connectWalletConnectSession(device) {
     },
     WC_TEST_DAPP_URL,
   );
+}
+
+/**
+ * Close the current Chrome tab and open a fresh one.
+ * Uses the Chrome tab switcher UI: tap tab button → close current tab →
+ * tap new tab → arrive at a blank/new tab page.
+ */
+export async function closeTabAndOpenNew(device) {
+  MobileBrowserScreen.device = device;
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    // Tap the tab switcher button (shows tab count)
+    const tabSwitcher = await AppwrightSelectors.getElementByID(
+      device,
+      'com.android.chrome:id/tab_switcher_button',
+    );
+    await AppwrightGestures.tap(tabSwitcher);
+    await AppwrightGestures.wait(1000);
+
+    // Close the current tab
+    const closeButton = await AppwrightSelectors.getElementByID(
+      device,
+      'com.android.chrome:id/action_button',
+    );
+    await AppwrightGestures.tap(closeButton);
+    await AppwrightGestures.wait(1000);
+
+    // Open a new tab
+    const newTabButton = await AppwrightSelectors.getElementByID(
+      device,
+      'com.android.chrome:id/new_tab_button',
+    );
+    await AppwrightGestures.tap(newTabButton);
+    await AppwrightGestures.wait(1000);
+
+    // Minimize the browser (go to home screen)
+    await device.webDriverClient.executeScript('mobile: pressKey', [
+      { keycode: 3 },
+    ]);
+    await AppwrightGestures.wait(1000);
+  });
 }
 
 /**
