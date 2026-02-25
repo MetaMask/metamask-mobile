@@ -34,6 +34,7 @@ import {
   filterByAddress,
   isTransactionOnChains,
   sortTransactions,
+  buildTrustedAddressSet,
 } from '../../../util/activity';
 import { areAddressesEqual, isHardwareAccount } from '../../../util/address';
 import { getBlockExplorerAddressUrl } from '../../../util/networks';
@@ -161,9 +162,13 @@ const UnifiedTransactionsView = ({
   const addressBook = useSelector(selectAddressBook);
   const internalAccounts = useSelector(selectInternalAccounts);
 
-  const internalAccountAddresses = useMemo(
-    () => internalAccounts.map((account) => account.address),
-    [internalAccounts],
+  const trustedAddresses = useMemo(
+    () =>
+      buildTrustedAddressSet(
+        addressBook,
+        internalAccounts.map((account) => account.address),
+      ),
+    [addressBook, internalAccounts],
   );
 
   const { data, nonEvmTransactionsForSelectedChain } = useMemo<{
@@ -213,8 +218,7 @@ const UnifiedTransactionsView = ({
             addr,
             transactionMetaPool,
             bridgeHistory,
-            addressBook,
-            internalAccountAddresses,
+            trustedAddresses,
           ),
         );
       if (!isReceivedOrSentTransaction) return false;
@@ -357,8 +361,7 @@ const UnifiedTransactionsView = ({
     selectedInternalAccount,
     tokens,
     bridgeHistory,
-    addressBook,
-    internalAccountAddresses,
+    trustedAddresses,
   ]);
 
   const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;

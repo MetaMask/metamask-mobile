@@ -17,6 +17,7 @@ import {
   sortTransactions,
   filterByAddressAndNetwork,
   isTransactionOnChains,
+  buildTrustedAddressSet,
 } from '../../../util/activity';
 import { areAddressesEqual } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
@@ -80,9 +81,13 @@ const TransactionsView = ({
     selectedInternalAccount?.address,
   );
 
-  const internalAccountAddresses = useMemo(
-    () => internalAccounts.map((account) => account.address),
-    [internalAccounts],
+  const trustedAddresses = useMemo(
+    () =>
+      buildTrustedAddressSet(
+        addressBook,
+        internalAccounts.map((account) => account.address),
+      ),
+    [addressBook, internalAccounts],
   );
 
   const filterTransactions = useCallback(() => {
@@ -105,8 +110,7 @@ const TransactionsView = ({
         tokenNetworkFilter,
         allTransactionsSorted,
         bridgeHistory,
-        addressBook,
-        internalAccountAddresses,
+        trustedAddresses,
       );
 
       if (!filter) return false;
@@ -202,8 +206,7 @@ const TransactionsView = ({
     tokenNetworkFilter,
     enabledNetworksByNamespace,
     bridgeHistory,
-    addressBook,
-    internalAccountAddresses,
+    trustedAddresses,
   ]);
 
   useEffect(() => {

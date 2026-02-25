@@ -11,6 +11,7 @@ import {
   PAY_TYPES,
   isTransactionOnChains,
   isTrustedAddress,
+  buildTrustedAddressSet,
 } from '.';
 import { Token } from '@metamask/assets-controllers';
 import { TX_SUBMITTED, TX_UNAPPROVED } from '../../constants/transaction';
@@ -42,8 +43,7 @@ function filterByAddressAndNetwork(
     tokenNetworkFilter,
     allTransactions,
     bridgeHistory,
-    addressBook,
-    internalAccountAddresses,
+    buildTrustedAddressSet(addressBook, internalAccountAddresses),
   );
 }
 
@@ -63,8 +63,7 @@ function filterByAddress(
     selectedAddress,
     allTransactions,
     bridgeHistory,
-    addressBook,
-    internalAccountAddresses,
+    buildTrustedAddressSet(addressBook, internalAccountAddresses),
   );
 }
 
@@ -1070,14 +1069,12 @@ describe('Activity utils :: isTransactionOnChains', () => {
 
 describe('Activity utils :: isTrustedAddress', () => {
   it('returns true for user own account', () => {
-    const addressBook = {};
-    const internalAccountAddresses = [TEST_ADDRESS_ONE, TEST_ADDRESS_TWO];
-
-    const result = isTrustedAddress(
+    const trustedAddresses = buildTrustedAddressSet({}, [
       TEST_ADDRESS_ONE,
-      addressBook,
-      internalAccountAddresses,
-    );
+      TEST_ADDRESS_TWO,
+    ]);
+
+    const result = isTrustedAddress(TEST_ADDRESS_ONE, trustedAddresses);
     expect(result).toBe(true);
   });
 
@@ -1093,47 +1090,37 @@ describe('Activity utils :: isTrustedAddress', () => {
         },
       },
     };
-    const internalAccountAddresses = [TEST_ADDRESS_TWO];
+    const trustedAddresses = buildTrustedAddressSet(addressBook, [
+      TEST_ADDRESS_TWO,
+    ]);
 
-    const result = isTrustedAddress(
-      TEST_ADDRESS_ONE,
-      addressBook,
-      internalAccountAddresses,
-    );
+    const result = isTrustedAddress(TEST_ADDRESS_ONE, trustedAddresses);
     expect(result).toBe(true);
   });
 
   it('returns false for unknown address', () => {
-    const addressBook = {};
-    const internalAccountAddresses = [TEST_ADDRESS_ONE];
+    const trustedAddresses = buildTrustedAddressSet({}, [TEST_ADDRESS_ONE]);
 
-    const result = isTrustedAddress(
-      TEST_ADDRESS_THREE,
-      addressBook,
-      internalAccountAddresses,
-    );
+    const result = isTrustedAddress(TEST_ADDRESS_THREE, trustedAddresses);
     expect(result).toBe(false);
   });
 
   it('returns false for empty address', () => {
-    const addressBook = {};
-    const internalAccountAddresses = [TEST_ADDRESS_ONE];
+    const trustedAddresses = buildTrustedAddressSet({}, [TEST_ADDRESS_ONE]);
 
-    const result = isTrustedAddress('', addressBook, internalAccountAddresses);
+    const result = isTrustedAddress('', trustedAddresses);
     expect(result).toBe(false);
   });
 
   it('handles case-insensitive comparison for EVM addresses', () => {
-    const addressBook = {};
     // Use uppercase hex digits only — preserving '0x' prefix so it remains a valid EVM address
-    const internalAccountAddresses = [
+    const trustedAddresses = buildTrustedAddressSet({}, [
       '0x' + TEST_ADDRESS_ONE.slice(2).toUpperCase(),
-    ];
+    ]);
 
     const result = isTrustedAddress(
       TEST_ADDRESS_ONE.toLowerCase(),
-      addressBook,
-      internalAccountAddresses,
+      trustedAddresses,
     );
     expect(result).toBe(true);
   });
@@ -1152,13 +1139,11 @@ describe('Activity utils :: isTrustedAddress', () => {
         },
       },
     };
-    const internalAccountAddresses = [TEST_ADDRESS_TWO];
+    const trustedAddresses = buildTrustedAddressSet(addressBook, [
+      TEST_ADDRESS_TWO,
+    ]);
 
-    const result = isTrustedAddress(
-      TEST_ADDRESS_ONE,
-      addressBook,
-      internalAccountAddresses,
-    );
+    const result = isTrustedAddress(TEST_ADDRESS_ONE, trustedAddresses);
     expect(result).toBe(true);
   });
 });

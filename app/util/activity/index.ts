@@ -42,40 +42,48 @@ export const isFromOrToSelectedAddress = (
 };
 
 /**
- * Checks if an address is trusted (either user's own account or in address book)
- * Used to filter incoming token transfers to prevent poisoning attacks
+ * Builds a normalized Set of trusted addresses for O(1) lookup.
+ * Includes all of the user's own account addresses and every entry in
+ * the address book (across all chains — EVM addresses are identical on
+ * every EVM network).
+ *
+ * Call this once per render cycle (e.g. via useMemo) and pass the result
+ * into isTrustedAddress / the filter functions.
+ *
+ * @param addressBook - Address book state from AddressBookController
+ * @param internalAccountAddresses - Array of the user's account addresses
+ * @returns A Set of lowercased trusted addresses
+ */
+export const buildTrustedAddressSet = (
+  addressBook: AddressBookControllerState['addressBook'],
+  internalAccountAddresses: string[],
+): Set<string> => {
+  const set = new Set<string>();
+  internalAccountAddresses.forEach((addr) => set.add(addr.toLowerCase()));
+  Object.values(addressBook ?? {}).forEach((chainBook) =>
+    Object.values(chainBook ?? {}).forEach((entry) =>
+      set.add(entry.address.toLowerCase()),
+    ),
+  );
+  return set;
+};
+
+/**
+ * Checks if an address is trusted via an O(1) Set lookup.
+ * Build the Set once per render cycle with buildTrustedAddressSet.
  *
  * @param address - Address to check
- * @param addressBook - Address book state from AddressBookController
- * @param internalAccountAddresses - Array of user's account addresses
+ * @param trustedAddresses - Pre-built Set of lowercased trusted addresses
  * @returns Boolean indicating if address is trusted
  */
 export const isTrustedAddress = (
   address: string,
-  addressBook: AddressBookControllerState['addressBook'],
-  internalAccountAddresses: string[],
+  trustedAddresses: Set<string>,
 ): boolean => {
   if (!address) {
     return false;
   }
-
-  // Check if address matches any of user's own accounts
-  const isOwnAccount = internalAccountAddresses.some((accountAddress) =>
-    areAddressesEqual(address, accountAddress),
-  );
-
-  if (isOwnAccount) {
-    return true;
-  }
-
-  // Check if address is in address book across all chains.
-  // EVM addresses are the same on every EVM network, so a contact saved on
-  // Ethereum should be trusted when they send from Polygon, Arbitrum, etc.
-  return Object.values(addressBook ?? {}).some((chainBook) =>
-    Object.values(chainBook ?? {}).some((entry) =>
-      areAddressesEqual(entry.address, address),
-    ),
-  );
+  return trustedAddresses.has(address.toLowerCase());
 };
 
 /**
@@ -87,8 +95,7 @@ export const isTrustedAddress = (
  * @param selectedAddress - Current wallet address
  * @param tokens - User's tokens (to check if transfer token is in wallet)
  * @param transferContractAddress - Contract address of the transferred token
- * @param addressBook - Address book state
- * @param internalAccountAddresses - User's account addresses
+ * @param trustedAddresses - Pre-built Set of lowercased trusted addresses
  * @returns true if the transfer should be shown (outgoing, or incoming from trusted sender with token)
  */
 function shouldShowTransferByAddress(
@@ -96,19 +103,18 @@ function shouldShowTransferByAddress(
   selectedAddress: string,
   tokens: { address: string }[],
   transferContractAddress: string | undefined,
-  addressBook: AddressBookControllerState['addressBook'],
-  internalAccountAddresses: string[],
+  trustedAddresses: Set<string>,
 ): boolean {
-  const hasToken = !!tokens.find(({ address }) =>
-    areAddressesEqual(address, transferContractAddress ?? ''),
-  );
-
   if (areAddressesEqual(from, selectedAddress)) {
     return true;
   }
 
+  const hasToken = !!tokens.find(({ address }) =>
+    areAddressesEqual(address, transferContractAddress ?? ''),
+  );
+
   if (hasToken) {
-    return isTrustedAddress(from, addressBook, internalAccountAddresses);
+    return isTrustedAddress(from, trustedAddresses);
   }
 
   return false;
@@ -166,8 +172,7 @@ export const filterByAddressAndNetwork = (
   tokenNetworkFilter: { [key: string]: boolean },
   allTransactions: TransactionMeta[],
   bridgeHistory: Record<string, BridgeHistoryItem>,
-  addressBook: AddressBookControllerState['addressBook'],
-  internalAccountAddresses: string[],
+  trustedAddresses: Set<string>,
 ): boolean => {
   const {
     isTransfer,
@@ -198,8 +203,7 @@ export const filterByAddressAndNetwork = (
           selectedAddress,
           tokens,
           transferInformation?.contractAddress,
-          addressBook,
-          internalAccountAddresses,
+          trustedAddresses,
         )
       : true;
 
@@ -215,8 +219,7 @@ export const filterByAddress = (
   selectedAddress: string,
   allTransactions: TransactionMeta[],
   bridgeHistory: Record<string, BridgeHistoryItem>,
-  addressBook: AddressBookControllerState['addressBook'],
-  internalAccountAddresses: string[],
+  trustedAddresses: Set<string>,
 ): boolean => {
   const {
     isTransfer,
@@ -238,8 +241,7 @@ export const filterByAddress = (
           selectedAddress,
           tokens,
           transferInformation?.contractAddress,
-          addressBook,
-          internalAccountAddresses,
+          trustedAddresses,
         )
       : true;
 
