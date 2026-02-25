@@ -87,6 +87,7 @@ export async function processDepositOrder(
     const updatedFiatOrder = depositOrderToFiatOrder(updatedOrder);
     return {
       ...updatedFiatOrder,
+      id: order.id || updatedFiatOrder.id,
       account: order.account,
       lastTimeFetched: Date.now(),
       errorCount: 0,

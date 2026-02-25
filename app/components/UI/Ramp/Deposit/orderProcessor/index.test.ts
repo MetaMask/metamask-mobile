@@ -415,4 +415,29 @@ describe('processDepositOrder', () => {
       data: { ...mockOrder.data, status: 'PENDING' },
     });
   });
+
+  it('should preserve original order ID when providerOrderId differs', async () => {
+    const orderWithCustomId = {
+      ...mockOrder,
+      id: 'custom-redux-id',
+      data: {
+        ...mockOrder.data,
+        id: 'deposit-internal-id',
+        providerOrderId: 'provider-external-id',
+      },
+    } as unknown as FiatOrder;
+
+    (DepositSDKNoAuth.getOrder as jest.Mock).mockImplementation(() => ({
+      ...orderWithCustomId.data,
+      status: 'COMPLETED',
+    }));
+    jest.spyOn(Date, 'now').mockImplementation(() => 1673886669600);
+
+    const updatedOrder = await processDepositOrder(orderWithCustomId);
+
+    expect(updatedOrder.id).toBe('custom-redux-id');
+    expect((updatedOrder.data as DepositOrder).providerOrderId).toBe(
+      'provider-external-id',
+    );
+  });
 });

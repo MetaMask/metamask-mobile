@@ -103,11 +103,15 @@ function SettingsModal() {
 
   const handleContactSupport = useCallback(async () => {
     if (!supportUrl) return;
-    sheetRef.current?.onCloseBottomSheet();
     try {
       if (await InAppBrowser.isAvailable()) {
+        // Close the sheet before the InAppBrowser overlay opens so the two don't overlap.
+        sheetRef.current?.onCloseBottomSheet();
         await InAppBrowser.open(supportUrl);
       } else {
+        // Navigate without closing the sheet first. If we called onCloseBottomSheet() here,
+        // shouldNavigateBack would fire goBack() after the close animation and pop the
+        // Webview screen off the stack instead of the modal.
         navigation.navigate('Webview', {
           screen: 'SimpleWebview',
           params: { url: supportUrl },
