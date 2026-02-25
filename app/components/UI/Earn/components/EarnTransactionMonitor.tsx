@@ -1,5 +1,6 @@
 import React from 'react';
 import { useMusdConversionStatus } from '../hooks/useMusdConversionStatus';
+import { useMusdConversionForegroundApprovalCleanup } from '../hooks/useMusdConversionForegroundApprovalCleanup';
 import { useMerklClaimStatus } from '../hooks/useMerklClaimStatus';
 
 /**
@@ -9,6 +10,12 @@ import { useMerklClaimStatus } from '../hooks/useMerklClaimStatus';
  * allowing them to remain active even when navigating away from Earn screens.
  */
 const EarnTransactionMonitor: React.FC = () => {
+  /**
+   * Reject stale mUSD pending approvals on app foreground.
+   * For example, resuming via notification or deeplink can bypass
+   * the normal confirmation rejection path.
+   */
+  useMusdConversionForegroundApprovalCleanup();
   // Enable mUSD conversion status monitoring and toasts
   useMusdConversionStatus();
   // Enable Merkl bonus claim status monitoring and toasts
