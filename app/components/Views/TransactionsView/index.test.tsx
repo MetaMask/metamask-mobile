@@ -67,6 +67,7 @@ jest.mock('../../../util/activity', () => ({
   sortTransactions: jest.fn((txs) => txs || []),
   filterByAddressAndNetwork: jest.fn(() => true),
   isTransactionOnChains: jest.fn(() => false),
+  buildTrustedAddressSet: jest.fn(() => new Set()),
 }));
 
 jest.mock('../../../util/transactions', () => ({

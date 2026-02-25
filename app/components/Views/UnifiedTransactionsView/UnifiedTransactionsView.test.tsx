@@ -115,6 +115,7 @@ jest.mock('../../../util/activity', () => ({
   filterByAddress: jest.fn(() => true),
   isTransactionOnChains: jest.fn(() => true),
   sortTransactions: jest.fn((arr: unknown[]) => arr),
+  buildTrustedAddressSet: jest.fn(() => new Set<string>()),
 }));
 jest.mock('../../../util/transactions', () => ({
   addAccountTimeFlagFilter: jest.fn(() => false),
@@ -320,7 +321,9 @@ const { updateIncomingTransactions } = jest.requireMock(
   '../../../util/transaction-controller',
 );
 const networksMock = jest.requireMock('../../../util/networks');
-const { filterByAddress } = jest.requireMock('../../../util/activity');
+const { filterByAddress, buildTrustedAddressSet } = jest.requireMock(
+  '../../../util/activity',
+);
 
 // Helper function to create selector mock implementation with defaults
 // Accepts an array of [selector, value] tuples for overrides
@@ -1245,7 +1248,7 @@ describe('UnifiedTransactionsView', () => {
   });
 
   describe('token poisoning protection integration', () => {
-    it('passes addressBook and internalAccountAddresses from selectors to filterByAddress', () => {
+    it('passes addressBook and internalAccountAddresses from selectors to buildTrustedAddressSet and filterByAddress', () => {
       const mockAddressBook = {
         '0x1': {
           '0x1234000000000000000000000000000000000001': {
@@ -1280,13 +1283,18 @@ describe('UnifiedTransactionsView', () => {
 
       render(<UnifiedTransactionsView />);
 
+      // buildTrustedAddressSet should have been called with the raw selector data
+      expect(buildTrustedAddressSet).toHaveBeenCalledWith(mockAddressBook, [
+        '0xabc',
+        '0xdef',
+      ]);
+
+      // filterByAddress receives the pre-built Set at position 5 (no position 6)
       expect(filterByAddress).toHaveBeenCalled();
       const calls = (filterByAddress as jest.Mock).mock.calls;
-      // Every call should include the new addressBook and internalAccountAddresses args
-      // at positions 5 and 6 (0-indexed)
       calls.forEach((args: unknown[]) => {
-        expect(args[5]).toEqual(mockAddressBook);
-        expect(args[6]).toEqual(['0xabc', '0xdef']);
+        expect(args[5]).toBeInstanceOf(Set);
+        expect(args[6]).toBeUndefined();
       });
     });
 
