@@ -2627,7 +2627,7 @@ describe('RewardsDataService', () => {
       expect(result).toEqual(mockValidationResponse);
       expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/subscriptions/bonus-code?code=BONUS123',
+        'https://uat.rewards.test/subscriptions/bonus-code?code=BONUS123',
         expect.objectContaining({
           method: 'GET',
           credentials: 'omit',
@@ -2682,7 +2682,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(result).toEqual(mockValidationResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/subscriptions/bonus-code?code=A%2BB%2FC%3D',
+        'https://uat.rewards.test/subscriptions/bonus-code?code=A%2BB%2FC%3D',
         expect.any(Object),
       );
     });
@@ -4128,7 +4128,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/wr/subscriptions/apply-bonus-code',
+        'https://uat.rewards.test/wr/subscriptions/apply-bonus-code',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({ bonusCode: mockBonusCode }),
