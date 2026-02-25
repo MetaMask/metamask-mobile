@@ -661,7 +661,10 @@ export const parsePolymarketEvents = (
         slug: event.slug,
         providerId: POLYMARKET_PROVIDER_ID,
         title: event.title,
-        description: event.description,
+        // As per Polymarket's team, we should use the first market's description
+        // rather than the event's description. The event's description is not
+        // guaranteed to be accurate. They also do this on their webbsite.
+        description: event.markets?.[0]?.description ?? event.description,
         image: event.icon,
         status: event.closed
           ? PredictMarketStatus.CLOSED
