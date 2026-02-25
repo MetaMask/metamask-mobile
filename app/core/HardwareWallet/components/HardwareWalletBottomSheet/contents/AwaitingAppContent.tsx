@@ -123,7 +123,7 @@ export const AwaitingAppContent: React.FC<AwaitingAppContentProps> = ({
             label={strings('hardware_wallet.common.continue')}
             onPress={onContinue}
             loading={isLoading}
-            disabled={isLoading}
+            isDisabled={isLoading}
           />
         ) : undefined
       }

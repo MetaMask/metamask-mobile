@@ -79,7 +79,7 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
       <TouchableOpacity
         testID={testID}
         onPress={isDisabled ? undefined : onPress}
-        disabled={isDisabled}
+        isDisabled={isDisabled}
       >
         {typeof label === 'string' ? (
           <Text>{label}</Text>
