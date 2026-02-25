@@ -17,12 +17,12 @@ export const AUTH_SERVER_TOKEN_PATH = '/api/v1/oauth/token';
  * permanent failures (e.g. 401 – token revoked) and transient ones (e.g. 503).
  */
 export class RefreshTokenHttpError extends Error {
-  constructor(
-    public readonly statusCode: number,
-    message: string,
-  ) {
+  readonly statusCode: number;
+
+  constructor(statusCode: number, message: string) {
     super(message);
     this.name = 'RefreshTokenHttpError';
+    this.statusCode = statusCode;
   }
 }
 

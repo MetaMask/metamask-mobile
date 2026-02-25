@@ -531,9 +531,5 @@ module.exports = {
     radix: 'off',
   },
 
-  ignorePatterns: [
-    'node_modules',
-    'wdio.conf.js',
-    'app/util/termsOfUse/termsOfUseContent.ts',
-  ],
+  ignorePatterns: ['wdio.conf.js', 'app/util/termsOfUse/termsOfUseContent.ts'],
 };
