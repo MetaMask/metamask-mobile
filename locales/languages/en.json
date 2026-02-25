@@ -2294,8 +2294,6 @@
       "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
       "slippage": "Slippage",
       "price_details": "Price details",
-      "contracts_price": "{{count}} contracts × {{price}}",
-      "contracts_price_description": "The number of contracts is an approximation based on the current state of the order book and may vary slightly (up to {{slippage}}%)",
       "prediction_order": "Prediction order",
       "prediction_order_description": "~{{count}} contracts at {{price}} each. Final amount may vary based on order book availability (up to {{slippage}}%).",
       "metamask_fee_description": "Service fee for processing this prediction",
