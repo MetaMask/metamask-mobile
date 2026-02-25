@@ -145,7 +145,10 @@ const PredictionsSection = forwardRef<
 
   // Determine whether the section will actually render visible content.
   // Pass null when the section returns null so the event fires immediately.
-  const willRender = isPredictEnabled && !isEmpty;
+  // !isLoading is required: isEmpty is false during loading (its formula starts
+  // with !isLoading), so without this guard the hook would fire with stale
+  // itemCount/isEmpty values before data arrives.
+  const willRender = isPredictEnabled && !isLoading && !isEmpty;
 
   useHomepageSectionViewedEvent({
     sectionRef: willRender ? sectionViewRef : null,

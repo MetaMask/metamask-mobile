@@ -1347,6 +1347,11 @@ const Wallet = ({
     return () => scrollSubscribersRef.current.delete(cb);
   }, []);
 
+  const homepageScrollContextValue = useMemo(
+    () => ({ subscribeToScroll, viewportHeight, entryPoint, visitId }),
+    [subscribeToScroll, viewportHeight, entryPoint, visitId],
+  );
+
   const content = (
     <>
       <AssetPollingProvider />
@@ -1385,9 +1390,7 @@ const Wallet = ({
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
         {isHomepageSectionsV1Enabled ? (
-          <HomepageScrollContext.Provider
-            value={{ subscribeToScroll, viewportHeight, entryPoint, visitId }}
-          >
+          <HomepageScrollContext.Provider value={homepageScrollContextValue}>
             <Homepage ref={homepageRef} />
           </HomepageScrollContext.Provider>
         ) : (
