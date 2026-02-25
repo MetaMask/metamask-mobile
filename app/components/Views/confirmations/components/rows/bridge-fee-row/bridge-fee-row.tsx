@@ -188,7 +188,7 @@ function MetaMaskFeeRow({
   const hasQuotes = Boolean(quotes?.length);
 
   const metamaskFeeUsd = useMemo(
-    () => formatFiat(new BigNumber(totals?.fees?.metaMask?.usd ?? '0')),
+    () => formatFiat(new BigNumber(totals?.fees.metaMask.usd)),
     [totals, formatFiat],
   );
 

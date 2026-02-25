@@ -318,6 +318,7 @@ describe('useTransactionPayMetrics', () => {
         sourceNetwork: { estimate: { usd: '1.5', fiat: '1.6' } },
         targetNetwork: { usd: '2.5', fiat: '2.6' },
         provider: { usd: '0.5', fiat: '0.6' },
+        metaMask: { usd: '0', fiat: '0' },
       },
     } as ReturnType<typeof useTransactionPayTotals>);
 
@@ -409,6 +410,7 @@ describe('useTransactionPayMetrics', () => {
           sourceNetwork: { estimate: { usd: '1', fiat: '1' } },
           targetNetwork: { usd: '1', fiat: '1' },
           provider: { usd: '0', fiat: '0' },
+          metaMask: { usd: '0', fiat: '0' },
         },
         targetAmount: { usd: '2950.25', fiat: '2950.25' },
       } as ReturnType<typeof useTransactionPayTotals>);
@@ -495,6 +497,7 @@ describe('useTransactionPayMetrics', () => {
           sourceNetwork: { estimate: { usd: '1', fiat: '1' } },
           targetNetwork: { usd: '0', fiat: '0' },
           provider: { usd: '0', fiat: '0' },
+          metaMask: { usd: '0', fiat: '0' },
         },
         targetAmount: { usd: '0.46', fiat: '0.46' },
       } as ReturnType<typeof useTransactionPayTotals>);
