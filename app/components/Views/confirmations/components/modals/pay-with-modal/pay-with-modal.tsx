@@ -10,8 +10,8 @@ import BottomSheet, {
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   AssetType,
-  isHighlightedActionListItem,
-  isHighlightedAssetListItem,
+  isHighlightedItemInAssetList,
+  isHighlightedItemOutsideAssetList,
   TokenListItem,
 } from '../../../types/token';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
@@ -53,17 +53,18 @@ export function PayWithModal() {
   const wrapHighlightedItemCallbacks = useCallback(
     (items: TokenListItem[]): TokenListItem[] =>
       items.map((item) => {
-        if (isHighlightedAssetListItem(item)) {
+        if (isHighlightedItemInAssetList(item)) {
           return {
             ...item,
             action: () => close(item.action),
           };
         }
 
-        if (isHighlightedActionListItem(item)) {
+        if (isHighlightedItemOutsideAssetList(item)) {
           return {
             ...item,
-            actions: item.actions.map((actionItem) => ({
+            action: () => close(item.action),
+            actions: item.actions?.map((actionItem) => ({
               ...actionItem,
               onPress: () => close(actionItem.onPress),
             })),
