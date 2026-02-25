@@ -13,7 +13,7 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { passwordRequirementsMet } from '../../../util/password';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
@@ -21,7 +21,7 @@ import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { RevealSeedViewSelectorsIDs } from './RevealSeedView.testIds';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Text, {
   TextColor,
   TextVariant,
@@ -46,7 +46,6 @@ import {
 import { useRevealCredential, useSRPQuiz } from './hooks';
 import { IRevealPrivateCredentialProps, RevealSrpStage } from './types';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const RevealPrivateCredential = ({
   navigation,
@@ -69,7 +68,7 @@ const RevealPrivateCredential = ({
   );
 
   const theme = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { colors } = theme;
   const styles = createStyles(theme, colors);
 
@@ -105,16 +104,14 @@ const RevealPrivateCredential = ({
 
   const headerNavigationBack = useCallback(() => {
     trackEvent(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.GO_BACK_SRP_SCREEN,
-      ).build(),
+      createEventBuilder(MetaMetricsEvents.GO_BACK_SRP_SCREEN).build(),
     );
     if (hasNavigation) {
       navigation.goBack();
     } else {
       cancel?.();
     }
-  }, [hasNavigation, navigation, cancel, trackEvent]);
+  }, [hasNavigation, navigation, cancel, trackEvent, createEventBuilder]);
 
   // Only when user reaches the action view (after quiz): track once, then attempt reveal once.
   const hasRunRevealForActionView = useRef(false);

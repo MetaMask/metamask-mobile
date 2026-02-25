@@ -8,7 +8,7 @@ import { isHardwareAccount } from '../../../../util/address';
 import useAuthentication from '../../../../core/Authentication/hooks/useAuthentication';
 import { ReauthenticateErrorType } from '../../../../core/Authentication/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import {
   endTrace,
   trace,
@@ -45,7 +45,7 @@ const useRevealCredential = ({
 
   const dispatch = useDispatch();
   const { reauthenticate, revealSRP } = useAuthentication();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const revealCredential = useCallback(
     async (pswd?: string): Promise<boolean> => {
