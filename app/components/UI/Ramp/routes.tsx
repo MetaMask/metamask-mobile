@@ -18,6 +18,8 @@ import SettingsModal from './Views/Modals/SettingsModal';
 import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
 import TokenNotAvailableModal from './Views/Modals/TokenNotAvailableModal';
 import ProviderSelectionModal from './Views/Modals/ProviderSelectionModal';
+import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
+import RampsOrderDetails from './Views/OrderDetails';
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();
@@ -73,6 +75,10 @@ const MainRoutes = () => (
         detachPreviousScreen: false,
       }}
     />
+    <Stack.Screen
+      name={Routes.RAMP.RAMPS_ORDER_DETAILS}
+      component={RampsOrderDetails}
+    />
   </Stack.Navigator>
 );
 
@@ -100,6 +106,10 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.PROVIDER_SELECTION}
       component={ProviderSelectionModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.PROCESSING_INFO}
+      component={ProcessingInfoModal}
     />
   </ModalsStack.Navigator>
 );

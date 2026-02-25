@@ -365,6 +365,20 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
     component={[Function]}
     name="CardScreens"
   />
+  <Screen
+    component={[Function]}
+    name="RampProcessingInfoModal"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
+  />
 </Navigator>
 `;
 
@@ -733,6 +747,20 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
     component={[Function]}
     name="CardScreens"
   />
+  <Screen
+    component={[Function]}
+    name="RampProcessingInfoModal"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
+  />
 </Navigator>
 `;
 
@@ -1100,6 +1128,20 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="CardScreens"
+  />
+  <Screen
+    component={[Function]}
+    name="RampProcessingInfoModal"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
   />
 </Navigator>
 `;
