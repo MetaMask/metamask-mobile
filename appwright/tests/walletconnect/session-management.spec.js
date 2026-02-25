@@ -1,11 +1,9 @@
 /**
  * WalletConnect v2 Session Management Tests
  *
- * Tests session management flows:
- *   1. Connect → navigate to sessions view → verify session listed →
- *      disconnect from MetaMask side → verify removed → verify dapp disconnected
- *   2. Connect → terminate app → relaunch → verify session persists →
- *      cleanup
+ * Tests session management flow:
+ *   connect → terminate app → relaunch → verify session persists →
+ *   disconnect from MetaMask side → verify removed → verify dapp disconnected
  *
  * Prerequisites:
  * - Android emulator running with MetaMask installed and wallet set up
@@ -24,62 +22,13 @@ import WalletConnectDapp from '../../../wdio/screen-objects/WalletConnectDapp.js
 import WalletConnectSessionsScreen from '../../../wdio/screen-objects/WalletConnectSessionsScreen.js';
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
 import { getPasswordForScenario } from '../../utils/TestConstants.js';
-import { connectWalletConnectSession, WC_TEST_DAPP_URL, WC_SESSION_NAME } from './helpers.js';
+import {
+  connectWalletConnectSession,
+  WC_TEST_DAPP_URL,
+  WC_SESSION_NAME,
+} from './helpers.js';
 
-test('WalletConnect v2 - disconnect session from MetaMask sessions view', async ({
-  device,
-}) => {
-  // ── Set device on screen objects ──────────────────────────────────
-  TabBarModal.device = device;
-  WalletConnectSessionsScreen.device = device;
-
-  // ── Connect ───────────────────────────────────────────────────────
-  await connectWalletConnectSession(device);
-
-  // ── Switch to MetaMask ────────────────────────────────────────────
-  await AppwrightHelpers.withNativeAction(device, async () => {
-    await device.activateApp('io.metamask');
-  });
-  await AppwrightGestures.wait(2000);
-
-  // ── Navigate to WalletConnect Sessions view ───────────────────────
-  await AppwrightHelpers.withNativeAction(device, async () => {
-    await WalletConnectSessionsScreen.navigateToSessionsView();
-  });
-
-  // ── Verify the connected session is listed ────────────────────────
-  await AppwrightHelpers.withNativeAction(device, async () => {
-    await WalletConnectSessionsScreen.assertSessionExists(
-      WC_SESSION_NAME,
-    );
-  });
-
-  // ── Disconnect the session via long-press → "End" ────────────────
-  await AppwrightHelpers.withNativeAction(device, async () => {
-    await WalletConnectSessionsScreen.disconnectSession(
-      WC_SESSION_NAME,
-    );
-  });
-
-  // ── Verify session removed from list ──────────────────────────────
-  await AppwrightHelpers.withNativeAction(device, async () => {
-    await WalletConnectSessionsScreen.assertNoActiveSessions();
-  });
-
-  // ── Switch to browser and verify dapp shows disconnected ──────────
-  await launchMobileBrowser(device);
-  await AppwrightGestures.wait(3000);
-
-  await AppwrightHelpers.withWebAction(
-    device,
-    async () => {
-      await WalletConnectDapp.assertDisconnected();
-    },
-    WC_TEST_DAPP_URL,
-  );
-});
-
-test('WalletConnect v2 - session persists across app restart', async ({
+test('WalletConnect v2 - session persists across app restart then disconnect', async ({
   device,
 }) => {
   // ── Set device on screen objects ──────────────────────────────────
@@ -120,19 +69,28 @@ test('WalletConnect v2 - session persists across app restart', async ({
 
   // ── Verify session still exists after restart ─────────────────────
   await AppwrightHelpers.withNativeAction(device, async () => {
-    await WalletConnectSessionsScreen.assertSessionExists(
-      WC_SESSION_NAME,
-    );
+    await WalletConnectSessionsScreen.assertSessionExists(WC_SESSION_NAME);
   });
 
-  // ── Cleanup: disconnect from sessions view ────────────────────────
+  // ── Disconnect the session via long-press → "End" ────────────────
   await AppwrightHelpers.withNativeAction(device, async () => {
-    await WalletConnectSessionsScreen.disconnectSession(
-      WC_SESSION_NAME,
-    );
+    await WalletConnectSessionsScreen.disconnectSession(WC_SESSION_NAME);
   });
 
+  // ── Verify session removed from list ──────────────────────────────
   await AppwrightHelpers.withNativeAction(device, async () => {
     await WalletConnectSessionsScreen.assertNoActiveSessions();
   });
+
+  // ── Switch to browser and verify dapp shows disconnected ──────────
+  await launchMobileBrowser(device);
+  await AppwrightGestures.wait(3000);
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await WalletConnectDapp.assertDisconnected();
+    },
+    WC_TEST_DAPP_URL,
+  );
 });
