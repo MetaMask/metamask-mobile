@@ -90,7 +90,7 @@ export const usePredictDepositAndOrder = () => {
   );
 
   const depositAndOrder = useCallback(
-    (params: PredictDepositAndOrderParams) => {
+    async (params: PredictDepositAndOrderParams) => {
       try {
         Engine.context.PredictController.setActiveOrder({
           market: params.market,
@@ -98,12 +98,12 @@ export const usePredictDepositAndOrder = () => {
           outcomeToken: params.outcomeToken,
         });
 
-        navigateToConfirmation();
-
-        depositAndOrderWithConfirmation({}).catch((err) => {
+        await depositAndOrderWithConfirmation({}).catch((err) => {
           console.error('Failed to initialize deposit and order:', err);
           handleDepositError(err, 'deposit_and_order_initialization');
         });
+
+        navigateToConfirmation();
       } catch (err) {
         console.error('Failed to proceed with deposit and order:', err);
         handleDepositError(err, 'deposit_and_order_navigation');

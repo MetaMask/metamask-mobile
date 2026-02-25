@@ -113,6 +113,18 @@ jest.mock('../../hooks/usePredictDeposit', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePredictTokenSelection', () => ({
+  usePredictTokenSelection: () => ({
+    shouldPreserveActiveOrderOnUnmountRef: { current: false },
+  }),
+}));
+
+jest.mock('../../hooks/usePredictAutoPlaceOrder', () => ({
+  usePredictAutoPlaceOrder: () => ({
+    isAutoPlaceLoading: false,
+  }),
+}));
+
 // Mock usePredictRewards hook
 let mockRewardsEnabled = false;
 let mockRewardsLoading = false;

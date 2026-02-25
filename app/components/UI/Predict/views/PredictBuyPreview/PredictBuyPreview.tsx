@@ -83,7 +83,8 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
-import { usePredictDepositAndOrder } from '../../hooks/usePredictDepositAndOrder';
+import { usePredictTokenSelection } from '../../hooks/usePredictTokenSelection';
+import { usePredictAutoPlaceOrder } from '../../hooks/usePredictAutoPlaceOrder';
 
 export const MINIMUM_BET = 1; // $1 minimum bet
 
@@ -95,7 +96,7 @@ const PredictBuyPreview = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const { market, outcome, outcomeToken, entryPoint, autoPlaceOrderAmountUsd } =
+  const { market, outcome, outcomeToken, entryPoint, amount, transactionId } =
     route.params;
 
   const analyticsProperties = useMemo(
@@ -136,9 +137,13 @@ const PredictBuyPreview = () => {
 
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();
-  const { isPredictBalanceSelected, selectedPaymentToken } =
-    usePredictPaymentToken();
-  const { depositAndOrder } = usePredictDepositAndOrder();
+  const { isPredictBalanceSelected } = usePredictPaymentToken();
+  const { shouldPreserveActiveOrderOnUnmountRef } = usePredictTokenSelection({
+    market,
+    outcome,
+    outcomeToken,
+    analyticsProperties,
+  });
 
   const { deposit } = usePredictDeposit();
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
@@ -148,17 +153,7 @@ const PredictBuyPreview = () => {
   const [isInputFocused, setIsInputFocused] = useState(true);
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
-  const [isAutoPlaceLoading, setIsAutoPlaceLoading] = useState(
-    () =>
-      typeof autoPlaceOrderAmountUsd === 'number' &&
-      autoPlaceOrderAmountUsd > 0,
-  );
   const previousValueRef = useRef(0);
-  const hasInitializedTokenSelectionRef = useRef(false);
-  const previousSelectedTokenAddressRef = useRef<string | null>(null);
-  const shouldPreserveActiveOrderOnUnmountRef = useRef(false);
-  const hasInitializedAutoPlaceOrderRef = useRef(false);
-  const hasTriggeredAutoPlaceOrderRef = useRef(false);
 
   const {
     preview,
@@ -218,28 +213,6 @@ const PredictBuyPreview = () => {
     previousValueRef.current = currentValue;
   }, [currentValue, isCalculating]);
 
-  const shouldAutoPlaceOrder = useMemo(
-    () =>
-      typeof autoPlaceOrderAmountUsd === 'number' &&
-      autoPlaceOrderAmountUsd > 0,
-    [autoPlaceOrderAmountUsd],
-  );
-
-  useEffect(() => {
-    if (
-      typeof autoPlaceOrderAmountUsd !== 'number' ||
-      autoPlaceOrderAmountUsd <= 0 ||
-      hasInitializedAutoPlaceOrderRef.current
-    ) {
-      return;
-    }
-
-    hasInitializedAutoPlaceOrderRef.current = true;
-    setCurrentValue(autoPlaceOrderAmountUsd);
-    setCurrentValueUSDString(autoPlaceOrderAmountUsd.toString());
-    setIsInputFocused(false);
-  }, [autoPlaceOrderAmountUsd]);
-
   const errorMessage = isOrderNotFilled
     ? undefined
     : (previewError ?? placeOrderError);
@@ -247,6 +220,7 @@ const PredictBuyPreview = () => {
   // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
     const controller = Engine.context.PredictController;
+    const preserveRef = shouldPreserveActiveOrderOnUnmountRef;
 
     controller.setActiveOrder({
       market,
@@ -261,7 +235,7 @@ const PredictBuyPreview = () => {
       sharePrice: outcomeToken?.price,
     });
     return () => {
-      if (!shouldPreserveActiveOrderOnUnmountRef.current) {
+      if (!preserveRef.current) {
         controller.clearActiveOrder();
       }
     };
@@ -277,13 +251,28 @@ const PredictBuyPreview = () => {
   const total = currentValue + providerFee + metamaskFee;
 
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
-  const isPlacingOrder = isLoading || isAutoPlaceLoading;
   const canPlaceBet =
     currentValue >= MINIMUM_BET &&
-    preview &&
-    !isPlacingOrder &&
+    !!preview &&
+    !isLoading &&
     !isBalanceLoading &&
-    !isRateLimited;
+    !isRateLimited &&
+    !isCalculating;
+
+  const { isAutoPlaceLoading } = usePredictAutoPlaceOrder({
+    amount,
+    transactionId,
+    isPredictBalanceSelected,
+    canPlaceBet,
+    preview,
+    analyticsProperties,
+    placeOrder,
+    setCurrentValue,
+    setCurrentValueUSDString,
+    setIsInputFocused,
+  });
+  const isPlacingOrder = isLoading || isAutoPlaceLoading;
+  const canPlaceBetAction = canPlaceBet && !isAutoPlaceLoading;
 
   const {
     enabled: isRewardsEnabled,
@@ -312,43 +301,6 @@ const PredictBuyPreview = () => {
     }
   }, [dispatch, result]);
 
-  useEffect(() => {
-    const selectedTokenAddress = selectedPaymentToken?.address ?? null;
-
-    if (!hasInitializedTokenSelectionRef.current) {
-      hasInitializedTokenSelectionRef.current = true;
-      previousSelectedTokenAddressRef.current = selectedTokenAddress;
-      return;
-    }
-
-    if (isPredictBalanceSelected || !selectedTokenAddress) {
-      previousSelectedTokenAddressRef.current = selectedTokenAddress;
-      return;
-    }
-
-    if (previousSelectedTokenAddressRef.current === selectedTokenAddress) {
-      return;
-    }
-
-    previousSelectedTokenAddressRef.current = selectedTokenAddress;
-    shouldPreserveActiveOrderOnUnmountRef.current = true;
-
-    void depositAndOrder({
-      market,
-      outcome,
-      outcomeToken,
-      analyticsProperties,
-    });
-  }, [
-    isPredictBalanceSelected,
-    selectedPaymentToken?.address,
-    depositAndOrder,
-    market,
-    outcome,
-    outcomeToken,
-    analyticsProperties,
-  ]);
-
   const onPlaceBet = useCallback(async () => {
     if (!preview || isBelowMinimum) return;
 
@@ -357,53 +309,6 @@ const PredictBuyPreview = () => {
       preview,
     });
   }, [preview, isBelowMinimum, placeOrder, analyticsProperties]);
-
-  useEffect(() => {
-    if (!shouldAutoPlaceOrder) {
-      setIsAutoPlaceLoading(false);
-    }
-  }, [shouldAutoPlaceOrder]);
-
-  useEffect(() => {
-    if (!shouldAutoPlaceOrder || hasTriggeredAutoPlaceOrderRef.current) {
-      return;
-    }
-
-    if (
-      !isPredictBalanceSelected ||
-      !preview ||
-      isBelowMinimum ||
-      isLoading ||
-      isBalanceLoading ||
-      isRateLimited ||
-      isCalculating
-    ) {
-      return;
-    }
-
-    hasTriggeredAutoPlaceOrderRef.current = true;
-    void (async () => {
-      try {
-        await placeOrder({
-          analyticsProperties,
-          preview,
-        });
-      } finally {
-        setIsAutoPlaceLoading(false);
-      }
-    })();
-  }, [
-    analyticsProperties,
-    isBalanceLoading,
-    isBelowMinimum,
-    isCalculating,
-    isLoading,
-    isPredictBalanceSelected,
-    isRateLimited,
-    placeOrder,
-    preview,
-    shouldAutoPlaceOrder,
-  ]);
 
   const handleFeesInfoPress = useCallback(() => {
     setIsFeeBreakdownVisible(true);
@@ -522,7 +427,7 @@ const PredictBuyPreview = () => {
       <ButtonHero
         testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
         onPress={onPlaceBet}
-        disabled={!canPlaceBet}
+        disabled={!canPlaceBetAction}
         isLoading={isPlacingOrder}
         size={ButtonSizeHero.Lg}
         style={tw.style('w-full')}

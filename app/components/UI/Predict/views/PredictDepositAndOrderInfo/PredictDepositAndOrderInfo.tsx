@@ -237,6 +237,7 @@ export function PredictDepositAndOrderInfo() {
       outcome,
       outcomeToken,
       orderAmountUsd: currentValue,
+      depositTransactionId: activeTransactionMeta?.id,
       preview,
     });
 

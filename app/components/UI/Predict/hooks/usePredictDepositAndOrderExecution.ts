@@ -11,10 +11,8 @@ import {
 } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
-import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
 import { OrderPreview } from '../providers/types';
-import { usePredictOrderDepositTracking } from './usePredictOrderDepositTracking';
 import { usePredictTrading } from './usePredictTrading';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -27,6 +25,7 @@ interface UsePredictDepositAndOrderExecutionParams {
   outcome?: PredictBuyPreviewParams['outcome'];
   outcomeToken?: PredictBuyPreviewParams['outcomeToken'];
   orderAmountUsd: number;
+  depositTransactionId?: string;
   preview?: OrderPreview | null;
 }
 
@@ -41,15 +40,14 @@ export function usePredictDepositAndOrderExecution({
   outcome,
   outcomeToken,
   orderAmountUsd,
+  depositTransactionId,
   preview,
 }: UsePredictDepositAndOrderExecutionParams): UsePredictDepositAndOrderExecutionResult {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { toastRef } = useContext(ToastContext);
-  const { trackDeposit } = usePredictOrderDepositTracking();
   const { placeOrder } = usePredictTrading();
   const { onConfirm: onApprovalConfirm } = useApprovalRequest();
-  const activeTransactionMeta = useTransactionMetadataRequest();
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const marketId = market?.id;
   const outcomeId = outcome?.id;
@@ -84,10 +82,18 @@ export function usePredictDepositAndOrderExecution({
         market,
         outcome,
         outcomeToken,
-        autoPlaceOrderAmountUsd: orderAmountUsd,
+        amount: orderAmountUsd,
+        transactionId: depositTransactionId,
       }),
     );
-  }, [market, navigation, orderAmountUsd, outcome, outcomeToken]);
+  }, [
+    depositTransactionId,
+    market,
+    navigation,
+    orderAmountUsd,
+    outcome,
+    outcomeToken,
+  ]);
 
   const handleOrderSuccess = useCallback(async () => {
     const latestPreview = previewRef.current;
@@ -130,28 +136,13 @@ export function usePredictDepositAndOrderExecution({
       return;
     }
 
-    if (!activeTransactionMeta) {
-      setIsConfirming(false);
-      return;
-    }
-
     try {
-      trackDeposit({
-        transactionMeta: activeTransactionMeta,
-        onConfirmed: () => {
-          redirectToBuyPreviewForAutoOrder();
-        },
-        onFailed: () => {
-          setConfirmError(strings('predict.deposit.error_description'));
-          setIsConfirming(false);
-        },
-      });
-
-      void onApprovalConfirm({
+      await onApprovalConfirm({
         deleteAfterResult: true,
-        waitForResult: true,
+        waitForResult: false,
         handleErrors: false,
       });
+      redirectToBuyPreviewForAutoOrder();
     } catch (err) {
       setConfirmError(
         err instanceof Error
@@ -161,13 +152,11 @@ export function usePredictDepositAndOrderExecution({
       setIsConfirming(false);
     }
   }, [
-    activeTransactionMeta,
     handleOrderSuccess,
     isConfirming,
     isPredictBalanceSelected,
     onApprovalConfirm,
     redirectToBuyPreviewForAutoOrder,
-    trackDeposit,
   ]);
 
   return {

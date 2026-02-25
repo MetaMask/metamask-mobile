@@ -10,11 +10,9 @@ const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
 const mockPlaceOrder = jest.fn();
 const mockOnApprovalConfirm = jest.fn();
-const mockTrackDeposit = jest.fn();
 const mockShowToast = jest.fn();
 
 let mockIsPredictBalanceSelected = false;
-let mockActiveTransactionMeta: unknown = { id: 'tx-1' };
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -37,22 +35,9 @@ jest.mock('../../../Views/confirmations/hooks/useApprovalRequest', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
-  () => ({
-    useTransactionMetadataRequest: () => mockActiveTransactionMeta,
-  }),
-);
-
 jest.mock('./usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
     isPredictBalanceSelected: mockIsPredictBalanceSelected,
-  }),
-}));
-
-jest.mock('./usePredictOrderDepositTracking', () => ({
-  usePredictOrderDepositTracking: () => ({
-    trackDeposit: mockTrackDeposit,
   }),
 }));
 
@@ -113,11 +98,11 @@ describe('usePredictDepositAndOrderExecution', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsPredictBalanceSelected = false;
-    mockActiveTransactionMeta = { id: 'tx-1' };
     mockPlaceOrder.mockResolvedValue(undefined);
+    mockOnApprovalConfirm.mockResolvedValue(undefined);
   });
 
-  it('redirects to buy preview with amount after deposit confirmation when non-predict balance is selected', async () => {
+  it('redirects to buy preview with amount right after approval when non-predict balance is selected', async () => {
     const { result } = renderHook(
       () =>
         usePredictDepositAndOrderExecution({
@@ -125,6 +110,7 @@ describe('usePredictDepositAndOrderExecution', () => {
           outcome,
           outcomeToken,
           orderAmountUsd: 25,
+          depositTransactionId: 'deposit-tx-id',
           preview,
         }),
       { wrapper },
@@ -134,20 +120,18 @@ describe('usePredictDepositAndOrderExecution', () => {
       await result.current.handleConfirm();
     });
 
-    expect(mockTrackDeposit).toHaveBeenCalledTimes(1);
-    expect(mockOnApprovalConfirm).toHaveBeenCalledTimes(1);
-
-    const trackingArgs = mockTrackDeposit.mock.calls[0][0];
-    await act(async () => {
-      trackingArgs.onConfirmed();
+    expect(mockOnApprovalConfirm).toHaveBeenCalledWith({
+      deleteAfterResult: true,
+      waitForResult: false,
+      handleErrors: false,
     });
-
     expect(mockDispatch).toHaveBeenCalledWith(
       StackActions.replace(Routes.PREDICT.MODALS.BUY_PREVIEW, {
         market,
         outcome,
         outcomeToken,
-        autoPlaceOrderAmountUsd: 25,
+        amount: 25,
+        transactionId: 'deposit-tx-id',
       }),
     );
     expect(mockPlaceOrder).not.toHaveBeenCalled();
@@ -164,6 +148,7 @@ describe('usePredictDepositAndOrderExecution', () => {
           outcome,
           outcomeToken,
           orderAmountUsd: 25,
+          depositTransactionId: 'deposit-tx-id',
           preview,
         }),
       { wrapper },
@@ -181,7 +166,6 @@ describe('usePredictDepositAndOrderExecution', () => {
       },
     });
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockTrackDeposit).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 });
