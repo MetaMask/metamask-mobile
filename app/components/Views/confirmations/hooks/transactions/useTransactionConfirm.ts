@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import useApprovalRequest from '../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -28,6 +28,7 @@ export const GO_BACK_TYPES = [
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
   const navigation = useNavigation();
+  const route = useRoute();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
   const { chainId, isGasFeeTokenIgnoredIfBalance, type } =
@@ -125,8 +126,19 @@ export function useTransactionConfirm() {
       log('Error confirming transaction', error);
     }
 
-    // Perps deposit-and-order: caller handles navigation (e.g. order flow)
     if (type === TransactionType.perpsDepositAndOrder) {
+      const { asset } = (route.params ?? {}) as { asset?: string };
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: { symbol: asset },
+          monitoringIntent: {
+            asset,
+            monitorOrders: true,
+            monitorPositions: true,
+          },
+        },
+      });
       return;
     } else if (type === TransactionType.perpsDeposit) {
       navigation.navigate(Routes.PERPS.ROOT, {
@@ -152,6 +164,7 @@ export function useTransactionConfirm() {
     isGaslessSupportedSTX,
     navigation,
     onRequestConfirm,
+    route.params,
     selectedGasFeeToken,
     transactionMetadata,
     tryEnableEvmNetwork,

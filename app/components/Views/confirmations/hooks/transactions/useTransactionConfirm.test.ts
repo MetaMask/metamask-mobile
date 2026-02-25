@@ -48,6 +48,9 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
+  useRoute: () => ({
+    params: { asset: 'ETH' },
+  }),
 }));
 
 const CHAIN_ID_MOCK = '0x123';
@@ -265,7 +268,7 @@ describe('useTransactionConfirm', () => {
       });
     });
 
-    it('skips navigation if perps deposit and order (caller handles navigation)', async () => {
+    it('navigates to Market Details for perps deposit and order', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
         type: TransactionType.perpsDepositAndOrder,
@@ -277,7 +280,17 @@ describe('useTransactionConfirm', () => {
         await result.current.onConfirm();
       });
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: { symbol: 'ETH' },
+          monitoringIntent: {
+            asset: 'ETH',
+            monitorOrders: true,
+            monitorPositions: true,
+          },
+        },
+      });
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
