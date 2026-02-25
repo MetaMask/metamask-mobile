@@ -102,10 +102,10 @@ export const usePendingTransactions = (
     pendingDepositQueue[0]?.timestamp ?? null;
 
   const lastCompletedWithdrawalTimestamp = usePerpsSelector(
-    (state) => state?.lastWithdrawResult?.timestamp ?? null,
+    (state) => state?.lastCompletedWithdrawalTimestamp ?? null,
   );
   const lastCompletedDepositTimestamp = usePerpsSelector(
-    (state) => state?.lastDepositResult?.timestamp ?? null,
+    (state) => state?.lastCompletedDepositTimestamp ?? null,
   );
 
   const initialFetchDoneRef = useRef(false);
@@ -144,6 +144,15 @@ export const usePendingTransactions = (
 
   const [isLoading, setIsLoading] = useState(!skipInitialFetch);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (
+      pendingWithdrawalQueue.length === 0 &&
+      pendingDepositQueue.length === 0
+    ) {
+      setIsLoading(false);
+    }
+  }, [pendingWithdrawalQueue.length, pendingDepositQueue.length]);
 
   const checkForCompletions = useCallback(async () => {
     const hasPendingWithdrawals = pendingWithdrawalQueue.length > 0;

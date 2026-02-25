@@ -69,7 +69,7 @@ export const useWithdrawalRequests = (
   const oldestPendingTimestamp = pendingQueue[0]?.timestamp ?? null;
 
   const lastCompletedTimestamp = usePerpsSelector(
-    (state) => state?.lastWithdrawResult?.timestamp ?? null,
+    (state) => state?.lastCompletedWithdrawalTimestamp ?? null,
   );
 
   const prevWithdrawalStatesRef = useRef<Map<string, string>>(new Map());
@@ -119,6 +119,12 @@ export const useWithdrawalRequests = (
 
   const [isLoading, setIsLoading] = useState(!skipInitialFetch);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (pendingQueue.length === 0) {
+      setIsLoading(false);
+    }
+  }, [pendingQueue.length]);
 
   const checkForWithdrawalCompletion = useCallback(async () => {
     if (pendingQueue.length === 0) {

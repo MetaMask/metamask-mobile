@@ -206,6 +206,12 @@ export type PerpsControllerState = {
   withdrawInProgress: boolean;
   lastWithdrawResult: LastTransactionResult | null;
 
+  // Persisted FIFO guard timestamps — only written by completeWithdrawalFromHistory /
+  // completeDepositFromHistory so that submission calls never overwrite them.
+  // Survives app restarts (persist: true) unlike lastWithdrawResult / lastDepositResult.
+  lastCompletedWithdrawalTimestamp: number | null;
+  lastCompletedDepositTimestamp: number | null;
+
   // Withdrawal request tracking (persistent, for transaction history)
   withdrawalRequests: {
     id: string;
@@ -356,6 +362,8 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   withdrawInProgress: false,
   lastDepositTransactionId: null,
   lastWithdrawResult: null,
+  lastCompletedWithdrawalTimestamp: null,
+  lastCompletedDepositTimestamp: null,
   withdrawalRequests: [],
   withdrawalProgress: {
     progress: 0,
@@ -470,6 +478,18 @@ const metadata: StateMetadata<PerpsControllerState> = {
   lastWithdrawResult: {
     includeInStateLogs: true,
     persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  lastCompletedWithdrawalTimestamp: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  lastCompletedDepositTimestamp: {
+    includeInStateLogs: true,
+    persist: true,
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
@@ -2310,10 +2330,10 @@ export class PerpsController extends BaseController<
         state.withdrawalRequests.splice(requestIndex, 1);
       }
 
-      // Update the timestamp to prevent double-matching in FIFO logic
-      if (state.lastWithdrawResult) {
-        state.lastWithdrawResult.timestamp = completedWithdrawal.timestamp;
-      }
+      // Unconditionally update the persisted FIFO guard so that the next poll
+      // cycle skips this history entry even after an app restart (when
+      // lastWithdrawResult is null because it has persist: false).
+      state.lastCompletedWithdrawalTimestamp = completedWithdrawal.timestamp;
 
       const hasPendingWithdrawals = state.withdrawalRequests.some(
         (req) => req.status === 'pending' || req.status === 'bridging',
@@ -2383,9 +2403,7 @@ export class PerpsController extends BaseController<
         state.depositRequests.splice(requestIndex, 1);
       }
 
-      if (state.lastDepositResult) {
-        state.lastDepositResult.timestamp = completedDeposit.timestamp;
-      }
+      state.lastCompletedDepositTimestamp = completedDeposit.timestamp;
 
       const hasPendingDeposits = state.depositRequests.some(
         (req) => req.status === 'pending' || req.status === 'bridging',

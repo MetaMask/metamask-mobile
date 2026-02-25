@@ -329,14 +329,7 @@ describe('useWithdrawalRequests', () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
           withdrawalRequests: mockPendingWithdrawals,
-          lastWithdrawResult: {
-            success: true,
-            txHash: '0xalreadyKnown',
-            amount: '100',
-            asset: 'USDC',
-            timestamp: lastCompletedTimestamp,
-            error: '',
-          },
+          lastCompletedWithdrawalTimestamp: lastCompletedTimestamp,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
 
@@ -393,14 +386,7 @@ describe('useWithdrawalRequests', () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
           withdrawalRequests: mockPendingWithdrawals,
-          lastWithdrawResult: {
-            success: true,
-            txHash: '0xoldWithdrawal',
-            amount: '50',
-            asset: 'USDC',
-            timestamp: lastCompletedTimestamp,
-            error: '',
-          },
+          lastCompletedWithdrawalTimestamp: lastCompletedTimestamp,
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
 
