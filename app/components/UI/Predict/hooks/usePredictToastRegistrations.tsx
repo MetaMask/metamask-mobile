@@ -388,8 +388,7 @@ function getWithdrawConfirmedMessage(
       tokenAddress,
       chainId,
     )?.symbol;
-  }
-  if (!tokenSymbol && chainId) {
+  } else if (chainId) {
     tokenSymbol = selectTickerByChainId(state, chainId);
   }
   if (!tokenSymbol) {
