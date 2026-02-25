@@ -2,7 +2,6 @@ import {
   useNavigation,
   useRoute,
   CommonActions,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, {
