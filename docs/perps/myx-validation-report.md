@@ -2,123 +2,102 @@
 
 **Date:** 2026-02-25
 **Branch:** `fet/perps/myx-reads-write`
-**Includes:** endTime fix, `sdk.` token prefix, always-on WS, Phase 2 try/catch
+**Script:** `scripts/perps/agentic/validate-myx.sh`
 
 ---
 
-## Architecture Changes (This Session)
+## Testnet (chainId 421614, Arbitrum Sepolia → `api-test.myx.cash`)
 
-1. **Always-on WebSocket** — WS connects at `MYXClientService` construction time (matching HyperLiquid pattern). No more lazy `connectWebSocket()` from `subscribeToKline()`. Individual subscriptions (kline, tickers) subscribe/unsubscribe on the already-open socket.
-2. **`sdk.` token prefix** — `getAccessToken` callback prepends `sdk.` to tokens before returning them to the SDK, working around the SDK's missing prefix for WS auth.
-3. **Phase 2 resilience** — `subscribeToCandles` Phase 2 (WS) failure no longer erases REST data.
-4. **Removed:** `connectWebSocket()`, `disconnectWebSocket()`, `#wsConnected` field. `disconnect()` calls `subscription.disconnect()` directly.
+| Category     | Test                     | Result     | Details                          |
+| ------------ | ------------------------ | ---------- | -------------------------------- |
+| Init         | Provider registered      | PASS       | `myx` in providers map           |
+| Init         | Markets loaded           | PASS       | 2 pools, 1 with price data       |
+| Init         | Markets have name        | PASS       |                                  |
+| Prices       | Tickers with real prices | PASS       | KNY=$65,629                      |
+| Candles REST | 1h historical            | PASS       | 101 candles                      |
+| Candles REST | 1D historical            | PASS       | 101 candles                      |
+| Candles REST | 5m historical            | PASS       | 101 candles                      |
+| Candles WS   | Sustained kline updates  | PASS       | 3 WS callbacks                   |
+| Prices WS    | Live ticker update       | PASS       | KNY `"65587.50"`                 |
+| Auth         | isReadyToTrade           | UNVERIFIED | `auth()` is sync, proves nothing |
+| Positions    | getPositions             | UNVERIFIED | 0 (auth not validated)           |
+| Orders       | getOrders                | UNVERIFIED | 0 (auth not validated)           |
+| Account      | getAccountState          | UNVERIFIED | all zeros (auth not validated)   |
+| Ping         | Health check             | PASS       |                                  |
 
----
+**Summary:** 10 passed, 0 failed, 0 skipped, 4 unverified
 
-## Testnet (chainId 97, api-beta.myx.finance)
+### Testnet Markets
 
-| Category  | Method                    | Result       | Data                                             |
-| --------- | ------------------------- | ------------ | ------------------------------------------------ |
-| Init      | Provider registered       | PASS         | `myx` in providers map                           |
-| Init      | getMarkets()              | **FAIL**     | 0 markets returned                               |
-| Prices    | getMarketDataWithPrices() | FAIL         | 0 tickers (no markets)                           |
-| Candles   | subscribeToCandles()      | SKIP         | no markets to query                              |
-| WS        | WebSocket connection      | PASS         | connected at init (always-on)                    |
-| Auth      | isReadyToTrade()          | **UNTESTED** | returns `ready:true` but auth is never validated |
-| Positions | getPositions()            | **UNTESTED** | returns `[]` — cannot distinguish auth state     |
-| Orders    | getOrders()               | **UNTESTED** | returns `[]` — same                              |
-| Account   | getAccountState()         | **UNTESTED** | returns all zeroes — same                        |
+2 pools on API, 1 returned after filtering (pools without ticker data are excluded):
 
----
+| Symbol | Price   | Candles | Volume | Chain              |
+| ------ | ------- | ------- | ------ | ------------------ |
+| KNY    | $65,629 | Yes     | $0.53  | Arb Sepolia 421614 |
 
-## Mainnet (chainId 56, api.myx.finance)
-
-| Category        | Method                          | Result       | Data                                                               |
-| --------------- | ------------------------------- | ------------ | ------------------------------------------------------------------ |
-| Init            | Provider registered             | PASS         | `myx` in providers map                                             |
-| Init            | getMarkets()                    | PASS\*       | 26 markets — but all junk (see below)                              |
-| Prices          | getMarketDataWithPrices()       | **FAIL**     | 26 tickers, all prices `$0`                                        |
-| Candles REST 1h | subscribeToCandles("MYX","1h")  | PASS         | 100 candles (endTime fix works)                                    |
-| Candles REST 1h | subscribeToCandles("BTCB","1h") | **FAIL**     | 0 candles                                                          |
-| Candles REST 1D | subscribeToCandles("BTCB","1D") | **FAIL**     | 0 candles                                                          |
-| Candles REST 5m | subscribeToCandles("BTCB","5m") | **FAIL**     | 0 candles                                                          |
-| Candles WS      | Sustained kline updates         | **PASS**     | 3 WS callbacks in 65s (always-on WS + `sdk.` prefix fix confirmed) |
-| Prices WS       | Live ticker update              | **PASS**     | 2 callbacks received (WS fix confirmed)                            |
-| Auth            | isReadyToTrade()                | **UNTESTED** | see below                                                          |
-| Positions       | getPositions()                  | **UNTESTED** | see below                                                          |
-| Orders          | getOrders()                     | **UNTESTED** | see below                                                          |
-| Account         | getAccountState()               | **UNTESTED** | see below                                                          |
+SGLT (Linea Sepolia 59141) is filtered out — paused pool, no ticker data.
 
 ---
 
-## What Actually Works
+## Mainnet (chainId 56, BNB Chain → `api.myx.finance`)
 
-| Feature                  | Testnet          | Mainnet                        |
-| ------------------------ | ---------------- | ------------------------------ |
-| Provider registration    | Yes              | Yes                            |
-| Market list              | No (0 markets)   | Partial (26 junk pools)        |
-| Prices/tickers           | No               | No (all $0)                    |
-| REST candles             | N/A              | MYX token only                 |
-| WS connection            | Yes (always-on)  | Yes (always-on)                |
-| WS candles               | N/A (no markets) | **Yes** — 3 callbacks in 65s   |
-| WS prices                | N/A              | **Yes** — 2 callbacks received |
-| Auth                     | Not validated    | Not validated                  |
-| Positions/Orders/Account | Not validated    | Not validated                  |
+| Category     | Test                     | Result     | Details                            |
+| ------------ | ------------------------ | ---------- | ---------------------------------- |
+| Init         | Provider registered      | PASS       | `myx` in providers map             |
+| Init         | Markets loaded           | PASS       | 27 pools, 3 with price data        |
+| Init         | Markets have name        | PASS       |                                    |
+| Prices       | Tickers with real prices | PASS       | WBTC=$65,585, MYX=$0.40, WBNB=$602 |
+| Candles REST | 1h historical            | PASS       | 101 candles (MYX token)            |
+| Candles REST | 1D historical            | PASS       | 101 candles (MYX token)            |
+| Candles REST | 5m historical            | PASS       | 101 candles (MYX token)            |
+| Candles WS   | Sustained kline updates  | PASS       | 3 WS callbacks                     |
+| Prices WS    | Live ticker update       | PASS       | MYX `"0.4012..."`                  |
+| Auth         | isReadyToTrade           | UNVERIFIED | `auth()` is sync, proves nothing   |
+| Positions    | getPositions             | UNVERIFIED | 0 (auth not validated)             |
+| Orders       | getOrders                | UNVERIFIED | 0 (auth not validated)             |
+| Account      | getAccountState          | UNVERIFIED | all zeros (auth not validated)     |
+| Ping         | Health check             | PASS       |                                    |
 
----
+**Summary:** 10 passed, 0 failed, 0 skipped, 4 unverified
 
-## What Changed (Fixed)
+### Mainnet Markets
 
-| Issue                     | Before                                               | After                                      |
-| ------------------------- | ---------------------------------------------------- | ------------------------------------------ |
-| WS `SOCKET_NOT_CONNECTED` | WS connected lazily in `subscribeToKline()`          | WS connects at construction (always-on)    |
-| WS auth 9401 Unauthorized | SDK `subscription.auth()` missing `sdk.` prefix      | `getAccessToken` prepends `sdk.` prefix    |
-| Phase 2 erases REST data  | WS failure in `subscribeToCandles` wiped candles     | try/catch preserves REST candles           |
-| Public API surface        | `connectWebSocket()`/`disconnectWebSocket()` exposed | Removed — WS lifecycle internal to service |
+27 pools on API, 3 returned after filtering:
 
----
+| Symbol | Price   | Candles | Volume |
+| ------ | ------- | ------- | ------ |
+| WBTC   | $65,585 | —       | $0     |
+| MYX    | $0.40   | Yes     | $50.34 |
+| WBNB   | $602    | —       | $0     |
 
-## Why Auth is Untested
-
-**We are NOT authenticated.** The results above that show `ready:true` / `[]` / zeroes are misleading:
-
-1. **`myxClient.auth()` is synchronous** — stores signer + `getAccessToken` callback. No API call. Our code sets `#authenticated = true` immediately.
-2. **No mainnet credentials exist.** `.js.env` has testnet-only creds. `firstNonEmpty` fallback passes testnet credentials to the mainnet SDK instance.
-3. **MYX API returns empty data without erroring** — cannot distinguish "authenticated + empty" from "unauthenticated + default response".
-4. **`sdk.` prefix workaround applied** — should fix WS auth once credentials are correct.
+24 pools filtered out — community/meme tokens with no ticker data. MYX uses a Multi-Pool Model where anyone can create pools; most are inactive.
 
 ---
 
-## Outstanding Issues
+## Testnet vs Mainnet Comparison
 
-### 1. Mainnet markets are community/meme pools
+| Dimension             | Testnet       | Mainnet                         |
+| --------------------- | ------------- | ------------------------------- |
+| Pools on API          | 2             | 27                              |
+| Active (with prices)  | 1             | 3                               |
+| Prices                | KNY=$65,629   | WBTC=$65k, MYX=$0.40, WBNB=$602 |
+| REST candles          | All intervals | All intervals                   |
+| WS candles + prices   | Yes           | Yes                             |
+| Auth/positions/orders | Unverified    | Unverified                      |
+| Tests passed          | 10/14         | 10/14                           |
 
-26 markets returned, mostly junk (Chinese text, memes, duplicates). Not the BTC/ETH/SOL perpetuals needed.
+---
 
-**Root cause:** MYX Multi-Pool model — anyone can create pools. We fetch ALL pools unfiltered.
+## Known Issues
 
-### 2. All prices are $0
-
-Every ticker: `price: "$0"`, `volume: "$0.00"`. Either adapter mapping is broken (30-decimal format) or these pools have zero activity.
-
-### 3. Testnet returns 0 markets
-
-`api-beta.myx.finance` returns no pools.
-
-### 4. `baseSymbol` missing on all markets
-
-Returned shape missing `baseSymbol`, `symbol`, `quoteSymbol`.
-
-### 5. Candles only work for MYX token
-
-`subscribeToCandles("MYX", "1h")` → 100 candles. `subscribeToCandles("BTCB", "1h")` → 0 candles.
+1. **Most pools have no ticker data** — API only returns prices for active pools (1/2 testnet, 3/27 mainnet). `getMarketDataWithPrices()` filters these out.
+2. **Auth never validated** — `myxClient.auth()` is sync (stores callbacks, no API call). Empty results prove nothing.
+3. **No mainnet credentials** — `.js.env` has testnet creds only.
 
 ---
 
 ## Next Steps
 
-1. ~~**Retest WS**~~ — **DONE** (2026-02-25): WS candles PASS (3 callbacks), WS prices PASS (2 callbacks). Always-on WS + `sdk.` prefix fix confirmed working.
-2. **Validate auth** — Call token API directly or attempt a testnet order
-3. **Market filtering** — Get curated pool list from MYX, or filter by volume > 0 / known symbols
-4. **Price mapping** — Debug raw ticker response vs adapter (30-decimal conversion?)
-5. **Mainnet credentials** — Get dedicated mainnet `appId`/`apiSecret` from MYX team
+1. **Validate auth** — call token API directly or attempt a testnet order.
+2. **Mainnet credentials** — get dedicated `appId`/`apiSecret` from MYX team.
+3. **Curated pool list** — get from MYX team which pools to show, or rely on the active-ticker filter.

@@ -23,6 +23,7 @@ import { useTheme } from '../../../../../util/theme';
 import type { PerpsHomeHeaderProps } from './PerpsHomeHeader.types';
 import styleSheet from './PerpsHomeHeader.styles';
 import { selectPerpsMYXProviderEnabledFlag } from '../../selectors/featureFlags';
+import { selectPerpsNetwork } from '../../selectors/perpsController';
 import { PerpsProviderSelectorBadge } from '../PerpsProviderSelector';
 
 /**
@@ -69,6 +70,8 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
   const { colors } = useTheme();
   const navigation = useNavigation();
   const isMYXProviderEnabled = useSelector(selectPerpsMYXProviderEnabledFlag);
+  const network = useSelector(selectPerpsNetwork);
+  const isTestnet = network === 'testnet';
 
   // Default back handler
   const defaultHandleBack = useCallback(() => {
@@ -158,6 +161,17 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
                 <PerpsProviderSelectorBadge
                   testID={testID ? `${testID}-provider-badge` : undefined}
                 />
+              )}
+              {isTestnet && (
+                <View
+                  style={styles.testnetBadge}
+                  testID={testID ? `${testID}-testnet-badge` : undefined}
+                >
+                  <View style={styles.testnetDot} />
+                  <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
+                    Testnet
+                  </Text>
+                </View>
               )}
             </Box>
           </View>

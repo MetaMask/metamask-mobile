@@ -395,15 +395,16 @@ export class MYXProvider implements PerpsProvider {
         this.#tickersCache.set(ticker.poolId, ticker);
       }
 
-      // Transform to PerpsMarketData
-      return this.#poolsCache.map((pool) => {
-        const ticker = tickerMap.get(pool.poolId);
-        return adaptMarketDataFromMYX(
-          pool,
-          ticker,
-          this.#deps.marketDataFormatters,
+      // Transform to PerpsMarketData, only include pools with ticker data
+      return this.#poolsCache
+        .filter((pool) => tickerMap.has(pool.poolId))
+        .map((pool) =>
+          adaptMarketDataFromMYX(
+            pool,
+            tickerMap.get(pool.poolId),
+            this.#deps.marketDataFormatters,
+          ),
         );
-      });
     } catch (caughtError) {
       const wrappedError = ensureError(
         caughtError,

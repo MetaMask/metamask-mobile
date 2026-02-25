@@ -8,7 +8,7 @@
  * Formatters are injected via MarketDataFormatters interface (same pattern as marketDataTransform.ts).
  *
  * Key differences from HyperLiquid:
- * - Prices use 30 decimals
+ * - API prices are normal floats (SDK contract layer uses 30 decimals internally)
  * - Sizes use 18 decimals (vs HyperLiquid's szDecimals per asset)
  * - Multiple pools can exist per symbol (MPM model)
  * - USDT collateral (vs USDC)
@@ -119,7 +119,7 @@ export function adaptPriceFromMYX(ticker: MYXTicker): {
   price: string;
   change24h: number;
 } {
-  // MYX ticker prices are in 30-decimal format
+  // MYX API returns normal float strings (e.g. "64854.76")
   const priceNum = fromMYXPrice(ticker.price);
 
   // Change is provided as a percentage string (e.g., "2.5" means 2.5%)

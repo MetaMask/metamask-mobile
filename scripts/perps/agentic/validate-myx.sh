@@ -241,29 +241,49 @@ print(names[0] if names else '')
       if (m.length === 0) return JSON.stringify({ok: false, reason: "empty"});
       var s = m[0];
       return JSON.stringify({
-        name: s.name, baseSymbol: s.baseSymbol || null, symbol: s.symbol || null,
-        maxLeverage: s.maxLeverage, szDecimals: s.szDecimals, providerId: s.providerId,
-        keys: Object.keys(s)
+        name: s.name, maxLeverage: s.maxLeverage, szDecimals: s.szDecimals,
+        providerId: s.providerId, keys: Object.keys(s)
       });
     })
   ') || shape_result='{"ok":false}'
   preview "first market" "$(json_decode "$shape_result")" 400
-  local has_base
-  has_base=$(echo "$shape_result" | python3 -c "
+  local has_name
+  has_name=$(echo "$shape_result" | python3 -c "
 import sys, json
 raw = json.load(sys.stdin)
 if isinstance(raw, str): raw = json.loads(raw)
-bs = raw.get('baseSymbol', '')
-print('true' if bs and bs != 'None' else 'false')
+n = raw.get('name', '')
+print('true' if n and n != 'None' else 'false')
 " 2>/dev/null || echo "false")
-  if [ "$has_base" = "true" ]; then
-    record "Init" "Markets have baseSymbol" "PASS"
+  if [ "$has_name" = "true" ]; then
+    record "Init" "Markets have name" "PASS"
   else
-    record "Init" "Markets have baseSymbol" "FAIL" "baseSymbol is empty/missing"
+    record "Init" "Markets have name" "FAIL" "name is empty/missing"
   fi
 
-  # ── 4. Prices: Tickers ──
-  echo "[test] Prices: Tickers..."
+  # ── 4a. Prices: Raw ticker probe (API values before adapter) ──
+  echo "[test] Prices: Raw ticker probe..."
+  local raw_ticker_result
+  raw_ticker_result=$(eval_async '
+    (function() {
+      var provider = Engine.context.PerpsController.providers.get("myx");
+      var cs = provider.__private_625_clientService;
+      var myxClient = cs.__private_638_myxClient;
+      return myxClient.getTickers().then(function(resp) {
+        var tickers = resp.data || [];
+        return JSON.stringify({
+          apiCount: tickers.length,
+          samples: tickers.slice(0, 5).map(function(t) {
+            return {symbol: t.baseSymbol || t.symbol, price: t.price, change: t.change, volume: t.volume};
+          })
+        });
+      });
+    })()
+  ') || raw_ticker_result='{"error":"probe failed"}'
+  preview "raw API tickers" "$(json_decode "$raw_ticker_result")" 600
+
+  # ── 4b. Prices: Formatted tickers (after adapter) ──
+  echo "[test] Prices: Formatted tickers..."
   local tickers_result
   tickers_result=$(eval_async '
     Engine.context.PerpsController.providers.get("myx").getMarketDataWithPrices().then(function(d) {
@@ -277,7 +297,7 @@ print('true' if bs and bs != 'None' else 'false')
   ') || tickers_result='{"count":0}'
   local ticker_count
   ticker_count=$(json_field "$tickers_result" "count")
-  preview "tickers" "$(json_decode "$tickers_result")" 500
+  preview "formatted tickers" "$(json_decode "$tickers_result")" 500
   if [ -n "$ticker_count" ] && [ "$ticker_count" != "0" ]; then
     # Check if prices are actually non-zero
     local has_real_price

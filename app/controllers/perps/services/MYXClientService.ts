@@ -121,7 +121,6 @@ export class MYXClientService {
       chainId: this.#chainId,
       brokerAddress,
       isTestnet: this.#isTestnet,
-      isBetaMode: this.#isTestnet, // Use beta API for testnet
     });
 
     // Connect WS at construction time (always-on, like HyperLiquid).

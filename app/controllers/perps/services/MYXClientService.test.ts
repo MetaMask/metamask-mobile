@@ -37,7 +37,7 @@ jest.mock('@myx-trade/sdk', () => ({
 
 function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
   return {
-    chainId: 97,
+    chainId: 421614,
     marketId: 'market-1',
     poolId: '0xpool1',
     baseSymbol: 'RHEA',
@@ -51,10 +51,10 @@ function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
 
 function makeTicker(overrides: Partial<MYXTicker> = {}): MYXTicker {
   return {
-    chainId: 97,
+    chainId: 421614,
     poolId: '0xpool1',
     oracleId: 1,
-    price: '1500000000000000000000000000000000',
+    price: '1500.00',
     change: '2.5',
     high: '0',
     low: '0',
@@ -113,7 +113,7 @@ describe('MYXClientService', () => {
         '[MYXClientService] Initialized with SDK',
         expect.objectContaining({
           isTestnet: true,
-          chainId: 97,
+          chainId: 421614,
         }),
       );
     });
@@ -233,7 +233,7 @@ describe('MYXClientService', () => {
 
       expect(result).toEqual(tickers);
       expect(mockGetTickerList).toHaveBeenCalledWith({
-        chainId: 97,
+        chainId: 421614,
         poolIds: ['0xpool1'],
       });
     });
@@ -277,7 +277,7 @@ describe('MYXClientService', () => {
 
       expect(result).toEqual(tickers);
       expect(mockGetTickerList).toHaveBeenCalledWith({
-        chainId: 97,
+        chainId: 421614,
         poolIds: ['0xpool1', '0xpool2'],
       });
     });
