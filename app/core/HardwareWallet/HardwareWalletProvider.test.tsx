@@ -21,7 +21,7 @@ jest.mock('./helpers', () => ({
 
 const mockAdapterInstance = {
   walletType: 'Ledger',
-  requiresDeviceDiscovery: false,
+  requiresDeviceDiscovery: true,
   connect: jest.fn().mockResolvedValue(undefined),
   disconnect: jest.fn().mockResolvedValue(undefined),
   getConnectedDeviceId: jest.fn().mockReturnValue('device-123'),

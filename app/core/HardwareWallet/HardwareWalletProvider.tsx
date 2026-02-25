@@ -233,7 +233,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       ...prev,
       devices: [],
       selectedDevice: null,
-      isScanning: true,
+      isScanning: !!adapter?.requiresDeviceDiscovery,
       scanError: null,
     }));
 
@@ -626,10 +626,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   }, [hideAwaitingConfirmation]);
 
   const handleConnectionSuccess = useCallback(() => {
-    if (refs.adapterRef.current) {
-      refs.adapterRef.current.markFlowComplete();
-    }
-
     const callback = connectionSuccessCallbackRef.current;
     if (callback) {
       connectionSuccessCallbackRef.current = null;
@@ -637,7 +633,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     }
 
     updateConnectionState({ status: ConnectionStatus.Disconnected });
-  }, [refs, updateConnectionState]);
+  }, [updateConnectionState]);
 
   const contextValue = useMemo(
     () => ({
