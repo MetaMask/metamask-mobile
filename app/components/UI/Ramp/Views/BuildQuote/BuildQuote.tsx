@@ -55,6 +55,7 @@ import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import TruncatedError from '../../components/TruncatedError';
+import { PROVIDER_LINKS } from '../../Aggregator/types';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -512,7 +513,15 @@ function BuildQuote() {
             {hasAmount ? (
               <>
                 {nativeFlowError ? (
-                  <TruncatedError error={nativeFlowError} />
+                  <TruncatedError
+                    error={nativeFlowError}
+                    providerName={selectedProvider?.name}
+                    providerSupportUrl={
+                      selectedProvider?.links?.find(
+                        (link) => link.name === PROVIDER_LINKS.SUPPORT,
+                      )?.url
+                    }
+                  />
                 ) : (
                   selectedProvider && (
                     <Text

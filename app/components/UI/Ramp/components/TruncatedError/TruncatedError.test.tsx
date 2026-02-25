@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import TruncatedError from './TruncatedError';
 import { createErrorDetailsModalNavDetails } from '../../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
 
@@ -10,28 +10,6 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
 }));
-
-function triggerTruncation(
-  getByText: ReturnType<typeof render>['getByText'],
-  errorText: string,
-  maxLines: number,
-) {
-  const mockEvent = {
-    nativeEvent: {
-      lines: Array.from({ length: maxLines + 1 }, (_, i) => ({
-        text: errorText.slice(i * 20, (i + 1) * 20),
-        x: 0,
-        y: i * 20,
-        width: 100,
-        height: 20,
-      })),
-    },
-  };
-  const textComponent = getByText(errorText);
-  act(() => {
-    fireEvent(textComponent, 'onTextLayout', mockEvent);
-  });
-}
 
 describe('TruncatedError', () => {
   beforeEach(() => {
@@ -59,107 +37,80 @@ describe('TruncatedError', () => {
     });
   });
 
-  describe('Short error text', () => {
-    it('does not render info icon for short error text', () => {
-      const { queryByLabelText } = render(
-        <TruncatedError error="Short error" />,
-      );
+  describe('Info icon visibility', () => {
+    it('always renders the info icon', () => {
+      const { getByLabelText } = render(<TruncatedError error="Short error" />);
 
-      expect(queryByLabelText('View error details')).toBeNull();
+      expect(getByLabelText('View error details')).toBeOnTheScreen();
     });
 
-    it('displays the full error text when not truncated', () => {
+    it('displays the error text', () => {
       const shortError = 'Short error message';
       const { getByText } = render(<TruncatedError error={shortError} />);
 
       expect(getByText(shortError)).toBeOnTheScreen();
     });
-
-    it('does not show info icon when line count equals maxLines', () => {
-      const error = 'Fits within two lines';
-      const { getByText, queryByLabelText } = render(
-        <TruncatedError error={error} maxLines={2} />,
-      );
-
-      const mockEvent = {
-        nativeEvent: {
-          lines: [
-            { text: error.slice(0, 10), x: 0, y: 0, width: 100, height: 20 },
-            { text: error.slice(10), x: 0, y: 20, width: 80, height: 20 },
-          ],
-        },
-      };
-      const textComponent = getByText(error);
-      act(() => {
-        fireEvent(textComponent, 'onTextLayout', mockEvent);
-      });
-
-      expect(queryByLabelText('View error details')).toBeNull();
-    });
-  });
-
-  describe('Long error text (truncated)', () => {
-    const longError =
-      'This is a very long error message that should be truncated when displayed because it exceeds the maximum number of lines allowed and will trigger the text layout event to detect truncation.';
-
-    it('renders info icon when text is truncated', () => {
-      const { getByText, getByLabelText, toJSON } = render(
-        <TruncatedError error={longError} maxLines={2} />,
-      );
-
-      triggerTruncation(getByText, longError, 2);
-
-      expect(getByLabelText('View error details')).toBeOnTheScreen();
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders info icon with maxLines=1 when truncated', () => {
-      const { getByText, getByLabelText } = render(
-        <TruncatedError error={longError} maxLines={1} />,
-      );
-
-      triggerTruncation(getByText, longError, 1);
-
-      expect(getByLabelText('View error details')).toBeOnTheScreen();
-    });
   });
 
   describe('Info button interaction', () => {
-    const longError =
-      'This is a very long error message that should be truncated and the info icon should navigate to the error details modal when pressed.';
+    const errorMessage =
+      'This is an error message that should navigate to the error details modal when the info icon is pressed.';
 
     it('navigates to error details modal when info icon is pressed', () => {
-      const { getByText, getByLabelText } = render(
-        <TruncatedError error={longError} maxLines={2} />,
+      const { getByLabelText } = render(
+        <TruncatedError error={errorMessage} maxLines={2} />,
       );
-
-      triggerTruncation(getByText, longError, 2);
 
       fireEvent.press(getByLabelText('View error details'));
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        ...createErrorDetailsModalNavDetails({ errorMessage: longError }),
+        ...createErrorDetailsModalNavDetails({
+          errorMessage,
+          providerName: undefined,
+          providerSupportUrl: undefined,
+        }),
+      );
+    });
+
+    it('navigates with provider info when provided', () => {
+      const { getByLabelText } = render(
+        <TruncatedError
+          error={errorMessage}
+          maxLines={2}
+          providerName="Transak"
+          providerSupportUrl="https://support.transak.com"
+        />,
+      );
+
+      fireEvent.press(getByLabelText('View error details'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createErrorDetailsModalNavDetails({
+          errorMessage,
+          providerName: 'Transak',
+          providerSupportUrl: 'https://support.transak.com',
+        }),
       );
     });
 
     it('navigates with updated error when error prop changes', () => {
-      const { getByText, getByLabelText, rerender } = render(
-        <TruncatedError error={longError} maxLines={2} />,
+      const { getByLabelText, rerender } = render(
+        <TruncatedError error={errorMessage} maxLines={2} />,
       );
 
-      triggerTruncation(getByText, longError, 2);
-
       const updatedError =
-        'Updated error message that is also long enough to be truncated and should navigate to the error details modal with the new message.';
+        'Updated error message that should navigate to the error details modal with the new message.';
 
       rerender(<TruncatedError error={updatedError} maxLines={2} />);
-
-      triggerTruncation(getByText, updatedError, 2);
 
       fireEvent.press(getByLabelText('View error details'));
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        ...createErrorDetailsModalNavDetails({ errorMessage: updatedError }),
+        ...createErrorDetailsModalNavDetails({
+          errorMessage: updatedError,
+          providerName: undefined,
+          providerSupportUrl: undefined,
+        }),
       );
     });
   });

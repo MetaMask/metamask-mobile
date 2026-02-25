@@ -4918,7 +4918,9 @@
     },
     "provider_picker_modal": {
       "title": "Choose a provider"
-    }
+    },
+    "contact_provider_support": "Contact {{provider}} support",
+    "got_it": "Got it"
   },
   "fiat_on_ramp_aggregator": {
     "buy": "buy",

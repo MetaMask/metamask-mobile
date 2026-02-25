@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { View, ScrollView, useWindowDimensions } from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { Linking, View, ScrollView, useWindowDimensions } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -13,6 +13,10 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
   createNavigationDetails,
@@ -24,6 +28,8 @@ import styleSheet from './ErrorDetailsModal.styles';
 
 export interface ErrorDetailsModalParams {
   errorMessage: string;
+  providerName?: string;
+  providerSupportUrl?: string;
 }
 
 export const createErrorDetailsModalNavDetails =
@@ -39,12 +45,23 @@ function ErrorDetailsModal() {
     screenHeight,
   });
 
-  const { errorMessage } = useParams<ErrorDetailsModalParams>();
+  const { errorMessage, providerName, providerSupportUrl } =
+    useParams<ErrorDetailsModalParams>();
+
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleContactSupport = useCallback(() => {
+    if (providerSupportUrl) {
+      Linking.openURL(providerSupportUrl);
+    }
+  }, [providerSupportUrl]);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader
-        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+        onClose={handleClose}
         closeButtonProps={{ testID: 'error-details-close-button' }}
       >
         <View style={styles.headerContainer}>
@@ -70,6 +87,27 @@ function ErrorDetailsModal() {
           </Text>
         </View>
       </ScrollView>
+
+      <View style={styles.buttonContainer}>
+        {providerName && providerSupportUrl ? (
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            onPress={handleContactSupport}
+            label={strings('fiat_on_ramp.contact_provider_support', {
+              provider: providerName,
+            })}
+            style={styles.button}
+          />
+        ) : null}
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          onPress={handleClose}
+          label={strings('fiat_on_ramp.got_it')}
+          style={styles.button}
+        />
+      </View>
     </BottomSheet>
   );
 }

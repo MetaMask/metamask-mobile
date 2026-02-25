@@ -14,11 +14,11 @@ exports[`TruncatedError Basic rendering renders an empty error string 1`] = `
   <Text
     accessibilityRole="text"
     ellipsizeMode="tail"
-    numberOfLines={2}
-    onTextLayout={[Function]}
+    numberOfLines={1}
     style={
       {
         "color": "#ca3542",
+        "flexShrink": 1,
         "fontFamily": "Geist-Regular",
         "fontSize": 14,
         "letterSpacing": 0,
@@ -26,6 +26,33 @@ exports[`TruncatedError Basic rendering renders an empty error string 1`] = `
       }
     }
   />
+  <TouchableOpacity
+    accessibilityLabel="View error details"
+    accessibilityRole="button"
+    hitSlop={
+      {
+        "bottom": 8,
+        "left": 8,
+        "right": 8,
+        "top": 8,
+      }
+    }
+    onPress={[Function]}
+  >
+    <SvgMock
+      color="#ca3542"
+      fill="currentColor"
+      height={16}
+      name="Info"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </TouchableOpacity>
 </View>
 `;
 
@@ -43,11 +70,11 @@ exports[`TruncatedError Basic rendering renders correctly and matches snapshot 1
   <Text
     accessibilityRole="text"
     ellipsizeMode="tail"
-    numberOfLines={2}
-    onTextLayout={[Function]}
+    numberOfLines={1}
     style={
       {
         "color": "#ca3542",
+        "flexShrink": 1,
         "fontFamily": "Geist-Regular",
         "fontSize": 14,
         "letterSpacing": 0,
@@ -57,6 +84,33 @@ exports[`TruncatedError Basic rendering renders correctly and matches snapshot 1
   >
     This is a test error message
   </Text>
+  <TouchableOpacity
+    accessibilityLabel="View error details"
+    accessibilityRole="button"
+    hitSlop={
+      {
+        "bottom": 8,
+        "left": 8,
+        "right": 8,
+        "top": 8,
+      }
+    }
+    onPress={[Function]}
+  >
+    <SvgMock
+      color="#ca3542"
+      fill="currentColor"
+      height={16}
+      name="Info"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </TouchableOpacity>
 </View>
 `;
 
@@ -75,10 +129,10 @@ exports[`TruncatedError Basic rendering renders with custom maxLines prop 1`] = 
     accessibilityRole="text"
     ellipsizeMode="tail"
     numberOfLines={3}
-    onTextLayout={[Function]}
     style={
       {
         "color": "#ca3542",
+        "flexShrink": 1,
         "fontFamily": "Geist-Regular",
         "fontSize": 14,
         "letterSpacing": 0,
@@ -87,37 +141,6 @@ exports[`TruncatedError Basic rendering renders with custom maxLines prop 1`] = 
     }
   >
     This is a test error message
-  </Text>
-</View>
-`;
-
-exports[`TruncatedError Long error text (truncated) renders info icon when text is truncated 1`] = `
-<View
-  style={
-    {
-      "alignItems": "center",
-      "flexDirection": "row",
-      "gap": 6,
-      "justifyContent": "center",
-    }
-  }
->
-  <Text
-    accessibilityRole="text"
-    ellipsizeMode="tail"
-    numberOfLines={2}
-    onTextLayout={[Function]}
-    style={
-      {
-        "color": "#ca3542",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 14,
-        "letterSpacing": 0,
-        "lineHeight": 22,
-      }
-    }
-  >
-    This is a very long error message that should be truncated when displayed because it exceeds the maximum number of lines allowed and will trigger the text layout event to detect truncation.
   </Text>
   <TouchableOpacity
     accessibilityLabel="View error details"

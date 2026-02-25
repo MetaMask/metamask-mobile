@@ -19,7 +19,7 @@ const styleSheet = (params: {
       gap: 8,
     },
     scrollView: {
-      maxHeight: screenHeight * 0.8,
+      maxHeight: screenHeight * 0.6,
     },
     contentContainer: {
       paddingHorizontal: 16,
@@ -27,6 +27,14 @@ const styleSheet = (params: {
     },
     errorText: {
       lineHeight: 24,
+    },
+    buttonContainer: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      gap: 8,
+    },
+    button: {
+      width: '100%',
     },
   });
 };

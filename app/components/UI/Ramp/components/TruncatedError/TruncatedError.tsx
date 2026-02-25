@@ -1,11 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import {
-  TouchableOpacity,
-  View,
-  StyleSheet,
-  type NativeSyntheticEvent,
-  type TextLayoutEventData,
-} from 'react-native';
+import React, { useCallback } from 'react';
+import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
@@ -21,6 +15,8 @@ import { createErrorDetailsModalNavDetails } from '../../Views/Modals/ErrorDetai
 interface TruncatedErrorProps {
   error: string;
   maxLines?: number;
+  providerName?: string;
+  providerSupportUrl?: string;
 }
 
 const styles = StyleSheet.create({
@@ -30,28 +26,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
   },
+  text: {
+    flexShrink: 1,
+  },
 });
 
 const TruncatedError: React.FC<TruncatedErrorProps> = ({
   error,
-  maxLines = 2,
+  maxLines = 1,
+  providerName,
+  providerSupportUrl,
 }) => {
   const navigation = useNavigation();
-  const [isTruncated, setIsTruncated] = useState(false);
-
-  const handleTextLayout = useCallback(
-    (event: NativeSyntheticEvent<TextLayoutEventData>) => {
-      const { lines } = event.nativeEvent;
-      setIsTruncated(lines.length > maxLines);
-    },
-    [maxLines],
-  );
 
   const handleInfoPress = useCallback(() => {
     navigation.navigate(
-      ...createErrorDetailsModalNavDetails({ errorMessage: error }),
+      ...createErrorDetailsModalNavDetails({
+        errorMessage: error,
+        providerName,
+        providerSupportUrl,
+      }),
     );
-  }, [error, navigation]);
+  }, [error, navigation, providerName, providerSupportUrl]);
 
   return (
     <View style={styles.container}>
@@ -60,24 +56,18 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
         color={TextColor.Error}
         numberOfLines={maxLines}
         ellipsizeMode="tail"
-        onTextLayout={handleTextLayout}
+        style={styles.text}
       >
         {error}
       </Text>
-      {isTruncated ? (
-        <TouchableOpacity
-          onPress={handleInfoPress}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          accessibilityRole="button"
-          accessibilityLabel="View error details"
-        >
-          <Icon
-            name={IconName.Info}
-            size={IconSize.Sm}
-            color={IconColor.Error}
-          />
-        </TouchableOpacity>
-      ) : null}
+      <TouchableOpacity
+        onPress={handleInfoPress}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        accessibilityRole="button"
+        accessibilityLabel="View error details"
+      >
+        <Icon name={IconName.Info} size={IconSize.Sm} color={IconColor.Error} />
+      </TouchableOpacity>
     </View>
   );
 };
