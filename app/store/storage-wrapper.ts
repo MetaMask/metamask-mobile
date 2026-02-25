@@ -127,7 +127,7 @@ class StorageWrapper extends EventEmitter2 {
    */
   async removeItem(key: string) {
     try {
-      return await this.storage.delete(key);
+      return await this.storage.remove(key);
     } catch (error) {
       if (isE2E) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
