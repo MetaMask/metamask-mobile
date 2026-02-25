@@ -112,8 +112,6 @@ import {
   type ShippingAddress,
 } from '../../util/buildUserAddress';
 import AnimatedSpinner from '../../../AnimatedSpinner';
-import Logger from '../../../../../util/Logger';
-import { RootState } from '../../../../../reducers';
 
 /**
  * Route params for CardHome screen
@@ -602,12 +600,6 @@ const CardHome = () => {
     trackEvent,
     createEventBuilder,
   ]);
-
-  // TODO: remove after verifying migration 123 cleaned the card state
-  const cardReduxState = useSelector((s: RootState) => s.card);
-  useEffect(() => {
-    Logger.log('[CardHome] card redux state:', JSON.stringify(cardReduxState));
-  }, [cardReduxState]);
 
   const changeAssetAction = useCallback(() => {
     trackEvent(
