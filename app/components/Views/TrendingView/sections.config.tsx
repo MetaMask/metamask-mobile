@@ -21,7 +21,11 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
-import { Box, IconName } from '@metamask/design-system-react-native';
+import {
+  Box,
+  IconName as DSIconName,
+} from '@metamask/design-system-react-native';
+import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon/Icon.types';
 import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
 import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
@@ -39,6 +43,10 @@ import { useRwaTokens } from '../../UI/Trending/hooks/useRwaTokens/useRwaTokens'
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'stocks' | 'sites';
 
+export type SectionIcon =
+  | { source: 'local'; name: LocalIconName }
+  | { source: 'design-system'; name: DSIconName };
+
 interface SectionData {
   data: unknown[];
   isLoading: boolean;
@@ -47,7 +55,7 @@ interface SectionData {
 interface SectionConfig {
   id: SectionId;
   title: string;
-  icon: IconName;
+  icon: SectionIcon;
   viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
   RowItem: React.ComponentType<{
     item: unknown;
@@ -161,7 +169,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
     id: 'tokens',
     title: strings('trending.trending_tokens'),
-    icon: IconName.Ethereum,
+    icon: { source: 'design-system', name: DSIconName.Ethereum },
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
     },
@@ -203,7 +211,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   perps: {
     id: 'perps',
     title: strings('trending.perps'),
-    icon: IconName.Candlestick,
+    icon: { source: 'design-system', name: DSIconName.Candlestick },
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
@@ -257,7 +265,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   stocks: {
     id: 'stocks',
     title: strings('trending.stocks'),
-    icon: IconName.Ethereum, // TODO juan
+    icon: { source: 'local', name: LocalIconName.CorporateFare },
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW);
     },
@@ -285,7 +293,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   predictions: {
     id: 'predictions',
     title: strings('wallet.predict'),
-    icon: IconName.Speedometer,
+    icon: { source: 'design-system', name: DSIconName.Speedometer },
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
@@ -327,7 +335,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   sites: {
     id: 'sites',
     title: strings('trending.sites'),
-    icon: IconName.Global,
+    icon: { source: 'design-system', name: DSIconName.Global },
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.SITES_FULL_VIEW);
     },
