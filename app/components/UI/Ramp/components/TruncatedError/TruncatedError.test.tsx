@@ -72,7 +72,7 @@ describe('TruncatedError', () => {
       const shortError = 'Short error message';
       const { getByText } = render(<TruncatedError error={shortError} />);
 
-      expect(getByText(shortError)).toBeTruthy();
+      expect(getByText(shortError)).toBeOnTheScreen();
     });
 
     it('does not show info icon when line count equals maxLines', () => {
@@ -109,7 +109,7 @@ describe('TruncatedError', () => {
 
       triggerTruncation(getByText, longError, 2);
 
-      expect(getByLabelText('View error details')).toBeTruthy();
+      expect(getByLabelText('View error details')).toBeOnTheScreen();
       expect(toJSON()).toMatchSnapshot();
     });
 
@@ -120,7 +120,7 @@ describe('TruncatedError', () => {
 
       triggerTruncation(getByText, longError, 1);
 
-      expect(getByLabelText('View error details')).toBeTruthy();
+      expect(getByLabelText('View error details')).toBeOnTheScreen();
     });
   });
 
