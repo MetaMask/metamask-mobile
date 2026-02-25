@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -33,7 +34,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { useMarketInsights } from '../../hooks/useMarketInsights';
 import MarketInsightsTrendItem from '../../components/MarketInsightsTrendItem';
 import MarketInsightsTweetCard from '../../components/MarketInsightsTweetCard';
-import MarketInsightsSourcesFooter from '../../components/MarketInsightsSourcesFooter';
+import MarketInsightsSourcesFooter, {
+  MarketInsightsSourcesBottomSheet,
+} from '../../components/MarketInsightsSourcesFooter';
 import MarketInsightsTrendSourcesBottomSheet from '../../components/MarketInsightsTrendSourcesBottomSheet';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -49,6 +52,15 @@ import type {
 import { selectMarketInsightsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { IconName as ComponentLibraryIconName } from '../../../../../component-library/components/Icons/Icon';
+import { useAppThemeFromContext } from '../../../../../util/theme';
+import MarketInsightsFeedbackBottomSheet, {
+  MarketInsightsFeedbackReason,
+} from '../../components/MarketInsightsFeedbackBottomSheet';
 
 const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
@@ -252,6 +264,8 @@ const MarketInsightsView: React.FC = () => {
     isMarketInsightsEnabled,
   );
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { toastRef } = useContext(ToastContext);
+  const theme = useAppThemeFromContext();
   const hasTrackedViewRef = useRef(false);
   const [selectedTrend, setSelectedTrend] =
     useState<MarketInsightsTrend | null>(null);
@@ -259,6 +273,8 @@ const MarketInsightsView: React.FC = () => {
   const loadingSkeletonTimeoutRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
+  const [isSourcesSheetVisible, setIsSourcesSheetVisible] = useState(false);
+  const [isFeedbackSheetVisible, setIsFeedbackSheetVisible] = useState(false);
 
   // Build BridgeToken from route params for swap navigation
   const sourceToken = useMemo(() => {
@@ -358,16 +374,33 @@ const MarketInsightsView: React.FC = () => {
     },
     [],
   );
+  const handleOpenSources = useCallback(() => {
+    setIsSourcesSheetVisible(true);
+  }, []);
+
+  const handleCloseSources = useCallback(() => {
+    setIsSourcesSheetVisible(false);
+  }, []);
 
   const trackMarketInsightsInteraction = useCallback(
     (
       interactionType: 'thumbs_up' | 'thumbs_down' | 'source_click',
-      source?: string,
+      options?: {
+        source?: string;
+        feedbackReason?: MarketInsightsFeedbackReason;
+        feedbackText?: string;
+      },
     ) => {
       const properties = {
         caip19: caip19Id,
         interaction_type: interactionType,
-        ...(source ? { source } : {}),
+        ...(options?.source ? { source: options.source } : {}),
+        ...(options?.feedbackReason
+          ? { feedback_reason: options.feedbackReason }
+          : {}),
+        ...(options?.feedbackText
+          ? { feedback_text: options.feedbackText }
+          : {}),
       };
       const event = createEventBuilder(
         MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
@@ -379,21 +412,55 @@ const MarketInsightsView: React.FC = () => {
     [trackEvent, createEventBuilder, caip19Id],
   );
 
+  const showFeedbackSubmittedToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: ComponentLibraryIconName.CheckBold,
+      iconColor: theme.colors.success.default,
+      backgroundColor: theme.colors.background.section,
+      labelOptions: [{ label: strings('market_insights.feedback_submitted') }],
+      hasNoTimeout: false,
+    });
+  }, [toastRef, theme.colors.success.default, theme.colors.background.section]);
+
   useEffect(() => {
     hasTrackedViewRef.current = false;
   }, [caip19Id]);
 
   const handleThumbsUpPress = useCallback(() => {
     trackMarketInsightsInteraction('thumbs_up');
-  }, [trackMarketInsightsInteraction]);
+    showFeedbackSubmittedToast();
+  }, [trackMarketInsightsInteraction, showFeedbackSubmittedToast]);
 
   const handleThumbsDownPress = useCallback(() => {
-    trackMarketInsightsInteraction('thumbs_down');
-  }, [trackMarketInsightsInteraction]);
+    setIsFeedbackSheetVisible(true);
+  }, []);
+
+  const handleCloseFeedbackSheet = useCallback(() => {
+    setIsFeedbackSheetVisible(false);
+  }, []);
+
+  const handleFeedbackSubmit = useCallback(
+    ({
+      reason,
+      feedbackText,
+    }: {
+      reason: MarketInsightsFeedbackReason;
+      feedbackText?: string;
+    }) => {
+      trackMarketInsightsInteraction('thumbs_down', {
+        feedbackReason: reason,
+        ...(feedbackText ? { feedbackText } : {}),
+      });
+      setIsFeedbackSheetVisible(false);
+      showFeedbackSubmittedToast();
+    },
+    [trackMarketInsightsInteraction, showFeedbackSubmittedToast],
+  );
 
   const handleSourcePress = useCallback(
     (url: string) => {
-      trackMarketInsightsInteraction('source_click', url);
+      trackMarketInsightsInteraction('source_click', { source: url });
     },
     [trackMarketInsightsInteraction],
   );
@@ -456,7 +523,7 @@ const MarketInsightsView: React.FC = () => {
       </Box>
 
       <ScrollView
-        contentContainerStyle={tw.style(`pb-[${insets.bottom + 80}px]`)}
+        contentContainerStyle={tw.style('pb-6')}
         showsVerticalScrollIndicator={false}
       >
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
@@ -586,28 +653,35 @@ const MarketInsightsView: React.FC = () => {
             </Box>
           </AnimatedSection>
         )}
+      </ScrollView>
 
+      <Box twClassName={`bg-default pt-2 pb-[${insets.bottom}px]`}>
         <MarketInsightsSourcesFooter
           sources={report.sources}
-          onSourcePress={handleSourcePress}
+          onSourcesPress={handleOpenSources}
           onThumbsUp={handleThumbsUpPress}
           onThumbsDown={handleThumbsDownPress}
           testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
         />
-      </ScrollView>
-
-      <Box
-        twClassName={`absolute bottom-0 left-0 right-0 bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
-      >
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleTradePress}
-          testID={MarketInsightsSelectorsIDs.TRADE_BUTTON}
-        >
-          {strings('market_insights.trade_button')}
-        </Button>
+        <Box twClassName="px-4">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleTradePress}
+            testID={MarketInsightsSelectorsIDs.TRADE_BUTTON}
+          >
+            {strings('market_insights.trade_button')}
+          </Button>
+          <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings('market_insights.fixed_footer_disclaimer')}
+            </Text>
+          </Box>
+        </Box>
       </Box>
 
       {selectedTrend ? (
@@ -618,6 +692,23 @@ const MarketInsightsView: React.FC = () => {
           articles={selectedTrend.articles}
           tweets={selectedTrend.tweets ?? []}
           onSourcePress={handleSourcePress}
+        />
+      ) : null}
+
+      {isSourcesSheetVisible ? (
+        <MarketInsightsSourcesBottomSheet
+          isVisible
+          onClose={handleCloseSources}
+          sources={report.sources}
+          onSourcePress={handleSourcePress}
+        />
+      ) : null}
+
+      {isFeedbackSheetVisible ? (
+        <MarketInsightsFeedbackBottomSheet
+          isVisible
+          onClose={handleCloseFeedbackSheet}
+          onSubmit={handleFeedbackSubmit}
         />
       ) : null}
     </Box>
