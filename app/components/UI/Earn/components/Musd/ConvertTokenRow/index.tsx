@@ -56,7 +56,7 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
   token,
   onMaxPress,
   onEditPress,
-  isActionsDisabled = false,
+  areActionsDisabled = false,
   isConversionPending = false,
   errorMessage,
 }) => {
@@ -72,18 +72,18 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
     : `${token.balance} ${token.symbol}`;
 
   const handleMaxPress = useCallback(() => {
-    if (isActionsDisabled || isConversionPending) {
+    if (areActionsDisabled || isConversionPending) {
       return;
     }
     onMaxPress(token);
-  }, [isActionsDisabled, isConversionPending, onMaxPress, token]);
+  }, [areActionsDisabled, isConversionPending, onMaxPress, token]);
 
   const handleEditPress = useCallback(() => {
-    if (isActionsDisabled || isConversionPending) {
+    if (areActionsDisabled || isConversionPending) {
       return;
     }
     onEditPress(token);
-  }, [isActionsDisabled, isConversionPending, onEditPress, token]);
+  }, [areActionsDisabled, isConversionPending, onEditPress, token]);
 
   return (
     <View style={styles.container} testID={ConvertTokenRowTestIds.CONTAINER}>
@@ -140,7 +140,7 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
                 onPress={handleMaxPress}
-                isDisabled={isActionsDisabled}
+                isDisabled={areActionsDisabled}
                 testID={ConvertTokenRowTestIds.MAX_BUTTON}
               >
                 <Text variant={TextVariant.BodyMDMedium}>
@@ -153,7 +153,7 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
                 size={ButtonIconSize.Lg}
                 iconProps={{ size: IconSize.Sm }}
                 onPress={handleEditPress}
-                isDisabled={isActionsDisabled}
+                isDisabled={areActionsDisabled}
                 testID={ConvertTokenRowTestIds.EDIT_BUTTON}
               />
             </>

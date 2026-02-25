@@ -22,7 +22,6 @@ import {
 } from '../../selectors/musdConversionStatus';
 import ConvertTokenRow from '../../components/Musd/ConvertTokenRow';
 import styleSheet from './MusdQuickConvertView.styles';
-import { MusdQuickConvertViewTestIds } from './MusdQuickConvertView.types';
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { TagProps } from '../../../../../component-library/components/Tags/Tag/Tag.types';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
@@ -31,6 +30,14 @@ import MusdBalanceCard from './components/MusdBalanceCard';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import Logger from '../../../../../util/Logger';
 import { useMusdBalance } from '../../hooks/useMusdBalance';
+
+export const MusdQuickConvertViewTestIds = {
+  CONTAINER: 'musd-quick-convert-view-container',
+  TOKEN_LIST: 'musd-quick-convert-view-token-list',
+  EMPTY_STATE: 'musd-quick-convert-view-empty-state',
+  LOADING: 'musd-quick-convert-view-loading',
+  HEADER: 'musd-quick-convert-view-header',
+} as const;
 
 interface SectionHeaderProps {
   title: string;
@@ -193,7 +200,7 @@ const MusdQuickConvertView = () => {
           token={item}
           onMaxPress={handleMaxPress}
           onEditPress={handleEditPress}
-          isActionsDisabled={hasInFlightMusdConversion}
+          areActionsDisabled={hasInFlightMusdConversion}
           isConversionPending={Boolean(txStatusInfo?.isPending)}
         />
       );

@@ -161,9 +161,7 @@ export const selectMusdConversionCTATokens = createSelector(
  * This flag enables the Quick Convert Token List screen where users can
  * quickly convert their existing tokens to mUSD via Max or Edit flows.
  *
- * IMPORTANT: Both this flag AND selectIsMusdConversionFlowEnabledFlag must be
- * enabled to show the Quick Convert feature. Use selectIsMusdQuickConvertFullyEnabled
- * for convenience.
+ * IMPORTANT: This flag depends on selectIsMusdConversionFlowEnabledFlag.
  */
 export const selectMusdQuickConvertEnabledFlag = createSelector(
   selectRemoteFeatureFlags,

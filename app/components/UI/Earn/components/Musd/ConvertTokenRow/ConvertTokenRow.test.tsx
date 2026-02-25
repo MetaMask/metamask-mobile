@@ -193,9 +193,9 @@ describe('ConvertTokenRow', () => {
   });
 
   describe('disabled button behavior', () => {
-    it('Max button has isDisabled true when isActionsDisabled is true', () => {
+    it('Max button has isDisabled true when areActionsDisabled is true', () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} isActionsDisabled />,
+        <ConvertTokenRow {...defaultProps} areActionsDisabled />,
         { state: initialRootState },
       );
 
@@ -204,9 +204,9 @@ describe('ConvertTokenRow', () => {
       expect(maxButton.props.accessibilityState?.disabled).toBe(true);
     });
 
-    it('Edit button has isDisabled true when isActionsDisabled is true', () => {
+    it('Edit button has isDisabled true when areActionsDisabled is true', () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} isActionsDisabled />,
+        <ConvertTokenRow {...defaultProps} areActionsDisabled />,
         { state: initialRootState },
       );
 
@@ -215,9 +215,9 @@ describe('ConvertTokenRow', () => {
       expect(editButton.props.accessibilityState?.disabled).toBe(true);
     });
 
-    it('Max button has isDisabled false when isActionsDisabled is false', () => {
+    it('Max button has isDisabled false when areActionsDisabled is false', () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} isActionsDisabled={false} />,
+        <ConvertTokenRow {...defaultProps} areActionsDisabled={false} />,
         { state: initialRootState },
       );
 
@@ -226,9 +226,9 @@ describe('ConvertTokenRow', () => {
       expect(maxButton.props.accessibilityState?.disabled).toBe(false);
     });
 
-    it('Edit button has isDisabled false when isActionsDisabled is false', () => {
+    it('Edit button has isDisabled false when areActionsDisabled is false', () => {
       const { getByTestId } = renderWithProvider(
-        <ConvertTokenRow {...defaultProps} isActionsDisabled={false} />,
+        <ConvertTokenRow {...defaultProps} areActionsDisabled={false} />,
         { state: initialRootState },
       );
 
@@ -245,7 +245,7 @@ describe('ConvertTokenRow', () => {
         <ConvertTokenRow
           {...defaultProps}
           token={token}
-          isActionsDisabled={false}
+          areActionsDisabled={false}
           isConversionPending={false}
         />,
         { state: initialRootState },
@@ -267,7 +267,7 @@ describe('ConvertTokenRow', () => {
         <ConvertTokenRow
           {...defaultProps}
           token={token}
-          isActionsDisabled={false}
+          areActionsDisabled={false}
           isConversionPending={false}
         />,
         { state: initialRootState },
@@ -283,11 +283,11 @@ describe('ConvertTokenRow', () => {
       expect(mockOnEditPress).toHaveBeenCalledWith(token);
     });
 
-    it('does not call onMaxPress when Max button is pressed and isActionsDisabled is true', async () => {
+    it('does not call onMaxPress when Max button is pressed and areActionsDisabled is true', async () => {
       const { getByTestId } = renderWithProvider(
         <ConvertTokenRow
           {...defaultProps}
-          isActionsDisabled
+          areActionsDisabled
           isConversionPending={false}
         />,
         { state: initialRootState },
@@ -302,11 +302,11 @@ describe('ConvertTokenRow', () => {
       expect(mockOnMaxPress).not.toHaveBeenCalled();
     });
 
-    it('does not call onEditPress when Edit button is pressed and isActionsDisabled is true', async () => {
+    it('does not call onEditPress when Edit button is pressed and areActionsDisabled is true', async () => {
       const { getByTestId } = renderWithProvider(
         <ConvertTokenRow
           {...defaultProps}
-          isActionsDisabled
+          areActionsDisabled
           isConversionPending={false}
         />,
         { state: initialRootState },

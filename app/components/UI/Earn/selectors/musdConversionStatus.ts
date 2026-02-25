@@ -19,11 +19,6 @@ interface ConversionStatusInfo {
 }
 
 /**
- * UI status for a token row in the Quick Convert list.
- */
-export type ConversionUIStatus = 'idle' | 'pending' | 'confirmed' | 'failed';
-
-/**
  * Transaction statuses that indicate an in-flight conversion.
  */
 const IN_FLIGHT_STATUSES: TransactionStatus[] = [

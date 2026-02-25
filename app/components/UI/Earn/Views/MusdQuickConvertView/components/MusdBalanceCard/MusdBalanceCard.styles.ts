@@ -8,20 +8,12 @@ const styleSheet = (_params: { theme: Theme }) =>
       justifyContent: 'space-between',
       flexDirection: 'row',
     },
-    containerPressed: {
-      opacity: 0.7,
-    },
     left: {
       flexDirection: 'row',
       gap: 16,
     },
     right: {
       alignSelf: 'center',
-    },
-    networkRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 2,
     },
     tokenIconContainer: {
       width: 32,
