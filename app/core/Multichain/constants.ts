@@ -53,16 +53,19 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
     url: 'https://solscan.io/',
     address: 'https://solscan.io/account/{address}',
     transaction: 'https://solscan.io/tx/{txId}',
+    token: 'https://solscan.io/token/{address}',
   },
   [SolScope.Devnet]: {
     url: 'https://solscan.io/',
     address: 'https://solscan.io/account/{address}?cluster=devnet',
     transaction: 'https://solscan.io/tx/{txId}?cluster=devnet',
+    token: 'https://solscan.io/token/{address}?cluster=devnet',
   },
   [SolScope.Testnet]: {
     url: 'https://solscan.io/',
     address: 'https://solscan.io/account/{address}?cluster=testnet',
     transaction: 'https://solscan.io/tx/{txId}?cluster=testnet',
+    token: 'https://solscan.io/token/{address}?cluster=testnet',
   },
   [TrxScope.Mainnet]: {
     url: 'https://tronscan.org/',
