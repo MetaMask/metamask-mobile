@@ -395,7 +395,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="SecuritySettings"
         component={SecuritySettings}
-        options={SecuritySettings.navigationOptions}
+        options={{ headerShown: false }}
       />
 
       <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
@@ -466,7 +466,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="ResetPassword"
         component={ResetPassword}
-        options={ResetPassword.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="WalletRecovery"
@@ -506,7 +506,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.BACKUP_AND_SYNC}
         component={BackupAndSyncSettings}
-        options={BackupAndSyncSettings.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.SETTINGS.REGION_SELECTOR}
