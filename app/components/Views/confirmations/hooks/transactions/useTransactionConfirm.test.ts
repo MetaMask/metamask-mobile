@@ -265,24 +265,6 @@ describe('useTransactionConfirm', () => {
       });
     });
 
-    it('skips navigation when skipNavigation option is passed', async () => {
-      const tryEnableEvmNetworkMock = jest.fn();
-      useNetworkEnablementMock.mockReturnValue({
-        tryEnableEvmNetwork: tryEnableEvmNetworkMock,
-      } as unknown as ReturnType<typeof useNetworkEnablement>);
-
-      const { result } = renderHook();
-
-      await act(async () => {
-        await result.current.onConfirm({ skipNavigation: true });
-      });
-
-      expect(onApprovalConfirm).toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockGoBack).not.toHaveBeenCalled();
-      expect(tryEnableEvmNetworkMock).toHaveBeenCalledWith(CHAIN_ID_MOCK);
-    });
-
     it('skips navigation if perps deposit and order (caller handles navigation)', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,

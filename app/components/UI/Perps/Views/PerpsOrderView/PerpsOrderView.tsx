@@ -865,7 +865,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           handlePlaceOrder(true);
         });
 
-        await onDepositConfirm({ skipNavigation: true });
+        await onDepositConfirm();
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
