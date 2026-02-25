@@ -20,7 +20,20 @@ export type { HistoryOrderItem as MYXHistoryOrderItem } from '@myx-trade/sdk';
 export type { PositionHistoryItem as MYXPositionHistoryItem } from '@myx-trade/sdk';
 export type { TradeFlowItem as MYXTradeFlowItem } from '@myx-trade/sdk';
 export type { KlineDataItemType as MYXKlineData } from '@myx-trade/sdk';
-export type { KlineData as MYXKlineWsData } from '@myx-trade/sdk';
+// KlineData is declared but not exported by @myx-trade/sdk — define locally.
+// Property names match the SDK's wire format (single-char keys).
+export type MYXKlineWsData = {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  E: number; // Timestamp
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  T: string; // Turnover
+  c: string; // Close price
+  h: string; // High price
+  l: string; // Low price
+  o: string; // Open price
+  t: number; // Timestamp
+  v: string; // Volume
+};
 export type { KlineDataResponse as MYXKlineDataResponse } from '@myx-trade/sdk';
 
 // SDK enums (re-exported as types since they're const objects in the SDK)

@@ -858,11 +858,17 @@ export class PerpsController extends BaseController<
    * @returns True if the condition is met.
    */
   #isMYXProviderEnabled(): boolean {
-    // MYX is considered enabled if credentials are configured.
-    // The credentials are passed via clientConfig (babel-transformed process.env.X in the init file).
-    // Local config always wins — if credentials are present, MYX is enabled regardless of remote flag.
     const config = this.#options.clientConfig ?? {};
-    // Use || so empty-string env vars (default '') fall through to mainnet
+
+    // Local env-var override (MM_PERPS_MYX_PROVIDER_ENABLED) always wins —
+    // matches the UI selector (resolvePerpsMyxProviderEnabled) so controller
+    // and UI agree on whether MYX is available.
+    if (config.myxProviderEnabled) {
+      return true;
+    }
+
+    // Credentials present → MYX is enabled regardless of remote flag.
+    // Use || so empty-string env vars (default '') fall through.
     const hasCredentials = Boolean(
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       config.myxAppIdTestnet || config.myxAppIdMainnet,
@@ -872,7 +878,7 @@ export class PerpsController extends BaseController<
       return true;
     }
 
-    // No local credentials — check remote flag as fallback
+    // No local override or credentials — check remote flag as fallback
     try {
       const remoteState = this.messenger.call(
         'RemoteFeatureFlagController:getState',
@@ -1189,12 +1195,11 @@ export class PerpsController extends BaseController<
         if (!isValidEntry(entry)) {
           continue;
         }
-        const validEntry = cache[key];
-        allPositions.push(...validEntry.positions);
-        allOrders.push(...validEntry.orders);
+        allPositions.push(...entry.positions);
+        allOrders.push(...entry.orders);
         // AccountState from default provider (hyperliquid)
         if (providerId === 'hyperliquid') {
-          defaultAccountState = validEntry.accountState;
+          defaultAccountState = entry.accountState;
         }
       }
 

@@ -41,6 +41,7 @@ export const perpsControllerInit: ControllerInitFunction<
       fallbackHip3BlocklistMarkets: parseCommaSeparatedString(
         process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS ?? '',
       ),
+      myxProviderEnabled: process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true',
       myxAppIdTestnet: process.env.MM_PERPS_MYX_APP_ID_TESTNET ?? '',
       myxApiSecretTestnet: process.env.MM_PERPS_MYX_API_SECRET_TESTNET ?? '',
       myxBrokerAddressTestnet:

@@ -600,6 +600,12 @@ export type PerpsControllerConfig = {
   myxAppIdMainnet?: string;
   myxApiSecretMainnet?: string;
   myxBrokerAddressMainnet?: string;
+
+  /**
+   * Whether MYX provider is enabled via local env var (MM_PERPS_MYX_PROVIDER_ENABLED).
+   * Must match the UI selector logic so the controller and UI agree on MYX availability.
+   */
+  myxProviderEnabled?: boolean;
 };
 
 export type PriceUpdate = {

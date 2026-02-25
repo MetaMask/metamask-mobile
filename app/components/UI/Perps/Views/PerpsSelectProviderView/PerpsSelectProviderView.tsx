@@ -63,6 +63,7 @@ const PerpsSelectProviderView: React.FC = () => {
           Logger.error(new Error(`Failed to toggle perps testnet`), {
             message: result.error,
           });
+          return;
         }
       }
     },
