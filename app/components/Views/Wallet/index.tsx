@@ -64,7 +64,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -648,7 +648,7 @@ const Wallet = ({
   );
 
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
@@ -788,7 +788,7 @@ const Wallet = ({
     return true;
   }, [isEvmSelected, allEnabledNetworks]);
 
-  const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
+  const { isEnabled: getParticipationInMetaMetrics } = useAnalytics();
 
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
@@ -1268,14 +1268,20 @@ const Wallet = ({
           ? (obj.ref.props as { tabLabel?: string })?.tabLabel
           : '';
       if (tabLabel === strings('wallet.tokens')) {
-        trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.WALLET_TOKENS)
+            .addProperties({ action: 'Wallet View', name: 'Tokens' })
+            .build(),
+        );
       } else if (tabLabel === strings('wallet.defi')) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
         );
       } else if (tabLabel === strings('wallet.collectibles')) {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
+          createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES)
+            .addProperties({ action: 'Wallet View', name: 'Collectibles' })
+            .build(),
         );
         detectNfts();
       }
