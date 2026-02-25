@@ -130,6 +130,9 @@ export const usePopularTokens = ({
     let isCancelled = false;
 
     const fetchPopularTokens = async () => {
+      if (!bearerToken) {
+        return;
+      }
       // Cleanup expired entries before checking cache
       cleanupExpiredEntries();
 
