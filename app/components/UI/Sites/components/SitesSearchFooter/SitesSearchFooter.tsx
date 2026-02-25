@@ -16,48 +16,23 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import Routes from '../../../../../constants/navigation/Routes';
 import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
+import {
+  looksLikeUrl,
+  getSearchUrl,
+  navigateToBrowser,
+} from '../../utils/search';
 
 export interface SitesSearchFooterProps {
   searchQuery: string;
   /**
-   * Callback for when pressing a sites footer link
+   * Callback for when pressing a sites footer link.
    * Defaults to browser navigation.
-   * @default useSearchFooterBrowserNavigation - default to explore feature browser navigation
    * @param {string} url - Url to navigate
-   * @returns
    */
   onPress?: (url: string) => void;
   containerStyle?: BoxProps['style'];
 }
-
-/**
- * Checks if a string looks like a URL
- */
-function looksLikeUrl(str: string): boolean {
-  return /^(https?:\/\/)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([/?].*)?$/.test(str);
-}
-
-export const useSearchFooterBrowserNavigation = () => {
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
-
-  const onPress = useCallback(
-    (url: string) => {
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: url,
-          timestamp: Date.now(),
-          fromTrending: true,
-        },
-      });
-    },
-    [navigation],
-  );
-
-  return { onPress };
-};
 
 const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
   searchQuery,
@@ -65,22 +40,21 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
   containerStyle,
 }) => {
   const tw = useTailwind();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const searchEngine = useSelector(selectSearchEngine);
-  const { onPress: exploreOnPress } = useSearchFooterBrowserNavigation();
 
-  const handlePress = onPress ?? exploreOnPress;
+  const defaultOnPress = useCallback(
+    (url: string) => navigateToBrowser(navigation, url),
+    [navigation],
+  );
+  const handlePress = onPress ?? defaultOnPress;
 
   if (!searchQuery || searchQuery.length === 0) {
     return null;
   }
 
   const isUrl = looksLikeUrl(searchQuery.toLowerCase());
-
-  const searchUrl =
-    searchEngine === 'DuckDuckGo'
-      ? `https://duckduckgo.com/?q=${encodeURIComponent(searchQuery)}`
-      : `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
-
+  const searchUrl = getSearchUrl(searchQuery, searchEngine);
   const searchEngineLabel =
     searchEngine === 'DuckDuckGo' ? 'DuckDuckGo' : 'Google';
 
