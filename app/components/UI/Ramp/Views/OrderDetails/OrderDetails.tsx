@@ -12,8 +12,7 @@ import {
   IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import type { RampsOrder } from '@metamask/ramps-controller';
-import { RampsOrderStatus } from '@metamask/ramps-controller';
+import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -31,9 +30,7 @@ import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
 import OrderContent from './OrderContent';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
-import {
-  getOrderById as getReduxOrderById,
-} from '../../../../../reducers/fiatOrders';
+import { getOrderById as getReduxOrderById } from '../../../../../reducers/fiatOrders';
 import { RootState } from '../../../../../reducers';
 
 interface RampsOrderDetailsParams {
@@ -55,7 +52,7 @@ const PENDING_STATUSES = new Set([
 
 const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
-  const { getOrderById, refreshOrder, orders } = useRampsOrders();
+  const { getOrderById, refreshOrder } = useRampsOrders();
   const controllerOrder = getOrderById(params.orderId);
 
   const reduxOrder = useSelector((state: RootState) =>
@@ -69,10 +66,6 @@ const OrderDetails = () => {
   }, [controllerOrder, reduxOrder]);
 
   const isPending = order ? PENDING_STATUSES.has(order.status) : false;
-
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/9c6c8903-8f2d-4d08-852b-4db8f67a5027',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'201c43'},body:JSON.stringify({sessionId:'201c43',location:'OrderDetails.tsx:65',message:'OrderDetails mount',data:{orderId:params.orderId,controllerOrderFound:!!controllerOrder,reduxOrderFound:!!reduxOrder,resolvedOrderFound:!!order,orderCount:orders.length},timestamp:Date.now(),hypothesisId:'A-B'})}).catch(()=>{});
-  // #endregion
 
   const [isLoading, setIsLoading] = useState(isPending);
   const [error, setError] = useState<string | null>(null);

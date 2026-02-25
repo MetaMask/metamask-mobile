@@ -217,10 +217,6 @@ function OrdersList() {
 
   const handleItemPress = useCallback(
     (item: DisplayOrder) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/9c6c8903-8f2d-4d08-852b-4db8f67a5027',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'201c43'},body:JSON.stringify({sessionId:'201c43',location:'OrdersList.tsx:220',message:'handleItemPress',data:{itemId:item.id,source:item.source,providerName:item.providerName},timestamp:Date.now(),hypothesisId:'A-B'})}).catch(()=>{});
-      // #endregion
-
       if (item.source === 'v2') {
         handleNavigateToRampsTxDetails(item.id);
         return;

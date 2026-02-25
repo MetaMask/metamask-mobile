@@ -227,9 +227,6 @@ const Checkout = () => {
 
   const handleNavigationStateChangeWithDedup = useCallback(
     (navState: { url: string }) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/9c6c8903-8f2d-4d08-852b-4db8f67a5027',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'201c43'},body:JSON.stringify({sessionId:'201c43',location:'Checkout.tsx:230',message:'handleNavigationStateChangeWithDedup',data:{url:navState.url,callbackKey:callbackKeyRef.current,hasCallback:!!getCheckoutCallback(callbackKeyRef.current||''),isDuplicate:navState.url===previousUrlRef.current},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
       if (navState.url !== previousUrlRef.current) {
         previousUrlRef.current = navState.url;
         if (callbackKeyRef.current) {

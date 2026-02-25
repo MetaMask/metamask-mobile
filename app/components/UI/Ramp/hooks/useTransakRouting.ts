@@ -250,10 +250,6 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const handleNavigationStateChange = useCallback(
     async ({ url }: { url: string }) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/9c6c8903-8f2d-4d08-852b-4db8f67a5027',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'201c43'},body:JSON.stringify({sessionId:'201c43',location:'useTransakRouting.ts:252',message:'handleNavigationStateChange called',data:{url,startsWithRedirection:url.startsWith(REDIRECTION_URL),REDIRECTION_URL},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
-
       if (!url.startsWith(REDIRECTION_URL)) return;
 
       let orderId: string | null = null;
@@ -278,11 +274,9 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
           throw new Error('Missing order');
         }
 
-        const rawProvider = depositOrder.provider || 'transak-native';
-        const providerCode = rawProvider.replace('/providers/', '');
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/9c6c8903-8f2d-4d08-852b-4db8f67a5027',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'201c43'},body:JSON.stringify({sessionId:'201c43',location:'useTransakRouting.ts:280',message:'before refreshOrder',data:{rawProvider,providerCode,providerOrderId:depositOrder.providerOrderId,walletAddress:walletAddress||depositOrder.walletAddress},timestamp:Date.now(),hypothesisId:'C-E'})}).catch(()=>{});
-        // #endregion
+        const providerCode = (
+          depositOrder.provider || 'transak-native'
+        ).replace('/providers/', '');
         const rampsOrder = await refreshOrder(
           providerCode,
           depositOrder.providerOrderId,
@@ -314,9 +308,6 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
           currency_source: rampsOrder.fiatCurrency?.symbol || '',
         });
       } catch (error) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/9c6c8903-8f2d-4d08-852b-4db8f67a5027',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'201c43'},body:JSON.stringify({sessionId:'201c43',location:'useTransakRouting.ts:320',message:'handleNavigationStateChange ERROR',data:{errorMessage:(error as Error)?.message,errorStack:(error as Error)?.stack?.slice(0,500)},timestamp:Date.now(),hypothesisId:'C-E'})}).catch(()=>{});
-        // #endregion
         processingOrderIdRef.current = null;
         Logger.error(error as Error, {
           message: 'useTransakRouting: Failed to process order after checkout',
