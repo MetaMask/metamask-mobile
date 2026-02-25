@@ -10,6 +10,7 @@ import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
 import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { RampsRegion } from '../../framework/types.ts';
 import { Mockttp } from 'mockttp';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
@@ -21,6 +22,8 @@ import {
 import SoftAssert from '../../framework/SoftAssert';
 
 import { UnifiedRampRoutingType } from '../../../app/reducers/fiatOrders/types';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 
 const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
@@ -69,19 +72,18 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await loginToApp();
         await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapUnifiedBuyButton();
-        /*
-        at the time of this code, the dev team is still working on hooking up the quotes logic
-        as of now, you cannot (both manually and via e2e) go past the continue button
-        there is an animated infinite spinner. And as a result detox is hanging here
-        the disable sync allows detox to proceed without hang
-        Once the code is completed, this should be removed and the test shall go past the continue button
-        */
         await device.disableSynchronization();
         await TokenSelectScreen.tapTokenByName(tokenToBuy);
         await BuildQuoteView.tapKeypadDeleteButton(1);
-        await BuildQuoteView.enterAmount('15', 'unifiedBuy');
 
+        await BuildQuoteView.tapKeypadDeleteButton(1);
+
+        await BuildQuoteView.enterAmount('5', 'unifiedBuy');
         await Assertions.expectTextDisplayed('$15.00');
+        await BuildQuoteView.tapContinueButton();
+
+        await TabBarComponent.tapActivity();
+        await ActivitiesView.tapOnTransfersTab();
       },
     );
   });
@@ -151,18 +153,19 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         ),
       `Ramps Button Clicked: ramp_type should be UNIFIED_BUY_2`,
     );
-    const rampsButtonClickedRegion = rampsButtonClicked?.properties
-      ?.region as string;
-    // The region property is a plain string (e.g. "us-ca") matching the
-    // geolocation endpoint response, not a JSON-serialized object.
-    const expectedRegionId = selectedRegion.id.replace('/regions/', '');
+    const rampsButtonClickedRegionStr = rampsButtonClicked?.properties
+      ?.region as string | undefined;
+    const rampsButtonClickedRegion = rampsButtonClickedRegionStr
+      ? (JSON.parse(rampsButtonClickedRegionStr) as RampsRegion)
+      : undefined;
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfTextMatches(
-          rampsButtonClickedRegion,
-          expectedRegionId,
+        await Assertions.checkIfObjectContains(
+          (rampsButtonClickedRegion as unknown as Record<string, unknown>) ??
+            {},
+          { id: selectedRegion.id, name: selectedRegion.name },
         ),
-      `Ramps Button Clicked: region should be ${expectedRegionId}`,
+      `Ramps Button Clicked: region should be ${selectedRegion.id}`,
     );
 
     // Ramps Token Selected - Property checks
@@ -190,15 +193,19 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
       `Ramps Token Selected: Should have the correct properties`,
     );
 
-    const rampsTokenSelectedRegion = rampsTokenSelected?.properties
-      ?.region as string;
+    const rampsTokenSelectedRegionStr = rampsTokenSelected?.properties
+      ?.region as string | undefined;
+    const rampsTokenSelectedRegion = rampsTokenSelectedRegionStr
+      ? (JSON.parse(rampsTokenSelectedRegionStr) as RampsRegion)
+      : undefined;
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfTextMatches(
-          rampsTokenSelectedRegion,
-          expectedRegionId,
+        await Assertions.checkIfObjectContains(
+          (rampsTokenSelectedRegion as unknown as Record<string, unknown>) ??
+            {},
+          { id: selectedRegion.id, name: selectedRegion.name },
         ),
-      `Ramps Token Selected: region should be ${expectedRegionId}`,
+      `Ramps Token Selected: region should be ${selectedRegion.id}`,
     );
 
     await softAssert.checkAndCollect(

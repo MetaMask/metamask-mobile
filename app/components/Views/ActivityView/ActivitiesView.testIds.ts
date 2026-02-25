@@ -11,6 +11,7 @@ export const ActivitiesViewSelectorsIDs = {
 
 export const ActivitiesViewSelectorsText = {
   PREDICTIONS_TAB: enContent.wallet.predict,
+  TRANSFERS_TAB: enContent.transfer.title,
   SUBMITTED_TEXT: enContent.transaction.submitted,
   CONFIRM_TEXT: enContent.transaction.confirmed,
   FAILED_TEXT: enContent.transaction.failed,
