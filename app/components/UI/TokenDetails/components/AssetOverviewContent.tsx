@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   TouchableOpacity,
   View,
@@ -61,6 +67,7 @@ import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButt
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -148,6 +155,7 @@ export interface AssetOverviewContentProps {
   // Tron-specific
   isTronNative?: boolean;
   stakedTrxAsset?: TokenI;
+  onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
 }
 
 /**
@@ -184,11 +192,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   goToSwaps,
   isTronNative,
   stakedTrxAsset,
+  onMarketInsightsDisplayResolved,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradingOpen } = useRWAToken();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // A/B test hook for layout selection (must be called before usePerpsActions to pass ab_tests)
   const { useNewLayout, isTestActive, variantName } = useTokenDetailsABTest();
@@ -273,8 +283,30 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       return null;
     }
   }, [isMarketInsightsEnabled, token.address, token.chainId]);
-  const { report: marketInsightsReport, timeAgo: marketInsightsTimeAgo } =
-    useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
+  const {
+    report: marketInsightsReport,
+    timeAgo: marketInsightsTimeAgo,
+    isLoading: isMarketInsightsLoading,
+  } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
+
+  useEffect(() => {
+    if (!onMarketInsightsDisplayResolved) {
+      return;
+    }
+    if (!isMarketInsightsEnabled) {
+      onMarketInsightsDisplayResolved(false);
+      return;
+    }
+    if (isMarketInsightsLoading) {
+      return;
+    }
+    onMarketInsightsDisplayResolved(Boolean(marketInsightsReport));
+  }, [
+    onMarketInsightsDisplayResolved,
+    isMarketInsightsEnabled,
+    isMarketInsightsLoading,
+    marketInsightsReport,
+  ]);
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -284,6 +316,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   };
 
   const handleMarketInsightsPress = useCallback(() => {
+    if (marketInsightsCaip19Id) {
+      const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
+        .addProperties({
+          caip19: marketInsightsCaip19Id,
+        })
+        .build();
+      trackEvent(event);
+    }
+
     // Compute actual percentage from available price data (always defined)
     const percentChange =
       comparePrice > 0 ? (priceDiff / comparePrice) * 100 : 0;
@@ -301,6 +342,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     });
   }, [
     navigation,
+    trackEvent,
+    createEventBuilder,
     token.symbol,
     marketInsightsCaip19Id,
     token.image,
@@ -433,18 +476,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               }}
             />
           )}
-
-          {isMarketInsightsEnabled && marketInsightsReport ? (
-            <View style={styles.marketInsightsWrapper}>
-              <MarketInsightsEntryCard
-                report={marketInsightsReport}
-                timeAgo={marketInsightsTimeAgo}
-                onPress={handleMarketInsightsPress}
-                testID="market-insights-entry-card"
-              />
-            </View>
-          ) : null}
-
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && <TronEnergyBandwidthDetail />
@@ -470,6 +501,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
+          {isMarketInsightsEnabled && marketInsightsReport ? (
+            <View style={styles.marketInsightsWrapper}>
+              <MarketInsightsEntryCard
+                report={marketInsightsReport}
+                timeAgo={marketInsightsTimeAgo}
+                onPress={handleMarketInsightsPress}
+                testID="market-insights-entry-card"
+              />
+            </View>
+          ) : null}
           {isPerpsEnabled &&
             hasPerpsMarket &&
             marketData &&
