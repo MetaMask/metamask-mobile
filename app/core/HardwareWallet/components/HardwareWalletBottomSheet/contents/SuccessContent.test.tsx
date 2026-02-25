@@ -81,15 +81,6 @@ describe('SuccessContent', () => {
     expect(getByTestId(SUCCESS_CONTENT_ICON_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('renders default message', () => {
-    const { getByText } = render(
-      <SuccessContent deviceType={HardwareWalletType.Ledger} />,
-    );
-
-    // Component renders hardware_wallet.success.title with device param
-    expect(getByText('hardware_wallet.success.title')).toBeOnTheScreen();
-  });
-
   it('renders with device type', () => {
     const { getByText } = render(
       <SuccessContent deviceType={HardwareWalletType.Ledger} />,

@@ -107,6 +107,12 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           status: ConnectionStatus.Ready,
           deviceId: targetDeviceId,
         });
+      } else {
+        // Not an error — the adapter emits device events (AppNotOpen, DeviceLocked, etc.)
+        // before returning false, so the state machine has already transitioned.
+        DevLogger.log(
+          '[HardwareWalletProvider] Device not ready — adapter event already handled state transition',
+        );
       }
       return isReady;
     },
