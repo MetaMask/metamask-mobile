@@ -572,7 +572,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     }
   }, [
     password,
-    biometryChoice,
     finalLoading,
     handleLoginError,
     promptBiometricFailedAlert,
