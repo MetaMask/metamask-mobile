@@ -42,7 +42,7 @@ const Routes = {
       SETTINGS: 'RampSettingsModal',
       BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
       TOKEN_NOT_AVAILABLE: 'RampTokenNotAvailableModal',
-      PROVIDER_PICKER: 'RampProviderPickerModal',
+      PROVIDER_SELECTION: 'RampProviderSelectionModal',
     },
   },
   DEPOSIT: {
