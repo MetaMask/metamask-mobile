@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { ActivityIndicator } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import {
   Text,
@@ -129,98 +130,104 @@ const BonusCodeBottomSheet: React.FC<BonusCodeBottomSheetProps> = ({
   };
 
   return (
-    <BottomSheet ref={sheetRef}>
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        alignItems={BoxAlignItems.Center}
-        twClassName="p-4"
-        testID="bonus-code-bottom-sheet"
+    <BottomSheet ref={sheetRef} keyboardAvoidingViewEnabled={false}>
+      <KeyboardAwareScrollView
+        keyboardShouldPersistTaps="handled"
+        enableOnAndroid
+        extraScrollHeight={20}
       >
         <Box
-          alignItems={
-            typeof title === 'string'
-              ? BoxAlignItems.Center
-              : BoxAlignItems.Start
-          }
-          twClassName="mb-3 w-full"
+          flexDirection={BoxFlexDirection.Column}
+          alignItems={BoxAlignItems.Center}
+          twClassName="p-4"
+          testID="bonus-code-bottom-sheet"
         >
-          {typeof title === 'string' ? (
-            <Text variant={TextVariant.HeadingMd}>{title}</Text>
-          ) : (
-            title
-          )}
-        </Box>
-        <Box
-          alignItems={
-            typeof description === 'string'
-              ? BoxAlignItems.Center
-              : BoxAlignItems.Start
-          }
-          twClassName="mb-3 w-full"
-        >
-          {typeof description === 'string' ? (
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-alternative text-center"
-            >
-              {description}
-            </Text>
-          ) : (
-            description
-          )}
-        </Box>
-
-        <Box twClassName="w-full mb-6">
-          <TextField
-            testID="bonus-code-input"
-            placeholder={strings('rewards.bonus_code.input_placeholder')}
-            value={bonusCode}
-            onChangeText={(text: string) => {
-              clearApplyBonusCodeError();
-              setBonusCode(text);
-            }}
-            maxLength={BONUS_CODE_MAX_LENGTH}
-            autoCapitalize="characters"
-            endAccessory={renderInputIcon()}
-            isError={showValidationError || Boolean(applyBonusCodeError)}
-          />
-          {showValidationError && (
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-error-default mt-1"
-              testID="bonus-code-invalid-code"
-            >
-              {error}
-            </Text>
-          )}
-        </Box>
-
-        {applyBonusCodeError && (
-          <Box twClassName="w-full mb-4">
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-error-default"
-              testID="bonus-code-apply-error"
-            >
-              {applyBonusCodeError}
-            </Text>
-          </Box>
-        )}
-
-        <Box twClassName="w-full">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            onPress={handleSubmit}
-            isDisabled={isSubmitDisabled}
-            isLoading={isApplyingBonusCode}
-            twClassName="w-full"
-            testID="bonus-code-submit-button"
+          <Box
+            alignItems={
+              typeof title === 'string'
+                ? BoxAlignItems.Center
+                : BoxAlignItems.Start
+            }
+            twClassName="mb-3 w-full"
           >
-            {ctaLabel}
-          </Button>
+            {typeof title === 'string' ? (
+              <Text variant={TextVariant.HeadingMd}>{title}</Text>
+            ) : (
+              title
+            )}
+          </Box>
+          <Box
+            alignItems={
+              typeof description === 'string'
+                ? BoxAlignItems.Center
+                : BoxAlignItems.Start
+            }
+            twClassName="mb-3 w-full"
+          >
+            {typeof description === 'string' ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="text-alternative text-center"
+              >
+                {description}
+              </Text>
+            ) : (
+              description
+            )}
+          </Box>
+
+          <Box twClassName="w-full mb-6">
+            <TextField
+              testID="bonus-code-input"
+              placeholder={strings('rewards.bonus_code.input_placeholder')}
+              value={bonusCode}
+              onChangeText={(text: string) => {
+                clearApplyBonusCodeError();
+                setBonusCode(text);
+              }}
+              maxLength={BONUS_CODE_MAX_LENGTH}
+              autoCapitalize="characters"
+              endAccessory={renderInputIcon()}
+              isError={showValidationError || Boolean(applyBonusCodeError)}
+            />
+            {showValidationError && (
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-error-default mt-1"
+                testID="bonus-code-invalid-code"
+              >
+                {error}
+              </Text>
+            )}
+          </Box>
+
+          {applyBonusCodeError && (
+            <Box twClassName="w-full mb-4">
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-error-default"
+                testID="bonus-code-apply-error"
+              >
+                {applyBonusCodeError}
+              </Text>
+            </Box>
+          )}
+
+          <Box twClassName="w-full">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              onPress={handleSubmit}
+              isDisabled={isSubmitDisabled}
+              isLoading={isApplyingBonusCode}
+              twClassName="w-full"
+              testID="bonus-code-submit-button"
+            >
+              {ctaLabel}
+            </Button>
+          </Box>
         </Box>
-      </Box>
+      </KeyboardAwareScrollView>
     </BottomSheet>
   );
 };
