@@ -16,6 +16,7 @@ import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import {
   Button,
@@ -53,6 +54,7 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import TruncatedError from '../../components/TruncatedError';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -362,7 +364,6 @@ function BuildQuote() {
       return;
     }
 
-    // V2 aggregator: get widget URL via controller and navigate to checkout
     setIsContinueLoading(true);
     try {
       const fetchedWidgetUrl = await getWidgetUrl(selectedQuote);
@@ -477,6 +478,7 @@ function BuildQuote() {
               <Text
                 testID={BuildQuoteSelectors.AMOUNT_INPUT}
                 variant={TextVariant.HeadingLG}
+                color={nativeFlowError ? TextColor.Error : undefined}
                 style={styles.mainAmount}
                 numberOfLines={1}
                 adjustsFontSizeToFit
@@ -496,13 +498,6 @@ function BuildQuote() {
             </View>
           </View>
 
-          {nativeFlowError && (
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              description={nativeFlowError}
-            />
-          )}
-
           {quoteFetchError && (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
@@ -516,15 +511,19 @@ function BuildQuote() {
           <View style={styles.actionSection}>
             {hasAmount ? (
               <>
-                {selectedProvider && (
-                  <Text
-                    variant={TextVariant.BodySM}
-                    style={styles.poweredByText}
-                  >
-                    {strings('fiat_on_ramp.powered_by_provider', {
-                      provider: selectedProvider.name,
-                    })}
-                  </Text>
+                {nativeFlowError ? (
+                  <TruncatedError error={nativeFlowError} />
+                ) : (
+                  selectedProvider && (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      style={styles.poweredByText}
+                    >
+                      {strings('fiat_on_ramp.powered_by_provider', {
+                        provider: selectedProvider.name,
+                      })}
+                    </Text>
+                  )
                 )}
                 <Button
                   variant={ButtonVariant.Primary}

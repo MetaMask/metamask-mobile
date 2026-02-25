@@ -25,7 +25,6 @@ import { useRampsPaymentMethods } from './useRampsPaymentMethods';
 import { getTransakEnvironment } from '../../../../core/Engine/controllers/ramps-controller/transak-service-init';
 import { selectTokens } from '../../../../selectors/rampsController';
 import useRampAccountAddress from './useRampAccountAddress';
-import { parseUserFacingError } from '../utils/parseUserFacingError';
 import { isHttpUnauthorized } from '../utils/isHttpUnauthorized';
 
 interface RampStackParamList {
@@ -256,58 +255,47 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
           const orderId = urlObj.searchParams.get('orderId');
 
           if (orderId) {
-            try {
-              const transformedOrderId =
-                TransakOrderIdTransformer.transakOrderIdToDepositOrderId(
-                  orderId,
-                  transakEnvironment,
-                );
-
-              const order = await getOrder(orderId, walletAddress || '');
-
-              if (!order) {
-                throw new Error('Missing order');
-              }
-
-              const processedOrder = {
-                ...depositOrderToFiatOrder(
-                  order as Parameters<typeof depositOrderToFiatOrder>[0],
-                ),
-                account: walletAddress || order.walletAddress,
-              };
-
-              await handleNewOrder(processedOrder);
-
-              navigateToOrderProcessingCallback({
-                orderId: transformedOrderId,
-              });
-
-              trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-                ramp_type: 'DEPOSIT',
-                amount_source: Number(order.fiatAmount),
-                amount_destination: Number(order.cryptoAmount),
-                exchange_rate: Number(order.exchangeRate),
-                gas_fee: order.networkFees ? Number(order.networkFees) : 0,
-                processing_fee: order.partnerFees
-                  ? Number(order.partnerFees)
-                  : 0,
-                total_fee: Number(order.totalFeesFiat),
-                payment_method_id: order.paymentMethod.id,
-                country: regionIsoCode,
-                chain_id: order.network?.chainId || '',
-                currency_destination: order.cryptoCurrency.assetId || '',
-                currency_destination_symbol: order.cryptoCurrency.symbol,
-                currency_destination_network: order.network?.name || '',
-                currency_source: order.fiatCurrency,
-              });
-            } catch (error) {
-              throw new Error(
-                parseUserFacingError(
-                  error,
-                  strings('deposit.buildQuote.unexpectedError'),
-                ),
+            const transformedOrderId =
+              TransakOrderIdTransformer.transakOrderIdToDepositOrderId(
+                orderId,
+                transakEnvironment,
               );
+
+            const order = await getOrder(orderId, walletAddress || '');
+
+            if (!order) {
+              throw new Error('Missing order');
             }
+
+            const processedOrder = {
+              ...depositOrderToFiatOrder(
+                order as Parameters<typeof depositOrderToFiatOrder>[0],
+              ),
+              account: walletAddress || order.walletAddress,
+            };
+
+            await handleNewOrder(processedOrder);
+
+            navigateToOrderProcessingCallback({
+              orderId: transformedOrderId,
+            });
+
+            trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+              ramp_type: 'DEPOSIT',
+              amount_source: Number(order.fiatAmount),
+              amount_destination: Number(order.cryptoAmount),
+              exchange_rate: Number(order.exchangeRate),
+              gas_fee: order.networkFees ? Number(order.networkFees) : 0,
+              processing_fee: order.partnerFees ? Number(order.partnerFees) : 0,
+              total_fee: Number(order.totalFeesFiat),
+              payment_method_id: order.paymentMethod.id,
+              country: regionIsoCode,
+              chain_id: order.network?.chainId || '',
+              currency_destination: order.cryptoCurrency.assetId || '',
+              currency_destination_symbol: order.cryptoCurrency.symbol,
+              currency_destination_network: order.network?.name || '',
+              currency_source: order.fiatCurrency,
+            });
           }
         } catch (e) {
           console.error('Error extracting orderId from URL:', e);
@@ -397,65 +385,56 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
         switch (requirements.status) {
           case 'APPROVED': {
-            try {
-              if (!userDetails) {
-                throw new Error('Missing user details');
-              }
-
-              await checkUserLimits(quote, requirements.kycType);
-
-              if (selectedPaymentMethod?.isManualBankTransfer) {
-                const order = await transakCreateOrder(
-                  quote.quoteId,
-                  walletAddress || '',
-                  selectedPaymentMethod.id,
-                );
-                if (!order) {
-                  throw new Error('Missing order');
-                }
-
-                const processedOrder = {
-                  ...depositOrderToFiatOrder(
-                    order as Parameters<typeof depositOrderToFiatOrder>[0],
-                  ),
-                  account: walletAddress || order.walletAddress,
-                };
-
-                await handleNewOrder(processedOrder);
-
-                navigateToBankDetailsCallback({
-                  orderId: order.id,
-                  shouldUpdate: false,
-                });
-              } else {
-                const ottResponse = await requestOtt();
-
-                if (!ottResponse) {
-                  throw new Error('Failed to get OTT token');
-                }
-
-                const paymentUrl = generatePaymentWidgetUrl(
-                  ottResponse.ott,
-                  quote,
-                  walletAddress || '',
-                  generateThemeParameters(themeAppearance, colors),
-                );
-
-                if (!paymentUrl) {
-                  throw new Error('Failed to generate payment URL');
-                }
-
-                navigateToWebviewModalCallback({ paymentUrl });
-              }
-              return true;
-            } catch (error) {
-              throw new Error(
-                parseUserFacingError(
-                  error,
-                  strings('deposit.buildQuote.unexpectedError'),
-                ),
-              );
+            if (!userDetails) {
+              throw new Error('Missing user details');
             }
+
+            await checkUserLimits(quote, requirements.kycType);
+
+            if (selectedPaymentMethod?.isManualBankTransfer) {
+              const order = await transakCreateOrder(
+                quote.quoteId,
+                walletAddress || '',
+                selectedPaymentMethod.id,
+              );
+              if (!order) {
+                throw new Error('Missing order');
+              }
+
+              const processedOrder = {
+                ...depositOrderToFiatOrder(
+                  order as Parameters<typeof depositOrderToFiatOrder>[0],
+                ),
+                account: walletAddress || order.walletAddress,
+              };
+
+              await handleNewOrder(processedOrder);
+
+              navigateToBankDetailsCallback({
+                orderId: order.id,
+                shouldUpdate: false,
+              });
+            } else {
+              const ottResponse = await requestOtt();
+
+              if (!ottResponse) {
+                throw new Error('Failed to get OTT token');
+              }
+
+              const paymentUrl = generatePaymentWidgetUrl(
+                ottResponse.ott,
+                quote,
+                walletAddress || '',
+                generateThemeParameters(themeAppearance, colors),
+              );
+
+              if (!paymentUrl) {
+                throw new Error('Failed to generate payment URL');
+              }
+
+              navigateToWebviewModalCallback({ paymentUrl });
+            }
+            return true;
           }
 
           case 'NOT_SUBMITTED':
