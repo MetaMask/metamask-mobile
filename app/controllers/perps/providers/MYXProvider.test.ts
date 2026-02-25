@@ -279,14 +279,6 @@ describe('MYXProvider', () => {
         networkSupported: true,
       });
     });
-
-    it('reports networkSupported false for mainnet provider', async () => {
-      const mainnetProvider = createProvider(mockDeps, false);
-
-      const result = await mainnetProvider.isReadyToTrade();
-
-      expect(result.networkSupported).toBe(false);
-    });
   });
 
   // ==========================================================================

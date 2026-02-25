@@ -271,7 +271,7 @@ export class MYXProvider implements PerpsProvider {
         ready: false,
         error: 'MYX provider requires messenger for wallet operations',
         walletConnected: false,
-        networkSupported: this.#isTestnet,
+        networkSupported: true,
       };
     }
 
@@ -291,7 +291,7 @@ export class MYXProvider implements PerpsProvider {
         ready: false,
         error: wrappedError.message,
         walletConnected: false,
-        networkSupported: this.#isTestnet,
+        networkSupported: true,
       };
     }
   }
