@@ -251,7 +251,13 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
-      - run: yarn test:view:ci --shard=${{ matrix.shard }}/2
+      - name: Prepare results directory
+        run: mkdir -p tests/results
+      - run: |
+          yarn test:view:ci \
+            --shard=${{ matrix.shard }}/2 \
+            --json \
+            --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: --max-old-space-size=20480
       - name: Rename coverage report for this shard
@@ -262,6 +268,12 @@ jobs:
         with:
           name: coverage-cv-test-${{ matrix.shard }}
           path: ./tests/coverage/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cv-test-results-${{ matrix.shard }}
+          path: tests/results/cv-test-results-${{ matrix.shard }}.json
           if-no-files-found: error
   merge-cv-test-coverage:
     runs-on: ubuntu-latest
@@ -284,6 +296,37 @@ jobs:
         with:
           pattern: coverage-cv-test-*
           path: tests/coverage-cv-test/
+      - name: Download CV test results (all shards)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: cv-test-results-*
+          path: ./cv-test-results/
+          merge-multiple: false
+      - name: Aggregate CV test scenario counts
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          const base = './cv-test-results';
+          let total = 0;
+          for (const dir of fs.readdirSync(base)) {
+            const full = path.join(base, dir);
+            if (!fs.statSync(full).isDirectory()) continue;
+            for (const file of fs.readdirSync(full)) {
+              if (!file.endsWith('.json')) continue;
+              const data = JSON.parse(fs.readFileSync(path.join(full, file), 'utf8'));
+              total += data.numTotalTests ?? 0;
+            }
+          }
+          const stats = { component_view_test_number: total };
+          fs.writeFileSync('./cv-test-stats.json', JSON.stringify(stats, null, 2));
+          console.log('CV test stats:', stats);
+          "
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cv-test-stats
+          path: ./cv-test-stats.json
+          if-no-files-found: error
       - name: Gather CV test shard coverage into one directory
         shell: bash
         run: |

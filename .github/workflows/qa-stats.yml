@@ -1,0 +1,43 @@
+name: QA Stats
+
+on:
+  workflow_run:
+    workflows:
+      - ci
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  collect-qa-stats:
+    name: Collect QA Stats
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Download CV test stats
+        uses: actions/download-artifact@v4
+        with:
+          name: cv-test-stats
+          path: ./cv-test-stats/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Collect QA stats
+        run: node .github/scripts/collect-qa-stats.mjs
+        env:
+          CV_STATS_PATH: ./cv-test-stats/cv-test-stats.json
+
+      - name: Upload QA stats artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-stats
+          path: ./qa-stats.json
+          if-no-files-found: error
