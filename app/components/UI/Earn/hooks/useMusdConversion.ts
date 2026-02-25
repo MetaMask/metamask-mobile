@@ -22,10 +22,7 @@ import { selectTransactionsByIds } from '../../../../selectors/transactionContro
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { toHex } from '@metamask/controller-utils';
 import EngineService from '../../../../core/EngineService';
-import {
-  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
-  MusdConversionVariant,
-} from '../types/musd.types';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../selectors/featureFlags';
 import { providerErrors } from '@metamask/rpc-errors';
 
@@ -233,7 +230,7 @@ export const useMusdConversion = () => {
           navigation.navigate(Routes.EARN.MODALS.ROOT, {
             screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
             params: {
-              variant: MusdConversionVariant.QUICK_CONVERT,
+              forceBottomSheet: true,
               token,
             },
           });
@@ -342,7 +339,7 @@ export const useMusdConversion = () => {
           navigation.navigate(Routes.EARN.MODALS.ROOT, {
             screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
             params: {
-              variant: MusdConversionVariant.QUICK_CONVERT,
+              forceBottomSheet: true,
               token,
             },
           });
