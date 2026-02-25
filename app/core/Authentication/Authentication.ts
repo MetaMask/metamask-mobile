@@ -489,7 +489,11 @@ class AuthenticationService {
   requestBiometricsAccessControlForIOS = async (
     authType: AUTHENTICATION_TYPE,
   ): Promise<AUTHENTICATION_TYPE> => {
-    if (Platform.OS === 'ios' && authType === AUTHENTICATION_TYPE.BIOMETRIC) {
+    if (
+      Platform.OS === 'ios' &&
+      (authType === AUTHENTICATION_TYPE.BIOMETRIC ||
+        authType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION)
+    ) {
       try {
         // Prompt user for biometrics access control
         const result = await authenticateAsync({ disableDeviceFallback: true });
