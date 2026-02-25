@@ -24,6 +24,7 @@ import {
   cleanupAdbReverse,
   ensureAccountGroupsFinishedLoading,
   waitForDappServerReady,
+  unlockIfLockScreenVisible,
 } from './utils.js';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures.ts';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
@@ -122,6 +123,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   // Handle connection approval in MetaMask
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await unlockIfLockScreenVisible(device);
     await DappConnectionModal.tapConnectButton();
   });
 
