@@ -11,12 +11,12 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
     }
   }
   style={
-    [
-      {
-        "backgroundColor": "#ffffff",
-        "flex": 1,
-      },
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+    }
   }
   testID="backup-and-sync-settings-safe-area"
 >
