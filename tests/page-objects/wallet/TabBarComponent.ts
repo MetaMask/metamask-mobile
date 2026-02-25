@@ -42,14 +42,18 @@ class TabBarComponent {
   }
 
   async tapWallet(options?: { timeout?: number }): Promise<void> {
-    const timeout = options?.timeout ?? 10000;
+    const timeout = options?.timeout ?? 2000;
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(this.tabBarWalletButton);
-        await Assertions.expectElementToBeVisible(WalletView.container);
+        await Gestures.waitAndTap(this.tabBarWalletButton, {
+          timeout,
+        });
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          timeout,
+        });
       },
       {
-        timeout,
+        maxRetries: 30,
         description: 'Tap Wallet Button with Validation',
       },
     );
@@ -97,18 +101,19 @@ class TabBarComponent {
   }
 
   async tapActivity(options?: { timeout?: number }): Promise<void> {
-    const timeout = options?.timeout ?? 10000;
+    const timeout = options?.timeout ?? 2000;
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.tabBarActivityButton, {
-          delay: 3500,
+          timeout,
         });
         await Assertions.expectElementToBeVisible(ActivitiesView.title, {
           description: 'Activity View Title',
+          timeout,
         });
       },
       {
-        timeout,
+        maxRetries: 30,
         description: 'Tap Activity Button',
       },
     );
