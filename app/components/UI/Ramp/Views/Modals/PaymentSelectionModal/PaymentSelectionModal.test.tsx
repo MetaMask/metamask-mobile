@@ -347,6 +347,7 @@ describe('PaymentSelectionModal', () => {
         '/payments/debit-credit-card-2',
       ],
       forceRefresh: true,
+      enableFetching: true,
     });
   });
 });
