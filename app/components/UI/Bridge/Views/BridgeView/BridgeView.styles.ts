@@ -23,14 +23,12 @@ export const createStyles = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.default,
     },
     quoteContainer: {
-      flex: 1,
       justifyContent: 'flex-start',
     },
     destinationAccountSelectorContainer: {
       paddingBottom: 12,
     },
     dynamicContent: {
-      flex: 1,
       justifyContent: 'flex-start',
     },
     keypadContainerWithDestinationPicker: {
@@ -42,6 +40,10 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     scrollViewContent: {
       flexGrow: 1,
+      paddingBottom: 16,
+    },
+    loadingContainer: {
+      paddingTop: 8,
     },
     disclaimerText: {
       textAlign: 'center',

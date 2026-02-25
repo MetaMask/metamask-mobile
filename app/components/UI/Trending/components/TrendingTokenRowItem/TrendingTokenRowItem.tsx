@@ -22,7 +22,6 @@ import {
   Hex,
   isCaipChainId,
 } from '@metamask/utils';
-import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import {
   getDefaultNetworkByChainId,
   getTestNetImageByChainId,
@@ -39,14 +38,13 @@ import { formatMarketStats, getPriceChangeFieldKey } from './utils';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
-import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import StockBadge from '../../../shared/StockBadge';
 import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
 import { BridgeToken } from '../../../Bridge/types';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import { getTrendingAssetNavigationParams } from '../../utils/trendingAssetMappers';
 
 /**
  * Extracts CAIP chain ID from asset ID
@@ -136,39 +134,6 @@ interface TrendingTokenRowItemProps {
   filterContext?: TrendingFilterContext;
 }
 
-/**
- * Converts a TrendingAsset to Asset navigation params
- */
-const getAssetNavigationParams = (token: TrendingAsset) => {
-  const [caipChainId, assetIdentifier] = token.assetId.split('/');
-  if (!isCaipChainId(caipChainId)) return null;
-
-  const isEvmChain = caipChainId.startsWith('eip155:');
-  const isNativeToken = assetIdentifier?.startsWith('slip44:');
-  const address = isNativeToken
-    ? NATIVE_SWAPS_TOKEN_ADDRESS
-    : assetIdentifier?.split(':')[1];
-
-  const hexChainId = caipChainIdToHex(caipChainId);
-
-  return {
-    chainId: hexChainId,
-    address: isEvmChain ? address : token.assetId,
-    symbol: token.symbol,
-    name: token.name,
-    decimals: token.decimals,
-    image: getTrendingTokenImageUrl(token.assetId),
-    pricePercentChange1d: token.priceChangePct?.h24
-      ? parseFloat(token.priceChangePct.h24)
-      : undefined,
-    isNative: isNativeToken,
-    isETH: isNativeToken && hexChainId === '0x1',
-    isFromTrending: true,
-    source: TokenDetailsSource.Trending,
-    rwaData: token.rwaData,
-  };
-};
-
 const TrendingTokenRowItem = ({
   token,
   selectedTimeOption = TimeOption.TwentyFourHours,
@@ -190,7 +155,10 @@ const TrendingTokenRowItem = ({
     [token.assetId],
   );
 
-  const assetParams = useMemo(() => getAssetNavigationParams(token), [token]);
+  const assetParams = useMemo(
+    () => getTrendingAssetNavigationParams(token),
+    [token],
+  );
 
   const networkBadgeImageSource = useMemo(
     () => getNetworkBadgeSource(caipChainId),

@@ -41,6 +41,7 @@ export interface TrendingTokenPriceChangeBottomSheetProps {
   ) => void;
   selectedOption?: PriceChangeOption;
   sortDirection?: SortDirection;
+  isFullscreen?: boolean;
 }
 
 const TrendingTokenPriceChangeBottomSheet: React.FC<
@@ -51,6 +52,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
   onPriceChangeSelect,
   selectedOption: initialSelectedOption,
   sortDirection: initialSortDirection,
+  isFullscreen = false,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { colors } = useTheme();
@@ -74,13 +76,6 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
       }
     }
   }, [initialSelectedOption, initialSortDirection, isVisible]);
-
-  // Open bottom sheet when isVisible becomes true
-  useEffect(() => {
-    if (isVisible) {
-      sheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible]);
 
   const optionStyles = StyleSheet.create({
     optionsList: {
@@ -155,6 +150,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
       ref={sheetRef}
       onClose={handleSheetClose}
       testID="trending-token-price-change-bottom-sheet"
+      isFullscreen={isFullscreen}
     >
       <HeaderCompactStandard
         title={strings('trending.sort_by')}
