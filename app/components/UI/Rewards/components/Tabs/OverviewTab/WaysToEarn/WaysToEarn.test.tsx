@@ -319,7 +319,7 @@ describe('WaysToEarn', () => {
           showCancelButton: false,
           confirmAction: expect.objectContaining({
             label: 'Start a swap',
-            variant: 'Primary',
+            variant: 'primary',
           }),
         }),
       );
