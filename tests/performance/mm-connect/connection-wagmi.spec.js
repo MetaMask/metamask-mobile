@@ -23,6 +23,7 @@ import {
   cleanupAdbReverse,
   waitForDappServerReady,
   unlockIfLockScreenVisible,
+  ensureAccountGroupsFinishedLoading,
 } from './utils.js';
 
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
@@ -56,7 +57,7 @@ test.afterAll(async () => {
   await playgroundServer.stop();
 });
 
-test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Playground', async ({
+test('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Playground', async ({
   device,
 }) => {
   const platform = device.getPlatform?.() || 'android';
@@ -88,6 +89,7 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
+    await ensureAccountGroupsFinishedLoading(device);
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });

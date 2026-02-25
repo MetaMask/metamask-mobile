@@ -12,7 +12,7 @@ import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
 import SolanaSignModal from '../../../wdio/screen-objects/Modals/SolanaSignModal.js';
-import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
+import AppwrightHelpers from '../../framework/AppwrightHelpers.ts';
 import {
   DappServer,
   DappVariants,
@@ -22,6 +22,9 @@ import {
   getDappUrlForBrowser,
   setupAdbReverse,
   cleanupAdbReverse,
+  ensureAccountGroupsFinishedLoading,
+  waitForDappServerReady,
+  unlockIfLockScreenVisible,
 } from './utils.js';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures.ts';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
@@ -33,8 +36,10 @@ const DAPP_PORT = 8090;
 const ACCOUNT_1_EVM_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
 const ACCOUNT_1_SOLANA_ADDRESS = '6fr9gpqbsszm6snzsjubu91jwxeduhwnvnkwxqksfwcz';
 
-const ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT = 'TnB0MoNjYOTozLwKcZskdyzYszWHetTLcDskffjqLgQ9nYUbM47JySKpEyTZtA48CdMsPK+erAeId6ayzBoJBQ==';
+const SOLANA_MAINNET_CAIP_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 
+const ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT =
+  'TnB0MoNjYOTozLwKcZskdyzYszWHetTLcDskffjqLgQ9nYUbM47JySKpEyTZtA48CdMsPK+erAeId6ayzBoJBQ==';
 
 // Create the playground server using the shared framework
 const playgroundServer = new DappServer({
@@ -48,6 +53,7 @@ test.beforeAll(async () => {
   // Set port and start the server directly (bypassing Detox-specific utilities)
   playgroundServer.setServerPort(DAPP_PORT);
   await playgroundServer.start();
+  await waitForDappServerReady(DAPP_PORT);
 
   // Set up adb reverse for Android emulator access
   setupAdbReverse(DAPP_PORT);
@@ -64,7 +70,11 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
 }) => {
   // Get platform-specific URL
   const platform = device.getPlatform?.() || 'android';
-  const DAPP_URL = getDappUrlForBrowser(platform);
+  const useBrowserStackLocal =
+    process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+  const DAPP_URL = useBrowserStackLocal
+    ? `http://bs-local.com:${DAPP_PORT}`
+    : getDappUrlForBrowser(platform);
 
   // Initialize page objects with device
   WalletMainScreen.device = device;
@@ -87,21 +97,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
-    await WalletMainScreen.isMainWalletViewVisible();
-
-    // Cycle the app to ensure solana accounts are created
-    await AppwrightGestures.terminateApp(device);
-    await AppwrightGestures.activateApp(device);
-    await login(device);
-    await WalletMainScreen.isMainWalletViewVisible();
-    await WalletMainScreen.tapIdenticon();
-    await AccountListComponent.isComponentDisplayed();
-    await AccountListComponent.waitForSyncingToComplete();
-    await AppwrightGestures.terminateApp(device);
-    await AppwrightGestures.activateApp(device);
-    await login(device);
-    await WalletMainScreen.isMainWalletViewVisible();
-
+    await ensureAccountGroupsFinishedLoading(device);
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
@@ -127,6 +123,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   // Handle connection approval in MetaMask
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await unlockIfLockScreenVisible(device);
     await DappConnectionModal.tapConnectButton();
   });
 
@@ -140,7 +137,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
       await BrowserPlaygroundDapp.assertMultichainConnected(true);
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
       await BrowserPlaygroundDapp.assertScopeCardVisible(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        SOLANA_MAINNET_CAIP_CHAIN_ID,
       );
 
       await BrowserPlaygroundDapp.assertConnected(true);
@@ -195,7 +192,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT);
+      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(
+        ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,
+      );
 
       // Test EVM sign (legacy personal sign) when EVM is connected
       await BrowserPlaygroundDapp.tapPersonalSign();
@@ -225,7 +224,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
       await BrowserPlaygroundDapp.assertMultichainConnected(true);
       await BrowserPlaygroundDapp.assertScopeCardNotVisible('eip155:1');
       await BrowserPlaygroundDapp.assertScopeCardVisible(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        SOLANA_MAINNET_CAIP_CHAIN_ID,
       );
 
       await BrowserPlaygroundDapp.assertConnected(false);
@@ -284,7 +283,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
 
       // Make sure solana is still connected
       await BrowserPlaygroundDapp.assertScopeCardVisible(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        SOLANA_MAINNET_CAIP_CHAIN_ID,
       );
       await BrowserPlaygroundDapp.assertSolanaConnected(true);
       await BrowserPlaygroundDapp.assertSolanaActiveAccount(
@@ -308,13 +307,15 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT);
+      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(
+        ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,
+      );
 
       // Disconnect Solana
       await BrowserPlaygroundDapp.tapSolanaDisconnect();
 
       await BrowserPlaygroundDapp.assertScopeCardNotVisible(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        SOLANA_MAINNET_CAIP_CHAIN_ID,
       );
       await BrowserPlaygroundDapp.assertSolanaConnected(false);
 
@@ -362,7 +363,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     device,
     async () => {
       await BrowserPlaygroundDapp.assertScopeCardVisible(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        SOLANA_MAINNET_CAIP_CHAIN_ID,
       );
       await BrowserPlaygroundDapp.assertSolanaConnected(true);
       await BrowserPlaygroundDapp.assertSolanaActiveAccount(
@@ -386,7 +387,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT);
+      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(
+        ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,
+      );
 
       // Make sure EVM is still connected
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
@@ -464,7 +467,6 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     },
     DAPP_URL,
   );
-
 
   //
   // Cleanup - disconnect
