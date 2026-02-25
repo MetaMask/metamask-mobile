@@ -105,12 +105,13 @@ export function cleanupAdbReverse(port) {
 }
 
 /**
- * Cycle the app twice to ensure all account groups (including Solana) are created
- * and syncing completes before proceeding with test actions.
- * Must be called from native context after initial login.
+ * Wait for the wallet to be visible, then cycle the app twice to ensure all
+ * account groups (including Solana) are created and syncing completes.
+ * Must be called from native context after login.
  * @param {import('appwright').Device} device - Appwright device
  */
 export async function ensureAccountGroupsFinishedLoading(device) {
+  await WalletMainScreen.isMainWalletViewVisible();
   await AppwrightGestures.terminateApp(device);
   await AppwrightGestures.activateApp(device);
   await login(device);

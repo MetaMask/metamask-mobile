@@ -12,7 +12,7 @@ import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
 import SolanaSignModal from '../../../wdio/screen-objects/Modals/SolanaSignModal.js';
-import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
+import AppwrightHelpers from '../../framework/AppwrightHelpers.ts';
 import {
   DappServer,
   DappVariants,
@@ -96,9 +96,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
-    await WalletMainScreen.isMainWalletViewVisible();
     await ensureAccountGroupsFinishedLoading(device);
-
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });

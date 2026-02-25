@@ -83,9 +83,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
-    await WalletMainScreen.isMainWalletViewVisible();
     await ensureAccountGroupsFinishedLoading(device);
-
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
