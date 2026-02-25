@@ -1387,31 +1387,26 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
         // One-time read of controller-level preloaded cache (REST snapshot).
         // This avoids an HTTP round-trip when the controller already has fresh data.
-        // Only use cache if it belongs to the currently active provider.
         const controllerProviderId =
           controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
-        const cached = controller.state?.cachedMarketData;
-        const cacheAge =
-          Date.now() - (controller.state?.cachedMarketDataTimestamp ?? 0);
+        const cachedForProvider =
+          controller.getCachedMarketDataForActiveProvider?.();
         if (
-          cached &&
-          cached.length > 0 &&
-          cacheAge < this.CACHE_DURATION &&
+          cachedForProvider &&
+          cachedForProvider.length > 0 &&
           (!this.cachedProviderId ||
             this.cachedProviderId === controllerProviderId)
         ) {
           DevLogger.log(
             'PerpsStreamManager: Using controller preloaded market data',
             {
-              marketCount: cached.length,
-              cacheAgeMs: cacheAge,
+              marketCount: cachedForProvider.length,
             },
           );
-          this.cache.set('markets', cached);
+          this.cache.set('markets', cachedForProvider);
           this.lastFetchTime = Date.now();
-          this.cachedProviderId =
-            controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
-          this.notifySubscribers(cached);
+          this.cachedProviderId = controllerProviderId;
+          this.notifySubscribers(cachedForProvider);
           return;
         }
 
@@ -1510,22 +1505,9 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     const cached = this.cache.get('markets');
     if (cached !== undefined) return cached;
 
-    // Fallback: read controller preloaded cache (from REST preload)
+    // Fallback: read per-provider cache via helper
     const controller = Engine.context.PerpsController;
-    const currentProviderId =
-      controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
-    // Reject preloaded cache if it belongs to a different provider
-    if (this.cachedProviderId && this.cachedProviderId !== currentProviderId) {
-      return null;
-    }
-    const preloaded = controller.state?.cachedMarketData;
-    const cacheAge =
-      Date.now() - (controller.state?.cachedMarketDataTimestamp ?? 0);
-    if (preloaded && preloaded.length > 0 && cacheAge < this.CACHE_DURATION) {
-      return preloaded;
-    }
-
-    return null;
+    return controller.getCachedMarketDataForActiveProvider?.() ?? null;
   }
 
   protected getClearedData(): PerpsMarketData[] {

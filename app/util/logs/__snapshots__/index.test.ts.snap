@@ -498,13 +498,8 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "cachedAccountState": null,
-        "cachedMarketData": null,
-        "cachedMarketDataTimestamp": 0,
-        "cachedOrders": null,
-        "cachedPositions": null,
-        "cachedUserDataAddress": null,
-        "cachedUserDataTimestamp": 0,
+        "cachedMarketDataByProvider": {},
+        "cachedUserDataByProvider": {},
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -1351,13 +1346,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "cachedAccountState": null,
-        "cachedMarketData": null,
-        "cachedMarketDataTimestamp": 0,
-        "cachedOrders": null,
-        "cachedPositions": null,
-        "cachedUserDataAddress": null,
-        "cachedUserDataTimestamp": 0,
+        "cachedMarketDataByProvider": {},
+        "cachedUserDataByProvider": {},
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {

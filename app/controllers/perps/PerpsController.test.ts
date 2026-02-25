@@ -4718,8 +4718,10 @@ describe('PerpsController', () => {
       controller.startMarketDataPreload();
       await jest.advanceTimersByTimeAsync(100);
 
-      expect(controller.state.cachedMarketData).toEqual(mockData);
-      expect(controller.state.cachedMarketDataTimestamp).toBeGreaterThan(0);
+      const entry =
+        controller.state.cachedMarketDataByProvider['hyperliquid:mainnet'];
+      expect(entry?.data).toEqual(mockData);
+      expect(entry?.timestamp).toBeGreaterThan(0);
     });
 
     it('respects 30s debounce guard', async () => {
@@ -4748,7 +4750,10 @@ describe('PerpsController', () => {
       controller.stopMarketDataPreload();
       // Set timestamp to recent to trigger debounce guard
       controller.testUpdate((state) => {
-        state.cachedMarketDataTimestamp = Date.now();
+        state.cachedMarketDataByProvider['hyperliquid:mainnet'] = {
+          data: mockData,
+          timestamp: Date.now(),
+        };
       });
       controller.startMarketDataPreload();
       await jest.advanceTimersByTimeAsync(100);
@@ -4926,14 +4931,14 @@ describe('PerpsController', () => {
       preloadController.startMarketDataPreload();
       await jest.advanceTimersByTimeAsync(500);
 
-      expect(preloadController.state.cachedPositions).toEqual(mockPositions);
-      expect(preloadController.state.cachedOrders).toEqual(mockOrders);
-      expect(preloadController.state.cachedAccountState).toEqual(
-        mockAccountState,
-      );
-      expect(preloadController.state.cachedUserDataTimestamp).toBeGreaterThan(
-        0,
-      );
+      const userCache = preloadController.state.cachedUserDataByProvider;
+      const cacheKey = Object.keys(userCache)[0] as string;
+      expect(cacheKey).toBeDefined();
+      const entry = userCache[cacheKey];
+      expect(entry.positions).toEqual(mockPositions);
+      expect(entry.orders).toEqual(mockOrders);
+      expect(entry.accountState).toEqual(mockAccountState);
+      expect(entry.timestamp).toBeGreaterThan(0);
     });
 
     it('skips when WebSocket is connected', async () => {
@@ -4952,7 +4957,9 @@ describe('PerpsController', () => {
       expect(preloadInfrastructure.debugLogger.log).toHaveBeenCalledWith(
         'PerpsController: Skipping user data preload \u2014 WebSocket connected',
       );
-      expect(preloadController.state.cachedPositions).toBeNull();
+      expect(
+        Object.keys(preloadController.state.cachedUserDataByProvider),
+      ).toHaveLength(0);
     });
 
     it('handles errors without throwing', async () => {
@@ -4972,7 +4979,9 @@ describe('PerpsController', () => {
       await jest.advanceTimersByTimeAsync(500);
 
       // Should not crash
-      expect(preloadController.state.cachedPositions).toBeNull();
+      expect(
+        Object.keys(preloadController.state.cachedUserDataByProvider),
+      ).toHaveLength(0);
     });
 
     it('skips when cache is fresh for same account', async () => {
@@ -4998,12 +5007,11 @@ describe('PerpsController', () => {
       preloadController.startMarketDataPreload();
       await jest.advanceTimersByTimeAsync(500);
 
-      expect(preloadController.state.cachedUserDataAddress).toBe(
-        mockEvmAccount.address,
-      );
-      expect(preloadController.state.cachedUserDataTimestamp).toBeGreaterThan(
-        0,
-      );
+      const freshCache = preloadController.state.cachedUserDataByProvider;
+      const freshKey = Object.keys(freshCache)[0] as string;
+      expect(freshKey).toBeDefined();
+      expect(freshCache[freshKey].address).toBe(mockEvmAccount.address);
+      expect(freshCache[freshKey].timestamp).toBeGreaterThan(0);
 
       // Reset call counts
       preloadMockProvider.getPositions.mockClear();
