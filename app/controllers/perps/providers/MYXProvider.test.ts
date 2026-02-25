@@ -19,12 +19,25 @@ import { MYXProvider } from './MYXProvider';
 // ============================================================================
 
 jest.mock('../services/MYXClientService');
+jest.mock('../services/MYXWalletService', () => ({
+  MYXWalletService: jest.fn().mockImplementation(() => ({
+    createEthersSigner: jest.fn().mockReturnValue({}),
+    createWalletClient: jest.fn().mockReturnValue({}),
+    getUserAddress: jest.fn().mockReturnValue('0xuser123'),
+  })),
+}));
 jest.mock('../utils/myxAdapter', () => ({
   adaptMarketFromMYX: jest.fn(),
   adaptMarketDataFromMYX: jest.fn(),
   adaptPriceFromMYX: jest.fn(),
   adaptCandleFromMYX: jest.fn(),
   adaptCandleFromMYXWebSocket: jest.fn(),
+  adaptPositionFromMYX: jest.fn(),
+  adaptOrderFromMYX: jest.fn(),
+  adaptAccountStateFromMYX: jest.fn(),
+  adaptOrderFillFromMYX: jest.fn(),
+  adaptFundingFromMYX: jest.fn(),
+  adaptUserHistoryFromMYX: jest.fn(),
   filterMYXExclusiveMarkets: jest.fn(),
   buildPoolSymbolMap: jest.fn(),
   toMYXKlineResolution: jest.fn().mockReturnValue('1h'),
@@ -338,31 +351,17 @@ describe('MYXProvider', () => {
       );
     });
 
-    it('passes undefined ticker when pool has no matching ticker', async () => {
+    it('filters out pools with no matching ticker', async () => {
       const pools = [makePool({ poolId: '0xpool1' })];
       const tickers = [makeTicker({ poolId: '0xDIFFERENT' })];
       mockClientService.getMarkets.mockResolvedValue(pools);
       mockFilterMYXExclusiveMarkets.mockReturnValue(pools);
       mockClientService.getTickers.mockResolvedValueOnce(tickers);
-      mockAdaptMarketDataFromMYX.mockReturnValue({
-        symbol: 'RHEA',
-        name: 'Rhea Finance',
-        maxLeverage: '100x',
-        price: '$0.00',
-        change24h: '+$0.00',
-        change24hPercent: '+0.00%',
-        volume: '$0.00',
-        providerId: 'myx',
-      });
 
       const result = await provider.getMarketDataWithPrices();
 
-      expect(result).toHaveLength(1);
-      expect(mockAdaptMarketDataFromMYX).toHaveBeenCalledWith(
-        pools[0],
-        undefined,
-        mockDeps.marketDataFormatters,
-      );
+      expect(result).toHaveLength(0);
+      expect(mockAdaptMarketDataFromMYX).not.toHaveBeenCalled();
     });
 
     it('throws error on failure', async () => {
