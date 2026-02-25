@@ -9609,9 +9609,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/smart-transactions-controller@npm:^22.5.0":
-  version: 22.5.0
-  resolution: "@metamask/smart-transactions-controller@npm:22.5.0"
+"@metamask/smart-transactions-controller@npm:^22.6.0":
+  version: 22.6.0
+  resolution: "@metamask/smart-transactions-controller@npm:22.6.0"
   dependencies:
     "@babel/runtime": "npm:^7.24.1"
     "@ethereumjs/tx": "npm:^5.2.1"
@@ -9645,7 +9645,7 @@ __metadata:
       optional: true
     "@metamask/gas-fee-controller":
       optional: true
-  checksum: 10/215c5fe21e5e1679e4e0bc247d4ace99d88464ae97fd8c75fcd3bb3dc8420e11752b18a8eddd481591fc97508cfa87e909f7defda6911027c95166e6f69c5ba5
+  checksum: 10/f8fc9b7b63f343d9e806cec8da14f5419af075aac0d751bff727f6c9380ee28710406a4deae7753bf55155cf0469089b6e1058d02f0e47a2bfbfa3128abb7cba
   languageName: node
   linkType: hard
 
@@ -35407,7 +35407,7 @@ __metadata:
     "@metamask/selected-network-controller": "npm:^25.0.0"
     "@metamask/signature-controller": "npm:^35.0.0"
     "@metamask/slip44": "npm:^4.2.0"
-    "@metamask/smart-transactions-controller": "npm:^22.5.0"
+    "@metamask/smart-transactions-controller": "npm:^22.6.0"
     "@metamask/snaps-controllers": "npm:^18.0.1"
     "@metamask/snaps-execution-environments": "npm:^11.0.0"
     "@metamask/snaps-rpc-methods": "npm:^14.3.0"
