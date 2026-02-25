@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { Linking } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -32,9 +32,13 @@ import {
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
 
 /**
- * Transak provider ID - the only provider with native logout support
+ * Transak native provider path prefix - matches both production
+ * ('/providers/transak-native') and staging ('/providers/transak-native-staging')
  */
-const TRANSAK_PROVIDER_ID = '/providers/transak-native';
+const TRANSAK_NATIVE_PREFIX = '/providers/transak-native';
+
+const isTransakNativeProvider = (providerId?: string): boolean =>
+  providerId?.startsWith(TRANSAK_NATIVE_PREFIX) ?? false;
 
 export const createSettingsModalNavDetails = createNavigationDetails(
   Routes.RAMP.MODALS.ID,
@@ -55,7 +59,7 @@ function SettingsModal() {
 
     const checkAuthentication = async () => {
       // Only Transak supports native authentication/logout
-      if (selectedProvider?.id !== TRANSAK_PROVIDER_ID) {
+      if (!isTransakNativeProvider(selectedProvider?.id)) {
         if (isMounted) {
           setIsAuthenticatedWithProvider(false);
         }
@@ -97,12 +101,26 @@ function SettingsModal() {
     });
   }, [navigation]);
 
-  const handleContactSupport = useCallback(() => {
-    if (supportUrl) {
-      sheetRef.current?.onCloseBottomSheet();
-      Linking.openURL(supportUrl);
+  const handleContactSupport = useCallback(async () => {
+    if (!supportUrl) return;
+    try {
+      if (await InAppBrowser.isAvailable()) {
+        // Close the sheet before the InAppBrowser overlay opens so the two don't overlap.
+        sheetRef.current?.onCloseBottomSheet();
+        await InAppBrowser.open(supportUrl);
+      } else {
+        // Navigate without closing the sheet first. If we called onCloseBottomSheet() here,
+        // shouldNavigateBack would fire goBack() after the close animation and pop the
+        // Webview screen off the stack instead of the modal.
+        navigation.navigate('Webview', {
+          screen: 'SimpleWebview',
+          params: { url: supportUrl },
+        });
+      }
+    } catch (error) {
+      Logger.error(error as Error, 'SettingsModal: Failed to open support URL');
     }
-  }, [supportUrl]);
+  }, [supportUrl, navigation]);
 
   const handleLogOut = useCallback(async () => {
     try {

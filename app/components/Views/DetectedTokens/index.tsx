@@ -33,7 +33,7 @@ import {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { DetectedTokensSelectorIDs } from './DetectedTokensView.testIds';
 import { TokenI } from '../../UI/Tokens/types';
 
@@ -81,7 +81,7 @@ interface IgnoredTokensByAddress {
 
 const DetectedTokens = () => {
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const detectedTokens = useSelector(selectDetectedTokens);
   const allDetectedTokens = useSelector(

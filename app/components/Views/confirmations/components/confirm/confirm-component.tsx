@@ -26,7 +26,6 @@ import AlertBanner from '../alert-banner';
 import Info from '../info-root';
 import Title from '../title';
 import { Footer, FooterSkeleton } from '../footer';
-import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -57,6 +56,7 @@ export enum ConfirmationLoader {
 export interface ConfirmationParams {
   loader?: ConfirmationLoader;
   maxValueMode?: boolean;
+  forceBottomSheet?: boolean;
 }
 
 const ConfirmWrapped = ({
@@ -91,7 +91,6 @@ const ConfirmWrapped = ({
                 </TouchableWithoutFeedback>
               </ScrollView>
               <Footer />
-              <Splash />
             </LedgerContextProvider>
           </QRHardwareContextProvider>
         </ConfirmationAlerts>

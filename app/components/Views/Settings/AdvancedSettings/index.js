@@ -11,7 +11,6 @@ import { typography } from '@metamask/design-tokens';
 // External dependencies.
 import Engine from '../../../../core/Engine';
 import { baseStyles } from '../../../../styles/common';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setShowFiatOnTestnets,
   setShowHexData,
@@ -40,11 +39,12 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { withAnalyticsAwareness } from '../../../../components/hooks/useAnalytics/withAnalyticsAwareness';
 import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
 import { ResetAccountModal } from './ResetAccountModal/ResetAccountModal';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -220,9 +220,9 @@ class AdvancedSettings extends PureComponent {
      */
     route: PropTypes.object,
     /**
-     * Metrics injected by withMetricsAwareness HOC
+     * Analytics injected by withAnalyticsAwareness HOC
      */
-    metrics: PropTypes.object,
+    analytics: PropTypes.object,
     /**
      * Boolean that checks if smart transactions is enabled
      */
@@ -246,22 +246,7 @@ class AdvancedSettings extends PureComponent {
     return { styles, colors };
   };
 
-  updateNavBar = () => {
-    const { navigation, route } = this.props;
-    const { colors } = this.getStyles();
-    const isFullScreenModal = route?.params?.isFullScreenModal || false;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.advanced_title'),
-        navigation,
-        isFullScreenModal,
-        colors,
-      ),
-    );
-  };
-
   componentDidMount = async () => {
-    this.updateNavBar();
     this.mounted = true;
     // Workaround https://github.com/facebook/react-native/issues/9958
     this.state.inputWidth &&
@@ -271,10 +256,6 @@ class AdvancedSettings extends PureComponent {
 
     this.props.route?.params?.scrollToBottom &&
       this.scrollView?.current?.scrollToEnd({ animated: true });
-  };
-
-  componentDidUpdate = () => {
-    this.updateNavBar();
   };
 
   componentWillUnmount = () => {
@@ -300,8 +281,8 @@ class AdvancedSettings extends PureComponent {
   };
 
   trackMetricsEvent = (event, properties) => {
-    this.props.metrics.trackEvent(
-      this.props.metrics
+    this.props.analytics.trackEvent(
+      this.props.analytics
         .createEventBuilder(event)
         .addProperties({
           location: 'Advanced Settings',
@@ -357,6 +338,11 @@ class AdvancedSettings extends PureComponent {
 
     return (
       <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
+        <HeaderCompactStandard
+          title={strings('app_settings.advanced_title')}
+          onBack={() => this.props.navigation.goBack()}
+          includesTopInset
+        />
         <KeyboardAwareScrollView
           style={styles.wrapper}
           resetScrollToCoords={{ x: 0, y: 0 }}
@@ -510,4 +496,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withMetricsAwareness(AdvancedSettings));
+)(withAnalyticsAwareness(AdvancedSettings));

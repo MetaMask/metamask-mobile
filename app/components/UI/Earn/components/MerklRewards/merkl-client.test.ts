@@ -538,3 +538,176 @@ describe('fetchMerklRewards caching', () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// AbortSignal handling (throwIfAborted polyfill)
+// ---------------------------------------------------------------------------
+
+describe('fetchMerklRewards abort signal handling', () => {
+  const mockUserAddress = '0xabc0000000000000000000000000000000000001';
+  const mockTokenAddress = '0xdef0000000000000000000000000000000000002' as Hex;
+  const mockChainId = MAINNET_CHAIN_ID as Hex;
+
+  const mockRewardData: MerklRewardData[] = [
+    {
+      rewards: [
+        {
+          token: {
+            address: mockTokenAddress,
+            chainId: 1,
+            symbol: 'TST',
+            decimals: 18,
+            price: 1,
+          },
+          pending: '0',
+          proofs: ['0xproof1'],
+          amount: '1000000000000000000',
+          claimed: '0',
+          recipient: mockUserAddress,
+        },
+      ],
+    },
+  ];
+
+  let fetchSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    clearMerklRewardsCache();
+    jest.restoreAllMocks();
+
+    fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => mockRewardData,
+    } as Response);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('throws AbortError immediately when signal is already aborted', async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      fetchMerklRewards({
+        userAddress: mockUserAddress,
+        chainIds: mockChainId,
+        tokenAddress: mockTokenAddress,
+        signal: controller.signal,
+      }),
+    ).rejects.toThrow('The operation was aborted.');
+
+    // Should never reach the network
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('thrown error has name "AbortError"', async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    try {
+      await fetchMerklRewards({
+        userAddress: mockUserAddress,
+        chainIds: mockChainId,
+        tokenAddress: mockTokenAddress,
+        signal: controller.signal,
+      });
+      fail('Expected an error to be thrown');
+    } catch (error) {
+      expect((error as Error).name).toBe('AbortError');
+    }
+  });
+
+  it('throws AbortError after shared request completes when signal is aborted during dedup wait', async () => {
+    const controller = new AbortController();
+
+    // Slow fetch so the second caller joins the pending promise
+    let resolveSlowFetch!: (value: Response) => void;
+    fetchSpy.mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        resolveSlowFetch = resolve;
+      }),
+    );
+
+    // First call — no signal, starts the request
+    const firstPromise = fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
+
+    // Second call — with signal, joins the pending promise
+    const secondPromise = fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+      signal: controller.signal,
+    });
+
+    // Abort while the request is still in-flight
+    controller.abort();
+
+    // Resolve the shared fetch
+    resolveSlowFetch({
+      ok: true,
+      json: async () => mockRewardData,
+    } as Response);
+
+    // First call succeeds, second throws
+    await expect(firstPromise).resolves.toEqual(mockRewardData[0].rewards[0]);
+    await expect(secondPromise).rejects.toThrow('The operation was aborted.');
+  });
+
+  it('throws AbortError after new request completes when signal is aborted during fetch', async () => {
+    const controller = new AbortController();
+
+    let resolveSlowFetch!: (value: Response) => void;
+    fetchSpy.mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        resolveSlowFetch = resolve;
+      }),
+    );
+
+    const promise = fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+      signal: controller.signal,
+    });
+
+    // Abort while fetch is in-flight
+    controller.abort();
+
+    // Resolve the fetch
+    resolveSlowFetch({
+      ok: true,
+      json: async () => mockRewardData,
+    } as Response);
+
+    await expect(promise).rejects.toThrow('The operation was aborted.');
+  });
+
+  it('succeeds when signal is provided but not aborted', async () => {
+    const controller = new AbortController();
+
+    const result = await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+      signal: controller.signal,
+    });
+
+    expect(result).toEqual(mockRewardData[0].rewards[0]);
+  });
+
+  it('succeeds when no signal is provided (undefined)', async () => {
+    const result = await fetchMerklRewards({
+      userAddress: mockUserAddress,
+      chainIds: mockChainId,
+      tokenAddress: mockTokenAddress,
+    });
+
+    expect(result).toEqual(mockRewardData[0].rewards[0]);
+  });
+});

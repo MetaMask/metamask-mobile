@@ -7,7 +7,7 @@ export const withAnalyticsAwareness = <P extends IWithAnalyticsAwarenessProps>(
 ) => {
   const ComponentWithAnalytics = (
     props: Omit<P, keyof IWithAnalyticsAwarenessProps>,
-  ) => <Child {...(props as P)} metrics={useAnalytics()} />;
+  ) => <Child {...(props as P)} analytics={useAnalytics()} />;
 
   return ComponentWithAnalytics;
 };

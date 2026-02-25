@@ -15,6 +15,18 @@ import {
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../constants/musd';
 
+/**
+ * Hermes (React Native JS engine) does not implement AbortSignal.throwIfAborted().
+ * This helper provides equivalent behaviour.
+ */
+const throwIfAborted = (signal?: AbortSignal): void => {
+  if (signal?.aborted) {
+    const err = new Error('The operation was aborted.');
+    err.name = 'AbortError';
+    throw err;
+  }
+};
+
 // mUSD token address (same on all chains)
 const MUSD_TOKEN_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
 
@@ -86,7 +98,7 @@ const fetchMerklRewardsCached = async (
   signal?: AbortSignal,
 ): Promise<MerklRewardData[]> => {
   // Respect the caller's abort signal before doing any work
-  signal?.throwIfAborted();
+  throwIfAborted(signal);
 
   // 1. Check cache
   const cached = merklCache.get(url);
@@ -99,7 +111,7 @@ const fetchMerklRewardsCached = async (
   if (pending) {
     // Await the shared promise, then honour *this* caller's signal
     const data = await pending;
-    signal?.throwIfAborted();
+    throwIfAborted(signal);
     return data;
   }
 
@@ -128,7 +140,7 @@ const fetchMerklRewardsCached = async (
 
   const data = await request;
   // Honour this caller's signal after the shared request completes
-  signal?.throwIfAborted();
+  throwIfAborted(signal);
   return data;
 };
 
