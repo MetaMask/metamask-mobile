@@ -282,23 +282,26 @@ jest.mock('react-native-fade-in-image', () => {
   };
 });
 
-jest.mock('../../components/BridgeTrendingZeroState', () => {
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const { BridgeViewSelectorsIDs: BridgeViewTestIds } = jest.requireActual(
-    './BridgeView.testIds',
-  );
+jest.mock(
+  '../../components/BridgeTrendingZeroState/BridgeTrendingZeroState',
+  () => {
+    const React = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    const { BridgeViewSelectorsIDs: BridgeViewTestIds } = jest.requireActual(
+      './BridgeView.testIds',
+    );
 
-  return {
-    __esModule: true,
-    default: React.forwardRef(
-      (_props: Record<string, never>, _ref: React.Ref<unknown>) =>
-        React.createElement(View, {
-          testID: BridgeViewTestIds.TRENDING_TOKENS_SECTION,
-        }),
-    ),
-  };
-});
+    return {
+      __esModule: true,
+      default: React.forwardRef(
+        (_props: Record<string, never>, _ref: React.Ref<unknown>) =>
+          React.createElement(View, {
+            testID: BridgeViewTestIds.TRENDING_TOKENS_SECTION,
+          }),
+      ),
+    };
+  },
+);
 
 // Mock BottomSheetDialog so that onCloseDialog synchronously calls onClose,
 // allowing keypad close() to work in tests (the real component uses reanimated

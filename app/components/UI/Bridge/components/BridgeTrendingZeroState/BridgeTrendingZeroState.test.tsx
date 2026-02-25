@@ -4,18 +4,23 @@ import React, { createRef } from 'react';
 import BridgeTrendingZeroState, {
   BridgeTrendingZeroStateRef,
 } from './BridgeTrendingZeroState';
-import SwapTrendingTokensSection from '../SwapTrendingTokensSection';
-import { useBridgeTrendingTokens } from '../../hooks/useBridgeTrendingTokens';
+import SwapTrendingTokensSection from '../SwapTrendingTokensSection/SwapTrendingTokensSection';
+import { useBridgeTrendingTokens } from '../../hooks/useBridgeTrendingTokens/useBridgeTrendingTokens';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => ({})),
 }));
 
-jest.mock('../../hooks/useBridgeTrendingTokens', () => ({
-  useBridgeTrendingTokens: jest.fn(),
-}));
+jest.mock(
+  '../../hooks/useBridgeTrendingTokens/useBridgeTrendingTokens',
+  () => ({
+    useBridgeTrendingTokens: jest.fn(),
+  }),
+);
 
-jest.mock('../SwapTrendingTokensSection', () => jest.fn(() => null));
+jest.mock('../SwapTrendingTokensSection/SwapTrendingTokensSection', () =>
+  jest.fn(() => null),
+);
 
 jest.mock('../../../Trending/components/TrendingTokensBottomSheet', () => ({
   TrendingTokenTimeBottomSheet: () => null,
@@ -57,7 +62,6 @@ const buildHookResult = (trendingTokens: TrendingAsset[]) => ({
   },
   trendingTokens,
   isLoading: false,
-  refetch: jest.fn(),
   handlePriceChangeSelect: jest.fn(),
   handleNetworkSelect: jest.fn(),
   handleTimeSelect: jest.fn(),

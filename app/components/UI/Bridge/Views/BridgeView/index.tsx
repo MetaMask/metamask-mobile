@@ -71,7 +71,6 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import {
-  LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
@@ -105,7 +104,7 @@ import { useRenderQuoteExpireModal } from '../../hooks/useRenderQuoteExpireModal
 import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/index.ts';
 import BridgeTrendingZeroState, {
   type BridgeTrendingZeroStateRef,
-} from '../../components/BridgeTrendingZeroState';
+} from '../../components/BridgeTrendingZeroState/BridgeTrendingZeroState';
 
 const TRENDING_NEAR_BOTTOM_THRESHOLD_PX = 160;
 const TRENDING_LOAD_THROTTLE_MS = 200;
@@ -418,44 +417,22 @@ const BridgeView = () => {
   ]);
 
   const trendingZeroStateRef = useRef<BridgeTrendingZeroStateRef>(null);
-  const trendingScrollMetricsRef = useRef({
-    scrollOffsetY: 0,
-    viewportHeight: 0,
-    contentHeight: 0,
-    lastLoadTriggeredAt: 0,
-  });
+  const lastTrendingLoadTriggeredAtRef = useRef(0);
 
   const tryLoadMoreTrendingRows = useCallback(() => {
     if (contentMode !== 'zero') {
       return;
     }
 
-    const {
-      scrollOffsetY,
-      viewportHeight,
-      contentHeight,
-      lastLoadTriggeredAt,
-    } = trendingScrollMetricsRef.current;
-    if (!viewportHeight || !contentHeight) {
-      return;
-    }
-
-    const isNearBottom =
-      scrollOffsetY + viewportHeight >=
-      contentHeight - TRENDING_NEAR_BOTTOM_THRESHOLD_PX;
-    if (!isNearBottom) {
-      return;
-    }
-
     const now = Date.now();
     if (
-      lastLoadTriggeredAt > 0 &&
-      now - lastLoadTriggeredAt < TRENDING_LOAD_THROTTLE_MS
+      now - lastTrendingLoadTriggeredAtRef.current <
+      TRENDING_LOAD_THROTTLE_MS
     ) {
       return;
     }
 
-    trendingScrollMetricsRef.current.lastLoadTriggeredAt = now;
+    lastTrendingLoadTriggeredAtRef.current = now;
     trendingZeroStateRef.current?.loadNextChunkIfAvailable();
   }, [contentMode]);
 
@@ -463,35 +440,16 @@ const BridgeView = () => {
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const { contentOffset, contentSize, layoutMeasurement } =
         event.nativeEvent;
-      trendingScrollMetricsRef.current.scrollOffsetY = contentOffset.y;
-      trendingScrollMetricsRef.current.contentHeight = contentSize.height;
-      trendingScrollMetricsRef.current.viewportHeight =
-        layoutMeasurement.height;
+      const isNearBottom =
+        contentOffset.y + layoutMeasurement.height >=
+        contentSize.height - TRENDING_NEAR_BOTTOM_THRESHOLD_PX;
+      if (!isNearBottom) {
+        return;
+      }
       tryLoadMoreTrendingRows();
     },
     [tryLoadMoreTrendingRows],
   );
-
-  const handleScrollLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      trendingScrollMetricsRef.current.viewportHeight =
-        event.nativeEvent.layout.height;
-      tryLoadMoreTrendingRows();
-    },
-    [tryLoadMoreTrendingRows],
-  );
-
-  const handleScrollContentSizeChange = useCallback(
-    (_contentWidth: number, contentHeight: number) => {
-      trendingScrollMetricsRef.current.contentHeight = contentHeight;
-      tryLoadMoreTrendingRows();
-    },
-    [tryLoadMoreTrendingRows],
-  );
-
-  useEffect(() => {
-    tryLoadMoreTrendingRows();
-  }, [contentMode, tryLoadMoreTrendingRows]);
 
   const renderBottomContent = () => {
     if (isLoading) {
@@ -578,8 +536,6 @@ const BridgeView = () => {
           showsVerticalScrollIndicator={false}
           scrollEventThrottle={16}
           onScroll={handleScroll}
-          onLayout={handleScrollLayout}
-          onContentSizeChange={handleScrollContentSizeChange}
         >
           <Box style={styles.scrollViewContent}>
             <Box style={styles.inputsContainer}>

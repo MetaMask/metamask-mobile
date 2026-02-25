@@ -32,11 +32,7 @@ export const useBridgeTrendingTokens = ({
   const [priceChangeSortDirection, setPriceChangeSortDirection] =
     useState<SortDirection>(SortDirection.Descending);
 
-  const {
-    results: trendingResults,
-    isLoading,
-    fetch: refetchTrendingTokens,
-  } = useTrendingRequest({
+  const { results: trendingResults, isLoading } = useTrendingRequest({
     sortBy,
     chainIds: selectedNetwork ?? undefined,
   });
@@ -144,7 +140,6 @@ export const useBridgeTrendingTokens = ({
     filterContext,
     trendingTokens,
     isLoading,
-    refetch: refetchTrendingTokens,
     handlePriceChangeSelect,
     handleNetworkSelect,
     handleTimeSelect,

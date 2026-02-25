@@ -9,13 +9,13 @@ import React, {
 import { Modal } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
-import SwapTrendingTokensSection from '../SwapTrendingTokensSection';
+import SwapTrendingTokensSection from '../SwapTrendingTokensSection/SwapTrendingTokensSection';
 import {
   TrendingTokenNetworkBottomSheet,
   TrendingTokenPriceChangeBottomSheet,
   TrendingTokenTimeBottomSheet,
 } from '../../../Trending/components/TrendingTokensBottomSheet';
-import { useBridgeTrendingTokens } from '../../hooks/useBridgeTrendingTokens';
+import { useBridgeTrendingTokens } from '../../hooks/useBridgeTrendingTokens/useBridgeTrendingTokens';
 
 const INITIAL_VISIBLE_TOKENS = 12;
 const TOKEN_RENDER_CHUNK_SIZE = 12;
