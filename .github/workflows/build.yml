@@ -193,26 +193,46 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Rename build artifacts
+      # Rename build artifacts (also zips simulator .app and writes ios_deploy_path / ios_archive_path outputs)
       - name: Rename ${{ matrix.platform }} artifacts
+        id: rename
         run: node scripts/rename-artifacts.js ${{ matrix.platform }}
 
       # Upload build artifacts (only if build succeeded)
-      - name: Upload iOS artifacts
-        if: matrix.platform == 'ios'
+      - name: Upload iOS simulator artifacts
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_deploy_path }}
+          if-no-files-found: error
+
+      - name: Upload iOS device artifacts
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ios-${{ inputs.build_name }}
           path: |
-            ios/build/Build/Products/
-            ios/build/output/
-            ios/build/*.xcarchive
+            ${{ steps.rename.outputs.ios_deploy_path }}
+            ${{ steps.rename.outputs.ios_archive_path }}
           if-no-files-found: error
 
-      - name: Upload Android artifacts
-        if: matrix.platform == 'android' && success()
+      # Dev builds (CONFIGURATION=Debug): APK only — mirrors Bitrise IS_DEV_BUILD behavior
+      - name: Upload Android dev artifacts
+        if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
         uses: actions/upload-artifact@v4
         with:
           name: android-${{ inputs.build_name }}
-          path: android/app/build/outputs/
+          path: ${{ steps.rename.outputs.android_apk_path }}
+          if-no-files-found: error
+
+      # Release builds: APK + AAB — mirrors Bitrise Deploy APK + Deploy AAB
+      - name: Upload Android release artifacts
+        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.build_name }}
+          path: |
+            ${{ steps.rename.outputs.android_apk_path }}
+            ${{ steps.rename.outputs.android_aab_path }}
           if-no-files-found: error

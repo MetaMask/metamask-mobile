@@ -8,7 +8,7 @@ import React, {
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import TokensSection from './Sections/Tokens';
-import PerpsSection from './Sections/Perps';
+import PerpsSection from './Sections/Perpetuals';
 import PredictionsSection from './Sections/Predictions';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
