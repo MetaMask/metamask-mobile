@@ -168,8 +168,8 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(screen.getByTestId(CashbackSelectors.CONTAINER)).toBeTruthy();
-      expect(screen.queryByText('Available cashback')).toBeTruthy();
+      expect(screen.getByTestId(CashbackSelectors.CONTAINER)).toBeOnTheScreen();
+      expect(screen.queryByText('Available cashback')).toBeOnTheScreen();
     });
   });
 
@@ -181,7 +181,7 @@ describe('Cashback Component', () => {
 
       expect(
         screen.getByText('Failed to load cashback. Please try again.'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('does not render details card when error exists', () => {
@@ -189,7 +189,9 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(screen.queryByTestId(CashbackSelectors.DETAILS_CARD)).toBeNull();
+      expect(
+        screen.queryByTestId(CashbackSelectors.DETAILS_CARD),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -210,8 +212,8 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(screen.getByText(/10\.50/)).toBeTruthy();
-      expect(screen.getAllByText(/mUSD/).length).toBeGreaterThan(0);
+      expect(screen.getByText(/10\.50/)).toBeOnTheScreen();
+      expect(screen.getAllByText(/mUSD/)[0]).toBeOnTheScreen();
     });
 
     it('formats unknown currency to uppercase', () => {
@@ -230,7 +232,7 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(screen.getAllByText(/mUSD/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/mUSD/)[0]).toBeOnTheScreen();
     });
 
     it('renders details card with fee and expected receive', () => {
@@ -249,9 +251,11 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(screen.getByTestId(CashbackSelectors.DETAILS_CARD)).toBeTruthy();
-      expect(screen.getByText('Network fee')).toBeTruthy();
-      expect(screen.getByText('Expected to receive')).toBeTruthy();
+      expect(
+        screen.getByTestId(CashbackSelectors.DETAILS_CARD),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Network fee')).toBeOnTheScreen();
+      expect(screen.getByText('Expected to receive')).toBeOnTheScreen();
     });
   });
 
@@ -272,7 +276,7 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(screen.getByText('Withdraw')).toBeTruthy();
+      expect(screen.getByText('Withdraw')).toBeOnTheScreen();
     });
 
     it('shows unavailable label when not withdrawable', () => {
@@ -286,7 +290,7 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(screen.getByText('Withdrawal unavailable')).toBeTruthy();
+      expect(screen.getByText('Withdrawal unavailable')).toBeOnTheScreen();
     });
 
     it('shows unavailable label when balance is insufficient', () => {
@@ -305,7 +309,7 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(screen.getByText('Withdrawal unavailable')).toBeTruthy();
+      expect(screen.getByText('Withdrawal unavailable')).toBeOnTheScreen();
     });
 
     it('shows unavailable label when balance is zero', () => {
@@ -319,7 +323,7 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(screen.getByText('Withdrawal unavailable')).toBeTruthy();
+      expect(screen.getByText('Withdrawal unavailable')).toBeOnTheScreen();
     });
   });
 
