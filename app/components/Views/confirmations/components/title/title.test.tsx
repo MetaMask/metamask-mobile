@@ -329,26 +329,6 @@ describe('Confirm Title', () => {
     expect(getByText('Bonus will be paid out on Linea Mainnet.')).toBeTruthy();
   });
 
-  it('renders correct title for musdConversion', () => {
-    const musdConversionState = merge({}, generateContractInteractionState, {
-      engine: {
-        backgroundState: {
-          TransactionController: {
-            transactions: [
-              {
-                type: TransactionType.musdConversion,
-              },
-            ],
-          },
-        },
-      },
-    });
-    const { getByText } = renderWithProvider(<Title />, {
-      state: musdConversionState,
-    });
-    expect(getByText('Convert max')).toBeTruthy();
-  });
-
   it.each([TransactionType.lendingDeposit, TransactionType.lendingWithdraw])(
     'does not render subtitle for %s',
     (transactionType) => {

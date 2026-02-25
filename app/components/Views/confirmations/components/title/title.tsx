@@ -176,14 +176,6 @@ const getTitleAndSubTitle = (
         };
       }
 
-      if (transactionType === TransactionType.musdConversion) {
-        return {
-          title: strings(
-            'earn.musd_conversion.quick_convert.confirmation.title',
-          ),
-        };
-      }
-
       if (transactionType === TransactionType.deployContract) {
         return {
           title: strings('confirm.title.contract_deployment'),
