@@ -1,6 +1,8 @@
 import {
   useNavigation,
   useRoute,
+  CommonActions,
+  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, {
@@ -162,6 +164,8 @@ interface OrderRouteParams {
   limitPriceUpdate?: string;
   // Hide TP/SL when modifying existing position
   hideTPSL?: boolean;
+  /** When true, the order was initiated from the token details screen */
+  fromTokenDetails?: boolean;
   /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
   assetsASSETS2493AbtestTokenDetailsLayout?: string;
 }
@@ -192,6 +196,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     ? 'trending'
     : undefined;
   const navigation = useNavigation();
+  const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
+  const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -861,9 +867,29 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         handleDepositConfirm(activeTransactionMeta, () => {
           handlePlaceOrder(true);
         });
-
         await onDepositConfirm();
-        navigation.goBack();
+        if (fromTokenDetails) {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [
+                {
+                  name: Routes.PERPS.MARKET_DETAILS,
+                  params: {
+                    market: navigationMarketData,
+                    monitoringIntent: {
+                      asset: orderForm.asset,
+                      monitorOrders: true,
+                      monitorPositions: true,
+                    },
+                  },
+                },
+              ],
+            }),
+          );
+        } else {
+          navigation.goBack();
+        }
         return;
       }
 
@@ -1091,6 +1117,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       payToken,
       onDepositConfirm,
       handleDepositConfirm,
+      fromTokenDetails,
     ],
   );
 
