@@ -2059,11 +2059,26 @@
     "title": "Market insights",
     "updated_ago": "Updated {{time}}",
     "disclaimer": "AI insights. Not financial advice.",
+    "fixed_footer_disclaimer": "AI summary • Not financial advice",
     "whats_driving_price": "What's driving the price?",
     "what_people_saying": "What people are saying",
     "trade_button": "Trade",
     "sources_count": "+{{count}} sources",
-    "sources_title": "Sources"
+    "sources_title": "Sources",
+    "feedback_submitted": "Feedback submitted",
+    "feedback": {
+      "title": "Feedback",
+      "description": "Help improve our AI-generated market insights.",
+      "not_relevant": "Not relevant",
+      "not_accurate": "Not accurate",
+      "hard_to_understand": "Hard to understand",
+      "harmful_or_offensive": "Harmful or offensive",
+      "something_else": "Something else",
+      "additional_feedback_label": "Additional feedback (optional)",
+      "additional_feedback_placeholder": "How can we improve?",
+      "characters_remaining": "{{count}} characters remaining",
+      "submit": "Submit"
+    }
   },
   "predict": {
     "title": "MetaMask Predictions",
@@ -2276,6 +2291,7 @@
       "withdrawing_subtitle": "Available in about 1 minute",
       "withdraw_completed": "Withdrawal complete",
       "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
+      "withdraw_any_token_completed_subtitle": "{{amount}} {{token}} moved to your wallet",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdraw",
       "try_again": "Try again"
@@ -5131,6 +5147,26 @@
       "no_date": "Unknown"
     },
     "deposit_order_title": "{{currency}} Deposit"
+  },
+  "ramps_order_details": {
+    "title": "Order details",
+    "status": "Status",
+    "processing": "Processing",
+    "complete": "Complete",
+    "failed": "Failed",
+    "cancelled": "Cancelled",
+    "view_on_provider": "View on {{provider}}",
+    "order_id": "Order ID",
+    "date_and_time": "Date and time",
+    "fees": "Fees",
+    "total": "Total",
+    "card_processing_info": "Card purchases typically take a few minutes",
+    "processing_info_modal_description": "Card purchases typically take a few minutes. You can contact support if you have questions.",
+    "go_to_provider_support": "Go to {{provider}} support page",
+    "error_title": "Something went wrong",
+    "error_message": "Unable to load order details. Please try again.",
+    "try_again": "Try again",
+    "close": "Close"
   },
   "swaps": {
     "title": "Swap",
