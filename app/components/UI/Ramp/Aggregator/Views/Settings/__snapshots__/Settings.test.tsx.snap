@@ -105,93 +105,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                style={
-                  [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 40,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 40,
-                    },
-                    {
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 32,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
@@ -435,8 +349,47 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -444,74 +397,24 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#121314",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -1466,93 +1369,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                style={
-                  [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 40,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 40,
-                    },
-                    {
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 32,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
@@ -1796,8 +1613,47 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -1805,74 +1661,24 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#121314",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -2385,93 +2191,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                style={
-                  [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 40,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 40,
-                    },
-                    {
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 32,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
@@ -2715,8 +2435,47 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -2724,74 +2483,24 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#121314",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -3135,93 +2844,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                style={
-                  [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 40,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 40,
-                    },
-                    {
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 32,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
@@ -3465,8 +3088,47 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -3474,74 +3136,24 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#121314",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -3923,93 +3535,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                style={
-                  [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 40,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 40,
-                    },
-                    {
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 32,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
@@ -4253,8 +3779,47 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -4262,74 +3827,24 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#121314",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -4709,93 +4224,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                style={
-                  [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 40,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 40,
-                    },
-                    {
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 32,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
@@ -5039,8 +4468,47 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -5048,74 +4516,24 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#121314",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -5495,93 +4913,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                style={
-                  [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 40,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 40,
-                    },
-                    {
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 32,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
@@ -5825,8 +5157,47 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -5834,74 +5205,24 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#121314",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -6281,93 +5602,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                style={
-                  [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 40,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 40,
-                    },
-                    {
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 32,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
@@ -6611,8 +5846,47 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -6620,74 +5894,24 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#121314",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -7067,93 +6291,7 @@ exports[`Settings renders correctly 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                style={
-                  [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 40,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 40,
-                    },
-                    {
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 32,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
@@ -7397,8 +6535,47 @@ exports[`Settings renders correctly 1`] = `
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -7406,74 +6583,24 @@ exports[`Settings renders correctly 1`] = `
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#121314",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -7853,93 +6980,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                style={
-                  [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 40,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 40,
-                    },
-                    {
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 32,
-                        "width": 32,
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
@@ -8183,8 +7224,47 @@ exports[`Settings renders correctly for internal builds 1`] = `
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -8192,74 +7272,24 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#121314",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
