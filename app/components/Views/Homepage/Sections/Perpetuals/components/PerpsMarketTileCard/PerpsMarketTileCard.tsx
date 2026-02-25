@@ -23,6 +23,8 @@ const DEFAULT_CARD_WIDTH = 180;
 const DEFAULT_CARD_HEIGHT = 140;
 const SPARKLINE_HEIGHT = 48;
 const TOKEN_LOGO_SIZE = 40;
+const SHIMMER_PULSE_DURATION = 900;
+const LIVE_PRICES_THROTTLE_MS = 3000;
 
 const EMPTY_PRICES: Record<string, PriceUpdate> = {};
 
@@ -78,13 +80,13 @@ const TileCardInner: React.FC<
       Animated.sequence([
         Animated.timing(shimmerOpacity, {
           toValue: 1,
-          duration: 900,
+          duration: SHIMMER_PULSE_DURATION,
           useNativeDriver: true,
           isInteraction: false,
         }),
         Animated.timing(shimmerOpacity, {
           toValue: 0,
-          duration: 900,
+          duration: SHIMMER_PULSE_DURATION,
           useNativeDriver: true,
           isInteraction: false,
         }),
@@ -180,7 +182,7 @@ const TileCardInner: React.FC<
 const TileCardWithLivePrices: React.FC<PerpsMarketTileCardProps> = (props) => {
   const livePrices = usePerpsLivePrices({
     symbols: [props.market.symbol],
-    throttleMs: 3000,
+    throttleMs: LIVE_PRICES_THROTTLE_MS,
   });
   return <TileCardInner {...props} livePrices={livePrices} />;
 };
