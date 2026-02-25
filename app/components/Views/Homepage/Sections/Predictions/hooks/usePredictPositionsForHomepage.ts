@@ -46,11 +46,11 @@ export const _clearPositionsCache = (): void => {
  * Uses module-level caching to avoid redundant API calls.
  * Returns active (non-claimable) positions only.
  *
- * @param maxPositions - Maximum number of positions to return
+ * @param maxPositions - Maximum number of positions to return (all if omitted)
  * @returns Positions data, loading state, and refresh function
  */
 export const usePredictPositionsForHomepage = (
-  maxPositions = 5,
+  maxPositions?: number,
 ): UsePredictPositionsForHomepageResult => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const userAddress = useSelector(
@@ -79,7 +79,9 @@ export const usePredictPositionsForHomepage = (
     const cached = positionsCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       return {
-        positions: cached.positions.slice(0, maxPositions),
+        positions: maxPositions
+          ? cached.positions.slice(0, maxPositions)
+          : cached.positions,
         isLoading: false,
         error: null,
       };
@@ -103,7 +105,9 @@ export const usePredictPositionsForHomepage = (
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       if (isMountedRef.current) {
         setState({
-          positions: cached.positions.slice(0, currentMaxPositions),
+          positions: currentMaxPositions
+            ? cached.positions.slice(0, currentMaxPositions)
+            : cached.positions,
           isLoading: false,
           error: null,
         });
@@ -136,7 +140,9 @@ export const usePredictPositionsForHomepage = (
       cleanExpiredCache();
 
       setState({
-        positions: validPositions.slice(0, currentMaxPositions),
+        positions: currentMaxPositions
+          ? validPositions.slice(0, currentMaxPositions)
+          : validPositions,
         isLoading: false,
         error: null,
       });
