@@ -23,6 +23,10 @@ const styleSheet = (params: { theme: Theme }) => {
     iconWrapper: {
       padding: 4,
     },
+    loadingContainer: {
+      justifyContent: 'center',
+      minWidth: 120,
+    },
   });
 };
 

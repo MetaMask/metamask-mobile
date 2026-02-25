@@ -1175,6 +1175,8 @@ export type RewardsControllerState = {
    * Uses PointsEstimateHistoryEntryState (plain strings) to satisfy StateConstraint.
    */
   pointsEstimateHistory: PointsEstimateHistoryEntryState[];
+  /** Manually selected rewards API URL override; null means use the build default */
+  rewardsEnvUrl: string | null;
 };
 
 /**
@@ -1525,6 +1527,26 @@ export interface RewardsControllerResetAllAction {
   handler: () => Promise<void>;
 }
 
+export interface RewardsControllerGetRewardsEnvUrlAction {
+  type: 'RewardsController:getRewardsEnvUrl';
+  handler: () => string;
+}
+
+export interface RewardsControllerCanChangeRewardsEnvUrlAction {
+  type: 'RewardsController:canChangeRewardsEnvUrl';
+  handler: () => boolean;
+}
+
+export interface RewardsControllerSetRewardsEnvUrlAction {
+  type: 'RewardsController:setRewardsEnvUrl';
+  handler: (url: string) => Promise<void>;
+}
+
+export interface RewardsControllerGetDefaultRewardsEnvUrlAction {
+  type: 'RewardsController:getDefaultRewardsEnvUrl';
+  handler: () => string;
+}
+
 /**
  * Action for applying a referral code to an existing subscription
  */
@@ -1565,7 +1587,11 @@ export type RewardsControllerActions =
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction
-  | RewardsControllerApplyReferralCodeAction;
+  | RewardsControllerApplyReferralCodeAction
+  | RewardsControllerGetRewardsEnvUrlAction
+  | RewardsControllerCanChangeRewardsEnvUrlAction
+  | RewardsControllerSetRewardsEnvUrlAction
+  | RewardsControllerGetDefaultRewardsEnvUrlAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

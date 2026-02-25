@@ -36,6 +36,7 @@ import MarketInsightsTweetCard from '../../components/MarketInsightsTweetCard';
 import MarketInsightsSourcesFooter from '../../components/MarketInsightsSourcesFooter';
 import MarketInsightsTrendSourcesBottomSheet from '../../components/MarketInsightsTrendSourcesBottomSheet';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
@@ -47,6 +48,7 @@ import type {
 } from '@metamask/ai-controllers';
 import { selectMarketInsightsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
@@ -249,6 +251,8 @@ const MarketInsightsView: React.FC = () => {
     caip19Id,
     isMarketInsightsEnabled,
   );
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedViewRef = useRef(false);
   const [selectedTrend, setSelectedTrend] =
     useState<MarketInsightsTrend | null>(null);
   const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(false);
@@ -304,8 +308,18 @@ const MarketInsightsView: React.FC = () => {
   }, []);
 
   const handleTradePress = useCallback(() => {
+    const event = createEventBuilder(
+      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+    )
+      .addProperties({
+        caip19: caip19Id,
+        interaction_type: 'trade',
+      })
+      .build();
+    trackEvent(event);
+
     goToSwaps();
-  }, [goToSwaps]);
+  }, [goToSwaps, trackEvent, createEventBuilder, caip19Id]);
 
   const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
     const hasArticles = trend.articles.length > 0;
@@ -344,6 +358,59 @@ const MarketInsightsView: React.FC = () => {
     },
     [],
   );
+
+  const trackMarketInsightsInteraction = useCallback(
+    (
+      interactionType: 'thumbs_up' | 'thumbs_down' | 'source_click',
+      source?: string,
+    ) => {
+      const properties = {
+        caip19: caip19Id,
+        interaction_type: interactionType,
+        ...(source ? { source } : {}),
+      };
+      const event = createEventBuilder(
+        MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+      )
+        .addProperties(properties)
+        .build();
+      trackEvent(event);
+    },
+    [trackEvent, createEventBuilder, caip19Id],
+  );
+
+  useEffect(() => {
+    hasTrackedViewRef.current = false;
+  }, [caip19Id]);
+
+  const handleThumbsUpPress = useCallback(() => {
+    trackMarketInsightsInteraction('thumbs_up');
+  }, [trackMarketInsightsInteraction]);
+
+  const handleThumbsDownPress = useCallback(() => {
+    trackMarketInsightsInteraction('thumbs_down');
+  }, [trackMarketInsightsInteraction]);
+
+  const handleSourcePress = useCallback(
+    (url: string) => {
+      trackMarketInsightsInteraction('source_click', url);
+    },
+    [trackMarketInsightsInteraction],
+  );
+
+  useEffect(() => {
+    if (!report || hasTrackedViewRef.current) {
+      return;
+    }
+
+    const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
+      .addProperties({
+        caip19: caip19Id,
+      })
+      .build();
+    trackEvent(event);
+    hasTrackedViewRef.current = true;
+  }, [report, caip19Id, trackEvent, createEventBuilder]);
 
   if (showLoadingSkeleton && !report) {
     return (
@@ -522,6 +589,9 @@ const MarketInsightsView: React.FC = () => {
 
         <MarketInsightsSourcesFooter
           sources={report.sources}
+          onSourcePress={handleSourcePress}
+          onThumbsUp={handleThumbsUpPress}
+          onThumbsDown={handleThumbsDownPress}
           testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
         />
       </ScrollView>
@@ -547,6 +617,7 @@ const MarketInsightsView: React.FC = () => {
           trendTitle={selectedTrend.title}
           articles={selectedTrend.articles}
           tweets={selectedTrend.tweets ?? []}
+          onSourcePress={handleSourcePress}
         />
       ) : null}
     </Box>

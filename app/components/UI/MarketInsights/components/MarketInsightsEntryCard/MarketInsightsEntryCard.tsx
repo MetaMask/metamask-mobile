@@ -17,10 +17,7 @@ import {
 import type { MarketInsightsSource } from '@metamask/ai-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
-import {
-  buildHighlightedSegments,
-  getFaviconUrl,
-} from '../../utils/marketInsightsFormatting';
+import { getFaviconUrl } from '../../utils/marketInsightsFormatting';
 
 const MAX_VISIBLE_SOURCE_LOGOS = 3;
 
@@ -99,38 +96,6 @@ const SourceLogoGroup: React.FC<{ sources?: MarketInsightsSource[] }> = ({
 };
 
 /**
- * Renders the summary text with trend titles highlighted.
- * Searches the summary for occurrences of trend titles and renders them.
- */
-const HighlightedSummary: React.FC<{
-  summary: string;
-  trendTitles: string[];
-}> = ({ summary, trendTitles }) => {
-  const segments = useMemo(
-    () => buildHighlightedSegments(summary, trendTitles),
-    [summary, trendTitles],
-  );
-
-  return (
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-      {segments.map((segment, index) =>
-        segment.highlighted ? (
-          <Text
-            key={`segment-${index}`}
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
-          >
-            {segment.text}
-          </Text>
-        ) : (
-          segment.text
-        ),
-      )}
-    </Text>
-  );
-};
-
-/**
  * MarketInsightsEntryCard is the entry point card shown on the token details page.
  * Tapping navigates to the full Market Insights view.
  */
@@ -141,10 +106,6 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
-  const trendTitles = useMemo(
-    () => report.trends.map((t) => t.title),
-    [report.trends],
-  );
 
   return (
     <Pressable
@@ -172,7 +133,9 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
         </Box>
       </Box>
 
-      <HighlightedSummary summary={report.summary} trendTitles={trendTitles} />
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {report.summary}
+      </Text>
 
       <Box twClassName="mt-3">
         <SourceLogoGroup sources={report.sources ?? []} />
