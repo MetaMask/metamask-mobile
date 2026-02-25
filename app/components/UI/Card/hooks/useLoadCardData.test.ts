@@ -85,7 +85,7 @@ describe('useLoadCardData', () => {
   const mockCardDetails: CardDetailsResponse = {
     id: 'card-123',
     holderName: 'John Doe',
-    expiryDate: '12/28',
+    isFreezable: true,
     panLast4: '1234',
     status: CardStatus.ACTIVE,
     type: CardType.VIRTUAL,

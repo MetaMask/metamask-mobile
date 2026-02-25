@@ -294,14 +294,14 @@ describe('OrdersList', () => {
           },
         ],
         [
-          "DepositOrderDetails",
+          "RampsOrderDetails",
           {
             "orderId": "test-deposit-order-1",
           },
         ],
       ]
     `);
-    expect(mockNavigate).toHaveBeenCalledWith('DepositOrderDetails', {
+    expect(mockNavigate).toHaveBeenCalledWith('RampsOrderDetails', {
       orderId: 'test-deposit-order-1',
     });
   });

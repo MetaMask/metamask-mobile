@@ -1,17 +1,14 @@
-import { act } from '@testing-library/react-native';
 import React from 'react';
 import { cloneDeep } from 'lodash';
 import { ScrollView } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   generateContractInteractionState,
-  getAppStateForConfirmation,
   personalSignatureConfirmationState,
   stakingClaimConfirmationState,
   stakingDepositConfirmationState,
   stakingWithdrawalConfirmationState,
   typedSignV1ConfirmationState,
-  upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { Confirm, ConfirmationLoader } from './confirm-component';
@@ -299,20 +296,6 @@ describe('Confirm', () => {
     ).toBeDefined();
     expect(getByText('Estimated changes')).toBeDefined();
     expect(getByText('Network fee')).toBeDefined();
-  });
-
-  it('renders splash page if present', async () => {
-    const { getByText } = renderWithProvider(<Confirm />, {
-      state: getAppStateForConfirmation(upgradeAccountConfirmation, {
-        PreferencesController: { smartAccountOptIn: false },
-      }),
-    });
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    expect(getByText('Use smart account?')).toBeTruthy();
   });
 
   it('displays loading spinner when no approval request exists', () => {

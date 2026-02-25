@@ -3,6 +3,8 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenIcon } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { TouchableOpacity } from 'react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import {
@@ -32,10 +34,11 @@ import {
   TransactionPayComponentIDs,
 } from '../../../ConfirmationView.testIds';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
-
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
+  const { isWithdraw } = useTransactionPayWithdraw();
+  const requiredTokens = useTransactionPayRequiredTokens();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
@@ -56,12 +59,31 @@ export function PayWithRow() {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [canEdit, navigation, setConfirmationMetric]);
 
+  const label = isWithdraw
+    ? strings('confirm.label.receive_as')
+    : strings('confirm.label.pay_with');
+
+  // For withdrawals, default to the primary required token (where funds are going)
+  // if no payment token has been explicitly selected.
+  // Filter out skipIfBalance (optional if user already holds) and allowUnderMinimum
+  // (fallback/optional) entries — neither represents the primary destination token.
+  const defaultWithdrawToken = requiredTokens?.find(
+    (token) => !token.skipIfBalance && !token.allowUnderMinimum,
+  );
+  const displayToken = useMemo(() => {
+    if (isWithdraw) {
+      return payToken ?? defaultWithdrawToken ?? null;
+    }
+    return payToken ?? null;
+  }, [isWithdraw, payToken, defaultWithdrawToken]);
+
+  // For deposits, show the user's balance of the selected pay token
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),
     [formatFiat, payToken?.balanceUsd],
   );
 
-  if (!payToken) {
+  if (!displayToken) {
     return <PayWithRowSkeleton />;
   }
 
@@ -78,21 +100,27 @@ export function PayWithRow() {
         gap={12}
         style={styles.container}
       >
-        <TokenIcon address={payToken.address} chainId={payToken.chainId} />
+        <TokenIcon
+          address={displayToken.address}
+          chainId={displayToken.chainId}
+        />
         <Text
           variant={TextVariant.BodyMDMedium}
           color={TextColor.Default}
           testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
         >
-          {`${strings('confirm.label.pay_with')} ${payToken.symbol}`}
+          {`${label} ${displayToken.symbol}`}
         </Text>
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Alternative}
-          testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
-        >
-          {balanceUsdFormatted}
-        </Text>
+        {/* For deposits, show the user's balance; for withdrawals, no balance needed */}
+        {!isWithdraw && (
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Alternative}
+            testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
+          >
+            {balanceUsdFormatted}
+          </Text>
+        )}
         {canEdit && from && (
           <Icon
             name={IconName.ArrowDown}

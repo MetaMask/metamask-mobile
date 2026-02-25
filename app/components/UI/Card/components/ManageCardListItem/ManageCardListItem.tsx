@@ -21,6 +21,7 @@ export interface ManageCardListItemProps {
   description: string | React.ReactNode;
   descriptionOrientation?: 'row' | 'column';
   rightIcon?: IconName;
+  rightElement?: React.ReactNode;
   testID?: string;
   onPress?: () => void;
   isLoading?: boolean;
@@ -32,6 +33,7 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
   description,
   descriptionOrientation = 'column',
   rightIcon,
+  rightElement,
   testID = 'manage-card-list-item',
   isLoading = false,
 }) => {
@@ -51,18 +53,19 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
             description
           )}
         </ListItemColumn>
-        {(isLoading || rightIcon) && (
+        {(isLoading || rightIcon || rightElement) && (
           <ListItemColumn>
             {isLoading ? (
               <ActivityIndicator size="small" />
             ) : (
-              rightIcon && (
+              (rightElement ??
+              (rightIcon && (
                 <Icon
                   style={styles.action}
                   size={IconSize.Md}
                   name={rightIcon}
                 />
-              )
+              )))
             )}
           </ListItemColumn>
         )}

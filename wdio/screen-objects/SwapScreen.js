@@ -5,7 +5,7 @@ import { expect as appwrightExpect } from 'appwright';
 import { PerpsWithdrawViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
 import { QuoteViewSelectorIDs,QuoteViewSelectorText } from '../../app/components/UI/Swaps/QuoteView.testIds';
 import { SwapsViewSelectorsIDs } from '../../app/components/UI/Swaps/SwapsView.testIds';
-import { splitAmountIntoDigits } from '../../tests/framework/utils/Utils';
+import { splitAmountIntoDigits } from '../utils/splitAmountIntoDigits';
 
 class SwapScreen {
 

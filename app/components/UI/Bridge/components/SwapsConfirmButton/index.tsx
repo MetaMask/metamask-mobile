@@ -24,9 +24,10 @@ import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import { BridgeQuoteResponse } from '../../types';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
+import { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { calcTokenValue } from '../../../../../util/transactions';
 
 interface Props {
@@ -38,6 +39,10 @@ interface Props {
 export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
+  /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
+  const location = route.params?.location;
+
   const { submitBridgeTx } = useSubmitBridgeTx();
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
@@ -154,6 +159,7 @@ export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
 
         await submitBridgeTx({
           quoteResponse,
+          location,
         });
       }
     } catch (error) {

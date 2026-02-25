@@ -1,4 +1,10 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   TouchableOpacity,
   View,
@@ -43,14 +49,25 @@ import TokenDetails from '../../AssetOverview/TokenDetails';
 import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.context';
 import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
 import { TokenDetailsActions } from './TokenDetailsActions';
-import MerklRewards from '../../Earn/components/MerklRewards';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
-import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
+import {
+  MarketInsightsEntryCard,
+  useMarketInsights,
+  selectMarketInsightsEnabled,
+} from '../../MarketInsights';
+import { isCaipAssetType } from '@metamask/utils';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
+import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../Bridge/types';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -82,10 +99,16 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 20,
       paddingHorizontal: 16,
     } as ViewStyle,
+    marketInsightsWrapper: {
+      paddingTop: 16,
+    } as ViewStyle,
     perpsPositionCardContainer: {
       paddingHorizontal: 16,
       paddingTop: 24,
     } as ViewStyle,
+    marketClosedActionButtonContainer: {
+      marginBottom: 8,
+    },
     perpsPositionTitle: {
       marginBottom: 8,
     } as TextStyle,
@@ -115,7 +138,6 @@ export interface AssetOverviewContentProps {
 
   // Feature flags
   isPerpsEnabled: boolean;
-  isMerklCampaignClaimingEnabled: boolean;
 
   // Display flags
   displayBuyButton: boolean;
@@ -133,6 +155,7 @@ export interface AssetOverviewContentProps {
   // Tron-specific
   isTronNative?: boolean;
   stakedTrxAsset?: TokenI;
+  onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
 }
 
 /**
@@ -160,7 +183,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   setTimePeriod,
   chartNavigationButtons,
   isPerpsEnabled,
-  isMerklCampaignClaimingEnabled,
   displayBuyButton,
   displaySwapsButton,
   currentCurrency,
@@ -170,10 +192,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   goToSwaps,
   isTronNative,
   stakedTrxAsset,
+  onMarketInsightsDisplayResolved,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
+  const { isTokenTradingOpen } = useRWAToken();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  // A/B test hook for layout selection (must be called before usePerpsActions to pass ab_tests)
+  const { useNewLayout, isTestActive, variantName } = useTokenDetailsABTest();
 
   const {
     hasPerpsMarket,
@@ -182,6 +210,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     handlePerpsAction,
   } = usePerpsActions({
     symbol: isPerpsEnabled ? token.symbol : null,
+    fromTokenDetails: true,
+    abTestTokenDetailsLayout: isTestActive ? variantName : undefined,
   });
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -234,9 +264,50 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
-  const isTokenDetailsV2ButtonsEnabled = useSelector(
-    selectTokenDetailsV2ButtonsEnabled,
-  );
+  const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
+  const marketInsightsCaip19Id = useMemo(() => {
+    if (!isMarketInsightsEnabled) {
+      return null;
+    }
+
+    try {
+      if (isCaipAssetType(token.address)) {
+        return token.address;
+      }
+
+      if (!token.chainId) {
+        return null;
+      }
+
+      return formatAddressToAssetId(token.address, token.chainId) ?? null;
+    } catch {
+      return null;
+    }
+  }, [isMarketInsightsEnabled, token.address, token.chainId]);
+  const {
+    report: marketInsightsReport,
+    timeAgo: marketInsightsTimeAgo,
+    isLoading: isMarketInsightsLoading,
+  } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
+
+  useEffect(() => {
+    if (!onMarketInsightsDisplayResolved) {
+      return;
+    }
+    if (!isMarketInsightsEnabled) {
+      onMarketInsightsDisplayResolved(false);
+      return;
+    }
+    if (isMarketInsightsLoading) {
+      return;
+    }
+    onMarketInsightsDisplayResolved(Boolean(marketInsightsReport));
+  }, [
+    onMarketInsightsDisplayResolved,
+    isMarketInsightsEnabled,
+    isMarketInsightsLoading,
+    marketInsightsReport,
+  ]);
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -244,6 +315,47 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     });
     navigation.navigate(screen, params as Record<string, unknown>);
   };
+
+  const handleMarketInsightsPress = useCallback(() => {
+    if (marketInsightsCaip19Id) {
+      const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
+        .addProperties({
+          caip19: marketInsightsCaip19Id,
+        })
+        .build();
+      trackEvent(event);
+    }
+
+    // Compute actual percentage from available price data (always defined)
+    const percentChange =
+      comparePrice > 0 ? (priceDiff / comparePrice) * 100 : 0;
+
+    navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
+      assetSymbol: token.symbol,
+      caip19Id: marketInsightsCaip19Id,
+      tokenImageUrl: token.image || token.logo,
+      pricePercentChange: percentChange,
+      // Pass token data needed for swap navigation
+      tokenAddress: token.address,
+      tokenDecimals: token.decimals,
+      tokenName: token.name,
+      tokenChainId: token.chainId,
+    });
+  }, [
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    token.symbol,
+    marketInsightsCaip19Id,
+    token.image,
+    token.logo,
+    token.address,
+    token.decimals,
+    token.name,
+    token.chainId,
+    priceDiff,
+    comparePrice,
+  ]);
 
   const handlePerpsDiscoveryPress = useCallback(() => {
     if (marketData) {
@@ -298,6 +410,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     [handleSelectTimePeriod, timePeriod, chartNavigationButtons],
   );
 
+  const handleMarketClosedButtonPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+    });
+  };
+
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {token.hasBalanceError ? (
@@ -319,7 +437,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
-          {isTokenDetailsV2ButtonsEnabled ? (
+          {!isTokenTradingOpen(token as BridgeToken) && (
+            <View style={styles.marketClosedActionButtonContainer}>
+              <MarketClosedActionButton
+                iconName={IconName.Info}
+                label={strings('asset_overview.market_closed')}
+                onPress={handleMarketClosedButtonPress}
+              />
+            </View>
+          )}
+          {useNewLayout ? (
             <TokenDetailsActions
               hasPerpsMarket={hasPerpsMarket}
               hasBalance={balance != null && Number(balance) > 0}
@@ -337,7 +464,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           ) : (
             <AssetDetailsActions
               displayBuyButton={displayBuyButton && isBuyable}
-              displaySwapsButton={displaySwapsButton}
+              displaySwapsButton={
+                displaySwapsButton && isTokenTradingOpen(token as BridgeToken)
+              }
               goToSwaps={goToSwaps}
               onBuy={onBuy}
               onReceive={onReceive}
@@ -348,7 +477,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               }}
             />
           )}
-
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && <TronEnergyBandwidthDetail />
@@ -374,11 +502,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
-          {isMerklCampaignClaimingEnabled && (
-            <View testID="merkl-rewards-section">
-              <MerklRewards asset={token} />
+          {isMarketInsightsEnabled && marketInsightsReport ? (
+            <View style={styles.marketInsightsWrapper}>
+              <MarketInsightsEntryCard
+                report={marketInsightsReport}
+                timeAgo={marketInsightsTimeAgo}
+                onPress={handleMarketInsightsPress}
+                testID="market-insights-entry-card"
+              />
             </View>
-          )}
+          ) : null}
           {isPerpsEnabled &&
             hasPerpsMarket &&
             marketData &&

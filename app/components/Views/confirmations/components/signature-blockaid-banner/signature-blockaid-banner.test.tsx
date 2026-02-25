@@ -16,8 +16,8 @@ jest.mock('react-native-gzip', () => ({
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilderAddProperties = jest.fn();
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: () => ({
       addProperties: mockCreateEventBuilderAddProperties.mockReturnValue({
