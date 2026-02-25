@@ -97,7 +97,9 @@ export const createMockPerpsControllerState = (
   withdrawInProgress: false,
   lastWithdrawResult: null,
   lastCompletedWithdrawalTimestamp: null,
+  lastCompletedWithdrawalTxHash: null,
   lastCompletedDepositTimestamp: null,
+  lastCompletedDepositTxHash: null,
   withdrawalRequests: [],
   withdrawalProgress: {
     progress: 0,

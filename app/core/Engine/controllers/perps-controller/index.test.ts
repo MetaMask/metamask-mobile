@@ -130,7 +130,9 @@ describe('perps controller init', () => {
       withdrawInProgress: false,
       lastWithdrawResult: null,
       lastCompletedWithdrawalTimestamp: null,
+      lastCompletedWithdrawalTxHash: null,
       lastCompletedDepositTimestamp: null,
+      lastCompletedDepositTxHash: null,
       withdrawalRequests: [],
       withdrawalProgress: {
         progress: 0,

@@ -330,6 +330,7 @@ describe('useWithdrawalRequests', () => {
         selector({
           withdrawalRequests: mockPendingWithdrawals,
           lastCompletedWithdrawalTimestamp: lastCompletedTimestamp,
+          lastCompletedWithdrawalTxHash: '0xalreadyKnown',
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
 
@@ -387,6 +388,7 @@ describe('useWithdrawalRequests', () => {
         selector({
           withdrawalRequests: mockPendingWithdrawals,
           lastCompletedWithdrawalTimestamp: lastCompletedTimestamp,
+          lastCompletedWithdrawalTxHash: '0xoldWithdrawal',
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
 
@@ -420,6 +422,86 @@ describe('useWithdrawalRequests', () => {
           asset: 'USDC',
         },
       );
+    });
+
+    it('matches same-timestamp completion with different txHash', async () => {
+      const sameTimestamp = 1640995200500;
+
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: mockPendingWithdrawals,
+          lastCompletedWithdrawalTimestamp: sameTimestamp,
+          lastCompletedWithdrawalTxHash: '0xfirstCompletion',
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
+
+      mockProvider.getUserHistory.mockResolvedValue([
+        {
+          id: 'history-1',
+          timestamp: sameTimestamp,
+          type: 'withdrawal',
+          amount: '200',
+          asset: 'USDC',
+          txHash: '0xsecondCompletion',
+          status: 'completed',
+          details: { source: 'HyperLiquid' },
+        },
+      ]);
+
+      renderHookWithProvider(() => useWithdrawalRequests(), {
+        state: createMockState(),
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(0);
+      });
+
+      expect(mockController.completeWithdrawalFromHistory).toHaveBeenCalledWith(
+        'withdrawal-1',
+        {
+          txHash: '0xsecondCompletion',
+          amount: '200',
+          timestamp: sameTimestamp,
+          asset: 'USDC',
+        },
+      );
+    });
+
+    it('skips same-timestamp completion with same txHash', async () => {
+      const sameTimestamp = 1640995200500;
+
+      mockUsePerpsSelector.mockImplementation((selector) =>
+        selector({
+          withdrawalRequests: mockPendingWithdrawals,
+          lastCompletedWithdrawalTimestamp: sameTimestamp,
+          lastCompletedWithdrawalTxHash: '0xalreadyMatched',
+        } as Partial<PerpsControllerState> as PerpsControllerState),
+      );
+
+      mockProvider.getUserHistory.mockResolvedValue([
+        {
+          id: 'history-1',
+          timestamp: sameTimestamp,
+          type: 'withdrawal',
+          amount: '100',
+          asset: 'USDC',
+          txHash: '0xalreadyMatched',
+          status: 'completed',
+          details: { source: 'HyperLiquid' },
+        },
+      ]);
+
+      renderHookWithProvider(() => useWithdrawalRequests(), {
+        state: createMockState(),
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(0);
+      });
+
+      expect(
+        mockController.completeWithdrawalFromHistory,
+      ).not.toHaveBeenCalled();
     });
 
     it('handles recovery on mount when pending queue has items', async () => {

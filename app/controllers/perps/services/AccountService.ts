@@ -215,7 +215,7 @@ export class AccountService {
               state.withdrawInProgress = false;
             }
             // If no txHash (bridging), keep withdrawInProgress = true
-            // usePendingTransactions will poll getUserHistory and call
+            // useWithdrawalRequests will poll getUserHistory and call
             // completeWithdrawalFromHistory when the transaction appears
           });
         }
