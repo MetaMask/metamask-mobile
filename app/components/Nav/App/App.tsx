@@ -212,7 +212,11 @@ const OnboardingSuccessFlow = () => (
  */
 const OnboardingNav = () => (
   <Stack.Navigator initialRouteName={'Onboarding'}>
-    <Stack.Screen name="Onboarding" component={Onboarding} />
+    <Stack.Screen
+      name="Onboarding"
+      component={Onboarding}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen
       name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
       component={SocialLoginSuccessNewUser}
@@ -239,7 +243,11 @@ const OnboardingNav = () => (
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
       component={DefaultSettings}
     />
-    <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
+    <Stack.Screen
+      name="ManualBackupStep1"
+      component={ManualBackupStep1}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
     <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
     <Stack.Screen
@@ -640,6 +648,7 @@ const ImportSRPView = () => (
     <Stack.Screen
       name={Routes.MULTI_SRP.IMPORT}
       component={ImportNewSecretRecoveryPhrase}
+      options={{ headerShown: false }}
     />
     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
     <Stack.Screen
@@ -686,6 +695,7 @@ const ConnectHardwareWalletFlow = () => (
     <Stack.Screen
       name={Routes.HW.SELECT_DEVICE}
       component={SelectHardwareWallet}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

@@ -186,10 +186,6 @@ const ActivityView = () => {
             openAccountSelector,
           ),
         );
-      } else {
-        navigation.setOptions({
-          headerShown: false,
-        });
       }
     },
     /* eslint-disable-next-line */

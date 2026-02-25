@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button, {
@@ -59,12 +59,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
 
   const goToDefaultSettings = () => {
     navigation.navigate(Routes.ONBOARDING.DEFAULT_SETTINGS);
