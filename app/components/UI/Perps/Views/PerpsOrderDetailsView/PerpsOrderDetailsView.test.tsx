@@ -358,7 +358,7 @@ describe('PerpsOrderDetailsView', () => {
     expect(screen.getByText('perps.order_details.yes')).toBeOnTheScreen();
   });
 
-  it('shows market in Price row when execution price is unavailable', () => {
+  it('shows market in Price row while using best-available estimate for notional rows when execution price is unavailable', () => {
     const triggerOrder: Order = {
       ...mockOrder,
       isTrigger: true,
@@ -376,7 +376,7 @@ describe('PerpsOrderDetailsView', () => {
     expect(screen.getByText('$25500.00')).toBeOnTheScreen();
   });
 
-  it('uses trigger fallback amount for fee calculation when execution price is unavailable', () => {
+  it('uses trigger fallback amount as best-available estimate for fee calculation when execution price is unavailable', () => {
     const triggerOrder: Order = {
       ...mockOrder,
       isTrigger: true,

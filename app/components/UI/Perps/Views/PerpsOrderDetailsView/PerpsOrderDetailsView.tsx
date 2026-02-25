@@ -74,6 +74,9 @@ const PerpsOrderDetailsView: React.FC = () => {
 
     const validOrderPrice = getValidOrderPrice(order);
     const validTriggerPrice = getValidTriggerPrice(order);
+    // Used as the best-available estimate for order value/fee rows.
+    // For market-style trigger orders, adapter data may set `order.price` from triggerPx
+    // when no limitPx exists; keep trigger fallback to preserve estimate behavior.
     const effectivePrice = validOrderPrice ?? validTriggerPrice;
 
     return { validOrderPrice, validTriggerPrice, effectivePrice };

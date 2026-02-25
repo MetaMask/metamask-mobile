@@ -892,7 +892,8 @@ describe('hyperLiquidAdapter', () => {
 
       const result = adaptOrderFromSDK(frontendOrder);
 
-      // price should fall back to triggerPx when limitPx is empty
+      // price falls back to triggerPx when limitPx is empty
+      // so downstream UIs can compute best-available estimate rows.
       expect(result.price).toBe('70000');
       // triggerPrice should be set to triggerPx
       expect(result.triggerPrice).toBe('70000');
