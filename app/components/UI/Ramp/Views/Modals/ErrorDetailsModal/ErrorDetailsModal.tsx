@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { Linking, View, ScrollView, useWindowDimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -30,6 +31,8 @@ export interface ErrorDetailsModalParams {
   errorMessage: string;
   providerName?: string;
   providerSupportUrl?: string;
+  showChangeProvider?: boolean;
+  amount?: number;
 }
 
 export const createErrorDetailsModalNavDetails =
@@ -40,13 +43,19 @@ export const createErrorDetailsModalNavDetails =
 
 function ErrorDetailsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
 
-  const { errorMessage, providerName, providerSupportUrl } =
-    useParams<ErrorDetailsModalParams>();
+  const {
+    errorMessage,
+    providerName,
+    providerSupportUrl,
+    showChangeProvider,
+    amount,
+  } = useParams<ErrorDetailsModalParams>();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -57,6 +66,13 @@ function ErrorDetailsModal() {
       Linking.openURL(providerSupportUrl);
     }
   }, [providerSupportUrl]);
+
+  const handleChangeProvider = useCallback(() => {
+    navigation.replace(
+      Routes.RAMP.MODALS.PROVIDER_SELECTION as never,
+      { amount } as never,
+    );
+  }, [navigation, amount]);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
@@ -89,7 +105,16 @@ function ErrorDetailsModal() {
       </ScrollView>
 
       <View style={styles.buttonContainer}>
-        {providerName && providerSupportUrl ? (
+        {showChangeProvider ? (
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            onPress={handleChangeProvider}
+            label={strings('fiat_on_ramp.change_provider_button')}
+            style={styles.button}
+          />
+        ) : null}
+        {!showChangeProvider && providerName && providerSupportUrl ? (
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}

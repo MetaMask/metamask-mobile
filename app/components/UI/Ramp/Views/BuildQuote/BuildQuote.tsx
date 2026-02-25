@@ -470,6 +470,19 @@ function BuildQuote() {
     quoteMatchesAmount &&
     quoteMatchesCurrentContext;
 
+  const hasNoQuotes =
+    hasAmount &&
+    !selectedQuoteLoading &&
+    !quoteFetchError &&
+    quotesResponse !== null &&
+    selectedQuote === null;
+
+  const noQuotesErrorMessage = selectedProvider
+    ? strings('fiat_on_ramp.no_quotes_error', {
+        provider: selectedProvider.name,
+      })
+    : strings('fiat_on_ramp.no_quotes_available');
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -479,7 +492,11 @@ function BuildQuote() {
               <Text
                 testID={BuildQuoteSelectors.AMOUNT_INPUT}
                 variant={TextVariant.HeadingLG}
-                color={nativeFlowError ? TextColor.Error : undefined}
+                color={
+                  nativeFlowError || hasNoQuotes || quoteFetchError
+                    ? TextColor.Error
+                    : undefined
+                }
                 style={styles.mainAmount}
                 numberOfLines={1}
                 adjustsFontSizeToFit
@@ -521,6 +538,13 @@ function BuildQuote() {
                         (link) => link.name === PROVIDER_LINKS.SUPPORT,
                       )?.url
                     }
+                  />
+                ) : hasNoQuotes ? (
+                  <TruncatedError
+                    error={strings('fiat_on_ramp.encountered_error')}
+                    errorDetails={noQuotesErrorMessage}
+                    showChangeProvider
+                    amount={amountAsNumber}
                   />
                 ) : (
                   selectedProvider && (

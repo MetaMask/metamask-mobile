@@ -2,9 +2,18 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../../constants/navigation/Routes';
 import ErrorDetailsModal from './ErrorDetailsModal';
 
 const mockOnCloseBottomSheet = jest.fn();
+const mockReplace = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    replace: mockReplace,
+  }),
+}));
 
 jest.mock(
   '../../../../../../component-library/components/BottomSheets/BottomSheet',
@@ -113,6 +122,47 @@ describe('ErrorDetailsModal', () => {
   it('does not render contact support button when provider info is missing', () => {
     const { queryByText } = renderWithProvider(ErrorDetailsModal);
 
+    expect(queryByText(/Contact.*support/u)).toBeNull();
+  });
+
+  it('renders with change provider button and matches snapshot', () => {
+    mockUseParams.mockReturnValue({
+      errorMessage: 'No quotes available.',
+      showChangeProvider: true,
+    });
+
+    const { toJSON } = renderWithProvider(ErrorDetailsModal);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('navigates to provider selection with amount when Change provider is pressed', () => {
+    mockUseParams.mockReturnValue({
+      errorMessage: 'No quotes available.',
+      showChangeProvider: true,
+      amount: 250,
+    });
+
+    const { getByText } = renderWithProvider(ErrorDetailsModal);
+
+    fireEvent.press(getByText('Change provider'));
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.RAMP.MODALS.PROVIDER_SELECTION,
+      { amount: 250 },
+    );
+  });
+
+  it('shows change provider instead of contact support when both flags are set', () => {
+    mockUseParams.mockReturnValue({
+      errorMessage: 'Error.',
+      providerName: 'Transak',
+      providerSupportUrl: 'https://support.transak.com',
+      showChangeProvider: true,
+    });
+
+    const { getByText, queryByText } = renderWithProvider(ErrorDetailsModal);
+
+    expect(getByText('Change provider')).toBeOnTheScreen();
     expect(queryByText(/Contact.*support/u)).toBeNull();
   });
 });

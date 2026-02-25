@@ -1,5 +1,11 @@
-import React, { useCallback } from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import {
+  TouchableOpacity,
+  View,
+  StyleSheet,
+  type NativeSyntheticEvent,
+  type TextLayoutEventData,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
@@ -11,12 +17,16 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { createErrorDetailsModalNavDetails } from '../../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
+import { strings } from '../../../../../../locales/i18n';
 
 interface TruncatedErrorProps {
   error: string;
+  errorDetails?: string;
   maxLines?: number;
   providerName?: string;
   providerSupportUrl?: string;
+  showChangeProvider?: boolean;
+  amount?: number;
 }
 
 const styles = StyleSheet.create({
@@ -33,21 +43,44 @@ const styles = StyleSheet.create({
 
 const TruncatedError: React.FC<TruncatedErrorProps> = ({
   error,
+  errorDetails,
   maxLines = 1,
   providerName,
   providerSupportUrl,
+  showChangeProvider,
+  amount,
 }) => {
   const navigation = useNavigation();
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  const handleTextLayout = useCallback(
+    (event: NativeSyntheticEvent<TextLayoutEventData>) => {
+      const { lines } = event.nativeEvent;
+      const renderedText = lines.map((line) => line.text).join('');
+      setIsTruncated(renderedText.length < error.length);
+    },
+    [error],
+  );
 
   const handleInfoPress = useCallback(() => {
     navigation.navigate(
       ...createErrorDetailsModalNavDetails({
-        errorMessage: error,
+        errorMessage: errorDetails ?? error,
         providerName,
         providerSupportUrl,
+        showChangeProvider,
+        amount,
       }),
     );
-  }, [error, navigation, providerName, providerSupportUrl]);
+  }, [
+    error,
+    errorDetails,
+    navigation,
+    providerName,
+    providerSupportUrl,
+    showChangeProvider,
+    amount,
+  ]);
 
   return (
     <View style={styles.container}>
@@ -56,9 +89,10 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
         color={TextColor.Error}
         numberOfLines={maxLines}
         ellipsizeMode="tail"
+        onTextLayout={handleTextLayout}
         style={styles.text}
       >
-        {error}
+        {isTruncated ? strings('fiat_on_ramp.encountered_error') : error}
       </Text>
       <TouchableOpacity
         onPress={handleInfoPress}
