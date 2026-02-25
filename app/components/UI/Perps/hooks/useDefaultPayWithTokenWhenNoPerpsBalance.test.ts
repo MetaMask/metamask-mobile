@@ -63,6 +63,7 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
         chainId: '0xa4b1',
         symbol: 'USDC',
         balanceFiat: '$500',
+        decimals: 6,
       },
     ] as ReturnType<typeof mockUsePerpsPaymentTokens>[number][]);
 
@@ -107,6 +108,7 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
         chainId: '0xa4b1',
         symbol: 'USDC',
         balanceFiat: '$500',
+        decimals: 6,
       },
     ] as ReturnType<typeof mockUsePerpsPaymentTokens>[number][]);
 
@@ -133,6 +135,7 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
         chainId: '0xa4b1',
         symbol: 'USDC',
         balanceFiat: 'US$0.005',
+        decimals: 6,
       },
     ] as ReturnType<typeof mockUsePerpsPaymentTokens>[number][]);
 
@@ -159,12 +162,14 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
         chainId: '0x1',
         symbol: 'WETH',
         balanceFiat: 'US$100',
+        decimals: 18,
       },
       {
         address: '0xusdc',
         chainId: '0xa4b1',
         symbol: 'USDC',
         balanceFiat: 'US$500',
+        decimals: 6,
       },
     ] as ReturnType<typeof mockUsePerpsPaymentTokens>[number][]);
 
@@ -194,6 +199,7 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
         chainId: '0xa4b1',
         symbol: 'USDC',
         balanceFiat: 'US$500',
+        decimals: 6,
       },
     ] as ReturnType<typeof mockUsePerpsPaymentTokens>[number][]);
 
@@ -221,6 +227,7 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
         chainId: '0x3e7',
         symbol: 'USDC',
         balanceFiat: 'US$500',
+        decimals: 6,
       },
     ] as ReturnType<typeof mockUsePerpsPaymentTokens>[number][]);
 
