@@ -192,15 +192,9 @@ function ConfirmationAlerts({ children }: { children: ReactNode }) {
 }
 
 function Loader() {
-  const { isFullScreenConfirmation } = useFullScreenConfirmation();
-  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation });
+  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
   const params = useParams<ConfirmationParams>();
   const loader = params?.loader ?? ConfirmationLoader.Default;
-
-  // Don't show full screen loader for bottom sheet confirmations
-  if (!isFullScreenConfirmation) {
-    return null;
-  }
 
   if (loader === ConfirmationLoader.CustomAmount) {
     return (
