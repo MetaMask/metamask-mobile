@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsView from './MarketInsightsView';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
@@ -120,7 +120,32 @@ describe('MarketInsightsView', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
+  });
+
+  it('renders loading skeleton while market insights are loading', () => {
+    jest.useFakeTimers();
+
+    mockUseMarketInsights.mockReturnValue({
+      report: null,
+      isLoading: true,
+      error: null,
+      timeAgo: '',
+    });
+
+    const { queryByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_SKELETON)).toBeNull();
+
+    act(() => {
+      jest.advanceTimersByTime(160);
+    });
+
+    expect(
+      queryByTestId(MarketInsightsSelectorsIDs.VIEW_SKELETON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER)).toBeNull();
   });
 
   it('returns null when market insights report is unavailable', () => {
