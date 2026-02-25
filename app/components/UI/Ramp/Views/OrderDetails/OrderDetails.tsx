@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, RefreshControl } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   Box,
@@ -12,18 +12,14 @@ import {
   IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import type { RampsOrder } from '@metamask/ramps-controller';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import {
-  FiatOrder,
-  getOrderById,
-  updateFiatOrder,
-} from '../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../locales/i18n';
 import { getRampsOrderDetailsNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -33,12 +29,12 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
-import { RootState } from '../../../../../reducers';
-import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
-import useInterval from '../../../../hooks/useInterval';
-import AppConstants from '../../../../../core/AppConstants';
 import OrderContent from './OrderContent';
-import { processFiatOrder } from '../../index';
+import { useRampsOrders } from '../../hooks/useRampsOrders';
+import {
+  getOrderById as getReduxOrderById,
+} from '../../../../../reducers/fiatOrders';
+import { RootState } from '../../../../../reducers';
 
 interface RampsOrderDetailsParams {
   orderId: string;
@@ -50,24 +46,41 @@ export const createRampsOrderDetailsNavDetails =
     Routes.RAMP.RAMPS_ORDER_DETAILS,
   );
 
+const PENDING_STATUSES = new Set([
+  RampsOrderStatus.Pending,
+  RampsOrderStatus.Created,
+  RampsOrderStatus.Precreated,
+  RampsOrderStatus.Unknown,
+]);
+
 const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
-  const order = useSelector((state: RootState) =>
-    getOrderById(state, params.orderId),
+  const { getOrderById, refreshOrder, orders } = useRampsOrders();
+  const controllerOrder = getOrderById(params.orderId);
+
+  const reduxOrder = useSelector((state: RootState) =>
+    getReduxOrderById(state, params.orderId),
   );
-  const [isLoading, setIsLoading] = useState(
-    order?.state === FIAT_ORDER_STATES.PENDING ||
-      order?.state === FIAT_ORDER_STATES.CREATED,
-  );
+
+  const order: RampsOrder | undefined = useMemo(() => {
+    if (controllerOrder) return controllerOrder;
+    if (!reduxOrder) return undefined;
+    return reduxOrder.data as RampsOrder;
+  }, [controllerOrder, reduxOrder]);
+
+  const isPending = order ? PENDING_STATUSES.has(order.status) : false;
+
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/9c6c8903-8f2d-4d08-852b-4db8f67a5027',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'201c43'},body:JSON.stringify({sessionId:'201c43',location:'OrderDetails.tsx:65',message:'OrderDetails mount',data:{orderId:params.orderId,controllerOrderFound:!!controllerOrder,reduxOrderFound:!!reduxOrder,resolvedOrderFound:!!order,orderCount:orders.length},timestamp:Date.now(),hypothesisId:'A-B'})}).catch(()=>{});
+  // #endregion
+
+  const [isLoading, setIsLoading] = useState(isPending);
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
   const { colors } = theme;
   const navigation = useNavigation();
-  const dispatch = useDispatch();
-  const dispatchThunk = useThunkDispatch();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
 
   useEffect(() => {
     navigation.setOptions(
@@ -79,66 +92,41 @@ const OrderDetails = () => {
     );
   }, [theme, navigation]);
 
-  const dispatchUpdateFiatOrder = useCallback(
-    (updatedOrder: FiatOrder) => dispatch(updateFiatOrder(updatedOrder)),
-    [dispatch],
-  );
-
-  const handleOnRefresh = useCallback(
-    async ({ fromInterval }: { fromInterval?: boolean } = {}) => {
-      if (!order) return;
-      try {
-        setError(null);
-        if (fromInterval) {
-          setIsRefreshingInterval(true);
-        } else {
-          setIsRefreshing(true);
-        }
-        await processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk, {
-          forced: true,
-        });
-      } catch (fetchError) {
-        Logger.error(fetchError as Error, {
-          message: 'FiatOrders::RampsOrderDetails error while processing order',
-          order,
-        });
-        setError(
-          fetchError instanceof Error && fetchError.message
-            ? fetchError.message
-            : strings('ramps_order_details.error_message'),
-        );
-      } finally {
-        if (fromInterval) {
-          setIsRefreshingInterval(false);
-        } else {
-          setIsLoading(false);
-          setIsRefreshing(false);
-        }
-      }
-    },
-    [dispatchThunk, dispatchUpdateFiatOrder, order],
-  );
+  const handleOnRefresh = useCallback(async () => {
+    if (!order) return;
+    try {
+      setError(null);
+      setIsRefreshing(true);
+      const providerCode = (order.provider?.id ?? '').replace(
+        '/providers/',
+        '',
+      );
+      await refreshOrder(
+        providerCode,
+        order.providerOrderId,
+        order.walletAddress,
+      );
+    } catch (fetchError) {
+      Logger.error(fetchError as Error, {
+        message: 'FiatOrders::RampsOrderDetails error while refreshing order',
+      });
+      setError(
+        fetchError instanceof Error && fetchError.message
+          ? fetchError.message
+          : strings('ramps_order_details.error_message'),
+      );
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [order, refreshOrder]);
 
   useEffect(() => {
-    if (
-      order?.state === FIAT_ORDER_STATES.PENDING ||
-      order?.state === FIAT_ORDER_STATES.CREATED
-    ) {
+    if (isPending) {
       handleOnRefresh();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useInterval(() => handleOnRefresh({ fromInterval: true }), {
-    delay:
-      !isLoading &&
-      !isRefreshingInterval &&
-      order &&
-      (order.state === FIAT_ORDER_STATES.PENDING ||
-        order.state === FIAT_ORDER_STATES.CREATED)
-        ? AppConstants.FIAT_ORDERS.POLLING_FREQUENCY
-        : null,
-  });
 
   if (!order) {
     return <ScreenLayout />;
