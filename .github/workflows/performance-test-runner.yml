@@ -102,8 +102,8 @@ jobs:
       - name: Compute BrowserStack Local Identifier
         id: bs-local-id
         run: |
-          # Replace spaces with underscores so the identifier is safe for the BrowserStack Local binary
-          DEVICE_SAFE=$(echo "${{ matrix.device.name }}" | tr ' ' '_')
+          # Strip any character that is not alphanumeric or a hyphen (covers spaces, /, \, @, etc.)
+          DEVICE_SAFE=$(printf '%s' "${{ matrix.device.name }}" | tr -c 'a-zA-Z0-9-' '_')
           if [ -z "$DEVICE_SAFE" ]; then
             echo "❌ Error: matrix.device.name is empty — cannot build a valid BrowserStack Local identifier"
             exit 1
