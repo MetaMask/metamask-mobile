@@ -18,6 +18,8 @@ import { useIsZeroBalanceAccount } from './hooks';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem';
+import { TokenListItemV2 } from '../../../../UI/Tokens/TokenList/TokenListItemV2/TokenListItemV2';
+import { selectTokenListLayoutV2Enabled } from '../../../../../selectors/featureFlagController/tokenListLayout';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
@@ -47,6 +49,8 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     selectAccountGroupBalanceForEmptyState,
   );
   const privacyMode = useSelector(selectPrivacyMode);
+  const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
+  const ListItemComponent = isTokenListV2 ? TokenListItemV2 : TokenListItem;
   const popularTokensListRef = useRef<SectionRefreshHandle>(null);
   const [hasTokensError, setHasTokensError] = useState(false);
 
@@ -136,7 +140,7 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
       ) : (
         <SectionRow>
           {displayTokenKeys.map((tokenKey, index) => (
-            <TokenListItem
+            <ListItemComponent
               key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
               assetKey={tokenKey}
               showRemoveMenu={noopShowRemoveMenu}
