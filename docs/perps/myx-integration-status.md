@@ -1,7 +1,8 @@
 # MYX Integration Status
 
-**Date:** 2026-02-25
+**Date:** 2026-02-25 (updated)
 **Branch:** `fet/perps/myx-reads-write`
+**Jira Tracking:** [myx-jira-tracking.md](myx-jira-tracking.md)
 
 ---
 
@@ -9,14 +10,24 @@
 
 MYX provider is **integrated for public reads**. Markets, prices, candles (REST + WS), and price streams all work on both networks. Pools without ticker data are filtered out automatically.
 
+**Important:** Auth-dependent features (getPositions, getOrders, getAccountState) have code but **auth was never validated**. These do NOT count as working. All writes are untouched.
+
 | Metric              | Testnet         | Mainnet                             |
 | ------------------- | --------------- | ----------------------------------- |
 | Pools on API        | 2               | 27                                  |
 | Active (with price) | 1 (KNY=$65,629) | 3 (WBTC=$65k, MYX=$0.40, WBNB=$602) |
 | Candles             | Yes             | Yes                                 |
 | WS streams          | Yes             | Yes                                 |
-| Auth                | Unverified      | Unverified                          |
+| Auth                | **Unverified**  | **Unverified**                      |
 | Tests passed        | 10/14           | 10/14                               |
+
+## Bug Fixes Applied (latest commit)
+
+- **HyperLiquidProvider**: Fixed testnet meta fetch URL, prevented bricked provider state
+- **PerpsController**: Fixed preloader race condition on provider init
+- **PerpsStreamManager**: Composite cache key (provider:network) prevents stale data
+- **PerpsSelectProviderView**: Network selector integrated alongside provider selector
+- **PerpsProviderSelector**: Cleaned up types, constants, styles, sheet, badge components
 
 ---
 
