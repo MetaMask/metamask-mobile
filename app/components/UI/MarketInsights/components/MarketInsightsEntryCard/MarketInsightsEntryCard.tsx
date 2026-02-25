@@ -61,16 +61,17 @@ const SourceLogoGroup: React.FC<{ sources?: MarketInsightsSource[] }> = ({
 }) => {
   const tw = useTailwind();
 
-  const uniqueSources = useMemo(
-    () =>
-      (sources ?? []).reduce<MarketInsightsSource[]>((acc, source) => {
-        if (!acc.some((item) => item.name === source.name)) {
-          acc.push(source);
-        }
-        return acc;
-      }, []),
-    [sources],
-  );
+  const uniqueSources = useMemo(() => {
+    const seenFaviconUrls = new Set<string>();
+    return (sources ?? []).filter((source) => {
+      const faviconUrl = getFaviconUrl(source.url);
+      if (seenFaviconUrls.has(faviconUrl)) {
+        return false;
+      }
+      seenFaviconUrls.add(faviconUrl);
+      return true;
+    });
+  }, [sources]);
 
   if (uniqueSources.length === 0) {
     return null;

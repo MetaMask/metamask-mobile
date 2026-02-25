@@ -89,7 +89,7 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
     opacity.setValue(0);
     translateY.setValue(SECTION_VERTICAL_OFFSET);
 
-    Animated.parallel([
+    const animation = Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
         duration: SECTION_ANIMATION_DURATION_MS,
@@ -102,7 +102,13 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
         delay,
         useNativeDriver: true,
       }),
-    ]).start();
+    ]);
+
+    animation.start();
+
+    return () => {
+      animation.stop();
+    };
   }, [delay, opacity, translateY]);
 
   return (
@@ -592,7 +598,7 @@ const MarketInsightsView: React.FC = () => {
               twClassName="px-4 py-4"
             >
               <Icon
-                name={IconName.TrendUp}
+                name={IconName.Description}
                 size={IconSize.Md}
                 color={IconColor.IconAlternative}
               />
