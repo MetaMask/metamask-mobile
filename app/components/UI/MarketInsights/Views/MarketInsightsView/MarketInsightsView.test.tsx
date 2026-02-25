@@ -116,21 +116,21 @@ jest.mock('../../components/MarketInsightsSourcesFooter', () => {
 
   const SourcesFooter = ({
     testID,
-    onSourcesPress,
+    onSourcePress,
     onThumbsUp,
     onThumbsDown,
   }: {
     testID?: string;
-    onSourcesPress?: () => void;
+    onSourcePress?: (url: string) => void;
     onThumbsUp?: () => void;
     onThumbsDown?: () => void;
   }) => (
     <MockView testID={testID ?? 'sources-footer'}>
       <MockPressable
-        testID="market-insights-open-sources-button"
-        onPress={onSourcesPress}
+        testID="market-insights-source-link-button"
+        onPress={() => onSourcePress?.('https://coindesk.com/article-1')}
       >
-        <MockText>open-sources</MockText>
+        <MockText>source-link</MockText>
       </MockPressable>
       <MockPressable
         testID="market-insights-thumbs-up-button"
