@@ -18,7 +18,10 @@ import {
 } from '../../../../../reducers/rewards/selectors';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
-import { useValidateReferralCode } from '../../hooks/useValidateReferralCode';
+import {
+  useValidateReferralCode,
+  REFERRAL_CODE_LENGTH,
+} from '../../hooks/useValidateReferralCode';
 import { useApplyReferralCode } from '../../hooks/useApplyReferralCode';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useTheme } from '../../../../../util/theme';
@@ -188,6 +191,7 @@ const ReferredByCodeSection: React.FC = () => {
           placeholder={strings('rewards.referred_by_code.input_placeholder')}
           value={hasReferredByCode ? (referredByCode ?? '') : inputCode}
           onChangeText={hasReferredByCode ? undefined : handleInputChange}
+          maxLength={REFERRAL_CODE_LENGTH}
           isDisabled={hasReferredByCode}
           autoCapitalize="characters"
           endAccessory={renderIcon()}
