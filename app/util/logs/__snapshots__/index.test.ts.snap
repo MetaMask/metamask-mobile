@@ -646,12 +646,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "isLoading": false,
           "selected": null,
         },
-        "quotes": {
-          "data": null,
-          "error": null,
-          "isLoading": false,
-          "selected": null,
-        },
         "requests": {},
         "tokens": {
           "data": null,
@@ -660,12 +654,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "selected": null,
         },
         "userRegion": null,
-        "widgetUrl": {
-          "data": null,
-          "error": null,
-          "isLoading": false,
-          "selected": null,
-        },
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
@@ -1511,12 +1499,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "isLoading": false,
           "selected": null,
         },
-        "quotes": {
-          "data": null,
-          "error": null,
-          "isLoading": false,
-          "selected": null,
-        },
         "requests": {},
         "tokens": {
           "data": null,
@@ -1525,12 +1507,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "selected": null,
         },
         "userRegion": null,
-        "widgetUrl": {
-          "data": null,
-          "error": null,
-          "isLoading": false,
-          "selected": null,
-        },
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,

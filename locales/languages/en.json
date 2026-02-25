@@ -2864,7 +2864,7 @@
     "permissions": "Permissions",
     "card_title": "MetaMask Card",
     "settings": "Settings",
-    "networks": "Networks",    
+    "networks": "Networks",
     "log_out": "Log out",
     "notifications": "Notifications",
     "buy": "Buy",
@@ -4787,7 +4787,6 @@
     "on_network": "on {{networkName}}",
     "debit_card": "Debit card",
     "select_payment_method": "Select payment method",
-    "loading_quote": "Loading quote...",
     "pay_with": "Pay with",
     "buying_via": "Buying via {{providerName}}.",
     "change_provider": "Change provider.",
@@ -4795,7 +4794,9 @@
     "no_payment_methods_available": "No payment methods are available.",
     "error_fetching_quotes": "Something went wrong. Please try again.",
     "no_quotes_available": "No providers available.",
+    "quote_unavailable": "Quote unavailable.",
     "providers": "Providers",
+    "quotes_displayed_for": "Quotes displayed for {{paymentMethodName}}.",
     "continue": "Continue",
     "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
@@ -4893,6 +4894,15 @@
       "log_out": "Log out of {{provider}}",
       "logged_out_success": "Successfully logged out",
       "logged_out_error": "Error logging out"
+    },
+    "token_unavailable_modal": {
+      "title": "Not available",
+      "description": "{{token}} is not available with {{provider}} in your region.",
+      "change_token": "Change token",
+      "change_provider": "Change provider"
+    },
+    "provider_picker_modal": {
+      "title": "Choose a provider"
     }
   },
   "fiat_on_ramp_aggregator": {
@@ -6472,7 +6482,8 @@
     "exceeding_lower_slippage_warning": "Low slippage, this may result in a unfavourable swap",
     "exceeding_lower_slippage_error": "Enter a value greater than {{value}}%",
     "exceeding_upper_slippage_error": "You cannot enter a value greater than {{value}}%",
-    "custom": "Custom"
+    "custom": "Custom",
+    "invalid_recipient_address": "Invalid address"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
@@ -7615,8 +7626,10 @@
     },
     "label": {
       "bridge_fee": "Bridge fee",
+      "provider_fee": "Provider fee",
       "network_fee": "Network fee",
       "paid_with": "Paid with",
+      "receive_token": "Receive token",
       "retry_button": "Try again",
       "total": "Total",
       "account": "Account",

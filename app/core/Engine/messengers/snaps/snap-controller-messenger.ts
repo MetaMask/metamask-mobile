@@ -36,9 +36,9 @@ import {
   UpdateRequestState,
 } from '@metamask/approval-controller';
 import {
-  KeyringControllerGetKeyringsByTypeAction,
   KeyringControllerLockEvent,
   KeyringControllerUnlockEvent,
+  KeyringControllerWithKeyringAction,
 } from '@metamask/keyring-controller';
 import { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
 import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
@@ -160,7 +160,7 @@ export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
 }
 
 type InitActions =
-  | KeyringControllerGetKeyringsByTypeAction
+  | KeyringControllerWithKeyringAction
   | PreferencesControllerGetStateAction
   | SetClientActive
   | AnalyticsControllerActions;
@@ -190,7 +190,7 @@ export function getSnapControllerInitMessenger(rootMessenger: RootMessenger) {
   });
   rootMessenger.delegate({
     actions: [
-      'KeyringController:getKeyringsByType',
+      'KeyringController:withKeyring',
       'PreferencesController:getState',
       'SnapController:setClientActive',
       'AnalyticsController:trackEvent',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TokensSection from './TokensSection';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -33,10 +33,16 @@ jest.mock('./hooks', () => ({
 }));
 
 const mockSortedTokenKeys = jest.fn();
+const mockAccountGroupBalance = jest.fn();
 
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
   selectSortedAssetsBySelectedAccountGroup: (state: unknown) =>
     mockSortedTokenKeys(state),
+}));
+
+jest.mock('../../../../../selectors/assets/balances', () => ({
+  selectAccountGroupBalanceForEmptyState: (state: unknown) =>
+    mockAccountGroupBalance(state),
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -46,6 +52,46 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
 jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: () => 'usd',
 }));
+
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest
+    .fn()
+    .mockReturnValue(() => undefined),
+}));
+
+const mockRefreshTokens = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../UI/Tokens/util/refreshTokens', () => ({
+  refreshTokens: (...args: unknown[]) => mockRefreshTokens(...args),
+}));
+
+// Mock ErrorState to avoid design system import chain and enable testID queries
+jest.mock('../../components/ErrorState', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ title, onRetry }: { title: string; onRetry: () => void }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'error-state' },
+        ReactActual.createElement(Text, null, title),
+        ReactActual.createElement(
+          TouchableOpacity,
+          { testID: 'error-state-retry-button', onPress: onRetry },
+          ReactActual.createElement(Text, null, 'Retry'),
+        ),
+      ),
+  };
+});
+
+// Mock PopularTokensSkeleton to avoid react-native-skeleton-placeholder import
+jest.mock('./components/PopularTokensSkeleton', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="skeleton-placeholder" />,
+  };
+});
 
 // Mock TokenListItem to avoid complex import chains
 jest.mock('../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem', () => {
@@ -132,8 +178,12 @@ const mockPopularTokens = [
 describe('TokensSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRefreshTokens.mockResolvedValue(undefined);
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([]);
+    // Default null: balance selectors not yet initialized (cold start).
+    // Prevents the heuristic from firing in tests that don't set up balance data.
+    mockAccountGroupBalance.mockReturnValue(null);
     mockUsePopularTokens.mockReturnValue({
       tokens: mockPopularTokens,
       isInitialLoading: false,
@@ -230,5 +280,153 @@ describe('TokensSection', () => {
     fireEvent.press(screen.getByLabelText('Tokens'));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
+  });
+
+  it('renders ErrorState when popular tokens fail to load for zero balance account', async () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(true);
+    mockUsePopularTokens.mockReturnValue({
+      tokens: [
+        {
+          assetId: 'eip155:1/slip44:60',
+          name: 'Ethereum',
+          symbol: 'ETH',
+          iconUrl: 'https://example.com/eth.png',
+          price: undefined,
+          priceChange1d: undefined,
+        },
+      ],
+      isInitialLoading: false,
+      isRefreshing: false,
+      error: new Error('Network error'),
+      refetch: jest.fn(),
+    });
+
+    renderWithProvider(<TokensSection />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('error-state')).toBeOnTheScreen();
+    });
+    expect(screen.getByText('Unable to load tokens')).toBeOnTheScreen();
+  });
+
+  it('renders popular token rows when zero balance and no error', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(true);
+
+    renderWithProvider(<TokensSection />);
+
+    expect(screen.queryByTestId('error-state')).toBeNull();
+    expect(screen.getByText('MetaMask USD')).toBeOnTheScreen();
+  });
+
+  it('renders ErrorState when refreshTokens throws for non-zero balance account', async () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+    mockRefreshTokens.mockRejectedValue(new Error('Network error'));
+
+    const ref = React.createRef<{ refresh: () => Promise<void> }>();
+    renderWithProvider(<TokensSection ref={ref} />);
+
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('error-state')).toBeOnTheScreen();
+    });
+    expect(screen.getByText('Unable to load tokens')).toBeOnTheScreen();
+  });
+
+  it('clears error and shows token items on retry after ownership path error', async () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+    mockRefreshTokens.mockRejectedValueOnce(new Error('Network error'));
+
+    const ref = React.createRef<{ refresh: () => Promise<void> }>();
+    renderWithProvider(<TokensSection ref={ref} />);
+
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('error-state')).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('error-state-retry-button'));
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('error-state')).toBeNull();
+      expect(screen.getByTestId('token-item-0xtoken1')).toBeOnTheScreen();
+    });
+  });
+
+  it('does not render ErrorState when balance has not loaded and token list is empty (cold start)', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([]);
+    mockAccountGroupBalance.mockReturnValue(null);
+
+    renderWithProvider(<TokensSection />);
+
+    expect(screen.queryByTestId('error-state')).toBeNull();
+  });
+
+  it('renders ErrorState when account has balance but selector returns no tokens', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([]);
+    mockAccountGroupBalance.mockReturnValue({
+      totalBalanceInUserCurrency: 100,
+      userCurrency: 'usd',
+    });
+
+    renderWithProvider(<TokensSection />);
+
+    expect(screen.getByTestId('error-state')).toBeOnTheScreen();
+    expect(screen.getByText('Unable to load tokens')).toBeOnTheScreen();
+  });
+
+  it('retries data fetch when retry is pressed on heuristic error', async () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([]);
+    mockAccountGroupBalance.mockReturnValue({
+      totalBalanceInUserCurrency: 100,
+      userCurrency: 'usd',
+    });
+
+    renderWithProvider(<TokensSection />);
+
+    expect(screen.getByTestId('error-state')).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('error-state-retry-button'));
+    });
+
+    expect(mockRefreshTokens).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls refreshTokens for non-zero balance pull-to-refresh', async () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+
+    const ref = React.createRef<{ refresh: () => Promise<void> }>();
+    renderWithProvider(<TokensSection ref={ref} />);
+
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    expect(mockRefreshTokens).toHaveBeenCalledTimes(1);
+    expect(mockRefreshTokens).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isSolanaSelected: false,
+      }),
+    );
   });
 });
