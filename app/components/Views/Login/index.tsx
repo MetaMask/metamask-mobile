@@ -412,11 +412,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 value={password}
                 onSubmitEditing={unlockWithPassword}
                 endAccessory={
-                  <DeviceAuthenticationButton
-                    disabled={loading}
-                    onPress={unlockWithDeviceAuthentication}
-                    hidden={shouldHideDeviceAuthenticationButton}
-                  />
+                  capabilities ? (
+                    <DeviceAuthenticationButton
+                      disabled={loading}
+                      onPress={unlockWithDeviceAuthentication}
+                      hidden={shouldHideDeviceAuthenticationButton}
+                      iconName={capabilities.authIcon}
+                    />
+                  ) : null
                 }
                 keyboardAppearance={themeAppearance}
                 isError={!!error}
