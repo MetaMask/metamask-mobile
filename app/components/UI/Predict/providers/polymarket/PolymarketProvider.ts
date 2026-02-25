@@ -995,6 +995,7 @@ export class PolymarketProvider implements PredictProvider {
       maxAmountSpent,
       minAmountReceived,
       negRisk,
+      feeRateBps,
       fees,
       slippage,
       tickSize,
@@ -1104,7 +1105,7 @@ export class PolymarketProvider implements PredictProvider {
         takerAmount,
         expiration: '0',
         nonce: '0',
-        feeRateBps: '0',
+        feeRateBps: feeRateBps ?? '0',
         side: side === Side.BUY ? UtilsSide.BUY : UtilsSide.SELL,
         signatureType: SignatureType.POLY_GNOSIS_SAFE,
       };

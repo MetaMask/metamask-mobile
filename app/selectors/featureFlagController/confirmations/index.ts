@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
+import { RootState } from '../../../reducers';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
@@ -14,8 +15,16 @@ export interface MetaMaskPayFlags {
   bufferStep: number;
   bufferSubsequent: number;
   slippage: number;
-  predictWithdrawAnyToken: boolean;
-  perpsWithdrawAnyToken: boolean;
+}
+
+export interface PayPostQuoteConfig {
+  enabled?: boolean;
+  tokens?: Record<Hex, Hex[]>;
+}
+
+export interface PayPostQuoteFlags {
+  default: PayPostQuoteConfig;
+  overrides?: Record<string, PayPostQuoteConfig>;
 }
 
 export interface GasFeeTokenFlags {
@@ -58,10 +67,55 @@ export const selectMetaMaskPayFlags = createSelector(
       bufferStep,
       bufferSubsequent,
       slippage,
-      predictWithdrawAnyToken:
-        (metaMaskPayFlags?.predictWithdrawAnyToken as boolean) ?? false,
-      perpsWithdrawAnyToken:
-        (metaMaskPayFlags?.perpsWithdrawAnyToken as boolean) ?? false,
+    };
+  },
+);
+
+interface RawPayPostQuoteFlag {
+  default?: PayPostQuoteConfig;
+  overrides?: Record<string, PayPostQuoteConfig>;
+}
+
+const selectPayPostQuoteFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): PayPostQuoteFlags => {
+    const raw = featureFlags?.confirmations_pay_post_quote as
+      | RawPayPostQuoteFlag
+      | undefined;
+
+    const defaultConfig: PayPostQuoteConfig = {
+      enabled: raw?.default?.enabled ?? false,
+      tokens: raw?.default?.tokens,
+    };
+
+    return {
+      default: defaultConfig,
+      overrides: raw?.overrides,
+    };
+  },
+);
+
+/**
+ * Resolves the effective post-quote config for a given transaction type.
+ * If the type has an override entry, unset properties fall back to default.
+ */
+export const selectPayQuoteConfig = createSelector(
+  [
+    selectPayPostQuoteFlags,
+    (_state: RootState, transactionType?: string) => transactionType,
+  ],
+  (flags, transactionType): PayPostQuoteConfig => {
+    const override = transactionType
+      ? flags.overrides?.[transactionType]
+      : undefined;
+
+    if (!override) {
+      return flags.default;
+    }
+
+    return {
+      enabled: override.enabled ?? flags.default.enabled,
+      tokens: override.tokens ?? flags.default.tokens,
     };
   },
 );

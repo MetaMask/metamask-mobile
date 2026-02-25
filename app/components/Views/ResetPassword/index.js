@@ -6,11 +6,11 @@ import {
   ActivityIndicator,
   Alert,
   View,
-  SafeAreaView,
   StyleSheet,
   ScrollView,
   InteractionManager,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Text, {
   TextColor,
@@ -24,7 +24,7 @@ import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import AppConstants from '../../../core/AppConstants';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
@@ -374,22 +374,7 @@ class ResetPassword extends PureComponent {
   // Helper method to get styles
   getStyles = () => createStyles(this.getThemeColors());
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.getThemeColors();
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('password_reset.change_password'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  };
-
   async componentDidMount() {
-    this.updateNavBar();
-
     const state = { view: CONFIRM_PASSWORD };
     const authData = await Authentication.getType();
     const previouslyDisabled = await StorageWrapper.getItem(
@@ -422,19 +407,6 @@ class ResetPassword extends PureComponent {
         inputWidth: { width: '100%' },
       });
     }, 100);
-  }
-
-  componentDidUpdate(_, prevState) {
-    this.updateNavBar();
-    const prevLoading = prevState.loading;
-    const { loading } = this.state;
-    const { navigation } = this.props;
-    if (!prevLoading && loading) {
-      // update navigationOptions
-      navigation.setParams({
-        headerLeft: () => <View />,
-      });
-    }
   }
 
   componentWillUnmount() {
@@ -909,7 +881,7 @@ class ResetPassword extends PureComponent {
       this.props.authConnection !== AuthConnection.Google;
 
     return (
-      <SafeAreaView style={styles.mainWrapper}>
+      <View style={styles.mainWrapper}>
         {loading ? (
           this.renderLoadingState(previousScreen, colors, styles)
         ) : (
@@ -1074,17 +1046,23 @@ class ResetPassword extends PureComponent {
             </View>
           </KeyboardAwareScrollView>
         )}
-      </SafeAreaView>
+      </View>
     );
   }
 
   render() {
-    const { view, ready } = this.state;
+    const { view, ready, loading } = this.state;
     const styles = this.getStyles();
 
     if (!ready) return this.renderLoader();
     return (
-      <SafeAreaView style={styles.mainWrapper}>
+      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
+        <HeaderCompactStandard
+          title={strings('password_reset.change_password')}
+          onBack={() => this.props.navigation.goBack()}
+          backButtonProps={{ isDisabled: loading }}
+          includesTopInset
+        />
         <ScrollView
           contentContainerStyle={styles.scrollviewWrapper}
           style={styles.mainWrapper}
