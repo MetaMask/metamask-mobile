@@ -1,15 +1,15 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountOverview from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
-import { formatAddress } from '../../../util/address';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1,
 } from '../../../util/test/accountsControllerTestUtils';
+import { AccountOverviewSelectorsIDs } from './AccountOverview.testIds';
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -112,14 +112,19 @@ describe('AccountOverview', () => {
       balanceFiat: 1604.2,
       label: 'Account 1',
     };
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <AccountOverview account={account} />,
       { state: mockInitialState },
     );
 
     mockTrackEvent.mockClear();
-    const addressText = getByText(formatAddress(account.address, 'short'));
-    fireEvent.press(addressText);
+
+    const addressCopyButton = getByTestId(
+      AccountOverviewSelectorsIDs.ADDRESS_COPY_BUTTON,
+    );
+    await act(async () => {
+      await addressCopyButton.props.onPress();
+    });
 
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalledWith(

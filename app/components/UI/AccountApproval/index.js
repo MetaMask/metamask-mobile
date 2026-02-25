@@ -16,6 +16,7 @@ import { shuffle } from 'lodash';
 import URL from 'url-parse';
 import AppConstants from '../../../../app/core/AppConstants';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
+import { AccountApprovalSelectorsIDs } from './AccountApproval.testIds';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../Views/AccountConnect/ConnectAccountBottomSheet.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { analytics } from '../../../util/analytics/analytics';
@@ -339,6 +340,7 @@ class AccountApproval extends PureComponent {
             {this.state.otps.map((otpValue, index) => (
               <TouchableOpacity
                 key={`otp${index}`}
+                testID={AccountApprovalSelectorsIDs.getOtpOption(otpValue)}
                 style={[
                   styles.touchableOption,
                   this.state.otpChoice === otpValue && styles.selectedOption,

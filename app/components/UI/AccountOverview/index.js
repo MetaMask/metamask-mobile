@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
+import { AccountOverviewSelectorsIDs } from './AccountOverview.testIds';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
@@ -430,6 +431,7 @@ class AccountOverview extends PureComponent {
 
             <TouchableOpacity
               style={styles.addressWrapper}
+              testID={AccountOverviewSelectorsIDs.ADDRESS_COPY_BUTTON}
               onPress={this.copyAccountToClipboard}
             >
               <EthereumAddress

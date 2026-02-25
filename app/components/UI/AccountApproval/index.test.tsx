@@ -5,6 +5,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AccountApprovalSelectorsIDs } from './AccountApproval.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 
 const mockTrackEvent = jest.fn();
@@ -236,7 +237,7 @@ describe('AccountApproval', () => {
       channelId: 'test-channel-id',
     };
 
-    const { getByText, getByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <AccountApproval
         currentPageInformation={currentPageInformation}
         onCancel={onCancel}
@@ -246,7 +247,9 @@ describe('AccountApproval', () => {
     );
 
     mockTrackEvent.mockClear();
-    fireEvent.press(getByText('second'));
+    fireEvent.press(
+      getByTestId(AccountApprovalSelectorsIDs.getOtpOption('second')),
+    );
     fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
