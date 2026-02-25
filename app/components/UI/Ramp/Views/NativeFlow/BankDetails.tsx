@@ -142,10 +142,11 @@ const V2BankDetails = () => {
       order.state === FIAT_ORDER_STATES.COMPLETED ||
       order.state === FIAT_ORDER_STATES.FAILED
     ) {
-      navigation.navigate(Routes.RAMP.RAMPS_ORDER_DETAILS, {
+      // @ts-expect-error navigation prop mismatch
+      navigation.replace(Routes.RAMP.RAMPS_ORDER_DETAILS, {
         orderId: order.id,
         showCloseButton: true,
-      } as never);
+      });
     }
   }, [order?.state, navigation, order?.id]);
 

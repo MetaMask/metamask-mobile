@@ -50,7 +50,7 @@ describe('ProcessingInfoModal', () => {
 
   it('renders correctly', () => {
     render();
-    expect(screen.getByTestId('processing-info-modal')).toBeTruthy();
+    expect(screen.getByTestId('processing-info-modal')).toBeOnTheScreen();
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
@@ -58,7 +58,7 @@ describe('ProcessingInfoModal', () => {
     render();
     expect(
       screen.getByTestId('processing-info-modal-close-button'),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('renders description text', () => {
