@@ -90,6 +90,8 @@ interface PerpsPositionCardProps {
   testID?: string;
   /** Icon size for compact mode (default: 40) */
   iconSize?: number;
+  /** When true, shows a small skeleton placeholder for the TP/SL field instead of "No TP/SL" */
+  tpSlLoading?: boolean;
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -106,6 +108,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   onPress,
   testID,
   iconSize = 40,
+  tpSlLoading = false,
 }) => {
   const { styles } = useStyles(styleSheet, { iconSize });
   const [showSizeInUSD, setShowSizeInUSD] = useState(false);
@@ -219,7 +222,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         strings('perps.order.tp'),
         strings('perps.order.sl'),
       );
-      secondaryLabel = (
+      const showTpSlSkeleton = tpSlLoading && !tpSlLabel;
+      secondaryLabel = showTpSlSkeleton ? (
+        <View style={styles.tpSlSkeleton} testID="tp-sl-skeleton" />
+      ) : (
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {tpSlLabel ?? strings('homepage.sections.positions.no_tp_sl')}
         </Text>

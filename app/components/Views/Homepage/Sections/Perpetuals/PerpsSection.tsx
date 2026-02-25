@@ -4,101 +4,154 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useState,
 } from 'react';
-import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { FlatList } from 'react-native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
-import { type Position } from '@metamask/perps-controller';
+import {
+  type PerpsMarketData,
+  type Position,
+} from '@metamask/perps-controller';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
+import FadingScrollContainer from '../../components/FadingScrollContainer';
 import Routes from '../../../../../constants/navigation/Routes';
-import { SectionRefreshHandle } from '../../types';
-import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
 import {
-  selectCachedPositions,
-  selectCachedMarketData,
-} from '../../../../UI/Perps/selectors/perpsController';
+  usePerpsLivePositions,
+  usePerpsLiveOrders,
+  usePerpsMarkets,
+} from '../../../../UI/Perps/hooks';
+import { filterAndSortMarkets } from '../../../../UI/Perps/utils/filterAndSortMarkets';
+import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
 import PerpsPositionCard from '../../../../UI/Perps/components/PerpsPositionCard/PerpsPositionCard';
+import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
+import PerpsMarketTileCard from './components/PerpsMarketTileCard';
+import { useHomepageSparklines } from './hooks/useHomepageSparklines';
 import { strings } from '../../../../../../locales/i18n';
-import Engine from '../../../../../core/Engine';
-import { PerpsCacheInvalidator } from '../../../../UI/Perps/services/PerpsCacheInvalidator';
+import type { SectionRefreshHandle } from '../../types';
 
-const MAX_POSITIONS = 5;
+const MAX_ITEMS = 5;
+const MAX_TRENDING_MARKETS = 5;
+const HOMEPAGE_THROTTLE_MS = 5000;
 
 /**
- * PerpsSection - Displays open perpetual positions on the homepage.
+ * PerpsSection — single "Perpetuals" section on the homepage.
  *
- * Shows up to 5 cached positions. Only renders when the perps feature flag is enabled.
+ * Shows open positions + limit orders when the user has any,
+ * otherwise shows a trending markets tile carousel with sparkline charts.
+ *
+ * Must be rendered inside PerpsConnectionProvider + PerpsStreamProvider.
  */
 const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
-  const navigation = useNavigation();
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const cachedPositions = useSelector(selectCachedPositions);
-  const cachedMarkets = useSelector(selectCachedMarketData);
+  const tw = useTailwind();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const title = strings('homepage.sections.perpetuals');
 
-  const startPreload = useCallback(() => {
-    const controller = Engine.context.PerpsController;
-    if (!controller) return;
+  const { positions, isInitialLoading: positionsLoading } =
+    usePerpsLivePositions({
+      throttleMs: HOMEPAGE_THROTTLE_MS,
+    });
 
-    controller.startMarketDataPreload();
-  }, []);
+  const { orders, isInitialLoading: ordersLoading } = usePerpsLiveOrders({
+    hideTpSl: true,
+    throttleMs: HOMEPAGE_THROTTLE_MS,
+  });
 
-  const refreshData = useCallback(() => {
-    const controller = Engine.context.PerpsController;
-    if (!controller) return;
+  const hookLoading = positionsLoading || ordersLoading;
 
-    controller.stopMarketDataPreload();
-    controller.startMarketDataPreload();
-  }, []);
-
+  // `deferredLoading` lags `hookLoading` by one render cycle.
+  // usePerpsLivePositions sets isInitialLoading=false and rawPositions in the
+  // same batch, but enriched `positions` updates one render later via useEffect.
+  // Keeping the skeleton visible until both flags are false bridges that gap
+  // and prevents a single-frame flash of empty content.
+  const [deferredLoading, setDeferredLoading] = useState(hookLoading);
   useEffect(() => {
-    if (!isPerpsEnabled) return;
-    startPreload();
-  }, [isPerpsEnabled, startPreload]);
+    setDeferredLoading(hookLoading);
+  }, [hookLoading]);
 
-  // Re-fetch when positions change (e.g., user closes a position in perps)
-  useEffect(() => {
-    if (!isPerpsEnabled) return;
+  const showSkeleton = hookLoading || deferredLoading;
 
-    let invalidationTimeout: ReturnType<typeof setTimeout> | null = null;
-
-    const handleInvalidation = () => {
-      if (invalidationTimeout) {
-        clearTimeout(invalidationTimeout);
-      }
-      invalidationTimeout = setTimeout(() => {
-        refreshData();
-      }, 10);
-    };
-
-    const unsubPositions = PerpsCacheInvalidator.subscribe(
-      'positions',
-      handleInvalidation,
-    );
-
-    return () => {
-      if (invalidationTimeout) {
-        clearTimeout(invalidationTimeout);
-      }
-      unsubPositions();
-    };
-  }, [isPerpsEnabled, refreshData]);
-
-  const isLoading = cachedPositions === null;
-
-  const positions = useMemo(
-    () => (cachedPositions ?? []).slice(0, MAX_POSITIONS),
-    [cachedPositions],
+  // TP/SL is extracted from orders and merged into positions by the
+  // subscription service. Due to the 5s throttle the merged update can be
+  // delayed — positions appear first without TP/SL. If any position already
+  // has TP/SL the merge is done for all of them; otherwise wait for a
+  // fallback timeout (throttle interval + margin).
+  const anyPositionHasTpSl = useMemo(
+    () =>
+      positions.some(
+        (p) => p.takeProfitPrice != null || p.stopLossPrice != null,
+      ),
+    [positions],
   );
 
-  const refresh = useCallback(async () => {
-    refreshData();
-  }, [refreshData]);
+  const [tpSlSettled, setTpSlSettled] = useState(false);
 
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+  useEffect(() => {
+    if (showSkeleton) {
+      setTpSlSettled(false);
+      return undefined;
+    }
+    if (anyPositionHasTpSl) return undefined;
+    const timer = setTimeout(
+      () => setTpSlSettled(true),
+      HOMEPAGE_THROTTLE_MS + 500,
+    );
+    return () => clearTimeout(timer);
+  }, [showSkeleton, anyPositionHasTpSl]);
+
+  const tpSlReady = anyPositionHasTpSl || tpSlSettled;
+
+  const { markets, isLoading: marketsLoading } = usePerpsMarkets();
+
+  const displayPositions = useMemo(
+    () => positions.slice(0, MAX_ITEMS),
+    [positions],
+  );
+
+  const remainingSlots = MAX_ITEMS - displayPositions.length;
+  const displayOrders = useMemo(
+    () => (remainingSlots > 0 ? orders.slice(0, remainingSlots) : []),
+    [orders, remainingSlots],
+  );
+
+  const hasItems = displayPositions.length > 0 || displayOrders.length > 0;
+
+  // When user has no positions/orders, keep skeleton visible until markets
+  // load so the section doesn't flash empty while trending tiles are fetched.
+  const pendingTrending = !showSkeleton && !hasItems && marketsLoading;
+  const showTrending = !showSkeleton && !hasItems && !marketsLoading;
+
+  const trendingMarkets = useMemo(
+    () =>
+      showTrending && markets.length > 0
+        ? filterAndSortMarkets({
+            marketData: markets,
+            showZeroVolume: false,
+          }).slice(0, MAX_TRENDING_MARKETS)
+        : [],
+    [showTrending, markets],
+  );
+
+  const trendingSymbols = useMemo(
+    () => trendingMarkets.map((m) => m.symbol),
+    [trendingMarkets],
+  );
+  const { sparklines, refresh: refreshSparklines } =
+    useHomepageSparklines(trendingSymbols);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      refresh: () => {
+        refreshSparklines();
+        return Promise.resolve();
+      },
+    }),
+    [refreshSparklines],
+  );
 
   const handleViewAllPerps = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
@@ -108,13 +161,11 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   const handlePositionPress = useCallback(
     (position: Position) => {
-      const fullMarket = cachedMarkets?.find(
-        (m) => m.symbol === position.symbol,
-      );
+      const market = markets.find((m) => m.symbol === position.symbol);
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
-          market: fullMarket ?? {
+          market: market ?? {
             symbol: position.symbol,
             maxLeverage: position.maxLeverage,
           },
@@ -122,35 +173,83 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
         },
       });
     },
-    [navigation, cachedMarkets],
+    [navigation, markets],
   );
 
-  if (!isPerpsEnabled) {
-    return null;
-  }
+  const handleTilePress = useCallback(
+    (market: PerpsMarketData) => {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: { market },
+      });
+    },
+    [navigation],
+  );
+
+  const renderTileCard = useCallback(
+    ({ item }: { item: PerpsMarketData }) => (
+      <PerpsMarketTileCard
+        market={item}
+        sparklineData={sparklines[item.symbol]}
+        onPress={handleTilePress}
+      />
+    ),
+    [handleTilePress, sparklines],
+  );
+
+  const keyExtractor = useCallback(
+    (item: PerpsMarketData) => `trending-tile-${item.symbol}`,
+    [],
+  );
 
   return (
     <Box gap={3}>
       <SectionTitle title={title} onPress={handleViewAllPerps} />
-      <SectionRow>
-        {isLoading ? (
+      {showSkeleton || pendingTrending ? (
+        <SectionRow>
           <PerpsPositionSkeleton />
-        ) : (
-          <View testID="homepage-perps-positions">
-            {positions.map((position) => (
+        </SectionRow>
+      ) : hasItems ? (
+        <SectionRow>
+          <Box testID="homepage-perps-positions">
+            {displayPositions.map((position) => (
               <PerpsPositionCard
                 key={position.symbol}
                 position={position}
                 compact
                 compactVariant="position"
                 iconSize={36}
+                tpSlLoading={!tpSlReady}
                 onPress={() => handlePositionPress(position)}
                 testID={`perps-position-row-${position.symbol}`}
               />
             ))}
-          </View>
-        )}
-      </SectionRow>
+            {displayOrders.map((order) => (
+              <PerpsCard
+                key={order.orderId}
+                order={order}
+                iconSize={36}
+                testID={`perps-order-row-${order.orderId}`}
+              />
+            ))}
+          </Box>
+        </SectionRow>
+      ) : trendingMarkets.length > 0 ? (
+        <FadingScrollContainer>
+          {(scrollProps) => (
+            <FlatList
+              horizontal
+              data={trendingMarkets}
+              renderItem={renderTileCard}
+              keyExtractor={keyExtractor}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={tw.style('px-4 gap-2.5')}
+              testID="homepage-trending-perps-carousel"
+              {...scrollProps}
+            />
+          )}
+        </FadingScrollContainer>
+      ) : null}
     </Box>
   );
 });

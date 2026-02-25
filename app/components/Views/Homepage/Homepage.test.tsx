@@ -21,20 +21,46 @@ jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => true),
 }));
 
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    PerpsController: {
-      startMarketDataPreload: jest.fn(),
-      stopMarketDataPreload: jest.fn(),
-    },
-  },
+jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
 }));
 
-jest.mock('../../UI/Perps/selectors/perpsController', () => ({
-  selectCachedPositions: jest.fn(() => []),
-  selectCachedMarketData: jest.fn(() => null),
-  selectPerpsNetwork: jest.fn(() => 'mainnet'),
+jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+  usePerpsStream: jest.fn(() => ({
+    candles: { subscribe: jest.fn(() => jest.fn()) },
+  })),
 }));
+
+jest.mock('../../UI/Perps/hooks', () => ({
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+    isInitialLoading: false,
+  })),
+  usePerpsLiveOrders: jest.fn(() => ({
+    orders: [],
+    isInitialLoading: false,
+  })),
+  usePerpsMarkets: jest.fn(() => ({
+    markets: [],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+    isRefreshing: false,
+  })),
+}));
+
+jest.mock(
+  '../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
+  () => ({
+    useHomepageSparklines: jest.fn(() => ({
+      sparklines: {},
+      refresh: jest.fn(),
+    })),
+  }),
+);
 
 jest.mock('react-native-skeleton-placeholder', () => {
   const { View } = jest.requireActual('react-native');

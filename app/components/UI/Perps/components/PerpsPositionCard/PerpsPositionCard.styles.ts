@@ -46,6 +46,12 @@ const styleSheet = (params: StyleSheetParams) => {
     compactRight: {
       alignItems: 'flex-end',
     },
+    tpSlSkeleton: {
+      width: 80,
+      height: 14,
+      borderRadius: 4,
+      backgroundColor: colors.background.alternative,
+    },
     header: {
       flexDirection: 'row',
       alignItems: 'center',

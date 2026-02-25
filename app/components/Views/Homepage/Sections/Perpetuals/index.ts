@@ -1,1 +1,1 @@
-export { default } from './PerpsSection';
+export { default } from './PerpsSectionWithProvider';
