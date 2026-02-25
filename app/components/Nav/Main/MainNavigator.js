@@ -31,6 +31,7 @@ import AddAsset from '../../Views/AddAsset/AddAsset';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
+import DeFiFullView from '../../Views/DeFiFullView';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -948,6 +949,11 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.WALLET.TOKENS_FULL_VIEW}
         component={TokensFullView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.WALLET.DEFI_FULL_VIEW}
+        component={DeFiFullView}
         options={{ headerShown: false }}
       />
       <Stack.Screen name="AddAsset" component={AddAsset} />
