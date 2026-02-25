@@ -1,5 +1,6 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
+import perpsPayTokenIcon from 'images/perps-pay-token-icon.png';
 import { useCallback } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -8,44 +9,33 @@ import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatF
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import {
   AssetType,
-  HighlightedAssetListItem,
-  type HighlightedActionListItem,
+  HighlightedItem,
   type TokenListItem,
 } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
-import perpsPayTokenIcon from 'images/perps-pay-token-icon.png';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
-import {
-  PERPS_BALANCE_CHAIN_ID,
-  PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-} from '../constants/perpsConfig';
 import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
 import { selectPerpsAccountState } from '../selectors/perpsController';
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
+import { usePerpsPaymentToken } from './usePerpsPaymentToken';
+import Routes from '../../../../constants/navigation/Routes';
+import { usePerpsTrading } from './usePerpsTrading';
+import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 
 /** URI for the perps balance token icon, shared with PerpsPayRow and pay-with modal. */
 const resolvedPerpsIcon = Image.resolveAssetSource(perpsPayTokenIcon);
 export const PERPS_BALANCE_ICON_URI = resolvedPerpsIcon?.uri ?? '';
-
-export interface UsePerpsBalanceTokenFilterOptions {
-  /** When provided, a highlighted action row with an "Add" button is prepended for depositing into perps balance. */
-  onDepositPress?: () => void;
-}
 
 /**
  * Returns a filter that prepends a synthetic "Perps balance" token to the list
  * when the transaction type is perpsDepositAndOrder. The token shows the perps
  * account balance, USDC icon, and label "Perps balance".
  *
- * When `onDepositPress` is provided, a highlighted action row with an "Add" button
- * is prepended above the perps balance token so the user can open the deposit flow.
- *
  * Uses PerpsController state (Redux) so it works in any screen, including
  * PayWithModal and confirmations where PerpsStreamProvider is not mounted.
  */
-export function usePerpsBalanceTokenFilter(
-  options?: UsePerpsBalanceTokenFilterOptions,
-): (tokens: AssetType[]) => TokenListItem[] {
+export function usePerpsBalanceTokenFilter(): (
+  tokens: AssetType[],
+) => TokenListItem[] {
   const transactionMeta = useTransactionMetadataRequest();
   const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
   const perpsAccount = useSelector(selectPerpsAccountState);
@@ -53,7 +43,23 @@ export function usePerpsBalanceTokenFilter(
     selectPerpsPayWithAnyTokenAllowlistAssets,
   );
   const formatFiat = useFiatFormatter({ currency: 'usd' });
-  const onDepositPress = options?.onDepositPress;
+
+  const { depositWithConfirmation } = usePerpsTrading();
+  const { navigateToConfirmation } = useConfirmNavigation();
+
+  const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
+    TransactionType.perpsDepositAndOrder,
+  ]);
+
+  const handlePerpsDepositPress = useCallback(() => {
+    navigateToConfirmation({ stack: Routes.PERPS.ROOT });
+    depositWithConfirmation().catch(() => {
+      // Deposit flow handles errors (e.g. user rejection).
+    });
+  }, [navigateToConfirmation, depositWithConfirmation]);
+
+  const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
+    usePerpsPaymentToken();
 
   const filterAllowedTokens = useCallback(
     (tokens: AssetType[]): TokenListItem[] => {
@@ -65,31 +71,12 @@ export function usePerpsBalanceTokenFilter(
         return tokens;
       }
 
-      const chainId = PERPS_BALANCE_CHAIN_ID;
-
       const availableBalance = perpsAccount?.availableBalance || '0';
       const balanceInSelectedCurrency = formatFiat(
         new BigNumber(availableBalance),
       );
 
       const perpsBalanceName = strings('perps.adjust_margin.perps_balance');
-
-      const perpsBalanceToken: AssetType = {
-        address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-        chainId,
-        tokenId: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-        name: perpsBalanceName,
-        symbol: PERPS_CONSTANTS.PerpsBalanceTokenSymbol,
-        balance: availableBalance,
-        balanceInSelectedCurrency,
-        image: PERPS_BALANCE_ICON_URI,
-        logo: PERPS_BALANCE_ICON_URI,
-        decimals: 2,
-        isETH: false,
-        isNative: false,
-        isSelected: isPerpsBalanceSelected,
-        description: PERPS_CONSTANTS.PerpsBalanceTokenDescription,
-      };
 
       let mappedTokens = tokens.map((token) => ({
         ...token,
@@ -105,42 +92,38 @@ export function usePerpsBalanceTokenFilter(
         });
       }
 
-      const tokenList: TokenListItem[] = [...mappedTokens];
-
-      if (onDepositPress) {
-        const highlightedAction: HighlightedActionListItem = {
-          type: 'highlighted_action',
-          icon: PERPS_BALANCE_ICON_URI,
-          name: perpsBalanceName,
-          name_description: balanceInSelectedCurrency,
-          actions: [
-            {
-              buttonLabel: strings('perps.add_funds'),
-              onPress: onDepositPress,
-            },
-          ],
-        };
-        // const highlightedAction2: HighlightedAssetListItem = {
-        //   type: 'highlighted_asset',
-        //   icon: PERPS_BALANCE_ICON_URI,
-        //   name: perpsBalanceName,
-        //   name_description: balanceInSelectedCurrency,
-        //   action: onDepositPress,
-        //   fiat: balanceInSelectedCurrency,
-        //   fiat_description: balanceInSelectedCurrency,
-        // };
-        return [highlightedAction, ...tokenList];
+      if (!isPerpsDepositAndOrder) {
+        return mappedTokens;
       }
 
-      return tokenList;
+      const highlightedAction: HighlightedItem = {
+        position: 'outside_of_asset_list',
+        icon: PERPS_BALANCE_ICON_URI,
+        name: perpsBalanceName,
+        name_description: balanceInSelectedCurrency,
+        fiat: balanceInSelectedCurrency,
+        fiat_description: balanceInSelectedCurrency,
+        isSelected: isPerpsBalanceSelected,
+        action: () => onPerpsPaymentTokenChange(null),
+        actions: [
+          {
+            buttonLabel: strings('perps.add_funds'),
+            onPress: handlePerpsDepositPress,
+          },
+        ],
+      };
+
+      return [highlightedAction, ...mappedTokens];
     },
     [
-      transactionMeta,
-      isPerpsBalanceSelected,
-      perpsAccount?.availableBalance,
+      handlePerpsDepositPress,
+      isPerpsDepositAndOrder,
       allowListAssets,
       formatFiat,
-      onDepositPress,
+      onPerpsPaymentTokenChange,
+      isPerpsBalanceSelected,
+      perpsAccount?.availableBalance,
+      transactionMeta,
     ],
   );
 
