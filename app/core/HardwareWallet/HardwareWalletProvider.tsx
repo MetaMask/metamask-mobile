@@ -50,7 +50,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   } | null>(null);
 
   const connectionSuccessCallbackRef = useRef<(() => void) | null>(null);
-  const flowCompleteRef = useRef(false);
 
   const pendingReadyResolveRef = useRef<((ready: boolean) => void) | null>(
     null,
@@ -391,8 +390,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         pendingReadyResolveRef.current = null;
       }
 
-      flowCompleteRef.current = false;
-
       const targetType = effectiveWalletType ?? HardwareWalletType.Ledger;
       const shouldStartFresh = targetDeviceId === undefined;
       const deviceIdToUse = shouldStartFresh ? undefined : targetDeviceId;
@@ -629,7 +626,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   }, [hideAwaitingConfirmation]);
 
   const handleConnectionSuccess = useCallback(() => {
-    flowCompleteRef.current = true;
     if (refs.adapterRef.current) {
       refs.adapterRef.current.markFlowComplete();
     }
