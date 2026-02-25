@@ -25,18 +25,30 @@ const createStyles = (theme: Theme) =>
     },
     title: {
       marginBottom: 12,
+      fontSize: 24,
+      fontWeight: '700',
+      lineHeight: 32,
     },
     controlsContainer: {
       flexDirection: 'row',
       gap: 8,
       marginBottom: 12,
+      width: '100%',
     },
     controlButton: {
       paddingVertical: 8,
       paddingHorizontal: 12,
       alignItems: 'center',
+      justifyContent: 'center',
       borderRadius: 8,
       backgroundColor: theme.colors.background.muted,
+    },
+    wideControlButton: {
+      flex: 1,
+    },
+    timeControlButton: {
+      width: 72,
+      flexShrink: 0,
     },
     controlButtonContent: {
       flexDirection: 'row',
@@ -106,7 +118,7 @@ const SwapTrendingTokensSection = ({
         <TouchableOpacity
           testID={BridgeViewSelectorsIDs.TRENDING_PRICE_FILTER}
           onPress={onPriceChangePress}
-          style={styles.controlButton}
+          style={[styles.controlButton, styles.wideControlButton]}
           activeOpacity={0.2}
         >
           <View style={styles.controlButtonContent}>
@@ -123,7 +135,7 @@ const SwapTrendingTokensSection = ({
         <TouchableOpacity
           testID={BridgeViewSelectorsIDs.TRENDING_NETWORK_FILTER}
           onPress={onNetworkPress}
-          style={styles.controlButton}
+          style={[styles.controlButton, styles.wideControlButton]}
           activeOpacity={0.2}
         >
           <View style={styles.controlButtonContent}>
@@ -138,7 +150,7 @@ const SwapTrendingTokensSection = ({
         <TouchableOpacity
           testID={BridgeViewSelectorsIDs.TRENDING_TIME_FILTER}
           onPress={onTimePress}
-          style={styles.controlButton}
+          style={[styles.controlButton, styles.timeControlButton]}
           activeOpacity={0.2}
         >
           <View style={styles.controlButtonContent}>

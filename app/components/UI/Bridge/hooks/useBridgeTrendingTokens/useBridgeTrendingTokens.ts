@@ -1,4 +1,7 @@
-import { SortTrendingBy } from '@metamask/assets-controllers';
+import {
+  SortTrendingBy,
+  type TrendingAsset,
+} from '@metamask/assets-controllers';
 import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
 import { useCallback, useMemo, useState } from 'react';
 import { strings } from '../../../../../../locales/i18n';
@@ -11,8 +14,34 @@ import {
 } from '../../../Trending/components/TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../../../Trending/components/TrendingTokensList/TrendingTokensList';
 import { sortTrendingTokens } from '../../../Trending/utils/sortTrendingTokens';
+import { getPriceChangeFieldKey } from '../../../Trending/components/TrendingTokenRowItem/utils';
 
 const DEFAULT_TRENDING_SORT_BY = 'h24_trending' as SortTrendingBy;
+
+const isPriceChangeSortedDescending = (
+  tokens: TrendingAsset[],
+  timeOption: TimeOption,
+) => {
+  if (tokens.length < 2) {
+    return true;
+  }
+
+  const priceChangeFieldKey = getPriceChangeFieldKey(timeOption);
+  let previousValue = Number.POSITIVE_INFINITY;
+
+  for (const token of tokens) {
+    const priceChange = token.priceChangePct?.[priceChangeFieldKey];
+    const currentValue = priceChange ? parseFloat(priceChange) || 0 : 0;
+
+    if (currentValue > previousValue) {
+      return false;
+    }
+
+    previousValue = currentValue;
+  }
+
+  return true;
+};
 
 export interface UseBridgeTrendingTokensParams {
   networkConfigurations: Record<CaipChainId, { name?: string } | undefined>;
@@ -33,6 +62,8 @@ export const useBridgeTrendingTokens = ({
   >(PriceChangeOption.PriceChange);
   const [priceChangeSortDirection, setPriceChangeSortDirection] =
     useState<SortDirection>(SortDirection.Descending);
+  const [hasExplicitPriceSortSelection, setHasExplicitPriceSortSelection] =
+    useState(false);
 
   const {
     results: trendingResults,
@@ -83,8 +114,14 @@ export const useBridgeTrendingTokens = ({
       priceChangeSortDirection === SortDirection.Descending &&
       selectedTimeOption === TimeOption.TwentyFourHours;
 
-    if (isUsingDefaultSortBy && isUsingDefaultClientSort) {
-      return trendingResults;
+    if (
+      isUsingDefaultSortBy &&
+      isUsingDefaultClientSort &&
+      !hasExplicitPriceSortSelection
+    ) {
+      if (isPriceChangeSortedDescending(trendingResults, selectedTimeOption)) {
+        return trendingResults;
+      }
     }
 
     return sortTrendingTokens(
@@ -99,6 +136,7 @@ export const useBridgeTrendingTokens = ({
     priceChangeSortDirection,
     selectedTimeOption,
     sortBy,
+    hasExplicitPriceSortSelection,
   ]);
 
   const filterContext: TrendingFilterContext = useMemo(
@@ -128,6 +166,7 @@ export const useBridgeTrendingTokens = ({
 
   const handlePriceChangeSelect = useCallback(
     (option: PriceChangeOption, sortDirection: SortDirection) => {
+      setHasExplicitPriceSortSelection(true);
       setSelectedPriceChangeOption(option);
       setPriceChangeSortDirection(sortDirection);
     },

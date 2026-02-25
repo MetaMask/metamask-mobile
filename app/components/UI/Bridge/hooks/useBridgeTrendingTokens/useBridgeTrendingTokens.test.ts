@@ -133,10 +133,10 @@ describe('useBridgeTrendingTokens', () => {
       }),
     );
 
-    // Default fast-path: keep API order without client-side sort.
+    // Default mode sorts by price change high-to-low.
     expect(result.current.trendingTokens.map((token) => token.symbol)).toEqual([
-      'AAA',
       'BBB',
+      'AAA',
       'CCC',
     ]);
 
@@ -163,5 +163,39 @@ describe('useBridgeTrendingTokens', () => {
       'AAA',
       'CCC',
     ]);
+
+    act(() => {
+      result.current.handlePriceChangeSelect(
+        PriceChangeOption.PriceChange,
+        SortDirection.Descending,
+      );
+    });
+    expect(result.current.trendingTokens.map((token) => token.symbol)).toEqual([
+      'BBB',
+      'AAA',
+      'CCC',
+    ]);
+  });
+
+  it('keeps API order on initial load when it is already price-change sorted', () => {
+    const preSortedByPriceChangeDesc: TrendingAsset[] = [
+      mockTrendingResults[1],
+      mockTrendingResults[0],
+      mockTrendingResults[2],
+    ];
+    mockUseTrendingRequest.mockReturnValue({
+      results: preSortedByPriceChangeDesc,
+      isLoading: false,
+      error: null,
+      fetch: jest.fn(),
+    });
+
+    const { result } = renderHook(() =>
+      useBridgeTrendingTokens({
+        networkConfigurations: {},
+      }),
+    );
+
+    expect(result.current.trendingTokens).toBe(preSortedByPriceChangeDesc);
   });
 });
