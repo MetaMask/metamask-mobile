@@ -23,6 +23,7 @@ import {
   cleanupAdbReverse,
   waitForDappServerReady,
   unlockIfLockScreenVisible,
+  ensureAccountGroupsFinishedLoading,
 } from './utils.js';
 
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
@@ -83,19 +84,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
     await WalletMainScreen.isMainWalletViewVisible();
-
-    // Cycle the app to ensure all account groups are created
-    await AppwrightGestures.terminateApp(device);
-    await AppwrightGestures.activateApp(device);
-    await login(device);
-    await WalletMainScreen.isMainWalletViewVisible();
-    await WalletMainScreen.tapIdenticon();
-    await AccountListComponent.isComponentDisplayed();
-    await AccountListComponent.waitForSyncingToComplete();
-    await AppwrightGestures.terminateApp(device);
-    await AppwrightGestures.activateApp(device);
-    await login(device);
-    await WalletMainScreen.isMainWalletViewVisible();
+    await ensureAccountGroupsFinishedLoading(device);
 
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);

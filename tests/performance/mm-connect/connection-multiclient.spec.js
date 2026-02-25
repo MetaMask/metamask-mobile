@@ -22,6 +22,7 @@ import {
   getDappUrlForBrowser,
   setupAdbReverse,
   cleanupAdbReverse,
+  ensureAccountGroupsFinishedLoading,
 } from './utils.js';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures.ts';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
@@ -88,19 +89,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
     await WalletMainScreen.isMainWalletViewVisible();
-
-    // Cycle the app to ensure solana accounts are created
-    await AppwrightGestures.terminateApp(device);
-    await AppwrightGestures.activateApp(device);
-    await login(device);
-    await WalletMainScreen.isMainWalletViewVisible();
-    await WalletMainScreen.tapIdenticon();
-    await AccountListComponent.isComponentDisplayed();
-    await AccountListComponent.waitForSyncingToComplete();
-    await AppwrightGestures.terminateApp(device);
-    await AppwrightGestures.activateApp(device);
-    await login(device);
-    await WalletMainScreen.isMainWalletViewVisible();
+    await ensureAccountGroupsFinishedLoading(device);
 
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
