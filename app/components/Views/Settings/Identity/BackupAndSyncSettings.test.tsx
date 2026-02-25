@@ -1,7 +1,13 @@
 import React from 'react';
+import { fireEvent, within } from '@testing-library/react-native';
 
 import BackupAndSyncSettings from './BackupAndSyncSettings';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
+import { BackupAndSyncSettingsSelectorsIDs } from './BackupAndSyncSettings.testIds';
+import { strings } from '../../../../../locales/i18n';
+
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -9,20 +15,10 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: jest.fn(),
-      setOptions: jest.fn(),
+      goBack: mockGoBack,
     }),
   };
 });
-
-jest.mock('../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../util/navigation/navUtils'),
-  useParams: () => ({
-    enableBackupAndSync: jest.fn(),
-    trackEnableBackupAndSyncEvent: jest.fn(),
-  }),
-  useRoute: jest.fn(),
-  createNavigationDetails: jest.fn(),
-}));
 
 describe('BackupAndSyncSettings', () => {
   beforeEach(() => {
@@ -32,5 +28,31 @@ describe('BackupAndSyncSettings', () => {
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(<BackupAndSyncSettings />);
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('wraps content in SafeAreaView', () => {
+    const { getByTestId } = renderWithProvider(<BackupAndSyncSettings />);
+
+    expect(
+      getByTestId(BackupAndSyncSettingsSelectorsIDs.SAFE_AREA),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders HeaderCompactStandard with backup and sync title', () => {
+    const { getByTestId } = renderWithProvider(<BackupAndSyncSettings />);
+
+    const header = getByTestId(BackupAndSyncSettingsSelectorsIDs.HEADER);
+    expect(header).toBeOnTheScreen();
+    expect(
+      within(header).getByText(strings('backupAndSync.title')),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigates back when back button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<BackupAndSyncSettings />);
+
+    fireEvent.press(getByTestId(CommonSelectorsIDs.BACK_ARROW_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });
