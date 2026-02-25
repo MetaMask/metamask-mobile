@@ -634,6 +634,47 @@ describe('PerpsSection', () => {
       expect(screen.queryByText('MKT5')).toBeNull();
     });
 
+    it('renders "More perps" card at the end of the carousel', () => {
+      const markets = Array.from({ length: 4 }, (_, i) =>
+        makeTrendingMarket({
+          symbol: `MKT${i}`,
+          volumeNumber: 10000000 - i * 1000000,
+        }),
+      );
+      usePerpsMarkets.mockReturnValue({
+        markets,
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(<PerpsSection />);
+
+      expect(screen.getByTestId('perps-view-more-card')).toBeOnTheScreen();
+      expect(screen.getByText('More perps')).toBeOnTheScreen();
+    });
+
+    it('navigates to perps home when "More perps" card is pressed', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(<PerpsSection />);
+
+      fireEvent.press(screen.getByTestId('perps-view-more-card'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+      });
+    });
+
     it('renders nothing when no positions, orders, or markets', () => {
       renderWithProvider(<PerpsSection />);
 

@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { FlatList } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
@@ -29,6 +29,7 @@ import PerpsPositionCard from '../../../../UI/Perps/components/PerpsPositionCard
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import PerpsMarketTileCard from './components/PerpsMarketTileCard';
+import PerpsViewMoreCard from './components/PerpsViewMoreCard';
 import { useHomepageSparklines } from './hooks/useHomepageSparklines';
 import { strings } from '../../../../../../locales/i18n';
 import type { SectionRefreshHandle } from '../../types';
@@ -186,22 +187,6 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     [navigation],
   );
 
-  const renderTileCard = useCallback(
-    ({ item }: { item: PerpsMarketData }) => (
-      <PerpsMarketTileCard
-        market={item}
-        sparklineData={sparklines[item.symbol]}
-        onPress={handleTilePress}
-      />
-    ),
-    [handleTilePress, sparklines],
-  );
-
-  const keyExtractor = useCallback(
-    (item: PerpsMarketData) => `trending-tile-${item.symbol}`,
-    [],
-  );
-
   return (
     <Box gap={3}>
       <SectionTitle title={title} onPress={handleViewAllPerps} />
@@ -237,16 +222,23 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
       ) : trendingMarkets.length > 0 ? (
         <FadingScrollContainer>
           {(scrollProps) => (
-            <FlatList
+            <ScrollView
               horizontal
-              data={trendingMarkets}
-              renderItem={renderTileCard}
-              keyExtractor={keyExtractor}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={tw.style('px-4 gap-2.5')}
               testID="homepage-trending-perps-carousel"
               {...scrollProps}
-            />
+            >
+              {trendingMarkets.map((market) => (
+                <PerpsMarketTileCard
+                  key={market.symbol}
+                  market={market}
+                  sparklineData={sparklines[market.symbol]}
+                  onPress={handleTilePress}
+                />
+              ))}
+              <PerpsViewMoreCard onPress={handleViewAllPerps} />
+            </ScrollView>
           )}
         </FadingScrollContainer>
       ) : null}
