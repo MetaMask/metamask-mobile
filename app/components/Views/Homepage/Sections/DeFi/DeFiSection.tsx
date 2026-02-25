@@ -1,5 +1,6 @@
 import React, { forwardRef, useCallback, useImperativeHandle } from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Box } from '@metamask/design-system-react-native';
@@ -13,6 +14,7 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import DeFiPositionsListItem from '../../../../UI/DeFiPositions/DeFiPositionsListItem';
 import { selectAssetsDefiPositionsEnabled } from '../../../../../selectors/featureFlagController/assetsDefiPositions';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const MAX_POSITIONS_DISPLAYED = 5;
 
@@ -57,12 +59,17 @@ const DeFiPositionsSkeleton = () => {
  * Uses Redux state from DeFiPositionsController.
  */
 const DeFiSection = forwardRef<SectionRefreshHandle>((_, ref) => {
+  const navigation = useNavigation();
   const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
   const privacyMode = useSelector(selectPrivacyMode);
   const title = strings('homepage.sections.defi');
 
   const { positions, isLoading, hasError, isEmpty } =
     useDeFiPositionsForHomepage(MAX_POSITIONS_DISPLAYED);
+
+  const handleViewAllDeFi = useCallback(() => {
+    navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW as never);
+  }, [navigation]);
 
   // DeFi positions come from Redux selectors - no async refresh needed
   const refresh = useCallback(async () => {
@@ -83,7 +90,7 @@ const DeFiSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   return (
     <Box gap={3}>
-      <SectionTitle title={title} />
+      <SectionTitle title={title} onPress={handleViewAllDeFi} />
       <SectionRow>
         <Box>
           {isLoading ? (
