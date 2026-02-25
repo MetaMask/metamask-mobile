@@ -16,7 +16,7 @@ import { parseErrorByType, createHardwareWalletError } from './errors';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 
 /** Options for the {@link useDeviceEventHandlers} hook. */
-export interface UseDeviceEventHandlersOptions {
+interface UseDeviceEventHandlersOptions {
   /** Mutable refs shared across the hardware wallet system. */
   refs: HardwareWalletRefs;
   /** State setter functions for connection state, device ID, etc. */
@@ -26,7 +26,7 @@ export interface UseDeviceEventHandlersOptions {
 }
 
 /** Return value of the {@link useDeviceEventHandlers} hook. */
-export interface DeviceEventHandlersResult {
+interface DeviceEventHandlersResult {
   /** Directly sets the connection state (no dedup — callers control when to update). */
   updateConnectionState: (newState: HardwareWalletConnectionState) => void;
   /** Routes a device event payload to the appropriate state transition. */
@@ -212,5 +212,3 @@ export const useDeviceEventHandlers = ({
     clearError,
   };
 };
-
-export default useDeviceEventHandlers;
