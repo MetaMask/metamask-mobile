@@ -146,10 +146,9 @@ describe('BridgeFeeRow', () => {
       },
     } as TransactionPayTotals);
 
-    const { getByTestId } = render();
+    const { getByText } = render();
 
-    expect(getByTestId('metamask-fee-row')).toBeDefined();
-    expect(getByTestId('metamask-fee-row').props.children).toBeDefined();
+    expect(getByText('<$0.01')).toBeDefined();
   });
 
   it('renders metamask fee as $0 when not available', () => {
@@ -161,9 +160,9 @@ describe('BridgeFeeRow', () => {
       },
     } as TransactionPayTotals);
 
-    const { getByTestId } = render();
+    const { getByText } = render();
 
-    expect(getByTestId('metamask-fee-row')).toBeDefined();
+    expect(getByText('$0')).toBeDefined();
   });
 
   it('does not render metamask fee if no quotes', async () => {
