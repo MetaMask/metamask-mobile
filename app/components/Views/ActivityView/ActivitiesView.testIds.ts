@@ -7,6 +7,7 @@ function getSentUnitMessage(unit: string) {
 export const ActivitiesViewSelectorsIDs = {
   CONTAINER: 'transactions-container',
   TABS_CONTAINER: 'activity-view-tabs',
+  TRANSFER_TAB: 'activity-view-tabs-bar-tab-1',
 };
 
 export const ActivitiesViewSelectorsText = {

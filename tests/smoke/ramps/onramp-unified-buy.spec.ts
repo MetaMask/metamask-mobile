@@ -24,6 +24,7 @@ import SoftAssert from '../../framework/SoftAssert';
 import { UnifiedRampRoutingType } from '../../../app/reducers/fiatOrders/types';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
+import ToastModal from '../../page-objects/wallet/ToastModal';
 
 const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
@@ -48,7 +49,6 @@ const expectedEventNames = [
   expectedEvents.RampsButtonClicked,
   expectedEvents.RampsTokenSelected,
 ];
-
 describe(SmokeRamps('Onramp Unified Buy'), () => {
   it('place ETH order', async () => {
     await withFixtures(
@@ -81,6 +81,10 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await BuildQuoteView.enterAmount('5', 'unifiedBuy');
         await Assertions.expectTextDisplayed('$15.00');
         await BuildQuoteView.tapContinueButton();
+
+        await Assertions.expectElementToBeVisible(
+          ToastModal.purchaseCompletedToast('0.00355', tokenToBuy),
+        );
 
         await TabBarComponent.tapActivity();
         await ActivitiesView.tapOnTransfersTab();
