@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import useApprovalRequest from '../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -28,7 +28,6 @@ export const GO_BACK_TYPES = [
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
   const navigation = useNavigation();
-  const route = useRoute();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
   const { chainId, isGasFeeTokenIgnoredIfBalance, type } =
@@ -99,78 +98,74 @@ export function useTransactionConfirm() {
     ],
   );
 
-  const onConfirm = useCallback(async () => {
-    if (!transactionMetadata) {
-      return;
-    }
+  const onConfirm = useCallback(
+    async (opts?: { skipNavigation?: boolean }) => {
+      if (!transactionMetadata) {
+        return;
+      }
 
-    const updatedMetadata = cloneDeep(transactionMetadata);
+      const updatedMetadata = cloneDeep(transactionMetadata);
 
-    if (isGaslessSupportedSTX) {
-      handleSmartTransaction(updatedMetadata);
-    } else if (selectedGasFeeToken) {
-      handleGasless7702(updatedMetadata);
-    }
+      if (isGaslessSupportedSTX) {
+        handleSmartTransaction(updatedMetadata);
+      } else if (selectedGasFeeToken) {
+        handleGasless7702(updatedMetadata);
+      }
 
-    try {
-      await onRequestConfirm(
-        {
-          deleteAfterResult: true,
-          // Intentionally not hiding errors so we can log
-          handleErrors: false,
-          waitForResult,
-        },
-        { txMeta: updatedMetadata },
-      );
-    } catch (error) {
-      log('Error confirming transaction', error);
-    }
-
-    if (type === TransactionType.perpsDepositAndOrder) {
-      const { asset } = (route.params ?? {}) as { asset?: string };
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: { symbol: asset },
-          monitoringIntent: {
-            asset,
-            monitorOrders: true,
-            monitorPositions: true,
+      try {
+        await onRequestConfirm(
+          {
+            deleteAfterResult: true,
+            // Intentionally not hiding errors so we can log
+            handleErrors: false,
+            waitForResult,
           },
-        },
-      });
-      return;
-    } else if (type === TransactionType.perpsDeposit) {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-      });
-    } else if (type === TransactionType.musdConversion) {
-      navigation.navigate(Routes.WALLET_VIEW);
-    } else if (
-      isFullScreenConfirmation &&
-      !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
-    ) {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
-    } else {
-      navigation.goBack();
-    }
+          { txMeta: updatedMetadata },
+        );
+      } catch (error) {
+        log('Error confirming transaction', error);
+      }
 
-    tryEnableEvmNetwork(chainId);
-  }, [
-    chainId,
-    handleGasless7702,
-    handleSmartTransaction,
-    isFullScreenConfirmation,
-    isGaslessSupportedSTX,
-    navigation,
-    onRequestConfirm,
-    route.params,
-    selectedGasFeeToken,
-    transactionMetadata,
-    tryEnableEvmNetwork,
-    type,
-    waitForResult,
-  ]);
+      if (opts?.skipNavigation) {
+        tryEnableEvmNetwork(chainId);
+        return;
+      }
+
+      // Perps deposit-and-order: caller handles navigation (e.g. order flow)
+      if (type === TransactionType.perpsDepositAndOrder) {
+        return;
+      } else if (type === TransactionType.perpsDeposit) {
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.PERPS_HOME,
+        });
+      } else if (type === TransactionType.musdConversion) {
+        navigation.navigate(Routes.WALLET_VIEW);
+      } else if (
+        isFullScreenConfirmation &&
+        !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
+      ) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      } else {
+        navigation.goBack();
+      }
+
+      tryEnableEvmNetwork(chainId);
+    },
+    [
+      chainId,
+      handleGasless7702,
+      handleSmartTransaction,
+      isFullScreenConfirmation,
+      isGaslessSupportedSTX,
+      navigation,
+      onRequestConfirm,
+      selectedGasFeeToken,
+      transactionMetadata,
+      tryEnableEvmNetwork,
+      type,
+      waitForResult,
+    ],
+  );
 
   return { onConfirm };
 }

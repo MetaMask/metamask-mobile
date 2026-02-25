@@ -1,6 +1,7 @@
 import {
   useNavigation,
   useRoute,
+  CommonActions,
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
@@ -864,8 +865,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           handlePlaceOrder(true);
         });
 
-        await onDepositConfirm();
-        navigation.goBack();
+        await onDepositConfirm({ skipNavigation: true });
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.PERPS.MARKET_DETAILS,
+                params: {
+                  market: navigationMarketData,
+                  monitoringIntent: {
+                    asset: orderForm.asset,
+                    monitorOrders: true,
+                    monitorPositions: true,
+                  },
+                },
+              },
+            ],
+          }),
+        );
         return;
       }
 

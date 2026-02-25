@@ -48,9 +48,6 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
-  useRoute: () => ({
-    params: { asset: 'ETH' },
-  }),
 }));
 
 const CHAIN_ID_MOCK = '0x123';
@@ -268,7 +265,25 @@ describe('useTransactionConfirm', () => {
       });
     });
 
-    it('navigates to Market Details for perps deposit and order', async () => {
+    it('skips navigation when skipNavigation option is passed', async () => {
+      const tryEnableEvmNetworkMock = jest.fn();
+      useNetworkEnablementMock.mockReturnValue({
+        tryEnableEvmNetwork: tryEnableEvmNetworkMock,
+      } as unknown as ReturnType<typeof useNetworkEnablement>);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm({ skipNavigation: true });
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(tryEnableEvmNetworkMock).toHaveBeenCalledWith(CHAIN_ID_MOCK);
+    });
+
+    it('skips navigation if perps deposit and order (caller handles navigation)', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
         type: TransactionType.perpsDepositAndOrder,
@@ -280,17 +295,7 @@ describe('useTransactionConfirm', () => {
         await result.current.onConfirm();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: { symbol: 'ETH' },
-          monitoringIntent: {
-            asset: 'ETH',
-            monitorOrders: true,
-            monitorPositions: true,
-          },
-        },
-      });
+      expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
