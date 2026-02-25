@@ -102,15 +102,15 @@ describe('WalletConnectSessions', () => {
     await waitFor(() => {
       expect(
         getByTestId(ExperimentalSelectorsIDs.WALLET_CONNECT_SESSIONS_HEADER),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId(
           ExperimentalSelectorsIDs.WALLET_CONNECT_SESSIONS_BACK_BUTTON,
         ),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByText(strings('experimental_settings.wallet_connect_dapps')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
   });
 });

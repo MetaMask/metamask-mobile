@@ -197,7 +197,7 @@ export default class WalletConnectSessions extends PureComponent {
 
     return (
       <SafeAreaView
-        edges={['top']}
+        edges={{ bottom: 'additive' }}
         style={styles.wrapper}
         testID={ExperimentalSelectorsIDs.CONTAINER}
       >
@@ -209,6 +209,7 @@ export default class WalletConnectSessions extends PureComponent {
               ExperimentalSelectorsIDs.WALLET_CONNECT_SESSIONS_BACK_BUTTON,
           }}
           testID={ExperimentalSelectorsIDs.WALLET_CONNECT_SESSIONS_HEADER}
+          includesTopInset
         />
         <ScrollView
           style={styles.wrapper}

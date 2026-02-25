@@ -136,11 +136,13 @@ describe('ExperimentalSettings', () => {
     );
     expect(
       getByTestId(ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_HEADER),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_BACK_BUTTON),
-    ).toBeTruthy();
-    expect(getByText(strings('app_settings.experimental_title'))).toBeTruthy();
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('app_settings.experimental_title')),
+    ).toBeOnTheScreen();
   });
 
   it('calls navigation.goBack when back button is pressed', () => {

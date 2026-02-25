@@ -46,7 +46,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const cardExperimentalSwitch = useSelector(selectCardExperimentalSwitch);
   const alwaysShowCardButton = useSelector(selectAlwaysShowCardButton);
   const isDaimoDemo = useSelector(selectIsDaimoDemo);
-  const isFullScreenModal = route?.params?.isFullScreenModal;
 
   const theme = useTheme();
   const { colors } = theme;
@@ -183,7 +182,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     </View>
   );
   return (
-    <SafeAreaView edges={['top']} style={styles.wrapper}>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
       <HeaderCompactStandard
         title={strings('app_settings.experimental_title')}
         onBack={handleBack}
@@ -191,6 +190,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           testID: ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_BACK_BUTTON,
         }}
         testID={ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_HEADER}
+        includesTopInset
       />
       <ScrollView style={styles.content}>
         {renderWalletConnectSettings()}

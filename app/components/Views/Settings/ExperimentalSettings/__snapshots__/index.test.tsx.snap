@@ -4,18 +4,16 @@ exports[`ExperimentalSettings should render correctly 1`] = `
 <RNCSafeAreaView
   edges={
     {
-      "bottom": "off",
+      "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "additive",
+      "top": "off",
     }
   }
   style={
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
-      "padding": 16,
-      "paddingBottom": 48,
     }
   }
 >
@@ -30,7 +28,9 @@ exports[`ExperimentalSettings should render correctly 1`] = `
           "paddingLeft": 8,
           "paddingRight": 8,
         },
-        false,
+        {
+          "marginTop": 0,
+        },
         undefined,
       ]
     }
@@ -175,7 +175,6 @@ exports[`ExperimentalSettings should render correctly 1`] = `
   <RCTScrollView
     style={
       {
-        "backgroundColor": "#ffffff",
         "flex": 1,
         "padding": 16,
         "paddingBottom": 48,
