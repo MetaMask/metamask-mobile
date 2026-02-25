@@ -14,6 +14,12 @@ import {
 } from './ramps-service-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
+const mockGetForceRampsStaging = jest.fn().mockReturnValue(false);
+jest.mock('./getForceRampsStaging', () => ({
+  getForceRampsStaging: (...args: unknown[]) =>
+    mockGetForceRampsStaging(...args),
+}));
+
 jest.mock('@metamask/ramps-controller', () => {
   const actualRampsController = jest.requireActual(
     '@metamask/ramps-controller',
@@ -33,6 +39,7 @@ describe('getRampsEnvironment', () => {
 
   beforeEach(() => {
     process.env.GITHUB_ACTIONS = 'false';
+    mockGetForceRampsStaging.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -52,6 +59,31 @@ describe('getRampsEnvironment', () => {
     } else {
       delete process.env.E2E;
     }
+  });
+
+  describe('when force-ramps-staging-environment flag is enabled', () => {
+    it('returns Staging even when METAMASK_ENVIRONMENT is production', () => {
+      mockGetForceRampsStaging.mockReturnValue(true);
+      process.env.METAMASK_ENVIRONMENT = 'production';
+
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
+    });
+
+    it('returns Staging even when METAMASK_ENVIRONMENT is rc', () => {
+      mockGetForceRampsStaging.mockReturnValue(true);
+      process.env.METAMASK_ENVIRONMENT = 'rc';
+
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
+    });
+
+    it('returns Staging even when GITHUB_ACTIONS with RAMPS_ENVIRONMENT production', () => {
+      mockGetForceRampsStaging.mockReturnValue(true);
+      process.env.GITHUB_ACTIONS = 'true';
+      process.env.RAMPS_ENVIRONMENT = 'production';
+      delete process.env.E2E;
+
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
+    });
   });
 
   describe('when GITHUB_ACTIONS (builds.yml path)', () => {
@@ -173,11 +205,15 @@ describe('rampsServiceInit', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockGetForceRampsStaging.mockReturnValue(false);
     process.env.GITHUB_ACTIONS = 'false';
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+    initRequestMock.getController.mockReturnValue({
+      state: { remoteFeatureFlags: {}, localOverrides: {} },
+    } as never);
   });
 
   afterEach(() => {

@@ -4,6 +4,12 @@ import {
   transakServiceInit,
 } from './transak-service-init';
 
+const mockGetForceRampsStaging = jest.fn().mockReturnValue(false);
+jest.mock('./getForceRampsStaging', () => ({
+  getForceRampsStaging: (...args: unknown[]) =>
+    mockGetForceRampsStaging(...args),
+}));
+
 const mockTransakService = jest.fn().mockImplementation((opts) => opts);
 
 jest.mock('@metamask/ramps-controller', () => ({
@@ -16,8 +22,15 @@ jest.mock('@metamask/ramps-controller', () => ({
 }));
 
 describe('transak-service-init', () => {
+  const originalEnv = process.env.METAMASK_ENVIRONMENT;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetForceRampsStaging.mockReturnValue(false);
+  });
+
+  afterEach(() => {
+    process.env.METAMASK_ENVIRONMENT = originalEnv;
   });
 
   describe('getTransakEnvironment', () => {
@@ -25,15 +38,40 @@ describe('transak-service-init', () => {
       const result = getTransakEnvironment();
       expect(['PRODUCTION', 'STAGING']).toContain(result);
     });
+
+    it('returns Staging when force-ramps-staging-environment flag is enabled on production', () => {
+      mockGetForceRampsStaging.mockReturnValue(true);
+      process.env.METAMASK_ENVIRONMENT = 'production';
+
+      expect(getTransakEnvironment()).toBe('STAGING');
+    });
+
+    it('returns Staging when force-ramps-staging-environment flag is enabled on rc', () => {
+      mockGetForceRampsStaging.mockReturnValue(true);
+      process.env.METAMASK_ENVIRONMENT = 'rc';
+
+      expect(getTransakEnvironment()).toBe('STAGING');
+    });
+
+    it('returns Production when flag is disabled on production', () => {
+      process.env.METAMASK_ENVIRONMENT = 'production';
+
+      expect(getTransakEnvironment()).toBe('PRODUCTION');
+    });
   });
 
   describe('transakServiceInit', () => {
+    const mockGetController = jest.fn().mockReturnValue({
+      state: { remoteFeatureFlags: {}, localOverrides: {} },
+    } as never);
+
     it('creates a TransakService with ios context', () => {
       Platform.OS = 'ios';
 
       const mockMessenger = {} as never;
       const result = transakServiceInit({
         controllerMessenger: mockMessenger,
+        getController: mockGetController,
       } as never);
 
       expect(mockTransakService).toHaveBeenCalledWith(
@@ -52,6 +90,7 @@ describe('transak-service-init', () => {
       const mockMessenger = {} as never;
       const result = transakServiceInit({
         controllerMessenger: mockMessenger,
+        getController: mockGetController,
       } as never);
 
       expect(mockTransakService).toHaveBeenCalledWith(
@@ -67,6 +106,7 @@ describe('transak-service-init', () => {
       const mockMessenger = {} as never;
       transakServiceInit({
         controllerMessenger: mockMessenger,
+        getController: mockGetController,
       } as never);
 
       const calledWith = mockTransakService.mock.calls[0][0];

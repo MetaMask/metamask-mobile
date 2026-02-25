@@ -5,12 +5,27 @@ import {
   RampsServiceMessenger,
   RampsEnvironment,
 } from '@metamask/ramps-controller';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
+import { getForceRampsStaging } from './getForceRampsStaging';
 
 /**
- * When GITHUB_ACTIONS (and not E2E), uses RAMPS_ENVIRONMENT (set by builds.yml).
- * When not (Bitrise / .js.env / E2E), uses METAMASK_ENVIRONMENT switch.
+ * When the `force-ramps-staging-environment` feature flag is enabled,
+ * always returns Staging regardless of the build environment.
+ *
+ * Otherwise:
+ * - When GITHUB_ACTIONS (and not E2E), uses RAMPS_ENVIRONMENT (set by builds.yml).
+ * - When not (Bitrise / .js.env / E2E), uses METAMASK_ENVIRONMENT switch.
+ *
+ * @param featureFlagState - The current RemoteFeatureFlagController state.
+ * @returns The resolved RampsEnvironment.
  */
-export function getRampsEnvironment(): RampsEnvironment {
+export function getRampsEnvironment(
+  featureFlagState?: RemoteFeatureFlagControllerState,
+): RampsEnvironment {
+  if (getForceRampsStaging(featureFlagState)) {
+    return RampsEnvironment.Staging;
+  }
+
   if (process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true') {
     const rampsEnv = process.env.RAMPS_ENVIRONMENT;
     return rampsEnv === 'production'
@@ -46,15 +61,19 @@ export function getRampsContext(): string {
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the service.
+ * @param request.getController - Function to retrieve already-initialized controllers.
  * @returns The initialized service.
  */
 export const rampsServiceInit: ControllerInitFunction<
   RampsService,
   RampsServiceMessenger
-> = ({ controllerMessenger }) => {
+> = ({ controllerMessenger, getController }) => {
+  const featureFlagState = getController('RemoteFeatureFlagController')
+    .state as RemoteFeatureFlagControllerState;
+
   const service = new RampsService({
     messenger: controllerMessenger,
-    environment: getRampsEnvironment(),
+    environment: getRampsEnvironment(featureFlagState),
     context: getRampsContext(),
     fetch,
   });
