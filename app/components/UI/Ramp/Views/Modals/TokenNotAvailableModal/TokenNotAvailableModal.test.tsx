@@ -130,8 +130,8 @@ describe('TokenNotAvailableModal', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       'RampModals',
       expect.objectContaining({
-        screen: 'RampProviderPickerModal',
-        params: { assetId: MOCK_ASSET_ID },
+        screen: 'RampProviderSelectionModal',
+        params: { assetId: MOCK_ASSET_ID, skipQuotes: true },
       }),
     );
   });

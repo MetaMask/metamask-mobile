@@ -1,7 +1,10 @@
 import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
+import { noop } from 'lodash';
+import Engine from '../../../../../../core/Engine';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { strings } from '../../../../../../../locales/i18n';
 import { Asset } from '../../send/asset';
 import BottomSheet, {
@@ -10,8 +13,8 @@ import BottomSheet, {
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   AssetType,
-  isHighlightedActionListItem,
-  isHighlightedAssetListItem,
+  isHighlightedItemInAssetList,
+  isHighlightedItemOutsideAssetList,
   TokenListItem,
 } from '../../../types/token';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
@@ -44,6 +47,7 @@ export function PayWithModal() {
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
+  const withdrawTokenFilter = useWithdrawTokenFilter();
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -53,17 +57,18 @@ export function PayWithModal() {
   const wrapHighlightedItemCallbacks = useCallback(
     (items: TokenListItem[]): TokenListItem[] =>
       items.map((item) => {
-        if (isHighlightedAssetListItem(item)) {
+        if (isHighlightedItemInAssetList(item)) {
           return {
             ...item,
             action: () => close(item.action),
           };
         }
 
-        if (isHighlightedActionListItem(item)) {
+        if (isHighlightedItemOutsideAssetList(item)) {
           return {
             ...item,
-            actions: item.actions.map((actionItem) => ({
+            action: () => close(item.action),
+            actions: item.actions?.map((actionItem) => ({
               ...actionItem,
               onPress: () => close(actionItem.onPress),
             })),
@@ -94,6 +99,31 @@ export function PayWithModal() {
           return;
         }
 
+        // Ensure the token is tracked by TokensController so the pay
+        // controller can resolve its metadata (symbol, decimals, balance).
+        // This is needed for zero-balance tokens from the catalog.
+        if (isWithdraw && token.balance === '0' && !token.isNative) {
+          const { TokensController, NetworkController } = Engine.context;
+          try {
+            const networkClientId =
+              NetworkController.findNetworkClientIdByChainId(
+                token.chainId as Hex,
+              );
+            TokensController.addTokens(
+              [
+                {
+                  address: token.address,
+                  symbol: token.symbol,
+                  decimals: token.decimals,
+                },
+              ],
+              networkClientId,
+            ).catch(noop);
+          } catch {
+            // Network not configured — skip
+          }
+        }
+
         setPayToken({
           address: token.address as Hex,
           chainId: token.chainId as Hex,
@@ -104,6 +134,7 @@ export function PayWithModal() {
     },
     [
       close,
+      isWithdraw,
       onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
       setPayToken,
@@ -113,10 +144,8 @@ export function PayWithModal() {
 
   const tokenFilter = useCallback(
     (tokens: AssetType[]): TokenListItem[] => {
-      // For withdrawal transactions, show all available tokens (any chain, popular tokens)
-      // The bridging service will handle the actual token conversion
       if (isTransactionPayWithdraw(transactionMeta)) {
-        return tokens;
+        return withdrawTokenFilter(tokens);
       }
 
       // Standard deposit/payment token filtering
@@ -143,6 +172,7 @@ export function PayWithModal() {
       return wrapHighlightedItemCallbacks(filteredTokens);
     },
     [
+      withdrawTokenFilter,
       musdTokenFilter,
       payToken,
       requiredTokens,

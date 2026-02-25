@@ -2,7 +2,7 @@ import { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { RefreshControl, View } from 'react-native';
@@ -58,6 +58,7 @@ import { useTransactionAutoScroll } from './useTransactionAutoScroll';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
+import { UnifiedTransactionsViewSelectorsIDs } from './UnifiedTransactionsView.testIds';
 
 type SmartTransactionWithId = SmartTransaction & { id: string };
 type EvmTransaction = TransactionMeta | SmartTransactionWithId;
@@ -95,8 +96,7 @@ const UnifiedTransactionsView = ({
   chainId,
   location,
 }: UnifiedTransactionsViewProps) => {
-  const navigation =
-    useNavigation<NavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
@@ -632,6 +632,7 @@ const UnifiedTransactionsView = ({
             <FlashList
               ref={listRef}
               data={data}
+              testID={UnifiedTransactionsViewSelectorsIDs.CONTAINER}
               renderItem={renderItem}
               keyExtractor={(listItem) =>
                 listItem.kind === TransactionKind.Evm

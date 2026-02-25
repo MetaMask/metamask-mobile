@@ -99,6 +99,22 @@ export function useTransactionPayMetrics() {
     properties.simulation_sending_assets_total_value = sendingValue;
   }
 
+  if (
+    payToken &&
+    hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
+  ) {
+    properties.mm_pay_use_case = 'predict_withdraw';
+  }
+
+  if (payToken) {
+    const sendingAmountUsd = Number(primaryRequiredToken?.amountUsd ?? '0');
+    properties.mm_pay_sending_value_usd = sendingAmountUsd;
+
+    properties.mm_pay_receiving_value_usd = totals
+      ? Number(totals.targetAmount.usd)
+      : null;
+  }
+
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
 
   const nonGasQuote = quotes?.find(

@@ -5,6 +5,7 @@ import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { orderStatusToFiatOrderState } from '../../orderProcessor/unifiedOrderProcessor';
+import { trackEvent as trackRampsEvent } from '../../hooks/useAnalytics';
 import { useTheme } from '../../../../../util/theme';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
@@ -231,12 +232,18 @@ const Checkout = () => {
         navigation,
         { title: providerName ?? headerTitle },
         theme,
-        () => {
-          // Cancel analytics could go here
-        },
       ),
     );
   }, [navigation, theme, providerName, headerTitle]);
+
+  useEffect(() => {
+    if (uri) {
+      trackRampsEvent('RAMPS_SCREEN_VIEWED', {
+        location: 'Aggregator Checkout',
+        ramp_type: 'UNIFIED_BUY_2',
+      });
+    }
+  }, [uri]);
 
   useEffect(() => {
     if (!hasCallbackFlow || !customOrderId || !walletAddress || !network) {
@@ -258,8 +265,6 @@ const Checkout = () => {
   const handleOrderCreated = useCallback(
     (order: FiatOrder) => {
       dispatch(protectWalletModalVisible());
-      // @ts-expect-error navigation prop mismatch
-      navigation.dangerouslyGetParent()?.pop();
 
       dispatchThunk((_dispatch, getState) => {
         const state = getState();
@@ -272,8 +277,27 @@ const Checkout = () => {
           NotificationManager.showSimpleNotification(notificationDetails);
         }
       });
+
+      if (providerType === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
+        // Use reset() instead of pop() + navigate() to avoid a race condition:
+        // dangerouslyGetParent()?.pop() removes the ramp modal from the stack
+        // before navigate() can push the order details screen, sending the user
+        // to the home screen instead.
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: { orderId: order.id, showCloseButton: true },
+            },
+          ],
+        });
+      } else {
+        // @ts-expect-error navigation prop mismatch
+        navigation.dangerouslyGetParent()?.pop();
+      }
     },
-    [dispatch, dispatchThunk, navigation],
+    [dispatch, dispatchThunk, navigation, providerType],
   );
 
   const handleNavigationStateChange = useCallback(
@@ -359,7 +383,10 @@ const Checkout = () => {
   );
 
   const handleCancelPress = useCallback(() => {
-    // TODO: Add analytics tracking when analytics events are defined for unified flow
+    trackRampsEvent('RAMPS_CLOSE_BUTTON_CLICKED', {
+      location: 'Aggregator Checkout',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
   }, []);
   const handleClosePress = useCallback(() => {
     handleCancelPress();

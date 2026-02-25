@@ -1,4 +1,11 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView, Linking, Pressable } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -27,7 +34,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { useMarketInsights } from '../../hooks/useMarketInsights';
 import MarketInsightsTrendItem from '../../components/MarketInsightsTrendItem';
 import MarketInsightsTweetCard from '../../components/MarketInsightsTweetCard';
-import MarketInsightsSourcesFooter from '../../components/MarketInsightsSourcesFooter';
+import MarketInsightsSourcesFooter, {
+  MarketInsightsSourcesBottomSheet,
+} from '../../components/MarketInsightsSourcesFooter';
 import MarketInsightsTrendSourcesBottomSheet from '../../components/MarketInsightsTrendSourcesBottomSheet';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import {
@@ -40,6 +49,17 @@ import type {
   MarketInsightsTrend,
 } from '@metamask/ai-controllers';
 import { selectMarketInsightsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { IconName as ComponentLibraryIconName } from '../../../../../component-library/components/Icons/Icon';
+import { useAppThemeFromContext } from '../../../../../util/theme';
+import MarketInsightsFeedbackBottomSheet, {
+  MarketInsightsFeedbackReason,
+} from '../../components/MarketInsightsFeedbackBottomSheet';
 
 interface MarketInsightsRouteParams {
   assetSymbol: string;
@@ -85,8 +105,14 @@ const MarketInsightsView: React.FC = () => {
   } = route.params;
 
   const { report } = useMarketInsights(caip19Id, isMarketInsightsEnabled);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { toastRef } = useContext(ToastContext);
+  const theme = useAppThemeFromContext();
+  const hasTrackedViewRef = useRef(false);
   const [selectedTrend, setSelectedTrend] =
     useState<MarketInsightsTrend | null>(null);
+  const [isSourcesSheetVisible, setIsSourcesSheetVisible] = useState(false);
+  const [isFeedbackSheetVisible, setIsFeedbackSheetVisible] = useState(false);
 
   // Build BridgeToken from route params for swap navigation
   const sourceToken = useMemo(() => {
@@ -136,8 +162,18 @@ const MarketInsightsView: React.FC = () => {
   }, []);
 
   const handleTradePress = useCallback(() => {
+    const event = createEventBuilder(
+      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+    )
+      .addProperties({
+        caip19: caip19Id,
+        interaction_type: 'trade',
+      })
+      .build();
+    trackEvent(event);
+
     goToSwaps();
-  }, [goToSwaps]);
+  }, [goToSwaps, trackEvent, createEventBuilder, caip19Id]);
 
   const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
     const hasArticles = trend.articles.length > 0;
@@ -151,6 +187,111 @@ const MarketInsightsView: React.FC = () => {
   const handleCloseTrendSources = useCallback(() => {
     setSelectedTrend(null);
   }, []);
+
+  const handleOpenSources = useCallback(() => {
+    setIsSourcesSheetVisible(true);
+  }, []);
+
+  const handleCloseSources = useCallback(() => {
+    setIsSourcesSheetVisible(false);
+  }, []);
+
+  const trackMarketInsightsInteraction = useCallback(
+    (
+      interactionType: 'thumbs_up' | 'thumbs_down' | 'source_click',
+      options?: {
+        source?: string;
+        feedbackReason?: MarketInsightsFeedbackReason;
+        feedbackText?: string;
+      },
+    ) => {
+      const properties = {
+        caip19: caip19Id,
+        interaction_type: interactionType,
+        ...(options?.source ? { source: options.source } : {}),
+        ...(options?.feedbackReason
+          ? { feedback_reason: options.feedbackReason }
+          : {}),
+        ...(options?.feedbackText
+          ? { feedback_text: options.feedbackText }
+          : {}),
+      };
+      const event = createEventBuilder(
+        MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+      )
+        .addProperties(properties)
+        .build();
+      trackEvent(event);
+    },
+    [trackEvent, createEventBuilder, caip19Id],
+  );
+
+  const showFeedbackSubmittedToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: ComponentLibraryIconName.CheckBold,
+      iconColor: theme.colors.success.default,
+      backgroundColor: theme.colors.background.section,
+      labelOptions: [{ label: strings('market_insights.feedback_submitted') }],
+      hasNoTimeout: false,
+    });
+  }, [toastRef, theme.colors.success.default, theme.colors.background.section]);
+
+  useEffect(() => {
+    hasTrackedViewRef.current = false;
+  }, [caip19Id]);
+
+  const handleThumbsUpPress = useCallback(() => {
+    trackMarketInsightsInteraction('thumbs_up');
+    showFeedbackSubmittedToast();
+  }, [trackMarketInsightsInteraction, showFeedbackSubmittedToast]);
+
+  const handleThumbsDownPress = useCallback(() => {
+    setIsFeedbackSheetVisible(true);
+  }, []);
+
+  const handleCloseFeedbackSheet = useCallback(() => {
+    setIsFeedbackSheetVisible(false);
+  }, []);
+
+  const handleFeedbackSubmit = useCallback(
+    ({
+      reason,
+      feedbackText,
+    }: {
+      reason: MarketInsightsFeedbackReason;
+      feedbackText?: string;
+    }) => {
+      trackMarketInsightsInteraction('thumbs_down', {
+        feedbackReason: reason,
+        ...(feedbackText ? { feedbackText } : {}),
+      });
+      setIsFeedbackSheetVisible(false);
+      showFeedbackSubmittedToast();
+    },
+    [trackMarketInsightsInteraction, showFeedbackSubmittedToast],
+  );
+
+  const handleSourcePress = useCallback(
+    (url: string) => {
+      trackMarketInsightsInteraction('source_click', { source: url });
+    },
+    [trackMarketInsightsInteraction],
+  );
+
+  useEffect(() => {
+    if (!report || hasTrackedViewRef.current) {
+      return;
+    }
+
+    const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
+      .addProperties({
+        caip19: caip19Id,
+      })
+      .build();
+    trackEvent(event);
+    hasTrackedViewRef.current = true;
+  }, [report, caip19Id, trackEvent, createEventBuilder]);
 
   if (!report) {
     return null;
@@ -187,7 +328,7 @@ const MarketInsightsView: React.FC = () => {
       </Box>
 
       <ScrollView
-        contentContainerStyle={tw.style(`pb-[${insets.bottom + 80}px]`)}
+        contentContainerStyle={tw.style('pb-6')}
         showsVerticalScrollIndicator={false}
       >
         <Box twClassName="px-4 pt-4 pb-3">
@@ -308,25 +449,35 @@ const MarketInsightsView: React.FC = () => {
             </Box>
           </Box>
         )}
-
-        <MarketInsightsSourcesFooter
-          sources={report.sources}
-          testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
-        />
       </ScrollView>
 
-      <Box
-        twClassName={`absolute bottom-0 left-0 right-0 bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
-      >
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleTradePress}
-          testID={MarketInsightsSelectorsIDs.TRADE_BUTTON}
-        >
-          {strings('market_insights.trade_button')}
-        </Button>
+      <Box twClassName={`bg-default pt-2 pb-[${insets.bottom}px]`}>
+        <MarketInsightsSourcesFooter
+          sources={report.sources}
+          onSourcesPress={handleOpenSources}
+          onThumbsUp={handleThumbsUpPress}
+          onThumbsDown={handleThumbsDownPress}
+          testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
+        />
+        <Box twClassName="px-4">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleTradePress}
+            testID={MarketInsightsSelectorsIDs.TRADE_BUTTON}
+          >
+            {strings('market_insights.trade_button')}
+          </Button>
+          <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings('market_insights.fixed_footer_disclaimer')}
+            </Text>
+          </Box>
+        </Box>
       </Box>
 
       {selectedTrend ? (
@@ -336,6 +487,24 @@ const MarketInsightsView: React.FC = () => {
           trendTitle={selectedTrend.title}
           articles={selectedTrend.articles}
           tweets={selectedTrend.tweets ?? []}
+          onSourcePress={handleSourcePress}
+        />
+      ) : null}
+
+      {isSourcesSheetVisible ? (
+        <MarketInsightsSourcesBottomSheet
+          isVisible
+          onClose={handleCloseSources}
+          sources={report.sources}
+          onSourcePress={handleSourcePress}
+        />
+      ) : null}
+
+      {isFeedbackSheetVisible ? (
+        <MarketInsightsFeedbackBottomSheet
+          isVisible
+          onClose={handleCloseFeedbackSheet}
+          onSubmit={handleFeedbackSubmit}
         />
       ) : null}
     </Box>

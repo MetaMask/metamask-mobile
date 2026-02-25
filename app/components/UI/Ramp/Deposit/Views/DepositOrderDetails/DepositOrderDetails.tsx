@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -26,6 +26,7 @@ import useInterval from '../../../../../hooks/useInterval';
 import AppConstants from '../../../../../../core/AppConstants';
 import DepositOrderContent from '../../components/DepositOrderContent/DepositOrderContent';
 import { processFiatOrder } from '../../../index';
+import { trackEvent as trackRampsEvent } from '../../../hooks/useAnalytics';
 
 interface DepositOrderDetailsParams {
   orderId: string;
@@ -65,6 +66,17 @@ const DepositOrderDetails = () => {
       ),
     );
   }, [theme, navigation]);
+
+  const hasTrackedScreenView = useRef(false);
+  useEffect(() => {
+    if (order && !hasTrackedScreenView.current) {
+      hasTrackedScreenView.current = true;
+      trackRampsEvent('RAMPS_SCREEN_VIEWED', {
+        location: 'Order Details',
+        ramp_type: 'UNIFIED_BUY_2',
+      });
+    }
+  }, [order]);
 
   const dispatchUpdateFiatOrder = useCallback(
     (updatedOrder: FiatOrder) => dispatch(updateFiatOrder(updatedOrder)),

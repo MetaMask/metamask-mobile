@@ -13,10 +13,14 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockSetOptions = jest.fn();
+const mockNavigate = jest.fn();
 const mockPop = jest.fn();
+const mockReset = jest.fn();
 const mockDangerouslyGetParent = jest.fn(() => ({ pop: mockPop }));
 const mockNavigation = {
   goBack: jest.fn(),
+  navigate: mockNavigate,
+  reset: mockReset,
   setOptions: mockSetOptions,
   dangerouslyGetParent: mockDangerouslyGetParent,
 };
@@ -342,6 +346,94 @@ describe('Checkout', () => {
         expect.objectContaining({ type: 'FIAT_REMOVE_CUSTOM_ID_DATA' }),
       );
       expect(mockDangerouslyGetParent).toHaveBeenCalled();
+    });
+
+    it('navigates to Ramps order details with showCloseButton when providerType is RAMPS_V2', async () => {
+      const mockOrder = {
+        id: 'order-123',
+        providerOrderId: 'provider-123',
+        status: 'PENDING',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        totalFeesFiat: 5,
+        provider: { id: 'transak', name: 'Transak', links: [] },
+        fiatCurrency: { symbol: 'USD', decimals: 2, denomSymbol: '$' },
+        cryptoCurrency: { symbol: 'ETH', decimals: 18 },
+        createdAt: Date.now(),
+        walletAddress: '0xabc',
+        network: '1',
+        excludeFromPurchases: false,
+        orderType: 'BUY',
+      };
+
+      mockGetOrderFromCallback.mockResolvedValue(mockOrder);
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+        customOrderId: 'custom-123',
+      });
+
+      const { getByTestId } = render();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      // For RAMPS_V2, navigation.reset() is used instead of pop() + navigate()
+      // to avoid a race condition where pop() removes the ramp modal before
+      // navigate() can push the order details screen.
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: expect.arrayContaining([
+            expect.objectContaining({
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: expect.objectContaining({ showCloseButton: true }),
+            }),
+          ]),
+        }),
+      );
+      expect(mockPop).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate to Ramps order details when providerType is not RAMPS_V2', async () => {
+      const mockOrder = {
+        id: 'order-123',
+        providerOrderId: 'provider-123',
+        status: 'PENDING',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        totalFeesFiat: 5,
+        createdAt: Date.now(),
+        walletAddress: '0xabc',
+        network: '1',
+        excludeFromPurchases: false,
+        orderType: 'BUY',
+      };
+
+      mockGetOrderFromCallback.mockResolvedValue(mockOrder);
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        customOrderId: 'custom-123',
+      });
+
+      const { getByTestId } = render();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.RAMP.RAMPS_ORDER_DETAILS,
+        expect.anything(),
+      );
     });
 
     it('uses customOrderId as fallback when order IDs are missing', async () => {
