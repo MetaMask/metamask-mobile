@@ -110,7 +110,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -128,8 +128,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -1642,7 +1642,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -1660,8 +1660,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -3106,7 +3106,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -3124,8 +3124,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
@@ -4578,7 +4578,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 8,
+                        "borderRadius": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -4596,8 +4596,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 20,
+                          "width": 20,
                         },
                         undefined,
                       ]
