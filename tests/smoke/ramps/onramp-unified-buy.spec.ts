@@ -11,7 +11,7 @@ import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
@@ -21,6 +21,8 @@ import {
 import SoftAssert from '../../framework/SoftAssert';
 import { RampsRegion } from '../../framework/types';
 import { UnifiedRampRoutingType } from '../../../app/reducers/fiatOrders/types';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 
 const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
@@ -69,21 +71,17 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await loginToApp();
         await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapUnifiedBuyButton();
-        /*
-        at the time of this code, the dev team is still working on hooking up the quotes logic
-        as of now, you cannot (both manually and via e2e) go past the continue button
-        there is an animated infinite spinner. And as a result detox is hanging here
-        the disable sync allows detox to proceed without hang
-        Once the code is completed, this should be removed and the test shall go past the continue button
-        */
         await device.disableSynchronization();
         await TokenSelectScreen.tapTokenByName(tokenToBuy);
         await BuildQuoteView.tapKeypadDeleteButton(1);
         await BuildQuoteView.tapKeypadDeleteButton(1);
 
         await BuildQuoteView.enterAmount('5', 'unifiedBuy');
-
         await Assertions.expectTextDisplayed('$15.00');
+        await BuildQuoteView.tapContinueButton();
+
+        await TabBarComponent.tapActivity();
+        await ActivitiesView.tapOnTransfersTab();
       },
     );
   });
@@ -153,13 +151,16 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         ),
       `Ramps Button Clicked: ramp_type should be UNIFIED_BUY`,
     );
-    const rampsButtonClickedRegion = JSON.parse(
-      rampsButtonClicked?.properties?.region as string,
-    ) as RampsRegion;
+    const rampsButtonClickedRegionStr = rampsButtonClicked?.properties
+      ?.region as string | undefined;
+    const rampsButtonClickedRegion = rampsButtonClickedRegionStr
+      ? (JSON.parse(rampsButtonClickedRegionStr) as RampsRegion)
+      : undefined;
     await softAssert.checkAndCollect(
       async () =>
         await Assertions.checkIfObjectContains(
-          rampsButtonClickedRegion as unknown as Record<string, unknown>,
+          (rampsButtonClickedRegion as unknown as Record<string, unknown>) ??
+            {},
           { id: selectedRegion.id, name: selectedRegion.name },
         ),
       `Ramps Button Clicked: region should be ${selectedRegion.name} and ${selectedRegion.id}`,
@@ -190,13 +191,16 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
       `Ramps Token Selected: Should have the correct properties`,
     );
 
-    const rampsTokenSelectedRegion = JSON.parse(
-      rampsTokenSelected?.properties?.region as string,
-    ) as RampsRegion;
+    const rampsTokenSelectedRegionStr = rampsTokenSelected?.properties
+      ?.region as string | undefined;
+    const rampsTokenSelectedRegion = rampsTokenSelectedRegionStr
+      ? (JSON.parse(rampsTokenSelectedRegionStr) as RampsRegion)
+      : undefined;
     await softAssert.checkAndCollect(
       async () =>
         await Assertions.checkIfObjectContains(
-          rampsTokenSelectedRegion as unknown as Record<string, unknown>,
+          (rampsTokenSelectedRegion as unknown as Record<string, unknown>) ??
+            {},
           { id: selectedRegion.id, name: selectedRegion.name },
         ),
       `Ramps Token Selected: region should be ${selectedRegion.name} and ${selectedRegion.id}`,

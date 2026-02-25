@@ -104,6 +104,12 @@ class BuildQuoteView {
     });
   }
 
+  async tapContinueButton(): Promise<void> {
+    await Gestures.waitAndTap(this.continueButton, {
+      elemDescription: 'Continue Button in Build Quote View',
+    });
+  }
+
   async tapSelectAddressDropdown(): Promise<void> {
     await Gestures.waitAndTap(this.accountPickerDropdown, {
       elemDescription: 'Account dropdown in address selector',

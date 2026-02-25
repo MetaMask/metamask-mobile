@@ -15,6 +15,9 @@ class ActivitiesView {
       ActivitiesViewSelectorsText.PREDICTIONS_TAB,
     );
   }
+  get transferTab(): DetoxElement {
+    return Matchers.getElementByID('activity-view-tabs-bar-tab-1');
+  }
 
   get tabsBar(): DetoxElement {
     return Matchers.getElementByID(
@@ -134,6 +137,12 @@ class ActivitiesView {
     });
     await Gestures.waitAndTap(this.predictionsTab, {
       elemDescription: 'Predictions Tab in Activity View',
+    });
+  }
+
+  async tapOnTransfersTab(): Promise<void> {
+    await Gestures.waitAndTap(this.transferTab, {
+      elemDescription: 'Transfer Tab in Activity View',
     });
   }
 
