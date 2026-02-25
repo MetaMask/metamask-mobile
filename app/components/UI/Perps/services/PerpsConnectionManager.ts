@@ -1023,6 +1023,18 @@ class PerpsConnectionManagerClass {
   }
 
   /**
+   * Returns the active provider name from the PerpsController state.
+   * Used for consistent error/breadcrumb tagging without coupling callers to Engine.
+   */
+  getActiveProviderName(): string | undefined {
+    try {
+      return Engine.context.PerpsController.state.activeProvider;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
    * Check if the manager is currently connecting
    */
   isCurrentlyConnecting(): boolean {

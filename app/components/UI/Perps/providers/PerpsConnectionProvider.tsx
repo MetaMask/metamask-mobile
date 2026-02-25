@@ -103,11 +103,13 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.connect();
     } catch (err) {
+      const providerName = PerpsConnectionManager.getActiveProviderName();
       Logger.error(ensureError(err, 'PerpsConnectionProvider.connect'), {
         tags: {
           feature: PERPS_CONSTANTS.FeatureName,
           component: 'PerpsConnectionManager',
           action: 'connection_connection',
+          ...(providerName && { provider: providerName }),
         },
         context: { name: 'PerpsConnectionProvider.connect', data: {} },
       });
@@ -135,11 +137,13 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.disconnect();
     } catch (err) {
+      const providerName = PerpsConnectionManager.getActiveProviderName();
       Logger.error(ensureError(err, 'PerpsConnectionProvider.disconnect'), {
         tags: {
           feature: PERPS_CONSTANTS.FeatureName,
           component: 'PerpsConnectionManager',
           action: 'connection_disconnection',
+          ...(providerName && { provider: providerName }),
         },
         context: { name: 'PerpsConnectionProvider.disconnect', data: {} },
       });
@@ -177,6 +181,7 @@ export const PerpsConnectionProvider: React.FC<
         // Use the existing reconnectWithNewContext method from the singleton
         await PerpsConnectionManager.reconnectWithNewContext(options);
       } catch (err) {
+        const providerName = PerpsConnectionManager.getActiveProviderName();
         Logger.error(
           ensureError(err, 'PerpsConnectionProvider.reconnectWithNewContext'),
           {
@@ -184,6 +189,7 @@ export const PerpsConnectionProvider: React.FC<
               feature: PERPS_CONSTANTS.FeatureName,
               component: 'PerpsConnectionManager',
               action: 'connection_reconnection',
+              ...(providerName && { provider: providerName }),
             },
             context: {
               name: 'PerpsConnectionProvider.reconnectWithNewContext',
@@ -206,6 +212,7 @@ export const PerpsConnectionProvider: React.FC<
       try {
         await PerpsConnectionManager.connect();
       } catch (err) {
+        const providerName = PerpsConnectionManager.getActiveProviderName();
         Logger.error(
           ensureError(err, 'PerpsConnectionProvider.lifecycle.onConnect'),
           {
@@ -213,6 +220,7 @@ export const PerpsConnectionProvider: React.FC<
               feature: PERPS_CONSTANTS.FeatureName,
               component: 'PerpsConnectionManager',
               action: 'connection_connection',
+              ...(providerName && { provider: providerName }),
             },
             context: {
               name: 'PerpsConnectionProvider.lifecycle.onConnect',
@@ -228,6 +236,7 @@ export const PerpsConnectionProvider: React.FC<
       try {
         await PerpsConnectionManager.disconnect();
       } catch (err) {
+        const providerName = PerpsConnectionManager.getActiveProviderName();
         Logger.error(
           ensureError(err, 'PerpsConnectionProvider.lifecycle.onDisconnect'),
           {
@@ -235,6 +244,7 @@ export const PerpsConnectionProvider: React.FC<
               feature: PERPS_CONSTANTS.FeatureName,
               component: 'PerpsConnectionManager',
               action: 'connection_disconnection',
+              ...(providerName && { provider: providerName }),
             },
             context: {
               name: 'PerpsConnectionProvider.lifecycle.onDisconnect',
@@ -280,6 +290,8 @@ export const PerpsConnectionProvider: React.FC<
 
   // Sentry breadcrumb: makes error screen appearance visible in issue timelines
   // Placed in useEffect to avoid firing on every re-render (polling is 100ms)
+  // retryAttempts intentionally excluded — breadcrumb should fire once per error
+  // appearance, not on every retry (retries are tracked in handleRetry breadcrumb)
   useEffect(() => {
     if (connectionState.error) {
       addBreadcrumb({
@@ -292,7 +304,8 @@ export const PerpsConnectionProvider: React.FC<
         },
       });
     }
-  }, [connectionState.error, retryAttempts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connectionState.error]);
 
   // Environment-level error handling - show error screen if connection failed
   // This ensures NO Perps screen can render when there's a connection error
