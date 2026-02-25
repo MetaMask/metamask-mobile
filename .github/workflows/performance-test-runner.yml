@@ -104,6 +104,10 @@ jobs:
         run: |
           # Replace spaces with underscores so the identifier is safe for the BrowserStack Local binary
           DEVICE_SAFE=$(echo "${{ matrix.device.name }}" | tr ' ' '_')
+          if [ -z "$DEVICE_SAFE" ]; then
+            echo "❌ Error: matrix.device.name is empty — cannot build a valid BrowserStack Local identifier"
+            exit 1
+          fi
           echo "value=${{ github.run_id }}-${{ inputs.build_type }}-${DEVICE_SAFE}" >> "$GITHUB_OUTPUT"
 
       - name: Setup BrowserStack Local
