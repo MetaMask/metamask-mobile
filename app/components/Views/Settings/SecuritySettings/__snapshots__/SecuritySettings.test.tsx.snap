@@ -405,10 +405,16 @@ exports[`SecuritySettings renders correctly 1`] = `
             {
               "display": "flex",
             },
-            {
-              "marginTop": 32,
-            },
+            undefined,
           ]
+        }
+        testID="login-options"
+      />
+      <View
+        style={
+          {
+            "marginTop": 32,
+          }
         }
       >
         <View
@@ -439,7 +445,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                 }
               }
             >
-              Face ID
+              Turn on Remember me
             </Text>
             <View
               style={
@@ -450,7 +456,6 @@ exports[`SecuritySettings renders correctly 1`] = `
             >
               <RCTSwitch
                 accessibilityRole="switch"
-                disabled={false}
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
                 onStartShouldSetResponder={[Function]}
@@ -472,13 +477,28 @@ exports[`SecuritySettings renders correctly 1`] = `
                     ],
                   ]
                 }
-                testID="device-security-toggle"
+                testID="turn-on-remember-me"
                 thumbTintColor="#ffffff"
                 tintColor="#b7bbc866"
-                value={false}
+                value={true}
               />
             </View>
           </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginTop": 8,
+              }
+            }
+          >
+            When Remember me is on, anyone with access to your phone can access your MetaMask account.
+          </Text>
         </View>
       </View>
       <View

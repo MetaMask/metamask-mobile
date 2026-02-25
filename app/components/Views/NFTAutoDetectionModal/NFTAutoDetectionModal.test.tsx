@@ -8,8 +8,8 @@ import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { useMetrics } from '../../hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const setUseNftDetectionSpy = jest.spyOn(
   Engine.context.PreferencesController,
@@ -39,14 +39,14 @@ const initialState = {
   },
 };
 
-jest.mock('../../hooks/useAnalytics/useAnalytics');
+jest.mock('../../hooks/useMetrics');
 
 const mockTrackEvent = jest.fn();
 const mockAddTraitsToUser = jest.fn();
 
-(useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
+(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
   trackEvent: mockTrackEvent,
-  createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+  createEventBuilder: MetricsEventBuilder.createEventBuilder,
   enable: jest.fn(),
   addTraitsToUser: mockAddTraitsToUser,
   createDataDeletionTask: jest.fn(),
@@ -55,7 +55,7 @@ const mockAddTraitsToUser = jest.fn();
   getDeleteRegulationId: jest.fn(),
   isDataRecorded: jest.fn(),
   isEnabled: jest.fn(),
-  getAnalyticsId: jest.fn(),
+  getMetaMetricsId: jest.fn(),
 });
 
 const Stack = createStackNavigator();

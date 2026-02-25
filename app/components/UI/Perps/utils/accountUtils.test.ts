@@ -7,7 +7,6 @@ import {
   getEvmAccountFromAccountGroup,
   getSelectedEvmAccount,
   calculateWeightedReturnOnEquity,
-  PerpsControllerMessenger,
 } from '@metamask/perps-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
@@ -267,9 +266,7 @@ describe('accountUtils', () => {
         >,
       };
 
-      const result = getSelectedEvmAccount(
-        mockMessenger as unknown as PerpsControllerMessenger,
-      );
+      const result = getSelectedEvmAccount(mockMessenger);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
@@ -304,9 +301,7 @@ describe('accountUtils', () => {
         >,
       };
 
-      const result = getSelectedEvmAccount(
-        mockMessenger as unknown as PerpsControllerMessenger,
-      );
+      const result = getSelectedEvmAccount(mockMessenger);
 
       expect(result).toBeUndefined();
     });
@@ -320,9 +315,7 @@ describe('accountUtils', () => {
         >,
       };
 
-      const result = getSelectedEvmAccount(
-        mockMessenger as unknown as PerpsControllerMessenger,
-      );
+      const result = getSelectedEvmAccount(mockMessenger);
 
       expect(result).toBeUndefined();
     });

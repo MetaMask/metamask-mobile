@@ -32,8 +32,7 @@ import {
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import { validatePassword } from '../../util/validatePassword';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { TouchableOpacity } from 'react-native';
 import {
@@ -58,7 +57,7 @@ const SignUp = () => {
   const selectedCountry = useSelector(selectSelectedCountry);
   const geoLocation = useSelector(selectCardGeoLocation);
   const { data: registrationSettings } = useRegistrationSettings();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   useEffect(() => {
     trackEvent(

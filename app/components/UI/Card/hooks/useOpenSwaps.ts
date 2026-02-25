@@ -15,8 +15,7 @@ import {
   selectSelectedSourceChainIds,
   setDestToken,
 } from '../../../../core/redux/slices/bridge';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 
 export interface OpenSwapsParams {
@@ -39,7 +38,7 @@ export const useOpenSwaps = ({
   const tokensWithBalance = useTokensWithBalance({
     chainIds,
   });
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const sourceToken = useMemo(() => {
     if (priorityToken) {
