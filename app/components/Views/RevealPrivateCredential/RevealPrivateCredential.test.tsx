@@ -24,7 +24,6 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const MOCK_PASSWORD = 'word1 word2 word3 word4';
 
@@ -436,11 +435,10 @@ describe('RevealPrivateCredential', () => {
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BACK_BUTTON_ID,
         ),
       );
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.GO_BACK_SRP_SCREEN,
-        ).build(),
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.GO_BACK_SRP_SCREEN,
       );
+      expect(mockTrackEvent).toHaveBeenCalledWith({});
     });
   });
 

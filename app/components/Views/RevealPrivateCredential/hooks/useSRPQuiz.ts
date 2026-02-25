@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { RevealSrpStage } from '../types';
 
 interface UseSRPQuizReturn {
@@ -27,7 +27,7 @@ const useSRPQuiz = (options: UseSRPQuizProps = {}): UseSRPQuizReturn => {
   const [questionAnswered, setQuestionAnswered] = useState<boolean>(false);
   const [correctAnswer, setCorrectAnswer] = useState<boolean>(false);
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Track when introduction screen is shown
   useEffect(() => {
