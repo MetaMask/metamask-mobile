@@ -243,13 +243,15 @@ const RevealPrivateCredential = ({
   }, [trackEvent, createEventBuilder, clipboardPrivateCredential, toastRef]);
 
   const renderSRPExplanation = () => (
-    <Text style={styles.normalText}>
+    <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
       {strings('reveal_credential.seed_phrase_explanation')[0]}{' '}
       <Text color={colors.primary.default} onPress={handleLearnMoreClick}>
         {strings('reveal_credential.seed_phrase_explanation')[1]}
       </Text>{' '}
       {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
-      <Text>{strings('reveal_credential.seed_phrase_explanation')[3]}</Text>
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        {strings('reveal_credential.seed_phrase_explanation')[3]}
+      </Text>
     </Text>
   );
 
