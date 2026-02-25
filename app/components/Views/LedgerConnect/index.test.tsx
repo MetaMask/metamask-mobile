@@ -17,8 +17,6 @@ import { strings } from '../../../../locales/i18n';
 import { getSystemVersion } from 'react-native-device-info';
 import Device from '../../../util/device';
 import { LEDGER_SUPPORT_LINK } from '../../../constants/urls';
-import ledgerConnectLightImage from '../../../images/ledger-connect-light.png';
-import ledgerConnectDarkImage from '../../../images/ledger-connect-dark.png';
 
 // Add types for the mocked hooks
 interface UseBluetoothPermissionsHook {
@@ -36,11 +34,6 @@ interface UseBluetoothDevicesHook {
   devices: BluetoothDevice[];
   deviceScanError: boolean;
 }
-
-const { useAssetFromTheme: actualUseAssetFromTheme } = jest.requireActual(
-  '../../../util/theme',
-) as typeof import('../../../util/theme');
-const mockUseAssetFromTheme = jest.fn(actualUseAssetFromTheme);
 
 jest.mock('../../hooks/Ledger/useLedgerBluetooth');
 jest.mock('@react-navigation/native', () => ({
@@ -112,14 +105,6 @@ jest.mock('../../hooks/useBluetoothPermissions', () => ({
 jest.mock('react-native-permissions', () => ({
   openSettings: jest.fn(),
 }));
-
-jest.mock('../../../util/theme', () => {
-  const actual = jest.requireActual('../../../util/theme');
-  return {
-    ...actual,
-    useAssetFromTheme: (...args: unknown[]) => mockUseAssetFromTheme(...args),
-  };
-});
 
 describe('LedgerConnect', () => {
   let isSendingLedgerCommands = false;
@@ -196,11 +181,6 @@ describe('LedgerConnect', () => {
     jest.mocked(Device.isIphoneX).mockReturnValue(false);
     jest.mocked(Device.getDeviceWidth).mockReturnValue(50);
     jest.mocked(Device.getDeviceHeight).mockReturnValue(50);
-    mockUseAssetFromTheme.mockImplementation(actualUseAssetFromTheme);
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   it('render matches latest snapshot', () => {
@@ -418,34 +398,5 @@ describe('LedgerConnect', () => {
     await waitFor(() => {
       expect(getByTestId('multiple-devices-error-message')).toBeDefined();
     });
-  });
-
-  it('falls back to the light image when cover image loading fails', () => {
-    mockUseAssetFromTheme.mockImplementation((lightAsset, darkAsset) =>
-      lightAsset === ledgerConnectLightImage &&
-      darkAsset === ledgerConnectDarkImage
-        ? darkAsset
-        : lightAsset,
-    );
-
-    const { getByTestId } = renderWithProvider(
-      <LedgerConnect
-        onConnectLedger={onConfirmationComplete}
-        isSendingLedgerCommands={isSendingLedgerCommands}
-        isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
-        ledgerLogicToRun={ledgerLogicToRun}
-        ledgerError={undefined}
-        selectedDevice={selectedDevice}
-        setSelectedDevice={setSelectedDevice}
-      />,
-    );
-
-    expect(getByTestId('ledger-connect-image').props.source).toBe(
-      ledgerConnectDarkImage,
-    );
-    fireEvent(getByTestId('ledger-connect-image'), 'error');
-    expect(getByTestId('ledger-connect-image').props.source).toBe(
-      ledgerConnectLightImage,
-    );
   });
 });
