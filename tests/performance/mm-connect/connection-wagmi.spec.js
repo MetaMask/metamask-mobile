@@ -21,6 +21,8 @@ import {
   getDappUrlForBrowser,
   setupAdbReverse,
   cleanupAdbReverse,
+  waitForDappServerReady,
+  unlockIfLockScreenVisible,
 } from './utils.js';
 import AppwrightGestures from '../../framework/AppwrightGestures.ts';
 
@@ -43,6 +45,7 @@ test.beforeAll(async () => {
   // Set port and start the server directly (bypassing Detox-specific utilities)
   playgroundServer.setServerPort(DAPP_PORT);
   await playgroundServer.start();
+  await waitForDappServerReady(DAPP_PORT);
 
   // Set up adb reverse for Android emulator access
   setupAdbReverse(DAPP_PORT);
@@ -57,9 +60,12 @@ test.afterAll(async () => {
 test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Playground', async ({
   device,
 }) => {
-  // Get platform-specific URL
   const platform = device.getPlatform?.() || 'android';
-  const DAPP_URL = getDappUrlForBrowser(platform);
+  const useBrowserStackLocal =
+    process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+  const DAPP_URL = useBrowserStackLocal
+    ? `http://bs-local.com:${DAPP_PORT}`
+    : getDappUrlForBrowser(platform);
 
   // Initialize page objects with device
   WalletMainScreen.device = device;
@@ -119,6 +125,7 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   // Handle connection approval in MetaMask
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await unlockIfLockScreenVisible(device);
     await DappConnectionModal.tapEditAccountsButton();
     // Select account 3 in addition to Account 1
     await DappConnectionModal.tapAccountButton('Account 3');

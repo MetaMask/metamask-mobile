@@ -11,7 +11,6 @@ import { PredictPosition } from '../../types';
 import { formatPrice } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
 
 interface PredictPickItemProps {
   position: PredictPosition;
@@ -24,11 +23,7 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
   onCashOut,
   testID,
 }) => {
-  const currentPosition = usePredictOptimisticPositionRefresh({
-    position,
-  });
-
-  const isOptimistic = currentPosition.optimistic ?? false;
+  const isOptimistic = position.optimistic ?? false;
 
   return (
     <Box
@@ -65,7 +60,7 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
         <Button
           variant={ButtonVariant.Secondary}
           twClassName="light:bg-muted/5"
-          onPress={() => onCashOut(currentPosition)}
+          onPress={() => onCashOut(position)}
           isDisabled={isOptimistic}
           testID={`predict-picks-cash-out-button-${position.id}`}
         >

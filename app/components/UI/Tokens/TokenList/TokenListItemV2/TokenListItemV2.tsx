@@ -18,7 +18,8 @@ import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../TokenListItem/ScamWarningIcon/ScamWarningIcon';
@@ -44,7 +45,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TokenDetailsSource } from '../../../TokenDetails/Views/TokenDetails';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
@@ -158,7 +159,7 @@ export const TokenListItemV2 = React.memo(
     showPercentageChange = true,
     isFullView = false,
   }: TokenListItemV2Props) => {
-    const { trackEvent, createEventBuilder } = useMetrics();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
     const { colors } = useTheme();
     const styles = createStyles(colors);
@@ -561,7 +562,10 @@ export const TokenListItemV2 = React.memo(
                 {renderEarnCta()}
 
                 {isStockToken(asset as BridgeToken) && (
-                  <StockBadge style={styles.stockBadgeWrapper} token={asset} />
+                  <StockBadge
+                    style={styles.stockBadgeWrapper}
+                    token={asset as BridgeToken}
+                  />
                 )}
               </View>
 

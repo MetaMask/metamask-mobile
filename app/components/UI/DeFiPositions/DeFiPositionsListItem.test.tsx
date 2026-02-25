@@ -5,7 +5,7 @@ import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import DeFiPositionsListItem from './DeFiPositionsListItem';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { MetaMetricsEvents } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const mockNavigate = jest.fn();
@@ -17,13 +17,14 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
-jest.mock('../../hooks/useMetrics', () => {
-  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
+  const { MetricsEventBuilder: MockMetricsEventBuilder } = jest.requireActual(
+    '../../../core/Analytics/MetricsEventBuilder',
+  );
   return {
-    ...actualUseMetrics,
-    useMetrics: () => ({
-      ...actualUseMetrics.useMetrics(),
+    useAnalytics: () => ({
       trackEvent: mockTrackEvent,
+      createEventBuilder: MockMetricsEventBuilder.createEventBuilder,
     }),
   };
 });

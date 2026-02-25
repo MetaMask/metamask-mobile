@@ -30,8 +30,8 @@ jest.mock('../../Ramp/Deposit/hooks/useDepositEnabled', () => ({
   default: () => ({ isDepositEnabled: true }),
 }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn(() => ({ build: jest.fn() })),

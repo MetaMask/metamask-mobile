@@ -11,10 +11,10 @@ export {
 } from './useLiveMarketPrices';
 
 export {
-  useLivePositions,
+  usePredictLivePositions,
   type UseLivePositionsOptions,
   type UseLivePositionsResult,
-} from './useLivePositions';
+} from './usePredictLivePositions';
 
 export {
   usePredictTabs,

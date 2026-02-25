@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import {
   StyleSheet,
   ImageSourcePropType,
@@ -45,13 +45,12 @@ import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import { isNativeAddress } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
-import parseAmount from '../../../../../util/parseAmount';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
-import { calculateInputFontSize } from '../../utils/calculateInputFontSize';
+import { useAutoSizingFont } from '../../hooks/useAutoSizingFont';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
+import { useTokenInputAreaFormattedBalance } from '../../hooks/useTokenInputAreaFormattedBalance';
 
-const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
 
 const createStyles = ({
@@ -106,31 +105,6 @@ const formatAddress = (address?: string) => {
   return renderShortAddress(address, 4);
 };
 
-export const getDisplayAmount = (
-  amount?: string,
-  tokenType?: TokenInputAreaType,
-  isMaxAmount?: boolean,
-) => {
-  if (amount === undefined) return amount;
-
-  // Only truncate for display when:
-  // 1. Amount came from Max button (isMaxAmount = true), OR
-  // 2. Destination token (always truncate)
-  const shouldTruncate =
-    tokenType === TokenInputAreaType.Destination || isMaxAmount;
-
-  const displayAmount = shouldTruncate
-    ? parseAmount(amount, MAX_DECIMALS)
-    : amount;
-
-  // Format with locale-appropriate separators
-  if (displayAmount && displayAmount !== '0') {
-    return formatAmountWithLocaleSeparators(displayAmount);
-  }
-
-  return displayAmount;
-};
-
 export interface TokenInputAreaRef {
   blur: () => void;
   focus: () => void;
@@ -139,7 +113,6 @@ export interface TokenInputAreaRef {
 
 interface TokenInputAreaProps {
   amount?: string;
-  isMaxAmount?: boolean;
   token?: BridgeToken;
   tokenBalance?: string;
   networkImageSource?: ImageSourcePropType;
@@ -165,7 +138,6 @@ export const TokenInputArea = forwardRef<
   (
     {
       amount,
-      isMaxAmount = false,
       token,
       tokenBalance,
       networkImageSource,
@@ -257,16 +229,10 @@ export const TokenInputArea = forwardRef<
       nonEvmMultichainAssetRates,
     });
 
-    // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
-    const parsedTokenBalance = parseFloat(tokenBalance || '0');
-    const roundedTokenBalance =
-      Math.floor(parsedTokenBalance * 100000) / 100000;
-    const formattedBalance =
-      token?.symbol && tokenBalance
-        ? `${roundedTokenBalance.toFixed(5).replace(/\.?0+$/, '')} ${
-            token?.symbol
-          }`
-        : undefined;
+    const formattedBalance = useTokenInputAreaFormattedBalance(
+      tokenBalance,
+      token,
+    );
 
     const tokenAddress = useTokenAddress(token);
 
@@ -286,8 +252,17 @@ export const TokenInputArea = forwardRef<
         ? formattedBalance
         : formattedAddress;
 
-    const displayedAmount = getDisplayAmount(amount, tokenType, isMaxAmount);
-    const fontSize = calculateInputFontSize(displayedAmount?.length ?? 0);
+    const displayedAmount = useMemo(
+      () =>
+        amount && amount !== '0'
+          ? formatAmountWithLocaleSeparators(amount)
+          : amount,
+      [amount],
+    );
+
+    const { fontSize, onContainerLayout } = useAutoSizingFont({
+      text: displayedAmount || '0',
+    });
     const { styles } = useStyles(createStyles, { fontSize, hidden: !subtitle });
 
     let tokenButtonText = 'bridge.swap_to';
@@ -299,7 +274,7 @@ export const TokenInputArea = forwardRef<
       <Box style={style}>
         <Box style={styles.content} gap={4}>
           <Box style={styles.row}>
-            <Box style={styles.amountContainer}>
+            <Box style={styles.amountContainer} onLayout={onContainerLayout}>
               {isLoading ? (
                 <Skeleton width="50%" height="80%" style={styles.input} />
               ) : (

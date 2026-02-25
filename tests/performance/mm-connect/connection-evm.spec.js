@@ -21,6 +21,8 @@ import {
   getDappUrlForBrowser,
   setupAdbReverse,
   cleanupAdbReverse,
+  waitForDappServerReady,
+  unlockIfLockScreenVisible,
 } from './utils.js';
 
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
@@ -42,6 +44,7 @@ test.beforeAll(async () => {
   // Set port and start the server directly (bypassing Detox-specific utilities)
   playgroundServer.setServerPort(DAPP_PORT);
   await playgroundServer.start();
+  await waitForDappServerReady(DAPP_PORT);
 
   // Set up adb reverse for Android emulator access
   setupAdbReverse(DAPP_PORT);
@@ -57,7 +60,11 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   device,
 }) => {
   const platform = device.getPlatform?.() || 'android';
-  const DAPP_URL = getDappUrlForBrowser(platform);
+  const useBrowserStackLocal =
+    process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+  const DAPP_URL = useBrowserStackLocal
+    ? `http://bs-local.com:${DAPP_PORT}`
+    : getDappUrlForBrowser(platform);
 
   WalletMainScreen.device = device;
   BrowserPlaygroundDapp.device = device;
@@ -105,6 +112,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await unlockIfLockScreenVisible(device);
     await DappConnectionModal.tapEditAccountsButton();
     await DappConnectionModal.tapAccountButton('Account 3');
     await DappConnectionModal.tapUpdateAccountsButton();
