@@ -74,12 +74,21 @@ describe('PaymentMethodPill', () => {
       expect(mockOnPress).not.toHaveBeenCalled();
     });
 
-    it('does not render label or arrow icon', () => {
+    it('does not render label text', () => {
       const { queryByText } = renderWithTheme(
         <PaymentMethodPill label="Select payment method" isLoading />,
       );
 
       expect(queryByText('Select payment method')).toBeNull();
+    });
+
+    it('does not render arrow icon', () => {
+      const { toJSON } = renderWithTheme(
+        <PaymentMethodPill label="Select payment method" isLoading />,
+      );
+      const json = JSON.stringify(toJSON());
+
+      expect(json).not.toContain('ArrowDown');
     });
 
     it('applies loadingContainer style with centered content', () => {
