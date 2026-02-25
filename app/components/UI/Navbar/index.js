@@ -245,6 +245,7 @@ export function getNavigationOptionsTitle(
   return {
     title,
     headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>,
+    headerTitleAlign: 'center',
     headerRight: () =>
       isFullScreenModal ? (
         <ButtonIcon
@@ -2101,4 +2102,29 @@ export function getRampsBuildQuoteNavbarOptions(
       </HeaderBase>
     ),
   };
+}
+
+export function getRampsOrderDetailsNavbarOptions(
+  navigation,
+  { title, showBack = true },
+  theme,
+  onClose = undefined,
+) {
+  let startButtonIconProps;
+  if (showBack) {
+    startButtonIconProps = {
+      iconName: IconName.ArrowLeft,
+      onPress: () => {
+        navigation.pop();
+        onClose?.();
+      },
+      testID: 'ramps-order-details-back-navbar-button',
+    };
+  }
+
+  return getHeaderCompactStandardNavbarOptions({
+    title,
+    startButtonIconProps,
+    includesTopInset: true,
+  });
 }

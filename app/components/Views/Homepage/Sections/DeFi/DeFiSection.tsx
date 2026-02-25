@@ -5,6 +5,7 @@ import React, {
   useRef,
 } from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Box } from '@metamask/design-system-react-native';
@@ -21,6 +22,7 @@ import { strings } from '../../../../../../locales/i18n';
 import useHomepageSectionViewedEvent, {
   HomepageSectionNames,
 } from '../../hooks/useHomepageSectionViewedEvent';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const MAX_POSITIONS_DISPLAYED = 5;
 
@@ -71,6 +73,7 @@ interface DeFiSectionProps {
  */
 const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
+    const navigation = useNavigation();
     const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
     const privacyMode = useSelector(selectPrivacyMode);
     const title = strings('homepage.sections.defi');
@@ -84,6 +87,15 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     // event fires immediately (once loading finishes).
     const willRender = isDeFiEnabled && !isLoading && !hasError && !isEmpty;
 
+    const handleViewAllDeFi = useCallback(() => {
+      navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW as never);
+    }, [navigation]);
+
+    // DeFi positions come from Redux selectors - no async refresh needed
+    const refresh = useCallback(async () => {
+      // Data refreshes automatically via DeFiPositionsController
+    }, []);
+
     useHomepageSectionViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
       isLoading,
@@ -94,27 +106,12 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
       itemCount: isEmpty ? 0 : positions.length,
     });
 
-    // DeFi positions come from Redux selectors - no async refresh needed
-    const refresh = useCallback(async () => {
-      // Data refreshes automatically via DeFiPositionsController
-    }, []);
-
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
-
-    // Don't render if DeFi is disabled
-    if (!isDeFiEnabled) {
-      return null;
-    }
-
-    // Don't render if error or empty (and not loading)
-    if (!isLoading && (hasError || isEmpty)) {
-      return null;
-    }
 
     return (
       <View ref={sectionViewRef}>
         <Box gap={3}>
-          <SectionTitle title={title} />
+          <SectionTitle title={title} onPress={handleViewAllDeFi} />
           <SectionRow>
             <Box>
               {isLoading ? (
