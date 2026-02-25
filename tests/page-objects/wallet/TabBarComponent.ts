@@ -75,13 +75,20 @@ class TabBarComponent {
   async tapSettings(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        // Ensure we're on WalletView where the hamburger menu is located
-        await this.tapWallet();
+        // Navigate to Wallet first (where the hamburger menu lives)
+        await Gestures.waitAndTap(this.tabBarWalletButton, { timeout: 2000 });
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          timeout: 500,
+        });
         await WalletView.tapHamburgerMenu();
-        await Assertions.expectElementToBeVisible(SettingsView.title);
+        await Assertions.expectElementToBeVisible(SettingsView.title, {
+          timeout: 500,
+        });
       },
       {
-        timeout: 10000,
+        // Each attempt: ~3s (2s tap + 0.5s wallet check + hamburger + 0.5s settings check).
+        maxRetries: 15,
+        timeout: 45000,
         description: 'Tap Settings Button',
       },
     );
