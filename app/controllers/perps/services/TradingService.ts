@@ -211,6 +211,13 @@ export class TradingService {
         error?.message ?? result?.error ?? 'Unknown error';
     }
 
+    if (
+      params.trackingData?.abTests &&
+      Object.keys(params.trackingData.abTests).length > 0
+    ) {
+      properties[PERPS_EVENT_PROPERTY.AB_TESTS] = params.trackingData.abTests;
+    }
+
     this.#deps.metrics.trackPerpsEvent(
       PerpsAnalyticsEvent.TradeTransaction,
       properties,
