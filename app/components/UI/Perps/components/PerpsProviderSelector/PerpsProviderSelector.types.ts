@@ -25,14 +25,14 @@ export interface PerpsProviderSelectorSheetProps {
   onClose: () => void;
 
   /**
-   * Currently selected provider
+   * Currently selected option ID (e.g. 'hyperliquid-mainnet')
    */
-  selectedProvider?: PerpsProviderType;
+  selectedOptionId?: string;
 
   /**
-   * Callback when a provider is selected
+   * Callback when an option is selected
    */
-  onProviderSelect: (providerId: PerpsProviderType) => void;
+  onOptionSelect: (option: ProviderNetworkOption) => void | Promise<void>;
 
   /**
    * Test ID for testing purposes
@@ -48,4 +48,16 @@ export interface ProviderDisplayInfo {
   name: string;
   description: string;
   iconName?: string;
+}
+
+/**
+ * Combined provider + network option for the unified selector
+ */
+export interface ProviderNetworkOption {
+  id: string;
+  providerId: PerpsProviderType;
+  isTestnet: boolean;
+  name: string;
+  network: string;
+  description: string;
 }

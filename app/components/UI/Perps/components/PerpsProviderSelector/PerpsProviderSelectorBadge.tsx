@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
@@ -13,6 +14,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
+import { selectPerpsNetwork } from '../../selectors/perpsController';
 import type { PerpsProviderSelectorBadgeProps } from './PerpsProviderSelector.types';
 import { PROVIDER_DISPLAY_INFO } from './PerpsProviderSelector.constants';
 import { styleSheet } from './PerpsProviderSelector.styles';
@@ -20,13 +22,9 @@ import { styleSheet } from './PerpsProviderSelector.styles';
 /**
  * PerpsProviderSelectorBadge Component
  *
- * A compact badge that shows the current provider and opens selection sheet.
+ * A compact badge that shows the current provider + network and opens selection sheet.
  * Only visible when multiple providers are available.
- *
- * @example
- * ```tsx
- * <PerpsProviderSelectorBadge testID="provider-badge" />
- * ```
+ * Shows a warning dot when on testnet.
  */
 const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
   testID,
@@ -34,6 +32,8 @@ const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { activeProvider, isMultiProviderEnabled } = usePerpsProvider();
+  const network = useSelector(selectPerpsNetwork);
+  const isTestnet = network === 'testnet';
 
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.PERPS.MODALS.ROOT, {
@@ -58,11 +58,12 @@ const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
       onPress={handlePress}
       testID={testID}
       accessibilityRole="button"
-      accessibilityLabel={`Current provider: ${currentProvider.name}. Tap to change.`}
+      accessibilityLabel={`Current provider: ${currentProvider.name}, ${isTestnet ? 'Testnet' : 'Mainnet'}. Tap to change.`}
     >
+      {isTestnet && <View style={styles.testnetDot} />}
       <Text
         variant={TextVariant.BodySM}
-        color={TextColor.Alternative}
+        color={isTestnet ? TextColor.Warning : TextColor.Alternative}
         style={styles.badgeText}
       >
         {currentProvider.name}
@@ -70,7 +71,7 @@ const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
       <Icon
         name={IconName.ArrowDown}
         size={IconSize.Xs}
-        color={IconColor.Alternative}
+        color={isTestnet ? IconColor.Warning : IconColor.Alternative}
       />
     </TouchableOpacity>
   );

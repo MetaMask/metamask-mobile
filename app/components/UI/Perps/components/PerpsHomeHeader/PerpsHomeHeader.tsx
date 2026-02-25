@@ -162,7 +162,7 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
                   testID={testID ? `${testID}-provider-badge` : undefined}
                 />
               )}
-              {isTestnet && (
+              {isTestnet && !isMYXProviderEnabled && (
                 <View
                   style={styles.testnetBadge}
                   testID={testID ? `${testID}-testnet-badge` : undefined}

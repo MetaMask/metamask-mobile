@@ -2901,6 +2901,14 @@ export class PerpsController extends BaseController<
       return;
     }
 
+    // Skip preloading during provider/network reinitialisation.
+    // The activeProviderInstance still points to the OLD network's provider
+    // until init() completes, so fetching now would store stale data under
+    // the NEW network's cache key.
+    if (this.#isReinitializing) {
+      return;
+    }
+
     // Determine actual provider and cache key for debounce
     let actualProviderId: string;
     if (!this.activeProviderInstance) {
@@ -3389,6 +3397,16 @@ export class PerpsController extends BaseController<
       };
     } finally {
       this.#isReinitializing = false;
+
+      // Re-trigger preload now that reinit is complete and the
+      // activeProviderInstance points to the correct network.
+      // The state-change listener may have already fired during reinit
+      // but was skipped due to the #isReinitializing guard.
+      if (this.#preloadTimer) {
+        this.#performMarketDataPreload().catch(() => {
+          /* fire-and-forget */
+        });
+      }
     }
   }
 
@@ -3522,6 +3540,13 @@ export class PerpsController extends BaseController<
       };
     } finally {
       this.#isReinitializing = false;
+
+      // Re-trigger preload now that reinit is complete.
+      if (this.#preloadTimer) {
+        this.#performMarketDataPreload().catch(() => {
+          /* fire-and-forget */
+        });
+      }
     }
   }
 

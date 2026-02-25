@@ -17,6 +17,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 16,
       backgroundColor: theme.colors.background.alternative,
       marginLeft: 8,
+      gap: 4,
     },
     badgeText: {
       marginRight: 4,
@@ -45,8 +46,27 @@ export const styleSheet = (params: { theme: Theme }) => {
     optionContent: {
       flex: 1,
     },
-    optionName: {
+    optionNameRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 8,
       marginBottom: 2,
+    },
+    optionName: {},
+    testnetTag: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 4,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 8,
+      backgroundColor: theme.colors.warning.muted,
+    },
+    testnetDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: theme.colors.warning.default,
     },
     checkIcon: {
       marginLeft: 8,
