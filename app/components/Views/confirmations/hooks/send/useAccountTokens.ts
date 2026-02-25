@@ -86,18 +86,18 @@ export function useAccountTokens({
         zeroFiat = `0 ${fiatCurrency}`;
       }
 
+      const getAssetKey = (chain: string, addr: string) =>
+        `${chain.toLowerCase()}:${addr.toLowerCase()}`;
+
       const existing = new Set(
-        flatAssets.map(
-          (a) =>
-            `${String(a.chainId).toLowerCase()}:${String('address' in a ? a.address : a.assetId).toLowerCase()}`,
+        flatAssets.map((a) =>
+          getAssetKey(a.chainId, 'address' in a ? a.address : a.assetId),
         ),
       );
 
       for (const [chainId, cache] of Object.entries(tokensChainsCache ?? {})) {
         for (const [address, entry] of Object.entries(cache?.data ?? {})) {
-          if (
-            existing.has(`${chainId.toLowerCase()}:${address.toLowerCase()}`)
-          ) {
+          if (existing.has(getAssetKey(chainId, address))) {
             continue;
           }
           processedAssets.push(
@@ -148,5 +148,5 @@ function buildNoBalanceAsset(
     isNative: false,
     networkBadgeSource: getNetworkBadgeSource(chainId),
     standard: TokenStandard.ERC20,
-  } as AssetType;
+  };
 }
