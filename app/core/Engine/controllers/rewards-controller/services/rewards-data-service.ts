@@ -29,7 +29,10 @@ import type {
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
 import { successfulFetch } from '@metamask/controller-utils';
-import { getDefaultRewardsApiBaseUrlForMetaMaskEnv } from '../utils/rewards-api-url';
+import {
+  canChangeRewardsEnvUrl,
+  getDefaultRewardsApiBaseUrlForMetaMaskEnv,
+} from '../utils/rewards-api-url';
 
 /**
  * Custom error for invalid timestamps
@@ -196,6 +199,26 @@ export interface RewardsDataServiceGetSnapshotsAction {
   handler: RewardsDataService['getSnapshots'];
 }
 
+export interface RewardsDataServiceGetRewardsEnvUrlAction {
+  type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
+  handler: RewardsDataService['getRewardsEnvUrl'];
+}
+
+export interface RewardsDataServiceCanChangeRewardsEnvUrlAction {
+  type: `${typeof SERVICE_NAME}:canChangeRewardsEnvUrl`;
+  handler: RewardsDataService['canChangeRewardsEnvUrl'];
+}
+
+export interface RewardsDataServiceSetRewardsEnvUrlAction {
+  type: `${typeof SERVICE_NAME}:setRewardsEnvUrl`;
+  handler: RewardsDataService['setRewardsEnvUrl'];
+}
+
+export interface RewardsDataServiceGetDefaultRewardsEnvUrlAction {
+  type: `${typeof SERVICE_NAME}:getDefaultRewardsEnvUrl`;
+  handler: RewardsDataService['getDefaultRewardsEnvUrl'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -218,7 +241,11 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceGetSnapshotsAction
+  | RewardsDataServiceGetRewardsEnvUrlAction
+  | RewardsDataServiceCanChangeRewardsEnvUrlAction
+  | RewardsDataServiceSetRewardsEnvUrlAction
+  | RewardsDataServiceGetDefaultRewardsEnvUrlAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -242,7 +269,8 @@ export class RewardsDataService {
 
   readonly #locale: string;
 
-  readonly #rewardsApiUrl: string;
+  /** Explicit API URL override; null means use the build-default mapping */
+  #rewardsApiUrl: string | null = null;
 
   constructor({
     messenger,
@@ -259,7 +287,6 @@ export class RewardsDataService {
     this.#fetch = fetchFunction;
     this.#appType = appType;
     this.#locale = locale;
-    this.#rewardsApiUrl = this.getRewardsApiBaseUrl();
     // Register all action handlers
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
@@ -349,15 +376,66 @@ export class RewardsDataService {
       `${SERVICE_NAME}:getSnapshots`,
       this.getSnapshots.bind(this),
     );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getRewardsEnvUrl`,
+      this.getRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:canChangeRewardsEnvUrl`,
+      this.canChangeRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:setRewardsEnvUrl`,
+      this.setRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getDefaultRewardsEnvUrl`,
+      this.getDefaultRewardsEnvUrl.bind(this),
+    );
   }
 
-  private getRewardsApiBaseUrl() {
-    // always using url from env var if set
-    if (process.env.REWARDS_API_URL) return process.env.REWARDS_API_URL;
-    // otherwise using default per-env url
-    return getDefaultRewardsApiBaseUrlForMetaMaskEnv(
+  /**
+   * Returns the rewards API base URL the data service is currently targeting.
+   */
+  getRewardsEnvUrl(): string {
+    const [defaultUrl, canChange] = getDefaultRewardsApiBaseUrlForMetaMaskEnv(
       process.env.METAMASK_ENVIRONMENT,
     );
+    // PRD builds are locked — never allow an override to take effect.
+    if (!canChange) return defaultUrl;
+    return this.#rewardsApiUrl ?? defaultUrl;
+  }
+
+  /**
+   * Returns whether the current MetaMask build allows manually switching the
+   * rewards API environment (true for non-RC / non-production builds).
+   */
+  canChangeRewardsEnvUrl(): boolean {
+    return canChangeRewardsEnvUrl(process.env.METAMASK_ENVIRONMENT);
+  }
+
+  /**
+   * Overrides the active rewards API base URL.
+   * Callers should reset all cached controller state after calling this.
+   */
+  setRewardsEnvUrl(url: string): void {
+    if (this.canChangeRewardsEnvUrl()) {
+      this.#rewardsApiUrl = url;
+      Logger.log(`RewardsDataService: env switched to ${url}`);
+    } else {
+      this.#rewardsApiUrl = null;
+    }
+  }
+
+  /**
+   * Returns the default rewards API base URL for the current MetaMask
+   * environment, ignoring any manual override.
+   */
+  getDefaultRewardsEnvUrl(): string {
+    const [defaultUrl] = getDefaultRewardsApiBaseUrlForMetaMaskEnv(
+      process.env.METAMASK_ENVIRONMENT,
+    );
+    return defaultUrl;
   }
 
   /**
@@ -405,7 +483,8 @@ export class RewardsDataService {
       headers['Accept-Language'] = this.#locale;
     }
 
-    const url = `${this.#rewardsApiUrl}${endpoint}`;
+    const envBaseUrl = this.getRewardsEnvUrl();
+    const url = `${envBaseUrl}${endpoint}`;
 
     // Create AbortController for timeout handling
     const controller = new AbortController();
