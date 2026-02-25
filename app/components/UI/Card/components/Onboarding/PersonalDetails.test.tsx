@@ -73,6 +73,14 @@ jest.mock('@metamask/design-system-react-native', () => {
       children: React.ReactNode;
       testID?: string;
     }) => React.createElement(Text, { testID, ...props }, children),
+    Label: ({
+      children,
+      testID,
+      ...props
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => React.createElement(Text, { testID, ...props }, children),
     Icon: ({ name, size, ...props }: { name: string; size: string }) =>
       React.createElement(View, { testID: 'icon', ...props }),
     TextVariant,

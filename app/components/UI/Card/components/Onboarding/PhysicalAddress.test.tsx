@@ -147,9 +147,16 @@ jest.mock('@metamask/design-system-react-native', () => {
   const Icon = ({ name, size, ...props }: { name: string; size: string }) =>
     React.createElement(View, { testID: 'icon', ...props });
 
+  const Label = ({
+    children,
+    ...props
+  }: React.PropsWithChildren<Record<string, unknown>>) =>
+    React.createElement(RNText, props, children);
+
   return {
     Box,
     Text,
+    Label,
     Icon,
     TextVariant: {
       BodySm: 'BodySm',
