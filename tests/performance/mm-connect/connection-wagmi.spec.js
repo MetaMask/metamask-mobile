@@ -94,7 +94,7 @@ test('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Playgro
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 5000));
 
   //
   // Connect via WAGMI
