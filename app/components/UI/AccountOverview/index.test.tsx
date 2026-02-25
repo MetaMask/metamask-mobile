@@ -10,6 +10,7 @@ import {
   MOCK_ADDRESS_1,
 } from '../../../util/test/accountsControllerTestUtils';
 import { AccountOverviewSelectorsIDs } from './AccountOverview.testIds';
+import { analytics } from '../../../util/analytics/analytics';
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -161,6 +162,7 @@ describe('AccountOverview', () => {
     const overviewInstance = onRef.mock.calls[0][0];
     overviewInstance.onOpenPortfolio();
 
+    expect(jest.mocked(analytics.isEnabled)).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: MetaMetricsEvents.PORTFOLIO_LINK_CLICKED,

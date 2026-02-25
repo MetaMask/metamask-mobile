@@ -7,6 +7,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountApprovalSelectorsIDs } from './AccountApproval.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
+import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -40,7 +41,9 @@ jest.mock('../../../util/phishingDetection', () => ({
     mockGetPhishingTestResultAsync(origin),
 }));
 
+const mockOpenURL = jest.fn();
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: (url: string) => mockOpenURL(url),
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
 }));
@@ -221,6 +224,28 @@ describe('AccountApproval', () => {
 
     const warningText = await findByText('Deceptive site ahead');
     expect(warningText).toBeOnTheScreen();
+  });
+
+  it('tracks EXTERNAL_LINK_CLICKED and opens URL when Learn more is pressed in phishing banner', async () => {
+    mockGetPhishingTestResultAsync.mockResolvedValueOnce({ result: true });
+
+    const { findByText } = renderWithProvider(
+      <AccountApproval
+        currentPageInformation={{ icon: '', url: 'phishing.com', title: '' }}
+      />,
+      { state: mockInitialState },
+    );
+
+    const learnMore = await findByText('Learn more');
+    mockTrackEvent.mockClear();
+    fireEvent.press(learnMore);
+
+    expect(mockOpenURL).toHaveBeenCalledWith(CONNECTING_TO_A_DECEPTIVE_SITE);
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
+      }),
+    );
   });
 
   it('tracks CONNECT_REQUEST_OTPFAILURE when connect is pressed with wrong OTP selected', () => {
