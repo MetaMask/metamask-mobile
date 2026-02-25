@@ -57,7 +57,7 @@ test.afterAll(async () => {
   await playgroundServer.stop();
 });
 
-test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Playground', async ({
+test('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Playground', async ({
   device,
 }) => {
   const platform = device.getPlatform?.() || 'android';
