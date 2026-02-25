@@ -139,12 +139,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       op: TraceOperation.Login,
     });
     trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
 
     setStartFoxAnimation('Start');
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+      backHandlerSubscription.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
