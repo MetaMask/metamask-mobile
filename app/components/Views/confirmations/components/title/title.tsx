@@ -176,18 +176,18 @@ const getTitleAndSubTitle = (
         };
       }
 
-      if (transactionType === TransactionType.deployContract) {
-        return {
-          title: strings('confirm.title.contract_deployment'),
-          subTitle: strings('confirm.sub_title.contract_deployment'),
-        };
-      }
-
       if (transactionType === TransactionType.musdConversion) {
         return {
           title: strings(
             'earn.musd_conversion.quick_convert.confirmation.title',
           ),
+        };
+      }
+
+      if (transactionType === TransactionType.deployContract) {
+        return {
+          title: strings('confirm.title.contract_deployment'),
+          subTitle: strings('confirm.sub_title.contract_deployment'),
         };
       }
 
