@@ -55,8 +55,8 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-// Mock analytics module
-jest.mock('../../util/analytics/analytics', () => ({
+// Mock analytics module (path must match what MetaMetrics imports: ../../util/analytics/analytics from core/Analytics)
+jest.mock('../analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn(() => false),
     trackEvent: jest.fn(),
