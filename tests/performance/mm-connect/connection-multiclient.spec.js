@@ -34,6 +34,8 @@ const DAPP_PORT = 8090;
 const ACCOUNT_1_EVM_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
 const ACCOUNT_1_SOLANA_ADDRESS = '6fr9gpqbsszm6snzsjubu91jwxeduhwnvnkwxqksfwcz';
 
+const SOLANA_MAINNET_CAIP_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
 const ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT =
   'TnB0MoNjYOTozLwKcZskdyzYszWHetTLcDskffjqLgQ9nYUbM47JySKpEyTZtA48CdMsPK+erAeId6ayzBoJBQ==';
 
@@ -129,7 +131,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
       await BrowserPlaygroundDapp.assertMultichainConnected(true);
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
       await BrowserPlaygroundDapp.assertScopeCardVisible(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        SOLANA_MAINNET_CAIP_CHAIN_ID,
       );
 
       await BrowserPlaygroundDapp.assertConnected(true);
@@ -216,7 +218,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
       await BrowserPlaygroundDapp.assertMultichainConnected(true);
       await BrowserPlaygroundDapp.assertScopeCardNotVisible('eip155:1');
       await BrowserPlaygroundDapp.assertScopeCardVisible(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        SOLANA_MAINNET_CAIP_CHAIN_ID,
       );
 
       await BrowserPlaygroundDapp.assertConnected(false);
@@ -275,7 +277,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
 
       // Make sure solana is still connected
       await BrowserPlaygroundDapp.assertScopeCardVisible(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        SOLANA_MAINNET_CAIP_CHAIN_ID,
       );
       await BrowserPlaygroundDapp.assertSolanaConnected(true);
       await BrowserPlaygroundDapp.assertSolanaActiveAccount(
@@ -307,7 +309,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
       await BrowserPlaygroundDapp.tapSolanaDisconnect();
 
       await BrowserPlaygroundDapp.assertScopeCardNotVisible(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        SOLANA_MAINNET_CAIP_CHAIN_ID,
       );
       await BrowserPlaygroundDapp.assertSolanaConnected(false);
 
@@ -355,7 +357,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     device,
     async () => {
       await BrowserPlaygroundDapp.assertScopeCardVisible(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        SOLANA_MAINNET_CAIP_CHAIN_ID,
       );
       await BrowserPlaygroundDapp.assertSolanaConnected(true);
       await BrowserPlaygroundDapp.assertSolanaActiveAccount(
