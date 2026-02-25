@@ -2057,11 +2057,10 @@
   },
   "market_insights": {
     "title": "Market insights",
-    "updated_ago": "Updated {{time}}",
     "disclaimer": "AI insights. Not financial advice.",
+    "a_closer_look": "A closer look",
+    "whats_being_said": "What's being said",
     "fixed_footer_disclaimer": "AI summary • Not financial advice",
-    "whats_driving_price": "What's driving the price?",
-    "what_people_saying": "What people are saying",
     "trade_button": "Trade",
     "sources_count": "+{{count}} sources",
     "sources_title": "Sources",
@@ -2308,7 +2307,15 @@
       "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
       "points_error": "We can't load points right now",
       "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
-      "slippage": "Slippage"
+      "slippage": "Slippage",
+      "price_details": "Price details",
+      "prediction_order": "Prediction order",
+      "prediction_order_description": "~{{count}} contracts at {{price}} each. Final amount may vary based on order book availability (up to {{slippage}}%).",
+      "metamask_fee_description": "Service fee for processing this prediction",
+      "exchange_fee": "Exchange fee",
+      "exchange_fee_description": "Fee paid to the exchange or market",
+      "total_incl_fees": "incl. fees",
+      "close": "Close"
     },
     "error": {
       "title": "Unable to connect to predictions",
@@ -5148,6 +5155,26 @@
     },
     "deposit_order_title": "{{currency}} Deposit"
   },
+  "ramps_order_details": {
+    "title": "Order details",
+    "status": "Status",
+    "processing": "Processing",
+    "complete": "Complete",
+    "failed": "Failed",
+    "cancelled": "Cancelled",
+    "view_on_provider": "View on {{provider}}",
+    "order_id": "Order ID",
+    "date_and_time": "Date and time",
+    "fees": "Fees",
+    "total": "Total",
+    "card_processing_info": "Card purchases typically take a few minutes",
+    "processing_info_modal_description": "Card purchases typically take a few minutes. You can contact support if you have questions.",
+    "go_to_provider_support": "Go to {{provider}} support page",
+    "error_title": "Something went wrong",
+    "error_message": "Unable to load order details. Please try again.",
+    "try_again": "Try again",
+    "close": "Close"
+  },
   "swaps": {
     "title": "Swap",
     "onboarding": {
@@ -7766,7 +7793,11 @@
       "nfts": "NFTs",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
-      "more_predictions": "More predictions"
+      "more_predictions": "More predictions",
+      "more_perps": "More perps",
+      "positions": {
+        "no_tp_sl": "No TP/SL"
+      }
     },
     "error": {
       "unable_to_load": "Unable to load {{section}}",
