@@ -110,7 +110,7 @@ import {
 
 const MYX_NOT_SUPPORTED_ERROR = 'MYX trading not yet supported';
 const MYX_BLOCK_EXPLORER_URL = 'https://bscscan.com';
-const MYX_TESTNET_EXPLORER_URL = 'https://testnet.bscscan.com';
+const MYX_TESTNET_EXPLORER_URL = 'https://sepolia.arbiscan.io';
 
 // ============================================================================
 // MYXProvider

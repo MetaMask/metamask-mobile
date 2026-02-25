@@ -862,8 +862,10 @@ export class PerpsController extends BaseController<
     // The credentials are passed via clientConfig (babel-transformed process.env.X in the init file).
     // Local config always wins — if credentials are present, MYX is enabled regardless of remote flag.
     const config = this.#options.clientConfig ?? {};
+    // Use || so empty-string env vars (default '') fall through to mainnet
     const hasCredentials = Boolean(
-      config.myxAppIdTestnet ?? config.myxAppIdMainnet,
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      config.myxAppIdTestnet || config.myxAppIdMainnet,
     );
 
     if (hasCredentials) {

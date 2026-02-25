@@ -869,13 +869,13 @@ describe('MYXProvider', () => {
   describe('getBlockExplorerUrl', () => {
     it('returns testnet explorer URL without address', () => {
       expect(provider.getBlockExplorerUrl()).toBe(
-        'https://testnet.bscscan.com',
+        'https://sepolia.arbiscan.io',
       );
     });
 
     it('returns testnet explorer URL with address', () => {
       expect(provider.getBlockExplorerUrl('0xabc')).toBe(
-        'https://testnet.bscscan.com/address/0xabc',
+        'https://sepolia.arbiscan.io/address/0xabc',
       );
     });
 
