@@ -220,11 +220,6 @@ class WalletConnectDapp {
         await this._clickShadowDomButton('MetaMask');
     }
 
-    async tapOpenButton() {
-        if (!this._device) return;
-        await this._clickShadowDomButton('Open');
-    }
-
     async tapPersonalSignButton() {
         if (!this._device) return;
         await this._clearResultById('personalSignResult');
@@ -324,24 +319,6 @@ class WalletConnectDapp {
         expect(text).toMatch(/^0x/);
     }
 
-    async assertPersonalSignRejected() {
-        if (!this._device) return;
-
-        // Force Chrome to process pending WebSocket messages (tab was backgrounded)
-        await this._device.webDriverClient.executeScript('return 0', []);
-        await AppwrightGestures.wait(2000);
-
-        const text = await this._getTextById('personalSign', 15000);
-        expect(text.toLowerCase()).toContain('reject');
-    }
-
-    async assertSignTypedDataV4Rejected() {
-        if (!this._device) return;
-
-        const text = await this._getTextById('signTypedDataV4Result', 15000);
-        expect(text.toLowerCase()).toContain('reject');
-    }
-
     async assertSendTransactionRejected() {
         if (!this._device) return;
 
@@ -364,8 +341,6 @@ class WalletConnectDapp {
         while (Date.now() < deadline) {
             const text = await this._device.webDriverClient.executeScript(script, []);
             if (!text || text.trim().length === 0) {
-                // accounts element is empty — disconnected
-                expect(true).toBeTruthy();
                 return;
             }
             await AppwrightGestures.wait(500);

@@ -17,13 +17,11 @@ import { test } from 'appwright';
 import { launchMobileBrowser } from '../../utils/MobileBrowser.js';
 import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures.js';
-import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
 import WalletConnectDapp from '../../../wdio/screen-objects/WalletConnectDapp.js';
 import WalletConnectSessionsScreen from '../../../wdio/screen-objects/WalletConnectSessionsScreen.js';
-import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
-import { getPasswordForScenario } from '../../utils/TestConstants.js';
 import {
   connectWalletConnectSession,
+  unlockIfLocked,
   WC_TEST_DAPP_URL,
   WC_SESSION_NAME,
 } from './helpers.js';
@@ -32,9 +30,7 @@ test('WalletConnect v2 - session persists across app restart then disconnect', a
   device,
 }) => {
   // ── Set device on screen objects ──────────────────────────────────
-  TabBarModal.device = device;
   WalletConnectSessionsScreen.device = device;
-  LoginScreen.device = device;
 
   // ── Connect ───────────────────────────────────────────────────────
   await connectWalletConnectSession(device);
@@ -49,17 +45,7 @@ test('WalletConnect v2 - session persists across app restart then disconnect', a
 
   // ── Unlock MetaMask if locked ─────────────────────────────────────
   await AppwrightHelpers.withNativeAction(device, async () => {
-    try {
-      const passwordInput = await LoginScreen.getPasswordInputElement;
-      if (passwordInput && (await passwordInput.isVisible({ timeout: 5000 }))) {
-        const password = getPasswordForScenario('login');
-        await LoginScreen.typePassword(password);
-        await LoginScreen.tapUnlockButton();
-        await AppwrightGestures.wait(3000);
-      }
-    } catch (_) {
-      // Wallet was not locked, continue
-    }
+    await unlockIfLocked(device);
   });
 
   // ── Navigate to WalletConnect Sessions view ───────────────────────

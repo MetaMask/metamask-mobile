@@ -44,13 +44,6 @@ class WalletConnectSessionsScreen {
         );
     }
 
-    get sessionsContainer() {
-        return AppwrightSelectors.getElementByID(
-            this._device,
-            'wallet-connect-sessions-screen',
-        );
-    }
-
     // ── Navigation ────────────────────────────────────────────────────
 
     /**
@@ -192,14 +185,6 @@ class WalletConnectSessionsScreen {
         expect(await emptyText.isVisible({ timeout: 10000 })).toBe(true);
     }
 
-    /**
-     * Navigate back from the sessions view (Android back button).
-     */
-    async goBack() {
-        if (!this._device) return;
-        await this._device.webDriverClient.back();
-        await AppwrightGestures.wait(500);
-    }
 }
 
 export default new WalletConnectSessionsScreen();

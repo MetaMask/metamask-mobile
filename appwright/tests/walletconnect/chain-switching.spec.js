@@ -18,7 +18,6 @@ import { test, expect } from 'appwright';
 import { launchMobileBrowser } from '../../utils/MobileBrowser.js';
 import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures.js';
-import SwitchChainModal from '../../../wdio/screen-objects/Modals/SwitchChainModal.js';
 import WalletConnectDapp from '../../../wdio/screen-objects/WalletConnectDapp.js';
 import {
   connectWalletConnectSession,
@@ -67,8 +66,6 @@ async function switchChainFlow(device, { targetChainId, expectedChainId }) {
 }
 
 test('WalletConnect v2 - switch Ethereum chain', async ({ device }) => {
-  SwitchChainModal.device = device;
-
   // ── Connect ───────────────────────────────────────────────────────
   await connectWalletConnectSession(device);
 

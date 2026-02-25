@@ -23,6 +23,25 @@ export const WC_TEST_DAPP_URL = 'https://metamask.github.io/test-dapp/'; //'loca
 export const WC_SESSION_NAME = 'metamask.github.io';
 
 /**
+ * Unlock MetaMask if the login screen is showing.
+ * No-op if the wallet is already unlocked.
+ */
+export async function unlockIfLocked(device) {
+  LoginScreen.device = device;
+  try {
+    const passwordInput = await LoginScreen.getPasswordInputElement;
+    if (passwordInput && (await passwordInput.isVisible({ timeout: 5000 }))) {
+      const password = getPasswordForScenario('login');
+      await LoginScreen.typePassword(password);
+      await LoginScreen.tapUnlockButton();
+      await AppwrightGestures.wait(1000);
+    }
+  } catch (_) {
+    // Wallet was not locked, continue
+  }
+}
+
+/**
  * Navigate Chrome to a URL. Handles both fresh Chrome (home page with search
  * box) and Chrome that already has a tab open (URL bar visible instead).
  */
@@ -151,17 +170,7 @@ export async function connectWalletConnectSession(device) {
 
   // ── Phase 4b: Unlock MetaMask if locked ───────────────────────────
   await AppwrightHelpers.withNativeAction(device, async () => {
-    try {
-      const passwordInput = await LoginScreen.getPasswordInputElement;
-      if (passwordInput && (await passwordInput.isVisible({ timeout: 5000 }))) {
-        const password = getPasswordForScenario('login');
-        await LoginScreen.typePassword(password);
-        await LoginScreen.tapUnlockButton();
-        await AppwrightGestures.wait(1000);
-      }
-    } catch (_) {
-      // Wallet was not locked, continue
-    }
+    await unlockIfLocked(device);
   });
 
   // Wait for MetaMask to process the WC session proposal
