@@ -124,9 +124,15 @@ export class MYXClientService {
       isBetaMode: this.#isTestnet, // Use beta API for testnet
     });
 
+    // Connect WS at construction time (always-on, like HyperLiquid).
+    // Individual subscriptions (kline, tickers) subscribe/unsubscribe on
+    // this already-open socket.
+    this.#myxClient.subscription.connect();
+
     this.#deps.debugLogger.log('[MYXClientService] Initialized with SDK', {
       isTestnet: this.#isTestnet,
       chainId: this.#chainId,
+      wsConnected: true,
       brokerAddress:
         brokerAddress === '0x0000000000000000000000000000000000000000'
           ? 'zero (not configured)'
@@ -432,7 +438,17 @@ export class MYXClientService {
         { accessToken: string; expireAt: number } | undefined
       > => {
         try {
-          return await this.#generateAccessToken(address);
+          const token = await this.#generateAccessToken(address);
+          if (!token) {
+            return undefined;
+          }
+          // Workaround: MYX WS requires 'sdk.' prefix on access tokens.
+          // The SDK's subscription.auth() omits it — prepend here.
+          // Guard against double-prefix if SDK fixes this in the future.
+          const prefixed = token.accessToken.startsWith('sdk.')
+            ? token.accessToken
+            : `sdk.${token.accessToken}`;
+          return { accessToken: prefixed, expireAt: token.expireAt };
         } catch (tokenError) {
           this.#deps.debugLogger.log(
             '[MYXClientService] Token generation failed',
@@ -899,7 +915,7 @@ export class MYXClientService {
 
   /**
    * Subscribe to live kline (candle) updates via WebSocket.
-   * The SDK's SubScription manages WS connection internally.
+   * WS is already connected (always-on from construction).
    *
    * @param globalId - Market globalId (from getGlobalId).
    * @param resolution - Kline resolution.
@@ -991,6 +1007,7 @@ export class MYXClientService {
    */
   disconnect(): void {
     this.stopPricePolling();
+    this.#myxClient.subscription.disconnect();
     this.#marketsCache = [];
     this.#marketsCacheTimestamp = 0;
     this.#globalIdCache.clear();

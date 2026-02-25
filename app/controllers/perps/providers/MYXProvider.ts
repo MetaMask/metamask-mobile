@@ -981,49 +981,56 @@ export class MYXProvider implements PerpsProvider {
 
       callback(currentCandleData);
 
-      // Phase 2: Get globalId and subscribe to WS for live updates
-      globalId = await this.#clientService.getGlobalId(pool.poolId);
+      // Phase 2: WS live updates (independent — failure does NOT erase REST data)
+      try {
+        globalId = await this.#clientService.getGlobalId(pool.poolId);
 
-      if (cancelled) {
-        return;
-      }
-
-      wsCallback = (data: MYXKlineDataResponse): void => {
-        if (cancelled || !currentCandleData) {
+        if (cancelled) {
           return;
         }
 
-        const newCandle = adaptCandleFromMYXWebSocket(data.data);
-        const { candles } = currentCandleData;
-        const lastCandle = candles[candles.length - 1];
+        wsCallback = (data: MYXKlineDataResponse): void => {
+          if (cancelled || !currentCandleData) {
+            return;
+          }
 
-        if (lastCandle && lastCandle.time === newCandle.time) {
-          // Same timestamp: update existing candle (live tick)
-          currentCandleData = {
-            ...currentCandleData,
-            candles: [...candles.slice(0, -1), newCandle],
-          };
-        } else {
-          // New timestamp: append new candle
-          currentCandleData = {
-            ...currentCandleData,
-            candles: [...candles, newCandle],
-          };
-        }
+          const newCandle = adaptCandleFromMYXWebSocket(data.data);
+          const { candles } = currentCandleData;
+          const lastCandle = candles[candles.length - 1];
 
-        callback(currentCandleData);
-      };
+          if (lastCandle && lastCandle.time === newCandle.time) {
+            // Same timestamp: update existing candle (live tick)
+            currentCandleData = {
+              ...currentCandleData,
+              candles: [...candles.slice(0, -1), newCandle],
+            };
+          } else {
+            // New timestamp: append new candle
+            currentCandleData = {
+              ...currentCandleData,
+              candles: [...candles, newCandle],
+            };
+          }
 
-      this.#clientService.subscribeToKline(
-        globalId,
-        myxInterval as KlineResolution,
-        wsCallback,
-      );
+          callback(currentCandleData);
+        };
 
-      this.#deps.debugLogger.log('[MYXProvider] WS kline subscription active', {
-        symbol,
-        globalId,
-      });
+        this.#clientService.subscribeToKline(
+          globalId,
+          myxInterval as KlineResolution,
+          wsCallback,
+        );
+
+        this.#deps.debugLogger.log(
+          '[MYXProvider] WS kline subscription active',
+          { symbol, globalId },
+        );
+      } catch (wsError) {
+        this.#deps.debugLogger.log(
+          '[MYXProvider] WS kline failed, REST data preserved',
+          { symbol, error: String(wsError) },
+        );
+      }
     };
 
     initAndSubscribe().catch((error: unknown) => {

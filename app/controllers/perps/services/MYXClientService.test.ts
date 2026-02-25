@@ -15,12 +15,18 @@ import { MYXClientService } from './MYXClientService';
 
 const mockGetPoolSymbolAll = jest.fn().mockResolvedValue([]);
 const mockGetTickerList = jest.fn().mockResolvedValue([]);
+const mockWsConnect = jest.fn();
+const mockWsDisconnect = jest.fn();
 
 jest.mock('@myx-trade/sdk', () => ({
   MyxClient: jest.fn(() => ({
     markets: {
       getPoolSymbolAll: mockGetPoolSymbolAll,
       getTickerList: mockGetTickerList,
+    },
+    subscription: {
+      connect: mockWsConnect,
+      disconnect: mockWsDisconnect,
     },
   })),
 }));
