@@ -6,7 +6,7 @@ import BlockingActionModal from '../../UI/BlockingActionModal';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAssetFromTheme, useTheme } from '../../../util/theme';
-import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import {
@@ -67,7 +67,7 @@ const LedgerSelectAccount = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const dispatch = useDispatch();
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   const ledgerThemedImage = useAssetFromTheme(
     ledgerDeviceLightImage,
