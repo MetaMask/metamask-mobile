@@ -40,7 +40,7 @@ import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
 /**
  * Main view for app Experimental Settings
  */
-const ExperimentalSettings = ({ navigation, route }: Props) => {
+const ExperimentalSettings = ({ navigation }: Props) => {
   const dispatch = useDispatch();
   const performanceMetrics = useSelector(selectPerformanceMetrics);
   const cardExperimentalSwitch = useSelector(selectCardExperimentalSwitch);
