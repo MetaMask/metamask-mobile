@@ -954,7 +954,8 @@ describe('polymarket utils', () => {
         {
           conditionId: 'market-1',
           question: 'Will it rain?',
-          description: 'Weather prediction',
+          // Event description matches markets' descriptions (as per Polymarket's team)
+          description: 'A test event',
           icon: 'https://example.com/market-icon.png',
           image: 'https://example.com/market-image.png',
           groupItemTitle: 'Weather',
@@ -998,7 +999,7 @@ describe('polymarket utils', () => {
             providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'event-1',
             title: 'Will it rain?',
-            description: 'Weather prediction',
+            description: 'A test event',
             image: 'https://example.com/market-icon.png',
             groupItemTitle: 'Weather',
             status: 'open',
