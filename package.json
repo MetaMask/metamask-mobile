@@ -168,7 +168,6 @@
     "@metamask/transaction-controller@npm:^61.0.0": "patch:@metamask/transaction-controller@npm%3A62.10.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.10.0-e1d24e7db5.patch",
     "@metamask/transaction-controller@npm:^62.9.2": "^62.14.0",
     "viem": "2.31.3",
-    "@metamask/bridge-controller@npm:^66.1.1": "patch:@metamask/bridge-controller@npm%3A66.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-66.2.0-8ed148964f.patch",
     "@metamask/bridge-controller@npm:^66.2.0": "patch:@metamask/bridge-controller@npm%3A66.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-66.2.0-8ed148964f.patch",
     "@metamask/bridge-status-controller@npm:^66.0.2": "patch:@metamask/bridge-status-controller@npm%3A66.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-66.1.0-a2a478ef94.patch",
     "@metamask/accounts-controller": "^36.0.0",
