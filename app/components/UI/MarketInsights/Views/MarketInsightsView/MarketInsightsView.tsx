@@ -230,8 +230,8 @@ const MarketInsightsView: React.FC = () => {
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
       iconName: ComponentLibraryIconName.CheckBold,
-      iconColor: theme.colors.accent03.dark,
-      backgroundColor: theme.colors.accent03.normal,
+      iconColor: theme.colors.success.default,
+      backgroundColor: theme.colors.background.section,
       labelOptions: [{ label: strings('market_insights.feedback_submitted') }],
       hasNoTimeout: false,
     });
