@@ -1,8 +1,8 @@
 /**
  * MYX Protocol Configuration Constants
  *
- * Stage 1 configuration for market display and price fetching.
- * Based on MYX SDK patterns but simplified for read-only operations.
+ * Configuration for market display, price fetching, and trading.
+ * Based on MYX SDK patterns.
  */
 
 import type { CaipChainId } from '@metamask/utils';
@@ -250,3 +250,16 @@ export const MYX_HTTP_TIMEOUT_MS = 10000;
  * Maximum retries for failed API requests
  */
 export const MYX_MAX_RETRIES = 3;
+
+/**
+ * Default slippage in basis points for MYX orders
+ */
+export const MYX_DEFAULT_SLIPPAGE_BPS = 500;
+
+/**
+ * USDT execution fee token address per network (used for order execution fees)
+ */
+export const MYX_EXECUTION_FEE_TOKEN: Record<MYXNetwork, string> = {
+  testnet: USDT_BNB_TESTNET,
+  mainnet: USDT_BNB_MAINNET,
+};

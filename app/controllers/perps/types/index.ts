@@ -589,6 +589,17 @@ export type PerpsControllerConfig = {
    * The fallback is set by default if defined and replaced with remote feature flag once available.
    */
   fallbackHip3BlocklistMarkets?: string[];
+
+  /**
+   * MYX provider credentials.
+   * Passed from the init file where `process.env.X` is babel-transformed at build time.
+   */
+  myxAppIdTestnet?: string;
+  myxApiSecretTestnet?: string;
+  myxBrokerAddressTestnet?: string;
+  myxAppIdMainnet?: string;
+  myxApiSecretMainnet?: string;
+  myxBrokerAddressMainnet?: string;
 };
 
 export type PriceUpdate = {

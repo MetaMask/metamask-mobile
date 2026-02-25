@@ -23,8 +23,11 @@ jest.mock('../utils/myxAdapter', () => ({
   adaptMarketFromMYX: jest.fn(),
   adaptMarketDataFromMYX: jest.fn(),
   adaptPriceFromMYX: jest.fn(),
+  adaptCandleFromMYX: jest.fn(),
+  adaptCandleFromMYXWebSocket: jest.fn(),
   filterMYXExclusiveMarkets: jest.fn(),
   buildPoolSymbolMap: jest.fn(),
+  toMYXKlineResolution: jest.fn().mockReturnValue('1h'),
 }));
 // WebSocketConnectionState is now defined inline in types/index.ts (no mock needed)
 
@@ -258,7 +261,7 @@ describe('MYXProvider', () => {
 
       expect(result).toEqual({
         ready: false,
-        error: 'MYX trading not yet supported',
+        error: 'MYX provider requires messenger for wallet operations',
         walletConnected: false,
         networkSupported: true,
       });
@@ -563,7 +566,6 @@ describe('MYXProvider', () => {
       const result = await provider.updateMargin({
         symbol: 'RHEA',
         amount: '100',
-        isAdd: true,
       });
 
       expect(result).toEqual({

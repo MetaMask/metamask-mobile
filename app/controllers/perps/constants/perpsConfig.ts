@@ -339,5 +339,5 @@ export const PROVIDER_CONFIG = {
   /** Default perpetual DEX provider when no explicit selection exists */
   DefaultProvider: 'hyperliquid' as const,
   /** Force MYX to testnet only (mainnet credentials not yet available) */
-  MYX_TESTNET_ONLY: true,
+  MYX_TESTNET_ONLY: false,
 } as const;
