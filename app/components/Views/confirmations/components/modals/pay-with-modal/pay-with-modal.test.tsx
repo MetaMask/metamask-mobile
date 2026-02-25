@@ -26,12 +26,31 @@ import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
+import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
+
+const mockAddTokens = jest.fn().mockResolvedValue(undefined);
+const mockFindNetworkClientIdByChainId = jest
+  .fn()
+  .mockReturnValue('network-client-1');
+
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    TokensController: {
+      addTokens: (...args: unknown[]) => mockAddTokens(...args),
+    },
+    NetworkController: {
+      findNetworkClientIdByChainId: (...args: unknown[]) =>
+        mockFindNetworkClientIdByChainId(...args),
+    },
+  },
+}));
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
+jest.mock('../../../hooks/pay/useWithdrawTokenFilter');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../utils/transaction-pay');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
@@ -45,6 +64,15 @@ jest.mock('../../../hooks/send/useAccountTokens', () => {
   const stableEmptyTokens: never[] = [];
   return { useAccountTokens: () => stableEmptyTokens };
 });
+
+jest.mock('../../../hooks/send/metrics/useAssetSelectionMetrics', () => ({
+  useAssetSelectionMetrics: () => ({
+    captureAssetSelected: jest.fn(),
+    setAssetListSize: jest.fn(),
+    setNoneAssetFilterMethod: jest.fn(),
+    setSearchAssetFilterMethod: jest.fn(),
+  }),
+}));
 
 const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET as Hex;
 const CHAIN_ID_2_MOCK = '0x2' as Hex;
@@ -173,6 +201,7 @@ describe('PayWithModal', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
   const getAvailableTokensMock = jest.mocked(getAvailableTokens);
+  const useWithdrawTokenFilterMock = jest.mocked(useWithdrawTokenFilter);
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
@@ -193,6 +222,9 @@ describe('PayWithModal', () => {
     });
 
     getAvailableTokensMock.mockReturnValue(TOKENS_MOCK);
+    useWithdrawTokenFilterMock.mockReturnValue(
+      jest.fn((tokens: AssetType[]) => tokens),
+    );
     useTransactionPayRequiredTokensMock.mockReturnValue(REQUIRED_TOKENS_MOCK);
 
     useTransactionPayTokenMock.mockReturnValue({
@@ -316,11 +348,48 @@ describe('PayWithModal', () => {
       expect(getByText('Select receive token')).toBeDefined();
     });
 
-    it('bypasses token filtering for withdrawal transactions', () => {
+    it('bypasses getAvailableTokens for withdrawal transactions', () => {
       render();
       // For withdrawals, getAvailableTokens should NOT be called since
-      // the filter early-returns all tokens for withdraw types
+      // withdrawals use a separate token filter path
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
+    });
+
+    it('uses withdrawTokenFilter for withdrawal transactions', () => {
+      const withdrawFilterFn = jest.fn((tokens: AssetType[]) => tokens);
+      useWithdrawTokenFilterMock.mockReturnValue(withdrawFilterFn);
+
+      render();
+
+      expect(withdrawFilterFn).toHaveBeenCalledWith(expect.any(Array));
+      expect(getAvailableTokensMock).not.toHaveBeenCalled();
+    });
+
+    it('adds zero-balance token to TokensController on withdraw selection', async () => {
+      const zeroBalanceToken = {
+        accountType: EthAccountType.Eoa,
+        address: '0xZeroBalanceToken',
+        balance: '0',
+        balanceInSelectedCurrency: '$0.00',
+        chainId: CHAIN_ID_1_MOCK,
+        decimals: 6,
+        name: 'Zero Token',
+        standard: TokenStandard.ERC20,
+        symbol: 'ZERO',
+      } as AssetType;
+
+      useWithdrawTokenFilterMock.mockReturnValue(
+        jest.fn(() => [zeroBalanceToken]),
+      );
+
+      const { getByText } = render();
+
+      await waitFor(() => {
+        fireEvent.press(getByText('Zero Token'));
+      });
+
+      expect(mockAddTokens).toHaveBeenCalled();
+      expect(setPayTokenMock).toHaveBeenCalled();
     });
   });
 });

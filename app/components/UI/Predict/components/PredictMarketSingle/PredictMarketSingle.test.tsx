@@ -120,7 +120,8 @@ describe('PredictMarketSingle', () => {
     });
     // Default mock implementation - user has balance
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: false,
+      data: 100,
+      isLoading: false,
     });
   });
 
@@ -356,7 +357,8 @@ describe('PredictMarketSingle', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getByText } = renderWithProvider(
@@ -383,7 +385,8 @@ describe('PredictMarketSingle', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getByText } = renderWithProvider(

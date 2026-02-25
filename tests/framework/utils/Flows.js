@@ -2,7 +2,7 @@ import AccountListComponent from '../../../wdio/screen-objects/AccountListCompon
 import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import TimerHelper from './TimersHelper.js';
+import TimerHelper from '../TimerHelper';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';

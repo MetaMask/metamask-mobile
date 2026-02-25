@@ -61,6 +61,9 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored/index.ts';
 import { strings } from '../../../../locales/i18n';
+import TagColored, {
+  TagColor,
+} from '../../../component-library/components-temp/TagColored';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -276,14 +279,19 @@ const NetworkMultiSelectList = ({
             isSelected={isSelected}
             title={
               isGasSponsored ? (
-                <Box twClassName="flex-col">
+                <Box twClassName="flex-row gap-2">
                   <Text variant={TextVariant.BodyMD}>{name}</Text>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
+                  <TagColored
+                    color={TagColor.Success}
+                    style={styles.noNetworkFeeContainer}
                   >
-                    {strings('networks.no_network_fee')}
-                  </Text>
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Success}
+                    >
+                      {strings('networks.no_network_fee')}
+                    </Text>
+                  </TagColored>
                 </Box>
               ) : (
                 name
@@ -326,6 +334,7 @@ const NetworkMultiSelectList = ({
       openRpcModal,
       isGasFeesSponsoredNetworkEnabled,
       styles.centeredNetworkCell,
+      styles.noNetworkFeeContainer,
     ],
   );
 

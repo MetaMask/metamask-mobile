@@ -26,6 +26,7 @@ export interface ExternalAccountCellProps {
   onPress: () => void;
   chainId?: string;
   isSelected?: boolean;
+  isDisabled?: boolean;
 }
 
 const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
@@ -33,6 +34,7 @@ const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
   onPress,
   chainId,
   isSelected = false,
+  isDisabled = false,
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
   const avatarAccountType = useSelector(selectAvatarAccountType);
@@ -49,7 +51,12 @@ const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
       <View style={styles.accountCellWrapper}>
         <TouchableOpacity
           onPress={onPress}
-          style={styles.externalAccountContainer}
+          disabled={isDisabled}
+          style={[
+            styles.externalAccountContainer,
+            isDisabled && styles.externalAccountContainerDisabled,
+          ]}
+          testID="external-account-cell-touchable"
         >
           <AvatarAccount
             accountAddress={address}
@@ -59,14 +66,14 @@ const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
           <View style={styles.textContainer}>
             <Text
               variant={TextVariant.BodyMDMedium}
-              color={TextColor.Default}
+              color={isDisabled ? TextColor.Muted : TextColor.Default}
               numberOfLines={1}
             >
               {strings('bridge.external_account')}
             </Text>
             <Text
               variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
+              color={isDisabled ? TextColor.Muted : TextColor.Alternative}
               numberOfLines={1}
             >
               {formattedAddress}

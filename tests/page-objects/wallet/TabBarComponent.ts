@@ -4,16 +4,12 @@ import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testI
 import { Assertions, Utilities } from '../../framework';
 import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
-import BrowserView from '../Browser/BrowserView';
 import WalletView from './WalletView';
 import TrendingView from '../Trending/TrendingView';
 
 class TabBarComponent {
   get tabBarExploreButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);
-  }
-  get tabBarBrowserButton(): DetoxElement {
-    return Matchers.getElementByID(TabBarSelectorIDs.BROWSER);
   }
 
   get tabBarWalletButton(): DetoxElement {
@@ -40,32 +36,20 @@ class TabBarComponent {
     return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
   }
 
-  async tapBrowser(): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        await Gestures.waitAndTap(this.tabBarBrowserButton);
-        await Assertions.expectElementToBeVisible(BrowserView.browserScreenID);
-      },
-      {
-        timeout: 10000,
-        description: 'Tap Browser Button with Validation',
-      },
-    );
-  }
-
   async tapHome(): Promise<void> {
     const homeButton = Matchers.getElementByText('Home');
     await Gestures.waitAndTap(homeButton);
   }
 
-  async tapWallet(): Promise<void> {
+  async tapWallet(options?: { timeout?: number }): Promise<void> {
+    const timeout = options?.timeout ?? 10000;
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.tabBarWalletButton);
         await Assertions.expectElementToBeVisible(WalletView.container);
       },
       {
-        timeout: 10000,
+        timeout,
         description: 'Tap Wallet Button with Validation',
       },
     );
@@ -112,7 +96,8 @@ class TabBarComponent {
     );
   }
 
-  async tapActivity(): Promise<void> {
+  async tapActivity(options?: { timeout?: number }): Promise<void> {
+    const timeout = options?.timeout ?? 10000;
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.tabBarActivityButton, {
@@ -123,7 +108,7 @@ class TabBarComponent {
         });
       },
       {
-        timeout: 10000,
+        timeout,
         description: 'Tap Activity Button',
       },
     );

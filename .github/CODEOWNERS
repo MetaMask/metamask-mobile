@@ -45,6 +45,7 @@ app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-pla
 app/core/DeeplinkManager                                    @MetaMask/mobile-platform
 scripts/build.sh                                            @MetaMask/mobile-platform
 fingerprint.config.js                                       @MetaMask/mobile-platform
+builds.yml                                                  @MetaMask/mobile-platform
 .github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
 scripts/update-expo-channel.js                              @MetaMask/mobile-admins
 certs/certificate.pem                                       @MetaMask/mobile-admins
@@ -52,7 +53,6 @@ ios/fastlane/                                               @MetaMask/mobile-adm
 scripts/setup-app-store-connect-api-key.sh                  @MetaMask/mobile-admins
 scripts/upload-to-testflight.sh                             @MetaMask/mobile-admins
 scripts/set-secrets-from-config.js                          @MetaMask/mobile-admins
-builds.yml                                                  @MetaMask/mobile-admins
 
 
 # Platform & Snaps Code Fencing File
@@ -65,6 +65,9 @@ app/core/Engine/controllers/ramps-controller           @MetaMask/ramp
 app/core/Engine/messengers/ramps-controller-messenger  @MetaMask/ramp
 app/core/Engine/messengers/ramps-service-messenger     @MetaMask/ramp
 app/selectors/rampsController                          @MetaMask/ramp
+**/Ramp/**                                              @MetaMask/ramp
+**/ramp/**                                              @MetaMask/ramp
+**/ramps/**                                             @MetaMask/ramp
 
 # Card Team
 app/components/UI/Card/              @MetaMask/card
@@ -218,6 +221,7 @@ app/components/Views/Settings                    @MetaMask/mobile-core-ux
 app/components/Views/TermsAndConditions          @MetaMask/mobile-core-ux
 app/components/Views/MultichainTransactionsView  @MetaMask/mobile-core-ux
 app/components/Views/UnifiedTransactionsView     @MetaMask/mobile-core-ux
+app/components/Views/AccountsMenu                @MetaMask/mobile-core-ux
 app/components/UI/MultichainTransactionListItem  @MetaMask/mobile-core-ux
 app/components/UI/TransactionActionModal         @MetaMask/mobile-core-ux
 app/components/UI/TransactionElement             @MetaMask/mobile-core-ux

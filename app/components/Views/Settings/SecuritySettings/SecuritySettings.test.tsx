@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import SecuritySettings from './SecuritySettings';
@@ -8,12 +9,10 @@ import {
   CLEAR_BROWSER_HISTORY_SECTION,
   CLEAR_PRIVACY_SECTION,
   DELETE_METRICS_BUTTON,
-  LOGIN_OPTIONS,
   META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
   SDK_SECTION,
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
-  TURN_ON_REMEMBER_ME,
 } from './SecuritySettings.constants';
 import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
@@ -82,6 +81,23 @@ jest.mock(
   }),
 );
 
+// DeviceSecurityToggle uses useAuthCapabilities; mock so it renders the toggle instead of null
+jest.mock('../../../../core/Authentication/hooks/useAuthCapabilities', () => ({
+  __esModule: true,
+  default: () => ({
+    isLoading: false,
+    capabilities: {
+      isBiometricsAvailable: true,
+      passcodeAvailable: true,
+      authLabel: 'Face ID',
+      osAuthEnabled: false,
+      allowLoginWithRememberMe: false,
+      authType: 'biometrics',
+      deviceAuthRequiresSettings: false,
+    },
+  }),
+}));
+
 jest.mock(
   '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled',
   () => ({
@@ -91,6 +107,7 @@ jest.mock(
 
 describe('SecuritySettings', () => {
   beforeEach(() => {
+    mockGoBack.mockClear();
     mockUseParamsValues = {
       scrollToDetectNFTs: undefined,
     };
@@ -117,6 +134,24 @@ describe('SecuritySettings', () => {
     });
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
+
+  it('renders inline header with Security and privacy title', () => {
+    const { getByText } = renderWithProvider(<SecuritySettings />, {
+      state: initialState,
+    });
+    expect(getByText(strings('app_settings.security_title'))).toBeTruthy();
+  });
+
+  it('calls navigation.goBack when header back button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<SecuritySettings />, {
+      state: initialState,
+    });
+    const header = getByTestId('header');
+    const backButton = within(header).getByTestId('button-icon');
+    fireEvent.press(backButton);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('renders all sections when account menu is disabled', () => {
     const { getByText, getByTestId } = renderWithProvider(
       <SecuritySettings />,
@@ -129,8 +164,9 @@ describe('SecuritySettings', () => {
       getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
     ).toBeTruthy();
     expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
-    expect(getByTestId(LOGIN_OPTIONS)).toBeTruthy();
-    expect(getByTestId(TURN_ON_REMEMBER_ME)).toBeTruthy();
+    expect(
+      getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+    ).toBeTruthy();
     expect(getByTestId(SDK_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();
@@ -154,8 +190,9 @@ describe('SecuritySettings', () => {
       getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
     ).toBeTruthy();
     expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
-    expect(getByTestId(LOGIN_OPTIONS)).toBeTruthy();
-    expect(getByTestId(TURN_ON_REMEMBER_ME)).toBeTruthy();
+    expect(
+      getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+    ).toBeTruthy();
     expect(queryByTestId(SDK_SECTION)).toBeNull();
     expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();

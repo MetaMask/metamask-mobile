@@ -4,8 +4,6 @@ import { ConfirmationLoader } from '../../../Views/confirmations/components/conf
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { PredictNavigationParamList } from '../types/navigation';
 import { usePredictTrading } from './usePredictTrading';
-import { createSelector } from 'reselect';
-import { RootState } from '../../../../reducers';
 import { useSelector } from 'react-redux';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
@@ -13,6 +11,7 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
+import { selectPredictWithdrawTransaction } from '../selectors/predictController';
 
 export const usePredictWithdraw = () => {
   const { prepareWithdraw } = usePredictTrading();
@@ -21,12 +20,7 @@ export const usePredictWithdraw = () => {
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { toastRef } = useContext(ToastContext);
 
-  const selectWithdrawTransaction = createSelector(
-    (state: RootState) => state.engine.backgroundState.PredictController,
-    (predictState) => predictState.withdrawTransaction,
-  );
-
-  const withdrawTransaction = useSelector(selectWithdrawTransaction);
+  const withdrawTransaction = useSelector(selectPredictWithdrawTransaction);
 
   const withdraw = useCallback(async () => {
     try {

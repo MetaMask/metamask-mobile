@@ -458,7 +458,11 @@
     "reset_wallet_desc_bold": "permanently erased",
     "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
-    "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information."
+    "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information.",
+    "biometric_authentication_cancelled": "Biometric authentication cancelled",
+    "biometric_authentication_cancelled_title": "Biometric Setup Failed",
+    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
+    "biometric_authentication_cancelled_button": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
@@ -2051,6 +2055,31 @@
       "referral_code_text": "Use my referral code to earn extra rewards."
     }
   },
+  "market_insights": {
+    "title": "Market insights",
+    "updated_ago": "Updated {{time}}",
+    "disclaimer": "AI insights. Not financial advice.",
+    "fixed_footer_disclaimer": "AI summary • Not financial advice",
+    "whats_driving_price": "What's driving the price?",
+    "what_people_saying": "What people are saying",
+    "trade_button": "Trade",
+    "sources_count": "+{{count}} sources",
+    "sources_title": "Sources",
+    "feedback_submitted": "Feedback submitted",
+    "feedback": {
+      "title": "Feedback",
+      "description": "Help improve our AI-generated market insights.",
+      "not_relevant": "Not relevant",
+      "not_accurate": "Not accurate",
+      "hard_to_understand": "Hard to understand",
+      "harmful_or_offensive": "Harmful or offensive",
+      "something_else": "Something else",
+      "additional_feedback_label": "Additional feedback (optional)",
+      "additional_feedback_placeholder": "How can we improve?",
+      "characters_remaining": "{{count}} characters remaining",
+      "submit": "Submit"
+    }
+  },
   "predict": {
     "title": "MetaMask Predictions",
     "prediction_markets": "Prediction markets",
@@ -2262,6 +2291,7 @@
       "withdrawing_subtitle": "Available in about 1 minute",
       "withdraw_completed": "Withdrawal complete",
       "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
+      "withdraw_any_token_completed_subtitle": "{{amount}} {{token}} moved to your wallet",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdraw",
       "try_again": "Try again"
@@ -2384,8 +2414,8 @@
     "no_available_tokens": "Don't see your token?",
     "add_tokens": "Import tokens",
     "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
     "import_token": "Would you like to import this token?",
+    "import_tokens": "Would you like to import these tokens?",
     "tokens_detected_in_account": "{{tokenCount}} new {{tokensLabel}} found in this account",
     "token_toast": {
       "tokens_imported_title": "Imported tokens",
@@ -2650,6 +2680,7 @@
     "decimals_cant_be_empty": "Token decimals can't be empty.",
     "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "We couldn't find any tokens with that name.",
+    "tokens_empty_description": "Search for any token and import it",
     "select_token": "Select token",
     "address_must_be_smart_contract": "Personal address detected. Enter the token contract address.",
     "billion_abbreviation": "B",
@@ -2752,6 +2783,9 @@
     "disconnect_all_accounts": "Disconnect all accounts",
     "deceptive_site_ahead": "Deceptive site ahead",
     "deceptive_site_desc": "The site you’re trying to visit isn’t safe. Attackers may trick you into doing something dangerous.",
+    "malicious_site_detected": "Malicious site detected",
+    "malicious_site_warning": "If you connect to this site, you could lose all your assets.",
+    "connect_anyway": "Connect Anyway",
     "learn_more": "Learn more",
     "advisory_by": "Advisory provided by Ethereum Phishing Detector and PhishFort",
     "potential_threat": "Potential threats include",
@@ -2846,7 +2880,11 @@
     "permissions": "Permissions",
     "card_title": "MetaMask Card",
     "settings": "Settings",
-    "log_out": "Log out"
+    "networks": "Networks",
+    "log_out": "Log out",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
@@ -2870,6 +2908,8 @@
     "state_logs": "State logs",
     "add_network_title": "Add a network",
     "auto_lock": "Auto-lock",
+    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Choose the amount of time before the application automatically locks.",
     "state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
     "autolock_immediately": "Immediately",
@@ -2975,6 +3015,11 @@
     "add_rpc_url": "Add RPC URL",
     "add_block_explorer_url": "Add block explorer URL",
     "networks_desc": "Add and edit custom RPC networks",
+    "networks_enabled": "Enabled Networks",
+    "networks_test_networks": "Test Networks",
+    "networks_additional": "Additional Networks",
+    "networks_search_placeholder": "Search networks",
+    "networks_no_results": "No networks found",
     "network_name_label": "Network name",
     "network_name_placeholder": "Network name (optional)",
     "network_rpc_url_label": "RPC URL",
@@ -2991,7 +3036,16 @@
     "network_other_networks": "Other networks",
     "network_rpc_networks": "RPC networks",
     "network_add_network": "Add network",
+    "add_chain_title": "Add a network",
+    "add_chain_search_placeholder": "Search by name, chain ID, or currency",
+    "add_chain_loading": "Loading networks…",
+    "add_chain_error": "Failed to load networks. Please try again.",
+    "add_chain_retry": "Retry",
+    "add_chain_added": "Added",
+    "add_chain_or": "or",
+    "add_chain_custom_link": "Add a custom network",
     "network_add_custom_network": "Add a custom network",
+    "network_add_test_network": "Add a test network",
     "network_add": "Add",
     "network_save": "Save",
     "remove_network_title": "Do you want to remove this network?",
@@ -3379,6 +3433,7 @@
     "sell_description": "Sell crypto for cash"
   },
   "asset_overview": {
+    "market_closed": "Market closed",
     "send_button": "Send",
     "buy_button": "Buy",
     "cash_buy_button": "Cash Buy",
@@ -3782,7 +3837,7 @@
     "no_tabs_desc": "To browse the decentralized web, add a new tab",
     "got_it": "Got it",
     "max_tabs_title": "Maximum tabs reached",
-    "max_tabs_desc": "We currently only support 5 open tabs at once. Please close existing tabs before adding new ones.",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "We couldn't resolve that ENS name",
     "remove_bookmark_title": "Remove favorite",
     "remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
@@ -4168,11 +4223,7 @@
     "enable_device_passcode_android": "Unlock with device PIN?"
   },
   "authentication": {
-    "auth_prompt_title": "Authentication required",
-    "auth_prompt_desc": "Please authenticate in order to use MetaMask",
-    "fingerprint_prompt_title": "Authentication required",
-    "fingerprint_prompt_desc": "Use your fingerprint to unlock MetaMask",
-    "fingerprint_prompt_cancel": "Cancel"
+    "auth_prompt_desc": "Please authenticate in order to use MetaMask"
   },
   "accountApproval": {
     "title": "CONNECT REQUEST",
@@ -4752,7 +4803,6 @@
     "on_network": "on {{networkName}}",
     "debit_card": "Debit card",
     "select_payment_method": "Select payment method",
-    "loading_quote": "Loading quote...",
     "pay_with": "Pay with",
     "buying_via": "Buying via {{providerName}}.",
     "change_provider": "Change provider.",
@@ -4760,7 +4810,9 @@
     "no_payment_methods_available": "No payment methods are available.",
     "error_fetching_quotes": "Something went wrong. Please try again.",
     "no_quotes_available": "No providers available.",
+    "quote_unavailable": "Quote unavailable.",
     "providers": "Providers",
+    "quotes_displayed_for": "Quotes displayed for {{paymentMethodName}}.",
     "continue": "Continue",
     "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
@@ -4858,6 +4910,15 @@
       "log_out": "Log out of {{provider}}",
       "logged_out_success": "Successfully logged out",
       "logged_out_error": "Error logging out"
+    },
+    "token_unavailable_modal": {
+      "title": "Not available",
+      "description": "{{token}} is not available with {{provider}} in your region.",
+      "change_token": "Change token",
+      "change_provider": "Change provider"
+    },
+    "provider_picker_modal": {
+      "title": "Choose a provider"
     }
   },
   "fiat_on_ramp_aggregator": {
@@ -5086,6 +5147,26 @@
       "no_date": "Unknown"
     },
     "deposit_order_title": "{{currency}} Deposit"
+  },
+  "ramps_order_details": {
+    "title": "Order details",
+    "status": "Status",
+    "processing": "Processing",
+    "complete": "Complete",
+    "failed": "Failed",
+    "cancelled": "Cancelled",
+    "view_on_provider": "View on {{provider}}",
+    "order_id": "Order ID",
+    "date_and_time": "Date and time",
+    "fees": "Fees",
+    "total": "Total",
+    "card_processing_info": "Card purchases typically take a few minutes",
+    "processing_info_modal_description": "Card purchases typically take a few minutes. You can contact support if you have questions.",
+    "go_to_provider_support": "Go to {{provider}} support page",
+    "error_title": "Something went wrong",
+    "error_message": "Unable to load order details. Please try again.",
+    "try_again": "Try again",
+    "close": "Close"
   },
   "swaps": {
     "title": "Swap",
@@ -5517,10 +5598,10 @@
     "enable_remember_me_description": "When Remember me is on, anyone with access to your phone can access your MetaMask account."
   },
   "turn_off_remember_me": {
-    "title": "Enter your password to turn off Remember me",
-    "placeholder": "Password",
-    "description": "If you turn this option off, you'll need your password to unlock MetaMask from now on.",
-    "action": "Turn off Remember me"
+    "title": "Turn off Remember Me",
+    "placeholder": "Confirm password",
+    "description": "Once turned off, Remember Me can't be used again. This feature has been discontinued, so you can unlock MetaMask with your password or biometrics instead.",
+    "action": "Turn off Remember Me"
   },
   "dapp_connect": {
     "warning": "In order to use this feature, please update the app to the newest version"
@@ -6285,19 +6366,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "Switch",
       "switchBack": "Switch back",
-      "splashpage": {
-        "accept": "Yes",
-        "betterTransaction": "Faster transactions, lower fees",
-        "betterTransactionDescription": "Save time and money by processing transactions together.",
-        "featuresDescription": "Keep the same account address, and you can switch back anytime.",
-        "payToken": "Pay with any token, any time",
-        "payTokenDescription": "Use the tokens you already have to cover network fees.",
-        "reject": "No",
-        "sameAccount": "Same account, smarter features.",
-        "splashTitle": "Use smart account?"
-      },
       "includes_transaction": "Includes {{transactionCount}} transactions",
-      "useSmartAccount": "Use smart account",
       "successful": "Success",
       "success_message": "Your account will be updated to smart account with your next transaction."
     },
@@ -6434,6 +6503,13 @@
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Done"
+    },
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "cancel": "Cancel",
@@ -6442,7 +6518,8 @@
     "exceeding_lower_slippage_warning": "Low slippage, this may result in a unfavourable swap",
     "exceeding_lower_slippage_error": "Enter a value greater than {{value}}%",
     "exceeding_upper_slippage_error": "You cannot enter a value greater than {{value}}%",
-    "custom": "Custom"
+    "custom": "Custom",
+    "invalid_recipient_address": "Invalid address"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
@@ -6738,6 +6815,7 @@
     "password_bottomsheet": {
       "title": "Enter password",
       "description": "Enter your wallet password to view card details.",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "Password",
       "confirm": "Confirm",
       "cancel": "Cancel",
@@ -7000,6 +7078,7 @@
       "enable_card_error": "Failed to enable card. Please try again later.",
       "view_card_details_error": "Unable to load card details. Please try again.",
       "biometric_verification_required": "Authentication required to view card details.",
+      "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -7017,7 +7096,7 @@
         },
         "frozen": {
           "title": "Your card is frozen",
-          "description": "Please contact support to unfreeze your card"
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "Your card is blocked",
@@ -7067,7 +7146,14 @@
         "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions",
         "order_metal_card": "Metal Card",
-        "order_metal_card_description": "Order your physical Metal Card now"
+        "order_metal_card_description": "Order your physical Metal Card now",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {
@@ -7272,7 +7358,10 @@
       "service_not_available": "Service is not available at the moment. Please try again shortly.",
       "invalid_referral_code": "Invalid referral code. Please check and try again.",
       "already_referred": "You have already been referred by another user.",
-      "cannot_use_own_referral_code": "You cannot use your own referral code."
+      "cannot_use_own_referral_code": "You cannot use your own referral code.",
+      "invalid_bonus_code": "Invalid bonus code",
+      "already_redeemed": "You have already redeemed this bonus code",
+      "reached_maximum": "This bonus code has reached its maximum number of uses"
     },
     "claim_reward_error": {
       "title": "Failed to claim reward"
@@ -7329,8 +7418,10 @@
         "predict": "Prediction",
         "musd_deposit": "mUSD deposit",
         "apply_referral_bonus": "Referral code bonus",
+        "bonus_code": "Bonus code",
         "uncategorized_event": "Uncategorized event"
       },
+      "code": "Code",
       "date": "Date",
       "account": "Account",
       "bonus": "Bonus",
@@ -7430,7 +7521,10 @@
       "show_less": "Show less",
       "linking_progress": "Adding accounts... ({{current}}/{{total}})",
       "accounts_linked_count": "{{linked}}/{{total}} enrolled",
-      "add_all_accounts": "Add all accounts"
+      "add_all_accounts": "Add all accounts",
+      "environment_selector": "Environment",
+      "environment_cancel": "Cancel",
+      "environment_default": "Default"
     },
     "referred_by_code": {
       "title": "Referral Code",
@@ -7439,6 +7533,10 @@
       "input_placeholder": "Enter referral code",
       "invalid_code": "Invalid referral code",
       "apply_button": "Apply referral code"
+    },
+    "bonus_code": {
+      "input_placeholder": "Enter bonus code",
+      "apply_success": "Bonus code applied!"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -7576,8 +7674,10 @@
     },
     "label": {
       "bridge_fee": "Bridge fee",
+      "provider_fee": "Provider fee",
       "network_fee": "Network fee",
       "paid_with": "Paid with",
+      "receive_token": "Receive token",
       "retry_button": "Try again",
       "total": "Total",
       "account": "Account",
@@ -7676,5 +7776,21 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "Reload",
     "primary_action_acknowledge": "Got it"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs",
+      "import_nfts": "Import NFTs",
+      "import_nfts_description": "Easily add your collectibles",
+      "more_predictions": "More predictions"
+    },
+    "error": {
+      "unable_to_load": "Unable to load {{section}}",
+      "retry": "Retry"
+    }
   }
 }

@@ -2,8 +2,8 @@
 description: Mobile component-view testing rules (project-wide). Engine-only mocks, state-driven tests, presets/renderers, deterministicFiat, AAA, execution.
 globs:
   - "**/*.view.test.{ts,tsx,js,jsx}"
-  - "app/util/test/component-view/**"
-alwaysApply: false
+  - "tests/component-view/**"
+alwaysApply: true
 ---
 
 ## Component-view Testing (Project-wide)
@@ -28,6 +28,7 @@ Follow these rules for all component view tests. Nested, component-specific rule
 - AAA pattern with blank lines between sections.
 - Action-oriented names (no "should").
 - One behavior per test; robust assertions over brittle formatting.
+- **No fake timers**: Do not use `jest.useFakeTimers()`, `jest.advanceTimersByTime()`, or `jest.useRealTimers()` in component view tests; use `waitFor(..., { timeout })` or real delays instead (fake timers conflict with `waitFor` and can cause flakiness).
 
 - **Execution**
   - Prefer `--coverage=false` during iteration for speed.
@@ -35,8 +36,8 @@ Follow these rules for all component view tests. Nested, component-specific rule
 
 - **References**
   - Component-view framework guide: `docs/readme/component-view-testing.md`
-  - Detailed rules: `app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md`
+  - Detailed rules: `tests/component-view/COMPONENT_VIEW_TEST_RULES.md`
   - Cursor authoring rules: [Cursor Context Rules](https://cursor.com/docs/context/rules)
 
 @docs/readme/component-view-testing.md
-@app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md
+@tests/component-view/COMPONENT_VIEW_TEST_RULES.md

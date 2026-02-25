@@ -38,4 +38,5 @@ export interface PermissionsSummaryProps {
   showPermissionsOnly?: boolean;
   showAccountsOnly?: boolean;
   promptToCreateSolanaAccount?: boolean;
+  isMaliciousDapp?: boolean;
 }

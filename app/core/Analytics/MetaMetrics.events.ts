@@ -121,6 +121,7 @@ enum EVENT_NAME {
   // Analytics
   ANALYTICS_PREFERENCE_SELECTED = 'Analytics Preference Selected',
   ANALYTICS_REQUEST_DATA_DELETION = 'Delete MetaMetrics Data Request Submitted',
+  EXPERIMENT_VIEWED = 'Experiment Viewed',
 
   // Onboarding
   ONBOARDING_WELCOME_MESSAGE_VIEWED = 'Welcome Message Viewed',
@@ -366,7 +367,6 @@ enum EVENT_NAME {
   EARN_LENDING_DEPOSIT_MORE_BUTTON_CLICKED = 'Earn Lending Deposit More Button Clicked',
   EARN_LENDING_WITHDRAW_BUTTON_CLICKED = 'Earn Lending Withdraw Button Clicked',
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED = 'Earn Lending Withdraw Confirmation Back Clicked',
-  MUSD_CLAIM_BONUS_BUTTON_CLICKED = 'mUSD Claim Bonus Button Clicked',
 
   // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
@@ -485,9 +485,6 @@ enum EVENT_NAME {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
-  // Smart account opt in
-  SMART_ACCOUNT_OPT_IN = 'Smart Account Opt In',
-
   // Dismiss smart account upgrade suggestion
   DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED = 'Dismiss smart account suggestion enabled',
 
@@ -593,6 +590,11 @@ enum EVENT_NAME {
   // Trending
   TRENDING_FEED_VIEWED = 'Trending Feed Viewed',
 
+  // Market Insights
+  MARKET_INSIGHTS_OPENED = 'Market Insights Opened',
+  MARKET_INSIGHTS_VIEWED = 'Market Insights Viewed',
+  MARKET_INSIGHTS_INTERACTION = 'Market Insights Interaction',
+
   // Share
   SHARE_ACTION = 'Share Action',
 
@@ -609,6 +611,11 @@ enum EVENT_NAME {
   MUSD_FULLSCREEN_ANNOUNCEMENT_DISPLAYED = 'mUSD Fullscreen Announcement Displayed',
   MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED = 'mUSD Fullscreen Announcement Button Clicked',
   MUSD_CONVERSION_STATUS_UPDATED = 'mUSD Conversion Status Updated',
+  MUSD_CLAIM_BONUS_BUTTON_CLICKED = 'mUSD Claim Bonus Button Clicked',
+  MUSD_CLAIM_BONUS_STATUS_UPDATED = 'mUSD Claim Bonus Status Updated',
+
+  // Assets
+  ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
 }
 
 export enum HARDWARE_WALLET_BUTTON_TYPE {
@@ -660,6 +667,7 @@ enum ACTIONS {
   PERMISSION_NEW_ACCOUNT = 'Connected new account(s)',
   PERMISSION_REVOKE_ACCOUNT = 'Revoked account(s)',
   STAKE = 'Stake',
+  ASSETS = 'Assets',
   // Notifications
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
   SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
@@ -779,12 +787,15 @@ const events = {
     EVENT_NAME.WALLET_SECURITY_PROTECT_DISMISSED,
   ),
   SRP_DEFINITION_CLICKED: generateOpt(EVENT_NAME.SRP_DEFINITION_CLICKED),
+
+  // Analytics
   ANALYTICS_PREFERENCE_SELECTED: generateOpt(
     EVENT_NAME.ANALYTICS_PREFERENCE_SELECTED,
   ),
   ANALYTICS_REQUEST_DATA_DELETION: generateOpt(
     EVENT_NAME.ANALYTICS_REQUEST_DATA_DELETION,
   ),
+  EXPERIMENT_VIEWED: generateOpt(EVENT_NAME.EXPERIMENT_VIEWED),
   ONBOARDING_WELCOME_MESSAGE_VIEWED: generateOpt(
     EVENT_NAME.ONBOARDING_WELCOME_MESSAGE_VIEWED,
   ),
@@ -1168,9 +1179,6 @@ const events = {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
 
-  // User opt in for smart account upgrade
-  SMART_ACCOUNT_OPT_IN: generateOpt(EVENT_NAME.SMART_ACCOUNT_OPT_IN),
-
   // Dismiss smart account upgrade suggestion
   DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED: generateOpt(
     EVENT_NAME.DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED,
@@ -1285,9 +1293,6 @@ const events = {
   ),
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED: generateOpt(
     EVENT_NAME.EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED,
-  ),
-  MUSD_CLAIM_BONUS_BUTTON_CLICKED: generateOpt(
-    EVENT_NAME.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
   ),
   // Stake
   REVIEW_STAKE_BUTTON_CLICKED: generateOpt(
@@ -1427,6 +1432,12 @@ const events = {
   ASSET_FILTER_CUSTOM_SELECTED: generateOpt(
     EVENT_NAME.ASSET_FILTER_CUSTOM_SELECTED,
   ),
+  // Market Insights
+  MARKET_INSIGHTS_OPENED: generateOpt(EVENT_NAME.MARKET_INSIGHTS_OPENED),
+  MARKET_INSIGHTS_VIEWED: generateOpt(EVENT_NAME.MARKET_INSIGHTS_VIEWED),
+  MARKET_INSIGHTS_INTERACTION: generateOpt(
+    EVENT_NAME.MARKET_INSIGHTS_INTERACTION,
+  ),
   // Card
   CARD_BUTTON_VIEWED: generateOpt(EVENT_NAME.CARD_BUTTON_VIEWED),
   CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),
@@ -1561,6 +1572,12 @@ const events = {
   MUSD_CONVERSION_STATUS_UPDATED: generateOpt(
     EVENT_NAME.MUSD_CONVERSION_STATUS_UPDATED,
   ),
+  MUSD_CLAIM_BONUS_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
+  ),
+  MUSD_CLAIM_BONUS_STATUS_UPDATED: generateOpt(
+    EVENT_NAME.MUSD_CLAIM_BONUS_STATUS_UPDATED,
+  ),
 };
 
 /**
@@ -1636,6 +1653,7 @@ enum DESCRIPTION {
   SWAPS = 'Swaps',
   BRIDGE = 'Bridge',
   STAKE = 'Stake',
+  ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
   NOTIFICATIONS = 'Notifications',
 }
 
@@ -2000,6 +2018,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.STAKE_BUTTON_CLICKED,
     ACTIONS.STAKE,
     DESCRIPTION.STAKE,
+  ),
+  ASSETS_FIRST_INIT_FETCH_COMPLETED: generateOpt(
+    EVENT_NAME.ASSETS_FIRST_INIT_FETCH_COMPLETED,
+    ACTIONS.ASSETS,
+    DESCRIPTION.ASSETS_FIRST_INIT_FETCH_COMPLETED,
   ),
 };
 
