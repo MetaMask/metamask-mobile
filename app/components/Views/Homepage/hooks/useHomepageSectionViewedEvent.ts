@@ -57,8 +57,13 @@ const useHomepageSectionViewedEvent = ({
   isEmpty,
   itemCount,
 }: UseHomepageSectionViewedEventParams) => {
-  const { subscribeToScroll, viewportHeight, entryPoint, visitId } =
-    useHomepageScrollContext();
+  const {
+    subscribeToScroll,
+    viewportHeight,
+    containerScreenY,
+    entryPoint,
+    visitId,
+  } = useHomepageScrollContext();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -127,7 +132,13 @@ const useHomepageSectionViewedEvent = ({
       if (hasFiredRef.current) return;
       sectionRef.current?.measureInWindow((_x, y, _width, height) => {
         if (height === 0) return;
-        const visiblePx = Math.min(y + height, viewportHeight) - Math.max(y, 0);
+        // measureInWindow returns absolute screen coordinates. The visible
+        // bounds of the scroll container are [containerScreenY,
+        // containerScreenY + viewportHeight], not [0, viewportHeight].
+        const viewportTop = containerScreenY;
+        const viewportBottom = containerScreenY + viewportHeight;
+        const visiblePx =
+          Math.min(y + height, viewportBottom) - Math.max(y, viewportTop);
         if (visiblePx >= height * 0.5) {
           fireEvent();
         }
@@ -140,7 +151,14 @@ const useHomepageSectionViewedEvent = ({
     // Subscribe to subsequent scroll events.
     const unsubscribe = subscribeToScroll(checkVisibility);
     return unsubscribe;
-  }, [visitId, viewportHeight, sectionRef, subscribeToScroll, fireEvent]);
+  }, [
+    visitId,
+    viewportHeight,
+    containerScreenY,
+    sectionRef,
+    subscribeToScroll,
+    fireEvent,
+  ]);
 };
 
 export default useHomepageSectionViewedEvent;

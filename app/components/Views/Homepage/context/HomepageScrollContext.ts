@@ -21,6 +21,13 @@ interface HomepageScrollContextValue {
    */
   viewportHeight: number;
   /**
+   * Absolute Y position of the scroll container's top edge on screen, in
+   * pixels from the top of the device display (includes status bar, nav bar,
+   * etc.). Used together with viewportHeight to form the correct visible
+   * bounds when checking measureInWindow coordinates.
+   */
+  containerScreenY: number;
+  /**
    * How the user arrived at the homepage for the current visit.
    */
   entryPoint: HomepageEntryPoint;
@@ -38,6 +45,7 @@ const noop = () => () => {
 const defaultValue: HomepageScrollContextValue = {
   subscribeToScroll: noop,
   viewportHeight: 0,
+  containerScreenY: 0,
   entryPoint: HomepageEntryPoints.APP_OPENED,
   visitId: 0,
 };

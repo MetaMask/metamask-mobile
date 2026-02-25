@@ -621,11 +621,15 @@ const Wallet = ({
 
   // ─── Homepage scroll context state ───────────────────────────────────────
   const [viewportHeight, setViewportHeight] = useState(0);
+  const [containerScreenY, setContainerScreenY] = useState(0);
   const [entryPoint, setEntryPoint] = useState<HomepageEntryPoint>(
     HomepageEntryPoints.APP_OPENED,
   );
   const [visitId, setVisitId] = useState(0);
 
+  // Ref to the scroll container View — used to measure its absolute screen Y
+  // position so the visibility check in sections can use correct bounds.
+  const containerViewRef = useRef<View>(null);
   // Tracks whether this is the very first focus (app open) or a revisit.
   const isFirstFocusRef = useRef(true);
   // Set by the tabPress listener so useFocusEffect can pick it up.
@@ -1354,8 +1358,14 @@ const Wallet = ({
   }, []);
 
   const homepageScrollContextValue = useMemo(
-    () => ({ subscribeToScroll, viewportHeight, entryPoint, visitId }),
-    [subscribeToScroll, viewportHeight, entryPoint, visitId],
+    () => ({
+      subscribeToScroll,
+      viewportHeight,
+      containerScreenY,
+      entryPoint,
+      visitId,
+    }),
+    [subscribeToScroll, viewportHeight, containerScreenY, entryPoint, visitId],
   );
 
   const content = (
@@ -1425,9 +1435,18 @@ const Wallet = ({
       <View style={baseStyles.flexGrow}>
         {selectedInternalAccount ? (
           <View
+            ref={containerViewRef}
             style={styles.wrapper}
             testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-            onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}
+            onLayout={(e) => {
+              setViewportHeight(e.nativeEvent.layout.height);
+              // measureInWindow gives the absolute screen Y of the container
+              // top, which is needed to form correct visible bounds when
+              // sections call measureInWindow on themselves.
+              containerViewRef.current?.measureInWindow((_x, y) => {
+                setContainerScreenY(y);
+              });
+            }}
           >
             <ConditionalScrollView
               ref={scrollViewRef}
@@ -1436,7 +1455,7 @@ const Wallet = ({
                 contentContainerStyle: scrollViewContentStyle,
                 showsVerticalScrollIndicator: false,
                 onScroll: handleHomepageScroll,
-                scrollEventThrottle: 16,
+                scrollEventThrottle: 100,
                 refreshControl: shouldEnableParentScroll ? (
                   <RefreshControl
                     colors={[colors.primary.default]}

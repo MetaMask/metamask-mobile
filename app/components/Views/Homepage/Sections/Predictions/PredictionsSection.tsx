@@ -155,7 +155,8 @@ const PredictionsSection = forwardRef<
     sectionName: HomepageSectionNames.PREDICT,
     sectionIndex,
     totalSectionsLoaded,
-    isEmpty,
+    // Treat error state as empty — there is no useful content to show.
+    isEmpty: isEmpty || !!hasError,
     itemCount,
   });
 

@@ -39,6 +39,7 @@ const HomepageEntryPointsValues = {
 let mockContextValue = {
   subscribeToScroll: mockSubscribeToScroll,
   viewportHeight: 800,
+  containerScreenY: 0,
   entryPoint: HomepageEntryPointsValues.APP_OPENED as string,
   visitId: 0,
 };
@@ -84,6 +85,7 @@ describe('useHomepageSectionViewedEvent', () => {
     mockContextValue = {
       subscribeToScroll: mockSubscribeToScroll,
       viewportHeight: 800,
+      containerScreenY: 0,
       entryPoint: HomepageEntryPointsValues.APP_OPENED,
       visitId: 1, // Use 1 as default so "event fires" tests pass; 0 = pre-focus, no fire
     };

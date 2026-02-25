@@ -56,8 +56,11 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   const totalSectionsLoaded = enabledSections.length;
 
-  const getSectionIndex = (name: HomepageSectionName) =>
-    enabledSections.findIndex((s) => s.name === name);
+  const getSectionIndex = useCallback(
+    (name: HomepageSectionName) =>
+      enabledSections.findIndex((s) => s.name === name),
+    [enabledSections],
+  );
 
   const refresh = useCallback(async () => {
     await Promise.allSettled([
