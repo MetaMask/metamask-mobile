@@ -47,6 +47,10 @@ import {
   RewardsDataServiceGetSeasonOneLineaRewardTokensAction,
   RewardsDataServiceApplyReferralCodeAction,
   RewardsDataServiceGetSnapshotsAction,
+  RewardsDataServiceGetRewardsEnvUrlAction,
+  RewardsDataServiceCanChangeRewardsEnvUrlAction,
+  RewardsDataServiceSetRewardsEnvUrlAction,
+  RewardsDataServiceGetDefaultRewardsEnvUrlAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -80,7 +84,11 @@ type AllowedActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceGetSnapshotsAction
+  | RewardsDataServiceGetRewardsEnvUrlAction
+  | RewardsDataServiceCanChangeRewardsEnvUrlAction
+  | RewardsDataServiceSetRewardsEnvUrlAction
+  | RewardsDataServiceGetDefaultRewardsEnvUrlAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -136,6 +144,10 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getSeasonOneLineaRewardTokens',
       'RewardsDataService:applyReferralCode',
       'RewardsDataService:getSnapshots',
+      'RewardsDataService:getRewardsEnvUrl',
+      'RewardsDataService:canChangeRewardsEnvUrl',
+      'RewardsDataService:setRewardsEnvUrl',
+      'RewardsDataService:getDefaultRewardsEnvUrl',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',
