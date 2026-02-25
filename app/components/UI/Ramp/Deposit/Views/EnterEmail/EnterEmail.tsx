@@ -26,7 +26,9 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../../util/Logger';
-import useAnalytics from '../../../hooks/useAnalytics';
+import useAnalytics, {
+  trackEvent as trackRampsEvent,
+} from '../../../hooks/useAnalytics';
 
 export interface EnterEmailParams {
   redirectToRootAfterAuth?: boolean;
@@ -53,9 +55,22 @@ const EnterEmail = () => {
         navigation,
         { title: strings('deposit.enter_email.navbar_title') },
         theme,
+        () => {
+          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
+            location: 'Enter Email',
+            ramp_type: 'UNIFIED_BUY_2',
+          });
+        },
       ),
     );
   }, [navigation, theme]);
+
+  useEffect(() => {
+    trackRampsEvent('RAMPS_SCREEN_VIEWED', {
+      location: 'Enter Email',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
+  }, []);
 
   const [, submitEmail] = useDepositSdkMethod(
     { method: 'sendUserOtp', onMount: false, throws: true },

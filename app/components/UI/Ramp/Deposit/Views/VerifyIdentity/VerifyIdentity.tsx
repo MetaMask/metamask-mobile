@@ -28,6 +28,7 @@ import {
 import { useDepositSDK } from '../../sdk';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { endTrace, TraceName } from '../../../../../../util/trace';
+import { trackEvent as trackRampsEvent } from '../../../hooks/useAnalytics';
 
 export const createVerifyIdentityNavDetails = createNavigationDetails(
   Routes.DEPOSIT.VERIFY_IDENTITY,
@@ -50,6 +51,12 @@ const VerifyIdentity = () => {
         navigation,
         { title: strings('deposit.verify_identity.navbar_title') },
         theme,
+        () => {
+          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
+            location: 'Verify Identity',
+            ramp_type: 'UNIFIED_BUY_2',
+          });
+        },
       ),
     );
 
@@ -68,24 +75,53 @@ const VerifyIdentity = () => {
     });
   }, [navigation, theme]);
 
+  useEffect(() => {
+    trackRampsEvent('RAMPS_SCREEN_VIEWED', {
+      location: 'Verify Identity',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
+  }, []);
+
   const handleSubmit = useCallback(async () => {
+    trackRampsEvent('RAMPS_TERMS_CONSENT_CLICKED', {
+      location: 'Verify Identity',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
     navigateToEnterEmail();
   }, [navigateToEnterEmail]);
 
   const handleTransakLink = useCallback(() => {
+    trackRampsEvent('RAMPS_EXTERNAL_LINK_CLICKED', {
+      location: 'Verify Identity',
+      text: 'Transak',
+      url_domain: new URL(TRANSAK_URL).hostname,
+      ramp_type: 'UNIFIED_BUY_2',
+    });
     Linking.openURL(TRANSAK_URL);
   }, []);
 
   const handlePrivacyPolicyLink = useCallback(() => {
+    trackRampsEvent('RAMPS_EXTERNAL_LINK_CLICKED', {
+      location: 'Verify Identity',
+      text: 'Privacy Policy',
+      url_domain: new URL(CONSENSYS_PRIVACY_POLICY_URL).hostname,
+      ramp_type: 'UNIFIED_BUY_2',
+    });
     Linking.openURL(CONSENSYS_PRIVACY_POLICY_URL);
   }, []);
 
   const handleTransakTermsLink = useCallback(() => {
-    Linking.openURL(
+    const termsUrl =
       selectedRegion?.isoCode === 'US'
         ? TRANSAK_TERMS_URL_US
-        : TRANSAK_TERMS_URL_WORLD,
-    );
+        : TRANSAK_TERMS_URL_WORLD;
+    trackRampsEvent('RAMPS_EXTERNAL_LINK_CLICKED', {
+      location: 'Verify Identity',
+      text: 'Transak Terms',
+      url_domain: new URL(termsUrl).hostname,
+      ramp_type: 'UNIFIED_BUY_2',
+    });
+    Linking.openURL(termsUrl);
   }, [selectedRegion?.isoCode]);
 
   return (

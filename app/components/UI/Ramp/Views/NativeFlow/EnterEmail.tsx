@@ -25,7 +25,9 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
-import useAnalytics from '../../hooks/useAnalytics';
+import useAnalytics, {
+  trackEvent as trackRampsEvent,
+} from '../../hooks/useAnalytics';
 import { useTransakController } from '../../hooks/useTransakController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 
@@ -56,9 +58,22 @@ const V2EnterEmail = () => {
         navigation,
         { title: strings('deposit.enter_email.navbar_title') },
         theme,
+        () => {
+          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
+            location: 'Enter Email',
+            ramp_type: 'UNIFIED_BUY_2',
+          });
+        },
       ),
     );
   }, [navigation, theme]);
+
+  useEffect(() => {
+    trackRampsEvent('RAMPS_SCREEN_VIEWED', {
+      location: 'Enter Email',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
+  }, []);
 
   const emailInputRef = useRef<TextInput>(null);
 

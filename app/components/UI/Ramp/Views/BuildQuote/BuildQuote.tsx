@@ -238,6 +238,32 @@ function BuildQuote() {
     error: quoteFetchError,
   } = useRampsQuotes(quoteFetchEnabled ? quoteFetchParams : null);
 
+  useEffect(() => {
+    if (quoteFetchError) {
+      trackRampsEvent('RAMPS_QUOTE_ERROR', {
+        error_message: parseUserFacingError(
+          quoteFetchError,
+          strings('deposit.buildQuote.quoteFetchError'),
+        ),
+        amount: amountAsNumber,
+        currency_source: currency,
+        currency_destination: selectedToken?.assetId,
+        payment_method_id: selectedPaymentMethod?.id,
+        chain_id: selectedToken?.chainId,
+        ramp_type: 'UNIFIED_BUY_2',
+        ramp_routing: rampRoutingDecision ?? undefined,
+      });
+    }
+  }, [
+    quoteFetchError,
+    amountAsNumber,
+    currency,
+    selectedToken?.assetId,
+    selectedToken?.chainId,
+    selectedPaymentMethod?.id,
+    rampRoutingDecision,
+  ]);
+
   const selectedQuote = useMemo(() => {
     if (!quotesResponse?.success || !selectedProvider || !selectedPaymentMethod)
       return null;

@@ -24,6 +24,7 @@ import styleSheet from './TokenNotAvailableModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { createProviderSelectionModalNavigationDetails } from '../ProviderSelectionModal';
+import { trackEvent as trackRampsEvent } from '../../../hooks/useAnalytics';
 
 export interface TokenNotAvailableModalParams {
   assetId: string;
@@ -53,6 +54,11 @@ function TokenNotAvailableModal() {
   }, [navigation]);
 
   const handleChangeProvider = useCallback(() => {
+    trackRampsEvent('RAMPS_CHANGE_PROVIDER_BUTTON_CLICKED', {
+      current_provider: selectedProvider?.name,
+      location: 'Amount Input',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
     sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate(
         ...createProviderSelectionModalNavigationDetails({
@@ -61,7 +67,7 @@ function TokenNotAvailableModal() {
         }),
       );
     });
-  }, [navigation, assetId]);
+  }, [navigation, assetId, selectedProvider?.name]);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

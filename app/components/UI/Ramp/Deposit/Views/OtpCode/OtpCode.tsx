@@ -34,7 +34,9 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import Logger from '../../../../../../util/Logger';
-import useAnalytics from '../../../hooks/useAnalytics';
+import useAnalytics, {
+  trackEvent as trackRampsEvent,
+} from '../../../hooks/useAnalytics';
 import { createBuildQuoteNavDetails } from '../../../Deposit/Views/BuildQuote/BuildQuote';
 import { trace, TraceName } from '../../../../../../util/trace';
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
@@ -97,9 +99,22 @@ const OtpCode = () => {
         navigation,
         { title: strings('deposit.otp_code.navbar_title') },
         theme,
+        () => {
+          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
+            location: 'OTP Code',
+            ramp_type: 'UNIFIED_BUY_2',
+          });
+        },
       ),
     );
   }, [navigation, theme]);
+
+  useEffect(() => {
+    trackRampsEvent('RAMPS_SCREEN_VIEWED', {
+      location: 'OTP Code',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
+  }, []);
 
   const [value, setValue] = useState('');
 

@@ -160,6 +160,10 @@ const OrderContent: React.FC<OrderContentProps> = ({
   const isLoading = !order.amount;
 
   const handleClose = useCallback(() => {
+    trackRampsEvent('RAMPS_CLOSE_BUTTON_CLICKED', {
+      location: 'Order Details',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
     navigation.goBack();
   }, [navigation]);
 

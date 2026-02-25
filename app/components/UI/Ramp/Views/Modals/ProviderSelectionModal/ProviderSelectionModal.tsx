@@ -17,6 +17,7 @@ import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
+import { trackEvent as trackRampsEvent } from '../../../hooks/useAnalytics';
 
 export interface ProviderSelectionModalParams {
   amount?: number;
@@ -45,6 +46,7 @@ function ProviderSelectionModal() {
 
   const {
     providers,
+    selectedProvider,
     setSelectedProvider,
     selectedPaymentMethod,
     selectedToken,
@@ -104,10 +106,16 @@ function ProviderSelectionModal() {
 
   const handleProviderSelect = useCallback(
     (provider: Provider) => {
+      trackRampsEvent('RAMPS_PROVIDER_SELECTED', {
+        provider: provider.name,
+        previous_provider: selectedProvider?.name,
+        location: 'Amount Input',
+        ramp_type: 'UNIFIED_BUY_2',
+      });
       setSelectedProvider(provider);
       navigation.goBack();
     },
-    [setSelectedProvider, navigation],
+    [setSelectedProvider, navigation, selectedProvider?.name],
   );
 
   return (

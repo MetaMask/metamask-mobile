@@ -63,6 +63,12 @@ const DepositOrderDetails = () => {
           title: strings('deposit.order_details.title'),
         },
         theme,
+        () => {
+          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
+            location: 'Order Details',
+            ramp_type: 'UNIFIED_BUY_2',
+          });
+        },
       ),
     );
   }, [theme, navigation]);

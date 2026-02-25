@@ -25,6 +25,7 @@ import Logger from '../../../../../../util/Logger';
 import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import MenuItem from '../../../components/MenuItem';
 import { useRampsController } from '../../../hooks/useRampsController';
+import { trackEvent as trackRampsEvent } from '../../../hooks/useAnalytics';
 import {
   getProviderToken,
   resetProviderToken,
@@ -92,6 +93,11 @@ function SettingsModal() {
   )?.url;
 
   const navigateToOrderHistory = useCallback(() => {
+    trackRampsEvent('RAMPS_SETTING_OPTION_CLICKED', {
+      option: 'View Order History',
+      location: 'Amount Input',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
     sheetRef.current?.onCloseBottomSheet();
     navigation.navigate(Routes.TRANSACTIONS_VIEW, {
       screen: Routes.TRANSACTIONS_VIEW,
@@ -103,9 +109,13 @@ function SettingsModal() {
 
   const handleContactSupport = useCallback(async () => {
     if (!supportUrl) return;
+    trackRampsEvent('RAMPS_SETTING_OPTION_CLICKED', {
+      option: 'Contact Support',
+      location: 'Amount Input',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
     try {
       if (await InAppBrowser.isAvailable()) {
-        // Close the sheet before the InAppBrowser overlay opens so the two don't overlap.
         sheetRef.current?.onCloseBottomSheet();
         await InAppBrowser.open(supportUrl);
       } else {
@@ -123,6 +133,11 @@ function SettingsModal() {
   }, [supportUrl, navigation]);
 
   const handleLogOut = useCallback(async () => {
+    trackRampsEvent('RAMPS_SETTING_OPTION_CLICKED', {
+      option: 'Log Out',
+      location: 'Amount Input',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
     try {
       await resetProviderToken();
       setSelectedProvider(null);
