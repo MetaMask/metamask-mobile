@@ -7,6 +7,7 @@ import {
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
+import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { isHardwareAccount } from '../../../../../util/address';
 import { TransactionType } from '@metamask/transaction-controller';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
@@ -14,7 +15,6 @@ import { Hex } from '@metamask/utils';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
-import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../../../../../util/address');
