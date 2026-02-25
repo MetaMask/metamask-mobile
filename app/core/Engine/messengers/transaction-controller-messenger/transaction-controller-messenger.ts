@@ -44,7 +44,6 @@ import {
 } from '@metamask/assets-controllers';
 import {
   TransactionPayControllerGetStateAction,
-  TransactionPayControllerGetStrategyAction,
 } from '@metamask/transaction-pay-controller';
 import { RootMessenger } from '../../types';
 import { AnalyticsControllerActions } from '@metamask/analytics-controller';
@@ -108,7 +107,6 @@ type InitMessengerActions =
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerGetStateAction
-  | TransactionPayControllerGetStrategyAction
   | AnalyticsControllerActions;
 
 type InitMessengerEvents =
@@ -164,7 +162,6 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:getState',
       'TransactionController:updateTransaction',
       'TransactionPayController:getState',
-      'TransactionPayController:getStrategy',
       'AnalyticsController:trackEvent',
     ],
     events: [
