@@ -12,7 +12,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import Device from '../../../util/device';
 
 const MOCK_PASSWORD = 'word1 word2 word3 word4';
@@ -109,12 +109,11 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
 }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
-  withMetricsAwareness: jest.fn((Component) => Component),
 }));
 
 // Mock ClipboardManager - necessary for testing clipboard functionality

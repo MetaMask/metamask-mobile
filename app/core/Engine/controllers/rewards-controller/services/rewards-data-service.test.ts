@@ -52,12 +52,15 @@ const mockSuccessfulFetch = successfulFetch as jest.MockedFunction<
 >;
 
 describe('RewardsDataService', () => {
+  const originalEnv = process.env;
   let mockMessenger: jest.Mocked<RewardsDataServiceMessenger>;
   let mockFetch: jest.MockedFunction<typeof fetch>;
   let service: RewardsDataService;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env = { ...originalEnv };
+    process.env.GITHUB_ACTIONS = 'false';
 
     mockMessenger = {
       registerActionHandler: jest.fn(),
@@ -76,6 +79,10 @@ describe('RewardsDataService', () => {
       appType: 'mobile',
       locale: 'en-US',
     });
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
   describe('initialization', () => {
