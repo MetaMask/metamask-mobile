@@ -238,6 +238,68 @@ export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
   return responseData;
 };
 
+interface FeeRateResponse {
+  base_fee?: number;
+}
+
+const DEFAULT_FEE_RATE_BPS = '0';
+
+export const getFeeRateBps = async ({
+  tokenId,
+}: {
+  tokenId: string;
+}): Promise<string> => {
+  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+
+  try {
+    const response = await fetch(
+      `${CLOB_ENDPOINT}/fee-rate?token_id=${tokenId}`,
+      {
+        method: 'GET',
+      },
+    );
+
+    if (!response.ok) {
+      let errorMessage = `Request failed with status ${response.status}`;
+      const responseData = (await response.json().catch(() => undefined)) as
+        | { error?: string }
+        | undefined;
+      if (responseData?.error) {
+        errorMessage = responseData.error;
+      }
+
+      DevLogger.log('Polymarket fee-rate request failed, using zero fee', {
+        tokenId,
+        status: response.status,
+        errorMessage,
+      });
+      return DEFAULT_FEE_RATE_BPS;
+    }
+
+    const responseData = (await response.json()) as FeeRateResponse;
+    const baseFee = responseData.base_fee;
+    if (
+      typeof baseFee !== 'number' ||
+      !Number.isFinite(baseFee) ||
+      baseFee < 0
+    ) {
+      DevLogger.log('Polymarket fee-rate response invalid, using zero fee', {
+        tokenId,
+        baseFee,
+      });
+      return DEFAULT_FEE_RATE_BPS;
+    }
+
+    return Math.round(baseFee).toString();
+  } catch (error) {
+    DevLogger.log('Polymarket fee-rate request threw, using zero fee', {
+      tokenId,
+      error,
+    });
+    return DEFAULT_FEE_RATE_BPS;
+  }
+};
+
 export const generateSalt = (): Hex =>
   `0x${BigInt(Math.floor(Math.random() * 1000000)).toString(16)}`;
 
@@ -1404,7 +1466,10 @@ export const previewOrder = async (
 ): Promise<OrderPreview> => {
   const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
     params;
-  const book = await getOrderBook({ tokenId: outcomeTokenId });
+  const [book, feeRateBps] = await Promise.all([
+    getOrderBook({ tokenId: outcomeTokenId }),
+    getFeeRateBps({ tokenId: outcomeTokenId }),
+  ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
   }
@@ -1437,6 +1502,7 @@ export const previewOrder = async (
       tickSize: parseFloat(book.tick_size),
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
+      feeRateBps,
       fees: await calculateFees({
         feeCollection,
         marketId,
@@ -1471,6 +1537,7 @@ export const previewOrder = async (
     tickSize: parseFloat(book.tick_size),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
+    feeRateBps,
     // no fees for sell orders
   };
 };

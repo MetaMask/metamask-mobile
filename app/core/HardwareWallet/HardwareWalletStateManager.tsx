@@ -11,7 +11,7 @@ import { getHardwareWalletTypeForAddress } from './helpers';
 import { HardwareWalletAdapter } from './types';
 
 /** Core state managed by the hardware wallet state manager. */
-export interface HardwareWalletManagedState {
+interface HardwareWalletManagedState {
   /** Current connection state (discriminated union keyed on status). */
   connectionState: HardwareWalletConnectionState;
   /** Device ID of the connected hardware wallet, or null if none. */
@@ -44,7 +44,7 @@ export interface HardwareWalletStateSetters {
 }
 
 /** Return value of the {@link useHardwareWalletStateManager} hook. */
-export interface HardwareWalletStateManagerResult {
+interface HardwareWalletStateManagerResult {
   /** Current hardware wallet state (connection, device, wallet type). */
   state: HardwareWalletManagedState;
   /** Mutable refs for adapter, connection guard, and abort controller. */
@@ -135,5 +135,3 @@ export const useHardwareWalletStateManager =
       resetState,
     };
   };
-
-export default useHardwareWalletStateManager;
