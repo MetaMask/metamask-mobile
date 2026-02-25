@@ -282,9 +282,6 @@ jest.mock('react-native-fade-in-image', () => {
   };
 });
 
-const mockBridgeTrendingLoadNextChunkIfAvailable = jest.fn();
-const mockBridgeTrendingHasMore = jest.fn(() => true);
-
 jest.mock('../../components/BridgeTrendingZeroState', () => {
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -295,22 +292,10 @@ jest.mock('../../components/BridgeTrendingZeroState', () => {
   return {
     __esModule: true,
     default: React.forwardRef(
-      (
-        _props: Record<string, never>,
-        ref: React.Ref<{
-          loadNextChunkIfAvailable: () => void;
-          hasMore: () => boolean;
-        }>,
-      ) => {
-        React.useImperativeHandle(ref, () => ({
-          loadNextChunkIfAvailable: mockBridgeTrendingLoadNextChunkIfAvailable,
-          hasMore: mockBridgeTrendingHasMore,
-        }));
-
-        return React.createElement(View, {
+      (_props: Record<string, never>, _ref: React.Ref<unknown>) =>
+        React.createElement(View, {
           testID: BridgeViewTestIds.TRENDING_TOKENS_SECTION,
-        });
-      },
+        }),
     ),
   };
 });
@@ -363,7 +348,6 @@ describe('BridgeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockBridgeTrendingHasMore.mockReturnValue(true);
   });
 
   it('renders source and destination token areas', async () => {
@@ -979,104 +963,6 @@ describe('BridgeView', () => {
         getByTestId(BridgeViewSelectorsIDs.TRENDING_TOKENS_SECTION),
       ).toBeTruthy();
       expect(queryByTestId('edit-slippage-button')).toBeNull();
-    });
-
-    it('loads additional trending rows when parent scroll reaches near-bottom in zero mode', () => {
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: undefined,
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: null,
-          isLoading: false,
-          quoteFetchError: null,
-          isNoQuotesAvailable: false,
-          destTokenAmount: undefined,
-        }));
-
-      const { getByTestId } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      const bridgeScrollView = getByTestId(
-        BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL,
-      );
-
-      act(() => {
-        bridgeScrollView.props.onLayout({
-          nativeEvent: {
-            layout: { height: 900 },
-          },
-        });
-        bridgeScrollView.props.onContentSizeChange(0, 2000);
-        bridgeScrollView.props.onScroll({
-          nativeEvent: {
-            contentOffset: { y: 1000 },
-            contentSize: { height: 2000 },
-            layoutMeasurement: { height: 900 },
-          },
-        });
-      });
-
-      expect(mockBridgeTrendingLoadNextChunkIfAvailable).toHaveBeenCalledTimes(
-        1,
-      );
-    });
-
-    it('does not load trending rows on parent scroll when not in zero mode', () => {
-      const now = Date.now();
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
-          recommendedQuote: mockQuoteWithMetadata as unknown as QuoteResponse,
-          quotesLastFetched: now,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0',
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          isLoading: false,
-          activeQuote: mockQuoteWithMetadata as unknown as QuoteResponse,
-        }));
-
-      const { getByTestId } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      fireEvent.scroll(getByTestId(BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL), {
-        nativeEvent: {
-          contentOffset: { y: 1000 },
-          contentSize: { height: 2000 },
-          layoutMeasurement: { height: 900 },
-        },
-      });
-
-      expect(mockBridgeTrendingLoadNextChunkIfAvailable).not.toHaveBeenCalled();
-      expect(mockBridgeTrendingHasMore).not.toHaveBeenCalled();
     });
 
     it('navigates to QuoteExpiredModal when quote expires without refresh', async () => {
