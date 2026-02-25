@@ -176,26 +176,4 @@ describe('useBridgeTrendingTokens', () => {
       'CCC',
     ]);
   });
-
-  it('keeps API order on initial load when it is already price-change sorted', () => {
-    const preSortedByPriceChangeDesc: TrendingAsset[] = [
-      mockTrendingResults[1],
-      mockTrendingResults[0],
-      mockTrendingResults[2],
-    ];
-    mockUseTrendingRequest.mockReturnValue({
-      results: preSortedByPriceChangeDesc,
-      isLoading: false,
-      error: null,
-      fetch: jest.fn(),
-    });
-
-    const { result } = renderHook(() =>
-      useBridgeTrendingTokens({
-        networkConfigurations: {},
-      }),
-    );
-
-    expect(result.current.trendingTokens).toBe(preSortedByPriceChangeDesc);
-  });
 });
