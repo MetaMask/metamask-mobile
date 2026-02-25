@@ -415,7 +415,7 @@ const MarketInsightsView: React.FC = () => {
   const showFeedbackSubmittedToast = useCallback(() => {
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
-      iconName: ComponentLibraryIconName.CheckBold,
+      iconName: ComponentLibraryIconName.Confirmation,
       iconColor: theme.colors.success.default,
       backgroundColor: theme.colors.background.section,
       labelOptions: [{ label: strings('market_insights.feedback_submitted') }],
