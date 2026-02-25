@@ -16,7 +16,7 @@ class ActivitiesView {
     );
   }
   get transferTab(): DetoxElement {
-    return Matchers.getElementByID('activity-view-tabs-bar-tab-1');
+    return Matchers.getElementByID(ActivitiesViewSelectorsIDs.TRANSFER_TAB);
   }
 
   get tabsBar(): DetoxElement {
