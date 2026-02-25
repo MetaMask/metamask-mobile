@@ -1,12 +1,15 @@
 import BigNumber from 'bignumber.js';
 
-import { MYX_PRICE_DECIMALS ,
+import {
+  MYX_PRICE_DECIMALS,
   MYX_SIZE_DECIMALS,
   MYX_PRICE_DECIMALS as PRICE_DEC,
   MYX_COLLATERAL_DECIMALS,
 } from '../constants/myxConfig';
 import type { MarketDataFormatters } from '../types';
-import type { MYXPoolSymbol, MYXTicker ,
+import type {
+  MYXPoolSymbol,
+  MYXTicker,
   MYXPositionType,
   MYXHistoryOrderItem,
   MYXTradeFlowItem,
