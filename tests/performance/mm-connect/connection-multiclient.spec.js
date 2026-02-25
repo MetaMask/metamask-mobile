@@ -23,6 +23,7 @@ import {
   setupAdbReverse,
   cleanupAdbReverse,
   ensureAccountGroupsFinishedLoading,
+  waitForDappServerReady,
 } from './utils.js';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures.ts';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
@@ -51,6 +52,7 @@ test.beforeAll(async () => {
   // Set port and start the server directly (bypassing Detox-specific utilities)
   playgroundServer.setServerPort(DAPP_PORT);
   await playgroundServer.start();
+  await waitForDappServerReady(DAPP_PORT);
 
   // Set up adb reverse for Android emulator access
   setupAdbReverse(DAPP_PORT);
@@ -67,7 +69,11 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
 }) => {
   // Get platform-specific URL
   const platform = device.getPlatform?.() || 'android';
-  const DAPP_URL = getDappUrlForBrowser(platform);
+  const useBrowserStackLocal =
+    process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+  const DAPP_URL = useBrowserStackLocal
+    ? `http://bs-local.com:${DAPP_PORT}`
+    : getDappUrlForBrowser(platform);
 
   // Initialize page objects with device
   WalletMainScreen.device = device;
