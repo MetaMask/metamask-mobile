@@ -20,12 +20,13 @@ describe('selectAdditionalNetworksBlacklistFeatureFlag', () => {
   });
 
   beforeEach(() => {
-    // Reset environment variables
+    // Reset environment variables (ensure non-GH path for tests that use env)
     process.env = { ...originalEnv };
+    delete process.env.GITHUB_ACTIONS;
+    delete process.env.E2E;
   });
 
   afterEach(() => {
-    // Restore original environment
     process.env = originalEnv;
   });
 
@@ -94,5 +95,18 @@ describe('selectAdditionalNetworksBlacklistFeatureFlag', () => {
 
     const result = selectAdditionalNetworksBlacklistFeatureFlag(state);
     expect(result).toEqual(['0x8f', 123, null, '0x531']);
+  });
+
+  it('when GITHUB_ACTIONS uses only remote and ignores env override', () => {
+    process.env.GITHUB_ACTIONS = 'true';
+    delete process.env.E2E;
+    process.env.MM_ADDITIONAL_NETWORK_BLACKLIST = '0x1,0x2';
+
+    const state = createTestState({
+      additionalNetworksBlacklist: ['0x8f', '0x531'],
+    });
+
+    const result = selectAdditionalNetworksBlacklistFeatureFlag(state);
+    expect(result).toEqual(['0x8f', '0x531']);
   });
 });
