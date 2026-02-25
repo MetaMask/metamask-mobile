@@ -2307,7 +2307,15 @@
       "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
       "points_error": "We can't load points right now",
       "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
-      "slippage": "Slippage"
+      "slippage": "Slippage",
+      "price_details": "Price details",
+      "prediction_order": "Prediction order",
+      "prediction_order_description": "~{{count}} contracts at {{price}} each. Final amount may vary based on order book availability (up to {{slippage}}%).",
+      "metamask_fee_description": "Service fee for processing this prediction",
+      "exchange_fee": "Exchange fee",
+      "exchange_fee_description": "Fee paid to the exchange or market",
+      "total_incl_fees": "incl. fees",
+      "close": "Close"
     },
     "error": {
       "title": "Unable to connect to predictions",
