@@ -574,7 +574,7 @@ component:PerpsConnectionManager action:connection_connection
 
 Use this to isolate genuine perps connection failures. You can also use `feature:perps` as a broader filter — the `feature` tag is set on all perps errors and already excludes Polymarket noise.
 
-Fires once per initial `connect()` call. Retries via `reconnectWithNewContext()` do not generate new Sentry events.
+Fires on initial `connect()` failures and programmatic `reconnectWithNewContext()` calls. User-initiated retries from the error screen only add a Sentry breadcrumb (no new event) to avoid noise.
 
 ### MixPanel
 

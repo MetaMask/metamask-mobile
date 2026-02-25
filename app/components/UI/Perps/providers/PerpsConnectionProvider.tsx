@@ -136,8 +136,12 @@ export const PerpsConnectionProvider: React.FC<
       await PerpsConnectionManager.disconnect();
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsConnectionProvider.disconnect'), {
-        message: 'PerpsConnectionProvider: Error during disconnect',
-        context: 'PerpsConnectionProvider.disconnect',
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'PerpsConnectionManager',
+          action: 'connection_disconnection',
+        },
+        context: { name: 'PerpsConnectionProvider.disconnect', data: {} },
       });
     }
     // Always update state after disconnect attempt
@@ -176,8 +180,15 @@ export const PerpsConnectionProvider: React.FC<
         Logger.error(
           ensureError(err, 'PerpsConnectionProvider.reconnectWithNewContext'),
           {
-            message: 'PerpsConnectionProvider: Error during reconnect',
-            context: 'PerpsConnectionProvider.reconnectWithNewContext',
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'PerpsConnectionManager',
+              action: 'connection_reconnection',
+            },
+            context: {
+              name: 'PerpsConnectionProvider.reconnectWithNewContext',
+              data: {},
+            },
           },
         );
       }
@@ -220,9 +231,15 @@ export const PerpsConnectionProvider: React.FC<
         Logger.error(
           ensureError(err, 'PerpsConnectionProvider.lifecycle.onDisconnect'),
           {
-            message: 'PerpsConnectionProvider: Error in lifecycle onDisconnect',
-            context:
-              'PerpsConnectionProvider.usePerpsConnectionLifecycle.onDisconnect',
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'PerpsConnectionManager',
+              action: 'connection_disconnection',
+            },
+            context: {
+              name: 'PerpsConnectionProvider.lifecycle.onDisconnect',
+              data: {},
+            },
           },
         );
       }
@@ -298,17 +315,17 @@ export const PerpsConnectionProvider: React.FC<
         // Reset retry attempts and let polling update the state
         setRetryAttempts(0);
       } catch (err) {
-        // Keep retry attempts count for showing back button after failed attempts
-        Logger.error(
-          ensureError(err, 'PerpsConnectionProvider.initializePerps'),
-          {
-            tags: { feature: PERPS_CONSTANTS.FeatureName },
-            context: {
-              name: 'PerpsConnectionProvider.initializePerps',
-              data: { retryAttempts },
-            },
+        // Breadcrumb only — avoid flooding Sentry with a new event on every retry
+        addBreadcrumb({
+          category: 'perps.connection',
+          message: 'Retry failed',
+          level: 'warning',
+          data: {
+            error: ensureError(err, 'PerpsConnectionProvider.handleRetry')
+              .message,
+            retryAttempts,
           },
-        );
+        });
       }
 
       // Force update to get the latest error state
