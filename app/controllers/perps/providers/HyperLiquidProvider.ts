@@ -3031,13 +3031,16 @@ export class HyperLiquidProvider implements PerpsProvider {
    * Also validates that the requested leverage is permitted for the total
    * notional position size according to the asset's margin tier table.
    *
+   * Returns an OrderResult with success=false if the check fails, or null if
+   * the order can proceed. Failures are logged via logger.error for Sentry
+   * visibility without inflating exchange transaction failure rates.
+   *
    * @param params - Order details needed for margin calculation
-   * @throws Error with INSUFFICIENT_MARGIN code if margin is insufficient
-   * @throws Error with ORDER_LEVERAGE_INVALID if leverage exceeds tier limit
+   * @returns OrderResult on failure (order should not be submitted), null on success
    */
   async #preflightMarginCheck(
     params: PreflightMarginCheckParams,
-  ): Promise<void> {
+  ): Promise<OrderResult | null> {
     const {
       symbol,
       dexName,
@@ -3050,112 +3053,144 @@ export class HyperLiquidProvider implements PerpsProvider {
     } = params;
 
     if (reduceOnly) {
-      return;
+      return null;
     }
 
-    const userAddress = await this.#walletService.getUserAddressWithDefault();
-    const infoClient = this.#clientService.getInfoClient();
+    try {
+      const userAddress = await this.#walletService.getUserAddressWithDefault();
+      const infoClient = this.#clientService.getInfoClient();
 
-    const queryParams = dexName
-      ? { user: userAddress, dex: dexName }
-      : { user: userAddress };
+      const queryParams = dexName
+        ? { user: userAddress, dex: dexName }
+        : { user: userAddress };
 
-    const accountState = await infoClient.clearinghouseState(queryParams);
-    const withdrawable = parseFloat(accountState.withdrawable || '0');
+      const accountState = await infoClient.clearinghouseState(queryParams);
+      const withdrawable = parseFloat(accountState.withdrawable || '0');
 
-    const baseSymbol = dexName ? symbol.split(':').pop() ?? symbol : symbol;
+      const baseSymbol = dexName ? (symbol.split(':').pop() ?? symbol) : symbol;
 
-    const existingPosition = accountState.assetPositions.find(
-      (ap) => ap.position.coin === baseSymbol,
-    );
+      const existingPosition = accountState.assetPositions.find(
+        (ap) => ap.position.coin === baseSymbol,
+      );
 
-    let requiredMargin: number;
+      let requiredMargin: number;
 
-    if (existingPosition) {
-      const existingSize = parseFloat(existingPosition.position.szi || '0');
-      const existingIsLong = existingSize > 0;
-      const orderIsLong = isBuy;
+      if (existingPosition) {
+        const existingSize = parseFloat(existingPosition.position.szi || '0');
+        const existingIsLong = existingSize > 0;
+        const orderIsLong = isBuy;
 
-      if (existingIsLong === orderIsLong) {
-        const totalSize = Math.abs(existingSize) + positionSize;
-        const totalNotionalValue = totalSize * orderPrice;
-        requiredMargin = totalNotionalValue / leverage;
+        if (existingIsLong === orderIsLong) {
+          const totalSize = Math.abs(existingSize) + positionSize;
+          const totalNotionalValue = totalSize * orderPrice;
+          requiredMargin = totalNotionalValue / leverage;
 
-        const existingMarginUsed = parseFloat(
-          existingPosition.position.marginUsed || '0',
-        );
-        requiredMargin = Math.max(0, requiredMargin - existingMarginUsed);
+          const existingMarginUsed = parseFloat(
+            existingPosition.position.marginUsed || '0',
+          );
+          requiredMargin = Math.max(0, requiredMargin - existingMarginUsed);
+        } else {
+          if (positionSize <= Math.abs(existingSize)) {
+            return null;
+          }
+          const netNewSize = positionSize - Math.abs(existingSize);
+          requiredMargin = (netNewSize * orderPrice) / leverage;
+        }
       } else {
-        if (positionSize <= Math.abs(existingSize)) {
-          return;
-        }
-        const netNewSize = positionSize - Math.abs(existingSize);
-        requiredMargin = (netNewSize * orderPrice) / leverage;
+        requiredMargin = (positionSize * orderPrice) / leverage;
       }
-    } else {
-      requiredMargin = (positionSize * orderPrice) / leverage;
-    }
 
-    const marginWithBuffer = requiredMargin * HIP3_MARGIN_CONFIG.BufferMultiplier;
+      const marginWithBuffer =
+        requiredMargin * HIP3_MARGIN_CONFIG.BufferMultiplier;
 
-    this.#deps.debugLogger.log('Pre-flight margin check', {
-      symbol,
-      dex: dexName ?? 'main',
-      orderPrice,
-      positionSize,
-      leverage,
-      isBuy,
-      withdrawable,
-      requiredMargin: requiredMargin.toFixed(2),
-      marginWithBuffer: marginWithBuffer.toFixed(2),
-      existingPosition: existingPosition
-        ? {
-            size: existingPosition.position.szi,
-            marginUsed: existingPosition.position.marginUsed,
-          }
-        : null,
-    });
+      this.#deps.debugLogger.log('Pre-flight margin check', {
+        symbol,
+        dex: dexName ?? 'main',
+        orderPrice,
+        positionSize,
+        leverage,
+        isBuy,
+        withdrawable,
+        requiredMargin: requiredMargin.toFixed(2),
+        marginWithBuffer: marginWithBuffer.toFixed(2),
+        existingPosition: existingPosition
+          ? {
+              size: existingPosition.position.szi,
+              marginUsed: existingPosition.position.marginUsed,
+            }
+          : null,
+      });
 
-    if (marginWithBuffer > withdrawable) {
-      throw new Error(
-        PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
-      );
-    }
-
-    // Validate leverage against margin tier limits for the total notional size
-    const assetMeta = meta.universe.find((a) => a.name === baseSymbol);
-    if (assetMeta && meta.marginTables) {
-      const marginTable = meta.marginTables.find(
-        ([id]) => id === assetMeta.marginTableId,
-      );
-      if (marginTable) {
-        const tiers = marginTable[1].marginTiers;
-        const totalNotional = existingPosition
-          ? (Math.abs(parseFloat(existingPosition.position.szi || '0')) +
-              (isBuy === (parseFloat(existingPosition.position.szi || '0') > 0)
-                ? positionSize
-                : 0)) *
-            orderPrice
-          : positionSize * orderPrice;
-
-        let maxLeverageForSize = assetMeta.maxLeverage;
-        for (const tier of tiers) {
-          if (totalNotional >= parseFloat(tier.lowerBound)) {
-            maxLeverageForSize = tier.maxLeverage;
-          }
-        }
-
-        if (leverage > maxLeverageForSize) {
-          this.#deps.debugLogger.log('Margin tier leverage exceeded', {
+      if (marginWithBuffer > withdrawable) {
+        this.#deps.logger.error(
+          new Error(PERPS_ERROR_CODES.INSUFFICIENT_MARGIN),
+          this.#getErrorContext('preflightMarginCheck', {
             symbol,
-            totalNotional,
-            requestedLeverage: leverage,
-            maxLeverageForSize,
-            marginTableId: assetMeta.marginTableId,
-          });
-          throw new Error(PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID);
+            dex: dexName ?? 'main',
+            requiredMargin: marginWithBuffer.toFixed(2),
+            withdrawable: withdrawable.toFixed(2),
+            positionSize,
+            leverage,
+          }),
+        );
+        return {
+          success: false,
+          error: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+        };
+      }
+
+      // Validate leverage against margin tier limits for the total notional size
+      const assetMeta = meta.universe.find((a) => a.name === baseSymbol);
+      if (assetMeta && meta.marginTables) {
+        const marginTable = meta.marginTables.find(
+          ([id]) => id === assetMeta.marginTableId,
+        );
+        if (marginTable) {
+          const tiers = marginTable[1].marginTiers;
+          const existingSzi = parseFloat(existingPosition?.position.szi ?? '0');
+          const isIncreasing = existingPosition && isBuy === existingSzi > 0;
+          const totalNotional = existingPosition
+            ? (Math.abs(existingSzi) + (isIncreasing ? positionSize : 0)) *
+              orderPrice
+            : positionSize * orderPrice;
+
+          let maxLeverageForSize = assetMeta.maxLeverage;
+          for (const tier of tiers) {
+            if (totalNotional >= parseFloat(tier.lowerBound)) {
+              maxLeverageForSize = tier.maxLeverage;
+            }
+          }
+
+          if (leverage > maxLeverageForSize) {
+            this.#deps.logger.error(
+              new Error(PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID),
+              this.#getErrorContext('preflightMarginCheck', {
+                symbol,
+                totalNotional,
+                requestedLeverage: leverage,
+                maxLeverageForSize,
+                marginTableId: assetMeta.marginTableId,
+              }),
+            );
+            return {
+              success: false,
+              error: PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID,
+            };
+          }
         }
       }
+
+      return null;
+    } catch (error) {
+      this.#deps.logger.error(
+        ensureError(error, 'HyperLiquidProvider.preflightMarginCheck'),
+        this.#getErrorContext('preflightMarginCheck', {
+          symbol,
+          dex: dexName ?? 'main',
+        }),
+      );
+      // Don't block the order on preflight failures — let the exchange validate
+      return null;
     }
   }
 
@@ -3527,7 +3562,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // 5b. Pre-flight margin check: validate sufficient margin before submission
       const effectiveLeverageForCheck =
         params.leverage ?? assetInfo.maxLeverage ?? 1;
-      await this.#preflightMarginCheck({
+      const preflightResult = await this.#preflightMarginCheck({
         symbol: params.symbol,
         dexName,
         orderPrice,
@@ -3537,6 +3572,9 @@ export class HyperLiquidProvider implements PerpsProvider {
         reduceOnly: params.reduceOnly ?? false,
         meta,
       });
+      if (preflightResult) {
+        return preflightResult;
+      }
 
       // 6. Handle HIP-3 balance management (if applicable)
       const isHip3Order = dexName !== null;
