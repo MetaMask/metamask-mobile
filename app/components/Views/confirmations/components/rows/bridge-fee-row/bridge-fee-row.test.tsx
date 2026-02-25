@@ -136,6 +136,36 @@ describe('BridgeFeeRow', () => {
     expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
   });
 
+  it('renders metamask fee from totals', () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '0.03' },
+        sourceNetwork: { estimate: { usd: '0.01' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0.00435', fiat: '0.00435' },
+      },
+    } as TransactionPayTotals);
+
+    const { getByTestId } = render();
+
+    expect(getByTestId('metamask-fee-row')).toBeDefined();
+    expect(getByTestId('metamask-fee-row').props.children).toBeDefined();
+  });
+
+  it('renders metamask fee as $0 when not available', () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '0.03' },
+        sourceNetwork: { estimate: { usd: '0.01' } },
+        targetNetwork: { usd: '0' },
+      },
+    } as TransactionPayTotals);
+
+    const { getByTestId } = render();
+
+    expect(getByTestId('metamask-fee-row')).toBeDefined();
+  });
+
   it('does not render metamask fee if no quotes', async () => {
     useTransactionPayQuotesMock.mockReturnValue([]);
 

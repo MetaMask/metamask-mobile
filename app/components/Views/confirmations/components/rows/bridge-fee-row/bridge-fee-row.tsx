@@ -50,7 +50,7 @@ export function BridgeFeeRow() {
           hasAlert={hasAlert}
           isLoading={isLoading}
         />
-        <MetaMaskFeeRow quotes={quotes} isLoading={isLoading} />
+        <MetaMaskFeeRow quotes={quotes} totals={totals} isLoading={isLoading} />
       </>
     );
   }
@@ -64,7 +64,7 @@ export function BridgeFeeRow() {
         hasAlert={hasAlert}
         isLoading={isLoading}
       />
-      <MetaMaskFeeRow quotes={quotes} isLoading={isLoading} />
+      <MetaMaskFeeRow quotes={quotes} totals={totals} isLoading={isLoading} />
     </>
   );
 }
@@ -176,9 +176,11 @@ function NetworkFeeRow({
 
 function MetaMaskFeeRow({
   quotes,
+  totals,
   isLoading,
 }: {
   quotes?: TransactionPayQuote<Json>[];
+  totals?: TransactionPayTotals;
   isLoading: boolean;
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
@@ -186,8 +188,8 @@ function MetaMaskFeeRow({
   const hasQuotes = Boolean(quotes?.length);
 
   const metamaskFeeUsd = useMemo(
-    () => formatFiat(new BigNumber(0)),
-    [formatFiat],
+    () => formatFiat(new BigNumber(totals?.fees?.metaMask?.usd ?? '0')),
+    [totals, formatFiat],
   );
 
   if (isLoading) return <InfoRowSkeleton testId="metamask-fee-row-skeleton" />;

@@ -127,6 +127,7 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_transaction_step_total: 2,
         mm_pay_sending_value_usd: 1500.5,
         mm_pay_receiving_value_usd: 1495.25,
+        mm_pay_metamask_fee_usd: 0.00435,
       },
       sensitiveProperties: {},
     });
@@ -148,6 +149,7 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_transaction_step_total: 2,
         mm_pay_sending_value_usd: 1500.5,
         mm_pay_receiving_value_usd: 1495.25,
+        mm_pay_metamask_fee_usd: 0.00435,
       }),
       sensitiveProperties: {},
     });

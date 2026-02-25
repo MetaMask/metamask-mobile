@@ -143,6 +143,9 @@ export function useTransactionPayMetrics() {
       .toString(10);
 
     properties.mm_pay_provider_fee_usd = totals.fees.provider.usd;
+    properties.mm_pay_metamask_fee_usd = Number(
+      totals.fees.metaMask?.usd ?? '0',
+    );
   }
 
   const params = useDeepMemo(

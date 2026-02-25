@@ -452,6 +452,69 @@ describe('useTransactionPayMetrics', () => {
     });
   });
 
+  describe('mm_pay_metamask_fee_usd', () => {
+    it('tracks MetaMask fee USD from totals', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useTransactionPayTotalsMock.mockReturnValue({
+        fees: {
+          sourceNetwork: { estimate: { usd: '1', fiat: '1' } },
+          targetNetwork: { usd: '0', fiat: '0' },
+          provider: { usd: '0.03', fiat: '0.03' },
+          metaMask: { usd: '0.00435', fiat: '0.00435' },
+        },
+        targetAmount: { usd: '0.46', fiat: '0.46' },
+      } as ReturnType<typeof useTransactionPayTotals>);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_metamask_fee_usd: 0.00435,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('defaults to 0 when metaMask fee is not available', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useTransactionPayTotalsMock.mockReturnValue({
+        fees: {
+          sourceNetwork: { estimate: { usd: '1', fiat: '1' } },
+          targetNetwork: { usd: '0', fiat: '0' },
+          provider: { usd: '0', fiat: '0' },
+        },
+        targetAmount: { usd: '0.46', fiat: '0.46' },
+      } as ReturnType<typeof useTransactionPayTotals>);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_metamask_fee_usd: 0,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+  });
+
   describe('mm_pay_quote_requested', () => {
     it('is false initially', async () => {
       useTransactionPayTokenMock.mockReturnValue({
