@@ -68,6 +68,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -308,6 +309,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     marketInsightsReport,
   ]);
 
+  useEffect(() => {
+    if (isMarketInsightsEnabled && marketInsightsCaip19Id) {
+      trace({
+        name: TraceName.MarketInsightsEntryCardLoad,
+        op: TraceOperation.MarketInsightsLoad,
+      });
+    }
+  }, [isMarketInsightsEnabled, marketInsightsCaip19Id]);
+
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
       url,
@@ -316,6 +326,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   };
 
   const handleMarketInsightsPress = useCallback(() => {
+    trace({
+      name: TraceName.MarketInsightsViewLoad,
+      op: TraceOperation.MarketInsightsLoad,
+    });
+
     if (marketInsightsCaip19Id) {
       const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
         .addProperties({

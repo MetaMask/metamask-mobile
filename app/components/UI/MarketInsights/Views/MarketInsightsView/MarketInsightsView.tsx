@@ -48,6 +48,7 @@ import type {
 import { selectMarketInsightsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 interface MarketInsightsRouteParams {
   assetSymbol: string;
@@ -215,6 +216,8 @@ const MarketInsightsView: React.FC = () => {
     if (!report || hasTrackedViewRef.current) {
       return;
     }
+
+    endTrace({ name: TraceName.MarketInsightsViewLoad });
 
     const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
       .addProperties({

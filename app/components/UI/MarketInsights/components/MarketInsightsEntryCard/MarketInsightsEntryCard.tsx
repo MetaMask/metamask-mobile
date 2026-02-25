@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MaskedView from '@react-native-masked-view/masked-view';
@@ -18,6 +18,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 // Gradient colors for the "Market insights" title
 const TITLE_GRADIENT_COLORS = ['#FFA680', '#BAF24A'];
@@ -79,6 +80,10 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
+
+  useEffect(() => {
+    endTrace({ name: TraceName.MarketInsightsEntryCardLoad });
+  }, []);
 
   return (
     <Pressable
