@@ -669,7 +669,7 @@
       "@sentry/react-native>@sentry/cli": true,
       "@storybook/manager-webpack5>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>fsevents": false,
       "@storybook/addon-controls>@storybook/core-common>esbuild": false,
-      "appium-adb>@appium/support>sharp": true,
+      "appium-adb>@appium/support>sharp": false,
       "appium>appium-android-driver>appium-chromedriver": false,
       "appium>appium-base-driver>webdriverio>@types/puppeteer-core>@types/puppeteer>puppeteer": false,
       "appium>appium-flutter-driver>rpc-websockets>bufferutil": false,
