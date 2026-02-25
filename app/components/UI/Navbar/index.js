@@ -2103,3 +2103,28 @@ export function getRampsBuildQuoteNavbarOptions(
     ),
   };
 }
+
+export function getRampsOrderDetailsNavbarOptions(
+  navigation,
+  { title, showBack = true },
+  theme,
+  onClose = undefined,
+) {
+  let startButtonIconProps;
+  if (showBack) {
+    startButtonIconProps = {
+      iconName: IconName.ArrowLeft,
+      onPress: () => {
+        navigation.pop();
+        onClose?.();
+      },
+      testID: 'ramps-order-details-back-navbar-button',
+    };
+  }
+
+  return getHeaderCompactStandardNavbarOptions({
+    title,
+    startButtonIconProps,
+    includesTopInset: true,
+  });
+}
