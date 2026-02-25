@@ -20,6 +20,18 @@ jest.mock('../../../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => true),
 }));
 
+jest.mock('../../hooks/useHomepageSectionViewedEvent', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  HomepageSectionNames: {
+    TOKENS: 'tokens',
+    PERPS: 'perps',
+    DEFI: 'defi',
+    PREDICT: 'predict',
+    NFTS: 'nfts',
+  },
+}));
+
 describe('PerpsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -30,13 +42,17 @@ describe('PerpsSection', () => {
   });
 
   it('renders section title when enabled', () => {
-    renderWithProvider(<PerpsSection />);
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('Perpetuals')).toBeOnTheScreen();
   });
 
   it('navigates to perps home on title press', () => {
-    renderWithProvider(<PerpsSection />);
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     fireEvent.press(screen.getByText('Perpetuals'));
 
@@ -50,7 +66,9 @@ describe('PerpsSection', () => {
       .requireMock('../../../../UI/Perps')
       .selectPerpsEnabledFlag.mockReturnValue(false);
 
-    const { toJSON } = renderWithProvider(<PerpsSection />);
+    const { toJSON } = renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(toJSON()).toBeNull();
   });

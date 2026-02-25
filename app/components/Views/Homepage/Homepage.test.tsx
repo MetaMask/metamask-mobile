@@ -16,7 +16,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock feature flags - enable all sections
+// Mock feature flags - enable all sections by default
 jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => true),
 }));
@@ -31,6 +31,21 @@ jest.mock(
     selectAssetsDefiPositionsEnabled: jest.fn(() => true),
   }),
 );
+
+// Mock useHomepageSectionViewedEvent to avoid analytics side-effects in
+// Homepage-level tests — section-level analytics are covered by the hook tests.
+const mockUseHomepageSectionViewedEvent = jest.fn();
+jest.mock('./hooks/useHomepageSectionViewedEvent', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) => mockUseHomepageSectionViewedEvent(...args),
+  HomepageSectionNames: {
+    TOKENS: 'tokens',
+    PERPS: 'perps',
+    DEFI: 'defi',
+    PREDICT: 'predict',
+    NFTS: 'nfts',
+  },
+}));
 
 // State with preferences needed for NFT section rendering
 const stateWithPreferences = {
@@ -49,6 +64,17 @@ const stateWithPreferences = {
 describe('Homepage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .requireMock('../../UI/Perps')
+      .selectPerpsEnabledFlag.mockReturnValue(true);
+    jest
+      .requireMock('../../UI/Predict/selectors/featureFlags')
+      .selectPredictEnabledFlag.mockReturnValue(true);
+    jest
+      .requireMock(
+        '../../../selectors/featureFlagController/assetsDefiPositions',
+      )
+      .selectAssetsDefiPositionsEnabled.mockReturnValue(true);
   });
 
   it('renders NFTs section title', () => {
@@ -80,5 +106,89 @@ describe('Homepage', () => {
     const result = ref.current?.refresh();
 
     await expect(result).resolves.toBeUndefined();
+  });
+
+  describe('section indices — all flags enabled', () => {
+    it('passes correct sectionIndex to each section when all flags are on', () => {
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      // Tokens=0, Perps=1, Predict=2, DeFi=3, NFTs=4 → total=5
+      const calls = mockUseHomepageSectionViewedEvent.mock.calls;
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(3);
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(4);
+    });
+
+    it('passes totalSectionsLoaded=5 when all flags are enabled', () => {
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = mockUseHomepageSectionViewedEvent.mock.calls;
+      calls.forEach((call) => {
+        expect(call[0]?.totalSectionsLoaded).toBe(5);
+      });
+    });
+  });
+
+  describe('section indices — Perps disabled', () => {
+    beforeEach(() => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(false);
+    });
+
+    it('shifts indices when Perps is disabled', () => {
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = mockUseHomepageSectionViewedEvent.mock.calls;
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(1);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(2);
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(3);
+    });
+
+    it('passes totalSectionsLoaded=4 when Perps is disabled', () => {
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = mockUseHomepageSectionViewedEvent.mock.calls;
+      calls.forEach((call) => {
+        expect(call[0]?.totalSectionsLoaded).toBe(4);
+      });
+    });
+  });
+
+  describe('section indices — all optional flags disabled', () => {
+    beforeEach(() => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(false);
+      jest
+        .requireMock('../../UI/Predict/selectors/featureFlags')
+        .selectPredictEnabledFlag.mockReturnValue(false);
+      jest
+        .requireMock(
+          '../../../selectors/featureFlagController/assetsDefiPositions',
+        )
+        .selectAssetsDefiPositionsEnabled.mockReturnValue(false);
+    });
+
+    it('passes totalSectionsLoaded=2 when only Tokens and NFTs are enabled', () => {
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = mockUseHomepageSectionViewedEvent.mock.calls;
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(1);
+      expect(callBySectionName('tokens')?.totalSectionsLoaded).toBe(2);
+    });
   });
 });

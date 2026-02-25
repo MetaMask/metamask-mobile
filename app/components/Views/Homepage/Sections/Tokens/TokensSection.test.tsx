@@ -47,6 +47,18 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: () => 'usd',
 }));
 
+jest.mock('../../hooks/useHomepageSectionViewedEvent', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  HomepageSectionNames: {
+    TOKENS: 'tokens',
+    PERPS: 'perps',
+    DEFI: 'defi',
+    PREDICT: 'predict',
+    NFTS: 'nfts',
+  },
+}));
+
 // Mock TokenListItem to avoid complex import chains
 jest.mock('../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem', () => {
   const ReactActual = jest.requireActual('react');
@@ -146,7 +158,9 @@ describe('TokensSection', () => {
   it('renders section title for account with balance', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
   });
@@ -154,7 +168,9 @@ describe('TokensSection', () => {
   it('renders "Tokens" title for zero balance account', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
   });
@@ -162,7 +178,9 @@ describe('TokensSection', () => {
   it('renders popular tokens for zero balance account', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('MetaMask USD')).toBeOnTheScreen();
     expect(screen.getByText('Ethereum')).toBeOnTheScreen();
@@ -171,7 +189,9 @@ describe('TokensSection', () => {
   it('renders Buy button for popular tokens in zero balance state', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getAllByText('Buy')).toHaveLength(2);
   });
@@ -179,7 +199,9 @@ describe('TokensSection', () => {
   it('calls goToBuy with assetId when Buy button is pressed', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     const buyButtons = screen.getAllByText('Buy');
     fireEvent.press(buyButtons[0]);
@@ -196,7 +218,9 @@ describe('TokensSection', () => {
       { chainId: '0x1', address: '0xtoken2', isStaked: false },
     ]);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByTestId('token-item-0xtoken1')).toBeOnTheScreen();
     expect(screen.getByTestId('token-item-0xtoken2')).toBeOnTheScreen();
@@ -214,7 +238,9 @@ describe('TokensSection', () => {
       { chainId: '0x1', address: '0xtoken7', isStaked: false },
     ]);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByTestId('token-item-0xtoken1')).toBeOnTheScreen();
     expect(screen.getByTestId('token-item-0xtoken5')).toBeOnTheScreen();
@@ -225,7 +251,9 @@ describe('TokensSection', () => {
   it('navigates to tokens full view on title press', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     fireEvent.press(screen.getByLabelText('Tokens'));
 

@@ -20,6 +20,18 @@ jest.mock('../../../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
 }));
 
+jest.mock('../../hooks/useHomepageSectionViewedEvent', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  HomepageSectionNames: {
+    TOKENS: 'tokens',
+    PERPS: 'perps',
+    DEFI: 'defi',
+    PREDICT: 'predict',
+    NFTS: 'nfts',
+  },
+}));
+
 // Mock the hooks
 jest.mock('./hooks', () => ({
   usePredictMarketsForHomepage: jest.fn(() => ({
@@ -78,13 +90,17 @@ describe('PredictionsSection', () => {
   });
 
   it('renders section title when enabled', () => {
-    renderWithProvider(<PredictionsSection />);
+    renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('Predictions')).toBeOnTheScreen();
   });
 
   it('navigates to predictions market list on title press', () => {
-    renderWithProvider(<PredictionsSection />);
+    renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     fireEvent.press(screen.getByText('Predictions'));
 
@@ -98,7 +114,9 @@ describe('PredictionsSection', () => {
       .requireMock('../../../../UI/Predict/selectors/featureFlags')
       .selectPredictEnabledFlag.mockReturnValue(false);
 
-    const { toJSON } = renderWithProvider(<PredictionsSection />);
+    const { toJSON } = renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(toJSON()).toBeNull();
   });
@@ -139,7 +157,9 @@ describe('PredictionsSection', () => {
         refresh: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
@@ -155,7 +175,9 @@ describe('PredictionsSection', () => {
         refresh: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       // When loading positions, should not show markets
       expect(screen.queryByText('Test Position 1')).not.toBeOnTheScreen();
@@ -199,7 +221,9 @@ describe('PredictionsSection', () => {
         refresh: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Will ETH reach $5000?')).toBeOnTheScreen();
@@ -220,7 +244,9 @@ describe('PredictionsSection', () => {
         refresh: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       // Should still show the title
       expect(screen.getByText('Predictions')).toBeOnTheScreen();
@@ -240,7 +266,9 @@ describe('PredictionsSection', () => {
         refresh: jest.fn(),
       });
 
-      const { toJSON } = renderWithProvider(<PredictionsSection />);
+      const { toJSON } = renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(toJSON()).toBeNull();
     });
@@ -261,7 +289,9 @@ describe('PredictionsSection', () => {
         refresh: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(screen.getByText('Unable to load predictions')).toBeOnTheScreen();
       expect(screen.getByText('Retry')).toBeOnTheScreen();
@@ -281,7 +311,9 @@ describe('PredictionsSection', () => {
         refresh: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(
         screen.queryByText('Unable to load predictions'),
@@ -308,7 +340,13 @@ describe('PredictionsSection', () => {
       });
 
       const ref = React.createRef<{ refresh: () => Promise<void> }>();
-      renderWithProvider(<PredictionsSection ref={ref} />);
+      renderWithProvider(
+        <PredictionsSection
+          ref={ref}
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+        />,
+      );
 
       await ref.current?.refresh();
 
@@ -347,7 +385,13 @@ describe('PredictionsSection', () => {
       });
 
       const ref = React.createRef<{ refresh: () => Promise<void> }>();
-      renderWithProvider(<PredictionsSection ref={ref} />);
+      renderWithProvider(
+        <PredictionsSection
+          ref={ref}
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+        />,
+      );
 
       await ref.current?.refresh();
 

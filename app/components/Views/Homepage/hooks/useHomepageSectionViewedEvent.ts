@@ -103,10 +103,12 @@ const useHomepageSectionViewedEvent = ({
 
   // For sections that do NOT render (empty / error / disabled): fire once
   // loading is done, since there is no View to measure.
+  // visitId is included so this effect re-runs on each homepage visit, allowing
+  // the event to re-fire after hasFiredRef is reset by the effect above.
   useEffect(() => {
     if (sectionRef !== null || isLoading) return;
     fireEvent();
-  }, [sectionRef, isLoading, fireEvent]);
+  }, [sectionRef, isLoading, fireEvent, visitId]);
 
   // For sections that DO render: check viewport visibility on mount and on
   // every scroll event. Uses subscribeToScroll so no React re-renders occur
