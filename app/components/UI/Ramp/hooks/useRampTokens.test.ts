@@ -129,12 +129,11 @@ describe('useRampTokens', () => {
         expect(mockHandleFetch).toHaveBeenCalledWith(
           'https://on-ramp-cache.uat-api.cx.metamask.io/regions/us-ca/tokens?action=buy&sdk=2.1.5',
         );
+        expect(result.current.topTokens).toEqual(mockTopTokens);
+        expect(result.current.allTokens).toEqual(mockAllTokens);
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.error).toBeNull();
       });
-
-      expect(result.current.topTokens).toEqual(mockTopTokens);
-      expect(result.current.allTokens).toEqual(mockAllTokens);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBeNull();
     });
 
     it('fetches tokens for DEPOSIT routing decision', async () => {
@@ -154,12 +153,11 @@ describe('useRampTokens', () => {
         expect(mockHandleFetch).toHaveBeenCalledWith(
           'https://on-ramp-cache.uat-api.cx.metamask.io/regions/uk/tokens?action=deposit&sdk=2.1.5',
         );
+        expect(result.current.topTokens).toEqual(mockTopTokens);
+        expect(result.current.allTokens).toEqual(mockAllTokens);
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.error).toBeNull();
       });
-
-      expect(result.current.topTokens).toEqual(mockTopTokens);
-      expect(result.current.allTokens).toEqual(mockAllTokens);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBeNull();
     });
 
     it('includes SDK version in query parameters', async () => {
@@ -374,11 +372,10 @@ describe('useRampTokens', () => {
 
       await waitFor(() => {
         expect(result.current.error).toEqual(mockError);
+        expect(result.current.topTokens).toBeNull();
+        expect(result.current.allTokens).toBeNull();
+        expect(result.current.isLoading).toBe(false);
       });
-
-      expect(result.current.topTokens).toBeNull();
-      expect(result.current.allTokens).toBeNull();
-      expect(result.current.isLoading).toBe(false);
     });
 
     it('logs error when fetch fails', async () => {
@@ -416,10 +413,9 @@ describe('useRampTokens', () => {
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
+        expect(result.current.topTokens).toEqual(mockResponse.topTokens);
+        expect(result.current.allTokens).toEqual(mockResponse.allTokens);
       });
-
-      expect(result.current.topTokens).toEqual(mockResponse.topTokens);
-      expect(result.current.allTokens).toEqual(mockResponse.allTokens);
     });
   });
 
@@ -437,10 +433,9 @@ describe('useRampTokens', () => {
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
+        expect(result.current.topTokens).toEqual(mockResponse.topTokens);
+        expect(result.current.allTokens).toEqual(mockResponse.allTokens);
       });
-
-      expect(result.current.topTokens).toEqual(mockResponse.topTokens);
-      expect(result.current.allTokens).toEqual(mockResponse.allTokens);
     });
 
     it('sets loading to false after failed fetch', async () => {
@@ -453,9 +448,8 @@ describe('useRampTokens', () => {
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
+        expect(result.current.error).toEqual(mockError);
       });
-
-      expect(result.current.error).toEqual(mockError);
     });
   });
 
@@ -484,14 +478,12 @@ describe('useRampTokens', () => {
 
       await waitFor(() => {
         expect(result.current.topTokens).toEqual(mockTopTokens);
+        expect(result.current.allTokens).toHaveLength(4);
+        expect(result.current.topTokens?.[0].tokenSupported).toBe(true);
+        expect(result.current.topTokens?.[1].tokenSupported).toBe(true);
+        expect(result.current.allTokens?.[2].tokenSupported).toBe(false);
+        expect(result.current.allTokens?.[3].tokenSupported).toBe(false);
       });
-
-      // All 4 tokens pass network filter (ETH, BTC, USDC on eip155:1, SOL on solana)
-      expect(result.current.allTokens).toHaveLength(4);
-      expect(result.current.topTokens?.[0].tokenSupported).toBe(true);
-      expect(result.current.topTokens?.[1].tokenSupported).toBe(true);
-      expect(result.current.allTokens?.[2].tokenSupported).toBe(false);
-      expect(result.current.allTokens?.[3].tokenSupported).toBe(false);
     });
   });
 
@@ -521,12 +513,9 @@ describe('useRampTokens', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.topTokens).toBeDefined();
+        expect(result.current.topTokens).toHaveLength(2);
+        expect(result.current.allTokens).toHaveLength(3);
       });
-
-      // All networks from mock config are in the user's wallet
-      expect(result.current.topTokens).toHaveLength(2);
-      expect(result.current.allTokens).toHaveLength(3);
     });
 
     it('filters out tokens with empty chainId', async () => {
@@ -548,13 +537,10 @@ describe('useRampTokens', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.topTokens).toBeDefined();
+        expect(result.current.topTokens).toHaveLength(1);
+        expect(result.current.topTokens?.[0].symbol).toBe('ETH');
+        expect(result.current.allTokens).toHaveLength(1);
       });
-
-      // Should exclude token with empty chainId
-      expect(result.current.topTokens).toHaveLength(1);
-      expect(result.current.topTokens?.[0].symbol).toBe('ETH');
-      expect(result.current.allTokens).toHaveLength(1);
     });
   });
 });
