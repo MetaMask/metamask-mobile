@@ -90,7 +90,6 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
             </Text>
             <TouchableOpacity
               activeOpacity={0.7}
-              disabled={false}
               onPress={[Function]}
               style={
                 {
@@ -1203,7 +1202,6 @@ exports[`BuildQuote matches snapshot 1`] = `
             </Text>
             <TouchableOpacity
               activeOpacity={0.7}
-              disabled={false}
               onPress={[Function]}
               style={
                 {
