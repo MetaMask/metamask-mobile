@@ -38,8 +38,20 @@ permissions:
   id-token: write
 
 jobs:
+  # Bump version in repo (bitrise.yml, package.json, ios/android) before building
+  update-build-version:
+    uses: ./.github/workflows/update-latest-build-version.yml
+    permissions:
+      contents: write
+      id-token: write
+    with:
+      base-branch: ${{ github.ref_name }}
+    secrets:
+      PR_TOKEN: ${{ secrets.PR_TOKEN }}
+
   # Load config
   prepare:
+    needs: [update-build-version]
     runs-on: ubuntu-latest
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
@@ -167,7 +179,7 @@ jobs:
 
   # Build
   build:
-    needs: [prepare, setup-dependencies]
+    needs: [prepare, setup-dependencies, update-build-version]
     timeout-minutes: 120 # Must allow build step (115min) + setup; comment at Build step documents this
     strategy:
       matrix:
@@ -176,8 +188,17 @@ jobs:
     runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     steps:
+      - name: Validate version-bump commit
+        run: |
+          COMMIT_HASH="${{ needs.update-build-version.outputs.commit-hash }}"
+          if [ -z "$COMMIT_HASH" ]; then
+            echo "::error::update-build-version did not produce commit-hash; refusing to build to avoid using pre-bump version numbers."
+            exit 1
+          fi
+          echo "Building at version-bump commit: $COMMIT_HASH"
       - uses: actions/checkout@v4
         with:
+          ref: ${{ needs.update-build-version.outputs.commit-hash }}
           submodules: recursive
 
       # iOS: Use MetaMask's setup action (handles Node, Ruby, CocoaPods, Xcode)
@@ -195,6 +216,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'yarn'
 
       - name: Download node_modules tarball
         uses: actions/download-artifact@v4
@@ -244,11 +266,10 @@ jobs:
 
       - name: Apply build config
         run: |
-          # Two-step config application is intentional:
-          # 1. Load env vars for THIS step only (eval sets vars in current shell)
-          eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
-          # 2. Persist env vars to GITHUB_ENV so LATER steps inherit them (build, signing, etc.)
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+          # Load env vars from builds.yml (this step only)
+          eval "$(node scripts/apply-build-config.js "${{ inputs.build_name }}" --export)"
+          # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
+          node scripts/apply-build-config.js "${{ inputs.build_name }}" --export-github-env >> "$GITHUB_ENV"
 
       - name: Validate secrets
         env:

@@ -12,6 +12,8 @@ export type {
   RewardsDataServiceLogoutAction,
   RewardsDataServiceFetchGeoLocationAction,
   RewardsDataServiceValidateReferralCodeAction,
+  RewardsDataServiceValidateBonusCodeAction,
+  RewardsDataServiceApplyBonusCodeAction,
   RewardsDataServiceMobileJoinAction,
   RewardsDataServiceGetOptInStatusAction,
   RewardsDataServiceOptOutAction,

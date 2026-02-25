@@ -258,8 +258,6 @@ const Checkout = () => {
   const handleOrderCreated = useCallback(
     (order: FiatOrder) => {
       dispatch(protectWalletModalVisible());
-      // @ts-expect-error navigation prop mismatch
-      navigation.dangerouslyGetParent()?.pop();
 
       dispatchThunk((_dispatch, getState) => {
         const state = getState();
@@ -272,8 +270,27 @@ const Checkout = () => {
           NotificationManager.showSimpleNotification(notificationDetails);
         }
       });
+
+      if (providerType === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
+        // Use reset() instead of pop() + navigate() to avoid a race condition:
+        // dangerouslyGetParent()?.pop() removes the ramp modal from the stack
+        // before navigate() can push the order details screen, sending the user
+        // to the home screen instead.
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: { orderId: order.id, showCloseButton: true },
+            },
+          ],
+        });
+      } else {
+        // @ts-expect-error navigation prop mismatch
+        navigation.dangerouslyGetParent()?.pop();
+      }
     },
-    [dispatch, dispatchThunk, navigation],
+    [dispatch, dispatchThunk, navigation, providerType],
   );
 
   const handleNavigationStateChange = useCallback(
