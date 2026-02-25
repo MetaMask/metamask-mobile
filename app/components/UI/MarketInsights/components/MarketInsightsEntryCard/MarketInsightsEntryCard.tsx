@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MaskedView from '@react-native-masked-view/masked-view';
@@ -18,7 +18,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
-import { buildHighlightedSegments } from '../../utils/marketInsightsFormatting';
 
 // Gradient colors for the "Market insights" title
 const TITLE_GRADIENT_COLORS = ['#FFA680', '#BAF24A'];
@@ -70,38 +69,6 @@ const GradientTitle: React.FC = () => (
 );
 
 /**
- * Renders the summary text with trend titles highlighted.
- * Searches the summary for occurrences of trend titles and renders them.
- */
-const HighlightedSummary: React.FC<{
-  summary: string;
-  trendTitles: string[];
-}> = ({ summary, trendTitles }) => {
-  const segments = useMemo(
-    () => buildHighlightedSegments(summary, trendTitles),
-    [summary, trendTitles],
-  );
-
-  return (
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-      {segments.map((segment, index) =>
-        segment.highlighted ? (
-          <Text
-            key={`segment-${index}`}
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
-          >
-            {segment.text}
-          </Text>
-        ) : (
-          segment.text
-        ),
-      )}
-    </Text>
-  );
-};
-
-/**
  * MarketInsightsEntryCard is the entry point card shown on the token details page.
  * Tapping navigates to the full Market Insights view.
  */
@@ -112,10 +79,6 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
-  const trendTitles = useMemo(
-    () => report.trends.map((t) => t.title),
-    [report.trends],
-  );
 
   return (
     <Pressable
@@ -137,7 +100,9 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
         {report.headline}
       </Text>
 
-      <HighlightedSummary summary={report.summary} trendTitles={trendTitles} />
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {report.summary}
+      </Text>
 
       <Text
         variant={TextVariant.BodyXs}
