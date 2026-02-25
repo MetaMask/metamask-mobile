@@ -26,7 +26,7 @@ const BackupAndSyncSettings = () => {
 
   return (
     <SafeAreaView
-      edges={['bottom']}
+      edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
       testID={BackupAndSyncSettingsSelectorsIDs.SAFE_AREA}
     >

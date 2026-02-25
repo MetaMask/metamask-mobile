@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
 
 import BackupAndSyncSettings from './BackupAndSyncSettings';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -39,14 +39,13 @@ describe('BackupAndSyncSettings', () => {
   });
 
   it('renders HeaderCompactStandard with backup and sync title', () => {
-    const { getByTestId, getAllByText } = renderWithProvider(
-      <BackupAndSyncSettings />,
-    );
+    const { getByTestId } = renderWithProvider(<BackupAndSyncSettings />);
 
+    const header = getByTestId(BackupAndSyncSettingsSelectorsIDs.HEADER);
+    expect(header).toBeOnTheScreen();
     expect(
-      getByTestId(BackupAndSyncSettingsSelectorsIDs.HEADER),
+      within(header).getByText(strings('backupAndSync.title')),
     ).toBeOnTheScreen();
-    expect(getAllByText(strings('backupAndSync.title'))[0]).toBeOnTheScreen();
   });
 
   it('navigates back when back button is pressed', () => {
