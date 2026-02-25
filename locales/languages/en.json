@@ -7483,7 +7483,10 @@
       "show_less": "Show less",
       "linking_progress": "Adding accounts... ({{current}}/{{total}})",
       "accounts_linked_count": "{{linked}}/{{total}} enrolled",
-      "add_all_accounts": "Add all accounts"
+      "add_all_accounts": "Add all accounts",
+      "environment_selector": "Environment",
+      "environment_cancel": "Cancel",
+      "environment_default": "Default"
     },
     "referred_by_code": {
       "title": "Referral Code",
