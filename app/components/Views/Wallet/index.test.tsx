@@ -404,6 +404,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: jest.fn(() => ({
       navigate: mockNavigate,
       setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
     })),
     useRoute: jest.fn(() => ({
       params: {},
@@ -903,6 +904,7 @@ describe('Wallet', () => {
       const mockNavigationObject = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Clear previous calls
@@ -973,6 +975,7 @@ describe('Wallet', () => {
       const mockNavigationObject = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Clear previous calls
@@ -1022,6 +1025,7 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Default to enabled
@@ -1198,6 +1202,7 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Default to enabled
@@ -1423,6 +1428,7 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Reset flags to default state

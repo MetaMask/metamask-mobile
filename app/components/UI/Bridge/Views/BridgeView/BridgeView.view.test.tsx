@@ -39,6 +39,13 @@ const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
 };
 
 describeForPlatforms('BridgeView', () => {
+  beforeEach(() => {
+    // testSetup.js mocks Date.now to always return 123, which breaks lodash debounce
+    // (timeSinceLastCall = 123 - 123 = 0 never reaches the wait threshold).
+    // Restore it to a real implementation so debounce-based tests work correctly.
+    Date.now = () => new Date().getTime();
+  });
+
   it('renders input areas and hides confirm button without tokens or amount', () => {
     const { getByTestId, queryByTestId } = renderBridgeView({
       overrides: {
