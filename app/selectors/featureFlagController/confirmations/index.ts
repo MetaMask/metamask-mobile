@@ -8,6 +8,12 @@ export const BUFFER_STEP_DEFAULT = 0.025;
 export const BUFFER_SUBSEQUENT_DEFAULT = 0.05;
 export const SLIPPAGE_DEFAULT = 0.005;
 
+export interface PreferredToken {
+  address: string;
+  chainId: string;
+  successRate: number;
+}
+
 export interface MetaMaskPayFlags {
   attemptsMax: number;
   bufferInitial: number;
@@ -16,6 +22,9 @@ export interface MetaMaskPayFlags {
   slippage: number;
   predictWithdrawAnyToken: boolean;
   perpsWithdrawAnyToken: boolean;
+  preferredTokensPredict: PreferredToken[];
+  preferredTokensPerps: PreferredToken[];
+  minimumRequiredTokenBalance: number;
 }
 
 export interface GasFeeTokenFlags {
@@ -34,7 +43,7 @@ export const selectMetaMaskPayFlags = createSelector(
   selectRemoteFeatureFlags,
   (featureFlags): MetaMaskPayFlags => {
     const metaMaskPayFlags = featureFlags?.confirmations_pay as
-      | Record<string, Json>
+      | Record<string, Json | PreferredToken[]>
       | undefined;
 
     const attemptsMax =
@@ -62,6 +71,12 @@ export const selectMetaMaskPayFlags = createSelector(
         (metaMaskPayFlags?.predictWithdrawAnyToken as boolean) ?? false,
       perpsWithdrawAnyToken:
         (metaMaskPayFlags?.perpsWithdrawAnyToken as boolean) ?? false,
+      preferredTokensPredict:
+        (metaMaskPayFlags?.preferredTokensPredict as PreferredToken[]) ?? [],
+      preferredTokensPerps:
+        (metaMaskPayFlags?.preferredTokensPerps as PreferredToken[]) ?? [],
+      minimumRequiredTokenBalance:
+        (metaMaskPayFlags?.minimumRequiredTokenBalance as number) ?? 0,
     };
   },
 );

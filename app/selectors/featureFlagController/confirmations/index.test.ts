@@ -9,6 +9,7 @@ import {
   selectNonZeroUnusedApprovalsAllowList,
   selectGasFeeTokenFlags,
   GasFeeTokenFlags,
+  PreferredToken,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -290,5 +291,66 @@ describe('Withdraw Any Token Flags (in selectMetaMaskPayFlags)', () => {
     const result = selectMetaMaskPayFlags(state);
     expect(result.perpsWithdrawAnyToken).toBe(true);
     expect(result.predictWithdrawAnyToken).toBe(false);
+  });
+});
+
+describe('Preferred Tokens and Minimum Balance Flags (in selectMetaMaskPayFlags)', () => {
+  const preferredTokensMock: PreferredToken[] = [
+    { address: '0xtoken1', chainId: '0x1', successRate: 0.95 },
+    { address: '0xtoken2', chainId: '0x89', successRate: 0.8 },
+  ];
+
+  it('returns empty preferred tokens arrays when confirmations_pay is missing', () => {
+    const result = selectMetaMaskPayFlags(mockedEmptyFlagsState);
+
+    expect(result.preferredTokensPredict).toEqual([]);
+    expect(result.preferredTokensPerps).toEqual([]);
+  });
+
+  it('returns default minimumRequiredTokenBalance of 0 when not in feature flags', () => {
+    const result = selectMetaMaskPayFlags(mockedEmptyFlagsState);
+
+    expect(result.minimumRequiredTokenBalance).toBe(0);
+  });
+
+  it('returns preferredTokensPredict from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          preferredTokensPredict: preferredTokensMock,
+        },
+      };
+
+    const result = selectMetaMaskPayFlags(state);
+    expect(result.preferredTokensPredict).toEqual(preferredTokensMock);
+    expect(result.preferredTokensPerps).toEqual([]);
+  });
+
+  it('returns preferredTokensPerps from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          preferredTokensPerps: preferredTokensMock,
+        },
+      };
+
+    const result = selectMetaMaskPayFlags(state);
+    expect(result.preferredTokensPerps).toEqual(preferredTokensMock);
+    expect(result.preferredTokensPredict).toEqual([]);
+  });
+
+  it('returns minimumRequiredTokenBalance from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          minimumRequiredTokenBalance: 10,
+        },
+      };
+
+    const result = selectMetaMaskPayFlags(state);
+    expect(result.minimumRequiredTokenBalance).toBe(10);
   });
 });
