@@ -24,7 +24,6 @@ type ActiveBottomSheet = 'none' | 'time' | 'network' | 'price_change';
 
 export interface BridgeTrendingZeroStateRef {
   loadNextChunkIfAvailable: () => void;
-  hasMore: () => boolean;
 }
 
 const BridgeTrendingZeroState = forwardRef<BridgeTrendingZeroStateRef>(
@@ -85,9 +84,8 @@ const BridgeTrendingZeroState = forwardRef<BridgeTrendingZeroStateRef>(
       ref,
       () => ({
         loadNextChunkIfAvailable,
-        hasMore: () => hasMore,
       }),
-      [hasMore, loadNextChunkIfAvailable],
+      [loadNextChunkIfAvailable],
     );
 
     const closeBottomSheet = useCallback(() => {

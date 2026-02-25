@@ -68,7 +68,7 @@ const createStyles = (theme: Theme) =>
     showMoreButton: {
       marginTop: 12,
       paddingVertical: 8,
-      alignSelf: 'flex-start',
+      alignSelf: 'center',
     },
     showMoreButtonText: {
       color: theme.colors.primary.default,

@@ -430,11 +430,6 @@ const BridgeView = () => {
       return;
     }
 
-    const trendingZeroState = trendingZeroStateRef.current;
-    if (!trendingZeroState?.hasMore()) {
-      return;
-    }
-
     const {
       scrollOffsetY,
       viewportHeight,
@@ -461,7 +456,7 @@ const BridgeView = () => {
     }
 
     trendingScrollMetricsRef.current.lastLoadTriggeredAt = now;
-    trendingZeroState.loadNextChunkIfAvailable();
+    trendingZeroStateRef.current?.loadNextChunkIfAvailable();
   }, [contentMode]);
 
   const handleScroll = useCallback(
