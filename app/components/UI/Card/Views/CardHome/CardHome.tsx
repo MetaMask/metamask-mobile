@@ -31,6 +31,7 @@ import {
   useFocusEffect,
 } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
+import { useQueryClient } from '@tanstack/react-query';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -72,10 +73,10 @@ import {
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
-  clearAllCache,
   resetAuthenticatedData,
   selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
+import { cardKeys } from '../../queries';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -111,6 +112,8 @@ import {
   type ShippingAddress,
 } from '../../util/buildUserAddress';
 import AnimatedSpinner from '../../../AnimatedSpinner';
+import Logger from '../../../../../util/Logger';
+import { RootState } from '../../../../../reducers';
 
 /**
  * Route params for CardHome screen
@@ -166,6 +169,7 @@ const CardHome = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const theme = useTheme();
   const tw = useTailwind();
 
@@ -599,6 +603,12 @@ const CardHome = () => {
     createEventBuilder,
   ]);
 
+  // TODO: remove after verifying migration 123 cleaned the card state
+  const cardReduxState = useSelector((s: RootState) => s.card);
+  useEffect(() => {
+    Logger.log('[CardHome] card redux state:', JSON.stringify(cardReduxState));
+  }, [cardReduxState]);
+
   const changeAssetAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -986,7 +996,7 @@ const CardHome = () => {
         }
 
         dispatch(resetAuthenticatedData());
-        dispatch(clearAllCache());
+        queryClient.removeQueries({ queryKey: cardKeys.all() });
 
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -1009,7 +1019,7 @@ const CardHome = () => {
     };
 
     handleAuthenticationError();
-  }, [cardError, dispatch, isAuthenticated, navigation, toastRef]);
+  }, [cardError, dispatch, queryClient, isAuthenticated, navigation, toastRef]);
 
   useEffect(() => {
     if (isSDKLoading) {

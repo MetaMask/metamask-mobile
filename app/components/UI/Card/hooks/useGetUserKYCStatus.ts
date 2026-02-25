@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
 import Logger from '../../../../util/Logger';
 import { CardVerificationState, UserResponse } from '../types';
-import { useWrapWithCache } from './useWrapWithCache';
+import { cardKeys } from '../queries';
 
 export interface UserKYCStatus {
   verificationState: CardVerificationState | null;
@@ -18,50 +19,50 @@ interface UseGetUserKYCStatusResult {
 }
 
 /**
- * Hook to fetch user KYC verification status
- * Only fetches when user is authenticated
+ * Hook to fetch user KYC verification status.
+ * Only fetches when user is authenticated.
  *
  * @param isAuthenticated - Whether the user is authenticated
- * @returns {UseGetUserKYCStatusResult} KYC status data, loading state, error, and fetch function
+ * @returns KYC status data, loading state, error, and fetch function
  */
 const useGetUserKYCStatus = (
   isAuthenticated: boolean,
 ): UseGetUserKYCStatusResult => {
   const { sdk } = useCardSDK();
 
-  const fetchKYCStatusInternal = useCallback(async () => {
-    if (!isAuthenticated || !sdk) {
-      return null;
-    }
+  const { data, isLoading, error, refetch } = useQuery<UserKYCStatus | null>({
+    queryKey: cardKeys.kycStatus(),
+    queryFn: async () => {
+      try {
+        if (!sdk) throw new Error('SDK not initialized');
+        const response = await sdk.getUserDetails();
 
-    try {
-      const response = await sdk.getUserDetails();
-
-      return {
-        verificationState: response.verificationState ?? null,
-        userId: response.id,
-        userDetails: response,
-      };
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err : new Error('Failed to fetch KYC status');
-      Logger.log('useGetUserKYCStatus: Error fetching KYC status', err);
-      throw errorMessage;
-    }
-  }, [sdk, isAuthenticated]);
-
-  const cacheResult = useWrapWithCache('kyc-status', fetchKYCStatusInternal, {
-    cacheDuration: 60 * 1000, // 60 seconds cache
-    fetchOnMount: false, // Disabled - fetchAllData orchestrates fetching
+        return {
+          verificationState: response.verificationState ?? null,
+          userId: response.id,
+          userDetails: response,
+        };
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err : new Error('Failed to fetch KYC status');
+        Logger.log('useGetUserKYCStatus: Error fetching KYC status', err);
+        throw errorMessage;
+      }
+    },
+    enabled: isAuthenticated && !!sdk,
+    staleTime: 60_000,
   });
 
-  const { data, isLoading, error, fetchData } = cacheResult;
+  const fetchKYCStatus = useCallback(async () => {
+    const result = await refetch();
+    return result.data ?? null;
+  }, [refetch]);
 
   return {
-    kycStatus: data,
+    kycStatus: data ?? null,
     isLoading,
-    error,
-    fetchKYCStatus: fetchData,
+    error: error as Error | null,
+    fetchKYCStatus,
   };
 };
 

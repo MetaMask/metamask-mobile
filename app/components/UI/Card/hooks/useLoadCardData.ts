@@ -1,6 +1,8 @@
 import { useSelector } from 'react-redux';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
 import useCardDetails from './useCardDetails';
 import { useGetPriorityCardToken } from './useGetPriorityCardToken';
@@ -9,6 +11,7 @@ import useGetDelegationSettings from './useGetDelegationSettings';
 import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
 import useGetUserKYCStatus from './useGetUserKYCStatus';
 import { CardTokenAllowance, CardStateWarning } from '../types';
+import { cardKeys } from '../queries';
 
 /**
  * Hook to load card data.
@@ -18,14 +21,6 @@ import { CardTokenAllowance, CardStateWarning } from '../types';
  * 2. Unauthenticated mode: The user is not authenticated BUT is a Cardholder -- everything should be fetched on-chain.
  *
  * The isAuthenticated flag is used to determine the mode.
- *
- * The hook will return the following data:
- * Shared by both modes:
- * - Priority token (single token with highest priority)
- * - All available tokens with allowances (for asset selection)
- * - Asset Balance (via useAssetBalances hook - used separately)
- * - Open Swaps (via useOpenSwaps hook - used separately)
- * - Card Details (for card status, type, etc.)
  *
  * @returns Object containing:
  * - priorityToken: The token with highest priority (first with balance)
@@ -40,38 +35,35 @@ import { CardTokenAllowance, CardStateWarning } from '../types';
 const useLoadCardData = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
+  const queryClient = useQueryClient();
+  const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:0',
+  )?.address;
 
-  // Get delegation settings (only used in authenticated mode)
+  // Delegation settings (authenticated mode only)
   const {
     data: delegationSettings,
     isLoading: isLoadingDelegationSettings,
     error: delegationSettingsError,
-    fetchData: fetchDelegationSettings,
   } = useGetDelegationSettings();
 
-  // Authenticated mode: Get all wallet details from API
-  // Pass delegationSettings to avoid duplicate hook calls
+  // External wallet details (authenticated mode, depends on delegationSettings)
   const {
     data: externalWalletDetailsData,
     isLoading: isLoadingExternalWalletDetails,
     error: externalWalletDetailsError,
-    fetchData: fetchExternalWalletDetails,
   } = useGetCardExternalWalletDetails(delegationSettings);
 
-  // Get priority token (works for both authenticated and unauthenticated)
-  // Authenticated: uses externalWalletDetailsData
-  // Unauthenticated: fetches allowances internally via sdk.getSupportedTokensAllowances()
+  // Priority token (authenticated: derived from external wallet, unauthenticated: on-chain query)
   const {
     priorityToken,
     allTokensWithAllowances,
     isLoading: isLoadingPriorityToken,
     error: priorityTokenError,
     warning: priorityTokenWarning,
-    fetchPriorityToken,
   } = useGetPriorityCardToken(externalWalletDetailsData);
 
-  // Get latest allowance for priority token (authenticated mode only, for spending limit display)
-  // This fetches the most recent approval amount from on-chain logs
+  // Latest allowance for priority token (authenticated mode only, for spending limit display)
   const {
     latestAllowance: priorityTokenLatestAllowance,
     isLoading: isLoadingLatestAllowance,
@@ -79,12 +71,11 @@ const useLoadCardData = () => {
     isAuthenticated ? priorityToken : null,
   );
 
-  // Get user KYC status (authenticated mode only)
+  // User KYC status (authenticated mode only)
   const {
     kycStatus,
     isLoading: isLoadingKYCStatus,
     error: kycStatusError,
-    fetchKYCStatus,
   } = useGetUserKYCStatus(isAuthenticated);
 
   // Update priority token with latest allowance if available
@@ -99,7 +90,7 @@ const useLoadCardData = () => {
     };
   }, [priorityToken, priorityTokenLatestAllowance, isAuthenticated]);
 
-  // Get card details (only needed for unauthenticated mode)
+  // Card details
   const {
     cardDetails,
     isLoading: isLoadingCardDetails,
@@ -111,10 +102,8 @@ const useLoadCardData = () => {
   // Determine which tokens list to use based on authentication status
   const allTokens: CardTokenAllowance[] = useMemo(() => {
     if (isAuthenticated) {
-      // Authenticated: Use API data (tokens user has delegated)
       return externalWalletDetailsData?.mappedWalletDetails || [];
     }
-    // Unauthenticated: Use on-chain data from useGetPriorityCardToken
     return allTokensWithAllowances || [];
   }, [externalWalletDetailsData, isAuthenticated, allTokensWithAllowances]);
 
@@ -157,7 +146,6 @@ const useLoadCardData = () => {
         cardDetailsError
       );
     }
-    // In unauthenticated mode, still check for delegation settings and card details errors
     return baseError || delegationSettingsError || cardDetailsError;
   }, [
     priorityTokenError,
@@ -169,7 +157,7 @@ const useLoadCardData = () => {
   ]);
 
   // Combined warning (only from priority token and card details)
-  // Priority: NoCard warning always takes precedence because the user must provision a card before delegating
+  // Priority: NoCard warning always takes precedence
   const warning = useMemo(() => {
     if (cardDetailsWarning === CardStateWarning.NoCard) {
       return cardDetailsWarning;
@@ -177,34 +165,28 @@ const useLoadCardData = () => {
     return priorityTokenWarning || cardDetailsWarning;
   }, [priorityTokenWarning, cardDetailsWarning]);
 
-  // Manual fetch function to refresh all data
-  // Note: fetchExternalWalletDetails depends on delegationSettings, so we must
-  // ensure delegation settings is available first before fetching wallet details
-  const fetchAllData = useMemo(
-    () => async () => {
-      if (isAuthenticated) {
-        // First, fetch delegation settings (required for external wallet details)
-        await fetchDelegationSettings();
-        // Then fetch all other data in parallel
-        await Promise.all([
-          fetchPriorityToken(),
-          fetchCardDetails(),
-          fetchExternalWalletDetails(),
-          fetchKYCStatus(),
-        ]);
-      } else {
-        await fetchPriorityToken();
-      }
-    },
-    [
-      fetchPriorityToken,
-      fetchCardDetails,
-      isAuthenticated,
-      fetchExternalWalletDetails,
-      fetchKYCStatus,
-      fetchDelegationSettings,
-    ],
-  );
+  // Refresh all data via React Query.
+  // Preserves the delegation-settings-first ordering for the authenticated path.
+  const fetchAllData = useCallback(async () => {
+    if (isAuthenticated) {
+      // Refetch delegation settings first (root dependency for external wallet details)
+      await queryClient.refetchQueries({
+        queryKey: cardKeys.delegationSettings(),
+      });
+      // Then refetch all dependent queries in parallel
+      await Promise.all([
+        queryClient.refetchQueries({
+          queryKey: cardKeys.externalWalletDetails(),
+        }),
+        queryClient.refetchQueries({ queryKey: cardKeys.cardDetails() }),
+        queryClient.refetchQueries({ queryKey: cardKeys.kycStatus() }),
+      ]);
+    } else if (selectedAddress) {
+      await queryClient.refetchQueries({
+        queryKey: cardKeys.priorityTokenOnChain(selectedAddress),
+      });
+    }
+  }, [queryClient, isAuthenticated, selectedAddress]);
 
   return {
     // Token data

@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
 import {
   CardDetailsResponse,
@@ -9,8 +10,8 @@ import {
 } from '../types';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
-import { useWrapWithCache } from './useWrapWithCache';
 import { AUTHENTICATED_CACHE_DURATION } from '../constants';
+import { cardKeys } from '../queries';
 
 interface CardDetailsResult {
   cardDetails: CardDetailsResponse | null;
@@ -21,13 +22,16 @@ const useCardDetails = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const { sdk } = useCardSDK();
 
-  const fetchCardDetailsInternal =
-    useCallback(async (): Promise<CardDetailsResult | null> => {
-      if (!sdk || !isAuthenticated) {
-        return null;
-      }
-
+  const {
+    data: cardDetailsData,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<CardDetailsResult | null>({
+    queryKey: cardKeys.cardDetails(),
+    queryFn: async (): Promise<CardDetailsResult | null> => {
       try {
+        if (!sdk) throw new Error('SDK not initialized');
         const cardDetailsResponse = await sdk.getCardDetails();
         let warning: CardStateWarning | null = null;
 
@@ -53,30 +57,21 @@ const useCardDetails = () => {
 
         throw err;
       }
-    }, [sdk, isAuthenticated]);
-
-  // Use cache wrapper for card details
-  const cacheResult = useWrapWithCache(
-    'card-details',
-    fetchCardDetailsInternal,
-    {
-      cacheDuration: AUTHENTICATED_CACHE_DURATION, // 30 seconds cache
-      fetchOnMount: false,
     },
-  );
+    enabled: isAuthenticated && !!sdk,
+    staleTime: AUTHENTICATED_CACHE_DURATION,
+  });
 
-  const {
-    data: cardDetailsData,
-    isLoading,
-    error,
-    fetchData: fetchCardDetails,
-  } = cacheResult;
+  const fetchCardDetails = useCallback(async () => {
+    const result = await refetch();
+    return result.data ?? null;
+  }, [refetch]);
 
   return {
     cardDetails: cardDetailsData?.cardDetails ?? null,
     warning: cardDetailsData?.warning ?? null,
     isLoading,
-    error,
+    error: error as Error | null,
     fetchCardDetails,
   };
 };

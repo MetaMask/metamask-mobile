@@ -1,16 +1,12 @@
 import { useCallback } from 'react';
-import { useDispatch } from 'react-redux';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
-import {
-  setAuthenticatedPriorityToken,
-  setAuthenticatedPriorityTokenLastFetched,
-  clearCacheData,
-} from '../../../../core/redux/slices/card';
 import {
   CardTokenAllowance,
   CardExternalWalletDetailsResponse,
 } from '../types';
 import Logger from '../../../../util/Logger';
+import { cardKeys } from '../queries';
 
 interface UseUpdateTokenPriorityParams {
   onSuccess?: () => void;
@@ -25,7 +21,7 @@ export const useUpdateTokenPriority = (
   params?: UseUpdateTokenPriorityParams,
 ) => {
   const { sdk } = useCardSDK();
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const { onSuccess, onError } = params || {};
 
   const updateTokenPriority = useCallback(
@@ -97,27 +93,11 @@ export const useUpdateTokenPriority = (
         // Update priority via SDK
         await sdk.updateWalletPriority(newPriorities);
 
-        // Invalidate external wallet details cache to force refetch with updated priorities
-        dispatch(clearCacheData('card-external-wallet-details'));
-
-        // Update priority token in Redux with new priority value
-        const priorityTokenData: CardTokenAllowance = {
-          address: token.address,
-          decimals: token.decimals,
-          symbol: token.symbol,
-          name: token.name,
-          allowanceState: token.allowanceState,
-          allowance: token.allowance || '0',
-          availableBalance: token.availableBalance || '0',
-          walletAddress: selectedWallet.walletAddress,
-          caipChainId: token.caipChainId,
-          delegationContract: token.delegationContract,
-          priority: 1, // New priority is always 1 (highest)
-          stagingTokenAddress: token.stagingTokenAddress,
-        };
-
-        dispatch(setAuthenticatedPriorityToken(priorityTokenData));
-        dispatch(setAuthenticatedPriorityTokenLastFetched(new Date()));
+        // Invalidate external wallet details cache to force refetch with updated priorities.
+        // The priority token is derived from this data via React Query.
+        await queryClient.invalidateQueries({
+          queryKey: cardKeys.externalWalletDetails(),
+        });
 
         onSuccess?.();
         return true;
@@ -130,7 +110,7 @@ export const useUpdateTokenPriority = (
         return false;
       }
     },
-    [sdk, dispatch, onSuccess, onError],
+    [sdk, queryClient, onSuccess, onError],
   );
 
   return {
