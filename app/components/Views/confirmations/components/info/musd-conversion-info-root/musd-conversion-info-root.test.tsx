@@ -2,7 +2,6 @@ import React from 'react';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { MusdConversionInfoRoot } from './musd-conversion-info-root';
-import { MusdConversionVariant } from '../../../../../UI/Earn/types/musd.types';
 
 const MUSD_CONVERSION_INFO_TEST_ID = 'musd-conversion-info';
 const MUSD_MAX_CONVERSION_INFO_TEST_ID = 'musd-max-conversion-info';
@@ -34,9 +33,9 @@ describe('MusdConversionInfoRoot', () => {
     jest.clearAllMocks();
   });
 
-  it('renders MusdMaxConversionInfo when variant is QUICK_CONVERT', () => {
+  it('renders MusdMaxConversionInfo when forceBottomSheet is true', () => {
     mockUseParams.mockReturnValue({
-      variant: MusdConversionVariant.QUICK_CONVERT,
+      forceBottomSheet: true,
     });
 
     const { getByTestId, queryByTestId } = renderWithProvider(
@@ -47,7 +46,7 @@ describe('MusdConversionInfoRoot', () => {
     expect(queryByTestId(MUSD_CONVERSION_INFO_TEST_ID)).toBeNull();
   });
 
-  it('renders MusdConversionInfo when variant is undefined', () => {
+  it('renders MusdConversionInfo when forceBottomSheet is undefined', () => {
     mockUseParams.mockReturnValue({});
 
     const { getByTestId, queryByTestId } = renderWithProvider(
@@ -58,8 +57,8 @@ describe('MusdConversionInfoRoot', () => {
     expect(queryByTestId(MUSD_MAX_CONVERSION_INFO_TEST_ID)).toBeNull();
   });
 
-  it('renders MusdConversionInfo when variant is a non-matching value', () => {
-    mockUseParams.mockReturnValue({ variant: 'customAmount' });
+  it('renders MusdConversionInfo when forceBottomSheet is false', () => {
+    mockUseParams.mockReturnValue({ forceBottomSheet: false });
 
     const { getByTestId, queryByTestId } = renderWithProvider(
       <MusdConversionInfoRoot />,

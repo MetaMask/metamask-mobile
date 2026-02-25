@@ -16,7 +16,6 @@ import { RootState } from '../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { AssetType } from '../../../Views/confirmations/types/token';
-import { MusdConversionVariant } from '../types/musd.types';
 
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
 
@@ -662,7 +661,7 @@ describe('useMusdConversion', () => {
         {
           screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
           params: {
-            variant: MusdConversionVariant.QUICK_CONVERT,
+            forceBottomSheet: true,
             token: mockToken,
           },
         },
@@ -821,7 +820,7 @@ describe('useMusdConversion', () => {
         {
           screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
           params: {
-            variant: MusdConversionVariant.QUICK_CONVERT,
+            forceBottomSheet: true,
             token: mockToken,
           },
         },

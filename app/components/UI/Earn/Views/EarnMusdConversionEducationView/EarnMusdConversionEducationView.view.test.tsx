@@ -9,7 +9,7 @@ import { fireEvent, act } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
-import { analytics } from '../../../../../util/analytics/analytics';
+import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
 
 describeForPlatforms('EarnMusdConversionEducationView', () => {
@@ -203,7 +203,6 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     process.env.MM_MUSD_QUICK_CONVERT_ENABLED = 'true';
     process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
 
-    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
@@ -241,6 +240,12 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     const continueButton = getByText(
       strings('earn.musd_conversion.education.primary_button'),
     );
+    const useAnalyticsMock = jest.mocked(useAnalytics);
+    const analyticsMock = useAnalyticsMock.mock.results[0]?.value;
+    const trackEventSpy = analyticsMock?.trackEvent as jest.Mock;
+    const createEventBuilderSpy =
+      analyticsMock?.createEventBuilder as jest.Mock;
+    createEventBuilderSpy.mockClear();
     trackEventSpy.mockClear();
 
     // Act
@@ -251,12 +256,13 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
 
       // Assert
       expect(trackEventSpy).toHaveBeenCalledTimes(1);
-      expect(trackEventSpy).toHaveBeenCalledWith(
+      expect(createEventBuilderSpy).toHaveBeenCalledTimes(1);
+      const eventBuilder = createEventBuilderSpy.mock.results[0]
+        ?.value as Record<string, jest.Mock>;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          properties: expect.objectContaining({
-            redirects_to:
-              MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
-          }),
+          redirects_to:
+            MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
         }),
       );
     } finally {
