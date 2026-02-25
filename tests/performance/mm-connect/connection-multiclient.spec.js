@@ -33,8 +33,8 @@ const DAPP_PORT = 8090;
 const ACCOUNT_1_EVM_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
 const ACCOUNT_1_SOLANA_ADDRESS = '6fr9gpqbsszm6snzsjubu91jwxeduhwnvnkwxqksfwcz';
 
-const ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT = 'TnB0MoNjYOTozLwKcZskdyzYszWHetTLcDskffjqLgQ9nYUbM47JySKpEyTZtA48CdMsPK+erAeId6ayzBoJBQ==';
-
+const ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT =
+  'TnB0MoNjYOTozLwKcZskdyzYszWHetTLcDskffjqLgQ9nYUbM47JySKpEyTZtA48CdMsPK+erAeId6ayzBoJBQ==';
 
 // Create the playground server using the shared framework
 const playgroundServer = new DappServer({
@@ -195,7 +195,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT);
+      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(
+        ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,
+      );
 
       // Test EVM sign (legacy personal sign) when EVM is connected
       await BrowserPlaygroundDapp.tapPersonalSign();
@@ -308,7 +310,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT);
+      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(
+        ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,
+      );
 
       // Disconnect Solana
       await BrowserPlaygroundDapp.tapSolanaDisconnect();
@@ -386,7 +390,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT);
+      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(
+        ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,
+      );
 
       // Make sure EVM is still connected
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
@@ -464,7 +470,6 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     },
     DAPP_URL,
   );
-
 
   //
   // Cleanup - disconnect
