@@ -125,6 +125,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       }
     >
       <Image
+        onError={[Function]}
+        resizeMode="contain"
         source={1}
         style={
           {
@@ -134,6 +136,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             "width": 30,
           }
         }
+        testID="ledger-connect-image"
       />
     </View>
     <View
