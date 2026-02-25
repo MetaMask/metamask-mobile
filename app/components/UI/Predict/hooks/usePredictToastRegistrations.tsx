@@ -287,7 +287,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         if (status === 'confirmed') {
           const fallbackAmount = amount ?? withdrawTransaction?.amount ?? 0;
           const { title, description } = getWithdrawConfirmedMessage(
-            store.getState(),
+            store.getState(), // TODO: Refactor the hook to react to status changes instead of using it as a callback.
             transactionId,
             fallbackAmount,
           );
