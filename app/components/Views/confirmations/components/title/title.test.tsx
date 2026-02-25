@@ -28,6 +28,12 @@ import Title from './title';
 
 jest.mock('../../hooks/useGetTokenStandardAndDetails');
 
+jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
+  useFullScreenConfirmation: jest.fn(() => ({
+    isFullScreenConfirmation: false,
+  })),
+}));
+
 describe('Confirm Title', () => {
   const typedSignRequestId = 'fb2029e1-b0ab-11ef-9227-05a11087c334';
   const daiPermitAllowedStringFalseData = JSON.stringify({
