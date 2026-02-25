@@ -123,7 +123,7 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
     );
   });
 
-  it.only('converts USDC to mUSD from Token List (Returning User)', async () => {
+  it('converts USDC to mUSD from Token List (Returning User)', async () => {
     await withFixtures(
       withMusdFixturesOptions({
         musdConversionEducationSeen: true,
