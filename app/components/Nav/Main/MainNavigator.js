@@ -425,7 +425,7 @@ const SettingsFlow = () => {
           <Stack.Screen
             name="AesCryptoTestForm"
             component={AesCryptoTestForm}
-            options={AesCryptoTestForm.navigationOptions}
+            options={{ headerShown: false }}
           />
         )
       }
