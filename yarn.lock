@@ -12647,19 +12647,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-navigation/bottom-tabs@npm:^5.11.11":
-  version: 5.11.11
-  resolution: "@react-navigation/bottom-tabs@npm:5.11.11"
+"@react-navigation/bottom-tabs@npm:^7.14.0":
+  version: 7.14.0
+  resolution: "@react-navigation/bottom-tabs@npm:7.14.0"
   dependencies:
-    color: "npm:^3.1.3"
-    react-native-iphone-x-helper: "npm:^1.3.0"
+    "@react-navigation/elements": "npm:^2.9.5"
+    color: "npm:^4.2.3"
+    sf-symbols-typescript: "npm:^2.1.0"
   peerDependencies:
-    "@react-navigation/native": ^5.0.5
-    react: "*"
+    "@react-navigation/native": ^7.1.28
+    react: ">= 18.2.0"
     react-native: "*"
-    react-native-safe-area-context: ">= 0.6.0"
-    react-native-screens: ">= 2.0.0-alpha.0 || >= 2.0.0-beta.0 || >= 2.0.0"
-  checksum: 10/5681624e2f876d7301b38aae6b6359dad596703fa0670b03e208f916bb9d6fb6058d3bd9c5eccb90f1bbe7660d3a010c1dc703ff5a153b36b3f515faf56ce0c0
+    react-native-safe-area-context: ">= 4.0.0"
+    react-native-screens: ">= 4.0.0"
+  checksum: 10/0a81b2bc9b58234898bfecc5fb70a578729bfd4d1205284c598e3a3f59beedb151b4c35381ac7be139d28ffaa18d53cf2eacf7cec30c7a3f9f4738527eb5e6f1
   languageName: node
   linkType: hard
 
@@ -12685,6 +12686,26 @@ __metadata:
   peerDependencies:
     react: "*"
   checksum: 10/7b9231d7cce268c59f124a514f2769ebf24a8d6c484ac572e0a13d5cd04e8270d6dfa6a93fd5719d22c3e385a8d28b6cd0a039fbbeb15578005c5c866903bce5
+  languageName: node
+  linkType: hard
+
+"@react-navigation/elements@npm:^2.9.5":
+  version: 2.9.5
+  resolution: "@react-navigation/elements@npm:2.9.5"
+  dependencies:
+    color: "npm:^4.2.3"
+    use-latest-callback: "npm:^0.2.4"
+    use-sync-external-store: "npm:^1.5.0"
+  peerDependencies:
+    "@react-native-masked-view/masked-view": ">= 0.2.0"
+    "@react-navigation/native": ^7.1.28
+    react: ">= 18.2.0"
+    react-native: "*"
+    react-native-safe-area-context: ">= 4.0.0"
+  peerDependenciesMeta:
+    "@react-native-masked-view/masked-view":
+      optional: true
+  checksum: 10/b71c367082527dda303dfaa319af930ccbb1622f2cbe018382c8070c91944b59891fcabe048a76590d52ee07eac7ca9acb33e03fdacd8092aff1d58a165b0762
   languageName: node
   linkType: hard
 
@@ -35456,7 +35477,7 @@ __metadata:
     "@react-native/eslint-config": "npm:0.76.9"
     "@react-native/metro-config": "npm:0.76.9"
     "@react-native/typescript-config": "npm:0.76.9"
-    "@react-navigation/bottom-tabs": "npm:^5.11.11"
+    "@react-navigation/bottom-tabs": "npm:^7.14.0"
     "@react-navigation/compat": "npm:^5.3.20"
     "@react-navigation/native": "npm:^5.9.4"
     "@react-navigation/stack": "npm:^5.14.5"
@@ -42828,6 +42849,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"sf-symbols-typescript@npm:^2.1.0":
+  version: 2.2.0
+  resolution: "sf-symbols-typescript@npm:2.2.0"
+  checksum: 10/8623e148bf86151692d3ccb3149122c091b256162a39f4c4f78472811ffe92e3c77a83841a7381a5dc0bc6505ebb73e7ca8901cb077004872d7ee1cb4e5be9d4
+  languageName: node
+  linkType: hard
+
 "sha.js@npm:^2.3.6, sha.js@npm:^2.4.0, sha.js@npm:^2.4.11, sha.js@npm:^2.4.8":
   version: 2.4.12
   resolution: "sha.js@npm:2.4.12"
@@ -46101,6 +46129,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"use-latest-callback@npm:^0.2.4":
+  version: 0.2.6
+  resolution: "use-latest-callback@npm:0.2.6"
+  peerDependencies:
+    react: ">=16.8"
+  checksum: 10/67a245bf91b23ef0d2d2c8a52845da62e006867bd9d93a99ca4d2f859101fcd54c7afd4f5a3b8bb5d24283f516e7e41bd8226250ee39affc33bd1cfd622a5cfb
+  languageName: node
+  linkType: hard
+
 "use-latest@npm:^1.2.1":
   version: 1.2.1
   resolution: "use-latest@npm:1.2.1"
@@ -46149,6 +46186,15 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
   checksum: 10/a676216affc203876bd47981103f201f28c2731361bb186367e12d287a7566763213a8816910c6eb88265eccd4c230426eb783d64c373c4a180905be8820ed8e
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.5.0":
+  version: 1.6.0
+  resolution: "use-sync-external-store@npm:1.6.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/b40ad2847ba220695bff2d4ba4f4d60391c0fb4fb012faa7a4c18eb38b69181936f5edc55a522c4d20a788d1a879b73c3810952c9d0fd128d01cb3f22042c09e
   languageName: node
   linkType: hard
 

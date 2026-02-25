@@ -320,7 +320,7 @@
     "@react-native/babel-preset": "0.76.9",
     "@react-native/eslint-config": "0.76.9",
     "@react-native/typescript-config": "0.76.9",
-    "@react-navigation/bottom-tabs": "^5.11.11",
+    "@react-navigation/bottom-tabs": "^7.14.0",
     "@react-navigation/compat": "^5.3.20",
     "@react-navigation/native": "^5.9.4",
     "@react-navigation/stack": "^5.14.5",
