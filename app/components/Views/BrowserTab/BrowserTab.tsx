@@ -75,7 +75,7 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import { type RootState } from '../../../reducers';
@@ -242,6 +242,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const isTabActive = useSelector(
       (state: RootState) => state.browser.activeTab === tabId,
     );
+
+    /**
+     * True when the Browser screen is focused (no modal or other screen drawn on top).
+     * Used to suppress webview JS dialogs (alert/confirm/prompt) when UI is in front.
+     */
+    const isBrowserScreenFocused = useIsFocused();
+
+    /**
+     * Only show webview JS dialogs when this tab is active and the browser screen is visible.
+     */
+    const canShowJsDialogs = isTabActive && isBrowserScreenFocused;
 
     /**
      * whitelisted url to bypass the phishing detection
@@ -1500,7 +1511,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         webviewDebuggingEnabled={isTest}
                         paymentRequestEnabled
                         allowFileDownloads={isTabActive}
-                        suppressJavaScriptDialogs={!isTabActive}
+                        suppressJavaScriptDialogs={!canShowJsDialogs}
                       />
                       {ipfsBannerVisible && (
                         <IpfsBanner
