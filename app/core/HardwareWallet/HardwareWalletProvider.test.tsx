@@ -440,7 +440,7 @@ describe('HardwareWalletProvider', () => {
         );
       });
 
-      it('handles message operation type', async () => {
+      it('sets operationType to message for message operations', async () => {
         const { result } = renderWithActions();
 
         await act(async () => {
@@ -589,7 +589,7 @@ describe('HardwareWalletProvider', () => {
   });
 
   describe('connect error handling (internal, via bottom sheet props)', () => {
-    it('handles adapter connect errors', async () => {
+    it('transitions to error state when adapter connect rejects', async () => {
       mockUseSelector.mockReturnValue({ address: '0x1234' });
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
 

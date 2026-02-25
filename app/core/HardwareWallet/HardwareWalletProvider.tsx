@@ -89,6 +89,32 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   );
 
   /**
+   * Store an adapter as the current adapter, sync connection tips, and
+   * register transport state monitoring.
+   * Returns a cleanup function to unsubscribe from transport state changes.
+   */
+  const initializeAdapter = useCallback(
+    (adapter: ReturnType<typeof createAdapter>): (() => void) | undefined => {
+      refs.adapterRef.current = adapter;
+      setConnectionTips(adapter.getConnectionTips());
+
+      if (adapter.onTransportStateChange) {
+        return adapter.onTransportStateChange((isAvailable) => {
+          DevLogger.log(
+            '[HardwareWalletProvider] Transport state changed:',
+            isAvailable,
+          );
+          setIsTransportAvailable(isAvailable);
+        });
+      }
+
+      setIsTransportAvailable(true);
+      return undefined;
+    },
+    [refs],
+  );
+
+  /**
    * Try to ensure a device is ready, then mark the flow complete and
    * transition to Ready state. Returns true if ready, false otherwise.
    */
@@ -194,21 +220,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           onDeviceEvent: handleDeviceEvent,
         });
 
-    refs.adapterRef.current = adapter;
-    setConnectionTips(adapter.getConnectionTips());
-
-    let transportCleanup: (() => void) | undefined;
-    if (adapter.onTransportStateChange) {
-      transportCleanup = adapter.onTransportStateChange((isAvailable) => {
-        DevLogger.log(
-          '[HardwareWalletProvider] Transport state changed:',
-          isAvailable,
-        );
-        setIsTransportAvailable(isAvailable);
-      });
-    } else {
-      setIsTransportAvailable(true);
-    }
+    const transportCleanup = initializeAdapter(adapter);
 
     return () => {
       transportCleanup?.();
@@ -222,6 +234,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     effectiveWalletType,
     handleDeviceEvent,
     createAdapterWithCallbacks,
+    initializeAdapter,
     refs,
   ]);
 
@@ -417,7 +430,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
             // eslint-disable-next-line no-empty-function
             existingAdapter?.disconnect().catch(() => {});
             const newAdapter = createAdapterWithCallbacks(targetType);
-            refs.adapterRef.current = newAdapter;
+            initializeAdapter(newAdapter);
             return newAdapter;
           })()
         : existingAdapter;
@@ -515,6 +528,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       effectiveWalletType,
       updateConnectionState,
       createAdapterWithCallbacks,
+      initializeAdapter,
       tryEnsureReady,
       createTransportError,
     ],
