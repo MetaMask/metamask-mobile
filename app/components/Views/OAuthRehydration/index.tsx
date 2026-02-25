@@ -151,11 +151,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
-  const {
-    unlockWallet,
-    getAuthType,
-    requestBiometricsAccessControlForIOS,
-  } = useAuthentication();
+  const { unlockWallet, getAuthType, requestBiometricsAccessControlForIOS } =
+    useAuthentication();
 
   const track = useCallback(
     (
