@@ -909,7 +909,9 @@ describe('PerpsConnectionManager', () => {
   describe('getActiveProviderName', () => {
     it('returns activeProvider from PerpsController state', () => {
       // Arrange
-      (Engine.context.PerpsController as Record<string, unknown>).state = {
+      (
+        Engine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
         activeProvider: 'hyperliquid',
       };
 
