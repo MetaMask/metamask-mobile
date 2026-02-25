@@ -2,7 +2,7 @@ import { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { RefreshControl, View } from 'react-native';
@@ -96,8 +96,7 @@ const UnifiedTransactionsView = ({
   chainId,
   location,
 }: UnifiedTransactionsViewProps) => {
-  const navigation =
-    useNavigation<NavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
