@@ -79,14 +79,36 @@ const SRPErrorScreen = ({
   const errorReport = `View: ChoosePassword\nError: ${error?.name || 'Unknown'}\n${error?.message || 'No message'}`;
 
   const handleTryAgain = useCallback(async () => {
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_CREATION_ERROR_RETRY_CLICKED,
+      )
+        .addProperties({
+          flow_type: 'srp',
+        })
+        .build(),
+      saveOnboardingEvent,
+    );
+
     // Delete wallet
     await Authentication.deleteWallet();
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
     });
-  }, [navigation]);
+  }, [navigation, saveOnboardingEvent]);
 
   const handleSendErrorReport = useCallback(() => {
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_CREATION_ERROR_REPORT_SENT,
+      )
+        .addProperties({
+          flow_type: 'srp',
+        })
+        .build(),
+      saveOnboardingEvent,
+    );
+
     captureException(error, {
       tags: {
         view: 'WalletCreationError',
@@ -108,7 +130,7 @@ const SRPErrorScreen = ({
         },
       ],
     });
-  }, [navigation, error]);
+  }, [navigation, error, saveOnboardingEvent]);
 
   const handleCopyError = useCallback(() => {
     Clipboard.setString(errorReport);

@@ -162,6 +162,30 @@ describe('SocialLoginErrorSheet', () => {
         routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
       });
     });
+
+    it('tracks retry clicked event when Try again is pressed', async () => {
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockTrackEvent.mockClear();
+
+      const { getByText } = renderWithProvider(
+        <SocialLoginErrorSheet error={mockError} />,
+      );
+
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockTrackEvent.mockClear();
+
+      fireEvent.press(getByText('Try again'));
+
+      await Promise.resolve();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        flow_type: 'social_login',
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
   });
 
   describe('handleContactSupport', () => {

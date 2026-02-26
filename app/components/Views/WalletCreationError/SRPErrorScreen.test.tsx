@@ -155,6 +155,25 @@ describe('SRPErrorScreen', () => {
         routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
       });
     });
+
+    it('tracks retry clicked event when Try again is pressed', async () => {
+      const { getByText } = renderWithProvider(
+        <SRPErrorScreen error={mockError} />,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByText('Try again'));
+      });
+
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            flow_type: 'srp',
+          }),
+        }),
+        expect.any(Function),
+      );
+    });
   });
 
   describe('handleSendErrorReport', () => {
@@ -194,6 +213,23 @@ describe('SRPErrorScreen', () => {
           },
         ],
       });
+    });
+
+    it('tracks error report sent event when Send error report is pressed', () => {
+      const { getByText } = renderWithProvider(
+        <SRPErrorScreen error={mockError} />,
+      );
+
+      fireEvent.press(getByText('Send error report'));
+
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            flow_type: 'srp',
+          }),
+        }),
+        expect.any(Function),
+      );
     });
   });
 

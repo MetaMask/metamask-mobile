@@ -53,12 +53,20 @@ const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
   }, [error, trackEvent, createEventBuilder]);
 
   const handleTryAgain = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WALLET_CREATION_ERROR_RETRY_CLICKED)
+        .addProperties({
+          flow_type: 'social_login',
+        })
+        .build(),
+    );
+
     // Delete wallet
     await Authentication.deleteWallet();
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
     });
-  }, [navigation]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const handleContactSupport = useCallback(() => {
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
