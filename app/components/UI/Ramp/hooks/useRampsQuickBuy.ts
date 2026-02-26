@@ -6,7 +6,6 @@ import { registerQuickBuyErrorCallback } from '../utils/quickBuyCallbackRegistry
 export interface UseRampsQuickBuyParams {
   assetId?: string;
   amount?: string;
-  currency?: string;
   onError?: (errorMessage: string) => void;
 }
 
@@ -29,13 +28,11 @@ export interface UseRampsQuickBuyResult {
 const createQuickBuyDeeplink = ({
   assetId,
   amount,
-  currency,
   providerId,
   paymentMethodId,
 }: {
   assetId: string;
   amount: string;
-  currency?: string;
   providerId: string;
   paymentMethodId: string;
 }): string => {
@@ -47,17 +44,12 @@ const createQuickBuyDeeplink = ({
     autoProceed: 'true',
   });
 
-  if (currency) {
-    searchParams.set('currency', currency);
-  }
-
   return `metamask://buy?${searchParams.toString()}`;
 };
 
 export function useRampsQuickBuy({
   assetId,
   amount,
-  currency,
   onError,
 }: UseRampsQuickBuyParams): UseRampsQuickBuyResult {
   const { goToBuy } = useRampNavigation();
@@ -91,7 +83,6 @@ export function useRampsQuickBuy({
       const deeplink = createQuickBuyDeeplink({
         assetId,
         amount,
-        currency,
         providerId: selectedProvider.id,
         paymentMethodId: paymentMethod.id,
       });
@@ -104,7 +95,6 @@ export function useRampsQuickBuy({
         goToBuy({
           assetId,
           amount,
-          currency,
           providerId: selectedProvider.id,
           paymentMethodId: paymentMethod.id,
           autoProceed: true,
@@ -121,7 +111,7 @@ export function useRampsQuickBuy({
         onPress,
       };
     });
-  }, [amount, assetId, currency, goToBuy, onError, paymentMethods, selectedProvider]);
+  }, [amount, assetId, goToBuy, onError, paymentMethods, selectedProvider]);
 
   return {
     paymentOptions,

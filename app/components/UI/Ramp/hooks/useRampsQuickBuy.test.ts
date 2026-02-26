@@ -85,7 +85,6 @@ describe('useRampsQuickBuy', () => {
       useRampsQuickBuy({
         assetId: 'eip155:1/erc20:0x123',
         amount: '100',
-        currency: 'USD',
       }),
     );
 
@@ -111,7 +110,6 @@ describe('useRampsQuickBuy', () => {
       useRampsQuickBuy({
         assetId: 'eip155:1/erc20:0x123',
         amount: '100',
-        currency: 'USD',
         onError,
       }),
     );
@@ -124,7 +122,6 @@ describe('useRampsQuickBuy', () => {
     expect(mockGoToBuy).toHaveBeenCalledWith({
       assetId: 'eip155:1/erc20:0x123',
       amount: '100',
-      currency: 'USD',
       providerId: '/providers/transak',
       paymentMethodId: '/payments/debit-credit-card',
       autoProceed: true,
