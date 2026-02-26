@@ -3,6 +3,10 @@ import { TouchableOpacity } from 'react-native';
 import {
   Box,
   Text,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
   BoxAlignItems,
   BoxJustifyContent,
   TextVariant,
@@ -16,8 +20,9 @@ interface PerpsViewMoreCardProps {
 }
 
 /**
- * "More perps" card shown at the end of the trending markets carousel.
+ * "View more" card shown at the end of the trending markets carousel.
  * Matches the dimensions of PerpsMarketTileCard (180×140) for visual consistency.
+ * Blends with the background and shows a circular arrow icon above the label.
  */
 const PerpsViewMoreCard: React.FC<PerpsViewMoreCardProps> = ({ onPress }) => (
   <TouchableOpacity
@@ -26,16 +31,28 @@ const PerpsViewMoreCard: React.FC<PerpsViewMoreCardProps> = ({ onPress }) => (
     testID="perps-view-more-card"
   >
     <Box
-      twClassName="w-[180px] h-[140px] rounded-xl bg-background-muted"
+      twClassName="w-[180px] h-[140px]"
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
+      gap={2}
     >
+      <Box
+        twClassName="w-12 h-12 rounded-full bg-background-muted"
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+      >
+        <Icon
+          name={IconName.ArrowRight}
+          size={IconSize.Md}
+          color={IconColor.IconDefault}
+        />
+      </Box>
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
       >
-        {strings('homepage.sections.more_perps')}
+        {strings('homepage.sections.view_more')}
       </Text>
     </Box>
   </TouchableOpacity>
