@@ -72,6 +72,9 @@ jobs:
     name: Setup Node Modules ${{ inputs.platform && format('({0})', inputs.platform) || '' }}
     # Platform-specific runner to match consumer (build needs same OS for native deps/symlinks)
     runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || (inputs.platform == 'android' && 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' || 'ubuntu-latest') }}
+    permissions:
+      contents: read
+      id-token: write  # Job-level required for setup-e2e-env (OIDC/credentials) when using Cirrus runners
     outputs:
       artifact-name: ${{ steps.set-artifact-name.outputs.artifact-name }}
     steps:
@@ -82,7 +85,7 @@ jobs:
           fetch-depth: ${{ inputs.fetch-depth }}
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
-      # iOS: MetaMask setup (Node, Ruby, CocoaPods, Xcode)
+      # iOS: MetaMask setup (Node, Ruby, CocoaPods, Xcode). No keystores here—signing is in the build job.
       - name: Setup iOS environment
         if: inputs.platform == 'ios'
         timeout-minutes: 15
@@ -90,6 +93,7 @@ jobs:
         with:
           platform: ios
           setup-simulator: false
+          configure-keystores: false  # Skip OIDC/AWS signing; setup-dependencies only needs Node/Ruby/Pods/Xcode
 
       # Android or generic: Setup Node (iOS has Node from setup-e2e-env)
       - name: Setup Node
