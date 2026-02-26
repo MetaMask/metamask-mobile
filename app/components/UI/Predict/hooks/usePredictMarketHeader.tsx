@@ -31,7 +31,7 @@ export const usePredictMarketHeader = ({
   const renderHeaderTitle = useCallback(
     () =>
       outcomeToken ? (
-        <Box twClassName="mt-4 -ml-4">
+        <Box twClassName="mt-8 -ml-5">
           <PredictBuyPreviewHeaderTitle
             title={marketTitle ?? ''}
             outcomeImage={outcomeImage}
@@ -47,7 +47,7 @@ export const usePredictMarketHeader = ({
 
   const renderHeaderLeft = useCallback(
     (onBackPress: () => void) => (
-      <TouchableOpacity onPress={onBackPress} style={tw.style('mt-4 ml-4')}>
+      <TouchableOpacity onPress={onBackPress} style={tw.style('mt-8 ml-4')}>
         <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
       </TouchableOpacity>
     ),
