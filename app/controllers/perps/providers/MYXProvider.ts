@@ -443,9 +443,9 @@ export class MYXProvider implements PerpsProvider {
         caughtError,
         'MYXProvider.getMarketDataWithPrices',
       );
-      this.#deps.logger.error(
-        wrappedError,
-        this.#getErrorContext('getMarketDataWithPrices'),
+      this.#deps.debugLogger.log(
+        '[MYXProvider] getMarketDataWithPrices failed',
+        { error: String(wrappedError) },
       );
       return [];
     }
@@ -627,10 +627,9 @@ export class MYXProvider implements PerpsProvider {
         .map((pos) => adaptPositionFromMYX(pos, this.#poolSymbolMap));
     } catch (caughtError) {
       const wrappedError = ensureError(caughtError, 'MYXProvider.getPositions');
-      this.#deps.logger.error(
-        wrappedError,
-        this.#getErrorContext('getPositions'),
-      );
+      this.#deps.debugLogger.log('[MYXProvider] getPositions failed', {
+        error: String(wrappedError),
+      });
       return [];
     }
   }
@@ -678,10 +677,9 @@ export class MYXProvider implements PerpsProvider {
         caughtError,
         'MYXProvider.getAccountState',
       );
-      this.#deps.logger.error(
-        wrappedError,
-        this.#getErrorContext('getAccountState'),
-      );
+      this.#deps.debugLogger.log('[MYXProvider] getAccountState failed', {
+        error: String(wrappedError),
+      });
       return {
         availableBalance: '0',
         totalBalance: '0',
@@ -710,7 +708,9 @@ export class MYXProvider implements PerpsProvider {
       );
     } catch (caughtError) {
       const wrappedError = ensureError(caughtError, 'MYXProvider.getOrders');
-      this.#deps.logger.error(wrappedError, this.#getErrorContext('getOrders'));
+      this.#deps.debugLogger.log('[MYXProvider] getOrders failed', {
+        error: String(wrappedError),
+      });
       return [];
     }
   }
@@ -724,10 +724,9 @@ export class MYXProvider implements PerpsProvider {
         caughtError,
         'MYXProvider.getOpenOrders',
       );
-      this.#deps.logger.error(
-        wrappedError,
-        this.#getErrorContext('getOpenOrders'),
-      );
+      this.#deps.debugLogger.log('[MYXProvider] getOpenOrders failed', {
+        error: String(wrappedError),
+      });
       return [];
     }
   }
@@ -754,10 +753,9 @@ export class MYXProvider implements PerpsProvider {
         caughtError,
         'MYXProvider.getOrderFills',
       );
-      this.#deps.logger.error(
-        wrappedError,
-        this.#getErrorContext('getOrderFills'),
-      );
+      this.#deps.debugLogger.log('[MYXProvider] getOrderFills failed', {
+        error: String(wrappedError),
+      });
       return [];
     }
   }
@@ -783,10 +781,9 @@ export class MYXProvider implements PerpsProvider {
       return adaptFundingFromMYX(result.data, this.#poolSymbolMap);
     } catch (caughtError) {
       const wrappedError = ensureError(caughtError, 'MYXProvider.getFunding');
-      this.#deps.logger.error(
-        wrappedError,
-        this.#getErrorContext('getFunding'),
-      );
+      this.#deps.debugLogger.log('[MYXProvider] getFunding failed', {
+        error: String(wrappedError),
+      });
       return [];
     }
   }
@@ -831,10 +828,9 @@ export class MYXProvider implements PerpsProvider {
         caughtError,
         'MYXProvider.getUserHistory',
       );
-      this.#deps.logger.error(
-        wrappedError,
-        this.#getErrorContext('getUserHistory'),
-      );
+      this.#deps.debugLogger.log('[MYXProvider] getUserHistory failed', {
+        error: String(wrappedError),
+      });
       return [];
     }
   }
@@ -1071,10 +1067,11 @@ export class MYXProvider implements PerpsProvider {
         return;
       }
       const wrappedError = ensureError(error, 'MYXProvider.subscribeToCandles');
-      this.#deps.logger.error(
-        wrappedError,
-        this.#getErrorContext('subscribeToCandles', { symbol, interval }),
-      );
+      this.#deps.debugLogger.log('[MYXProvider] subscribeToCandles failed', {
+        error: String(wrappedError),
+        symbol,
+        interval,
+      });
       if (onError) {
         onError(wrappedError);
       }
