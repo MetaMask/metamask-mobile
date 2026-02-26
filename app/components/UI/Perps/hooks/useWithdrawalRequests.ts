@@ -77,6 +77,7 @@ export const useWithdrawalRequests = (
 
   const prevWithdrawalStatesRef = useRef<Map<string, string>>(new Map());
   const initialFetchDoneRef = useRef(false);
+  const isFetchingRef = useRef(false);
 
   useEffect(() => {
     const currentStates = new Map<string, string>();
@@ -133,6 +134,11 @@ export const useWithdrawalRequests = (
     if (pendingQueue.length === 0) {
       return;
     }
+
+    if (isFetchingRef.current) {
+      return;
+    }
+    isFetchingRef.current = true;
 
     try {
       setIsLoading(true);
@@ -249,6 +255,7 @@ export const useWithdrawalRequests = (
       console.error('Error checking withdrawal completion:', errorMessage);
       setError(errorMessage);
     } finally {
+      isFetchingRef.current = false;
       setIsLoading(false);
     }
   }, [pendingQueue, lastCompletedTimestamp, lastCompletedTxHashes]);

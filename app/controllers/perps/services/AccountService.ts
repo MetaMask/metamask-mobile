@@ -207,16 +207,18 @@ export class AccountService {
               error: '',
             };
 
-            // Only clear withdrawInProgress if we have a txHash (fully completed)
-            // If bridging (no txHash), keep withdrawInProgress = true so the UI
-            // continues showing the progress indicator until we detect completion
-            // in the transaction history
+            // If bridging (no txHash), keep withdrawInProgress = true so polling
+            // continues. If completed (has txHash), derive the flag from whether
+            // other pending/bridging items remain — consistent with
+            // completeWithdrawalFromHistory.
             if (result.txHash) {
-              state.withdrawInProgress = false;
+              const hasOtherPending = state.withdrawalRequests.some(
+                (req) =>
+                  req.id !== currentWithdrawalId &&
+                  (req.status === 'pending' || req.status === 'bridging'),
+              );
+              state.withdrawInProgress = hasOtherPending;
             }
-            // If no txHash (bridging), keep withdrawInProgress = true
-            // useWithdrawalRequests will poll getUserHistory and call
-            // completeWithdrawalFromHistory when the transaction appears
           });
         }
 
