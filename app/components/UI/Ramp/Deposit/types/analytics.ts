@@ -389,6 +389,11 @@ interface RampsUnsupportedTokenTooltipClicked {
   ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
 }
 
+interface RampsInfoTooltipClicked {
+  location: string;
+  ramp_type: 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
+}
+
 interface RampsToastButtonClicked {
   action: string;
   location?: string;
@@ -438,5 +443,6 @@ export interface AnalyticsEvents {
   RAMPS_QUOTE_ERROR: RampsQuoteError;
   RAMPS_QUOTE_ERROR_TOOLTIP_CLICKED: RampsQuoteErrorTooltipClicked;
   RAMPS_UNSUPPORTED_TOKEN_TOOLTIP_CLICKED: RampsUnsupportedTokenTooltipClicked;
+  RAMPS_INFO_TOOLTIP_CLICKED: RampsInfoTooltipClicked;
   RAMPS_TOAST_BUTTON_CLICKED: RampsToastButtonClicked;
 }
