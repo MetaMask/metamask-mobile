@@ -378,33 +378,14 @@ const BridgeView = () => {
     ? strings('bridge.stock_token_error_banner_description')
     : strings('bridge.error_banner_description');
 
-  const contentMode = useMemo<
-    'loading' | 'error' | 'quote' | 'zero' | 'none'
-  >(() => {
-    if (isLoading) {
-      return 'loading';
-    }
-
-    if (isError && isErrorBannerVisible) {
-      return 'error';
-    }
-
-    if (shouldDisplayQuoteDetails) {
-      return 'quote';
-    }
-
-    if (isZeroState) {
-      return 'zero';
-    }
-
+  const getContentMode = () => {
+    if (isLoading) return 'loading';
+    if (isError && isErrorBannerVisible) return 'error';
+    if (shouldDisplayQuoteDetails) return 'quote';
+    if (isZeroState) return 'zero';
     return 'none';
-  }, [
-    isLoading,
-    isError,
-    isErrorBannerVisible,
-    shouldDisplayQuoteDetails,
-    isZeroState,
-  ]);
+  };
+  const contentMode = getContentMode();
 
   const trendingSectionRef = useRef<BridgeTrendingTokensSectionRef>(null);
 
@@ -416,7 +397,6 @@ const BridgeView = () => {
         layoutMeasurement: { height: number };
       };
     }) => {
-      if (contentMode !== 'zero') return;
       const { contentOffset, contentSize, layoutMeasurement } =
         event.nativeEvent;
       if (
@@ -426,7 +406,7 @@ const BridgeView = () => {
         trendingSectionRef.current?.loadNextChunkIfAvailable();
       }
     },
-    [contentMode],
+    [],
   );
 
   const renderBottomContent = () => {

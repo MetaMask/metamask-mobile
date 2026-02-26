@@ -97,6 +97,7 @@ const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
     const tw = useTailwind();
     const [activeBottomSheet, setActiveBottomSheet] =
       useState<ActiveBottomSheet>('none');
+    const closeBottomSheet = () => setActiveBottomSheet('none');
     const [visibleTokenCount, setVisibleTokenCount] =
       useState(TOKEN_CHUNK_SIZE);
 
@@ -210,23 +211,21 @@ const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
           </Box>
 
           {isLoading ? (
-            <Box>
+            <>
               {Array.from({ length: 6 }).map((_, index) => (
                 <TrendingTokensSkeleton key={index} />
               ))}
-            </Box>
+            </>
           ) : (
-            <Box>
-              {visibleTrendingTokens.map((token, index) => (
-                <TrendingTokenRowItem
-                  key={`${token.assetId}-${index}`}
-                  token={token}
-                  position={index}
-                  selectedTimeOption={selectedTimeOption}
-                  filterContext={filterContext}
-                />
-              ))}
-            </Box>
+            visibleTrendingTokens.map((token, index) => (
+              <TrendingTokenRowItem
+                key={`${token.assetId}-${index}`}
+                token={token}
+                position={index}
+                selectedTimeOption={selectedTimeOption}
+                filterContext={filterContext}
+              />
+            ))
           )}
           {!isLoading && hasMore ? (
             <Pressable
@@ -254,12 +253,12 @@ const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
           hardwareAccelerated
           statusBarTranslucent
           visible={activeBottomSheet !== 'none'}
-          onRequestClose={() => setActiveBottomSheet('none')}
+          onRequestClose={closeBottomSheet}
         >
           {activeBottomSheet === 'time' && (
             <TrendingTokenTimeBottomSheet
               isVisible
-              onClose={() => setActiveBottomSheet('none')}
+              onClose={closeBottomSheet}
               onTimeSelect={handleTimeSelect}
               selectedTime={selectedTimeOption}
             />
@@ -267,7 +266,7 @@ const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
           {activeBottomSheet === 'network' && (
             <TrendingTokenNetworkBottomSheet
               isVisible
-              onClose={() => setActiveBottomSheet('none')}
+              onClose={closeBottomSheet}
               onNetworkSelect={handleNetworkSelect}
               selectedNetwork={selectedNetwork}
             />
@@ -275,7 +274,7 @@ const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
           {activeBottomSheet === 'price_change' && (
             <TrendingTokenPriceChangeBottomSheet
               isVisible
-              onClose={() => setActiveBottomSheet('none')}
+              onClose={closeBottomSheet}
               onPriceChangeSelect={handlePriceChangeSelect}
               selectedOption={selectedPriceChangeOption}
               sortDirection={priceChangeSortDirection}
