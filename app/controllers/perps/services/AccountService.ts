@@ -207,15 +207,27 @@ export class AccountService {
               error: '',
             };
 
-            // If bridging (no txHash), keep withdrawInProgress = true so polling
-            // continues. If completed (has txHash), derive the flag from whether
-            // other pending/bridging items remain — consistent with
-            // completeWithdrawalFromHistory.
             if (result.txHash) {
+              // Direct completion: remove from queue and update the FIFO guard
+              // so the polling hook doesn't re-match this completion against
+              // the next pending withdrawal.
+              const completedIndex = state.withdrawalRequests.findIndex(
+                (req) => req.id === currentWithdrawalId,
+              );
+              if (completedIndex !== -1) {
+                state.withdrawalRequests.splice(completedIndex, 1);
+              }
+
+              const now = Date.now();
+              if (now === state.lastCompletedWithdrawalTimestamp) {
+                state.lastCompletedWithdrawalTxHashes.push(result.txHash);
+              } else {
+                state.lastCompletedWithdrawalTimestamp = now;
+                state.lastCompletedWithdrawalTxHashes = [result.txHash];
+              }
+
               const hasOtherPending = state.withdrawalRequests.some(
-                (req) =>
-                  req.id !== currentWithdrawalId &&
-                  (req.status === 'pending' || req.status === 'bridging'),
+                (req) => req.status === 'pending' || req.status === 'bridging',
               );
               state.withdrawInProgress = hasOtherPending;
             }
