@@ -40,7 +40,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
@@ -146,7 +145,6 @@ const PredictBuyPreview = () => {
   );
   const [isInputFocused, setIsInputFocused] = useState(() => !autoPlaceAmount);
   const [isUserInputChange, setIsUserInputChange] = useState(false);
-  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
   const previousValueRef = useRef(0);
   const { shouldPreserveActiveOrderOnUnmountRef, isDepositAndOrderLoading } =
     usePredictDepositAndOrder({
@@ -317,20 +315,6 @@ const PredictBuyPreview = () => {
       preview,
     });
   }, [preview, isBelowMinimum, placeOrder, analyticsProperties]);
-
-  const handleFeesInfoPress = useCallback(() => {
-    setIsFeeBreakdownVisible(true);
-  }, []);
-
-  const handleFeeBreakdownClose = useCallback(() => {
-    setIsFeeBreakdownVisible(false);
-  }, []);
-
-  useEffect(() => {
-    if (isFeeBreakdownVisible) {
-      feeBreakdownSheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isFeeBreakdownVisible]);
 
   const renderAmount = () => (
     <ScrollView

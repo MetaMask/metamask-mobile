@@ -1,5 +1,4 @@
 import React, {
-  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -23,7 +22,6 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import Button, {
   ButtonSize,
@@ -32,7 +30,6 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
-import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
 import PredictKeypad, {
   PredictKeypadHandles,
@@ -127,7 +124,6 @@ export function PredictDepositAndOrderInfo() {
   const { isPredictBalanceSelected } = usePredictPaymentToken();
 
   const keypadRef = useRef<PredictKeypadHandles>(null);
-  const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const previousValueRef = useRef(0);
   const hasAppliedPrefillRef = useRef(false);
 
@@ -145,7 +141,6 @@ export function PredictDepositAndOrderInfo() {
       : prefilledAmountUsd <= 0,
   );
   const [isUserInputChange, setIsUserInputChange] = useState(false);
-  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
 
   useEffect(() => {
     if (hasAppliedPrefillRef.current || prefilledAmountUsd <= 0) {
@@ -304,20 +299,6 @@ export function PredictDepositAndOrderInfo() {
   const shouldShowRewardsRow =
     isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null;
 
-  const handleFeesInfoPress = useCallback(() => {
-    setIsFeeBreakdownVisible(true);
-  }, []);
-
-  const handleFeeBreakdownClose = useCallback(() => {
-    setIsFeeBreakdownVisible(false);
-  }, []);
-
-  useEffect(() => {
-    if (isFeeBreakdownVisible) {
-      feeBreakdownSheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isFeeBreakdownVisible]);
-
   if (!activeOrder || !market || !outcome || !outcomeToken) {
     return null;
   }
@@ -468,41 +449,10 @@ export function PredictDepositAndOrderInfo() {
       return null;
     }
 
-    if (isPayFeesLoading) {
-      return (
-        <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">
-          <Box twClassName="flex-row justify-between items-center">
-            <Box twClassName="flex-row gap-2 items-center">
-              <Skeleton width={64} height={16} />
-            </Box>
-            <Skeleton width={44} height={16} />
-          </Box>
-          <Box twClassName="flex-row justify-between items-center">
-            <Box twClassName="flex-row items-center">
-              <Skeleton width={36} height={16} />
-              <Box twClassName="ml-1">
-                <Skeleton
-                  width={16}
-                  height={16}
-                  style={tw.style('rounded-full')}
-                />
-              </Box>
-            </Box>
-            <Skeleton width={60} height={16} />
-          </Box>
-          <Box twClassName="flex-row justify-between items-center">
-            <Box twClassName="flex-row gap-2 items-center">
-              <Skeleton width={40} height={16} />
-            </Box>
-            <Skeleton width={64} height={16} />
-          </Box>
-        </Box>
-      );
-    }
-
     return (
       <PredictFeeSummary
         disabled={isInputFocused}
+        loading={isPayFeesLoading}
         total={totalWithDepositFee}
         metamaskFee={metamaskFee}
         providerFee={providerFee}
@@ -515,7 +465,6 @@ export function PredictDepositAndOrderInfo() {
           (isCalculating && isUserInputChange) || isRewardsLoading
         }
         hasRewardsError={isRewardsError}
-        onFeesInfoPress={handleFeesInfoPress}
       />
     );
   };
@@ -579,15 +528,6 @@ export function PredictDepositAndOrderInfo() {
         onAddFunds={deposit}
       />
       {renderBottomContent()}
-      {isFeeBreakdownVisible && (
-        <PredictFeeBreakdownSheet
-          ref={feeBreakdownSheetRef}
-          providerFee={providerFee}
-          metamaskFee={metamaskFee}
-          depositFee={depositFeeUsd}
-          onClose={handleFeeBreakdownClose}
-        />
-      )}
     </Box>
   );
 }
