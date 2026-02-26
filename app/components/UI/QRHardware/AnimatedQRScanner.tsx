@@ -217,7 +217,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     );
 
     return () => {
-      subscription.remove();
+      subscription?.remove?.();
     };
   }, [refreshCameraPermission, visible]);
 
