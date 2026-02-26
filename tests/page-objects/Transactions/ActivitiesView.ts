@@ -153,6 +153,13 @@ class ActivitiesView {
     });
   }
 
+  async tapRampsOrder(rampsOrderType: string): Promise<void> {
+    const order = Matchers.getElementByID('listitemcolumn', 1); // this need some loving as well
+    await Gestures.waitAndTap(order, {
+      elemDescription: `Tapping Ramps Order: ${rampsOrderType}`,
+    });
+  }
+
   /**
    * Verifies that an activity item with the given title is visible and its row status matches.
    * Use after TabBarComponent.tapActivity(). Row 0 is the most recent transaction.

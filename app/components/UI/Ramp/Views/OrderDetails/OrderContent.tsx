@@ -36,6 +36,7 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { hasDepositOrderField } from '../../Deposit/utils';
 import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow';
+import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const localStyles = StyleSheet.create({
@@ -312,6 +313,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
           variant={TextVariant.DisplayLg}
           fontWeight={FontWeight.Bold}
           twClassName="mt-6 text-center"
+          testID={RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT}
         >
           {order.cryptoAmount} {cryptoSymbol}
         </Text>
@@ -571,6 +573,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
 
         {showCloseButton && (
           <Button
+            testID={RampsOrderDetailsSelectorsIDs.CLOSE_BUTTON}
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}

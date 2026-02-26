@@ -309,6 +309,7 @@ const ActivityView = () => {
           <View
             key="orders"
             tabLabel={strings('fiat_on_ramp_aggregator.orders')}
+            tabTestID={ActivitiesViewSelectorsIDs.TRANSFER_TAB}
             style={styles.tabWrapper}
           >
             <RampOrdersList />

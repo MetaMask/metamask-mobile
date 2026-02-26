@@ -28,9 +28,8 @@ import {
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
 import OrderContent from './OrderContent';
-import { useRampsOrders } from '../../hooks/useRampsOrders';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
+import { processFiatOrder } from '../../index';
 
 interface RampsOrderDetailsParams {
   orderId: string;
@@ -196,7 +195,7 @@ const OrderDetails = () => {
   }
 
   return (
-    <ScreenLayout>
+    <ScreenLayout testID={RampsOrderDetailsSelectorsIDs.CONTAINER}>
       <ScrollView
         refreshControl={
           <RefreshControl
