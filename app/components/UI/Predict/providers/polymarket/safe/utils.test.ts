@@ -5,9 +5,14 @@ import {
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
 } from '../constants';
-import { SAFE_FACTORY_ADDRESS, SAFE_MULTISEND_ADDRESS } from './constants';
+import {
+  PERMIT2_ADDRESS,
+  SAFE_FACTORY_ADDRESS,
+  SAFE_MULTISEND_ADDRESS,
+} from './constants';
 import {
   computeProxyAddress,
+  createPermit2FeeAuthorization,
   createSafeFeeAuthorization,
   getDeployProxyWalletTypedData,
   encodeCreateProxy,
@@ -19,9 +24,11 @@ import {
   createAllowancesSafeTransaction,
   hasAllowances,
   createClaimSafeTransaction,
+  getPermit2Nonce,
   getSafeTransactionCallData,
   getProxyWalletAllowancesTransaction,
   getClaimTransaction,
+  hasPermit2Allowance,
   getWithdrawTransactionCallData,
   getSafeUsdcAmount,
 } from './utils';
@@ -1467,6 +1474,225 @@ describe('safe utils', () => {
       const amount = getSafeUsdcAmount(data);
 
       expect(amount).toBe(1);
+    });
+  });
+
+  describe('getPermit2Nonce', () => {
+    it('returns 0 when nonce bitmap response is 0x', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x');
+
+      const nonce = await getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS });
+
+      expect(nonce).toBe('0');
+    });
+
+    it('returns 0 when nonce bitmap is all zeros', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce(
+        '0x0000000000000000000000000000000000000000000000000000000000000000',
+      );
+
+      const nonce = await getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS });
+
+      expect(nonce).toBe('0');
+    });
+
+    it('returns first unused nonce when lower bits are already used', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x7');
+
+      const nonce = await getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS });
+
+      expect(nonce).toBe('3');
+    });
+
+    it('returns nonce for first gap in bitmap', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x5');
+
+      const nonce = await getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS });
+
+      expect(nonce).toBe('1');
+    });
+
+    it('throws error when nonce bitmap word 0 has no free slots', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce(`0x${'f'.repeat(64)}`);
+
+      await expect(
+        getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS }),
+      ).rejects.toThrow(
+        'No available Permit2 nonce found in nonce bitmap word 0',
+      );
+    });
+
+    it('calls Permit2 nonceBitmap with safe address and word 0', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x0');
+      const nonceBitmapInterface = new Interface([
+        'function nonceBitmap(address, uint256) view returns (uint256)',
+      ]);
+      const expectedData = nonceBitmapInterface.encodeFunctionData(
+        'nonceBitmap',
+        [TEST_SAFE_ADDRESS, 0],
+      );
+
+      await getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS });
+
+      expect(mockQuery).toHaveBeenCalledWith(expect.any(EthQuery), 'call', [
+        {
+          to: PERMIT2_ADDRESS,
+          data: expectedData,
+        },
+      ]);
+    });
+  });
+
+  describe('createPermit2FeeAuthorization', () => {
+    const testParams = {
+      signer: buildSigner(),
+      safeAddress: TEST_SAFE_ADDRESS,
+      amount: BigInt(1000000),
+      spender: TEST_TO_ADDRESS,
+    };
+
+    it('creates authorization with safe-permit2 type', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x0');
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+
+      const feeAuth = await createPermit2FeeAuthorization(testParams);
+
+      expect(feeAuth.type).toBe('safe-permit2');
+    });
+
+    it('includes permit values for token amount nonce deadline and spender', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x5');
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+      const nowSeconds = Math.floor(Date.now() / 1000);
+
+      const feeAuth = await createPermit2FeeAuthorization(testParams);
+      const deadlineSeconds = Number(feeAuth.authorization.permit.deadline);
+
+      expect(feeAuth.authorization.permit.permitted).toEqual({
+        token: MATIC_CONTRACTS.collateral,
+        amount: testParams.amount.toString(),
+      });
+      expect(feeAuth.authorization.permit.nonce).toBe('1');
+      expect(deadlineSeconds).toBeGreaterThanOrEqual(nowSeconds + 3590);
+      expect(deadlineSeconds).toBeLessThanOrEqual(nowSeconds + 3610);
+      expect(feeAuth.authorization.spender).toBe(testParams.spender);
+    });
+
+    it('includes signed signature value', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x0');
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+
+      const feeAuth = await createPermit2FeeAuthorization(testParams);
+
+      expect(feeAuth.authorization.signature).toMatch(/^0x[a-f0-9]+$/);
+      expect(feeAuth.authorization.signature.length).toBeGreaterThan(2);
+    });
+
+    it('uses collateral token from MATIC contracts', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x0');
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+
+      const feeAuth = await createPermit2FeeAuthorization(testParams);
+
+      expect(feeAuth.authorization.permit.permitted.token).toBe(
+        MATIC_CONTRACTS.collateral,
+      );
+    });
+
+    it('sets deadline one hour after current time', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x0');
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+      const beforeSeconds = Math.floor(Date.now() / 1000);
+
+      const feeAuth = await createPermit2FeeAuthorization(testParams);
+      const deadlineSeconds = Number(feeAuth.authorization.permit.deadline);
+      const afterSeconds = Math.floor(Date.now() / 1000);
+
+      expect(deadlineSeconds).toBeGreaterThanOrEqual(beforeSeconds + 3590);
+      expect(deadlineSeconds).toBeLessThanOrEqual(afterSeconds + 3610);
+    });
+
+    it('queries Permit2 nonce bitmap before building authorization', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x0');
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+
+      await createPermit2FeeAuthorization(testParams);
+
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.any(EthQuery),
+        'call',
+        expect.arrayContaining([
+          expect.objectContaining({
+            to: PERMIT2_ADDRESS,
+          }),
+        ]),
+      );
+    });
+  });
+
+  describe('hasPermit2Allowance', () => {
+    it('returns true when Permit2 allowance is greater than zero', async () => {
+      mockGetAllowance.mockResolvedValueOnce(1n);
+
+      const result = await hasPermit2Allowance({ address: TEST_ADDRESS });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when Permit2 allowance is zero', async () => {
+      mockGetAllowance.mockResolvedValueOnce(0n);
+
+      const result = await hasPermit2Allowance({ address: TEST_ADDRESS });
+
+      expect(result).toBe(false);
+    });
+
+    it('requests allowance using collateral token owner and Permit2 spender', async () => {
+      mockGetAllowance.mockResolvedValueOnce(10n);
+
+      await hasPermit2Allowance({ address: TEST_ADDRESS });
+
+      expect(mockGetAllowance).toHaveBeenCalledWith({
+        tokenAddress: MATIC_CONTRACTS.collateral,
+        owner: TEST_ADDRESS,
+        spender: PERMIT2_ADDRESS,
+      });
     });
   });
 });
