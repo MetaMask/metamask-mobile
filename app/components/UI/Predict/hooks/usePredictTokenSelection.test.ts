@@ -1,16 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { PredictBuyPreviewParams } from '../types/navigation';
 import { usePredictTokenSelection } from './usePredictTokenSelection';
 
-const mockDepositAndOrder = jest.fn();
 let mockIsPredictBalanceSelected = true;
 let mockSelectedTokenAddress: string | undefined;
-
-jest.mock('./usePredictDepositAndOrder', () => ({
-  usePredictDepositAndOrder: () => ({
-    depositAndOrder: mockDepositAndOrder,
-  }),
-}));
 
 jest.mock('./usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
@@ -21,107 +13,29 @@ jest.mock('./usePredictPaymentToken', () => ({
   }),
 }));
 
-const market = {
-  id: 'market-1',
-} as PredictBuyPreviewParams['market'];
-
-const outcome = {
-  id: 'outcome-1',
-} as PredictBuyPreviewParams['outcome'];
-
-const outcomeToken = {
-  id: 'token-1',
-} as PredictBuyPreviewParams['outcomeToken'];
-
 describe('usePredictTokenSelection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDepositAndOrder.mockResolvedValue(undefined);
     mockIsPredictBalanceSelected = true;
     mockSelectedTokenAddress = undefined;
   });
 
-  it('does not call depositAndOrder on initial render', () => {
+  it('does not call onTokenSelected on initial render', () => {
+    const onTokenSelected = jest.fn();
+
     renderHook(() =>
       usePredictTokenSelection({
-        amountUsd: 0,
-        isInputFocused: true,
-        market,
-        outcome,
-        outcomeToken,
+        onTokenSelected,
       }),
     );
 
-    expect(mockDepositAndOrder).not.toHaveBeenCalled();
+    expect(onTokenSelected).not.toHaveBeenCalled();
   });
 
-  it('calls depositAndOrder when non-predict token selection changes', async () => {
+  it('calls onTokenSelected with token args when token selection changes', async () => {
+    const onTokenSelected = jest.fn().mockResolvedValue(undefined);
     const { rerender, result } = renderHook(() =>
       usePredictTokenSelection({
-        amountUsd: 25,
-        isInputFocused: false,
-        market,
-        outcome,
-        outcomeToken,
-      }),
-    );
-
-    mockIsPredictBalanceSelected = false;
-    mockSelectedTokenAddress = '0x1234';
-
-    await act(async () => {
-      rerender();
-    });
-
-    expect(mockDepositAndOrder).toHaveBeenCalledWith({
-      market,
-      outcome,
-      outcomeToken,
-      isInputFocused: false,
-      amountUsd: 25,
-      analyticsProperties: undefined,
-    });
-    expect(result.current.shouldPreserveActiveOrderOnUnmountRef.current).toBe(
-      true,
-    );
-  });
-
-  it('does not include amountUsd when current amount is 0', async () => {
-    const { rerender } = renderHook(() =>
-      usePredictTokenSelection({
-        amountUsd: 0,
-        isInputFocused: true,
-        market,
-        outcome,
-        outcomeToken,
-      }),
-    );
-
-    mockIsPredictBalanceSelected = false;
-    mockSelectedTokenAddress = '0x1234';
-
-    await act(async () => {
-      rerender();
-    });
-
-    expect(mockDepositAndOrder).toHaveBeenCalledWith({
-      market,
-      outcome,
-      outcomeToken,
-      isInputFocused: true,
-      analyticsProperties: undefined,
-    });
-  });
-
-  it('calls onTokenSelected when selected token changes', async () => {
-    const onTokenSelected = jest.fn();
-    const { rerender } = renderHook(() =>
-      usePredictTokenSelection({
-        amountUsd: 0,
-        isInputFocused: true,
-        market,
-        outcome,
-        outcomeToken,
         onTokenSelected,
       }),
     );
@@ -133,25 +47,64 @@ describe('usePredictTokenSelection', () => {
       rerender();
     });
 
-    expect(onTokenSelected).toHaveBeenCalledTimes(1);
+    expect(onTokenSelected).toHaveBeenCalledWith('0x1234', '0x1234');
+    expect(result.current.shouldPreserveActiveOrderOnUnmountRef.current).toBe(
+      true,
+    );
   });
 
-  it('sets loading while depositAndOrder is in progress', async () => {
-    let resolveDepositAndOrder: (() => void) | undefined;
-    mockDepositAndOrder.mockImplementation(
+  it('passes predict-balance key when predict balance is selected', async () => {
+    const onTokenSelected = jest.fn();
+
+    mockIsPredictBalanceSelected = false;
+    mockSelectedTokenAddress = '0x1234';
+
+    const { rerender } = renderHook(() =>
+      usePredictTokenSelection({
+        onTokenSelected,
+      }),
+    );
+
+    mockIsPredictBalanceSelected = true;
+    mockSelectedTokenAddress = undefined;
+
+    await act(async () => {
+      rerender();
+    });
+
+    expect(onTokenSelected).toHaveBeenCalledWith(null, 'predict-balance');
+  });
+
+  it('calls onTokenSelected when selected token changes', async () => {
+    const onTokenSelected = jest.fn();
+    const { rerender } = renderHook(() =>
+      usePredictTokenSelection({
+        onTokenSelected,
+      }),
+    );
+
+    mockIsPredictBalanceSelected = false;
+    mockSelectedTokenAddress = '0x1234';
+
+    await act(async () => {
+      rerender();
+    });
+
+    expect(onTokenSelected).toHaveBeenCalledWith('0x1234', '0x1234');
+  });
+
+  it('sets loading while onTokenSelected promise is in progress', async () => {
+    let resolveOnTokenSelected: (() => void) | undefined;
+    const onTokenSelected = jest.fn().mockImplementation(
       () =>
         new Promise<void>((resolve) => {
-          resolveDepositAndOrder = resolve;
+          resolveOnTokenSelected = resolve;
         }),
     );
 
     const { rerender, result } = renderHook(() =>
       usePredictTokenSelection({
-        amountUsd: 25,
-        isInputFocused: false,
-        market,
-        outcome,
-        outcomeToken,
+        onTokenSelected,
       }),
     );
 
@@ -167,7 +120,7 @@ describe('usePredictTokenSelection', () => {
     });
 
     await act(async () => {
-      resolveDepositAndOrder?.();
+      resolveOnTokenSelected?.();
       await Promise.resolve();
     });
 

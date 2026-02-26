@@ -83,8 +83,8 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
-import { usePredictTokenSelection } from '../../hooks/usePredictTokenSelection';
 import { usePredictAutoPlaceOrder } from '../../hooks/usePredictAutoPlaceOrder';
+import { usePredictDepositAndOrder } from '../../hooks/usePredictDepositAndOrder';
 
 export const MINIMUM_BET = 1; // $1 minimum bet
 
@@ -149,13 +149,15 @@ const PredictBuyPreview = () => {
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
   const previousValueRef = useRef(0);
   const { shouldPreserveActiveOrderOnUnmountRef, isDepositAndOrderLoading } =
-    usePredictTokenSelection({
-      market,
-      outcome,
-      outcomeToken,
-      analyticsProperties,
-      amountUsd: currentValue,
-      isInputFocused,
+    usePredictDepositAndOrder({
+      tokenSelectionParams: {
+        market,
+        outcome,
+        outcomeToken,
+        isInputFocused,
+        ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
+        analyticsProperties,
+      },
     });
 
   const { deposit } = usePredictDeposit();

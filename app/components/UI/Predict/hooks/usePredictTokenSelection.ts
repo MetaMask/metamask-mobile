@@ -1,29 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import { PlaceOrderParams } from '../providers/types';
-import { usePredictDepositAndOrder } from './usePredictDepositAndOrder';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
-import { PredictBuyPreviewParams } from '../types/navigation';
 
 interface UsePredictTokenSelectionParams {
-  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
-  amountUsd: number;
-  isInputFocused: boolean;
-  onTokenSelected?: () => boolean | void;
-  market: PredictBuyPreviewParams['market'];
-  outcome: PredictBuyPreviewParams['outcome'];
-  outcomeToken: PredictBuyPreviewParams['outcomeToken'];
+  onTokenSelected?: (
+    tokenAddress: string | null,
+    tokenKey: string | null,
+  ) => Promise<void> | void;
 }
 
 export function usePredictTokenSelection({
-  analyticsProperties,
-  amountUsd,
-  isInputFocused,
   onTokenSelected,
-  market,
-  outcome,
-  outcomeToken,
 }: UsePredictTokenSelectionParams) {
-  const { depositAndOrder } = usePredictDepositAndOrder();
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
   const [isDepositAndOrderLoading, setIsDepositAndOrderLoading] =
@@ -42,6 +29,8 @@ export function usePredictTokenSelection({
   );
 
   useEffect(() => {
+    let isCancelled = false;
+
     const selectedTokenAddress = selectedPaymentToken?.address ?? null;
     const selectedTokenKey = isPredictBalanceSelected
       ? 'predict-balance'
@@ -58,42 +47,41 @@ export function usePredictTokenSelection({
     }
 
     previousSelectedTokenKeyRef.current = selectedTokenKey;
-    const nextIsInputFocused = onTokenSelected?.();
+    const callbackResult = onTokenSelected?.(
+      selectedTokenAddress,
+      selectedTokenKey,
+    );
 
-    if (isPredictBalanceSelected || !selectedTokenAddress) {
+    if (!callbackResult) {
       return;
     }
 
     shouldPreserveActiveOrderOnUnmountRef.current = true;
-    setIsDepositAndOrderLoading(true);
 
-    depositAndOrder({
-      market,
-      outcome,
-      outcomeToken,
-      isInputFocused:
-        typeof nextIsInputFocused === 'boolean'
-          ? nextIsInputFocused
-          : isInputFocused,
-      ...(amountUsd > 0 ? { amountUsd } : {}),
-      analyticsProperties,
-    })
-      .catch(() => undefined)
-      .finally(() => {
-        if (isMountedRef.current) {
-          setIsDepositAndOrderLoading(false);
-        }
-      });
+    const executeTokenSelection = async () => {
+      if (!isCancelled && isMountedRef.current) {
+        setIsDepositAndOrderLoading(true);
+      }
+
+      try {
+        await callbackResult;
+      } catch {
+        // Intentionally ignored; caller handles callback-specific failures.
+      }
+
+      if (!isCancelled && isMountedRef.current) {
+        setIsDepositAndOrderLoading(false);
+      }
+    };
+
+    executeTokenSelection();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [
-    amountUsd,
-    analyticsProperties,
-    depositAndOrder,
-    isInputFocused,
     isPredictBalanceSelected,
-    market,
     onTokenSelected,
-    outcome,
-    outcomeToken,
     selectedPaymentToken?.address,
   ]);
 

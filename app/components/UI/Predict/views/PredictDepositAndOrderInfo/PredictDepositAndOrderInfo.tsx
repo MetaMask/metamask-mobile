@@ -12,21 +12,13 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   ButtonSize as ButtonSizeHero,
-  Icon,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import {
-  ActivityIndicator,
-  Linking,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { ActivityIndicator, Linking, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { strings } from '../../../../../../locales/i18n';
@@ -40,7 +32,6 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
-import { PredictBuyPreviewHeaderTitle } from '../../components/PredictBuyPreviewHeader';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
 import PredictKeypad, {
@@ -71,10 +62,8 @@ import { useTransactionCustomAmount } from '../../../../Views/confirmations/hook
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
-import {
-  getNavbar,
-  NavbarOverrides,
-} from '../../../../Views/confirmations/components/UI/navbar/navbar';
+import { getNavbar } from '../../../../Views/confirmations/components/UI/navbar/navbar';
+import { usePredictMarketHeader } from '../../hooks/usePredictMarketHeader';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { useTheme } from '../../../../../util/theme';
 import { StakeNavigationParamsList } from '../../../Stake/types';
@@ -100,42 +89,13 @@ export function PredictDepositAndOrderInfo() {
       ? activeOrder.amountUsd
       : 0;
 
-  const renderHeaderTitle = useCallback(
-    () =>
-      outcomeToken ? (
-        <Box twClassName="mt-4 -ml-4">
-          <PredictBuyPreviewHeaderTitle
-            title={market?.title ?? ''}
-            outcomeImage={outcome?.image}
-            outcomeGroupTitle={outcome?.groupItemTitle ?? ''}
-            outcomeToken={outcomeToken}
-          />
-        </Box>
-      ) : (
-        <Box twClassName="h-24" />
-      ),
-    [market?.title, outcome?.image, outcome?.groupItemTitle, outcomeToken],
-  );
-  const renderHeaderLeft = useCallback(
-    (onBackPress: () => void) => (
-      <TouchableOpacity onPress={onBackPress} style={tw.style('mt-4 ml-4')}>
-        <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
-      </TouchableOpacity>
-    ),
-    [tw],
-  );
-
-  const navbarOverrides = useMemo<NavbarOverrides>(
-    () => ({
-      headerTitleAlign: 'left' as const,
-      headerTitle: renderHeaderTitle,
-      headerLeft: renderHeaderLeft,
-      headerStyle: {
-        backgroundColor: theme.colors.background.default,
-      },
-    }),
-    [renderHeaderLeft, renderHeaderTitle, theme.colors.background.default],
-  );
+  const navbarOverrides = usePredictMarketHeader({
+    marketTitle: market?.title,
+    outcomeImage: outcome?.image,
+    outcomeGroupTitle: outcome?.groupItemTitle,
+    outcomeToken,
+    backgroundColor: theme.colors.background.default,
+  });
 
   useLayoutEffect(() => {
     if (!isFullScreenConfirmation) {
