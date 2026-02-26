@@ -219,13 +219,7 @@ describe('BrowserBottomBar', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'AddBookmarkView',
         expect.objectContaining({
-          type: 'PUSH',
-          payload: expect.objectContaining({
-            name: 'AddBookmarkView',
-            params: expect.objectContaining({
-              screen: 'AddBookmark',
-            }),
-          }),
+          screen: 'AddBookmark',
         }),
       );
     });
@@ -397,14 +391,9 @@ describe('BrowserBottomBar', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'AddBookmarkView',
         expect.objectContaining({
-          type: 'PUSH',
-          payload: expect.objectContaining({
-            name: 'AddBookmarkView',
-            params: expect.objectContaining({
-              params: expect.objectContaining({
-                title: '',
-              }),
-            }),
+          screen: 'AddBookmark',
+          params: expect.objectContaining({
+            title: '',
           }),
         }),
       );
@@ -663,13 +652,7 @@ describe('BrowserBottomBar', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'AddBookmarkView',
         expect.objectContaining({
-          type: 'PUSH',
-          payload: expect.objectContaining({
-            name: 'AddBookmarkView',
-            params: expect.objectContaining({
-              screen: 'AddBookmark',
-            }),
-          }),
+          screen: 'AddBookmark',
         }),
       );
     });
@@ -742,13 +725,7 @@ describe('BrowserBottomBar', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'AddBookmarkView',
         expect.objectContaining({
-          type: 'PUSH',
-          payload: expect.objectContaining({
-            name: 'AddBookmarkView',
-            params: expect.objectContaining({
-              screen: 'AddBookmark',
-            }),
-          }),
+          screen: 'AddBookmark',
         }),
       );
     });
@@ -764,14 +741,9 @@ describe('BrowserBottomBar', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'AddBookmarkView',
         expect.objectContaining({
-          type: 'PUSH',
-          payload: expect.objectContaining({
-            name: 'AddBookmarkView',
-            params: expect.objectContaining({
-              params: expect.objectContaining({
-                title: '',
-              }),
-            }),
+          screen: 'AddBookmark',
+          params: expect.objectContaining({
+            title: '',
           }),
         }),
       );
@@ -790,14 +762,9 @@ describe('BrowserBottomBar', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'AddBookmarkView',
         expect.objectContaining({
-          type: 'PUSH',
-          payload: expect.objectContaining({
-            name: 'AddBookmarkView',
-            params: expect.objectContaining({
-              params: expect.objectContaining({
-                url: 'custom-masked-url',
-              }),
-            }),
+          screen: 'AddBookmark',
+          params: expect.objectContaining({
+            url: 'custom-masked-url',
           }),
         }),
       );
