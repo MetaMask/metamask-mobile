@@ -201,7 +201,15 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -221,7 +229,9 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                               "paddingLeft": 8,
                               "paddingRight": 8,
                             },
-                            false,
+                            {
+                              "marginTop": 0,
+                            },
                             undefined,
                           ]
                         }
@@ -548,7 +558,7 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                           </View>
                         </View>
                       </RCTScrollView>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
