@@ -286,6 +286,8 @@ export class MYXProvider implements PerpsProvider {
         ready: true,
         walletConnected: true,
         networkSupported: true,
+        authenticatedAddress:
+          this.#clientService.getAuthenticatedAddress() ?? undefined,
       };
     } catch (caughtError) {
       const wrappedError = ensureError(
@@ -307,7 +309,10 @@ export class MYXProvider implements PerpsProvider {
    * Uses promise dedup to prevent concurrent auth attempts.
    */
   async #ensureAuthenticated(): Promise<void> {
-    if (this.#clientService.isAuthenticated()) {
+    // Always resolve the current address first so we can check per-address auth
+    const currentAddress = this.#getCurrentAddress();
+
+    if (this.#clientService.isAuthenticatedForAddress(currentAddress)) {
       return;
     }
 
@@ -322,6 +327,27 @@ export class MYXProvider implements PerpsProvider {
     } finally {
       this.#authPromise = null;
     }
+  }
+
+  /**
+   * Get the current user address, creating the wallet service if needed.
+   *
+   * @returns The current user wallet address.
+   */
+  #getCurrentAddress(): string {
+    if (!this.#messenger) {
+      throw new Error(
+        'MYX provider requires messenger for authenticated operations',
+      );
+    }
+
+    if (!this.#walletService) {
+      this.#walletService = new MYXWalletService(this.#deps, this.#messenger, {
+        isTestnet: this.#isTestnet,
+      });
+    }
+
+    return this.#walletService.getUserAddress();
   }
 
   async #doEnsureAuthenticated(): Promise<void> {

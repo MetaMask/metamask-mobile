@@ -33,9 +33,7 @@ const PerpsSelectProviderView: React.FC = () => {
 
   const handleOptionSelect = useCallback(
     async (option: ProviderNetworkOption) => {
-      const currentProvider =
-        activeProvider === 'aggregated' ? 'hyperliquid' : activeProvider;
-      const providerChanged = option.providerId !== currentProvider;
+      const providerChanged = option.providerId !== activeProvider;
       const networkChanged = option.isTestnet !== isTestnet;
 
       if (!providerChanged && !networkChanged) {

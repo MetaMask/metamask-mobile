@@ -310,6 +310,7 @@ export type ReadyToTradeResult = {
   error?: string;
   walletConnected?: boolean;
   networkSupported?: boolean;
+  authenticatedAddress?: string;
 };
 
 export type DisconnectResult = {

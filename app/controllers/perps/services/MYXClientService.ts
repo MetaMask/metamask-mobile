@@ -74,8 +74,8 @@ export class MYXClientService {
   // Auth config (passed at construction, not from runtime env vars)
   readonly #authConfig: MYXAuthConfig;
 
-  // Auth state
-  #authenticated = false;
+  // Auth state — null means unauthenticated, non-null is the lowercased address
+  #authenticatedAddress: string | null = null;
 
   #authenticating: Promise<void> | null = null;
 
@@ -408,7 +408,7 @@ export class MYXClientService {
     walletClient: unknown,
     address: string,
   ): Promise<void> {
-    if (this.#authenticated) {
+    if (this.#authenticatedAddress === address.toLowerCase()) {
       return;
     }
 
@@ -472,7 +472,7 @@ export class MYXClientService {
         walletClient: walletClient as any,
       });
 
-      this.#authenticated = true;
+      this.#authenticatedAddress = address.toLowerCase();
 
       this.#deps.debugLogger.log(
         '[MYXClientService] Authentication successful',
@@ -578,7 +578,26 @@ export class MYXClientService {
    * @returns True if the client has been authenticated.
    */
   isAuthenticated(): boolean {
-    return this.#authenticated;
+    return this.#authenticatedAddress !== null;
+  }
+
+  /**
+   * Check if the client is authenticated for a specific address.
+   *
+   * @param address - The wallet address to check.
+   * @returns True if the client is authenticated for the given address.
+   */
+  isAuthenticatedForAddress(address: string): boolean {
+    return this.#authenticatedAddress === address.toLowerCase();
+  }
+
+  /**
+   * Get the currently authenticated address, or null if not authenticated.
+   *
+   * @returns The authenticated address or null.
+   */
+  getAuthenticatedAddress(): string | null {
+    return this.#authenticatedAddress;
   }
 
   // ============================================================================
@@ -1016,7 +1035,7 @@ export class MYXClientService {
     this.#marketsCache = [];
     this.#marketsCacheTimestamp = 0;
     this.#globalIdCache.clear();
-    this.#authenticated = false;
+    this.#authenticatedAddress = null;
     this.#authenticating = null;
 
     this.#deps.debugLogger.log('[MYXClientService] Disconnected');

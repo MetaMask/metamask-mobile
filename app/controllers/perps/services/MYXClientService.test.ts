@@ -955,6 +955,38 @@ describe('MYXClientService', () => {
     });
   });
 
+  describe('isAuthenticatedForAddress', () => {
+    it('returns false before authentication', () => {
+      expect(service.isAuthenticatedForAddress('0xuser')).toBe(false);
+    });
+
+    it('returns true for the authenticated address', async () => {
+      await service.authenticate({}, {}, '0xuser');
+
+      expect(service.isAuthenticatedForAddress('0xuser')).toBe(true);
+    });
+
+    it('returns true regardless of address casing', async () => {
+      await service.authenticate({}, {}, '0xUser');
+
+      expect(service.isAuthenticatedForAddress('0xuser')).toBe(true);
+      expect(service.isAuthenticatedForAddress('0xUSER')).toBe(true);
+    });
+
+    it('returns false for a different address', async () => {
+      await service.authenticate({}, {}, '0xuser');
+
+      expect(service.isAuthenticatedForAddress('0xother')).toBe(false);
+    });
+
+    it('returns false after disconnect', async () => {
+      await service.authenticate({}, {}, '0xuser');
+      service.disconnect();
+
+      expect(service.isAuthenticatedForAddress('0xuser')).toBe(false);
+    });
+  });
+
   // ==========================================================================
   // authenticate
   // ==========================================================================

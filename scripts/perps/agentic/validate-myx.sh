@@ -85,7 +85,7 @@ print_report() {
   if [ "$UNVERIFIED_COUNT" -gt 0 ]; then
     echo ""
     echo "⚠ UNVERIFIED = API returned data but auth was never validated."
-    echo "  myxClient.auth() is sync (stores callbacks, sets #authenticated=true)."
+    echo "  myxClient.auth() is sync (stores callbacks, sets #authenticatedAddress=<addr>)."
     echo "  MYX API may not auth-gate read endpoints — empty results prove nothing."
   fi
   echo "═══════════════════════════════════════════════════════════════════════"
@@ -167,16 +167,16 @@ run_validation() {
     (function() {
       var provider = Engine.context.PerpsController.providers.get("myx");
       if (provider === null || provider === undefined) return JSON.stringify({error: "no provider"});
-      var cs = provider.__private_625_clientService;
+      var cs = provider.__private_621_clientService;
       if (cs === null || cs === undefined) return JSON.stringify({error: "no clientService"});
-      var myxClient = cs.__private_638_myxClient;
+      var myxClient = cs.__private_635_myxClient;
       var config = myxClient.configManager.config;
-      var authConfig = cs.__private_642_authConfig;
+      var authConfig = cs.__private_639_authConfig;
       return JSON.stringify({
         sdkChainId: config.chainId,
         sdkIsTestnet: config.isTestnet,
         sdkIsBetaMode: config.isBetaMode,
-        authenticated: cs.__private_643_authenticated,
+        authenticatedAddress: cs.__private_640_authenticatedAddress,
         appId: authConfig ? authConfig.appId : null,
         hasApiSecret: Boolean(authConfig && authConfig.apiSecret),
         brokerAddress: authConfig && authConfig.brokerAddress ? authConfig.brokerAddress : ""
@@ -267,8 +267,8 @@ print('true' if n and n != 'None' else 'false')
   raw_ticker_result=$(eval_async '
     (function() {
       var provider = Engine.context.PerpsController.providers.get("myx");
-      var cs = provider.__private_625_clientService;
-      var myxClient = cs.__private_638_myxClient;
+      var cs = provider.__private_621_clientService;
+      var myxClient = cs.__private_635_myxClient;
       return myxClient.getTickers().then(function(resp) {
         var tickers = resp.data || [];
         return JSON.stringify({
@@ -448,7 +448,7 @@ print('true' if real else 'false')
 
   # ── 8. Auth: isReadyToTrade ──
   # NOTE: myxClient.auth() is sync — it just stores signer + getAccessToken callback.
-  # It sets #authenticated=true immediately, no API call. So "ready:true" proves nothing.
+  # It sets #authenticatedAddress=<addr> immediately, no API call. So "ready:true" proves nothing.
   echo "[test] Auth: isReadyToTrade..."
   echo "         ⚠ WARNING: myxClient.auth() is sync — ready:true does NOT mean credentials are valid"
   local ready_result
