@@ -110,12 +110,16 @@ describe('useEarnToasts', () => {
   });
 
   describe('EarnToastOptions structure', () => {
-    it('includes mUsdConversion with inProgress, success, and failed options', () => {
+    it('includes mUsdConversion with inProgress, existingConversionInProgress, success, and failed options', () => {
       const { result } = renderHook(() => useEarnToasts(), { wrapper });
 
       expect(result.current.EarnToastOptions.mUsdConversion).toBeDefined();
       expect(
         result.current.EarnToastOptions.mUsdConversion.inProgress,
+      ).toBeDefined();
+      expect(
+        result.current.EarnToastOptions.mUsdConversion
+          .existingConversionInProgress,
       ).toBeDefined();
       expect(
         result.current.EarnToastOptions.mUsdConversion.success,
@@ -162,6 +166,21 @@ describe('useEarnToasts', () => {
       expect(failedToast.iconName).toBe(IconName.CircleX);
       expect(failedToast.iconColor).toBeDefined();
       expect(failedToast.hapticsType).toBe(NotificationFeedbackType.Error);
+    });
+
+    it('configures existingConversionInProgress toast with correct properties', () => {
+      const { result } = renderHook(() => useEarnToasts(), { wrapper });
+
+      const existingConversionToast =
+        result.current.EarnToastOptions.mUsdConversion
+          .existingConversionInProgress;
+
+      expect(existingConversionToast.variant).toBe(ToastVariants.Icon);
+      expect(existingConversionToast.iconName).toBe(IconName.Warning);
+      expect(existingConversionToast.hapticsType).toBe(
+        NotificationFeedbackType.Warning,
+      );
+      expect(existingConversionToast.hasNoTimeout).toBe(true);
     });
   });
 
@@ -212,6 +231,18 @@ describe('useEarnToasts', () => {
       expect(Array.isArray(failedToast.labelOptions)).toBe(true);
       expect(failedToast.labelOptions).toHaveLength(1);
     });
+
+    it('includes labelOptions in existingConversionInProgress toast', () => {
+      const { result } = renderHook(() => useEarnToasts(), { wrapper });
+
+      const existingConversionToast =
+        result.current.EarnToastOptions.mUsdConversion
+          .existingConversionInProgress;
+
+      expect(existingConversionToast.labelOptions).toBeDefined();
+      expect(Array.isArray(existingConversionToast.labelOptions)).toBe(true);
+      expect(existingConversionToast.labelOptions).toHaveLength(1);
+    });
   });
 
   describe('closeButtonOptions', () => {
@@ -253,6 +284,21 @@ describe('useEarnToasts', () => {
       ).toBe(IconName.Close);
     });
 
+    it('includes closeButtonOptions on existingConversionInProgress toast', () => {
+      const { result } = renderHook(() => useEarnToasts(), { wrapper });
+
+      const existingConversionToast =
+        result.current.EarnToastOptions.mUsdConversion
+          .existingConversionInProgress;
+
+      expect(existingConversionToast.closeButtonOptions).toBeDefined();
+      expect(
+        (existingConversionToast.closeButtonOptions as ButtonIconProps)
+          ?.iconName,
+      ).toBe(IconName.Close);
+      expect(existingConversionToast.closeButtonOptions?.onPress).toBeDefined();
+    });
+
     it('calls closeToast when closeButtonOptions.onPress is invoked', () => {
       const { result } = renderHook(() => useEarnToasts(), { wrapper });
 
@@ -281,6 +327,16 @@ describe('useEarnToasts', () => {
       const failedToast = result.current.EarnToastOptions.mUsdConversion.failed;
 
       expect(failedToast.startAccessory).toBeDefined();
+    });
+
+    it('includes startAccessory for existingConversionInProgress toast', () => {
+      const { result } = renderHook(() => useEarnToasts(), { wrapper });
+
+      const existingConversionToast =
+        result.current.EarnToastOptions.mUsdConversion
+          .existingConversionInProgress;
+
+      expect(existingConversionToast.startAccessory).toBeDefined();
     });
   });
 
@@ -368,6 +424,20 @@ describe('useEarnToasts', () => {
 
       expect(mockNotificationAsync).toHaveBeenCalledWith(
         NotificationFeedbackType.Error,
+      );
+    });
+
+    it('triggers warning haptics for existingConversionInProgress toast', () => {
+      const { result } = renderHook(() => useEarnToasts(), { wrapper });
+
+      const existingConversionToast =
+        result.current.EarnToastOptions.mUsdConversion
+          .existingConversionInProgress;
+
+      result.current.showToast(existingConversionToast);
+
+      expect(mockNotificationAsync).toHaveBeenCalledWith(
+        NotificationFeedbackType.Warning,
       );
     });
   });
