@@ -327,12 +327,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   };
 
   const handleMarketInsightsPress = useCallback(() => {
-    trace({
-      name: TraceName.MarketInsightsViewLoad,
-      op: TraceOperation.MarketInsightsLoad,
-    });
-
     if (marketInsightsCaip19Id) {
+      trace({
+        name: TraceName.MarketInsightsViewLoad,
+        op: TraceOperation.MarketInsightsLoad,
+      });
       const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
         .addProperties({
           caip19: marketInsightsCaip19Id,

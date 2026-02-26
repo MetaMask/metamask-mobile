@@ -82,6 +82,8 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   const tw = useTailwind();
 
   useEffect(() => {
+    // Finishes measuring the time it takes to load the market insights entry card after
+    // the component is mounted
     endTrace({ name: TraceName.MarketInsightsEntryCardLoad });
   }, []);
 
