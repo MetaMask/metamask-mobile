@@ -7,7 +7,7 @@ import type { CardPinTokenResponse } from '../types';
 
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 const PIN_CSS = {
-  dark: { backgroundColor: '#000', textColor: '#FFF' },
+  dark: { backgroundColor: '#121314', textColor: '#FFF' },
   light: { backgroundColor: '#FFF', textColor: '#000' },
 } as const;
 
