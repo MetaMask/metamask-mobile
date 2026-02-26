@@ -207,7 +207,7 @@ https://link.metamask.io/buy?chain=1&token=ETH
 ```
 
 ```
-https://link.metamask.io/buy?assetId=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&amount=150&providerId=/providers/transak&paymentMethodId=/payments/debit-credit-card&autoProceed=true
+https://link.metamask.io/buy?assetId=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&amount=150&providerId=/providers/transak&paymentMethodId=/payments/debit-credit-card
 ```
 
 #### Swap Link (CAIP-19 Format)
@@ -887,7 +887,7 @@ describe('Dynamic signature verification', () => {
 | Action                 | Purpose                     | Handler Function         | Notes                                           |
 | ---------------------- | --------------------------- | ------------------------ | ----------------------------------------------- |
 | `swap`                 | Token swap/bridge (CAIP-19) | `handleSwapUrl`          | Params: `from`, `to`, `amount` (CAIP-19)        |
-| `buy` / `buy-crypto`   | Buy crypto                  | `handleRampUrl`          | Params: `assetId`, `amount`, `providerId`, `paymentMethodId`, `autoProceed` |
+| `buy` / `buy-crypto`   | Buy crypto                  | `handleRampUrl`          | Params: `assetId`, `amount`, `providerId`, `paymentMethodId` |
 | `sell` / `sell-crypto` | Sell crypto                 | `handleRampUrl`          |                                                 |
 | `deposit`              | Cash deposit                | `handleDepositCashUrl`   |                                                 |
 | `send`                 | Send transaction            | Recursive `parse()` call |                                                 |

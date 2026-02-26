@@ -366,19 +366,6 @@ describe('BuildQuote', () => {
     );
   });
 
-  it('shows loader-only UI when autoProceed is enabled', () => {
-    mockUseParams.mockReturnValue({
-      assetId: MOCK_ASSET_ID,
-      amount: '100',
-      autoProceed: true,
-    });
-
-    const { getByTestId, queryByTestId } = renderWithTheme(<BuildQuote />);
-
-    expect(getByTestId('build-quote-auto-proceed-loader')).toBeOnTheScreen();
-    expect(queryByTestId('build-quote-continue-button')).toBeNull();
-  });
-
   it('renders the keypad', () => {
     const { getByText, getByTestId } = renderWithTheme(<BuildQuote />);
 
