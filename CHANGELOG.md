@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.66.1]
 
+### OTA fixes
+
+- remove process.env spread
+
 ## [7.65.0]
 
 ### Added
@@ -10498,8 +10502,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.66.1...HEAD
-[7.66.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.65.0...v7.66.1
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.66.0...HEAD
+[7.66.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.65.0...v7.66.0
 [7.65.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.1...v7.65.0
 [7.64.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.0...v7.64.1
 [7.64.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.63.1...v7.64.0
