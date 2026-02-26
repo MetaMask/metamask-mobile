@@ -12,8 +12,14 @@ describe('InfoRowDivider', () => {
 
     const result = toJSON();
     expect(result).toBeTruthy();
-    expect(result?.props?.style?.backgroundColor).toBe(
-      mockTheme.colors.border.muted,
-    );
+    if (result && !Array.isArray(result)) {
+      expect(result.props.style).toEqual({
+        backgroundColor: mockTheme.colors.border.muted,
+        height: 1,
+        marginLeft: -8,
+        marginRight: -8,
+        marginVertical: 8,
+      });
+    }
   });
 });
