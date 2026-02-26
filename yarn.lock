@@ -9820,13 +9820,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/post-message-stream@npm:^10.0.0":
+"@metamask/post-message-stream@npm:10.0.0":
   version: 10.0.0
   resolution: "@metamask/post-message-stream@npm:10.0.0"
   dependencies:
     "@metamask/utils": "npm:^11.4.0"
     readable-stream: "npm:3.6.2"
   checksum: 10/7892b30e6107b662680dfba75c078ac925c9f45bf1f90a0c86035f206a6305ddf903086a02b08e6fe9aec9ec32a0fecd2ff31941d5961d45ee782c07993846c5
+  languageName: node
+  linkType: hard
+
+"@metamask/post-message-stream@patch:@metamask/post-message-stream@npm%3A10.0.0#~/.yarn/patches/@metamask-post-message-stream-npm-10.0.0-rn-exports.patch":
+  version: 10.0.0
+  resolution: "@metamask/post-message-stream@patch:@metamask/post-message-stream@npm%3A10.0.0#~/.yarn/patches/@metamask-post-message-stream-npm-10.0.0-rn-exports.patch::version=10.0.0&hash=ed137f"
+  dependencies:
+    "@metamask/utils": "npm:^11.4.0"
+    readable-stream: "npm:3.6.2"
+  checksum: 10/929b1af7f18fed85845f7fc44a5056810d40edc156d63da8afd197ff8d779b0a2015da2ccc68b0fe98b23a05c90c4642bf50139f6d39fd92adcd6fbe4659f86f
   languageName: node
   linkType: hard
 
@@ -10233,6 +10243,50 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/snaps-controllers@npm:18.0.0":
+  version: 18.0.0
+  resolution: "@metamask/snaps-controllers@npm:18.0.0"
+  dependencies:
+    "@metamask/approval-controller": "npm:^8.0.0"
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/json-rpc-engine": "npm:^10.2.1"
+    "@metamask/json-rpc-middleware-stream": "npm:^8.0.8"
+    "@metamask/key-tree": "npm:^10.1.1"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/object-multiplex": "npm:^2.1.0"
+    "@metamask/permission-controller": "npm:^12.2.0"
+    "@metamask/phishing-controller": "npm:^16.1.0"
+    "@metamask/post-message-stream": "npm:^10.0.0"
+    "@metamask/rpc-errors": "npm:^7.0.3"
+    "@metamask/snaps-registry": "npm:^4.0.0"
+    "@metamask/snaps-rpc-methods": "npm:^14.3.0"
+    "@metamask/snaps-sdk": "npm:^10.4.0"
+    "@metamask/snaps-utils": "npm:^12.1.0"
+    "@metamask/storage-service": "npm:^1.0.0"
+    "@metamask/superstruct": "npm:^3.2.1"
+    "@metamask/utils": "npm:^11.9.0"
+    "@xstate/fsm": "npm:^2.0.0"
+    async-mutex: "npm:^0.5.0"
+    concat-stream: "npm:^2.0.0"
+    cron-parser: "npm:^4.5.0"
+    fast-deep-equal: "npm:^3.1.3"
+    get-npm-tarball-url: "npm:^2.0.3"
+    immer: "npm:^9.0.21"
+    luxon: "npm:^3.5.0"
+    nanoid: "npm:^3.3.10"
+    readable-stream: "npm:^3.6.2"
+    readable-web-to-node-stream: "npm:^3.0.2"
+    semver: "npm:^7.5.4"
+    tar-stream: "npm:^3.1.7"
+  peerDependencies:
+    "@metamask/snaps-execution-environments": ^11.0.0
+  peerDependenciesMeta:
+    "@metamask/snaps-execution-environments":
+      optional: true
+  checksum: 10/f0fb53c59a801118f29f28222c44ea0927cfae004cd5d9f5f33e7e4eef3a31e495c91b120e49cf310b6990e853090013e7a6ed10fac2dfb197410d073c54c4d4
+  languageName: node
+  linkType: hard
+
 "@metamask/snaps-controllers@npm:^17.2.0":
   version: 17.2.1
   resolution: "@metamask/snaps-controllers@npm:17.2.1"
@@ -10276,9 +10330,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-controllers@npm:^18.0.0":
+"@metamask/snaps-controllers@patch:@metamask/snaps-controllers@npm%3A18.0.0#~/.yarn/patches/@metamask-snaps-controllers-npm-18.0.0-rn-post-message-stream.patch":
   version: 18.0.0
-  resolution: "@metamask/snaps-controllers@npm:18.0.0"
+  resolution: "@metamask/snaps-controllers@patch:@metamask/snaps-controllers@npm%3A18.0.0#~/.yarn/patches/@metamask-snaps-controllers-npm-18.0.0-rn-post-message-stream.patch::version=18.0.0&hash=037b3e"
   dependencies:
     "@metamask/approval-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
@@ -10316,7 +10370,7 @@ __metadata:
   peerDependenciesMeta:
     "@metamask/snaps-execution-environments":
       optional: true
-  checksum: 10/f0fb53c59a801118f29f28222c44ea0927cfae004cd5d9f5f33e7e4eef3a31e495c91b120e49cf310b6990e853090013e7a6ed10fac2dfb197410d073c54c4d4
+  checksum: 10/295781bc90ca7eeb87ff656ea0307be11c7f6911ad964066082360cfedd9592712f0d546b1141ade2119938071c95e3141fa8719a1dd8274fe2c6a7b324a79e7
   languageName: node
   linkType: hard
 
@@ -12932,6 +12986,16 @@ __metadata:
     react: ^16.0
     react-native: ">=0.57"
   checksum: 10/a290889ae6fbea1438545073d44817deca3da8468242391972538b359bd194599a09e288fdbc4f626f38d48d3ae7fc4b60d05e2c91632828d5ead77ce94105ee
+  languageName: node
+  linkType: hard
+
+"@react-native-community/viewpager@patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch":
+  version: 3.3.0
+  resolution: "@react-native-community/viewpager@patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch::version=3.3.0&hash=233e51"
+  peerDependencies:
+    react: ^16.0
+    react-native: ">=0.57"
+  checksum: 10/705bc45cb45e40b32531c6868d633c6394b4d2cd14758df2d0935c9c3c885139981e802d2f8961f0a8e8d74af2ba08c9329c68ad30902e9fecedc9627bf4c958
   languageName: node
   linkType: hard
 
@@ -36221,7 +36285,7 @@ __metadata:
     react-native-fs: "npm:^2.20.0"
     react-native-gesture-handler: "npm:~2.28.0"
     react-native-get-random-values: "npm:^1.8.0"
-    react-native-gzip: "npm:^1.1.0"
+    react-native-gzip: "patch:react-native-gzip@npm%3A1.1.0#~/.yarn/patches/react-native-gzip-npm-1.1.0.patch"
     react-native-i18n: "patch:react-native-i18n@npm%3A2.0.15#~/.yarn/patches/react-native-i18n-npm-2.0.15-7f3cf7cee6.patch"
     react-native-in-app-review: "npm:^4.3.3"
     react-native-inappbrowser-reborn: "npm:^3.7.0"
@@ -36246,7 +36310,7 @@ __metadata:
     react-native-quick-crypto: "npm:^0.7.15"
     react-native-randombytes: "npm:^3.5.3"
     react-native-reanimated: "npm:~4.1.1"
-    react-native-release-profiler: "npm:^0.4.0"
+    react-native-release-profiler: "npm:^0.4.4"
     react-native-render-html: "npm:^6.3.4"
     react-native-safe-area-context: "npm:~5.6.0"
     react-native-screens: "npm:~4.16.0"
@@ -40779,8 +40843,8 @@ __metadata:
 
 "react-native-aes-crypto-forked@patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch":
   version: 1.2.1
-  resolution: "react-native-aes-crypto-forked@patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch::version=1.2.1&hash=558cad"
-  checksum: 10/258e9536e29407be56365488568ab415cec8ef7f6dc6058e2f94c27e73f2912ff9f18f2b9407ac778d978069a284f387d7e582fabbd422924a452dc5dec2368a
+  resolution: "react-native-aes-crypto-forked@patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch::version=1.2.1&hash=3cd186"
+  checksum: 10/366cd68ad5a813d2be4e7c704a24c2f4bd2066d8776eee0c67748391eaa080992c57e1997566ce950407e659677cc2747fdff23842d4cc25f15e29a44ea300fd
   languageName: node
   linkType: hard
 
@@ -40998,13 +41062,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-gzip@npm:^1.1.0":
+"react-native-gzip@npm:1.1.0":
   version: 1.1.0
   resolution: "react-native-gzip@npm:1.1.0"
   peerDependencies:
     react: "*"
     react-native: "*"
   checksum: 10/3c6797d1e9b2056c73a2ba4880a287a2d03d89e0b7c21c134b8147300519db9ca8856c826bec665230f25eba11a2e6bcab3aa9d3100e001e658389489e955eb9
+  languageName: node
+  linkType: hard
+
+"react-native-gzip@patch:react-native-gzip@npm%3A1.1.0#~/.yarn/patches/react-native-gzip-npm-1.1.0.patch":
+  version: 1.1.0
+  resolution: "react-native-gzip@patch:react-native-gzip@npm%3A1.1.0#~/.yarn/patches/react-native-gzip-npm-1.1.0.patch::version=1.1.0&hash=b6d18b"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/f7a6fdc1366519733df651b6b4f620d7c91edaf3f8306c6fcab3dfbd399f1309bbeb6cce5d24baa15ffa8294e0e7dba3b4054de1681d2fb4511e2d4b58f3342c
   languageName: node
   linkType: hard
 
@@ -41327,18 +41401,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-release-profiler@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "react-native-release-profiler@npm:0.4.0"
+"react-native-release-profiler@npm:^0.4.4":
+  version: 0.4.4
+  resolution: "react-native-release-profiler@npm:0.4.4"
   dependencies:
     "@margelo/hermes-profile-transformer": "npm:^0.0.10"
     commander: "npm:^11.1.0"
   peerDependencies:
+    "@react-native-community/cli-tools": "*"
     react: "*"
     react-native: "*"
   bin:
     react-native-release-profiler: lib/commonjs/cli.js
-  checksum: 10/24b9a15c22d454da47887a1ca2f7043beba022310576b2eec10888e71d042477a9516d2678e487552fb22f8c0132e646a8d442915612ce28a5eeceef09564bbf
+  checksum: 10/41dfbef7268aaeee8b081204441f8d9b5c5103e79bf3161663c1f8f7e7ea064024947e93d27a1220b679049df7038c447dab85ce080cd14f975a0b188ffb7c79
   languageName: node
   linkType: hard
 

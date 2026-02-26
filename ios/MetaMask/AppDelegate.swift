@@ -40,7 +40,7 @@ class AppDelegate: ExpoAppDelegate {
     let initialProps: [AnyHashable: Any] = ["foxCode": foxCode]
 
     RNBranch.branch.checkPasteboardOnInstall()
-    RNBranch.initSession(withLaunchOptions: launchOptions, isReferrable: true)
+    RNBranch.initSession(launchOptions: launchOptions, isReferrable: true)
 
     let delegate = MetaMaskReactNativeDelegate()
     let factory = ExpoReactNativeFactory(delegate: delegate)
@@ -79,7 +79,7 @@ class AppDelegate: ExpoAppDelegate {
     continue userActivity: NSUserActivity,
     restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
   ) -> Bool {
-    return RNBranch.continueUserActivity(userActivity)
+    return RNBranch.continue(userActivity)
   }
 
   override func application(

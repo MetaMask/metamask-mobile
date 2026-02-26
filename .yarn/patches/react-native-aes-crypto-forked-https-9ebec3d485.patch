@@ -35,3 +35,45 @@ index e717caf2f02c470b7f5204d5e4f6ae13d7c46e49..558bd5fe4d0fa04692f2a61f56c6c0a6
 +    implementation 'com.madgag.spongycastle:pkix:1.54.0.0'
 +    implementation 'com.madgag.spongycastle:pg:1.54.0.0'
  }
+diff --git a/ios/RCTAesForked.xcodeproj/project.pbxproj b/ios/RCTAesForked.xcodeproj/project.pbxproj
+index 1c332b1000000000000000000000000000000000..bccbf9b000000000000000000000000000000000 100644
+--- a/ios/RCTAesForked.xcodeproj/project.pbxproj
++++ b/ios/RCTAesForked.xcodeproj/project.pbxproj
+@@ -228,13 +228,15 @@
+ 		32D980F21BE9F11C00FA27E5 /* Debug */ = {
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+ 				HEADER_SEARCH_PATHS = (
+ 					"$(inherited)",
+ 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+-					"$(SRCROOT)/../../../react-native/React/**",
+-					"$(SRCROOT)/../../../../../node_modules/react-native/React/**",
+-					"$(SRCROOT)/../../../ios/Pods/Headers/Public/React-Core"
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public/RCTDeprecation",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public/React-Core",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Private/React-Core",
++					"$(SRCROOT)/../../react-native/React/**",
+ 				);
+ 				OTHER_LDFLAGS = "-ObjC";
+ 				PRODUCT_NAME = "$(TARGET_NAME)";
+ 				SKIP_INSTALL = YES;
+@@ -244,13 +246,15 @@
+ 		32D980F31BE9F11C00FA27E5 /* Release */ = {
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+ 				HEADER_SEARCH_PATHS = (
+ 					"$(inherited)",
+ 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+-					"$(SRCROOT)/../../../react-native/React/**",
+-					"$(SRCROOT)/../../../../../node_modules/react-native/React/**",
+-					"$(SRCROOT)/../../../ios/Pods/Headers/Public/React-Core"
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public/RCTDeprecation",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public/React-Core",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Private/React-Core",
++					"$(SRCROOT)/../../react-native/React/**",
+ 				);
+ 				OTHER_LDFLAGS = "-ObjC";
+ 				PRODUCT_NAME = "$(TARGET_NAME)";
+ 				SKIP_INSTALL = YES;
