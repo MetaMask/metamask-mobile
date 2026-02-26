@@ -52,28 +52,6 @@ class SignModal {
         await AppwrightGestures.tap(element)
     }
 
-    /**
-     * Tap the confirm/submit button on a Snap dialog.
-     * Snap UIs use SnapUIFooterButton with testIDs like "${name}-snap-footer-button".
-     * Matches any *-snap-footer-button that is NOT the cancel or default button.
-     */
-    async tapSnapConfirmButton({ timeout = 5000 } = {}) {
-        if (!this._device) {
-            return;
-        }
-
-        const snapConfirmXpath =
-            '//*[contains(@resource-id,"snap-footer-button") ' +
-            'and not(contains(@resource-id,"cancel")) ' +
-            'and not(contains(@resource-id,"default-snap-footer-button"))]';
-        const snapBtn = await AppwrightSelectors.getElementByXpath(
-            this._device,
-            snapConfirmXpath,
-        );
-        await expect(snapBtn).toBeVisible({ timeout });
-        await AppwrightGestures.tap(snapBtn);
-    }
-
     async tapCancelButton() {
         if (!this._device) {
             return;

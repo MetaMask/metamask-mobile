@@ -132,6 +132,25 @@ stale debug-vs-release mismatches.
 
 ### Running the Test
 
+Before running, make sure the `mm-connect-android-local` project in
+`tests/appwright.config.ts` matches your local emulator:
+
+```ts
+// tests/appwright.config.ts — adjust to your emulator
+{
+  name: 'mm-connect-android-local',
+  use: {
+    device: {
+      name: 'Samsung Galaxy S24 Ultra', // ← your AVD name
+      osVersion: '14',                  // ← your AVD API level
+    },
+    buildPath: 'PATH-TO-BUILD',         // ← path to your MetaMask .apk
+  },
+}
+```
+
+Then run:
+
 ```bash
 # From the metamask-mobile root
 yarn run-appwright:mm-connect-android-local
