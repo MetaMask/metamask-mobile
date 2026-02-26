@@ -102,9 +102,7 @@ import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.ts
 import { useBridgeViewOnFocus } from '../../hooks/useBridgeViewOnFocus/index.ts';
 import { useRenderQuoteExpireModal } from '../../hooks/useRenderQuoteExpireModal/index.ts';
 import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/index.ts';
-import BridgeTrendingTokensSection, {
-  type BridgeTrendingTokensSectionRef,
-} from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
+import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -391,18 +389,16 @@ const BridgeView = () => {
   };
   const contentMode = getContentMode();
 
-  const trendingSectionRef = useRef<BridgeTrendingTokensSectionRef>(null);
+  const [isNearBottom, setIsNearBottom] = useState(false);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const { contentOffset, contentSize, layoutMeasurement } =
         event.nativeEvent;
-      if (
+      setIsNearBottom(
         contentOffset.y + layoutMeasurement.height >=
-        contentSize.height - SCROLL_NEAR_BOTTOM_PX
-      ) {
-        trendingSectionRef.current?.loadNextChunkIfAvailable();
-      }
+          contentSize.height - SCROLL_NEAR_BOTTOM_PX,
+      );
     },
     [],
   );
@@ -568,7 +564,7 @@ const BridgeView = () => {
               </Box>
             ) : null}
             {contentMode === 'zero' ? (
-              <BridgeTrendingTokensSection ref={trendingSectionRef} />
+              <BridgeTrendingTokensSection isNearBottom={isNearBottom} />
             ) : null}
           </Box>
         </ScrollView>

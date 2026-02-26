@@ -1,11 +1,4 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -39,8 +32,8 @@ const TOKEN_CHUNK_SIZE = 12;
 
 type ActiveBottomSheet = 'none' | 'time' | 'network' | 'price_change';
 
-export interface BridgeTrendingTokensSectionRef {
-  loadNextChunkIfAvailable: () => void;
+interface BridgeTrendingTokensSectionProps {
+  isNearBottom?: boolean;
 }
 
 const FilterButton = ({
@@ -83,193 +76,185 @@ const FilterButton = ({
   );
 };
 
-const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
-  (_props, ref) => {
-    const tw = useTailwind();
-    const [activeBottomSheet, setActiveBottomSheet] =
-      useState<ActiveBottomSheet>('none');
-    const closeBottomSheet = () => setActiveBottomSheet('none');
-    const [visibleTokenCount, setVisibleTokenCount] =
-      useState(TOKEN_CHUNK_SIZE);
+const BridgeTrendingTokensSection = ({
+  isNearBottom,
+}: BridgeTrendingTokensSectionProps) => {
+  const tw = useTailwind();
+  const [activeBottomSheet, setActiveBottomSheet] =
+    useState<ActiveBottomSheet>('none');
+  const closeBottomSheet = () => setActiveBottomSheet('none');
+  const [visibleTokenCount, setVisibleTokenCount] = useState(TOKEN_CHUNK_SIZE);
 
-    const networkConfigurations = useSelector(
-      selectNetworkConfigurationsByCaipChainId,
-    );
+  const networkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
-    const {
-      selectedTimeOption,
-      selectedNetwork,
-      selectedPriceChangeOption,
-      priceChangeSortDirection,
-      sortBy,
-      selectedNetworkName,
-      priceChangeButtonText,
-      filterContext,
-      handlePriceChangeSelect,
-      handleNetworkSelect,
-      handleTimeSelect,
-    } = useTrendingFilters({ networkConfigurations });
+  const {
+    selectedTimeOption,
+    selectedNetwork,
+    selectedPriceChangeOption,
+    priceChangeSortDirection,
+    sortBy,
+    selectedNetworkName,
+    priceChangeButtonText,
+    filterContext,
+    handlePriceChangeSelect,
+    handleNetworkSelect,
+    handleTimeSelect,
+  } = useTrendingFilters({ networkConfigurations });
 
-    const { results, isLoading } = useTrendingRequest({
-      sortBy,
-      chainIds: selectedNetwork ?? undefined,
-    });
+  const { results, isLoading } = useTrendingRequest({
+    sortBy,
+    chainIds: selectedNetwork ?? undefined,
+  });
 
-    const trendingTokens = useMemo(() => {
-      if (results.length === 0 || !selectedPriceChangeOption) {
-        return results;
-      }
-      return sortTrendingTokens(
-        results,
-        selectedPriceChangeOption,
-        priceChangeSortDirection,
-        selectedTimeOption,
-      );
-    }, [
+  const trendingTokens = useMemo(() => {
+    if (results.length === 0 || !selectedPriceChangeOption) {
+      return results;
+    }
+    return sortTrendingTokens(
       results,
       selectedPriceChangeOption,
       priceChangeSortDirection,
       selectedTimeOption,
-    ]);
-
-    useEffect(() => {
-      if (isLoading) {
-        setVisibleTokenCount(TOKEN_CHUNK_SIZE);
-        return;
-      }
-      setVisibleTokenCount(Math.min(TOKEN_CHUNK_SIZE, trendingTokens.length));
-    }, [isLoading, trendingTokens]);
-
-    const hasMore = visibleTokenCount < trendingTokens.length;
-
-    const loadNextChunk = useCallback(() => {
-      setVisibleTokenCount((currentCount) =>
-        Math.min(currentCount + TOKEN_CHUNK_SIZE, trendingTokens.length),
-      );
-    }, [trendingTokens.length]);
-
-    useImperativeHandle(
-      ref,
-      () => ({
-        loadNextChunkIfAvailable: () => {
-          if (activeBottomSheet !== 'none' || isLoading || !hasMore) return;
-          loadNextChunk();
-        },
-      }),
-      [activeBottomSheet, isLoading, hasMore, loadNextChunk],
     );
+  }, [
+    results,
+    selectedPriceChangeOption,
+    priceChangeSortDirection,
+    selectedTimeOption,
+  ]);
 
-    return (
-      <>
-        <Box
-          twClassName="mt-4 px-4 pb-4"
-          testID={BridgeViewSelectorsIDs.TRENDING_TOKENS_SECTION}
+  useEffect(() => {
+    if (isLoading) {
+      setVisibleTokenCount(TOKEN_CHUNK_SIZE);
+      return;
+    }
+    setVisibleTokenCount(Math.min(TOKEN_CHUNK_SIZE, trendingTokens.length));
+  }, [isLoading, trendingTokens]);
+
+  const hasMore = visibleTokenCount < trendingTokens.length;
+
+  const loadNextChunk = useCallback(() => {
+    setVisibleTokenCount((currentCount) =>
+      Math.min(currentCount + TOKEN_CHUNK_SIZE, trendingTokens.length),
+    );
+  }, [trendingTokens.length]);
+
+  useEffect(() => {
+    if (isNearBottom && activeBottomSheet === 'none' && !isLoading && hasMore) {
+      loadNextChunk();
+    }
+  }, [isNearBottom, activeBottomSheet, isLoading, hasMore, loadNextChunk]);
+
+  return (
+    <>
+      <Box
+        twClassName="mt-4 px-4 pb-4"
+        testID={BridgeViewSelectorsIDs.TRENDING_TOKENS_SECTION}
+      >
+        <Text
+          variant={TextVariant.HeadingLg}
+          fontWeight={FontWeight.Bold}
+          twClassName="mb-3"
         >
-          <Text
-            variant={TextVariant.HeadingLg}
-            fontWeight={FontWeight.Bold}
-            twClassName="mb-3"
-          >
-            {strings('trending.trending_tokens')}
-          </Text>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="gap-2 mb-3 w-full"
-          >
-            <FilterButton
-              testID={BridgeViewSelectorsIDs.TRENDING_PRICE_FILTER}
-              onPress={() => setActiveBottomSheet('price_change')}
-              text={priceChangeButtonText}
-              twClassName="flex-1"
-            />
-            <FilterButton
-              testID={BridgeViewSelectorsIDs.TRENDING_NETWORK_FILTER}
-              onPress={() => setActiveBottomSheet('network')}
-              text={selectedNetworkName}
-              twClassName="flex-1"
-            />
-            <FilterButton
-              testID={BridgeViewSelectorsIDs.TRENDING_TIME_FILTER}
-              onPress={() => setActiveBottomSheet('time')}
-              text={selectedTimeOption}
-              twClassName="w-[72px] shrink-0"
-            />
-          </Box>
-
-          {isLoading
-            ? Array.from({ length: 6 }).map((_, index) => (
-                <TrendingTokensSkeleton key={index} />
-              ))
-            : trendingTokens
-                .slice(0, visibleTokenCount)
-                .map((token, index) => (
-                  <TrendingTokenRowItem
-                    key={`${token.assetId}-${index}`}
-                    token={token}
-                    position={index}
-                    selectedTimeOption={selectedTimeOption}
-                    filterContext={filterContext}
-                  />
-                ))}
-          {!isLoading && hasMore ? (
-            <Pressable
-              testID={BridgeViewSelectorsIDs.TRENDING_SHOW_MORE}
-              onPress={loadNextChunk}
-              style={({ pressed }) =>
-                tw.style('mt-3 py-2 self-center', pressed && 'opacity-20')
-              }
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.PrimaryDefault}
-              >
-                {strings('rewards.settings.show_more')}
-              </Text>
-            </Pressable>
-          ) : null}
+          {strings('trending.trending_tokens')}
+        </Text>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="gap-2 mb-3 w-full"
+        >
+          <FilterButton
+            testID={BridgeViewSelectorsIDs.TRENDING_PRICE_FILTER}
+            onPress={() => setActiveBottomSheet('price_change')}
+            text={priceChangeButtonText}
+            twClassName="flex-1"
+          />
+          <FilterButton
+            testID={BridgeViewSelectorsIDs.TRENDING_NETWORK_FILTER}
+            onPress={() => setActiveBottomSheet('network')}
+            text={selectedNetworkName}
+            twClassName="flex-1"
+          />
+          <FilterButton
+            testID={BridgeViewSelectorsIDs.TRENDING_TIME_FILTER}
+            onPress={() => setActiveBottomSheet('time')}
+            text={selectedTimeOption}
+            twClassName="w-[72px] shrink-0"
+          />
         </Box>
 
-        <Modal
-          transparent
-          animationType="none"
-          presentationStyle="overFullScreen"
-          hardwareAccelerated
-          statusBarTranslucent
-          visible={activeBottomSheet !== 'none'}
-          onRequestClose={closeBottomSheet}
-        >
-          {activeBottomSheet === 'time' && (
-            <TrendingTokenTimeBottomSheet
-              isVisible
-              onClose={closeBottomSheet}
-              onTimeSelect={handleTimeSelect}
-              selectedTime={selectedTimeOption}
-            />
-          )}
-          {activeBottomSheet === 'network' && (
-            <TrendingTokenNetworkBottomSheet
-              isVisible
-              onClose={closeBottomSheet}
-              onNetworkSelect={handleNetworkSelect}
-              selectedNetwork={selectedNetwork}
-            />
-          )}
-          {activeBottomSheet === 'price_change' && (
-            <TrendingTokenPriceChangeBottomSheet
-              isVisible
-              onClose={closeBottomSheet}
-              onPriceChangeSelect={handlePriceChangeSelect}
-              selectedOption={selectedPriceChangeOption}
-              sortDirection={priceChangeSortDirection}
-            />
-          )}
-        </Modal>
-      </>
-    );
-  },
-);
+        {isLoading
+          ? Array.from({ length: 6 }).map((_, index) => (
+              <TrendingTokensSkeleton key={index} />
+            ))
+          : trendingTokens
+              .slice(0, visibleTokenCount)
+              .map((token, index) => (
+                <TrendingTokenRowItem
+                  key={`${token.assetId}-${index}`}
+                  token={token}
+                  position={index}
+                  selectedTimeOption={selectedTimeOption}
+                  filterContext={filterContext}
+                />
+              ))}
+        {!isLoading && hasMore ? (
+          <Pressable
+            testID={BridgeViewSelectorsIDs.TRENDING_SHOW_MORE}
+            onPress={loadNextChunk}
+            style={({ pressed }) =>
+              tw.style('mt-3 py-2 self-center', pressed && 'opacity-20')
+            }
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.PrimaryDefault}
+            >
+              {strings('rewards.settings.show_more')}
+            </Text>
+          </Pressable>
+        ) : null}
+      </Box>
 
-BridgeTrendingTokensSection.displayName = 'BridgeTrendingTokensSection';
+      <Modal
+        transparent
+        animationType="none"
+        presentationStyle="overFullScreen"
+        hardwareAccelerated
+        statusBarTranslucent
+        visible={activeBottomSheet !== 'none'}
+        onRequestClose={closeBottomSheet}
+      >
+        {activeBottomSheet === 'time' && (
+          <TrendingTokenTimeBottomSheet
+            isVisible
+            onClose={closeBottomSheet}
+            onTimeSelect={handleTimeSelect}
+            selectedTime={selectedTimeOption}
+          />
+        )}
+        {activeBottomSheet === 'network' && (
+          <TrendingTokenNetworkBottomSheet
+            isVisible
+            onClose={closeBottomSheet}
+            onNetworkSelect={handleNetworkSelect}
+            selectedNetwork={selectedNetwork}
+          />
+        )}
+        {activeBottomSheet === 'price_change' && (
+          <TrendingTokenPriceChangeBottomSheet
+            isVisible
+            onClose={closeBottomSheet}
+            onPriceChangeSelect={handlePriceChangeSelect}
+            selectedOption={selectedPriceChangeOption}
+            sortDirection={priceChangeSortDirection}
+          />
+        )}
+      </Modal>
+    </>
+  );
+};
 
 export default BridgeTrendingTokensSection;

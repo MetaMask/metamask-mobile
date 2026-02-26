@@ -293,12 +293,10 @@ jest.mock(
 
     return {
       __esModule: true,
-      default: React.forwardRef(
-        (_props: Record<string, never>, _ref: React.Ref<unknown>) =>
-          React.createElement(View, {
-            testID: BridgeViewTestIds.TRENDING_TOKENS_SECTION,
-          }),
-      ),
+      default: () =>
+        React.createElement(View, {
+          testID: BridgeViewTestIds.TRENDING_TOKENS_SECTION,
+        }),
     };
   },
 );

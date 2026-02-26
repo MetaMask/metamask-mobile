@@ -1,9 +1,7 @@
 import { TrendingAsset } from '@metamask/assets-controllers';
-import { act, fireEvent, render } from '@testing-library/react-native';
-import React, { createRef } from 'react';
-import BridgeTrendingTokensSection, {
-  BridgeTrendingTokensSectionRef,
-} from './BridgeTrendingTokensSection';
+import { fireEvent, render } from '@testing-library/react-native';
+import React from 'react';
+import BridgeTrendingTokensSection from './BridgeTrendingTokensSection';
 import { useTrendingFilters } from '../../../Trending/hooks/useTrendingFilters/useTrendingFilters';
 import { useTrendingRequest } from '../../../Trending/hooks/useTrendingRequest/useTrendingRequest';
 
@@ -121,48 +119,39 @@ describe('BridgeTrendingTokensSection', () => {
     expect(getByTestId('bridge-trending-show-more')).toBeTruthy();
   });
 
-  it('loadNextChunkIfAvailable appends one chunk', () => {
-    const ref = createRef<BridgeTrendingTokensSectionRef>();
-    const { getAllByTestId } = render(
-      <BridgeTrendingTokensSection ref={ref} />,
+  it('appends one chunk when isNearBottom becomes true', () => {
+    const { getAllByTestId, rerender } = render(
+      <BridgeTrendingTokensSection />,
     );
 
-    act(() => {
-      ref.current?.loadNextChunkIfAvailable();
-    });
+    rerender(<BridgeTrendingTokensSection isNearBottom />);
 
     expect(getAllByTestId(/^row-/)).toHaveLength(24);
   });
 
   it('resets visible token count when dataset changes', () => {
-    const ref = createRef<BridgeTrendingTokensSectionRef>();
     const { getAllByTestId, queryByTestId, rerender } = render(
-      <BridgeTrendingTokensSection ref={ref} />,
+      <BridgeTrendingTokensSection />,
     );
 
-    act(() => {
-      ref.current?.loadNextChunkIfAvailable();
-    });
+    rerender(<BridgeTrendingTokensSection isNearBottom />);
     expect(getAllByTestId(/^row-/)).toHaveLength(24);
 
     setupMocks(createTrendingTokens(8));
-    rerender(<BridgeTrendingTokensSection ref={ref} />);
+    rerender(<BridgeTrendingTokensSection />);
 
     expect(getAllByTestId(/^row-/)).toHaveLength(8);
     expect(queryByTestId('bridge-trending-show-more')).toBeNull();
   });
 
   it('does not append chunk while a bottom sheet is open', () => {
-    const ref = createRef<BridgeTrendingTokensSectionRef>();
-    const { getAllByTestId, getByTestId } = render(
-      <BridgeTrendingTokensSection ref={ref} />,
+    const { getAllByTestId, getByTestId, rerender } = render(
+      <BridgeTrendingTokensSection />,
     );
 
     fireEvent.press(getByTestId('bridge-trending-price-filter'));
 
-    act(() => {
-      ref.current?.loadNextChunkIfAvailable();
-    });
+    rerender(<BridgeTrendingTokensSection isNearBottom />);
 
     expect(getAllByTestId(/^row-/)).toHaveLength(12);
   });
