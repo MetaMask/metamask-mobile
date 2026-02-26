@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -49,10 +48,6 @@ import EmptySearchResultState from '../../TrendingView/components/EmptyErrorStat
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import TrendingFeedSessionManager from '../../../UI/Trending/services/TrendingFeedSessionManager';
 import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
-
-interface TrendingTokensNavigationParamList {
-  [key: string]: undefined | object;
-}
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -203,8 +198,7 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
 };
 
 const TrendingTokensFullView = () => {
-  const navigation =
-    useNavigation<StackNavigationProp<TrendingTokensNavigationParamList>>();
+  const navigation = useNavigation();
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();

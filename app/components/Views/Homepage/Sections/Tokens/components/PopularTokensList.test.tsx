@@ -30,6 +30,24 @@ jest.mock('./PopularTokensSkeleton', () => {
   };
 });
 
+const mockEthTokenNoPrice = {
+  assetId: 'eip155:1/slip44:60',
+  name: 'Ethereum',
+  symbol: 'ETH',
+  iconUrl: 'https://example.com/eth.png',
+  price: undefined,
+  priceChange1d: undefined,
+};
+
+const mockEthTokenWithPrice = {
+  assetId: 'eip155:1/slip44:60',
+  name: 'Ethereum',
+  symbol: 'ETH',
+  iconUrl: 'https://example.com/eth.png',
+  price: 3000,
+  priceChange1d: 2.5,
+};
+
 describe('PopularTokensList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -37,16 +55,7 @@ describe('PopularTokensList', () => {
 
     // Default mock: loaded state with tokens
     mockUsePopularTokens.mockReturnValue({
-      tokens: [
-        {
-          assetId: 'eip155:1/slip44:60',
-          name: 'Ethereum',
-          symbol: 'ETH',
-          iconUrl: 'https://example.com/eth.png',
-          price: 3000,
-          priceChange1d: 2.5,
-        },
-      ],
+      tokens: [mockEthTokenWithPrice],
       isInitialLoading: false,
       isRefreshing: false,
       error: null,
@@ -160,5 +169,55 @@ describe('PopularTokensList', () => {
     });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onError(true) when initial load fails with no price data', async () => {
+    const onError = jest.fn();
+    mockUsePopularTokens.mockReturnValue({
+      tokens: [mockEthTokenNoPrice],
+      isInitialLoading: false,
+      isRefreshing: false,
+      error: new Error('Network error'),
+      refetch: mockRefetch,
+    });
+
+    render(<PopularTokensList onError={onError} />);
+
+    await waitFor(() => {
+      expect(onError).toHaveBeenCalledWith(true);
+    });
+  });
+
+  it('calls onError(false) when refresh fails but price data is already present', async () => {
+    const onError = jest.fn();
+    mockUsePopularTokens.mockReturnValue({
+      tokens: [mockEthTokenWithPrice],
+      isInitialLoading: false,
+      isRefreshing: false,
+      error: new Error('Refresh failed'),
+      refetch: mockRefetch,
+    });
+
+    render(<PopularTokensList onError={onError} />);
+
+    // hasNoData is false (price exists), so hasError is false
+    await waitFor(() => {
+      expect(onError).toHaveBeenCalledWith(false);
+    });
+  });
+
+  it('renders nothing when initial load fails', () => {
+    mockUsePopularTokens.mockReturnValue({
+      tokens: [mockEthTokenNoPrice],
+      isInitialLoading: false,
+      isRefreshing: false,
+      error: new Error('Network error'),
+      refetch: mockRefetch,
+    });
+
+    render(<PopularTokensList />);
+
+    expect(screen.queryByTestId('popular-token-row')).toBeNull();
+    expect(screen.queryByTestId('skeleton-placeholder')).toBeNull();
   });
 });

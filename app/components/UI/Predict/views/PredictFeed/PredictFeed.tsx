@@ -14,7 +14,10 @@ import {
   LayoutChangeEvent,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -584,7 +587,6 @@ const PredictFeed: React.FC = () => {
 
   const tw = useTailwind();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
@@ -678,68 +680,73 @@ const PredictFeed: React.FC = () => {
   );
 
   return (
-    <Box
-      testID={PredictMarketListSelectorsIDs.CONTAINER}
-      twClassName="flex-1"
-      style={{ backgroundColor: colors.background.default }}
+    <SafeAreaView
+      edges={{ bottom: 'additive' }}
+      style={tw.style('flex-1 bg-default')}
     >
       <Box
-        style={tw.style('z-20', {
-          backgroundColor: colors.background.default,
-          paddingTop: insets.top,
-        })}
+        testID={PredictMarketListSelectorsIDs.CONTAINER}
+        twClassName="flex-1"
+        style={{ backgroundColor: colors.background.default }}
       >
-        <HeaderCompactStandard
-          title={strings('wallet.predict')}
-          onBack={handleBackPress}
-          backButtonProps={{
-            testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
-          }}
-          endButtonIconProps={[
-            {
-              iconName: IconName.Search,
-              onPress: showSearch,
-              testID: 'predict-search-button',
-            },
-          ]}
-        />
-      </Box>
+        <Box
+          style={tw.style('z-20', {
+            backgroundColor: colors.background.default,
+          })}
+        >
+          <HeaderCompactStandard
+            includesTopInset
+            title={strings('wallet.predict')}
+            onBack={handleBackPress}
+            backButtonProps={{
+              testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
+            }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Search,
+                onPress: showSearch,
+                testID: 'predict-search-button',
+              },
+            ]}
+          />
+        </Box>
 
-      <Box twClassName="flex-1 relative">
-        <AnimatedHeader
-          headerTranslateY={headerTranslateY}
-          headerHeight={headerHeight}
-          headerRef={headerRef}
-          tabBarRef={tabBarRef}
-          tabs={tabs}
-          activeIndex={activeIndex}
-          onTabPress={handleTabPress}
-          onHeaderLayout={onHeaderLayout}
-          onTabBarLayout={onTabBarLayout}
-        />
-
-        {layoutReady && (
-          <PredictFeedTabs
+        <Box twClassName="flex-1 relative">
+          <AnimatedHeader
+            headerTranslateY={headerTranslateY}
+            headerHeight={headerHeight}
+            headerRef={headerRef}
+            tabBarRef={tabBarRef}
             tabs={tabs}
             activeIndex={activeIndex}
-            onPageChange={handlePageChange}
-            scrollHandler={scrollHandler}
-            headerHeight={headerHeight}
-            tabBarHeight={tabBarHeight + 6}
-            headerHidden={headerHidden}
-            hotTabQueryParams={hotTabQueryParams}
-            initialPage={activeIndex}
+            onTabPress={handleTabPress}
+            onHeaderLayout={onHeaderLayout}
+            onTabBarLayout={onTabBarLayout}
           />
-        )}
-      </Box>
 
-      <PredictSearchOverlay
-        isVisible={isSearchVisible}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onClose={clearSearchAndClose}
-      />
-    </Box>
+          {layoutReady && (
+            <PredictFeedTabs
+              tabs={tabs}
+              activeIndex={activeIndex}
+              onPageChange={handlePageChange}
+              scrollHandler={scrollHandler}
+              headerHeight={headerHeight}
+              tabBarHeight={tabBarHeight + 6}
+              headerHidden={headerHidden}
+              hotTabQueryParams={hotTabQueryParams}
+              initialPage={activeIndex}
+            />
+          )}
+        </Box>
+
+        <PredictSearchOverlay
+          isVisible={isSearchVisible}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onClose={clearSearchAndClose}
+        />
+      </Box>
+    </SafeAreaView>
   );
 };
 
