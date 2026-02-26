@@ -57,9 +57,11 @@ jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: jest.fn(() => ({
     colors: {
       error: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         default: '#ca3542',
       },
       accent04: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         normal: '#89b0ff',
       },
     },
@@ -634,7 +636,9 @@ describe('usePredictDeposit', () => {
         expect.objectContaining({
           variant: 'Icon',
           iconName: 'Error',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           iconColor: '#ca3542',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           backgroundColor: '#89b0ff',
           hasNoTimeout: false,
           linkButtonOptions: expect.objectContaining({
@@ -660,7 +664,9 @@ describe('usePredictDeposit', () => {
         expect.objectContaining({
           variant: 'Icon',
           iconName: 'Error',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           iconColor: '#ca3542',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           backgroundColor: '#89b0ff',
           hasNoTimeout: false,
           linkButtonOptions: expect.objectContaining({

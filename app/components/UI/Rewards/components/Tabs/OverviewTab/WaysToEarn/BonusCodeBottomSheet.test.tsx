@@ -120,9 +120,12 @@ jest.mock('../../../../hooks/useRewardsToast', () => ({
   }),
 }));
 
-jest.mock('../../../../../../../util/theme', () => ({
-  useTheme: () => ({ colors: { icon: { default: '#000000' } } }),
-}));
+jest.mock('../../../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: () => ({ colors: lt.colors }),
+  };
+});
 
 const mockUseValidateBonusCode = useValidateBonusCode as jest.MockedFunction<
   typeof useValidateBonusCode

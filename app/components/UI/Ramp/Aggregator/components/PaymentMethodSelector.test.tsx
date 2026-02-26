@@ -11,14 +11,12 @@ const defaultState = {
   },
 };
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn().mockReturnValue({
-    colors: {
-      icon: { default: '#000' },
-      border: { muted: '#ccc' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn().mockReturnValue({ colors: lt.colors }),
+  };
+});
 
 const mockProps = {
   name: 'Debit or Credit',

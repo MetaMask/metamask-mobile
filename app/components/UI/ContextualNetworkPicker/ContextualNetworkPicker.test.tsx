@@ -7,21 +7,12 @@ import createStyles from './ContextualNetworkPicker.styles';
 import ContextualNetworkPicker from './ContextualNetworkPicker';
 import { BASE_DISPLAY_NAME } from '../../../core/Engine/constants';
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        default: '#ffffff',
-      },
-      border: {
-        muted: '#cccccc',
-      },
-      text: {
-        default: '#000000',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 describe('ContextualNetworkPicker', () => {
   const defaultProps = {
@@ -304,15 +295,21 @@ describe('ContextualNetworkPicker', () => {
   describe('Styles', () => {
     const mockColors = {
       background: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         default: '#ffffff',
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         alternative: '#f2f3f4',
       },
       border: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         default: '#d6d9dc',
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         muted: '#bbc0c5',
       },
       text: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         default: '#24272a',
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         alternative: '#535a61',
       },
     } as unknown as ThemeColors;

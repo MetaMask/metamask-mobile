@@ -42,6 +42,7 @@ describe('PredictBetButton', () => {
       const props = createDefaultProps({
         label: 'SEA',
         price: 49,
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         teamColor: '#002244',
       });
 
@@ -115,6 +116,7 @@ describe('PredictBetButton', () => {
 
   describe('team color styling', () => {
     it('renders with team color background when teamColor is provided', () => {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       const props = createDefaultProps({ teamColor: '#002244' });
 
       renderWithProvider(<PredictBetButton {...props} />);

@@ -4,16 +4,12 @@ import { render, act, fireEvent } from '@testing-library/react-native';
 import PerpsLoadingSkeleton from './PerpsLoadingSkeleton';
 
 // Mock the theme hook
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        muted: '#6B7280',
-        alternative: '#6B7280',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 // Mock the tailwind hook
 jest.mock('@metamask/design-system-twrnc-preset', () => ({

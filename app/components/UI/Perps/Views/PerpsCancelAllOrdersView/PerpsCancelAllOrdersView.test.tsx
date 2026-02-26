@@ -22,16 +22,12 @@ jest.mock('../../hooks/usePerpsToasts', () => ({
   default: jest.fn(() => ({ showToast: jest.fn() })),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      accent03: { normal: '#00ff00', dark: '#008800' },
-      accent01: { light: '#ffcccc', dark: '#cc0000' },
-      primary: { default: '#0000ff' },
-      background: { default: '#ffffff' },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),

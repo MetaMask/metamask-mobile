@@ -122,10 +122,15 @@ jest.mock('../../sdk', () => ({
 jest.mock('../../../../../util/theme', () => ({
   useTheme: jest.fn(() => ({
     colors: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       success: { default: '#00ff00', muted: '#00ff0033' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       error: { default: '#ff0000', muted: '#ff000033' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       background: { default: '#ffffff' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       text: { default: '#000000' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       border: { default: '#cccccc' },
     },
   })),

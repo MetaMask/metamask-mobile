@@ -60,16 +60,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        muted: '#999',
-        default: '#000',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View } = jest.requireActual('react-native');

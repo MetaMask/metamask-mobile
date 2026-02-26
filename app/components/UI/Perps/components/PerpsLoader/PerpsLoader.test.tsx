@@ -15,6 +15,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
     theme: {
       colors: {
         primary: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           default: '#0376C9',
         },
       },
@@ -61,6 +62,7 @@ describe('PerpsLoader', () => {
     const spinner = getByTestId(PerpsLoaderSelectorsIDs.SPINNER);
     expect(spinner).toBeTruthy();
     expect(spinner.props.size).toBe('large');
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(spinner.props.color).toBe('#0376C9');
   });
 

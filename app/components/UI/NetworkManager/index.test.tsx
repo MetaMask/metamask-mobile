@@ -95,31 +95,30 @@ jest.mock('react-native-safe-area-context', () => ({
   }),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        default: '#000000',
-        alternative: '#666666',
-      },
-      background: {
-        default: '#FFFFFF',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 jest.mock('../../../component-library/hooks/useStyles', () => ({
   useStyles: () => ({
     styles: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       sheet: { backgroundColor: '#FFFFFF' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       notch: { backgroundColor: '#CCCCCC' },
       networkTabsSelectorTitle: { fontSize: 18 },
       networkTabsSelectorWrapper: { flex: 1 },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       tabUnderlineStyle: { backgroundColor: '#0066CC' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       inactiveUnderlineStyle: { backgroundColor: '#CCCCCC' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       tabStyle: { backgroundColor: '#FFFFFF' },
       textStyle: { fontSize: 16 },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       tabBar: { backgroundColor: '#F8F9FA' },
       editNetworkMenu: { padding: 16 },
       containerDeleteText: { padding: 16 },
@@ -620,14 +619,20 @@ jest.mock('../../../component-library/components/Icons/Icon', () => ({
 jest.mock('./index.styles', () => ({
   __esModule: true,
   default: () => ({
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     sheet: { backgroundColor: '#FFFFFF' },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     notch: { backgroundColor: '#CCCCCC' },
     networkTabsSelectorTitle: { fontSize: 18 },
     networkTabsSelectorWrapper: { flex: 1 },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     tabUnderlineStyle: { backgroundColor: '#0066CC' },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     inactiveUnderlineStyle: { backgroundColor: '#CCCCCC' },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     tabStyle: { backgroundColor: '#FFFFFF' },
     textStyle: { fontSize: 16 },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     tabBar: { backgroundColor: '#F8F9FA' },
     editNetworkMenu: { padding: 16 },
     containerDeleteText: { padding: 16 },

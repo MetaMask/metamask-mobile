@@ -107,7 +107,9 @@ describe('PredictBetButtons', () => {
       const props = createDefaultProps({
         yesLabel: 'SEA',
         noLabel: 'DEN',
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         yesTeamColor: '#002244',
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         noTeamColor: '#FB4F14',
       });
 

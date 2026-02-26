@@ -12,7 +12,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 const mockTheme = {
   colors: {
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     border: { muted: '#CCCCCC' },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     primary: { default: '#0066CC' },
   },
 };

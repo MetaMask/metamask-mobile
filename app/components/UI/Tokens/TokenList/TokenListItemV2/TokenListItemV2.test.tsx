@@ -573,6 +573,7 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
 
       expect(percentageText.props.children).toBe('+5.67%');
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       expect(percentageText.props.style.color).toBe('#457a39');
     });
 
@@ -626,6 +627,7 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
       expect(percentageText.props.children).toBe('-3.45%');
       // Negative percentage should NOT have success color
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       expect(percentageText.props.style.color).not.toBe('#457a39');
     });
 

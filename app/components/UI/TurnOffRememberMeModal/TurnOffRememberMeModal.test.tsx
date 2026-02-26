@@ -139,16 +139,12 @@ jest.mock('../ReusableModal', () => {
 });
 
 // Mock useTheme
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: { default: '#0000ff' },
-      border: { default: '#cccccc' },
-      text: { muted: '#999999' },
-    },
-    themeAppearance: 'light',
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: () => ({ colors: lt.colors, themeAppearance: 'light' }),
+  };
+});
 
 // Mock styles
 jest.mock('./styles', () => ({

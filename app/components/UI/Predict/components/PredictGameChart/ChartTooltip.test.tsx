@@ -44,14 +44,12 @@ jest.mock('react-native-svg', () => {
   };
 });
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: { alternative: '#888888', default: '#000000' },
-      background: { default: '#FFFFFF' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 const mockXFunction = (index: number) => index * 10 + 50;
 const mockYFunction = (value: number) => 200 - value * 2;
@@ -65,11 +63,13 @@ const mockPrimaryData: GameChartDataPoint[] = [
 const mockNonEmptySeries: GameChartSeries[] = [
   {
     label: 'Team A',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#FF0000',
     data: mockPrimaryData,
   },
   {
     label: 'Team B',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#0000FF',
     data: [
       { timestamp: 1704067200000, value: 50 },
@@ -193,11 +193,13 @@ describe('ChartTooltip', () => {
       const closeValuesSeries: GameChartSeries[] = [
         {
           label: 'Team A',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FF0000',
           data: [{ timestamp: 1704067200000, value: 50 }],
         },
         {
           label: 'Team B',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 51 }],
         },
@@ -220,11 +222,13 @@ describe('ChartTooltip', () => {
       const farApartSeries: GameChartSeries[] = [
         {
           label: 'Team A',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FF0000',
           data: [{ timestamp: 1704067200000, value: 20 }],
         },
         {
           label: 'Team B',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 80 }],
         },
@@ -247,11 +251,13 @@ describe('ChartTooltip', () => {
       const firstAboveSeries: GameChartSeries[] = [
         {
           label: 'Team A',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FF0000',
           data: [{ timestamp: 1704067200000, value: 70 }],
         },
         {
           label: 'Team B',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 71 }],
         },
@@ -273,11 +279,13 @@ describe('ChartTooltip', () => {
       const firstBelowSeries: GameChartSeries[] = [
         {
           label: 'Team A',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FF0000',
           data: [{ timestamp: 1704067200000, value: 31 }],
         },
         {
           label: 'Team B',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 30 }],
         },
@@ -301,11 +309,13 @@ describe('ChartTooltip', () => {
       const partialSeries: GameChartSeries[] = [
         {
           label: 'Team A',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FF0000',
           data: mockPrimaryData,
         },
         {
           label: 'Team B',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 50 }],
         },

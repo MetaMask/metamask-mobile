@@ -2,8 +2,11 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import DepositProgressBar from './DepositProgressBar';
 
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
 const COMPLETED_COLOR = '#007BFF';
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
 const CURRENT_COLOR = '#28A745';
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
 const TODO_COLOR = '#E5E5E5';
 
 jest.mock('../../../../../../component-library/hooks', () => ({

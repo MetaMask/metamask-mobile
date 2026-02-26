@@ -119,9 +119,13 @@ describe('useCardDetailsToken', () => {
       // Then: Fetches with VIRTUAL card CSS config
       expect(mockGenerateCardDetailsToken).toHaveBeenCalledWith({
         customCss: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           cardBackgroundColor: '#FF5C16',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           cardTextColor: '#FFFFFF',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           panBackgroundColor: '#EFEFEF',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           panTextColor: '#000000',
         },
       });
@@ -140,9 +144,13 @@ describe('useCardDetailsToken', () => {
       // Then: Fetches with VIRTUAL card CSS config (orange)
       expect(mockGenerateCardDetailsToken).toHaveBeenCalledWith({
         customCss: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           cardBackgroundColor: '#FF5C16',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           cardTextColor: '#FFFFFF',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           panBackgroundColor: '#EFEFEF',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           panTextColor: '#000000',
         },
       });
@@ -160,9 +168,13 @@ describe('useCardDetailsToken', () => {
       // Then: Fetches with METAL card CSS config (purple)
       expect(mockGenerateCardDetailsToken).toHaveBeenCalledWith({
         customCss: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           cardBackgroundColor: '#3D065F',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           cardTextColor: '#FFFFFF',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           panBackgroundColor: '#EFEFEF',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           panTextColor: '#000000',
         },
       });
@@ -180,9 +192,13 @@ describe('useCardDetailsToken', () => {
       // Then: Fetches with PHYSICAL card CSS config (purple)
       expect(mockGenerateCardDetailsToken).toHaveBeenCalledWith({
         customCss: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           cardBackgroundColor: '#3D065F',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           cardTextColor: '#FFFFFF',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           panBackgroundColor: '#EFEFEF',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           panTextColor: '#000000',
         },
       });

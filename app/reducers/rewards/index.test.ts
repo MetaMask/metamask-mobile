@@ -1,3 +1,4 @@
+/* eslint-disable @metamask/design-tokens/color-no-hex */
 import { Action } from 'redux';
 import rewardsReducer, {
   setActiveTab,

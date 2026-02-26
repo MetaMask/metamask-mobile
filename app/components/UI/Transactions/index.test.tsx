@@ -2006,7 +2006,9 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('should test renderLoader method directly', () => {
     instance.context = {
       colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         background: { default: '#fff' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         text: { muted: '#999' },
       },
       typography: {},
@@ -2019,7 +2021,9 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('should test renderEmpty method directly', () => {
     instance.context = {
       colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         background: { default: '#fff' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         text: { muted: '#999' },
       },
       typography: {},
@@ -2054,9 +2058,13 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('should test renderList method directly', () => {
     instance.context = {
       colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         background: { default: '#fff' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         text: { muted: '#999' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         primary: { default: '#037dd6' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         icon: { default: '#24272a' },
       },
       typography: {},
@@ -2085,7 +2093,9 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('should test render method directly', () => {
     instance.context = {
       colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         background: { default: '#fff' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         text: { muted: '#999' },
       },
       typography: {},
@@ -2219,7 +2229,9 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   it('should test renderEmpty with switch network scenarios', () => {
     instance.context = {
       colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         background: { default: '#fff' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         text: { muted: '#999' },
       },
       typography: {},

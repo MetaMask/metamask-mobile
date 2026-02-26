@@ -39,6 +39,7 @@ jest.mock('../../../../hooks/useStyles', () => ({
       },
       statisticsItem: {
         flex: 1,
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         backgroundColor: '#f0f0f0',
         padding: 16,
         borderRadius: 8,

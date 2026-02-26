@@ -51,9 +51,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('../../../../../images/stacked-cards.png', () => 1);
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({ colors: { background: { default: '#fff' } } }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 const createTestStore = (initialState = {}) =>
   configureStore({

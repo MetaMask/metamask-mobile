@@ -578,6 +578,46 @@ it('hides selector when disabled', () => {
 });
 ```
 
+## Design Token Colors in Tests
+
+**Never hardcode design token hex values in test assertions or theme mocks.**
+
+Design token values change regularly. Hardcoding hex values creates fragile tests that
+break on every token update, triggering unrelated code owners and blocking merges.
+
+### Assertions
+
+```ts
+// ✅ Correct — uses token reference, survives token updates
+import { lightTheme } from '@metamask/design-tokens';
+expect(element.props.style.color).toBe(lightTheme.colors.text.alternative);
+
+// ❌ Wrong — breaks when design tokens change
+expect(element.props.style.color).toBe('#686e7d');
+```
+
+### Theme mocks
+
+```ts
+// ✅ Correct — spread real tokens via jest.requireActual, always up to date
+jest.mock('../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: () => ({ colors: lt.colors }),
+  };
+});
+
+// ✅ Even better — delete the mock entirely and rely on global testSetup.js
+// which already mocks useAppThemeFromContext with mockTheme (real tokens)
+
+// ❌ Wrong — hardcoded hex values will become stale
+jest.mock('../../util/theme', () => ({
+  useTheme: () => ({ colors: { overlay: { default: '#00000099' } } }),
+}));
+```
+
+The ESLint rule `@metamask/design-tokens/color-no-hex` enforces this in CI.
+
 ## Reviewer Responsibilities
 
 Validate tests fail when code breaks • Ensure proper matchers • Review snapshot diffs • Reject complex names with AND/OR

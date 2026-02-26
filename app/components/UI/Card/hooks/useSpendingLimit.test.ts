@@ -53,7 +53,9 @@ jest.mock('../sdk', () => ({
 
 const mockTheme = {
   colors: {
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     success: { default: '#00ff00', muted: '#00ff0033' },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     error: { default: '#ff0000', muted: '#ff000033' },
   },
 };

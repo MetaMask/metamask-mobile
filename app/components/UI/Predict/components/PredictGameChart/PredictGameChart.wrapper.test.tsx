@@ -71,6 +71,7 @@ const mockBaseGame = {
     id: 'team-home',
     name: 'Team B',
     abbreviation: 'TB',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#0000FF',
     alias: 'Team B',
     logo: 'https://example.com/logo-b.png',
@@ -79,6 +80,7 @@ const mockBaseGame = {
     id: 'team-away',
     name: 'Team A',
     abbreviation: 'TA',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#FF0000',
     alias: 'Team A',
     logo: 'https://example.com/logo-a.png',
@@ -219,6 +221,7 @@ describe('PredictGameChart Wrapper', () => {
 
         expect(data).toHaveLength(2);
         expect(data[0].label).toBe('TA');
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         expect(data[0].color).toBe('#FF0000');
         expect(data[0].data).toHaveLength(3);
         expect(data[0].data[0].value).toBe(60);

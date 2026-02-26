@@ -59,6 +59,7 @@ describe('RewardsThemeImageComponent', () => {
   const mockTheme = {
     colors: {
       primary: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         default: '#037DD6',
       },
     },

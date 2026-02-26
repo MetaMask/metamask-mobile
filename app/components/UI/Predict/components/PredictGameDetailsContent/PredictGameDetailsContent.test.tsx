@@ -164,6 +164,7 @@ const mockBaseGame = {
     id: 'team-home',
     name: 'Team A',
     abbreviation: 'TA',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#FF0000',
     alias: 'Team A',
     logo: 'https://example.com/logo-a.png',
@@ -172,6 +173,7 @@ const mockBaseGame = {
     id: 'team-away',
     name: 'Team B',
     abbreviation: 'TB',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#0000FF',
     alias: 'Team B',
     logo: 'https://example.com/logo-b.png',

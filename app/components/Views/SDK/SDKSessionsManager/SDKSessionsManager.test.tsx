@@ -14,12 +14,12 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(() => ({ top: 0, bottom: 0, left: 0, right: 0 })),
 }));
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: { background: { default: '#FFF' } },
-    typography: {},
-  })),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors, typography: {} })),
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),

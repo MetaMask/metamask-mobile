@@ -291,6 +291,7 @@ describeForPlatforms('BridgeView', () => {
 
   describe('Swap team regression (bug matrix team-swaps-and-bridge)', () => {
     /** Issues covered: #24744, #24865, #24802, #25256 */
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     it('displays gas included label and enables confirm when quote has gas included (#24744)', async () => {
       const now = Date.now();
       const quoteWithGasIncluded = {
@@ -330,6 +331,7 @@ describeForPlatforms('BridgeView', () => {
     });
 
     // Regression for #25256: two USDT tokens on Linea must both appear in search results.
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     it('shows two USDT when search API returns two USDT on Linea (#25256)', async () => {
       const LINEA_CHAIN_ID = 59144;
       const verifiedUsdtAddress = '0xA219439258ca9da29E9Cc4cE5596924745e12B93';
@@ -504,6 +506,7 @@ describeForPlatforms('BridgeView', () => {
       fetchSpy.mockRestore();
     }, 25000);
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     it('shows native token in source area when source is native token from token details (#24865)', () => {
       const bnbChainId = '0x38';
       const nativeBnbAddress = '0x0000000000000000000000000000000000000000';
@@ -531,6 +534,7 @@ describeForPlatforms('BridgeView', () => {
       expect(within(sourceArea).getByText('BNB')).toBeOnTheScreen();
     });
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     it('renders USDC to BNB swap setup without crash and hides confirm when no quote (#24802)', () => {
       const bnbChainIdHex = '0x38';
 

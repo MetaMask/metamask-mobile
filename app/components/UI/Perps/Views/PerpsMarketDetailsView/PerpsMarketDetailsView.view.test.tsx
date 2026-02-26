@@ -136,6 +136,7 @@ describe('PerpsMarketDetailsView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   describe('Bug #25315: Geo-restriction for Close and Modify actions', () => {
     it('shows geo block bottom sheet when Close is pressed (geo-restricted user)', async () => {
       renderPerpsMarketDetailsView();

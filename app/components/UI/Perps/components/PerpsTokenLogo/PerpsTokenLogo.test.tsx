@@ -3,15 +3,12 @@ import { render, act } from '@testing-library/react-native';
 import { Image } from 'expo-image';
 import PerpsTokenLogo from './PerpsTokenLogo';
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        default: '#FFFFFF',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 // Note: Avatar component is no longer used in PerpsTokenLogo
 // The component now uses a simple text-based fallback instead

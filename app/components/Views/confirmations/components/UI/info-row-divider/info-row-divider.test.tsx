@@ -9,18 +9,6 @@ describe('InfoRowDivider', () => {
       state: stakingDepositConfirmationState,
     });
 
-    expect(toJSON()).toMatchInlineSnapshot(`
-      <View
-        style={
-          {
-            "backgroundColor": "#b7bbc866",
-            "height": 1,
-            "marginLeft": -8,
-            "marginRight": -8,
-            "marginVertical": 8,
-          }
-        }
-      />
-    `);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

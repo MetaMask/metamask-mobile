@@ -6,20 +6,30 @@ const mockGoBack = jest.fn();
 jest.mock('../../../../../util/theme', () => ({
   useTheme: jest.fn(() => ({
     colors: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       primary: { default: '#0376c9' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       success: { default: '#28a745', muted: '#d4edda' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       error: { default: '#d73a49', muted: '#f8d7da' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       background: { default: '#ffffff' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       text: { default: '#000000' },
     },
     themeAppearance: 'light',
   })),
   mockTheme: {
     colors: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       primary: { default: '#0376c9' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       success: { default: '#28a745', muted: '#d4edda' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       error: { default: '#d73a49', muted: '#f8d7da' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       background: { default: '#ffffff' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       text: { default: '#000000' },
     },
     themeAppearance: 'light',

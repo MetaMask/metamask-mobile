@@ -92,6 +92,7 @@ const createMockGameMarket = (): PredictMarket =>
         name: 'Seattle Seahawks',
         logo: 'https://example.com/sea.png',
         abbreviation: 'SEA',
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         color: '#002244',
         alias: 'Seahawks',
       },
@@ -100,6 +101,7 @@ const createMockGameMarket = (): PredictMarket =>
         name: 'Denver Broncos',
         logo: 'https://example.com/den.png',
         abbreviation: 'DEN',
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         color: '#FB4F14',
         alias: 'Broncos',
       },

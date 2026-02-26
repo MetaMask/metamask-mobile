@@ -14,16 +14,12 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { alternative: '#f0f0f0' },
-      text: { default: '#000000', muted: '#666666' },
-      border: { muted: '#e1e1e1' },
-      primary: { default: '#0066cc', muted: '#cce0ff' },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 jest.mock('./PerpsOrderTypeBottomSheet.styles', () => ({
   createStyles: jest.fn(() => ({
@@ -36,12 +32,16 @@ jest.mock('./PerpsOrderTypeBottomSheet.styles', () => ({
       paddingHorizontal: 16,
       borderRadius: 12,
       marginBottom: 16,
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       backgroundColor: '#f0f0f0',
       borderWidth: 1,
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       borderColor: '#e1e1e1',
     },
     optionSelected: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       backgroundColor: '#cce0ff',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       borderColor: '#0066cc',
     },
     optionHeader: {

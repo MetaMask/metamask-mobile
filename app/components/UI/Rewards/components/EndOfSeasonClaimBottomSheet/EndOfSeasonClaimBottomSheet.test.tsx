@@ -102,15 +102,12 @@ jest.mock('../../hooks/useLineaSeasonOneTokenReward', () => ({
 }));
 
 // Mock useTheme
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        alternative: '#666666',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: () => ({ colors: lt.colors }),
+  };
+});
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({

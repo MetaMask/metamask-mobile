@@ -30,20 +30,12 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        default: '#FFFFFF',
-        alternative: '#F2F4F6',
-      },
-      text: {
-        default: '#24272A',
-        alternative: '#6A737D',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: () => ({ colors: lt.colors }),
+  };
+});
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({

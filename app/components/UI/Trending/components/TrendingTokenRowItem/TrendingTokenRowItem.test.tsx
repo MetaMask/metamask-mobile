@@ -38,15 +38,8 @@ jest.mock('../../../../../component-library/hooks', () => ({
     const actualStyleSheet = jest.requireActual(
       './TrendingTokenRowItem.styles',
     ).default;
-    const mockTheme = {
-      colors: {
-        background: { default: '#FFFFFF', muted: '#F2F4F6' },
-        text: { default: '#24272A', alternative: '#6A737D', muted: '#8A8D90' },
-        primary: { default: '#037DD6' },
-        success: { default: '#00C853' },
-        border: { muted: '#D0D5DA' },
-      },
-    };
+    const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+    const mockTheme = { colors: lt.colors };
     return { styles: actualStyleSheet({ theme: mockTheme }) };
   }),
 }));

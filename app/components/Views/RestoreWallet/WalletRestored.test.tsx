@@ -29,18 +29,12 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
   log: jest.fn(),
 }));
-jest.mock('../../../util/theme', () => ({
-  useAppThemeFromContext: jest.fn(() => ({
-    colors: {
-      primary: {
-        inverse: '#FFFFFF',
-      },
-      background: {
-        default: '#000000',
-      },
-    },
-  })),
-}));
+jest.mock('../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useAppThemeFromContext: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 jest.mock('../../../components/hooks/useMetrics');
 jest.mock('../../../util/metrics');
 jest.mock('react-native/Libraries/Linking/Linking', () => ({

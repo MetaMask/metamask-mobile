@@ -32,6 +32,7 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 const mockColors = {
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   black: '#000000',
 };
 

@@ -560,6 +560,7 @@ describe('RemoteImage', () => {
     });
 
     it('renders with fadeIn but not as token image', async () => {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       const testPlaceholderStyle = { backgroundColor: '#808080' };
       const { UNSAFE_getByType } = render(
         <RemoteImage

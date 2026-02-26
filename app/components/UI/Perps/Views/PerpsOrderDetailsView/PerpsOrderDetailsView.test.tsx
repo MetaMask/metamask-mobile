@@ -93,15 +93,12 @@ jest.mock('react-redux', () => ({
   useSelector: () => ({ address: '0x1234' }),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      success: { default: '#00FF00' },
-      error: { default: '#FF0000' },
-      border: { muted: '#CCCCCC' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),

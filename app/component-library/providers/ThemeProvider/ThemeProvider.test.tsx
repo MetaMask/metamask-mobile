@@ -36,6 +36,7 @@ describe('ThemeProvider', () => {
       </ThemeProvider>,
     );
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(themeValue.brandColors.black).toStrictEqual('#000000');
   });
 });

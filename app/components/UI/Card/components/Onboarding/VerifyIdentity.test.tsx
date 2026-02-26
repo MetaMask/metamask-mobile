@@ -463,7 +463,9 @@ describe('VerifyIdentity Component', () => {
             success: expect.any(String),
             buttonRadius: 12,
             // Camera overlay colors are static — always dark + white text
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             cameraOverlay: '#121314',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             onCameraOverlay: '#ffffff',
           }),
         });

@@ -69,30 +69,18 @@ jest.mock('d3-shape', () => ({
   })),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      success: {
-        default: '#28C76F',
-        muted: '#28C76F80',
-      },
-      text: {
-        default: '#000000',
-      },
-      border: {
-        muted: '#E0E0E0',
-      },
-      background: {
-        default: '#FFFFFF',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 describe('PredictDetailsChart', () => {
   const mockSingleSeries: ChartSeries[] = [
     {
       label: 'Outcome 1',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       color: '#28C76F',
       data: [
         { timestamp: 1640995200000, value: 0.5 },
@@ -106,6 +94,7 @@ describe('PredictDetailsChart', () => {
   const mockMultipleSeries: ChartSeries[] = [
     {
       label: 'Outcome A',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       color: '#4459FF',
       data: [
         { timestamp: 1640995200000, value: 0.5 },
@@ -116,6 +105,7 @@ describe('PredictDetailsChart', () => {
     },
     {
       label: 'Outcome B',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       color: '#CA3542',
       data: [
         { timestamp: 1640995200000, value: 0.3 },
@@ -189,6 +179,7 @@ describe('PredictDetailsChart', () => {
 
     it('renders empty state when no data provided', () => {
       const { queryByText } = setupTest({
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         data: [{ label: 'Empty', color: '#000', data: [] }],
         isLoading: false,
       });
@@ -199,6 +190,7 @@ describe('PredictDetailsChart', () => {
     it('renders custom empty label when provided', () => {
       const customLabel = 'No data available';
       const { getByText } = setupTest({
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         data: [{ label: 'Empty', color: '#000', data: [] }],
         emptyLabel: customLabel,
       });
@@ -235,6 +227,7 @@ describe('PredictDetailsChart', () => {
         ...mockMultipleSeries,
         {
           label: 'Outcome C',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#F0B034',
           data: [
             { timestamp: 1640995200000, value: 0.1 },
@@ -243,6 +236,7 @@ describe('PredictDetailsChart', () => {
         },
         {
           label: 'Outcome D',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#00FF00',
           data: [
             { timestamp: 1640995200000, value: 0.05 },
@@ -293,6 +287,7 @@ describe('PredictDetailsChart', () => {
       const singlePointData: ChartSeries[] = [
         {
           label: 'Outcome',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#28C76F',
           data: [{ timestamp: 1640995200000, value: 0.5 }],
         },
@@ -309,6 +304,7 @@ describe('PredictDetailsChart', () => {
       const emptyData: ChartSeries[] = [
         {
           label: 'Empty',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#28C76F',
           data: [],
         },
@@ -333,6 +329,7 @@ describe('PredictDetailsChart', () => {
       const sameValueData: ChartSeries[] = [
         {
           label: 'Same',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#28C76F',
           data: [
             { timestamp: 1640995200000, value: 0.5 },
@@ -363,6 +360,7 @@ describe('PredictDetailsChart', () => {
       const largeData: ChartSeries[] = [
         {
           label: 'Large',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#28C76F',
           data: [
             { timestamp: 1640995200000, value: 1000000 },
@@ -379,6 +377,7 @@ describe('PredictDetailsChart', () => {
       const negativeData: ChartSeries[] = [
         {
           label: 'Negative',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#28C76F',
           data: [
             { timestamp: 1640995200000, value: -0.5 },
@@ -395,6 +394,7 @@ describe('PredictDetailsChart', () => {
       const largeDataset: ChartSeries[] = [
         {
           label: 'Large Dataset',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#28C76F',
           data: Array.from({ length: 100 }, (_, i) => ({
             timestamp: 1640995200000 + i * 3600000,
@@ -449,6 +449,7 @@ describe('PredictDetailsChart', () => {
         const longLabelSeries: ChartSeries[] = [
           {
             label: 'This is a very long outcome label that exceeds limit',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#4459FF',
             data: [
               { timestamp: 1640995200000, value: 0.5 },
@@ -457,6 +458,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Short Label',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#FF6B6B',
             data: [
               { timestamp: 1640995200000, value: 0.3 },
@@ -478,6 +480,7 @@ describe('PredictDetailsChart', () => {
         const specialCharSeries: ChartSeries[] = [
           {
             label: 'Outcome #1 (Test) - Result',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#4459FF',
             data: [
               { timestamp: 1640995200000, value: 0.5 },
@@ -486,6 +489,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Normal Label',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#FF6B6B',
             data: [
               { timestamp: 1640995200000, value: 0.3 },
@@ -523,6 +527,7 @@ describe('PredictDetailsChart', () => {
         const crossingSeries: ChartSeries[] = [
           {
             label: 'Series A',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#4459FF',
             data: [
               { timestamp: 1, value: 0.3 },
@@ -531,6 +536,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Series B',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#FF6B6B',
             data: [
               { timestamp: 1, value: 0.7 },
@@ -550,6 +556,7 @@ describe('PredictDetailsChart', () => {
         const closeSeries: ChartSeries[] = [
           {
             label: 'Close A',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#4459FF',
             data: [
               { timestamp: 1, value: 0.5 },
@@ -558,6 +565,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Close B',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#FF6B6B',
             data: [
               { timestamp: 1, value: 0.502 },
@@ -586,6 +594,7 @@ describe('PredictDetailsChart', () => {
         const fullRangeSeries: ChartSeries[] = [
           {
             label: 'Full Range',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#4459FF',
             data: Array.from({ length: 50 }, (_, i) => ({
               timestamp: 1640995200000 + i * 3600000,
@@ -613,11 +622,13 @@ describe('PredictDetailsChart', () => {
         const coloredSeries: ChartSeries[] = [
           {
             label: 'Blue',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#0000FF',
             data: [{ timestamp: 1, value: 0.5 }],
           },
           {
             label: 'Red',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#FF0000',
             data: [{ timestamp: 1, value: 0.5 }],
           },
@@ -643,6 +654,7 @@ describe('PredictDetailsChart', () => {
         const threeSeries: ChartSeries[] = [
           {
             label: 'Series 1',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#4459FF',
             data: [
               { timestamp: 1, value: 0.5 },
@@ -651,6 +663,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Series 2',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#FF6B6B',
             data: [
               { timestamp: 1, value: 0.3 },
@@ -659,6 +672,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Series 3',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#F0B034',
             data: [
               { timestamp: 1, value: 0.2 },
@@ -722,6 +736,7 @@ describe('PredictDetailsChart', () => {
           data: [
             {
               label: 'Dedup Series',
+              // eslint-disable-next-line @metamask/design-tokens/color-no-hex
               color: '#123456',
               data: axisData,
             },

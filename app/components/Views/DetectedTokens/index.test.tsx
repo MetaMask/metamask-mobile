@@ -27,16 +27,12 @@ jest.mock('@react-navigation/native', () => ({
   })),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { default: '#fff' },
-      border: { default: '#ccc' },
-      text: { default: '#000' },
-      primary: { default: '#f00' },
-    },
-  })),
-}));
+jest.mock('../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',

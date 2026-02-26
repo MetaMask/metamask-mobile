@@ -1,3 +1,4 @@
+/* eslint-disable @metamask/design-tokens/color-no-hex */
 import {
   TransactionMeta,
   TransactionStatus,
@@ -123,7 +124,9 @@ describe('useMusdConversionStatus', () => {
     variant: ToastVariants.Icon as const,
     iconName: IconName.Loading,
     hasNoTimeout: true,
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     iconColor: '#000000',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     backgroundColor: '#FFFFFF',
     hapticsType: NotificationFeedbackType.Warning,
     labelOptions: [{ label: 'In Progress', isBold: true }],

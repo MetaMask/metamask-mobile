@@ -4,21 +4,20 @@ import TransactionsFooter from './TransactionsFooter';
 import { strings } from '../../../../locales/i18n';
 import { NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        default: '#24272a',
+jest.mock('../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: () => ({
+      colors: lt.colors,
+      typography: {
+        sBodySM: {
+          fontSize: 14,
+          lineHeight: 20,
+        },
       },
-    },
-    typography: {
-      sBodySM: {
-        fontSize: 14,
-        lineHeight: 20,
-      },
-    },
-  }),
-}));
+    }),
+  };
+});
 
 jest.mock('../../../util/networks', () => ({
   getBlockExplorerName: jest.fn(),

@@ -45,7 +45,9 @@ describe('SnapUICopyable', () => {
     // Create a mock theme object
     const mockTheme = {
       colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         text: { default: '#000000' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         background: { default: '#FFFFFF' },
       },
     };

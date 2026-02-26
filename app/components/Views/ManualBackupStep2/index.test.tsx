@@ -33,18 +33,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        default: '#000000',
-      },
-      background: {
-        default: '#FFFFFF',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: () => ({ colors: lt.colors }),
+  };
+});
 
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
@@ -336,8 +330,11 @@ describe('ManualBackupStep2', () => {
         fireEvent.press(click);
       });
 
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       expect(missingWordItemOne.props.style.color).not.toBe('#4459ff');
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       expect(missingWordItemTwo.props.style.color).not.toBe('#4459ff');
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       expect(missingWordItemThree.props.style.color).not.toBe('#4459ff');
 
       // Press continue button
@@ -586,6 +583,7 @@ describe('ManualBackupStep2', () => {
 
       // Verify we found exactly 3 empty slots and 9 non-empty slots
       expect(missingWordOne).toHaveStyle({
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         borderColor: '#4459ff',
       });
     });
@@ -622,6 +620,7 @@ describe('ManualBackupStep2', () => {
       fireEvent.press(emptySlots[0]);
 
       expect(emptySlots[0]).toHaveStyle({
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         borderColor: '#4459ff',
       });
     });

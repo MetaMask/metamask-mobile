@@ -13,13 +13,12 @@ jest.mock('react-native-linear-gradient', () => {
   };
 });
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: { default: '#FFFFFF' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: () => ({ colors: lt.colors }),
+  };
+});
 
 jest.mock('../../../../../util/colors', () => ({
   colorWithOpacity: (color: string, _opacity: number) => color,

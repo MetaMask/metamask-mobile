@@ -31,6 +31,7 @@ describe('PredictSportFootballIcon', () => {
     });
 
     it('renders football icon with custom color prop', () => {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       const customColor = '#FF0000';
 
       const { getByTestId } = render(
@@ -83,6 +84,7 @@ describe('PredictSportFootballIcon', () => {
     });
 
     it('applies custom hex color when color prop is provided', () => {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       const customColor = '#FF5733';
 
       const { getByTestId } = render(
@@ -105,6 +107,7 @@ describe('PredictSportFootballIcon', () => {
 
   describe('edge cases', () => {
     it('applies hex color with alpha channel', () => {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       const colorWithAlpha = '#FF0000FF';
 
       const { getByTestId } = render(
@@ -115,6 +118,7 @@ describe('PredictSportFootballIcon', () => {
     });
 
     it('applies short hex color format', () => {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       const shortHexColor = '#F00';
 
       const { getByTestId } = render(

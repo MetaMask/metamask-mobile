@@ -1,3 +1,4 @@
+/* eslint-disable @metamask/design-tokens/color-no-hex */
 import { AccountListBottomSheetSelectorsIDs } from '../../components/Views/AccountSelector/AccountListBottomSheet.testIds';
 import { regex, hasDecimals } from '.';
 

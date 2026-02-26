@@ -30,6 +30,7 @@ describe('link component', () => {
           children: 'link',
           key: expect.any(String),
           props: {
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#4459ff',
             style: {
               fontWeight: undefined,
@@ -75,6 +76,7 @@ describe('link component', () => {
           children: 'Visit ',
           key: expect.any(String),
           props: {
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#4459ff',
             style: {
               fontWeight: undefined,
@@ -120,6 +122,7 @@ describe('link component', () => {
           children: 'Visit ',
           key: expect.any(String),
           props: {
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#4459ff',
             style: {
               fontWeight: undefined,
@@ -133,6 +136,7 @@ describe('link component', () => {
           children: 'MetaMask',
           key: expect.any(String),
           props: {
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             color: '#4459ff',
             style: {
               fontWeight: undefined,

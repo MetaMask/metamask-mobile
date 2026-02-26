@@ -1,3 +1,4 @@
+/* eslint-disable @metamask/design-tokens/color-no-hex */
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import Svg from 'react-native-svg';

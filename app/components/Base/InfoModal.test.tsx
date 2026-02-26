@@ -48,25 +48,12 @@ jest.mock('./Title', () => {
 });
 
 // Mock useTheme hook
-jest.mock('../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { default: '#FFFFFF' },
-      text: { default: '#000000' },
-      overlay: { default: '#00000099' },
-    },
-    shadows: {
-      size: {
-        sm: {
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-        },
-      },
-    },
-  })),
-}));
+jest.mock('../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 describe('InfoModal', () => {
   const mockToggleModal = jest.fn();

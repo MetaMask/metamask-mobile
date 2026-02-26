@@ -62,6 +62,7 @@ describe('RewardsReferralCodeTag', () => {
   });
 
   it('applies custom backgroundColor when provided', () => {
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     const customBackgroundColor = '#FF0000';
 
     render(
@@ -80,6 +81,7 @@ describe('RewardsReferralCodeTag', () => {
   });
 
   it('applies custom fontColor when provided', () => {
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     const customFontColor = '#00FF00';
 
     render(

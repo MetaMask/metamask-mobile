@@ -180,6 +180,7 @@ describe('ButtonBase', () => {
       <ButtonBase
         label="Click me!"
         onPress={() => null}
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         labelColor="#ff0000"
         size={ButtonSize.Md}
       />,

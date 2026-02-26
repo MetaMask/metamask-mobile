@@ -17,14 +17,12 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: { default: '#0376C9' },
-      icon: { default: '#24292E' },
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: () => ({ colors: lt.colors }),
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),

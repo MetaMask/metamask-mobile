@@ -36,18 +36,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        default: '#000000',
-      },
-      background: {
-        default: '#FFFFFF',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: () => ({ colors: lt.colors }),
+  };
+});
 
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');

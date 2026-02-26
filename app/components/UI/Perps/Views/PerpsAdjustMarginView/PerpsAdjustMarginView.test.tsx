@@ -103,13 +103,12 @@ jest.mock('./PerpsAdjustMarginView.styles', () => ({
   }),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      icon: { alternative: '#888' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),

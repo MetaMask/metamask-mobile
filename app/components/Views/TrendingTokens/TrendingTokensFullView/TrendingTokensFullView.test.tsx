@@ -131,7 +131,9 @@ describe('TrendingTokensData', () => {
 
   const mockTheme = {
     colors: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       primary: { default: '#037DD6' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       icon: { default: '#6A737D' },
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

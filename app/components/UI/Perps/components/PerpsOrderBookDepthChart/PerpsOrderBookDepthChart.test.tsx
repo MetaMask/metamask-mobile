@@ -21,6 +21,7 @@ jest.mock('../../../../hooks/useStyles', () => ({
     styles: {
       container: {
         width: '100%',
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         backgroundColor: '#ffffff',
         borderRadius: 8,
         overflow: 'hidden',
@@ -51,24 +52,30 @@ jest.mock('../../../../hooks/useStyles', () => ({
         borderRadius: 4,
       },
       bidDot: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         backgroundColor: '#28a745',
       },
       askDot: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         backgroundColor: '#dc3545',
       },
     },
     theme: {
       colors: {
         background: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           default: '#ffffff',
         },
         border: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           default: '#e0e0e0',
         },
         success: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           default: '#28a745',
         },
         error: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           default: '#dc3545',
         },
       },

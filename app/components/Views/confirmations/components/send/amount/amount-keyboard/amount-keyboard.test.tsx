@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
+import { lightTheme } from '@metamask/design-tokens';
 
 import { mockTheme } from '../../../../../../../util/theme';
 import renderWithProvider, {
@@ -162,7 +163,7 @@ describe('Amount', () => {
     const { getByRole } = renderComponent(undefined, '');
     expect(
       getByRole('button', { name: 'Next' }).props.style.backgroundColor,
-    ).toEqual('#b7bbc8');
+    ).toEqual(lightTheme.colors.border.default);
   });
 
   it('call updateValue with MaxMode true when Max button is pressed', () => {
@@ -225,9 +226,17 @@ describe('Amount', () => {
 
 describe('getBackgroundColor', () => {
   it('return correct color depending on amount value and error', () => {
-    expect(getBackgroundColor(mockTheme, false, false)).toEqual('#121314');
-    expect(getBackgroundColor(mockTheme, true, false)).toEqual('#ca3542');
-    expect(getBackgroundColor(mockTheme, false, true)).toEqual('#b7bbc8');
-    expect(getBackgroundColor(mockTheme, true, true)).toEqual('#ca3542');
+    expect(getBackgroundColor(mockTheme, false, false)).toEqual(
+      lightTheme.colors.text.default,
+    );
+    expect(getBackgroundColor(mockTheme, true, false)).toEqual(
+      lightTheme.colors.error.default,
+    );
+    expect(getBackgroundColor(mockTheme, false, true)).toEqual(
+      lightTheme.colors.border.default,
+    );
+    expect(getBackgroundColor(mockTheme, true, true)).toEqual(
+      lightTheme.colors.error.default,
+    );
   });
 });

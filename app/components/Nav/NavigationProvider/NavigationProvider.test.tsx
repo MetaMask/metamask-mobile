@@ -28,15 +28,12 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: jest.fn().mockReturnValue({
-    colors: {
-      background: {
-        default: '#FFFFFF',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 describe('NavigationProvider', () => {
   const mockDispatch = jest.fn();

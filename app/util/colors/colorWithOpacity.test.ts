@@ -1,3 +1,4 @@
+/* eslint-disable @metamask/design-tokens/color-no-hex */
 import { colorWithOpacity } from './colorWithOpacity';
 
 describe('colorWithOpacity', () => {

@@ -1,3 +1,4 @@
+import { lightTheme } from '@metamask/design-tokens';
 import { renderInterface } from '../testUtils';
 import { Input, Box, Form } from '@metamask/snaps-sdk/jsx';
 import { fireEvent } from '@testing-library/react-native';
@@ -15,8 +16,8 @@ jest.mock('../../../../core/Engine/Engine', () => ({
 }));
 
 describe('SnapUIInput', () => {
-  const clearBorderColor = '#b7bbc866';
-  const focusedBorderColor = '#b7bbc8';
+  const clearBorderColor = lightTheme.colors.border.muted;
+  const focusedBorderColor = lightTheme.colors.border.default;
 
   beforeEach(() => {
     jest.resetAllMocks();

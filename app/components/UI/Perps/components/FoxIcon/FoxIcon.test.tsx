@@ -10,11 +10,15 @@ jest.mock('../../../../../component-library/hooks/useStyles', () => ({
     theme: {
       colors: {
         icon: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           alternative: '#9B9B9B',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           muted: '#6A737D',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           default: '#24292E',
         },
         primary: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           default: '#037DD6',
         },
       },
@@ -61,6 +65,7 @@ describe('FoxIcon', () => {
     const { getByTestId } = render(<FoxIcon />);
 
     const xmlContent = getByTestId('fox-icon-xml').props.children;
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(xmlContent).toContain('fill="#9B9B9B"');
   });
 
@@ -68,6 +73,7 @@ describe('FoxIcon', () => {
     const { getByTestId } = render(<FoxIcon iconColor={IconColor.Muted} />);
 
     const xmlContent = getByTestId('fox-icon-xml').props.children;
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(xmlContent).toContain('fill="#6A737D"');
   });
 
@@ -75,6 +81,7 @@ describe('FoxIcon', () => {
     const { getByTestId } = render(<FoxIcon iconColor={IconColor.Default} />);
 
     const xmlContent = getByTestId('fox-icon-xml').props.children;
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(xmlContent).toContain('fill="#24292E"');
   });
 
@@ -129,6 +136,7 @@ describe('FoxIcon', () => {
 
       // Act & Assert - Should fallback to alternative color
       const xmlContent = getByTestId('fox-icon-xml').props.children;
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       expect(xmlContent).toContain('fill="#9B9B9B"'); // Should fallback to alternative color
     });
 
@@ -136,6 +144,7 @@ describe('FoxIcon', () => {
       const { getByTestId } = render(<FoxIcon iconColor={IconColor.Primary} />);
 
       const xmlContent = getByTestId('fox-icon-xml').props.children;
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       expect(xmlContent).toContain('fill="#037DD6"'); // Primary color from mock
     });
 
@@ -172,6 +181,7 @@ describe('FoxIcon', () => {
       expect(updatedXml).not.toBe(initialXml);
       expect(updatedXml).toContain('width="20"');
       expect(updatedXml).toContain('height="20"');
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       expect(updatedXml).toContain('fill="#6A737D"'); // Muted color
     });
   });

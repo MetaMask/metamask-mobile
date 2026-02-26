@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @metamask/design-tokens/color-no-hex */
 import {
   RewardsController,
   getRewardsControllerDefaultState,

@@ -23,18 +23,18 @@ jest.mock('../../../../actions/user', () => ({
   },
 }));
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: jest.fn().mockReturnValue({
-    colors: {
-      background: { default: '#FFFFFF' },
-      text: { default: '#000000' },
-    },
-    themeAppearance: 'light',
-    typography: {},
-    shadows: {},
-    brandColors: {},
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({
+      colors: lt.colors,
+      themeAppearance: 'light',
+      typography: {},
+      shadows: {},
+      brandColors: {},
+    })),
+  };
+});
 
 describe('MusdDeveloperOptionsSection', () => {
   const mockUseDispatch = jest.mocked(useDispatch);

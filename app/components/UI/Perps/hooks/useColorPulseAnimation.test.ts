@@ -8,7 +8,9 @@ jest.mock('../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => ({
     theme: {
       colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         success: { default: '#00ff00' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         error: { default: '#ff0000' },
       },
     },
@@ -321,7 +323,9 @@ describe('useColorPulseAnimation', () => {
           colorDuration: 200,
           minOpacity: 0.6,
           colors: {
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             increase: '#00ff00',
+            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
             decrease: '#ff0000',
             same: 'transparent',
           },

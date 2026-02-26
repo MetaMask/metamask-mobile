@@ -5,13 +5,12 @@ import {
   DangerConnectButtonContent,
 } from './MaliciousDappIndicators';
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: { inverse: '#FFFFFF' },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 describe('MaliciousDappIndicators', () => {
   describe('MaliciousDappUrlIcon', () => {

@@ -58,19 +58,16 @@ jest.mock('d3-shape', () => ({
   curveStepAfter: 'step-after-curve',
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: { default: '#0376C9' },
-      background: { default: '#FFFFFF' },
-      border: { muted: '#E0E0E0' },
-      text: { muted: '#9CA3AF', default: '#1A1A1A', alternative: '#6B7280' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 const mockAwayTeamData: GameChartSeries = {
   label: 'SEA',
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   color: '#002244',
   data: [
     { timestamp: 1000, value: 50 },
@@ -82,6 +79,7 @@ const mockAwayTeamData: GameChartSeries = {
 
 const mockHomeTeamData: GameChartSeries = {
   label: 'DEN',
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   color: '#FB4F14',
   data: [
     { timestamp: 1000, value: 50 },
@@ -134,6 +132,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
 
     it('renders empty state when data has empty series', () => {
       const emptySeriesData: GameChartSeries[] = [
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         { label: 'Empty', color: '#000', data: [] },
       ];
       const { getByText } = renderWithProvider(
@@ -247,6 +246,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
     it('limits series to maximum of 2', () => {
       const threeSeries: GameChartSeries[] = [
         ...mockDualSeriesData,
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         { label: 'Extra', color: '#000', data: [{ timestamp: 1, value: 50 }] },
       ];
 
@@ -340,6 +340,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
       const extremeData: GameChartSeries[] = [
         {
           label: 'Extreme',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#000',
           data: [
             { timestamp: 1, value: 5 },
@@ -359,6 +360,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
 
     it('renders empty state when series has no data points', () => {
       const emptyData: GameChartSeries[] = [
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         { label: 'Empty', color: '#000', data: [] },
       ];
 
@@ -385,6 +387,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
       const sameValueData: GameChartSeries[] = [
         {
           label: 'SEA',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#002244',
           data: [
             { timestamp: 1, value: 50 },
@@ -394,6 +397,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
         },
         {
           label: 'DEN',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FB4F14',
           data: [
             { timestamp: 1, value: 50 },
@@ -461,6 +465,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
       const largeDataset: GameChartSeries[] = [
         {
           label: 'SEA',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#002244',
           data: Array.from({ length: 100 }, (_, i) => ({
             timestamp: i * 1000,
@@ -469,6 +474,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
         },
         {
           label: 'DEN',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FB4F14',
           data: Array.from({ length: 100 }, (_, i) => ({
             timestamp: i * 1000,
@@ -488,6 +494,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
       const inverseData: GameChartSeries[] = [
         {
           label: 'SEA',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#002244',
           data: [
             { timestamp: 1, value: 70 },
@@ -497,6 +504,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
         },
         {
           label: 'DEN',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FB4F14',
           data: [
             { timestamp: 1, value: 30 },

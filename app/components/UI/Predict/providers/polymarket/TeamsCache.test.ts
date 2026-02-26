@@ -17,6 +17,7 @@ const createMockTeam = (
   name: 'Seattle Seahawks',
   logo: 'https://example.com/sea.png',
   abbreviation: 'SEA',
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   color: '#002244',
   alias: 'Seahawks',
   ...overrides,
@@ -27,6 +28,7 @@ const mockNflTeams: PolymarketApiTeam[] = [
     id: 'team-sea',
     name: 'Seattle Seahawks',
     abbreviation: 'SEA',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#002244',
     alias: 'Seahawks',
   }),
@@ -34,6 +36,7 @@ const mockNflTeams: PolymarketApiTeam[] = [
     id: 'team-den',
     name: 'Denver Broncos',
     abbreviation: 'DEN',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#FB4F14',
     alias: 'Broncos',
   }),
@@ -41,6 +44,7 @@ const mockNflTeams: PolymarketApiTeam[] = [
     id: 'team-sf',
     name: 'San Francisco 49ers',
     abbreviation: 'SF',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#AA0000',
     alias: '49ers',
   }),

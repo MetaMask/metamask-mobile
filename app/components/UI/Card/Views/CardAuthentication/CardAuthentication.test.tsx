@@ -53,17 +53,12 @@ jest.mock('../../hooks/useCardProviderAuthentication', () => ({
   })),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: { default: '#FFFFFF' },
-      text: { primary: '#000000', alternative: '#666666' },
-      primary: { default: '#037DD6' },
-      error: { default: '#D73A49', muted: '#FEF2F2' },
-      border: { default: '#E1E4E8' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {

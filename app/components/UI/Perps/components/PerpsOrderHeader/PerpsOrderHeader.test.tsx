@@ -8,17 +8,12 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { alternative: '#F2F4F6' },
-      border: { muted: '#D6D9DC' },
-      text: { default: '#000000' },
-      success: { default: '#00C781' },
-      error: { default: '#D73A49' },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 jest.mock('../../../../Base/TokenIcon', () => 'TokenIcon');
 

@@ -6,10 +6,15 @@ import { type PerpsMarketData } from '@metamask/perps-controller';
 const { TouchableOpacity } = jest.requireActual('react-native');
 
 const mockThemeColors = {
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   background: { default: '#1a1a2e', section: '#2a2a3e', subsection: '#3a3a4e' },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   border: { muted: '#333' },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   success: { default: '#28a745' },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   error: { default: '#dc3545' },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   icon: { alternative: '#6a737d' },
 };
 

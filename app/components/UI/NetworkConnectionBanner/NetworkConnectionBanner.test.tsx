@@ -8,22 +8,9 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 jest.mock('../../hooks/useNetworkConnectionBanner');
 
 jest.mock('../../../util/theme', () => {
-  const mockThemeColors = {
-    background: {
-      default: '#FFFFFF',
-      section: '#FFFFFF',
-    },
-    icon: {
-      default: '#000000',
-    },
-    error: {
-      muted: '#FFE5E5',
-      default: '#FF0000',
-    },
-  };
-
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
   const theme = {
-    colors: mockThemeColors,
+    colors: lt.colors,
     themeAppearance: 'light',
     typography: {},
     shadows: {},

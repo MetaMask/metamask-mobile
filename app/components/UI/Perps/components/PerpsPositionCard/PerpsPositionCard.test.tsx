@@ -196,10 +196,15 @@ describe('PerpsPositionCard', () => {
 
   const mockTheme = {
     colors: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       background: { section: '#ffffff' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       text: { default: '#000000', muted: '#666666' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       border: { muted: '#e1e1e1' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       success: { default: '#00ff00', muted: '#ccffcc' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       error: { default: '#ff0000', muted: '#ffcccc' },
     },
   };

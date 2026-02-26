@@ -187,6 +187,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 // Mock styles/common
 jest.mock('../../../../../styles/common', () => ({
   colors: {
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     white: '#FFFFFF',
   },
 }));

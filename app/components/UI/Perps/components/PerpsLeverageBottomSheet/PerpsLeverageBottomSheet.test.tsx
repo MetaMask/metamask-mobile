@@ -297,6 +297,7 @@ jest.mock('./PerpsLeverageBottomSheet.styles', () => ({
     emptyPriceInfo: { textAlign: 'center' },
     sliderContainer: { marginVertical: 24 },
     leverageSliderContainer: { height: 40 },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     leverageTrack: { height: 8, backgroundColor: '#e0e0e0' },
     progressContainer: { height: '100%', overflow: 'hidden' },
     gradientStyle: { height: '100%' },
@@ -316,10 +317,15 @@ jest.mock('./PerpsLeverageBottomSheet.styles', () => ({
 describe('PerpsLeverageBottomSheet', () => {
   const mockTheme = {
     colors: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       background: { alternative: '#f0f0f0' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       text: { default: '#000000', muted: '#666666' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       primary: { default: '#0066cc' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       warning: { default: '#ff9800' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       error: { default: '#ff0000' },
     },
   };

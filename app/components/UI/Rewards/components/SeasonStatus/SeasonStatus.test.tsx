@@ -69,21 +69,12 @@ jest.mock('../../hooks/useSeasonStatus', () => ({
 }));
 
 // Mock useTheme
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: {
-        alternative: '#f5f5f5',
-        default: '#ffffff',
-        section: '#f9f9f9',
-      },
-      text: {
-        primary: '#000000',
-        alternative: '#666666',
-      },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn(() => ({ colors: lt.colors })),
+  };
+});
 
 // Mock Tailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => ({

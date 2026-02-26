@@ -3,9 +3,13 @@ import { useTokenLogo } from './useTokenLogo';
 
 // Mock useTheme hook
 const mockColors = {
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   background: { default: '#FFFFFF' },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   text: { default: '#000000' },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   icon: { default: '#000000' },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   border: { muted: '#E5E7EB' },
 };
 
