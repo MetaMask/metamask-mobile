@@ -79,8 +79,6 @@ _secrets: &secrets # Infrastructure
   QUICKNODE_MONAD_URL: 'QUICKNODE_MONAD_URL'
   QUICKNODE_OPTIMISM_URL: 'QUICKNODE_OPTIMISM_URL'
   QUICKNODE_POLYGON_URL: 'QUICKNODE_POLYGON_URL'
-  QUICKNODE_BSC_URL: 'QUICKNODE_BSC_URL'
-  QUICKNODE_SEI_URL: 'QUICKNODE_SEI_URL'
   QUICKNODE_HYPEREVM_URL: 'QUICKNODE_HYPEREVM_URL'
   # OAuth
   IOS_GOOGLE_CLIENT_ID: 'IOS_GOOGLE_CLIENT_ID'
@@ -160,8 +158,8 @@ _code_fencing_flask: &code_fencing_flask
 # LaunchDarkly will override these at runtime
 # Production (conservative) defaults - override in dev/exp builds as needed
 # =============================================================================
-_remote_feature_flags: &remote_feature_flags
-  # Bitcoin/Tron/Multichain accounts (prod LD values — each uses a custom type-guard validator)
+_remote_feature_flags:
+  &remote_feature_flags # Bitcoin/Tron/Multichain accounts (prod LD values — each uses a custom type-guard validator)
   bitcoinAccounts:
     enabled: true
     minimumVersion: '7.59.0'
@@ -580,4 +578,3 @@ builds:
       MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
     code_fencing: *code_fencing_main
     remote_feature_flags: *remote_feature_flags
-
