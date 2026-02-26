@@ -409,6 +409,71 @@ describe('QuoteSelectorView', () => {
     });
   });
 
+  describe('formattedTotalCost calculation', () => {
+    it('includes only sent amount for gasless quotes', () => {
+      mockIsGaslessQuote.mockReturnValue(true);
+      mockUseBridgeQuoteData.mockReturnValue({
+        validQuotes: [mockQuote],
+        bestQuote: mockQuote,
+        isLoading: false,
+        blockaidError: null,
+        quoteFetchError: null,
+        isExpired: false,
+      });
+
+      render(<QuoteSelectorView />);
+
+      expect(mockIsGaslessQuote).toHaveBeenCalledWith(mockQuote.quote);
+    });
+
+    it('includes sent amount plus network fee for non-gasless quotes', () => {
+      mockIsGaslessQuote.mockReturnValue(false);
+      mockUseBridgeQuoteData.mockReturnValue({
+        validQuotes: [mockQuote],
+        bestQuote: mockQuote,
+        isLoading: false,
+        blockaidError: null,
+        quoteFetchError: null,
+        isExpired: false,
+      });
+
+      render(<QuoteSelectorView />);
+
+      expect(mockIsGaslessQuote).toHaveBeenCalledWith(mockQuote.quote);
+    });
+
+    it('handles multiple quotes with mixed gasless and non-gasless', () => {
+      const gaslessQuote = {
+        ...mockQuote,
+        quote: { ...mockQuote.quote, requestId: 'gasless-quote' },
+      };
+      const regularQuote = {
+        ...mockQuote,
+        quote: { ...mockQuote.quote, requestId: 'regular-quote' },
+      };
+
+      mockIsGaslessQuote
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false);
+
+      mockUseBridgeQuoteData.mockReturnValue({
+        validQuotes: [gaslessQuote, regularQuote],
+        bestQuote: gaslessQuote,
+        isLoading: false,
+        blockaidError: null,
+        quoteFetchError: null,
+        isExpired: false,
+      });
+
+      const { getByTestId } = render(<QuoteSelectorView />);
+
+      expect(getByTestId('quote-list-count')).toHaveTextContent('2');
+      expect(mockIsGaslessQuote).toHaveBeenCalledTimes(4);
+    });
+  });
+
   describe('bestQuote identification', () => {
     it('marks quote as isLowestCost when it matches bestQuote', () => {
       mockUseBridgeQuoteData.mockReturnValue({

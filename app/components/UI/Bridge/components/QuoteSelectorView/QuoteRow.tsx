@@ -58,9 +58,6 @@ export const QuoteRow = ({
 }: QuoteRowProps) => {
   const tw = useTailwind();
   const theme = useTheme();
-  // TODO: gas fee calculation and format (this component only handles formatting)
-  // TODO: total network value calculation and format
-  // TODO: implement quote change logic
 
   const shouldShowGasSponsored = useShouldRenderGasSponsoredBanner({
     latestSourceBalance,

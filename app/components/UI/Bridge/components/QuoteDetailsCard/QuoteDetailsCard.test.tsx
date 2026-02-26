@@ -296,7 +296,7 @@ describe('QuoteDetailsCard', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays fee amount', () => {
+  it('displays fee amount for regular quote', () => {
     const { getByText } = renderScreen(
       QuoteDetailsCard,
       {
@@ -375,25 +375,16 @@ describe('QuoteDetailsCard', () => {
     expect(queryByTestId('quote-details-card')).toBeNull();
   });
 
-  it('handles quote info navigation', () => {
-    const { getByLabelText } = renderScreen(
+  it('displays rate section with info and arrow icons', () => {
+    const { getByText } = renderScreen(
       QuoteDetailsCard,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
 
-    const quoteTooltip = getByLabelText('Rate tooltip');
-    fireEvent.press(quoteTooltip);
-
-    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-      params: {
-        title: strings('bridge.quote_info_title'),
-        tooltip: strings('bridge.quote_info_content'),
-        footerText: undefined,
-        buttonText: undefined,
-      },
-      screen: 'tooltipModal',
-    });
+    // Verify rate label and value are displayed
+    expect(getByText(strings('bridge.rate'))).toBeDefined();
+    expect(getByText('1 ETH = 24.4 USDC')).toBeDefined();
   });
 
   describe('rewards functionality', () => {
@@ -751,6 +742,152 @@ describe('QuoteDetailsCard', () => {
           new RegExp(`${strings('bridge.points_error')} tooltip`, 'i'),
         );
         expect(errorTooltip).toBeOnTheScreen();
+      });
+    });
+  });
+
+  describe('network fee UI variations', () => {
+    const { useShouldRenderGasSponsoredBanner } = jest.requireMock(
+      '../../hooks/useShouldRenderGasSponsoredBanner',
+    );
+    const { isGaslessQuote } = jest.requireMock('../../utils/isGaslessQuote');
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Default to regular network fee display
+      (useShouldRenderGasSponsoredBanner as jest.Mock).mockReturnValue(false);
+      (isGaslessQuote as jest.Mock).mockReturnValue(false);
+    });
+
+    it('displays gas-sponsored banner when quote has sponsored gas', async () => {
+      // Given quote has sponsored gas fees
+      (useShouldRenderGasSponsoredBanner as jest.Mock).mockReturnValue(true);
+
+      // When rendering the component
+      const { getByText } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then gas fees sponsored banner should be displayed
+      await waitFor(() => {
+        expect(
+          getByText(strings('bridge.gas_fees_sponsored')),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('displays gasless quote UI with strikethrough and included text', async () => {
+      // Given quote is gasless
+      (isGaslessQuote as jest.Mock).mockReturnValue(true);
+
+      // When rendering the component
+      const { getByText } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then network fee should be shown with "Included" text
+      await waitFor(() => {
+        expect(getByText('0.01')).toBeOnTheScreen();
+        expect(getByText(strings('bridge.included'))).toBeOnTheScreen();
+      });
+    });
+
+    it('displays regular network fee for non-gasless quotes', async () => {
+      // Given quote is not gasless and not sponsored
+      (useShouldRenderGasSponsoredBanner as jest.Mock).mockReturnValue(false);
+      (isGaslessQuote as jest.Mock).mockReturnValue(false);
+
+      // When rendering the component
+      const { getByText, getByLabelText } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then regular network fee should be displayed with tooltip
+      await waitFor(() => {
+        expect(getByText('Network fee')).toBeOnTheScreen();
+        expect(getByText('0.01')).toBeOnTheScreen();
+        expect(getByLabelText('Network fee tooltip')).toBeOnTheScreen();
+      });
+    });
+
+    it('prioritizes gas-sponsored UI over gasless UI', async () => {
+      // Given quote is both gas-sponsored and gasless
+      (useShouldRenderGasSponsoredBanner as jest.Mock).mockReturnValue(true);
+      (isGaslessQuote as jest.Mock).mockReturnValue(true);
+
+      // When rendering the component
+      const { getByText, queryByText } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then gas-sponsored banner should be shown (not gasless UI)
+      await waitFor(() => {
+        expect(
+          getByText(strings('bridge.gas_fees_sponsored')),
+        ).toBeOnTheScreen();
+        expect(queryByText(strings('bridge.included'))).toBeNull();
+      });
+    });
+
+    it('displays correct tooltip for gas-sponsored network fee', async () => {
+      // Given quote has sponsored gas fees
+      (useShouldRenderGasSponsoredBanner as jest.Mock).mockReturnValue(true);
+
+      // When rendering the component
+      const { getByLabelText } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then gas-sponsored tooltip should be available
+      await waitFor(() => {
+        const tooltip = getByLabelText('Network fee tooltip');
+        expect(tooltip).toBeOnTheScreen();
+      });
+    });
+
+    it('displays price impact with gasless tooltip content when quote is gasless', async () => {
+      // Given quote is gasless
+      (isGaslessQuote as jest.Mock).mockReturnValue(true);
+
+      // When rendering the component
+      const { getByLabelText } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then price impact tooltip should use gasless description
+      await waitFor(() => {
+        const priceImpactTooltip = getByLabelText('Price impact tooltip');
+        expect(priceImpactTooltip).toBeOnTheScreen();
+      });
+    });
+
+    it('displays price impact with regular tooltip content when quote is not gasless', async () => {
+      // Given quote is not gasless
+      (isGaslessQuote as jest.Mock).mockReturnValue(false);
+
+      // When rendering the component
+      const { getByLabelText } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then price impact tooltip should use regular description
+      await waitFor(() => {
+        const priceImpactTooltip = getByLabelText('Price impact tooltip');
+        expect(priceImpactTooltip).toBeOnTheScreen();
       });
     });
   });

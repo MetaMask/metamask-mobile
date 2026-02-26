@@ -45,6 +45,7 @@ import TagColored, {
 } from '../../../../../component-library/components-temp/TagColored';
 import { useShouldRenderGasSponsoredBanner } from '../../hooks/useShouldRenderGasSponsoredBanner';
 import { isGaslessQuote } from '../../utils/isGaslessQuote';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 if (
   Platform.OS === 'android' &&
@@ -54,6 +55,7 @@ if (
 }
 
 const QuoteDetailsCard: React.FC = () => {
+  const tw = useTailwind();
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
@@ -132,53 +134,41 @@ const QuoteDetailsCard: React.FC = () => {
   return (
     <Box>
       <Box style={styles.container}>
-        <KeyValueRow
-          field={{
-            label: (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={1}
-              >
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('bridge.rate')}
-                </Text>
-                <QuoteCountdownTimer />
-              </Box>
-            ),
-            tooltip: {
-              title: strings('bridge.quote_info_title'),
-              content: strings('bridge.quote_info_content'),
-              size: TooltipSizes.Sm,
-              iconName: IconName.Info,
-            },
-          }}
-          value={{
-            label: (
-              <>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.8}
-                  color={TextColor.Alternative}
-                >
-                  {rate}
-                </Text>
-                <Pressable style={styles.rateValue} onPress={handleRatePress}>
-                  <Icon
-                    name={IconName.ArrowRight}
-                    size={IconSize.Sm}
-                    color={IconColor.Alternative}
-                  />
-                </Pressable>
-              </>
-            ),
-          }}
-        />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+        >
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('bridge.rate')}
+          </Text>
+          <QuoteCountdownTimer />
+          <TouchableOpacity onPress={handleRatePress}>
+            <Icon
+              name={IconName.Info}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+            />
+          </TouchableOpacity>
+          <Box twClassName="flex-1 min-w-0">
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={tw`text-right`}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {rate}
+            </Text>
+          </Box>
+          <Pressable style={tw`shrink-0`} onPress={handleRatePress}>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+            />
+          </Pressable>
+        </Box>
         {shouldShowGasSponsored ? (
           <KeyValueRow
             field={{

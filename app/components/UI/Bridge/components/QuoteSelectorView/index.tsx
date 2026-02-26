@@ -77,7 +77,9 @@ export const QuoteSelectorView = () => {
         ({
           formattedTotalCost: formatFiat(
             new BigNumber(quote.sentAmount.usd ?? '0').plus(
-              quote.totalNetworkFee.usd ?? '0',
+              isGaslessQuote(quote.quote)
+                ? '0'
+                : (quote.totalNetworkFee.usd ?? '0'),
             ),
             currency,
           ),
