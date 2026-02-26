@@ -861,7 +861,7 @@ export class BackgroundBridge extends EventEmitter {
    */
   createEip5792Middleware() {
     return createEip5792Middleware({
-      getPermittedAccounts: (origin) => getPermittedAccounts(origin),
+      getPermittedAccounts,
       // EIP-5792
       processSendCalls: processSendCalls.bind(
         null,
