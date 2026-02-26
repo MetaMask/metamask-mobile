@@ -255,20 +255,36 @@ describe('AccountService', () => {
 
       const updateCalls = (mockContext.stateManager?.update as jest.Mock).mock
         .calls;
+
+      // Run the first updater to discover the generated withdrawal ID
+      const setupUpdater = updateCalls[0][0];
+      const setupState = {
+        withdrawInProgress: false,
+        withdrawalRequests: [] as { id: string; status: string }[],
+      };
+      setupUpdater(setupState);
+      const generatedId = setupState.withdrawalRequests[0].id;
+
+      // Build mock state with the real ID so the success updater can find it
       const successUpdateCall = updateCalls[1][0];
       const mockState = {
         withdrawInProgress: true,
-        withdrawalRequests: [{ id: expect.any(String), status: 'pending' }],
+        withdrawalRequests: [{ id: generatedId, status: 'pending' }],
         lastError: null,
         lastUpdateTimestamp: 0,
         lastWithdrawResult: null,
+        lastCompletedWithdrawalTimestamp: null,
+        lastCompletedWithdrawalTxHashes: [] as string[],
       };
 
-      mockState.withdrawalRequests[0].id =
-        mockState.withdrawalRequests[0].id || '';
       successUpdateCall(mockState);
 
       expect(mockState.withdrawInProgress).toBe(false);
+      expect(mockState.withdrawalRequests).toHaveLength(0);
+      expect(mockState.lastCompletedWithdrawalTimestamp).toBeNull();
+      expect(mockState.lastCompletedWithdrawalTxHashes).toEqual([
+        '0xTransactionHash',
+      ]);
       expect(mockState.lastWithdrawResult).toEqual(
         expect.objectContaining({
           success: true,
