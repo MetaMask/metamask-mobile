@@ -1,4 +1,4 @@
-import { test } from 'appwright';
+import { test } from '../../framework/fixtures/performance';
 
 import { login } from '../../framework/utils/Flows.js';
 import RNPlaygroundDapp from '../../../wdio/screen-objects/RNPlaygroundDapp.js';

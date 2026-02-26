@@ -629,7 +629,6 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                                     "width": 70,
                                   },
                                   {
-                                    "flexGrow": 1,
                                     "height": 32,
                                     "width": 32,
                                   },
@@ -655,7 +654,6 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                                   [
                                     {
                                       "borderRadius": 35,
-                                      "flexGrow": 1,
                                       "height": 32,
                                       "width": 32,
                                     },
@@ -848,7 +846,6 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 16,
-                                "flexGrow": 1,
                                 "height": 32,
                                 "overflow": "hidden",
                                 "width": 32,
