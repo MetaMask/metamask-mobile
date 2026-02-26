@@ -17,7 +17,7 @@ const PredictMarketSportCardWrapper: React.FC<
 > = ({ marketId, testID, entryPoint, onDismiss, onLoad }) => {
   const {
     data: market,
-    isFetching,
+    isLoading,
     error,
   } = usePredictMarket({
     id: marketId,
@@ -26,13 +26,13 @@ const PredictMarketSportCardWrapper: React.FC<
   const hasCalledOnLoad = useRef(false);
 
   useEffect(() => {
-    if (!isFetching && !error && market && onLoad && !hasCalledOnLoad.current) {
+    if (!isLoading && !error && market && onLoad && !hasCalledOnLoad.current) {
       hasCalledOnLoad.current = true;
       onLoad();
     }
-  }, [isFetching, error, market, onLoad]);
+  }, [isLoading, error, market, onLoad]);
 
-  if (isFetching || error || !market) {
+  if (isLoading || error || !market) {
     return null;
   }
 

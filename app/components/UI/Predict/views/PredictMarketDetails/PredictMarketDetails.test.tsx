@@ -169,6 +169,7 @@ jest.mock('../../utils/format', () => ({
 jest.mock('../../hooks/usePredictMarket', () => ({
   usePredictMarket: jest.fn(() => ({
     data: null,
+    isLoading: false,
     isFetching: false,
     refetch: jest.fn(),
   })),
@@ -502,6 +503,7 @@ function setupPredictMarketDetailsTest(
 
   usePredictMarket.mockReturnValue({
     data: mockMarket,
+    isLoading: false,
     isFetching: false,
     refetch: jest.fn(),
     ...hookOverrides.market,
@@ -669,7 +671,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
-        { market: { isFetching: true, data: null } },
+        { market: { isLoading: true, isFetching: true, data: null } },
       );
 
       // Check that skeleton loaders appear
@@ -719,7 +721,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
-        { market: { isFetching: true, data: null } },
+        { market: { isLoading: true, isFetching: true, data: null } },
       );
 
       expect(
@@ -3389,6 +3391,7 @@ describe('PredictMarketDetails', () => {
 
       usePredictMarket.mockReturnValue({
         data: marketWithoutMiddleEastTag,
+        isLoading: false,
         isFetching: false,
         refetch: jest.fn(),
       });
