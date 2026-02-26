@@ -11,6 +11,7 @@ import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import {
   createTokenChainKey,
+  selectHasInFlightMusdConversion,
   selectHasUnapprovedMusdConversion,
   selectMusdConversionStatuses,
 } from '../../selectors/musdConversionStatus';
@@ -41,6 +42,7 @@ jest.mock('../../selectors/featureFlags', () => ({
 }));
 jest.mock('../../selectors/musdConversionStatus', () => ({
   ...jest.requireActual('../../selectors/musdConversionStatus'),
+  selectHasInFlightMusdConversion: jest.fn(),
   selectHasUnapprovedMusdConversion: jest.fn(),
   selectMusdConversionStatuses: jest.fn(),
 }));
@@ -93,6 +95,10 @@ const mockUseMusdBalance = useMusdBalance as jest.MockedFunction<
 const mockSelectHasUnapprovedMusdConversion =
   selectHasUnapprovedMusdConversion as jest.MockedFunction<
     typeof selectHasUnapprovedMusdConversion
+  >;
+const mockSelectHasInFlightMusdConversion =
+  selectHasInFlightMusdConversion as jest.MockedFunction<
+    typeof selectHasInFlightMusdConversion
   >;
 const mockSelectMusdConversionStatuses =
   selectMusdConversionStatuses as jest.MockedFunction<
@@ -170,6 +176,7 @@ describe('MusdQuickConvertView', () => {
       fiatBalanceAggregated: undefined,
       fiatBalanceAggregatedFormatted: '$0.00',
     });
+    mockSelectHasInFlightMusdConversion.mockReturnValue(false);
     mockSelectHasUnapprovedMusdConversion.mockReturnValue(false);
     mockSelectMusdConversionStatuses.mockReturnValue({});
   });
