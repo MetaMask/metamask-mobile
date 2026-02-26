@@ -12,6 +12,8 @@ describe('InfoRowDivider', () => {
 
     const result = toJSON();
     expect(result).toBeTruthy();
-    expect(result?.props?.style?.backgroundColor).toBe(mockTheme.colors.border.muted);
+    expect(result?.props?.style?.backgroundColor).toBe(
+      mockTheme.colors.border.muted,
+    );
   });
 });
