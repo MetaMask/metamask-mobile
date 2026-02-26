@@ -8,6 +8,7 @@ import {
   unlockIfLockScreenVisible,
   ensurePlaygroundInstalled,
 } from './utils.js';
+import AppwrightGestures from '../../framework/AppwrightGestures.ts';
 
 const DEFAULT_SCROLL_PARAMS = {
   scrollParams: { percent: 0.2 },
@@ -18,8 +19,8 @@ const DEFAULT_SCROLL_PARAMS = {
  * deeplink to return to the playground. Falls back to activateApp if the
  * automatic return does not happen within a short window.
  */
-async function returnToPlayground(device) {
-  await new Promise((r) => setTimeout(r, 2000));
+async function returnToPlayground() {
+  await AppwrightGestures.wait(2000);
   await RNPlaygroundDapp.ensureInPlayground();
 }
 
@@ -54,18 +55,18 @@ test('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send trans
   await RNPlaygroundDapp.waitForPlaygroundReady();
 
   await RNPlaygroundDapp.tapConnectLegacy();
-  await new Promise((r) => setTimeout(r, 3000));
+  await AppwrightGestures.wait(3000);
 
   await unlockIfLockScreenVisible(device);
-  await new Promise((r) => setTimeout(r, 5000));
+  await AppwrightGestures.wait(5000);
   await DappConnectionModal.tapConnectButton();
 
   //
   // 3. Verify accountsChanged — Legacy EVM card visible with accounts
   //
 
-  await returnToPlayground(device);
-  await new Promise((r) => setTimeout(r, 2000));
+  await returnToPlayground();
+  await AppwrightGestures.wait(2000);
 
   await RNPlaygroundDapp.scrollToElement(RNPlaygroundDapp.appTitle, {
     scrollParams: { direction: 'down' },
@@ -92,14 +93,14 @@ test('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send trans
   await RNPlaygroundDapp.tapLegacyEvmButton(
     RNPlaygroundDapp.legacyEvmBtnPersonalSign,
   );
-  await new Promise((r) => setTimeout(r, 3000));
+  await AppwrightGestures.wait(3000);
 
   await unlockIfLockScreenVisible(device);
-  await new Promise((r) => setTimeout(r, 1000));
+  await AppwrightGestures.wait(1000);
   await SignModal.tapConfirmButton();
 
-  await returnToPlayground(device);
-  await new Promise((r) => setTimeout(r, 1000));
+  await returnToPlayground();
+  await AppwrightGestures.wait(1000);
 
   // Verify signature was returned (hex string starting with 0x)
   await RNPlaygroundDapp.scrollToElement(
@@ -121,16 +122,16 @@ test('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send trans
   await RNPlaygroundDapp.tapLegacyEvmButton(
     RNPlaygroundDapp.legacyEvmBtnSendTransaction,
   );
-  await new Promise((r) => setTimeout(r, 3000));
+  await AppwrightGestures.wait(3000);
 
   await unlockIfLockScreenVisible(device);
-  await new Promise((r) => setTimeout(r, 1000));
+  await AppwrightGestures.wait(1000);
 
   // Cancel the transaction to avoid spending real funds
   await SignModal.tapCancelButton();
 
-  await returnToPlayground(device);
-  await new Promise((r) => setTimeout(r, 1000));
+  await returnToPlayground();
+  await AppwrightGestures.wait(1000);
 
   // The dapp should show an error (user rejected) in the response
   await RNPlaygroundDapp.scrollToElement(
@@ -153,16 +154,16 @@ test('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send trans
   await RNPlaygroundDapp.tapLegacyEvmButton(
     RNPlaygroundDapp.legacyEvmBtnSwitchPolygon,
   );
-  await new Promise((r) => setTimeout(r, 3000));
+  await AppwrightGestures.wait(3000);
 
   // The switch opens MetaMask with a network approval dialog.
   // The SwitchChainApproval dialog uses "connect-button" as its confirm testID.
   await unlockIfLockScreenVisible(device);
-  await new Promise((r) => setTimeout(r, 1000));
+  await AppwrightGestures.wait(1000);
   await DappConnectionModal.tapConnectButton();
 
-  await returnToPlayground(device);
-  await new Promise((r) => setTimeout(r, 2000));
+  await returnToPlayground();
+  await AppwrightGestures.wait(2000);
 
   // Verify chain ID updated to Polygon (0x89)
   await RNPlaygroundDapp.scrollToElement(
