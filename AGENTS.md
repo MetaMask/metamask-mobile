@@ -99,17 +99,19 @@ scripts/                  # Build and automation scripts
 
 ## Development Guidelines
 
-**Detailed guidelines are in `.cursor/rules/`** - these are automatically applied by Cursor:
+**Detailed guidelines are in `.cursor/rules/`**. Cursor applies these automatically. All other AI agents MUST read the relevant rule file before performing the associated task:
 
-| Rule File                         | Scope                                                |
-| --------------------------------- | ---------------------------------------------------- |
-| `general-coding-guidelines.mdc`   | Always applied - coding standards, file organization |
-| `ui-development-guidelines.mdc`   | UI components - design system, Tailwind, styling     |
-| `unit-testing-guidelines.mdc`     | `*.test.*` files - test patterns, mocking, AAA       |
-| `e2e-testing-guidelines.mdc`      | Always applied - E2E patterns, Page Objects          |
-| `component-view-testing.mdc`      | Component testing with presets/renderers             |
-| `deeplink-handler-guidelines.mdc` | Deeplink handler implementation                      |
-| `pr-creation-guidelines.mdc`      | Pull request standards                               |
+| Rule File                         | When to read                                 |
+| --------------------------------- | -------------------------------------------- |
+| `general-coding-guidelines.mdc`   | Before writing or modifying any code         |
+| `ui-development-guidelines.mdc`   | Before working on UI components or styling   |
+| `unit-testing-guidelines.mdc`     | Before writing or modifying `*.test.*` files |
+| `e2e-testing-guidelines.mdc`      | Before writing or modifying E2E tests        |
+| `component-view-testing.mdc`      | Before writing component view tests          |
+| `deeplink-handler-guidelines.mdc` | Before implementing deeplink handlers        |
+| `pr-creation-guidelines.mdc`      | Before creating any pull request             |
+
+These files are the canonical source of truth. Read them from `.cursor/rules/<filename>`.
 
 ### Quick Reference
 
