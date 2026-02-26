@@ -6,7 +6,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     noImagePlaceholder: {
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.muted,
       borderColor: theme.colors.border.muted,
       borderWidth: 1,
       height: 48,

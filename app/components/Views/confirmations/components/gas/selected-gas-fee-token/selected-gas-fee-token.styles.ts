@@ -5,7 +5,7 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
     gasFeeTokenButton: {
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.muted,
       alignItems: 'center',
       display: 'flex',
       flexDirection: 'row',

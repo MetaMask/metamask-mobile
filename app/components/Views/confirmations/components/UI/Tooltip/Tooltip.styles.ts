@@ -11,7 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
       margin: 0,
     },
     modalView: {
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.muted,
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 8,

@@ -24,7 +24,7 @@ const styleSheet = (params: { theme: Theme }) => {
       ...fontStyles.normal,
     },
     messageContainer: {
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.muted,
       borderRadius: 8,
       minHeight: 200,
       maxHeight: 300,
