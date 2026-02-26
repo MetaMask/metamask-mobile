@@ -38,6 +38,7 @@ import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import useInterval from '../../../../hooks/useInterval';
 import AppConstants from '../../../../../core/AppConstants';
 import OrderContent from './OrderContent';
+import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 import { processFiatOrder } from '../../index';
 
 interface RampsOrderDetailsParams {
@@ -193,7 +194,7 @@ const OrderDetails = () => {
   }
 
   return (
-    <ScreenLayout>
+    <ScreenLayout testID={RampsOrderDetailsSelectorsIDs.CONTAINER}>
       <ScrollView
         refreshControl={
           <RefreshControl
