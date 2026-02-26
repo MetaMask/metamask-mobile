@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, TouchableOpacity, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { useDispatch, useSelector } from 'react-redux';
 import styleSheet from '../../Deposit/Views/BankDetails/BankDetails.styles';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -21,15 +20,10 @@ import Icon, {
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import BankDetailRow from '../../Deposit/components/BankDetailRow';
 import {
-  FiatOrder,
-  getOrderById,
-  updateFiatOrder,
-} from '../../../../../reducers/fiatOrders';
-import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
+  RampsOrderStatus,
+  type TransakDepositOrder,
+} from '@metamask/ramps-controller';
 import { useTheme } from '../../../../../util/theme';
-import { RootState } from '../../../../../reducers';
-import { hasDepositOrderField } from '../../Deposit/utils';
-import { depositOrderToFiatOrder } from '../../Deposit/orderProcessor';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -42,20 +36,31 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { selectTokens } from '../../../../../selectors/rampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useRampsOrders } from '../../hooks/useRampsOrders';
+import { useSelector } from 'react-redux';
 
 export interface BankDetailsParams {
   orderId: string;
   shouldUpdate?: boolean;
 }
 
+const TERMINAL_STATUSES = new Set([
+  RampsOrderStatus.Completed,
+  RampsOrderStatus.Failed,
+  RampsOrderStatus.Cancelled,
+]);
+
+/**
+ * V2 bank details screen. Reads order lifecycle from controller state
+ * and fetches deposit-specific data (paymentDetails) from TransakService.
+ */
 const V2BankDetails = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = useTheme();
-  const dispatch = useDispatch();
   const {
     logoutFromProvider,
-    getOrder,
+    getOrder: getDepositOrder,
     confirmPayment,
     cancelOrder: transakCancelOrder,
   } = useTransakController();
@@ -63,12 +68,16 @@ const V2BankDetails = () => {
   const tokensResource = useSelector(selectTokens);
   const selectedCryptoCurrency = tokensResource?.selected;
   const trackEvent = useAnalytics();
+  const { getOrderById, refreshOrder, removeOrder } = useRampsOrders();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
   const { orderId, shouldUpdate = true } = useParams<BankDetailsParams>();
-  const order = useSelector((state: RootState) => getOrderById(state, orderId));
+  const order = getOrderById(orderId);
 
+  const [depositOrder, setDepositOrder] = useState<TransakDepositOrder | null>(
+    null,
+  );
   const [showBankInfo, setShowBankInfo] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -79,13 +88,6 @@ const V2BankDetails = () => {
     null,
   );
   const [isLoadingConfirmPayment, setIsLoadingConfirmPayment] = useState(false);
-
-  const dispatchUpdateFiatOrder = useCallback(
-    (updatedOrder: FiatOrder) => {
-      dispatch(updateFiatOrder(updatedOrder));
-    },
-    [dispatch],
-  );
 
   const handleLogoutError = useCallback(async () => {
     try {
@@ -101,19 +103,24 @@ const V2BankDetails = () => {
 
     try {
       setIsRefreshing(true);
-      const updatedDepositOrder = await getOrder(order.id, order.account);
+
+      const updatedDepositOrder = await getDepositOrder(
+        order.providerOrderId,
+        order.walletAddress,
+      );
       if (updatedDepositOrder) {
-        const updatedFiatOrder = depositOrderToFiatOrder(
-          updatedDepositOrder as Parameters<typeof depositOrderToFiatOrder>[0],
-        );
-        dispatchUpdateFiatOrder({
-          ...updatedFiatOrder,
-          account: order.account,
-          lastTimeFetched: Date.now(),
-          errorCount: 0,
-          forceUpdate: false,
-        });
+        setDepositOrder(updatedDepositOrder);
       }
+
+      const providerCode = (order.provider?.id ?? '').replace(
+        '/providers/',
+        '',
+      );
+      await refreshOrder(
+        providerCode,
+        order.providerOrderId,
+        order.walletAddress,
+      );
     } catch (refreshError) {
       const httpError = refreshError as { status?: number };
       if (httpError.status === 401) {
@@ -124,31 +131,34 @@ const V2BankDetails = () => {
     } finally {
       setIsRefreshing(false);
     }
-  }, [order, getOrder, dispatchUpdateFiatOrder, handleLogoutError]);
+  }, [order, getDepositOrder, refreshOrder, handleLogoutError]);
 
   useEffect(() => {
-    if (order?.state === FIAT_ORDER_STATES.CREATED && shouldUpdate) {
+    if (order?.status === RampsOrderStatus.Created && shouldUpdate) {
       handleOnRefresh();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!order?.state) return;
-    if (order.state === FIAT_ORDER_STATES.CANCELLED) {
+    if (!order?.status) return;
+    if (order.status === RampsOrderStatus.Cancelled) {
+      removeOrder(order.providerOrderId);
       navigation.navigate(Routes.RAMP.AMOUNT_INPUT as never);
-    } else if (
-      order.state === FIAT_ORDER_STATES.PENDING ||
-      order.state === FIAT_ORDER_STATES.COMPLETED ||
-      order.state === FIAT_ORDER_STATES.FAILED
-    ) {
+    } else if (TERMINAL_STATUSES.has(order.status)) {
       // @ts-expect-error navigation prop mismatch
       navigation.replace(Routes.RAMP.RAMPS_ORDER_DETAILS, {
-        orderId: order.id,
+        orderId: order.providerOrderId,
+        showCloseButton: true,
+      });
+    } else if (order.status === RampsOrderStatus.Pending) {
+      // @ts-expect-error navigation prop mismatch
+      navigation.replace(Routes.RAMP.RAMPS_ORDER_DETAILS, {
+        orderId: order.providerOrderId,
         showCloseButton: true,
       });
     }
-  }, [order?.state, navigation, order?.id]);
+  }, [order?.status, navigation, order?.providerOrderId, removeOrder]);
 
   const capitalizeWords = useCallback(
     (text: string): string =>
@@ -166,19 +176,16 @@ const V2BankDetails = () => {
 
   const getFieldValue = useCallback(
     (fieldName: string): string | null => {
-      if (!hasDepositOrderField(order?.data, 'paymentDetails')) return null;
+      if (!depositOrder?.paymentDetails?.length) return null;
 
-      if (!order.data.paymentDetails || order.data.paymentDetails.length === 0)
-        return null;
-
-      const field = order.data.paymentDetails[0].fields.find(
+      const field = depositOrder.paymentDetails[0].fields.find(
         (f) => f.name === fieldName,
       );
       if (!field?.value) return null;
 
       return capitalizeWords(field.value);
     },
-    [order, capitalizeWords],
+    [depositOrder, capitalizeWords],
   );
 
   const amount = getFieldValue('Amount');
@@ -197,31 +204,30 @@ const V2BankDetails = () => {
   const iban = getFieldValue('IBAN');
   const bic = getFieldValue('BIC');
 
+  const paymentMethodShortName = depositOrder?.paymentMethod?.shortName ?? '';
+
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
         {
           title: strings('deposit.bank_details.navbar_title', {
-            paymentMethod: hasDepositOrderField(order?.data, 'paymentMethod')
-              ? order.data.paymentMethod?.shortName
-              : '',
+            paymentMethod: paymentMethodShortName,
           }),
         },
         theme,
       ),
     );
-  }, [navigation, theme, order?.data]);
+  }, [navigation, theme, paymentMethodShortName]);
 
   const handleBankTransferSent = useCallback(async () => {
     setCancelOrderError(null);
-    if (isLoadingConfirmPayment || !order) return;
+    if (isLoadingConfirmPayment || !order || !depositOrder) return;
     try {
       setIsLoadingConfirmPayment(true);
-      if (
-        !hasDepositOrderField(order?.data, 'paymentMethod') ||
-        !order.data.paymentMethod.id
-      ) {
+
+      const paymentMethodId = depositOrder.paymentMethod?.id;
+      if (!paymentMethodId) {
         Logger.error(
           new Error('Payment method not found or empty'),
           'V2BankDetails: handleBankTransferSent',
@@ -229,22 +235,21 @@ const V2BankDetails = () => {
         return;
       }
 
-      const paymentMethodId = order.data.paymentMethod.id;
-      await confirmPayment(order.id, paymentMethodId);
+      await confirmPayment(order.providerOrderId, paymentMethodId);
 
       trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
         ramp_type: 'DEPOSIT',
-        amount_source: Number(order.data.fiatAmount),
+        amount_source: Number(order.fiatAmount),
         amount_destination: Number(order.cryptoAmount),
-        exchange_rate: Number(order.data.exchangeRate),
+        exchange_rate: Number(order.exchangeRate),
         gas_fee: 0,
         processing_fee: 0,
-        total_fee: Number(order.data.totalFeesFiat),
+        total_fee: Number(order.totalFeesFiat),
         payment_method_id: paymentMethodId,
         country: regionIsoCode,
         chain_id: selectedCryptoCurrency?.chainId || '',
         currency_destination: selectedCryptoCurrency?.assetId || '',
-        currency_source: order.data.fiatCurrency,
+        currency_source: order.fiatCurrency?.symbol || '',
       });
 
       await handleOnRefresh();
@@ -270,6 +275,7 @@ const V2BankDetails = () => {
   }, [
     isLoadingConfirmPayment,
     order,
+    depositOrder,
     trackEvent,
     regionIsoCode,
     selectedCryptoCurrency?.assetId,
@@ -284,7 +290,7 @@ const V2BankDetails = () => {
     if (isLoadingCancelOrder || !order) return;
     try {
       setIsLoadingCancelOrder(true);
-      await transakCancelOrder(order.id);
+      await transakCancelOrder(order.providerOrderId);
       await handleOnRefresh();
     } catch (fetchError) {
       const httpError = fetchError as { status?: number };
@@ -308,6 +314,8 @@ const V2BankDetails = () => {
   const toggleBankInfo = useCallback(() => {
     setShowBankInfo(!showBankInfo);
   }, [showBankInfo]);
+
+  const hasData = order && depositOrder;
 
   return (
     <ScreenLayout>
@@ -336,7 +344,7 @@ const V2BankDetails = () => {
               </Text>
             </View>
 
-            {order ? (
+            {hasData ? (
               <View style={styles.detailsContainer}>
                 {amount ? (
                   <BankDetailRow

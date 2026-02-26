@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`handleOrderStatusChanged notification payload matches snapshot for each terminal status: notification for CANCELLED 1`] = `
+{
+  "description": "Verify your payment method and card support",
+  "duration": 5000,
+  "title": "Your purchase was cancelled",
+}
+`;
+
+exports[`handleOrderStatusChanged notification payload matches snapshot for each terminal status: notification for COMPLETED 1`] = `
+{
+  "description": "Your ETH is now available",
+  "duration": 5000,
+  "title": "Your purchase of 0.5 ETH was successful.",
+}
+`;
+
+exports[`handleOrderStatusChanged notification payload matches snapshot for each terminal status: notification for FAILED 1`] = `
+{
+  "description": "Verify your payment method and card support",
+  "duration": 5000,
+  "title": "Purchase of ETH failed. Please try again momentarily.",
+}
+`;
