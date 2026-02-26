@@ -7,7 +7,7 @@ import {
   QualityGatesReportFormatter,
   clearQualityGateFailures,
 } from '../framework/quality-gates';
-import { getTeamInfoFromTags } from '../teams-config.js';
+import { getTeamInfoFromTags } from '../framework/utils/teams';
 import { DeviceInfoExtractor } from './utils/DeviceInfoExtractor';
 import { BrowserStackEnricher } from './providers/browserstack/BrowserStackEnricher';
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
