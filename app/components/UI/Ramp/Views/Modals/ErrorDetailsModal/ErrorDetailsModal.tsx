@@ -27,6 +27,7 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
+import Logger from '../../../../../../util/Logger';
 import styleSheet from './ErrorDetailsModal.styles';
 
 export interface ErrorDetailsModalParams {
@@ -65,17 +66,24 @@ function ErrorDetailsModal() {
 
   const handleContactSupport = useCallback(async () => {
     if (!providerSupportUrl) return;
-    if (await InAppBrowser.isAvailable()) {
-      handleClose();
-      await InAppBrowser.open(providerSupportUrl);
-    } else {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: providerSupportUrl,
-          title: providerName,
-        },
-      });
+    try {
+      if (await InAppBrowser.isAvailable()) {
+        handleClose();
+        await InAppBrowser.open(providerSupportUrl);
+      } else {
+        navigation.navigate('Webview', {
+          screen: 'SimpleWebview',
+          params: {
+            url: providerSupportUrl,
+            title: providerName,
+          },
+        });
+      }
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'ErrorDetailsModal: Failed to open support URL',
+      );
     }
   }, [providerSupportUrl, providerName, handleClose, navigation]);
 
