@@ -87,10 +87,11 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await BuildQuoteView.enterAmount('5', 'unifiedBuy');
         await Assertions.expectTextDisplayed(expectedOrder.quoteDisplayAmount);
         await BuildQuoteView.tapContinueButton();
-        // await TestHelpers.delay(280000000);
 
         // Verify order details screen
-        await Assertions.expectElementToBeVisible(OrderDetailsView.container);
+        await Assertions.expectElementToBeVisible(OrderDetailsView.container, {
+          elemDescription: 'ramps order confirmation screen',
+        });
         await Assertions.expectElementToHaveText(
           OrderDetailsView.tokenAmount,
           `${expectedOrder.tokenAmount} ${expectedOrder.token}`,

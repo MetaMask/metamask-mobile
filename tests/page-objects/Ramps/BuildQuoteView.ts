@@ -1,5 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Utilities from '../../framework/Utilities';
+
 import { BuildQuoteSelectors } from '../../../app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { AddressSelectorSelectors } from '../../../app/components/Views/AddressSelector/AddressSelector.testIds';
 
@@ -105,6 +107,8 @@ class BuildQuoteView {
   }
 
   async tapContinueButton(): Promise<void> {
+    await Utilities.waitForElementToBeEnabled(this.continueButton);
+
     await Gestures.waitAndTap(this.continueButton, {
       timeout: 2500,
       elemDescription: 'Continue Button in Build Quote View',

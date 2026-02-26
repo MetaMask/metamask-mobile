@@ -1,6 +1,7 @@
 import { RampsOrderDetailsSelectorsIDs } from '../../../app/components/UI/Ramp/Views/OrderDetails/OrderDetails.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Utilities from '../../framework/Utilities';
 
 class OrderDetailsView {
   get container(): DetoxElement {
@@ -19,6 +20,7 @@ class OrderDetailsView {
   }
 
   async tapCloseButton(): Promise<void> {
+    await Utilities.waitForElementToBeEnabled(this.closeButton);
     await Gestures.waitAndTap(this.closeButton, {
       timeout: 2500,
       elemDescription: 'Ramps Order Details Close Button',
