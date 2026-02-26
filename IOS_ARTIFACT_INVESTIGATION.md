@@ -184,30 +184,38 @@ Updated artifact copying logic to handle nested structure:
     [ -f "${APP_PATH}/Info.plist" ] || exit 1
 ```
 
-## Why Failures are Intermittent (Not 100%)
+## Why Failures are Intermittent (Incomplete Understanding)
 
-Despite `PREBUILT_IOS_APP_PATH` always pointing to the wrong location, failures are intermittent because there are **two compounding issues**:
+**Critical Question**: If `PREBUILT_IOS_APP_PATH` always points to the wrong location, why aren't there 100% failures?
 
-### Build Has Two Code Paths
-1. **Cache miss** → Full Xcode build → Usually produces valid artifact
-2. **Cache hit** → Restore bundle + Repack with `@expo/repack-app` → Occasionally corrupts bundle
+**Honest Answer**: We don't fully understand the root cause of the intermittency.
 
-### The Intermittent Pattern
-- When **repack succeeds**: Bundle structure is intact, even though path is wrong in test workflow, the issue might be less noticeable
-- When **repack corrupts**: Bundle is missing executable → Wrong path + corrupt bundle = guaranteed failure
+### What We Observed
 
-### From Failing Build (Run 22441737582):
+From failing run 22441737582, the build used cache+repack:
 ```
-Cache hits: 2 (used repack path)
+Cache hits: 2
 📦 Repacking iOS app with @expo/repack-app...
 ✅ iOS App repack completed in 179s
 📦 Final app size: 273M
 
-# Build reports SUCCESS
-# But bundle is missing MetaMask executable
-# All test shards download this corrupt artifact
-# All shards fail: "missing its bundle executable"
+Build: SUCCESS ✅
+But all test shards failed: "missing its bundle executable"
 ```
+
+**Initial hypothesis**: Repack process occasionally corrupts bundles.
+
+**User feedback**: Failures also happen with fresh builds from scratch (no cache/repack).
+
+### Possible Explanations (Unconfirmed)
+
+1. **Xcode Build Edge Case**: Build occasionally produces malformed bundle structure
+2. **GitHub Actions Artifact Handling**: Upload/download sometimes corrupts structure
+3. **Runner Environment Variation**: Different macOS/Xcode versions behave differently  
+4. **Race Condition**: Timing issue in build or artifact upload process
+5. **Bundle Structure Variation**: Sometimes executable ends up in unexpected location
+
+**Further investigation needed** to determine exact root cause.
 
 ## Expected Benefits
 
