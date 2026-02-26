@@ -173,12 +173,17 @@ function BuildQuote() {
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
+  const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
-    trackRampsEvent('RAMPS_SCREEN_VIEWED', {
-      location: 'Amount Input',
-      ramp_type: 'UNIFIED_BUY_2',
-      ramp_routing: rampRoutingDecision ?? undefined,
-    });
+    if (hasTrackedScreenViewRef.current) return;
+    if (rampRoutingDecision != null) {
+      hasTrackedScreenViewRef.current = true;
+      trackRampsEvent('RAMPS_SCREEN_VIEWED', {
+        location: 'Amount Input',
+        ramp_type: 'UNIFIED_BUY_2',
+        ramp_routing: rampRoutingDecision,
+      });
+    }
   }, [rampRoutingDecision]);
 
   useEffect(() => {

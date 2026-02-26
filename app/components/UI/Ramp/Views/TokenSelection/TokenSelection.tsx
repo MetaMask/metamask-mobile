@@ -131,12 +131,17 @@ function TokenSelection() {
 
   const debouncedSearchString = useDebouncedValue(searchString, 500);
 
+  const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
-    trackRampsEvent('RAMPS_SCREEN_VIEWED', {
-      location: 'Token Selection',
-      ramp_type: 'UNIFIED_BUY_2',
-      ramp_routing: rampRoutingDecision ?? undefined,
-    });
+    if (hasTrackedScreenViewRef.current) return;
+    if (rampRoutingDecision != null) {
+      hasTrackedScreenViewRef.current = true;
+      trackRampsEvent('RAMPS_SCREEN_VIEWED', {
+        location: 'Token Selection',
+        ramp_type: 'UNIFIED_BUY_2',
+        ramp_routing: rampRoutingDecision,
+      });
+    }
   }, [rampRoutingDecision]);
 
   useEffect(() => {
