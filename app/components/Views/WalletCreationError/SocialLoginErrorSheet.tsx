@@ -68,8 +68,17 @@ const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
   }, [navigation, trackEvent, createEventBuilder]);
 
   const handleContactSupport = useCallback(() => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SUPPORT_CLICKED,
+      )
+        .addProperties({
+          flow_type: 'social_login',
+        })
+        .build(),
+    );
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, []);
+  }, [trackEvent, createEventBuilder]);
 
   return (
     <SafeAreaView style={styles.container}>

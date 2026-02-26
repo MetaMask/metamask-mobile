@@ -116,6 +116,25 @@ describe('SocialLoginErrorSheet', () => {
         expect(mockTrackEvent).toHaveBeenCalled();
       });
     });
+
+    it('tracks support clicked event when MetaMask Support is pressed', () => {
+      const { getByText } = renderWithProvider(
+        <SocialLoginErrorSheet error={mockError} />,
+        { state: initialState },
+      );
+
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockTrackEvent.mockClear();
+
+      fireEvent.press(getByText('MetaMask Support'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        flow_type: 'social_login',
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
   });
 
   it('renders error title', () => {
