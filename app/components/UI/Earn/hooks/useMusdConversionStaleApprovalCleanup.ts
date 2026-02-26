@@ -35,9 +35,11 @@ export const useMusdConversionStaleApprovalCleanup = () => {
     let previousAppState = AppState.currentState;
 
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      // Only treat a true background return as stale approval cleanup signal.
+      // iOS transient system overlays (Notification/Control Center) can emit
+      // active -> inactive -> active and should not clear pending approvals.
       const shouldRejectStaleApprovals =
-        Boolean(previousAppState.match(/inactive|background/)) &&
-        nextAppState === 'active';
+        previousAppState === 'background' && nextAppState === 'active';
 
       if (!shouldRejectStaleApprovals) {
         previousAppState = nextAppState;

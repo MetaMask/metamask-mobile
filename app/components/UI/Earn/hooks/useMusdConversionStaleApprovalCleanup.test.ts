@@ -122,7 +122,7 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
     );
   });
 
-  it('does not reject approvals on non-foreground transitions', () => {
+  it('does not reject approvals on inactive to active transition', () => {
     mockSelectPendingUnapprovedMusdConversions.mockReturnValue([
       { id: 'tx-1' } as never,
     ]);
@@ -131,8 +131,10 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
 
     act(() => {
       appStateHandler?.('inactive');
+      appStateHandler?.('active');
     });
 
+    expect(mockLoggerLog).not.toHaveBeenCalled();
     expect(mockRejectPendingApproval).not.toHaveBeenCalled();
   });
 
