@@ -101,7 +101,7 @@ function setupMocksForSuccessPath() {
   mockUseTransactionConfirm.mockReturnValue({ onConfirm: jest.fn() });
   mockUseAlerts.mockReturnValue({
     alerts: [],
-  } as ReturnType<typeof useAlerts>);
+  } as unknown as ReturnType<typeof useAlerts>);
   mockUseFiatFormatter.mockReturnValue((value: { toString: () => string }) =>
     value.toString(),
   );
