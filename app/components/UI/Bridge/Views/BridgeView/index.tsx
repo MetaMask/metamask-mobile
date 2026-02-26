@@ -269,12 +269,7 @@ const BridgeView = () => {
 
   // Always show quote details when there's an active quote
   const shouldDisplayQuoteDetails = !!activeQuote;
-  const sourceAmountAsNumber = Number(sourceAmount);
-  const isZeroState =
-    !sourceAmount ||
-    sourceAmount === '.' ||
-    Number.isNaN(sourceAmountAsNumber) ||
-    sourceAmountAsNumber <= 0;
+  const isZeroState = !sourceAmount || !(Number(sourceAmount) > 0);
 
   // Update quote parameters when relevant state changes
   useEffect(() => {

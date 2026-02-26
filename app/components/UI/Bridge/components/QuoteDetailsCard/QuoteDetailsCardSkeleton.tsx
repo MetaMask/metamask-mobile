@@ -44,22 +44,19 @@ const QuoteDetailsCardSkeleton = () => {
       style={styles.container}
       testID={BridgeViewSelectorsIDs.QUOTE_DETAILS_SKELETON}
     >
-      <View style={styles.row}>
-        <Skeleton width="35%" height={18} />
-        <Skeleton width="42%" height={18} />
-      </View>
-      <View style={styles.row}>
-        <Skeleton width="28%" height={18} />
-        <Skeleton width="24%" height={18} />
-      </View>
-      <View style={styles.row}>
-        <Skeleton width="30%" height={18} />
-        <Skeleton width="18%" height={18} />
-      </View>
-      <View style={styles.row}>
-        <Skeleton width="32%" height={18} />
-        <Skeleton width="22%" height={18} />
-      </View>
+      {(
+        [
+          ['35%', '42%'],
+          ['28%', '24%'],
+          ['30%', '18%'],
+          ['32%', '22%'],
+        ] as const
+      ).map(([left, right], i) => (
+        <View key={i} style={styles.row}>
+          <Skeleton width={left} height={18} />
+          <Skeleton width={right} height={18} />
+        </View>
+      ))}
     </View>
   );
 };

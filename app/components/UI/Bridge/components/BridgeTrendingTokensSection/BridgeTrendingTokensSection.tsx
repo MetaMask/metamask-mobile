@@ -62,9 +62,6 @@ const createStyles = (theme: Theme) =>
       fontWeight: '600',
       lineHeight: 19.6,
     },
-    listContainer: {
-      gap: 0,
-    },
     showMoreButton: {
       marginTop: 12,
       paddingVertical: 8,
@@ -78,7 +75,7 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-interface SwapTrendingTokensSectionProps {
+interface BridgeTrendingTokensSectionProps {
   selectedTimeOption: TimeOption;
   selectedNetworkName: string;
   priceChangeButtonText: string;
@@ -92,7 +89,7 @@ interface SwapTrendingTokensSectionProps {
   onShowMore: () => void;
 }
 
-const SwapTrendingTokensSection = ({
+const BridgeTrendingTokensSection = ({
   selectedTimeOption,
   selectedNetworkName,
   priceChangeButtonText,
@@ -104,9 +101,30 @@ const SwapTrendingTokensSection = ({
   onNetworkPress,
   onTimePress,
   onShowMore,
-}: SwapTrendingTokensSectionProps) => {
+}: BridgeTrendingTokensSectionProps) => {
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+
+  const filterButtons = [
+    {
+      testID: BridgeViewSelectorsIDs.TRENDING_PRICE_FILTER,
+      onPress: onPriceChangePress,
+      text: priceChangeButtonText,
+      extra: styles.wideControlButton,
+    },
+    {
+      testID: BridgeViewSelectorsIDs.TRENDING_NETWORK_FILTER,
+      onPress: onNetworkPress,
+      text: selectedNetworkName,
+      extra: styles.wideControlButton,
+    },
+    {
+      testID: BridgeViewSelectorsIDs.TRENDING_TIME_FILTER,
+      onPress: onTimePress,
+      text: selectedTimeOption,
+      extra: styles.timeControlButton,
+    },
+  ];
 
   return (
     <View
@@ -115,63 +133,34 @@ const SwapTrendingTokensSection = ({
     >
       <Text style={styles.title}>{strings('trending.trending_tokens')}</Text>
       <View style={styles.controlsContainer}>
-        <TouchableOpacity
-          testID={BridgeViewSelectorsIDs.TRENDING_PRICE_FILTER}
-          onPress={onPriceChangePress}
-          style={[styles.controlButton, styles.wideControlButton]}
-          activeOpacity={0.2}
-        >
-          <View style={styles.controlButtonContent}>
-            <Text style={styles.controlButtonText}>
-              {priceChangeButtonText}
-            </Text>
-            <Icon
-              name={IconName.ArrowDown}
-              color={IconColor.Alternative}
-              size={IconSize.Xs}
-            />
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          testID={BridgeViewSelectorsIDs.TRENDING_NETWORK_FILTER}
-          onPress={onNetworkPress}
-          style={[styles.controlButton, styles.wideControlButton]}
-          activeOpacity={0.2}
-        >
-          <View style={styles.controlButtonContent}>
-            <Text style={styles.controlButtonText}>{selectedNetworkName}</Text>
-            <Icon
-              name={IconName.ArrowDown}
-              color={IconColor.Alternative}
-              size={IconSize.Xs}
-            />
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          testID={BridgeViewSelectorsIDs.TRENDING_TIME_FILTER}
-          onPress={onTimePress}
-          style={[styles.controlButton, styles.timeControlButton]}
-          activeOpacity={0.2}
-        >
-          <View style={styles.controlButtonContent}>
-            <Text style={styles.controlButtonText}>{selectedTimeOption}</Text>
-            <Icon
-              name={IconName.ArrowDown}
-              color={IconColor.Alternative}
-              size={IconSize.Xs}
-            />
-          </View>
-        </TouchableOpacity>
+        {filterButtons.map(({ testID, onPress, text, extra }) => (
+          <TouchableOpacity
+            key={testID}
+            testID={testID}
+            onPress={onPress}
+            style={[styles.controlButton, extra]}
+            activeOpacity={0.2}
+          >
+            <View style={styles.controlButtonContent}>
+              <Text style={styles.controlButtonText}>{text}</Text>
+              <Icon
+                name={IconName.ArrowDown}
+                color={IconColor.Alternative}
+                size={IconSize.Xs}
+              />
+            </View>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {isLoading ? (
-        <View style={styles.listContainer}>
+        <View>
           {Array.from({ length: 6 }).map((_, index) => (
             <TrendingTokensSkeleton key={index} />
           ))}
         </View>
       ) : (
-        <View style={styles.listContainer}>
+        <View>
           {trendingTokens.map((token, index) => (
             <TrendingTokenRowItem
               key={`${token.assetId}-${index}`}
@@ -199,6 +188,6 @@ const SwapTrendingTokensSection = ({
   );
 };
 
-SwapTrendingTokensSection.displayName = 'SwapTrendingTokensSection';
+BridgeTrendingTokensSection.displayName = 'BridgeTrendingTokensSection';
 
-export default memo(SwapTrendingTokensSection);
+export default memo(BridgeTrendingTokensSection);

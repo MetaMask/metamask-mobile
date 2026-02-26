@@ -9,7 +9,7 @@ import React, {
 import { Modal } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
-import SwapTrendingTokensSection from '../SwapTrendingTokensSection/SwapTrendingTokensSection';
+import BridgeTrendingTokensSection from '../BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 import {
   TrendingTokenNetworkBottomSheet,
   TrendingTokenPriceChangeBottomSheet,
@@ -17,8 +17,7 @@ import {
 } from '../../../Trending/components/TrendingTokensBottomSheet';
 import { useBridgeTrendingTokens } from '../../hooks/useBridgeTrendingTokens/useBridgeTrendingTokens';
 
-const INITIAL_VISIBLE_TOKENS = 12;
-const TOKEN_RENDER_CHUNK_SIZE = 12;
+const TOKEN_CHUNK_SIZE = 12;
 
 type ActiveBottomSheet = 'none' | 'time' | 'network' | 'price_change';
 
@@ -30,9 +29,8 @@ const BridgeTrendingZeroState = forwardRef<BridgeTrendingZeroStateRef>(
   (_props, ref) => {
     const [activeBottomSheet, setActiveBottomSheet] =
       useState<ActiveBottomSheet>('none');
-    const [visibleTokenCount, setVisibleTokenCount] = useState(
-      INITIAL_VISIBLE_TOKENS,
-    );
+    const [visibleTokenCount, setVisibleTokenCount] =
+      useState(TOKEN_CHUNK_SIZE);
     const networkConfigurations = useSelector(
       selectNetworkConfigurationsByCaipChainId,
     );
@@ -55,20 +53,18 @@ const BridgeTrendingZeroState = forwardRef<BridgeTrendingZeroStateRef>(
 
     useEffect(() => {
       if (isLoading) {
-        setVisibleTokenCount(INITIAL_VISIBLE_TOKENS);
+        setVisibleTokenCount(TOKEN_CHUNK_SIZE);
         return;
       }
 
-      setVisibleTokenCount(
-        Math.min(INITIAL_VISIBLE_TOKENS, trendingTokens.length),
-      );
+      setVisibleTokenCount(Math.min(TOKEN_CHUNK_SIZE, trendingTokens.length));
     }, [isLoading, trendingTokens]);
 
     const hasMore = visibleTokenCount < trendingTokens.length;
 
     const loadNextChunk = useCallback(() => {
       setVisibleTokenCount((currentCount) =>
-        Math.min(currentCount + TOKEN_RENDER_CHUNK_SIZE, trendingTokens.length),
+        Math.min(currentCount + TOKEN_CHUNK_SIZE, trendingTokens.length),
       );
     }, [trendingTokens.length]);
 
@@ -92,16 +88,8 @@ const BridgeTrendingZeroState = forwardRef<BridgeTrendingZeroStateRef>(
       setActiveBottomSheet('none');
     }, []);
 
-    const handlePriceChangePress = useCallback(() => {
-      setActiveBottomSheet('price_change');
-    }, []);
-
-    const handleNetworkPress = useCallback(() => {
-      setActiveBottomSheet('network');
-    }, []);
-
-    const handleTimePress = useCallback(() => {
-      setActiveBottomSheet('time');
+    const openBottomSheet = useCallback((type: ActiveBottomSheet) => {
+      setActiveBottomSheet(type);
     }, []);
 
     const visibleTrendingTokens = useMemo(
@@ -109,62 +97,9 @@ const BridgeTrendingZeroState = forwardRef<BridgeTrendingZeroStateRef>(
       [trendingTokens, visibleTokenCount],
     );
 
-    const isBottomSheetVisible = activeBottomSheet !== 'none';
-
-    const bottomSheetContent = useMemo(() => {
-      if (activeBottomSheet === 'time') {
-        return (
-          <TrendingTokenTimeBottomSheet
-            isVisible
-            onClose={closeBottomSheet}
-            onTimeSelect={handleTimeSelect}
-            selectedTime={selectedTimeOption}
-            isFullscreen={false}
-          />
-        );
-      }
-
-      if (activeBottomSheet === 'network') {
-        return (
-          <TrendingTokenNetworkBottomSheet
-            isVisible
-            onClose={closeBottomSheet}
-            onNetworkSelect={handleNetworkSelect}
-            selectedNetwork={selectedNetwork}
-            isFullscreen
-          />
-        );
-      }
-
-      if (activeBottomSheet === 'price_change') {
-        return (
-          <TrendingTokenPriceChangeBottomSheet
-            isVisible
-            onClose={closeBottomSheet}
-            onPriceChangeSelect={handlePriceChangeSelect}
-            selectedOption={selectedPriceChangeOption}
-            sortDirection={priceChangeSortDirection}
-            isFullscreen={false}
-          />
-        );
-      }
-
-      return null;
-    }, [
-      activeBottomSheet,
-      closeBottomSheet,
-      handleTimeSelect,
-      selectedTimeOption,
-      handleNetworkSelect,
-      selectedNetwork,
-      handlePriceChangeSelect,
-      selectedPriceChangeOption,
-      priceChangeSortDirection,
-    ]);
-
     return (
       <>
-        <SwapTrendingTokensSection
+        <BridgeTrendingTokensSection
           selectedTimeOption={selectedTimeOption}
           selectedNetworkName={selectedNetworkName}
           priceChangeButtonText={priceChangeButtonText}
@@ -172,9 +107,9 @@ const BridgeTrendingZeroState = forwardRef<BridgeTrendingZeroStateRef>(
           trendingTokens={visibleTrendingTokens}
           isLoading={isLoading}
           hasMore={hasMore}
-          onPriceChangePress={handlePriceChangePress}
-          onNetworkPress={handleNetworkPress}
-          onTimePress={handleTimePress}
+          onPriceChangePress={() => openBottomSheet('price_change')}
+          onNetworkPress={() => openBottomSheet('network')}
+          onTimePress={() => openBottomSheet('time')}
           onShowMore={loadNextChunkIfAvailable}
         />
 
@@ -184,10 +119,34 @@ const BridgeTrendingZeroState = forwardRef<BridgeTrendingZeroStateRef>(
           presentationStyle="overFullScreen"
           hardwareAccelerated
           statusBarTranslucent
-          visible={isBottomSheetVisible}
+          visible={activeBottomSheet !== 'none'}
           onRequestClose={closeBottomSheet}
         >
-          {bottomSheetContent}
+          {activeBottomSheet === 'time' && (
+            <TrendingTokenTimeBottomSheet
+              isVisible
+              onClose={closeBottomSheet}
+              onTimeSelect={handleTimeSelect}
+              selectedTime={selectedTimeOption}
+            />
+          )}
+          {activeBottomSheet === 'network' && (
+            <TrendingTokenNetworkBottomSheet
+              isVisible
+              onClose={closeBottomSheet}
+              onNetworkSelect={handleNetworkSelect}
+              selectedNetwork={selectedNetwork}
+            />
+          )}
+          {activeBottomSheet === 'price_change' && (
+            <TrendingTokenPriceChangeBottomSheet
+              isVisible
+              onClose={closeBottomSheet}
+              onPriceChangeSelect={handlePriceChangeSelect}
+              selectedOption={selectedPriceChangeOption}
+              sortDirection={priceChangeSortDirection}
+            />
+          )}
         </Modal>
       </>
     );

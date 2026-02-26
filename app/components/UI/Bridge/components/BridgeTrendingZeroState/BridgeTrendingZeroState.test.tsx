@@ -4,7 +4,7 @@ import React, { createRef } from 'react';
 import BridgeTrendingZeroState, {
   BridgeTrendingZeroStateRef,
 } from './BridgeTrendingZeroState';
-import SwapTrendingTokensSection from '../SwapTrendingTokensSection/SwapTrendingTokensSection';
+import BridgeTrendingTokensSection from '../BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 import { useBridgeTrendingTokens } from '../../hooks/useBridgeTrendingTokens/useBridgeTrendingTokens';
 
 jest.mock('react-redux', () => ({
@@ -18,7 +18,7 @@ jest.mock(
   }),
 );
 
-jest.mock('../SwapTrendingTokensSection/SwapTrendingTokensSection', () =>
+jest.mock('../BridgeTrendingTokensSection/BridgeTrendingTokensSection', () =>
   jest.fn(() => null),
 );
 
@@ -29,7 +29,8 @@ jest.mock('../../../Trending/components/TrendingTokensBottomSheet', () => ({
 }));
 
 const mockUseBridgeTrendingTokens = useBridgeTrendingTokens as jest.Mock;
-const mockSwapTrendingTokensSection = SwapTrendingTokensSection as jest.Mock;
+const mockBridgeTrendingTokensSection =
+  BridgeTrendingTokensSection as jest.Mock;
 
 const createTrendingTokens = (count: number): TrendingAsset[] =>
   Array.from({ length: count }, (_, index) => ({
@@ -68,9 +69,9 @@ const buildHookResult = (trendingTokens: TrendingAsset[]) => ({
 });
 
 const getLatestSectionProps = () => {
-  const latestCall = mockSwapTrendingTokensSection.mock.calls.at(-1);
+  const latestCall = mockBridgeTrendingTokensSection.mock.calls.at(-1);
   if (!latestCall) {
-    throw new Error('SwapTrendingTokensSection was not rendered');
+    throw new Error('BridgeTrendingTokensSection was not rendered');
   }
   return latestCall[0];
 };
