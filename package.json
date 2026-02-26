@@ -217,7 +217,7 @@
     "@metamask/design-system-twrnc-preset": "^0.3.0",
     "@metamask/design-tokens": "^8.2.0",
     "@metamask/earn-controller": "^10.0.0",
-    "@metamask/eip-5792-middleware": "^2.0.0",
+    "@metamask/eip-5792-middleware": "^3.0.0",
     "@metamask/eip1193-permission-middleware": "^1.0.2",
     "@metamask/ens-resolver-snap": "^1.1.0",
     "@metamask/error-reporting-service": "^3.0.0",
