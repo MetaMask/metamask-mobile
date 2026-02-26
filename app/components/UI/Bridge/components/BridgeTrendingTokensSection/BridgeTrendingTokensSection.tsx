@@ -31,9 +31,11 @@ import {
 } from '../../../Trending/components/TrendingTokensBottomSheet';
 import TrendingTokensSkeleton from '../../../Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import TrendingTokenRowItem from '../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
+import { useTrendingFilters } from '../../../Trending/hooks/useTrendingFilters/useTrendingFilters';
+import { useTrendingRequest } from '../../../Trending/hooks/useTrendingRequest/useTrendingRequest';
+import { sortTrendingTokens } from '../../../Trending/utils/sortTrendingTokens';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
-import { useBridgeTrendingTokens } from '../../hooks/useBridgeTrendingTokens/useBridgeTrendingTokens';
 
 const TOKEN_CHUNK_SIZE = 12;
 
@@ -43,96 +45,132 @@ export interface BridgeTrendingTokensSectionRef {
   loadNextChunkIfAvailable: () => void;
 }
 
+const FilterButton = ({
+  testID,
+  onPress,
+  text,
+  twClassName: btnClass,
+}: {
+  testID: string;
+  onPress: () => void;
+  text: string;
+  twClassName?: string;
+}) => {
+  const tw = useTailwind();
+  return (
+    <Pressable
+      testID={testID}
+      onPress={onPress}
+      style={({ pressed }) =>
+        tw.style(
+          'py-2 px-3 items-center justify-center rounded-lg bg-background-muted',
+          btnClass,
+          pressed && 'opacity-20',
+        )
+      }
+    >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        gap={1}
+      >
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+        >
+          {text}
+        </Text>
+        <Icon
+          name={IconName.ArrowDown}
+          color={IconColor.IconAlternative}
+          size={IconSize.Xs}
+        />
+      </Box>
+    </Pressable>
+  );
+};
+
 const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
   (_props, ref) => {
     const tw = useTailwind();
-
     const [activeBottomSheet, setActiveBottomSheet] =
       useState<ActiveBottomSheet>('none');
     const [visibleTokenCount, setVisibleTokenCount] =
       useState(TOKEN_CHUNK_SIZE);
+
     const networkConfigurations = useSelector(
       selectNetworkConfigurationsByCaipChainId,
     );
+
     const {
       selectedTimeOption,
       selectedNetwork,
       selectedPriceChangeOption,
       priceChangeSortDirection,
+      sortBy,
       selectedNetworkName,
       priceChangeButtonText,
       filterContext,
-      trendingTokens,
-      isLoading,
       handlePriceChangeSelect,
       handleNetworkSelect,
       handleTimeSelect,
-    } = useBridgeTrendingTokens({
-      networkConfigurations,
+    } = useTrendingFilters({ networkConfigurations });
+
+    const { results, isLoading } = useTrendingRequest({
+      sortBy,
+      chainIds: selectedNetwork ?? undefined,
     });
+
+    const trendingTokens = useMemo(() => {
+      if (results.length === 0 || !selectedPriceChangeOption) {
+        return results;
+      }
+      return sortTrendingTokens(
+        results,
+        selectedPriceChangeOption,
+        priceChangeSortDirection,
+        selectedTimeOption,
+      );
+    }, [
+      results,
+      selectedPriceChangeOption,
+      priceChangeSortDirection,
+      selectedTimeOption,
+    ]);
 
     useEffect(() => {
       if (isLoading) {
         setVisibleTokenCount(TOKEN_CHUNK_SIZE);
         return;
       }
-
       setVisibleTokenCount(Math.min(TOKEN_CHUNK_SIZE, trendingTokens.length));
     }, [isLoading, trendingTokens]);
 
     const hasMore = visibleTokenCount < trendingTokens.length;
 
-    const loadNextChunkIfAvailable = useCallback(() => {
-      if (activeBottomSheet !== 'none' || isLoading || !hasMore) {
-        return;
-      }
-
+    const loadNextChunk = useCallback(() => {
       setVisibleTokenCount((currentCount) =>
         Math.min(currentCount + TOKEN_CHUNK_SIZE, trendingTokens.length),
       );
-    }, [activeBottomSheet, hasMore, isLoading, trendingTokens.length]);
+    }, [trendingTokens.length]);
 
     useImperativeHandle(
       ref,
       () => ({
-        loadNextChunkIfAvailable,
+        loadNextChunkIfAvailable: () => {
+          if (activeBottomSheet !== 'none' || isLoading || !hasMore) return;
+          loadNextChunk();
+        },
       }),
-      [loadNextChunkIfAvailable],
+      [activeBottomSheet, isLoading, hasMore, loadNextChunk],
     );
-
-    const closeBottomSheet = useCallback(() => {
-      setActiveBottomSheet('none');
-    }, []);
-
-    const openBottomSheet = useCallback((type: ActiveBottomSheet) => {
-      setActiveBottomSheet(type);
-    }, []);
 
     const visibleTrendingTokens = useMemo(
       () => trendingTokens.slice(0, visibleTokenCount),
       [trendingTokens, visibleTokenCount],
     );
-
-    const filterButtons = [
-      {
-        testID: BridgeViewSelectorsIDs.TRENDING_PRICE_FILTER,
-        onPress: () => openBottomSheet('price_change'),
-        text: priceChangeButtonText,
-        extraClass: 'flex-1',
-      },
-      {
-        testID: BridgeViewSelectorsIDs.TRENDING_NETWORK_FILTER,
-        onPress: () => openBottomSheet('network'),
-        text: selectedNetworkName,
-        extraClass: 'flex-1',
-      },
-      {
-        testID: BridgeViewSelectorsIDs.TRENDING_TIME_FILTER,
-        onPress: () => openBottomSheet('time'),
-        text: selectedTimeOption,
-        extraClass: 'w-[72px] shrink-0',
-      },
-    ];
 
     return (
       <>
@@ -151,40 +189,24 @@ const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
             flexDirection={BoxFlexDirection.Row}
             twClassName="gap-2 mb-3 w-full"
           >
-            {filterButtons.map(({ testID, onPress, text, extraClass }) => (
-              <Pressable
-                key={testID}
-                testID={testID}
-                onPress={onPress}
-                style={({ pressed }) =>
-                  tw.style(
-                    'py-2 px-3 items-center justify-center rounded-lg bg-background-muted',
-                    extraClass,
-                    pressed && 'opacity-20',
-                  )
-                }
-              >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Center}
-                  gap={1}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextDefault}
-                  >
-                    {text}
-                  </Text>
-                  <Icon
-                    name={IconName.ArrowDown}
-                    color={IconColor.IconAlternative}
-                    size={IconSize.Xs}
-                  />
-                </Box>
-              </Pressable>
-            ))}
+            <FilterButton
+              testID={BridgeViewSelectorsIDs.TRENDING_PRICE_FILTER}
+              onPress={() => setActiveBottomSheet('price_change')}
+              text={priceChangeButtonText}
+              twClassName="flex-1"
+            />
+            <FilterButton
+              testID={BridgeViewSelectorsIDs.TRENDING_NETWORK_FILTER}
+              onPress={() => setActiveBottomSheet('network')}
+              text={selectedNetworkName}
+              twClassName="flex-1"
+            />
+            <FilterButton
+              testID={BridgeViewSelectorsIDs.TRENDING_TIME_FILTER}
+              onPress={() => setActiveBottomSheet('time')}
+              text={selectedTimeOption}
+              twClassName="w-[72px] shrink-0"
+            />
           </Box>
 
           {isLoading ? (
@@ -209,7 +231,7 @@ const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
           {!isLoading && hasMore ? (
             <Pressable
               testID={BridgeViewSelectorsIDs.TRENDING_SHOW_MORE}
-              onPress={loadNextChunkIfAvailable}
+              onPress={loadNextChunk}
               style={({ pressed }) =>
                 tw.style('mt-3 py-2 self-center', pressed && 'opacity-20')
               }
@@ -232,12 +254,12 @@ const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
           hardwareAccelerated
           statusBarTranslucent
           visible={activeBottomSheet !== 'none'}
-          onRequestClose={closeBottomSheet}
+          onRequestClose={() => setActiveBottomSheet('none')}
         >
           {activeBottomSheet === 'time' && (
             <TrendingTokenTimeBottomSheet
               isVisible
-              onClose={closeBottomSheet}
+              onClose={() => setActiveBottomSheet('none')}
               onTimeSelect={handleTimeSelect}
               selectedTime={selectedTimeOption}
             />
@@ -245,7 +267,7 @@ const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
           {activeBottomSheet === 'network' && (
             <TrendingTokenNetworkBottomSheet
               isVisible
-              onClose={closeBottomSheet}
+              onClose={() => setActiveBottomSheet('none')}
               onNetworkSelect={handleNetworkSelect}
               selectedNetwork={selectedNetwork}
             />
@@ -253,7 +275,7 @@ const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
           {activeBottomSheet === 'price_change' && (
             <TrendingTokenPriceChangeBottomSheet
               isVisible
-              onClose={closeBottomSheet}
+              onClose={() => setActiveBottomSheet('none')}
               onPriceChangeSelect={handlePriceChangeSelect}
               selectedOption={selectedPriceChangeOption}
               sortDirection={priceChangeSortDirection}

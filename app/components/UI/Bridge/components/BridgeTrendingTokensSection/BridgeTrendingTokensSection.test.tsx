@@ -4,18 +4,30 @@ import React, { createRef } from 'react';
 import BridgeTrendingTokensSection, {
   BridgeTrendingTokensSectionRef,
 } from './BridgeTrendingTokensSection';
-import { useBridgeTrendingTokens } from '../../hooks/useBridgeTrendingTokens/useBridgeTrendingTokens';
+import { useTrendingFilters } from '../../../Trending/hooks/useTrendingFilters/useTrendingFilters';
+import { useTrendingRequest } from '../../../Trending/hooks/useTrendingRequest/useTrendingRequest';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => ({})),
 }));
 
 jest.mock(
-  '../../hooks/useBridgeTrendingTokens/useBridgeTrendingTokens',
+  '../../../Trending/hooks/useTrendingFilters/useTrendingFilters',
   () => ({
-    useBridgeTrendingTokens: jest.fn(),
+    useTrendingFilters: jest.fn(),
   }),
 );
+
+jest.mock(
+  '../../../Trending/hooks/useTrendingRequest/useTrendingRequest',
+  () => ({
+    useTrendingRequest: jest.fn(),
+  }),
+);
+
+jest.mock('../../../Trending/utils/sortTrendingTokens', () => ({
+  sortTrendingTokens: jest.fn((tokens: TrendingAsset[]) => tokens),
+}));
 
 jest.mock(
   '../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
@@ -48,7 +60,8 @@ jest.mock('../../../Trending/components/TrendingTokensBottomSheet', () => ({
   TrendingTokenPriceChangeBottomSheet: () => null,
 }));
 
-const mockUseBridgeTrendingTokens = useBridgeTrendingTokens as jest.Mock;
+const mockUseTrendingFilters = useTrendingFilters as jest.Mock;
+const mockUseTrendingRequest = useTrendingRequest as jest.Mock;
 
 const createTrendingTokens = (count: number): TrendingAsset[] =>
   Array.from({ length: count }, (_, index) => ({
@@ -65,32 +78,37 @@ const createTrendingTokens = (count: number): TrendingAsset[] =>
     },
   }));
 
-const buildHookResult = (trendingTokens: TrendingAsset[]) => ({
-  selectedTimeOption: '24h',
-  selectedNetwork: null,
-  selectedPriceChangeOption: 'price_change',
-  priceChangeSortDirection: 'descending',
-  selectedNetworkName: 'All networks',
-  priceChangeButtonText: 'Price change',
-  filterContext: {
-    timeFilter: '24h',
-    sortOption: 'price_change',
-    networkFilter: 'all',
-    isSearchResult: false,
-  },
-  trendingTokens,
-  isLoading: false,
-  handlePriceChangeSelect: jest.fn(),
-  handleNetworkSelect: jest.fn(),
-  handleTimeSelect: jest.fn(),
-});
+const setupMocks = (tokens: TrendingAsset[], isLoading = false) => {
+  mockUseTrendingFilters.mockReturnValue({
+    selectedTimeOption: '24h',
+    selectedNetwork: null,
+    selectedPriceChangeOption: 'price_change',
+    priceChangeSortDirection: 'descending',
+    sortBy: 'h24_trending',
+    selectedNetworkName: 'All networks',
+    priceChangeButtonText: 'Price change',
+    filterContext: {
+      timeFilter: '24h',
+      sortOption: 'price_change',
+      networkFilter: 'all',
+      isSearchResult: false,
+    },
+    handlePriceChangeSelect: jest.fn(),
+    handleNetworkSelect: jest.fn(),
+    handleTimeSelect: jest.fn(),
+  });
+  mockUseTrendingRequest.mockReturnValue({
+    results: tokens,
+    isLoading,
+    error: null,
+    fetch: jest.fn(),
+  });
+};
 
 describe('BridgeTrendingTokensSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseBridgeTrendingTokens.mockReturnValue(
-      buildHookResult(createTrendingTokens(30)),
-    );
+    setupMocks(createTrendingTokens(30));
   });
 
   it('renders 12 tokens initially and shows the show-more button', () => {
@@ -127,9 +145,7 @@ describe('BridgeTrendingTokensSection', () => {
     });
     expect(getAllByTestId(/^row-/)).toHaveLength(24);
 
-    mockUseBridgeTrendingTokens.mockReturnValue(
-      buildHookResult(createTrendingTokens(8)),
-    );
+    setupMocks(createTrendingTokens(8));
     rerender(<BridgeTrendingTokensSection ref={ref} />);
 
     expect(getAllByTestId(/^row-/)).toHaveLength(8);

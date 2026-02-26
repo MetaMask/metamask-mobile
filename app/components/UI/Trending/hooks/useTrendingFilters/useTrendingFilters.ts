@@ -3,15 +3,13 @@ import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
 import { useCallback, useMemo, useState } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularList } from '../../../../../util/networks/customNetworks';
-import { useTrendingRequest } from '../../../Trending/hooks/useTrendingRequest/useTrendingRequest';
 import {
   PriceChangeOption,
   SortDirection,
   TimeOption,
   mapTimeOptionToSortBy,
-} from '../../../Trending/components/TrendingTokensBottomSheet';
-import type { TrendingFilterContext } from '../../../Trending/components/TrendingTokensList/TrendingTokensList';
-import { sortTrendingTokens } from '../../../Trending/utils/sortTrendingTokens';
+} from '../../components/TrendingTokensBottomSheet';
+import type { TrendingFilterContext } from '../../components/TrendingTokensList/TrendingTokensList';
 
 const PRICE_CHANGE_LABELS: Record<PriceChangeOption, string> = {
   [PriceChangeOption.PriceChange]: 'trending.price_change',
@@ -19,13 +17,15 @@ const PRICE_CHANGE_LABELS: Record<PriceChangeOption, string> = {
   [PriceChangeOption.MarketCap]: 'trending.market_cap',
 };
 
-export interface UseBridgeTrendingTokensParams {
+export interface UseTrendingFiltersParams {
   networkConfigurations: Record<CaipChainId, { name?: string } | undefined>;
+  isSearchResult?: boolean;
 }
 
-export const useBridgeTrendingTokens = ({
+export const useTrendingFilters = ({
   networkConfigurations,
-}: UseBridgeTrendingTokensParams) => {
+  isSearchResult = false,
+}: UseTrendingFiltersParams) => {
   const [selectedTimeOption, setSelectedTimeOption] = useState<TimeOption>(
     TimeOption.TwentyFourHours,
   );
@@ -42,11 +42,6 @@ export const useBridgeTrendingTokens = ({
     () => mapTimeOptionToSortBy(selectedTimeOption),
     [selectedTimeOption],
   );
-
-  const { results: trendingResults, isLoading } = useTrendingRequest({
-    sortBy,
-    chainIds: selectedNetwork ?? undefined,
-  });
 
   const selectedNetworkName = useMemo(() => {
     if (!selectedNetwork || selectedNetwork.length === 0) {
@@ -77,24 +72,6 @@ export const useBridgeTrendingTokens = ({
     return strings('trending.all_networks');
   }, [selectedNetwork, networkConfigurations]);
 
-  const trendingTokens = useMemo(() => {
-    if (trendingResults.length === 0 || !selectedPriceChangeOption) {
-      return trendingResults;
-    }
-
-    return sortTrendingTokens(
-      trendingResults,
-      selectedPriceChangeOption,
-      priceChangeSortDirection,
-      selectedTimeOption,
-    );
-  }, [
-    trendingResults,
-    selectedPriceChangeOption,
-    priceChangeSortDirection,
-    selectedTimeOption,
-  ]);
-
   const filterContext: TrendingFilterContext = useMemo(
     () => ({
       timeFilter: selectedTimeOption,
@@ -103,9 +80,14 @@ export const useBridgeTrendingTokens = ({
         selectedNetwork && selectedNetwork.length > 0
           ? selectedNetwork[0]
           : 'all',
-      isSearchResult: false,
+      isSearchResult,
     }),
-    [selectedTimeOption, selectedPriceChangeOption, selectedNetwork],
+    [
+      selectedTimeOption,
+      selectedPriceChangeOption,
+      selectedNetwork,
+      isSearchResult,
+    ],
   );
 
   const priceChangeButtonText = strings(
@@ -134,11 +116,10 @@ export const useBridgeTrendingTokens = ({
     selectedNetwork,
     selectedPriceChangeOption,
     priceChangeSortDirection,
+    sortBy,
     selectedNetworkName,
     priceChangeButtonText,
     filterContext,
-    trendingTokens,
-    isLoading,
     handlePriceChangeSelect,
     handleNetworkSelect: setSelectedNetwork,
     handleTimeSelect,
