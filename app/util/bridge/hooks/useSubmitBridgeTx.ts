@@ -1,9 +1,6 @@
 import type { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
-import { SignTypedDataVersion } from '@metamask/keyring-controller';
-import type { Json } from '@metamask/utils';
 import { BridgeQuoteResponse } from '../../../components/UI/Bridge/types';
 import Engine from '../../../core/Engine';
-import { getSignatureControllerMessenger } from '../../../core/Engine/messengers/signature-controller-messenger';
 import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
@@ -37,22 +34,6 @@ export default function useSubmitBridgeTx() {
 
     // check whether quoteResponse is an intent transaction
     if (intentData) {
-      if (!intentData.typedData) {
-        throw new Error('Intent typedData is missing');
-      }
-
-      const signatureControllerMessenger = getSignatureControllerMessenger(
-        Engine.controllerMessenger,
-      );
-      const signature = await signatureControllerMessenger.call(
-        'KeyringController:signTypedMessage',
-        {
-          from: walletAddress,
-          data: intentData.typedData as unknown as Json,
-        },
-        SignTypedDataVersion.V4,
-      );
-
       return Engine.context.BridgeStatusController.submitIntent({
         quoteResponse: {
           ...quoteResponse,
@@ -61,12 +42,11 @@ export default function useSubmitBridgeTx() {
             intent: intentData,
           },
         } as unknown as Parameters<
-          typeof Engine.context.BridgeStatusController.submitTx
-        >[1],
+          typeof Engine.context.BridgeStatusController.submitIntent
+        >[0]['quoteResponse'],
         accountAddress: walletAddress,
         location,
         abTests,
-        signature,
       });
     }
     return Engine.context.BridgeStatusController.submitTx(
@@ -78,7 +58,6 @@ export default function useSubmitBridgeTx() {
       stxEnabled,
       undefined, // quotesReceivedContext
       location,
-      abTests,
     );
   };
 

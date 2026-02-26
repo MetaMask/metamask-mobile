@@ -22,7 +22,6 @@ let mockSubmitIntent: jest.Mock<
   Promise<TransactionMeta>,
   [{ quoteResponse: BridgeQuoteResponse; accountAddress: string }]
 >;
-const mockSignTypedMessage = jest.fn(() => '0xintent-signature');
 
 jest.mock('../../../core/Engine', () => {
   mockSubmitTx = jest.fn<
@@ -44,15 +43,6 @@ jest.mock('../../../core/Engine', () => {
     },
   };
 });
-
-jest.mock(
-  '../../../core/Engine/messengers/signature-controller-messenger',
-  () => ({
-    getSignatureControllerMessenger: jest.fn(() => ({
-      call: mockSignTypedMessage,
-    })),
-  }),
-);
 
 jest.mock('../../../selectors/networkController', () => {
   const original = jest.requireActual('../../../selectors/networkController');
@@ -111,7 +101,6 @@ const mockStore = configureMockStore();
 describe('useSubmitBridgeTx', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSignTypedMessage.mockResolvedValue('0xintent-signature');
   });
 
   const createWrapper = (mockState = {}) => {
@@ -190,7 +179,6 @@ describe('useSubmitBridgeTx', () => {
       true,
       undefined,
       undefined,
-      undefined,
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -238,7 +226,6 @@ describe('useSubmitBridgeTx', () => {
         approval: mockQuoteResponse.approval ?? undefined,
       },
       true,
-      undefined,
       undefined,
       undefined,
     );
@@ -451,7 +438,6 @@ describe('useSubmitBridgeTx', () => {
       accountAddress: '0x1234567890123456789012345678901234567890',
       location: undefined,
       abTests: undefined,
-      signature: '0xintent-signature',
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
@@ -543,7 +529,6 @@ describe('useSubmitBridgeTx', () => {
       accountAddress: '0x1234567890123456789012345678901234567890',
       location: undefined,
       abTests: undefined,
-      signature: '0xintent-signature',
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
   });
