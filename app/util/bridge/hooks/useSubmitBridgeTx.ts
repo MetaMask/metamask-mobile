@@ -53,19 +53,7 @@ export default function useSubmitBridgeTx() {
         SignTypedDataVersion.V4,
       );
 
-      const submitIntent = Engine.context.BridgeStatusController
-        .submitIntent as (params: {
-        quoteResponse: Parameters<
-          typeof Engine.context.BridgeStatusController.submitTx
-        >[1];
-        accountAddress: string;
-        location?: MetaMetricsSwapsEventSource;
-        signature?: string;
-      }) => ReturnType<
-        typeof Engine.context.BridgeStatusController.submitIntent
-      >;
-
-      return submitIntent({
+      return Engine.context.BridgeStatusController.submitIntent({
         quoteResponse: {
           ...quoteResponse,
           quote: {
