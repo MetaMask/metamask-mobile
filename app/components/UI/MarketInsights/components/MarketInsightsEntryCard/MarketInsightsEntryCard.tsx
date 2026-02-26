@@ -111,9 +111,9 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
 
   useEffect(() => {
     // Finishes measuring the time it takes to load the market insights entry card after
-    // the component is mounted
+    // the component is mounted or after the report changes (e.g. token navigation)
     endTrace({ name: TraceName.MarketInsightsEntryCardLoad });
-  }, []);
+  }, [report]);
 
   return (
     <Pressable
