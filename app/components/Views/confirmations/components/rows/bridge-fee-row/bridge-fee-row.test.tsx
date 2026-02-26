@@ -183,6 +183,6 @@ describe('BridgeFeeRow', () => {
       fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
     });
 
-    expect(getByText('$0.50')).toBeDefined();
+    expect(getByText('$0.50')).toBeOnTheScreen();
   });
 });

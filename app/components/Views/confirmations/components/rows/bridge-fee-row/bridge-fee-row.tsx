@@ -81,7 +81,7 @@ function TransactionFeeRow({
     if (!totals?.fees) return '';
 
     return formatFiat(
-      new BigNumber(totals.fees.metaMask.usd)
+      new BigNumber(totals.fees.metaMask.usd ?? 0)
         .plus(totals.fees.provider.usd)
         .plus(totals.fees.sourceNetwork.estimate.usd)
         .plus(totals.fees.targetNetwork.usd),
