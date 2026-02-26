@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
-import { Linking } from 'react-native';
+import { AppState, AppStateStatus, Linking } from 'react-native';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
@@ -602,6 +602,58 @@ describe('AnimatedQRScannerModal - Metrics', () => {
   });
 
   describe('Camera Permission Error', () => {
+    it('re-requests camera permission when app returns to foreground', async () => {
+      const mockUseCameraPermission = jest.requireMock(
+        'react-native-vision-camera',
+      ).useCameraPermission;
+      const mockRequestPermission = jest.fn().mockResolvedValue(false);
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: mockRequestPermission,
+      });
+
+      let appStateChangeHandler: ((nextAppState: AppStateStatus) => void) | null =
+        null;
+      const addEventListenerSpy = jest
+        .spyOn(AppState, 'addEventListener')
+        .mockImplementation((eventType, listener) => {
+          if (eventType === 'change') {
+            appStateChangeHandler = listener;
+          }
+          return { remove: jest.fn() };
+        });
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(mockRequestPermission).toHaveBeenCalledTimes(1);
+      });
+
+      expect(addEventListenerSpy).toHaveBeenCalledWith(
+        'change',
+        expect.any(Function),
+      );
+      expect(appStateChangeHandler).not.toBeNull();
+
+      act(() => {
+        appStateChangeHandler?.('background');
+      });
+
+      await waitFor(() => {
+        expect(mockRequestPermission).toHaveBeenCalledTimes(1);
+      });
+
+      act(() => {
+        appStateChangeHandler?.('active');
+      });
+
+      await waitFor(() => {
+        expect(mockRequestPermission).toHaveBeenCalledTimes(2);
+      });
+
+      addEventListenerSpy.mockRestore();
+    });
+
     it('keeps modal open with settings button when permission is denied', async () => {
       const mockUseCameraPermission = jest.requireMock(
         'react-native-vision-camera',

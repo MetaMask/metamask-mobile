@@ -2,8 +2,16 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
-import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import {
+  AppState,
+  AppStateStatus,
   Image,
   Linking,
   Text,
@@ -164,6 +172,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
+  const appState = useRef(AppState.currentState);
 
   let expectedURTypes: string[];
   if (purpose === QrScanRequestType.PAIR) {
@@ -175,11 +184,42 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     expectedURTypes = [SUPPORTED_UR_TYPE.ETH_SIGNATURE];
   }
 
-  useEffect(() => {
-    if (!hasPermission && visible) {
-      requestPermission();
+  const refreshCameraPermission = useCallback(() => {
+    if (!visible || hasPermission) {
+      return;
     }
+
+    void requestPermission();
   }, [hasPermission, requestPermission, visible]);
+
+  useEffect(() => {
+    refreshCameraPermission();
+  }, [refreshCameraPermission]);
+
+  useEffect(() => {
+    if (!visible) {
+      return undefined;
+    }
+
+    const subscription = AppState.addEventListener(
+      'change',
+      (nextAppState: AppStateStatus) => {
+        const hasReturnedToForeground =
+          /inactive|background/.test(appState.current) &&
+          nextAppState === 'active';
+
+        appState.current = nextAppState;
+
+        if (hasReturnedToForeground) {
+          refreshCameraPermission();
+        }
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [refreshCameraPermission, visible]);
 
   const reset = useCallback(() => {
     setURDecoder(new URRegistryDecoder());
