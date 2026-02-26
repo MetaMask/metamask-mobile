@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { Linking } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -101,12 +101,26 @@ function SettingsModal() {
     });
   }, [navigation]);
 
-  const handleContactSupport = useCallback(() => {
-    if (supportUrl) {
-      sheetRef.current?.onCloseBottomSheet();
-      Linking.openURL(supportUrl);
+  const handleContactSupport = useCallback(async () => {
+    if (!supportUrl) return;
+    try {
+      if (await InAppBrowser.isAvailable()) {
+        // Close the sheet before the InAppBrowser overlay opens so the two don't overlap.
+        sheetRef.current?.onCloseBottomSheet();
+        await InAppBrowser.open(supportUrl);
+      } else {
+        // Navigate without closing the sheet first. If we called onCloseBottomSheet() here,
+        // shouldNavigateBack would fire goBack() after the close animation and pop the
+        // Webview screen off the stack instead of the modal.
+        navigation.navigate('Webview', {
+          screen: 'SimpleWebview',
+          params: { url: supportUrl },
+        });
+      }
+    } catch (error) {
+      Logger.error(error as Error, 'SettingsModal: Failed to open support URL');
     }
-  }, [supportUrl]);
+  }, [supportUrl, navigation]);
 
   const handleLogOut = useCallback(async () => {
     try {

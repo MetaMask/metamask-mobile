@@ -134,6 +134,9 @@ describe('useSubmitBridgeTx', () => {
           },
         },
       },
+      bridge: {
+        abTestContext: undefined,
+      },
       swaps: {
         featureFlags: {
           smart_transactions: {
@@ -187,6 +190,7 @@ describe('useSubmitBridgeTx', () => {
       true,
       undefined,
       undefined,
+      undefined,
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -234,6 +238,7 @@ describe('useSubmitBridgeTx', () => {
         approval: mockQuoteResponse.approval ?? undefined,
       },
       true,
+      undefined,
       undefined,
       undefined,
     );
@@ -445,6 +450,7 @@ describe('useSubmitBridgeTx', () => {
       quoteResponse: mockQuoteResponse,
       accountAddress: '0x1234567890123456789012345678901234567890',
       location: undefined,
+      abTests: undefined,
       signature: '0xintent-signature',
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
@@ -536,6 +542,7 @@ describe('useSubmitBridgeTx', () => {
       },
       accountAddress: '0x1234567890123456789012345678901234567890',
       location: undefined,
+      abTests: undefined,
       signature: '0xintent-signature',
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();

@@ -16,6 +16,7 @@ const Routes = {
     QUOTES: 'Quotes',
     CHECKOUT: 'Checkout',
     ORDER_DETAILS: 'OrderDetails',
+    RAMPS_ORDER_DETAILS: 'RampsOrderDetails',
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
@@ -27,6 +28,7 @@ const Routes = {
     BASIC_INFO: 'RampBasicInfo',
     VERIFY_IDENTITY: 'RampVerifyIdentity',
     BANK_DETAILS: 'RampBankDetails',
+    BANK_DETAILS_STANDALONE: 'RampBankDetailsStandalone',
     ADDITIONAL_VERIFICATION: 'RampAdditionalVerification',
     ENTER_ADDRESS: 'RampEnterAddress',
     MODALS: {
@@ -43,6 +45,7 @@ const Routes = {
       BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
       TOKEN_NOT_AVAILABLE: 'RampTokenNotAvailableModal',
       PROVIDER_SELECTION: 'RampProviderSelectionModal',
+      PROCESSING_INFO: 'RampProcessingInfoModal',
     },
   },
   DEPOSIT: {
@@ -367,6 +370,7 @@ const Routes = {
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
       CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
+      QUICK_CONVERT: 'EarnMusdQuickConvert',
     },
     MODALS: {
       ROOT: 'EarnModals',

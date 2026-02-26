@@ -2,11 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import {
-  useNavigation,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Icon,
   IconName,
@@ -50,7 +46,7 @@ import { useNetworkManagementEnabled } from '../../../selectors/featureFlagContr
 const AccountsMenu = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const { goToBuy } = useRampNavigation();

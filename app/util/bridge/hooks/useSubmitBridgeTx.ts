@@ -7,10 +7,19 @@ import { getSignatureControllerMessenger } from '../../../core/Engine/messengers
 import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
+import { selectAbTestContext } from '../../../core/redux/slices/bridge';
 
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const walletAddress = useSelector(selectSourceWalletAddress);
+  const abTestContext = useSelector(selectAbTestContext);
+
+  const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
+    ? {
+        assetsASSETS2493AbtestTokenDetailsLayout:
+          abTestContext.assetsASSETS2493AbtestTokenDetailsLayout,
+      }
+    : undefined;
 
   const submitBridgeTx = async ({
     quoteResponse,
@@ -68,6 +77,7 @@ export default function useSubmitBridgeTx() {
         >[1],
         accountAddress: walletAddress,
         location,
+        abTests,
         signature,
       });
     }
@@ -80,6 +90,7 @@ export default function useSubmitBridgeTx() {
       stxEnabled,
       undefined, // quotesReceivedContext
       location,
+      abTests,
     );
   };
 
