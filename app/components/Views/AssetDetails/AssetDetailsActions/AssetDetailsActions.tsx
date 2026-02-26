@@ -13,7 +13,7 @@ import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 import Routes from '../../../../constants/navigation/Routes';
 import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
 import { RootState } from '../../../../reducers';
-import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 import {
   trackActionButtonClick,
   ActionButtonType,
@@ -62,7 +62,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   );
   const navigation = useNavigation();
   const { navigate } = navigation;
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
   const navigationLockRef = useRef(false);

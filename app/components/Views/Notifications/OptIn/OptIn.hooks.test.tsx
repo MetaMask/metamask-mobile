@@ -7,8 +7,7 @@ import {
 } from './OptIn.hooks';
 import Routes from '../../../../constants/navigation/Routes';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import type { UseAnalyticsHook } from '../../../hooks/useAnalytics/useAnalytics.types';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { IUseMetricsHook, MetaMetricsEvents } from '../../../hooks/useMetrics';
 // eslint-disable-next-line import/no-namespace
 import * as Selectors from '../../../../selectors/identity';
 
@@ -99,7 +98,7 @@ describe('useHandleOptInClick', () => {
     const mockMetrics = {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
-    } as unknown as UseAnalyticsHook;
+    } as unknown as IUseMetricsHook;
 
     const mockEnableNotifications = jest.fn().mockImplementation(jest.fn());
 
@@ -188,7 +187,7 @@ describe('useHandleOptInCancel', () => {
     const mockMetrics = {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
-    } as unknown as UseAnalyticsHook;
+    } as unknown as IUseMetricsHook;
 
     const mockSelectIsBackupAndSyncEnabled = jest.spyOn(
       Selectors,

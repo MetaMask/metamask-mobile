@@ -1,9 +1,10 @@
 import { goToAddEvmToken } from './goToAddEvmToken';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { IMetaMetricsEvent } from '../../../../core/Analytics';
 
-jest.mock('../../../../core/Analytics', () => ({
+jest.mock('../../../hooks/useMetrics', () => ({
   MetaMetricsEvents: {
     TOKEN_IMPORT_CLICKED: 'TOKEN_IMPORT_CLICKED',
   },
@@ -23,9 +24,7 @@ describe('goToAddEvmToken', () => {
       ({
         addProperties: jest.fn().mockReturnThis(),
         build: jest.fn().mockReturnValue('mockEvent'),
-      }) as unknown as ReturnType<
-        typeof AnalyticsEventBuilder.createEventBuilder
-      >,
+      }) as unknown as MetricsEventBuilder,
   );
 
   const mockProps = {
@@ -34,8 +33,9 @@ describe('goToAddEvmToken', () => {
       'AddAsset'
     >,
     trackEvent: mockTrackEvent,
-    createEventBuilder:
-      mockCreateEventBuilder as unknown as typeof AnalyticsEventBuilder.createEventBuilder,
+    createEventBuilder: mockCreateEventBuilder as unknown as (
+      event: IMetaMetricsEvent,
+    ) => MetricsEventBuilder,
     getDecimalChainId: mockGetDecimalChainId,
     currentChainId: '0x1',
   };

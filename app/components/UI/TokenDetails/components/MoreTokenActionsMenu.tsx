@@ -7,7 +7,7 @@ import BottomSheet, {
 import { IconName, Box } from '@metamask/design-system-react-native';
 import ActionListItem from '../../../../component-library/components-temp/ActionListItem';
 import { strings } from '../../../../../locales/i18n';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../hooks/useMetrics';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
@@ -17,7 +17,7 @@ import { getDecimalChainId } from '../../../../util/networks';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
-import { Hex } from '@metamask/utils';
+import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';
@@ -65,7 +65,7 @@ const MoreTokenActionsMenu = () => {
     onReceive,
   } = route.params;
 
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const tokenList = useSelector(selectTokenList);
   const explorer = useBlockExplorer(asset.chainId);
 
@@ -103,9 +103,15 @@ const MoreTokenActionsMenu = () => {
   }, [closeBottomSheetAndNavigate, onReceive]);
 
   const handleViewOnBlockExplorer = useCallback(() => {
-    const url = isNativeCurrency
-      ? explorer.getBlockExplorerBaseUrl(asset.chainId)
-      : explorer.getBlockExplorerUrl(asset.address, asset.chainId);
+    let url: string | null;
+    if (isNativeCurrency) {
+      url = explorer.getBlockExplorerBaseUrl(asset.chainId);
+    } else {
+      const tokenAddress = isCaipAssetType(asset.address)
+        ? parseCaipAssetType(asset.address).assetReference
+        : asset.address;
+      url = explorer.getBlockExplorerTokenUrl(tokenAddress, asset.chainId);
+    }
 
     if (url) {
       goToBrowserUrl(url, explorer.getBlockExplorerName(asset.chainId));
