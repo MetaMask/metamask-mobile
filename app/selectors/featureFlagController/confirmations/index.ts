@@ -11,7 +11,13 @@ export const SLIPPAGE_DEFAULT = 0.005;
 export interface PreferredToken {
   address: string;
   chainId: string;
+  name?: string;
   successRate: number;
+}
+
+export interface PreferredTokensConfig {
+  default: PreferredToken[];
+  overrides: Record<string, PreferredToken[]>;
 }
 
 export interface MetaMaskPayFlags {
@@ -22,8 +28,7 @@ export interface MetaMaskPayFlags {
   slippage: number;
   predictWithdrawAnyToken: boolean;
   perpsWithdrawAnyToken: boolean;
-  preferredTokensPredict: PreferredToken[];
-  preferredTokensPerps: PreferredToken[];
+  preferredTokens: PreferredTokensConfig;
   minimumRequiredTokenBalance: number;
 }
 
@@ -43,8 +48,10 @@ export const selectMetaMaskPayFlags = createSelector(
   selectRemoteFeatureFlags,
   (featureFlags): MetaMaskPayFlags => {
     const metaMaskPayFlags = featureFlags?.confirmations_pay as
-      | Record<string, Json | PreferredToken[]>
+      | Record<string, Json>
       | undefined;
+
+    const payTokenFlags = (featureFlags as Record<string, Json>)?.confirmations_pay_tokens as Record<string, Json | PreferredTokensConfig> | undefined;
 
     const attemptsMax =
       (metaMaskPayFlags?.attemptsMax as number) ?? ATTEMPTS_MAX_DEFAULT;
@@ -71,15 +78,29 @@ export const selectMetaMaskPayFlags = createSelector(
         (metaMaskPayFlags?.predictWithdrawAnyToken as boolean) ?? false,
       perpsWithdrawAnyToken:
         (metaMaskPayFlags?.perpsWithdrawAnyToken as boolean) ?? false,
-      preferredTokensPredict:
-        (metaMaskPayFlags?.preferredTokensPredict as PreferredToken[]) ?? [],
-      preferredTokensPerps:
-        (metaMaskPayFlags?.preferredTokensPerps as PreferredToken[]) ?? [],
+      preferredTokens: {
+        default:
+          ((payTokenFlags?.preferredTokens as PreferredTokensConfig)
+            ?.default as PreferredToken[]) ?? [],
+        overrides:
+          ((payTokenFlags?.preferredTokens as PreferredTokensConfig)
+            ?.overrides as Record<string, PreferredToken[]>) ?? {},
+      },
       minimumRequiredTokenBalance:
-        (metaMaskPayFlags?.minimumRequiredTokenBalance as number) ?? 0,
+        (payTokenFlags?.minimumRequiredTokenBalance as number) ?? 0,
     };
   },
 );
+
+export function getPreferredTokensForTransactionType(
+  preferredTokens: PreferredTokensConfig,
+  transactionType?: string,
+): PreferredToken[] {
+  if (transactionType && preferredTokens.overrides[transactionType]) {
+    return preferredTokens.overrides[transactionType];
+  }
+  return preferredTokens.default;
+}
 
 /**
  * Selector to get the allow list for non-zero unused approvals from remote feature flags.

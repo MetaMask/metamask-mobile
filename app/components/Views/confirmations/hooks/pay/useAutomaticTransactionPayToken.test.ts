@@ -21,7 +21,15 @@ jest.mock('../../../../../util/address');
 jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('./useTransactionPayData');
 jest.mock('./useTransactionPayAvailableTokens');
-jest.mock('../../../../../selectors/featureFlagController/confirmations');
+jest.mock(
+  '../../../../../selectors/featureFlagController/confirmations',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/featureFlagController/confirmations',
+    ),
+    selectMetaMaskPayFlags: jest.fn(),
+  }),
+);
 
 const TOKEN_ADDRESS_1_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const TOKEN_ADDRESS_2_MOCK = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
@@ -106,8 +114,7 @@ describe('useAutomaticTransactionPayToken', () => {
       slippage: 0.005,
       predictWithdrawAnyToken: false,
       perpsWithdrawAnyToken: false,
-      preferredTokensPredict: [],
-      preferredTokensPerps: [],
+      preferredTokens: { default: [], overrides: {} },
       minimumRequiredTokenBalance: 0,
     });
   });
@@ -328,19 +335,23 @@ describe('useAutomaticTransactionPayToken', () => {
       slippage: 0.005,
       predictWithdrawAnyToken: false,
       perpsWithdrawAnyToken: false,
-      preferredTokensPredict: [],
-      preferredTokensPerps: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-          successRate: 0.7,
+      preferredTokens: {
+        default: [],
+        overrides: {
+          perpsDeposit: [
+            {
+              address: TOKEN_ADDRESS_2_MOCK,
+              chainId: CHAIN_ID_2_MOCK,
+              successRate: 0.7,
+            },
+            {
+              address: TOKEN_ADDRESS_1_MOCK,
+              chainId: CHAIN_ID_1_MOCK,
+              successRate: 0.95,
+            },
+          ],
         },
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-          successRate: 0.95,
-        },
-      ],
+      },
       minimumRequiredTokenBalance: 5,
     });
 
@@ -377,19 +388,23 @@ describe('useAutomaticTransactionPayToken', () => {
       slippage: 0.005,
       predictWithdrawAnyToken: false,
       perpsWithdrawAnyToken: false,
-      preferredTokensPredict: [],
-      preferredTokensPerps: [
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-          successRate: 0.95,
+      preferredTokens: {
+        default: [],
+        overrides: {
+          perpsDeposit: [
+            {
+              address: TOKEN_ADDRESS_1_MOCK,
+              chainId: CHAIN_ID_1_MOCK,
+              successRate: 0.95,
+            },
+            {
+              address: TOKEN_ADDRESS_2_MOCK,
+              chainId: CHAIN_ID_2_MOCK,
+              successRate: 0.7,
+            },
+          ],
         },
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-          successRate: 0.7,
-        },
-      ],
+      },
       minimumRequiredTokenBalance: 15,
     });
 
@@ -426,14 +441,18 @@ describe('useAutomaticTransactionPayToken', () => {
       slippage: 0.005,
       predictWithdrawAnyToken: false,
       perpsWithdrawAnyToken: false,
-      preferredTokensPredict: [],
-      preferredTokensPerps: [
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-          successRate: 0.95,
+      preferredTokens: {
+        default: [],
+        overrides: {
+          perpsDeposit: [
+            {
+              address: TOKEN_ADDRESS_1_MOCK,
+              chainId: CHAIN_ID_1_MOCK,
+              successRate: 0.95,
+            },
+          ],
         },
-      ],
+      },
       minimumRequiredTokenBalance: 100,
     });
 
@@ -461,7 +480,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
-  it('uses preferredTokensPredict for predict deposit transactions', () => {
+  it('uses override tokens for predict deposit transactions', () => {
     const predictStateMock = merge(
       {},
       simpleSendTransactionControllerMock,
@@ -489,20 +508,25 @@ describe('useAutomaticTransactionPayToken', () => {
       slippage: 0.005,
       predictWithdrawAnyToken: false,
       perpsWithdrawAnyToken: false,
-      preferredTokensPredict: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-          successRate: 0.9,
+      preferredTokens: {
+        default: [],
+        overrides: {
+          predictDeposit: [
+            {
+              address: TOKEN_ADDRESS_2_MOCK,
+              chainId: CHAIN_ID_2_MOCK,
+              successRate: 0.9,
+            },
+          ],
+          perpsDeposit: [
+            {
+              address: TOKEN_ADDRESS_3_MOCK,
+              chainId: CHAIN_ID_2_MOCK,
+              successRate: 0.8,
+            },
+          ],
         },
-      ],
-      preferredTokensPerps: [
-        {
-          address: TOKEN_ADDRESS_3_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-          successRate: 0.8,
-        },
-      ],
+      },
       minimumRequiredTokenBalance: 0,
     });
 
@@ -541,19 +565,23 @@ describe('useAutomaticTransactionPayToken', () => {
       slippage: 0.005,
       predictWithdrawAnyToken: false,
       perpsWithdrawAnyToken: false,
-      preferredTokensPredict: [],
-      preferredTokensPerps: [
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-          successRate: 0.95,
+      preferredTokens: {
+        default: [],
+        overrides: {
+          perpsDeposit: [
+            {
+              address: TOKEN_ADDRESS_1_MOCK,
+              chainId: CHAIN_ID_1_MOCK,
+              successRate: 0.95,
+            },
+            {
+              address: TOKEN_ADDRESS_2_MOCK,
+              chainId: CHAIN_ID_2_MOCK,
+              successRate: 0.7,
+            },
+          ],
         },
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-          successRate: 0.7,
-        },
-      ],
+      },
       minimumRequiredTokenBalance: 5,
     });
 

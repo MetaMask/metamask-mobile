@@ -4,21 +4,16 @@ import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { isHardwareAccount } from '../../../../../util/address';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
-import {
-  isTransactionPayWithdraw,
-  hasTransactionType,
-} from '../../utils/transaction';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
 import { useSelector } from 'react-redux';
 import {
   selectMetaMaskPayFlags,
   PreferredToken,
+  getPreferredTokensForTransactionType,
 } from '../../../../../selectors/featureFlagController/confirmations';
 
 export interface SetPayTokenRequest {
@@ -66,21 +61,14 @@ export function useAutomaticTransactionPayToken({
     [requiredTokens],
   );
 
-  const preferredTokensFromFlags = useMemo(() => {
-    if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-      return payFlags.preferredTokensPredict;
-    }
-
-    if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
-      return payFlags.preferredTokensPerps;
-    }
-
-    return [];
-  }, [
-    transactionMeta,
-    payFlags.preferredTokensPredict,
-    payFlags.preferredTokensPerps,
-  ]);
+  const preferredTokensFromFlags = useMemo(
+    () =>
+      getPreferredTokensForTransactionType(
+        payFlags.preferredTokens,
+        transactionMeta.type,
+      ),
+    [transactionMeta.type, payFlags.preferredTokens],
+  );
 
   // For withdrawals, skip auto-selection — the default token is derived
   // from required tokens and shown via PayWithRow

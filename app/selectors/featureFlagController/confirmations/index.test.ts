@@ -10,6 +10,7 @@ import {
   selectGasFeeTokenFlags,
   GasFeeTokenFlags,
   PreferredToken,
+  getPreferredTokensForTransactionType,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -300,11 +301,10 @@ describe('Preferred Tokens and Minimum Balance Flags (in selectMetaMaskPayFlags)
     { address: '0xtoken2', chainId: '0x89', successRate: 0.8 },
   ];
 
-  it('returns empty preferred tokens arrays when confirmations_pay is missing', () => {
+  it('returns empty preferred tokens when confirmations-pay-tokens is missing', () => {
     const result = selectMetaMaskPayFlags(mockedEmptyFlagsState);
 
-    expect(result.preferredTokensPredict).toEqual([]);
-    expect(result.preferredTokensPerps).toEqual([]);
+    expect(result.preferredTokens).toEqual({ default: [], overrides: {} });
   });
 
   it('returns default minimumRequiredTokenBalance of 0 when not in feature flags', () => {
@@ -313,44 +313,90 @@ describe('Preferred Tokens and Minimum Balance Flags (in selectMetaMaskPayFlags)
     expect(result.minimumRequiredTokenBalance).toBe(0);
   });
 
-  it('returns preferredTokensPredict from feature flag', () => {
+  it('returns preferredTokens with overrides from feature flag', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmations_pay: {
-          preferredTokensPredict: preferredTokensMock,
+        'confirmations-pay-tokens': {
+          preferredTokens: {
+            default: [],
+            overrides: {
+              perpsDeposit: preferredTokensMock,
+            },
+          },
         },
       };
 
     const result = selectMetaMaskPayFlags(state);
-    expect(result.preferredTokensPredict).toEqual(preferredTokensMock);
-    expect(result.preferredTokensPerps).toEqual([]);
+    expect(result.preferredTokens.overrides.perpsDeposit).toEqual(
+      preferredTokensMock,
+    );
+    expect(result.preferredTokens.default).toEqual([]);
   });
 
-  it('returns preferredTokensPerps from feature flag', () => {
+  it('returns preferredTokens default from feature flag', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmations_pay: {
-          preferredTokensPerps: preferredTokensMock,
+        'confirmations-pay-tokens': {
+          preferredTokens: {
+            default: preferredTokensMock,
+            overrides: {},
+          },
         },
       };
 
     const result = selectMetaMaskPayFlags(state);
-    expect(result.preferredTokensPerps).toEqual(preferredTokensMock);
-    expect(result.preferredTokensPredict).toEqual([]);
+    expect(result.preferredTokens.default).toEqual(preferredTokensMock);
+    expect(result.preferredTokens.overrides).toEqual({});
   });
 
   it('returns minimumRequiredTokenBalance from feature flag', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmations_pay: {
+        'confirmations-pay-tokens': {
           minimumRequiredTokenBalance: 10,
         },
       };
 
     const result = selectMetaMaskPayFlags(state);
     expect(result.minimumRequiredTokenBalance).toBe(10);
+  });
+});
+
+describe('getPreferredTokensForTransactionType', () => {
+  const defaultTokens: PreferredToken[] = [
+    { address: '0xdefault', chainId: '0x1', successRate: 90 },
+  ];
+
+  const perpsTokens: PreferredToken[] = [
+    { address: '0xperps1', chainId: '0x1', successRate: 95 },
+    { address: '0xperps2', chainId: '0xa4b1', successRate: 92 },
+  ];
+
+  const config = {
+    default: defaultTokens,
+    overrides: {
+      perpsDeposit: perpsTokens,
+    },
+  };
+
+  it('returns override tokens when transaction type has an override', () => {
+    expect(
+      getPreferredTokensForTransactionType(config, 'perpsDeposit'),
+    ).toEqual(perpsTokens);
+  });
+
+  it('returns default tokens when transaction type has no override', () => {
+    expect(
+      getPreferredTokensForTransactionType(config, 'predictDeposit'),
+    ).toEqual(defaultTokens);
+  });
+
+  it('returns default tokens when transaction type is undefined', () => {
+    expect(getPreferredTokensForTransactionType(config, undefined)).toEqual(
+      defaultTokens,
+    );
   });
 });
