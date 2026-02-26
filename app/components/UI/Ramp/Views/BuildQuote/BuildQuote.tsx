@@ -131,8 +131,12 @@ function BuildQuote() {
     selectedPaymentMethod,
   } = useRampsController();
 
+  const prevSelectedProviderRef = useRef(selectedProvider);
   useEffect(() => {
-    setNativeFlowError(null);
+    if (prevSelectedProviderRef.current !== selectedProvider) {
+      prevSelectedProviderRef.current = selectedProvider;
+      setNativeFlowError(null);
+    }
   }, [selectedProvider]);
 
   const isTokenUnavailable = useMemo(
