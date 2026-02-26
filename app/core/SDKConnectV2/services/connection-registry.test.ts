@@ -566,6 +566,36 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.save).not.toHaveBeenCalled();
     });
 
+    it('should reject decompressed payloads larger than 1MB', async () => {
+      jest.mock('../utils/compression-utils', () => ({
+        decompressPayloadB64: () => 'x'.repeat(1024 * 1024 + 1),
+      }));
+
+      // Re-import to pick up the mock
+      const {
+        ConnectionRegistry: FreshRegistry,
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+      } = require('./connection-registry');
+
+      const freshRegistry = new FreshRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const compressedDeeplink =
+        'metamask://connect/mwp?p=smallbutdecompresseshuge&c=1';
+
+      await freshRegistry.handleConnectDeeplink(compressedDeeplink);
+
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
+
+      jest.restoreAllMocks();
+    });
+
     it('should reject payloads larger than 1MB', async () => {
       // Given: a registry ready to handle connections
       registry = new ConnectionRegistry(
