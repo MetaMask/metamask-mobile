@@ -329,115 +329,6 @@
                 }
               ]
             },
-            "0x18c7": {
-              "blockExplorerUrls": [
-                "https://megaeth-testnet-v2.blockscout.com"
-              ],
-              "chainId": "0x18c7",
-              "defaultBlockExplorerUrlIndex": 0,
-              "defaultRpcEndpointIndex": 0,
-              "name": "MegaETH Testnet",
-              "nativeCurrency": "MegaETH",
-              "rpcEndpoints": [
-                {
-                  "failoverUrls": [],
-                  "networkClientId": "megaeth-testnet-v2",
-                  "type": "custom",
-                  "url": "https://carrot.megaeth.com/rpc"
-                }
-              ]
-            },
-            "0x2105": {
-              "blockExplorerUrls": [],
-              "chainId": "0x2105",
-              "defaultRpcEndpointIndex": 0,
-              "name": "Base",
-              "nativeCurrency": "ETH",
-              "rpcEndpoints": [
-                {
-                  "failoverUrls": [],
-                  "networkClientId": "base-mainnet",
-                  "type": "infura",
-                  "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
-                }
-              ]
-            },
-            "0x279f": {
-              "blockExplorerUrls": ["https://testnet.monadexplorer.com"],
-              "chainId": "0x279f",
-              "defaultBlockExplorerUrlIndex": 0,
-              "defaultRpcEndpointIndex": 0,
-              "name": "Monad Testnet",
-              "nativeCurrency": "MON",
-              "rpcEndpoints": [
-                {
-                  "failoverUrls": [],
-                  "networkClientId": "monad-testnet",
-                  "type": "custom",
-                  "url": "https://testnet-rpc.monad.xyz"
-                }
-              ]
-            },
-            "0x38": {
-              "blockExplorerUrls": [],
-              "chainId": "0x38",
-              "defaultRpcEndpointIndex": 0,
-              "name": "BNB Chain",
-              "nativeCurrency": "BNB",
-              "rpcEndpoints": [
-                {
-                  "failoverUrls": [],
-                  "networkClientId": "bsc-mainnet",
-                  "type": "infura",
-                  "url": "https://bsc-mainnet.infura.io/v3/{infuraProjectId}"
-                }
-              ]
-            },
-            "0x89": {
-              "blockExplorerUrls": [],
-              "chainId": "0x89",
-              "defaultRpcEndpointIndex": 0,
-              "name": "Polygon",
-              "nativeCurrency": "POL",
-              "rpcEndpoints": [
-                {
-                  "failoverUrls": [],
-                  "networkClientId": "polygon-mainnet",
-                  "type": "infura",
-                  "url": "https://polygon-mainnet.infura.io/v3/{infuraProjectId}"
-                }
-              ]
-            },
-            "0xa": {
-              "blockExplorerUrls": [],
-              "chainId": "0xa",
-              "defaultRpcEndpointIndex": 0,
-              "name": "OP",
-              "nativeCurrency": "ETH",
-              "rpcEndpoints": [
-                {
-                  "failoverUrls": [],
-                  "networkClientId": "optimism-mainnet",
-                  "type": "infura",
-                  "url": "https://optimism-mainnet.infura.io/v3/{infuraProjectId}"
-                }
-              ]
-            },
-            "0xa4b1": {
-              "blockExplorerUrls": [],
-              "chainId": "0xa4b1",
-              "defaultRpcEndpointIndex": 0,
-              "name": "Arbitrum",
-              "nativeCurrency": "ETH",
-              "rpcEndpoints": [
-                {
-                  "failoverUrls": [],
-                  "networkClientId": "arbitrum-mainnet",
-                  "type": "infura",
-                  "url": "https://arbitrum-mainnet.infura.io/v3/{infuraProjectId}"
-                }
-              ]
-            },
             "0xaa36a7": {
               "blockExplorerUrls": [],
               "chainId": "0xaa36a7",
@@ -450,6 +341,21 @@
                   "networkClientId": "sepolia",
                   "type": "infura",
                   "url": "https://sepolia.infura.io/v3/{infuraProjectId}"
+                }
+              ]
+            },
+            "0xe708": {
+              "blockExplorerUrls": [],
+              "chainId": "0xe708",
+              "defaultRpcEndpointIndex": 0,
+              "name": "Linea Main Network",
+              "nativeCurrency": "LineaETH",
+              "rpcEndpoints": [
+                {
+                  "failoverUrls": [],
+                  "networkClientId": "linea-mainnet",
+                  "type": "infura",
+                  "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
                 }
               ]
             },
@@ -468,18 +374,108 @@
                 }
               ]
             },
-            "0xe708": {
+            "0x2105": {
               "blockExplorerUrls": [],
-              "chainId": "0xe708",
+              "chainId": "0x2105",
               "defaultRpcEndpointIndex": 0,
-              "name": "Linea Main Network",
-              "nativeCurrency": "LineaETH",
+              "name": "Base",
+              "nativeCurrency": "ETH",
               "rpcEndpoints": [
                 {
                   "failoverUrls": [],
-                  "networkClientId": "linea-mainnet",
-                  "type": "infura",
-                  "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
+                  "networkClientId": "0x2105",
+                  "type": "custom",
+                  "url": "https://virtual.mainnet.rpc.tenderly.co/TENDERLY_VIRTUAL_TESTNET_RPC_KEY"
+                }
+              ]
+            },
+            "0x38": {
+              "blockExplorerUrls": [],
+              "chainId": "0x38",
+              "defaultRpcEndpointIndex": 0,
+              "name": "BNB Chain",
+              "nativeCurrency": "BNB",
+              "rpcEndpoints": [
+                {
+                  "failoverUrls": [],
+                  "networkClientId": "0x38",
+                  "type": "custom",
+                  "url": "https://virtual.mainnet.rpc.tenderly.co/TENDERLY_VIRTUAL_TESTNET_RPC_KEY"
+                }
+              ]
+            },
+            "0x89": {
+              "blockExplorerUrls": [],
+              "chainId": "0x89",
+              "defaultRpcEndpointIndex": 0,
+              "name": "Polygon",
+              "nativeCurrency": "MATIC",
+              "rpcEndpoints": [
+                {
+                  "failoverUrls": [],
+                  "networkClientId": "0x89",
+                  "type": "custom",
+                  "url": "https://virtual.mainnet.rpc.tenderly.co/TENDERLY_VIRTUAL_TESTNET_RPC_KEY"
+                }
+              ]
+            },
+            "0xa": {
+              "blockExplorerUrls": [],
+              "chainId": "0xa",
+              "defaultRpcEndpointIndex": 0,
+              "name": "OP Mainnet",
+              "nativeCurrency": "ETH",
+              "rpcEndpoints": [
+                {
+                  "failoverUrls": [],
+                  "networkClientId": "0xa",
+                  "type": "custom",
+                  "url": "https://virtual.mainnet.rpc.tenderly.co/TENDERLY_VIRTUAL_TESTNET_RPC_KEY"
+                }
+              ]
+            },
+            "0xa4b1": {
+              "blockExplorerUrls": [],
+              "chainId": "0xa4b1",
+              "defaultRpcEndpointIndex": 0,
+              "name": "Arbitrum One",
+              "nativeCurrency": "ETH",
+              "rpcEndpoints": [
+                {
+                  "failoverUrls": [],
+                  "networkClientId": "0xa4b1",
+                  "type": "custom",
+                  "url": "https://virtual.mainnet.rpc.tenderly.co/TENDERLY_VIRTUAL_TESTNET_RPC_KEY"
+                }
+              ]
+            },
+            "0x18c7": {
+              "blockExplorerUrls": [],
+              "chainId": "0x18c7",
+              "defaultRpcEndpointIndex": 0,
+              "name": "MegaETH Testnet",
+              "nativeCurrency": "ETH",
+              "rpcEndpoints": [
+                {
+                  "failoverUrls": [],
+                  "networkClientId": "0x18c7",
+                  "type": "custom",
+                  "url": "https://virtual.mainnet.rpc.tenderly.co/TENDERLY_VIRTUAL_TESTNET_RPC_KEY"
+                }
+              ]
+            },
+            "0x279f": {
+              "blockExplorerUrls": [],
+              "chainId": "0x279f",
+              "defaultRpcEndpointIndex": 0,
+              "name": "Monad Testnet",
+              "nativeCurrency": "MON",
+              "rpcEndpoints": [
+                {
+                  "failoverUrls": [],
+                  "networkClientId": "0x279f",
+                  "type": "custom",
+                  "url": "https://testnet-rpc.monad.xyz"
                 }
               ]
             }

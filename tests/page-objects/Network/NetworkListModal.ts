@@ -84,6 +84,22 @@ class NetworkListModal {
     await Gestures.waitAndTap(elem);
   }
 
+  /**
+   * Select a network inside the Custom networks tab.
+   * Uses withAncestor to avoid matching background text elements
+   * that may be partially obscured behind the modal.
+   */
+  async selectNetworkInCustomTab(networkName: string): Promise<void> {
+    const elem = element(
+      by
+        .text(networkName)
+        .withAncestor(
+          by.id(NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORKS_CONTAINER),
+        ),
+    );
+    await Gestures.waitAndTap(elem);
+  }
+
   async scrollToBottomOfNetworkList(): Promise<void> {
     await Gestures.swipe(this.networkScroll, 'up', {
       speed: 'fast',
