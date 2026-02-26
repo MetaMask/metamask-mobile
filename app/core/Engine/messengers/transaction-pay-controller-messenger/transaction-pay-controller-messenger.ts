@@ -31,6 +31,7 @@ export function getTransactionPayControllerMessenger(
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
       'RemoteFeatureFlagController:getState',
+      'RampsController:setSelectedToken',
       'TokenBalancesController:getState',
       'TokenRatesController:getState',
       'TokensController:getState',

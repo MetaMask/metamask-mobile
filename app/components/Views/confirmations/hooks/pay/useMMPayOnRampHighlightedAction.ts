@@ -1,32 +1,27 @@
 import { useMemo } from 'react';
-import { noop } from 'lodash';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
 import { PaymentMethod } from '@metamask/ramps-controller';
+import { useSelector } from 'react-redux';
 
-import { hasTransactionType } from '../../utils/transaction';
+import Engine from '../../../../../core/Engine';
+import { RootState } from '../../../../../reducers';
+import { selectTransactionPayOnRampPaymentByTransactionId } from '../../../../../selectors/transactionPayController';
 import { HighlightedItem } from '../../types/token';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useMMPayOnRampPaymentMethods } from './useMMPayOnRampPaymentMethods';
+import { useRampsController } from '../../../../UI/Ramp/hooks/useRampsController';
 import { formatDelayFromArray } from '../../../../UI/Ramp/Aggregator/utils';
 
 export function useMMPayOnRampHighlightedAction(): HighlightedItem[] {
   const transactionMeta = useTransactionMetadataRequest();
+  const transactionId = transactionMeta?.id ?? '';
+  const { paymentMethods } = useRampsController();
 
-  const config = useMemo(
-    () => getMMPayOnRampConfig(transactionMeta),
-    [transactionMeta],
+  const onRampPayment = useSelector((state: RootState) =>
+    selectTransactionPayOnRampPaymentByTransactionId(state, transactionId),
   );
-  const { paymentMethods } = useMMPayOnRampPaymentMethods({
-    assetId: config?.assetId,
-  });
-
-  console.log('OGP - paymentMethods', { paymentMethods });
+  const selectedPaymentMethodId = onRampPayment?.selectedPaymentMethodId;
 
   return useMemo(() => {
-    if (!config || paymentMethods.length === 0) {
+    if (paymentMethods.length === 0) {
       return [];
     }
 
@@ -38,85 +33,17 @@ export function useMMPayOnRampHighlightedAction(): HighlightedItem[] {
       },
       name: paymentMethod.name,
       name_description: deriveDelayDescription(paymentMethod),
-      action: noop,
+      action: () => {
+        Engine.context.TransactionPayController.setOnRampSelectedPaymentMethod({
+          transactionId,
+          selectedPaymentMethodId: paymentMethod.id,
+        });
+      },
+      isSelected: selectedPaymentMethodId === paymentMethod.id,
       fiat: '',
       fiat_description: '',
     }));
-  }, [config, paymentMethods]);
-}
-
-interface MMPayOnRampConfig {
-  assetId: string;
-  token: string;
-  network: string;
-}
-
-const POLYGON_POL_CAIP_ASSET_ID = 'eip155:137/slip44:966';
-const ARBITRUM_ETH_CAIP_ASSET_ID = 'eip155:42161/slip44:60';
-
-const MMPAY_ON_RAMP_CONFIG_BY_TX_TYPE: Partial<
-  Record<TransactionType, MMPayOnRampConfig>
-> = {
-  [TransactionType.predictDeposit]: {
-    assetId: POLYGON_POL_CAIP_ASSET_ID,
-    token: 'POL',
-    network: 'Polygon',
-  },
-  [TransactionType.perpsDeposit]: {
-    assetId: ARBITRUM_ETH_CAIP_ASSET_ID,
-    token: 'ETH',
-    network: 'Arbitrum',
-  },
-  [TransactionType.perpsDepositAndOrder]: {
-    assetId: ARBITRUM_ETH_CAIP_ASSET_ID,
-    token: 'ETH',
-    network: 'Arbitrum',
-  },
-};
-
-function getMMPayOnRampConfig(
-  transactionMeta?: TransactionMeta,
-): MMPayOnRampConfig | undefined {
-  if (!transactionMeta) {
-    return undefined;
-  }
-
-  const transactionType =
-    deriveMMPayTransactionTypeFromTransactionMeta(transactionMeta);
-
-  if (!transactionType) {
-    return undefined;
-  }
-
-  return MMPAY_ON_RAMP_CONFIG_BY_TX_TYPE?.[transactionType];
-}
-
-function deriveMMPayTransactionTypeFromTransactionMeta(
-  transactionMeta?: TransactionMeta,
-): TransactionType | undefined {
-  if (!transactionMeta) {
-    return undefined;
-  }
-
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    return TransactionType.predictDeposit;
-  }
-
-  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
-    return TransactionType.perpsDeposit;
-  }
-
-  if (
-    hasTransactionType(transactionMeta, [TransactionType.perpsDepositAndOrder])
-  ) {
-    return TransactionType.perpsDepositAndOrder;
-  }
-
-  if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
-    return TransactionType.musdConversion;
-  }
-
-  return undefined;
+  }, [paymentMethods, selectedPaymentMethodId, transactionId]);
 }
 
 function deriveDelayDescription(paymentMethod: PaymentMethod): string {
