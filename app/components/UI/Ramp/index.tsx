@@ -36,6 +36,8 @@ import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 import useDetectGeolocation from './hooks/useDetectGeolocation';
 import useHydrateRampsController from './hooks/useHydrateRampsController';
 import useRampsSmartRouting from './hooks/useRampsSmartRouting';
+import { selectRampsUnifiedBuyV2ActiveFlag } from '../../../selectors/featureFlagController/ramps/rampsUnifiedBuyV2';
+import { showV2OrderToast } from './utils/v2OrderToast';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 
@@ -60,9 +62,19 @@ export async function processFiatOrder(
         trackEvent(event, params);
       }
       InteractionManager.runAfterInteractions(() => {
-        const notificationDetails = getNotificationDetails(updatedOrder);
-        if (notificationDetails) {
-          NotificationManager.showSimpleNotification(notificationDetails);
+        const isV2 = selectRampsUnifiedBuyV2ActiveFlag(state);
+        if (isV2) {
+          showV2OrderToast({
+            orderId: updatedOrder.id,
+            cryptocurrency: updatedOrder.cryptocurrency,
+            cryptoAmount: updatedOrder.cryptoAmount,
+            state: updatedOrder.state,
+          });
+        } else {
+          const notificationDetails = getNotificationDetails(updatedOrder);
+          if (notificationDetails) {
+            NotificationManager.showSimpleNotification(notificationDetails);
+          }
         }
       });
     }
@@ -96,9 +108,19 @@ async function processCustomOrderId(
       }
       dispatchAddFiatOrder(fiatOrder);
       InteractionManager.runAfterInteractions(() => {
-        const notificationDetails = getNotificationDetails(fiatOrder);
-        if (notificationDetails) {
-          NotificationManager.showSimpleNotification(notificationDetails);
+        const isV2 = selectRampsUnifiedBuyV2ActiveFlag(state);
+        if (isV2) {
+          showV2OrderToast({
+            orderId: fiatOrder.id,
+            cryptocurrency: fiatOrder.cryptocurrency,
+            cryptoAmount: fiatOrder.cryptoAmount,
+            state: fiatOrder.state,
+          });
+        } else {
+          const notificationDetails = getNotificationDetails(fiatOrder);
+          if (notificationDetails) {
+            NotificationManager.showSimpleNotification(notificationDetails);
+          }
         }
       });
     });

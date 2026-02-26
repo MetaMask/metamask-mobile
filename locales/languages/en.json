@@ -5189,6 +5189,19 @@
     "try_again": "Try again",
     "close": "Close"
   },
+  "ramps_v2": {
+    "notifications": {
+      "purchase_pending_title": "Processing your purchase of {{cryptocurrency}}",
+      "purchase_pending_description": "This should only take a few minutes...",
+      "purchase_completed_title": "Your purchase of {{amount}} {{cryptocurrency}} was successful!",
+      "purchase_completed_description": "Your {{cryptocurrency}} is now available",
+      "purchase_failed_title": "Purchase of {{cryptocurrency}} failed",
+      "purchase_failed_description": "Please try again momentarily",
+      "purchase_cancelled_title": "Your purchase was cancelled",
+      "purchase_cancelled_description": "Your purchase of {{cryptocurrency}} has been cancelled",
+      "track": "Track"
+    }
+  },
   "swaps": {
     "title": "Swap",
     "onboarding": {
