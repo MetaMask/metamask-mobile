@@ -283,7 +283,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
           walletAddress || depositOrder.walletAddress,
         );
 
-        addOrder(rampsOrder);
+        addOrder({
+          ...rampsOrder,
+          paymentDetails: depositOrder.paymentDetails,
+        });
 
         navigateToOrderProcessingCallback({
           orderId: rampsOrder.providerOrderId,
@@ -424,7 +427,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                   walletAddress || depositOrder.walletAddress,
                 );
 
-                addOrder(rampsOrder);
+                addOrder({
+                  ...rampsOrder,
+                  paymentDetails: depositOrder.paymentDetails,
+                });
 
                 navigateToBankDetailsCallback({
                   orderId: rampsOrder.providerOrderId,
