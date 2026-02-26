@@ -48,6 +48,7 @@ import {
   PROXY_CREATION_CODE,
   SAFE_FACTORY_ADDRESS,
   SAFE_FACTORY_NAME,
+  SAFE_MSG_TYPEHASH,
   SAFE_MULTISEND_ADDRESS,
   SAFE_TX_TYPEHASH,
   usdcSpenders,
@@ -61,8 +62,6 @@ import {
 } from './types';
 
 const MIN_VALID_HEX_DATA_LENGTH = 10;
-const SAFE_MSG_TYPEHASH =
-  '0x60b3cbf8b4a223d68d641b3b6ddf9a298e7f33710cf3d3a9d1146b5a6150fbca';
 
 function joinHexData(hexData: string[]): string {
   return `0x${hexData
@@ -175,6 +174,13 @@ const getNonce = async ({
   return BigInt(res);
 };
 
+/**
+ * Reads the Permit2 nonce bitmap for the given Safe address and returns
+ * the first unused nonce. Currently only checks word 0 (nonces 0-255).
+ * This is sufficient for typical usage patterns where a single Safe
+ * will not exhaust 256 nonces. If word 0 is fully consumed, this
+ * function throws — extend to scan additional words if needed.
+ */
 export const getPermit2Nonce = async ({
   safeAddress,
 }: {
@@ -212,6 +218,7 @@ export const getPermit2Nonce = async ({
     throw new Error('No available Permit2 nonce found in nonce bitmap word 0');
   }
 
+  // Only word 0 is scanned — see function doc for limitations
   const wordPos = 0n;
   return ((wordPos << 8n) | bitPos).toString();
 };

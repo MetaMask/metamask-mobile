@@ -1377,8 +1377,6 @@ export class PredictController extends BaseController<
           | PredictFeeCollection
           | undefined) ?? DEFAULT_FEE_COLLECTION_FLAG;
 
-      console.warn('FEE COLLECTION FLAG:', feeCollection);
-
       const signer = this.getSigner();
 
       return provider.previewOrder({ ...params, signer, feeCollection });

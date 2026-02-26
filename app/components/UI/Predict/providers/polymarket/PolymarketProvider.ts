@@ -43,7 +43,6 @@ import {
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
-  PredictFees,
   PredictProvider,
   PrepareDepositParams,
   PrepareDepositResponse,
@@ -1139,16 +1138,10 @@ export class PolymarketProvider implements PredictProvider {
       };
 
       const signerApiKey = await this.getApiKey({ address: signer.address });
-      const feesWithPermit2 = fees as
-        | (PredictFees & {
-            executors?: string[];
-            permit2Enabled?: boolean;
-          })
-        | undefined;
       const shouldUsePermit2 =
-        feesWithPermit2?.permit2Enabled === true &&
-        Array.isArray(feesWithPermit2.executors) &&
-        feesWithPermit2.executors.length > 0;
+        fees?.permit2Enabled === true &&
+        Array.isArray(fees.executors) &&
+        fees.executors.length > 0;
 
       let feeAuthorization:
         | SafeFeeAuthorization
@@ -1163,7 +1156,7 @@ export class PolymarketProvider implements PredictProvider {
           parseUnits(fees.totalFee.toString(), 6).toString(),
         );
 
-        if (shouldUsePermit2 && feesWithPermit2?.executors) {
+        if (shouldUsePermit2 && fees.executors) {
           const permit2Ready = await hasPermit2Allowance({
             address: safeAddress,
           });
@@ -1171,9 +1164,7 @@ export class PolymarketProvider implements PredictProvider {
           if (permit2Ready) {
             shouldUsePermit2OrderType = true;
             executor =
-              feesWithPermit2.executors[
-                Math.floor(Math.random() * feesWithPermit2.executors.length)
-              ];
+              fees.executors[Math.floor(Math.random() * fees.executors.length)];
 
             feeAuthorization = await createPermit2FeeAuthorization({
               safeAddress,

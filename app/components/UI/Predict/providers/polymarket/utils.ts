@@ -67,11 +67,6 @@ import {
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PredictFeeCollection } from '../../types/flags';
 
-type PredictFeesWithPermit2 = PredictFees & {
-  executors?: string[];
-  permit2Enabled?: boolean;
-};
-
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
   CLOB_ENDPOINT: 'https://clob.polymarket.com',
@@ -1091,7 +1086,7 @@ export async function calculateFees({
   feeCollection?: PredictFeeCollection;
   marketId: string;
   userBetAmount: number;
-}): Promise<PredictFeesWithPermit2> {
+}): Promise<PredictFees> {
   if (
     !feeCollection?.enabled ||
     (await waiveFees({ marketId, waiveList: feeCollection.waiveList }))
