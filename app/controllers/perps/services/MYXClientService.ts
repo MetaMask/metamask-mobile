@@ -973,11 +973,19 @@ export class MYXClientService {
       '[MYXClientService] Unsubscribing from kline WS',
       { globalId, resolution },
     );
-    this.#myxClient.subscription.unsubscribeKline(
-      globalId,
-      resolution,
-      callback,
-    );
+    try {
+      this.#myxClient.subscription.unsubscribeKline(
+        globalId,
+        resolution,
+        callback,
+      );
+    } catch (error) {
+      // SOCKET_NOT_CONNECTED is expected during cleanup — socket already torn down
+      this.#deps.debugLogger.log(
+        '[MYXClientService] Kline unsubscribe failed (expected during disconnect)',
+        { globalId, resolution, error: String(error) },
+      );
+    }
   }
 
   // ============================================================================
