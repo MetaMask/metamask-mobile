@@ -12,8 +12,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   Text,
   TextVariant,
   TextColor,
@@ -63,31 +61,24 @@ const FilterButton = ({
       onPress={onPress}
       style={({ pressed }) =>
         tw.style(
-          'py-2 px-3 items-center justify-center rounded-lg bg-background-muted',
+          'flex-row items-center justify-center gap-1 py-2 px-3 rounded-lg bg-background-muted',
           btnClass,
           pressed && 'opacity-20',
         )
       }
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        gap={1}
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
       >
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-        >
-          {text}
-        </Text>
-        <Icon
-          name={IconName.ArrowDown}
-          color={IconColor.IconAlternative}
-          size={IconSize.Xs}
-        />
-      </Box>
+        {text}
+      </Text>
+      <Icon
+        name={IconName.ArrowDown}
+        color={IconColor.IconAlternative}
+        size={IconSize.Xs}
+      />
     </Pressable>
   );
 };
@@ -168,11 +159,6 @@ const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
       [activeBottomSheet, isLoading, hasMore, loadNextChunk],
     );
 
-    const visibleTrendingTokens = useMemo(
-      () => trendingTokens.slice(0, visibleTokenCount),
-      [trendingTokens, visibleTokenCount],
-    );
-
     return (
       <>
         <Box
@@ -210,23 +196,21 @@ const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
             />
           </Box>
 
-          {isLoading ? (
-            <>
-              {Array.from({ length: 6 }).map((_, index) => (
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, index) => (
                 <TrendingTokensSkeleton key={index} />
-              ))}
-            </>
-          ) : (
-            visibleTrendingTokens.map((token, index) => (
-              <TrendingTokenRowItem
-                key={`${token.assetId}-${index}`}
-                token={token}
-                position={index}
-                selectedTimeOption={selectedTimeOption}
-                filterContext={filterContext}
-              />
-            ))
-          )}
+              ))
+            : trendingTokens
+                .slice(0, visibleTokenCount)
+                .map((token, index) => (
+                  <TrendingTokenRowItem
+                    key={`${token.assetId}-${index}`}
+                    token={token}
+                    position={index}
+                    selectedTimeOption={selectedTimeOption}
+                    filterContext={filterContext}
+                  />
+                ))}
           {!isLoading && hasMore ? (
             <Pressable
               testID={BridgeViewSelectorsIDs.TRENDING_SHOW_MORE}
