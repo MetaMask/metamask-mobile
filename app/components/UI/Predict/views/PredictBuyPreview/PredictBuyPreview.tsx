@@ -138,22 +138,30 @@ const PredictBuyPreview = () => {
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();
   const { isPredictBalanceSelected } = usePredictPaymentToken();
+  const autoPlaceAmount =
+    typeof amount === 'number' && amount > 0 ? amount : undefined;
+  const [currentValue, setCurrentValue] = useState(() => autoPlaceAmount ?? 0);
+  const [currentValueUSDString, setCurrentValueUSDString] = useState(() =>
+    autoPlaceAmount ? autoPlaceAmount.toString() : '',
+  );
+  const [isInputFocused, setIsInputFocused] = useState(() => !autoPlaceAmount);
+  const [isUserInputChange, setIsUserInputChange] = useState(false);
+  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+  const previousValueRef = useRef(0);
+  const handleTokenSelected = useCallback(() => {
+    setIsInputFocused(false);
+  }, []);
   const { shouldPreserveActiveOrderOnUnmountRef } = usePredictTokenSelection({
     market,
     outcome,
     outcomeToken,
     analyticsProperties,
+    amountUsd: currentValue,
+    onTokenSelected: handleTokenSelected,
   });
 
   const { deposit } = usePredictDeposit();
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
-
-  const [currentValue, setCurrentValue] = useState(0);
-  const [currentValueUSDString, setCurrentValueUSDString] = useState('');
-  const [isInputFocused, setIsInputFocused] = useState(true);
-  const [isUserInputChange, setIsUserInputChange] = useState(false);
-  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
-  const previousValueRef = useRef(0);
 
   const {
     preview,

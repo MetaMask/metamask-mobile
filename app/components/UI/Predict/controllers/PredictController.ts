@@ -157,6 +157,7 @@ export type PredictControllerState = {
     market: PredictMarket;
     outcome: PredictOutcome;
     outcomeToken: PredictOutcomeToken;
+    amountUsd?: number;
   } | null;
 
   selectedPaymentToken: {

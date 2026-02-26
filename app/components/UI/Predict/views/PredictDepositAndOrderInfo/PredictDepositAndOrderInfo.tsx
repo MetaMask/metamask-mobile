@@ -71,6 +71,10 @@ export function PredictDepositAndOrderInfo() {
   const market = activeOrder?.market;
   const outcome = activeOrder?.outcome;
   const outcomeToken = activeOrder?.outcomeToken;
+  const prefilledAmountUsd =
+    activeOrder?.amountUsd && activeOrder.amountUsd > 0
+      ? activeOrder.amountUsd
+      : 0;
 
   const renderHeaderTitle = useCallback(
     () =>
@@ -111,17 +115,31 @@ export function PredictDepositAndOrderInfo() {
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const previousValueRef = useRef(0);
+  const hasAppliedPrefillRef = useRef(false);
   const { setIsFooterVisible } = useConfirmationContext();
 
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();
   const { deposit } = usePredictDeposit();
 
-  const [currentValue, setCurrentValue] = useState(0);
-  const [currentValueUSDString, setCurrentValueUSDString] = useState('');
-  const [isInputFocused, setIsInputFocused] = useState(true);
+  const [currentValue, setCurrentValue] = useState(prefilledAmountUsd);
+  const [currentValueUSDString, setCurrentValueUSDString] = useState(
+    prefilledAmountUsd > 0 ? prefilledAmountUsd.toString() : '',
+  );
+  const [isInputFocused, setIsInputFocused] = useState(prefilledAmountUsd <= 0);
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+
+  useEffect(() => {
+    if (hasAppliedPrefillRef.current || prefilledAmountUsd <= 0) {
+      return;
+    }
+
+    hasAppliedPrefillRef.current = true;
+    setCurrentValue(prefilledAmountUsd);
+    setCurrentValueUSDString(prefilledAmountUsd.toString());
+    setIsInputFocused(false);
+  }, [prefilledAmountUsd]);
 
   const {
     preview,

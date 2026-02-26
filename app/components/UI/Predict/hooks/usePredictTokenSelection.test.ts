@@ -44,6 +44,7 @@ describe('usePredictTokenSelection', () => {
   it('does not call depositAndOrder on initial render', () => {
     renderHook(() =>
       usePredictTokenSelection({
+        amountUsd: 0,
         market,
         outcome,
         outcomeToken,
@@ -56,6 +57,36 @@ describe('usePredictTokenSelection', () => {
   it('calls depositAndOrder when non-predict token selection changes', async () => {
     const { rerender, result } = renderHook(() =>
       usePredictTokenSelection({
+        amountUsd: 25,
+        market,
+        outcome,
+        outcomeToken,
+      }),
+    );
+
+    mockIsPredictBalanceSelected = false;
+    mockSelectedTokenAddress = '0x1234';
+
+    await act(async () => {
+      rerender();
+    });
+
+    expect(mockDepositAndOrder).toHaveBeenCalledWith({
+      market,
+      outcome,
+      outcomeToken,
+      amountUsd: 25,
+      analyticsProperties: undefined,
+    });
+    expect(result.current.shouldPreserveActiveOrderOnUnmountRef.current).toBe(
+      true,
+    );
+  });
+
+  it('does not include amountUsd when current amount is 0', async () => {
+    const { rerender } = renderHook(() =>
+      usePredictTokenSelection({
+        amountUsd: 0,
         market,
         outcome,
         outcomeToken,
@@ -75,8 +106,27 @@ describe('usePredictTokenSelection', () => {
       outcomeToken,
       analyticsProperties: undefined,
     });
-    expect(result.current.shouldPreserveActiveOrderOnUnmountRef.current).toBe(
-      true,
+  });
+
+  it('calls onTokenSelected when selected token changes', async () => {
+    const onTokenSelected = jest.fn();
+    const { rerender } = renderHook(() =>
+      usePredictTokenSelection({
+        amountUsd: 0,
+        market,
+        outcome,
+        outcomeToken,
+        onTokenSelected,
+      }),
     );
+
+    mockIsPredictBalanceSelected = false;
+    mockSelectedTokenAddress = '0x1234';
+
+    await act(async () => {
+      rerender();
+    });
+
+    expect(onTokenSelected).toHaveBeenCalledTimes(1);
   });
 });

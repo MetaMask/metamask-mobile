@@ -6,6 +6,8 @@ import { PredictBuyPreviewParams } from '../types/navigation';
 
 interface UsePredictTokenSelectionParams {
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  amountUsd: number;
+  onTokenSelected?: () => void;
   market: PredictBuyPreviewParams['market'];
   outcome: PredictBuyPreviewParams['outcome'];
   outcomeToken: PredictBuyPreviewParams['outcomeToken'];
@@ -13,6 +15,8 @@ interface UsePredictTokenSelectionParams {
 
 export function usePredictTokenSelection({
   analyticsProperties,
+  amountUsd,
+  onTokenSelected,
   market,
   outcome,
   outcomeToken,
@@ -22,41 +26,48 @@ export function usePredictTokenSelection({
     usePredictPaymentToken();
 
   const hasInitializedTokenSelectionRef = useRef(false);
-  const previousSelectedTokenAddressRef = useRef<string | null>(null);
+  const previousSelectedTokenKeyRef = useRef<string | null>(null);
   const shouldPreserveActiveOrderOnUnmountRef = useRef(false);
 
   useEffect(() => {
     const selectedTokenAddress = selectedPaymentToken?.address ?? null;
+    const selectedTokenKey = isPredictBalanceSelected
+      ? 'predict-balance'
+      : selectedTokenAddress;
 
     if (!hasInitializedTokenSelectionRef.current) {
       hasInitializedTokenSelectionRef.current = true;
-      previousSelectedTokenAddressRef.current = selectedTokenAddress;
+      previousSelectedTokenKeyRef.current = selectedTokenKey;
       return;
     }
+
+    if (previousSelectedTokenKeyRef.current === selectedTokenKey) {
+      return;
+    }
+
+    previousSelectedTokenKeyRef.current = selectedTokenKey;
+    onTokenSelected?.();
 
     if (isPredictBalanceSelected || !selectedTokenAddress) {
-      previousSelectedTokenAddressRef.current = selectedTokenAddress;
       return;
     }
 
-    if (previousSelectedTokenAddressRef.current === selectedTokenAddress) {
-      return;
-    }
-
-    previousSelectedTokenAddressRef.current = selectedTokenAddress;
     shouldPreserveActiveOrderOnUnmountRef.current = true;
 
     depositAndOrder({
       market,
       outcome,
       outcomeToken,
+      ...(amountUsd > 0 ? { amountUsd } : {}),
       analyticsProperties,
     }).catch(() => undefined);
   }, [
+    amountUsd,
     analyticsProperties,
     depositAndOrder,
     isPredictBalanceSelected,
     market,
+    onTokenSelected,
     outcome,
     outcomeToken,
     selectedPaymentToken?.address,

@@ -138,12 +138,12 @@ export function usePredictDepositAndOrderExecution({
     }
 
     try {
+      redirectToBuyPreviewForAutoOrder();
       await onApprovalConfirm({
         deleteAfterResult: true,
         waitForResult: true,
         handleErrors: false,
       });
-      redirectToBuyPreviewForAutoOrder();
     } catch (err) {
       setConfirmError(
         err instanceof Error

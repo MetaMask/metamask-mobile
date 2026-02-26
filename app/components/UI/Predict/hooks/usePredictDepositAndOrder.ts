@@ -96,6 +96,9 @@ export const usePredictDepositAndOrder = () => {
           market: params.market,
           outcome: params.outcome,
           outcomeToken: params.outcomeToken,
+          ...(params.amountUsd && params.amountUsd > 0
+            ? { amountUsd: params.amountUsd }
+            : {}),
         });
 
         await depositAndOrderWithConfirmation({}).catch((err) => {
