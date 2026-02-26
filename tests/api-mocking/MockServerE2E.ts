@@ -98,10 +98,16 @@ const isUrlAllowed = (url: string): boolean => {
       return true;
     }
 
+    // Malformed npm: package URIs that leak through the snap proxy
+    // e.g. https://https//npm:@metamask/... or npm:@metamask/...
+    if (/npm[:@]@?metamask\//.test(url)) {
+      return true;
+    }
+
     const parsedUrl = new URL(url);
     const hostname = parsedUrl.hostname;
 
-    if (parsedUrl.protocol === 'data:' || parsedUrl.protocol === 'npm:') {
+    if (parsedUrl.protocol === 'data:') {
       return true;
     }
 

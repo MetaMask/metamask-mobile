@@ -1792,6 +1792,13 @@ class FixtureBuilder {
       nativeAssetIdentifiers: {},
     };
 
+    if (
+      !this.fixture.state.engine.backgroundState.NetworkEnablementController
+    ) {
+      this.fixture.state.engine.backgroundState.NetworkEnablementController =
+        {};
+    }
+
     merge(
       this.fixture.state.engine.backgroundState.NetworkEnablementController,
       stateToMerge,
