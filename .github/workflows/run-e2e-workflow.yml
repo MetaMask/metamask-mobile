@@ -186,6 +186,48 @@ jobs:
         with:
           path: artifacts/
 
+      - name: Move iOS artifacts to expected locations
+        if: ${{ inputs.platform == 'ios' }}
+        run: |
+          echo "📦 Moving iOS app bundle to expected location..."
+          
+          # GitHub Actions download-artifact@v4 creates an extra directory with the artifact name
+          # So artifacts/main-qa-MetaMask.app/MetaMask.app needs to move to artifacts/main-qa-MetaMask.app
+          ARTIFACT_DIR="artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"
+          
+          # Check if the nested structure exists (app bundle inside artifact directory)
+          if [ -d "${ARTIFACT_DIR}/MetaMask.app" ]; then
+            echo "🔄 Found nested app bundle at ${ARTIFACT_DIR}/MetaMask.app"
+            
+            # Move the actual .app bundle one level up
+            mv "${ARTIFACT_DIR}/MetaMask.app" "${ARTIFACT_DIR}.tmp"
+            rm -rf "${ARTIFACT_DIR}"
+            mv "${ARTIFACT_DIR}.tmp" "${ARTIFACT_DIR}"
+            
+            echo "✅ iOS app bundle moved to ${ARTIFACT_DIR}"
+          elif [ -d "${ARTIFACT_DIR}" ]; then
+            echo "✅ iOS app bundle already at correct location: ${ARTIFACT_DIR}"
+          else
+            echo "❌ Error: iOS app artifact not found at expected location"
+            echo "📂 Contents of artifacts/:"
+            ls -la artifacts/ || true
+            exit 1
+          fi
+          
+          # Validate the .app bundle structure
+          if [ ! -d "${ARTIFACT_DIR}" ]; then
+            echo "❌ Error: ${ARTIFACT_DIR} is not a directory"
+            exit 1
+          fi
+          
+          if [ ! -f "${ARTIFACT_DIR}/Info.plist" ]; then
+            echo "❌ Error: ${ARTIFACT_DIR} is missing Info.plist - invalid app bundle"
+            exit 1
+          fi
+          
+          echo "📊 iOS app bundle size: $(du -sh "${ARTIFACT_DIR}" | cut -f1)"
+          echo "✅ iOS artifacts ready for E2E tests"
+
       # On re-run (run_attempt > 1), download previous test results to identify failed tests
       - name: Download previous test results (on re-run)
         if: ${{ github.run_attempt > 1 }}
