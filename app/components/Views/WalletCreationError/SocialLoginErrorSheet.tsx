@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { View, Image, Linking, SafeAreaView } from 'react-native';
-import { useNavigation, ParamListBase } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
 
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -35,7 +34,7 @@ interface SocialLoginErrorSheetProps {
 }
 
 const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
 

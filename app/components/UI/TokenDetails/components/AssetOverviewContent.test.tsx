@@ -19,6 +19,12 @@ import {
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockUseMarketInsights = jest.fn();
+const mockSelectMarketInsightsEnabled = jest.fn(() => true);
 
 jest.mock('../../MarketInsights', () => ({
   __esModule: true,
@@ -29,20 +35,8 @@ jest.mock('../../MarketInsights', () => ({
     onPress?: () => void;
     testID?: string;
   }) => <MockPressable onPress={onPress} testID={testID} />,
-  useMarketInsights: () => ({
-    report: {
-      asset: 'eth',
-      generatedAt: '2026-02-17T11:55:00.000Z',
-      headline: 'ETH outlook stays positive',
-      summary: 'Momentum remains constructive.',
-      trends: [],
-      sources: [],
-    },
-    isLoading: false,
-    error: null,
-    timeAgo: '5m ago',
-  }),
-  selectMarketInsightsEnabled: () => true,
+  useMarketInsights: (...args: unknown[]) => mockUseMarketInsights(...args),
+  selectMarketInsightsEnabled: () => mockSelectMarketInsightsEnabled(),
 }));
 
 jest.mock('../hooks/usePerpsActions', () => ({
@@ -59,6 +53,13 @@ jest.mock('../../Perps/hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockTrack }),
 }));
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 // Use a stable wrapper so jest.restoreAllMocks() (from testSetup.js afterEach)
 // does not wipe the implementation between tests.
 const mockPerpsBottomSheetTooltipInner = jest.fn((..._args: unknown[]) => null);
@@ -68,7 +69,6 @@ jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
 }));
 
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
-  selectTokenDetailsV2Enabled: jest.fn(() => true),
   selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
 }));
 
@@ -144,10 +144,31 @@ const defaultProps: AssetOverviewContentProps = {
   goToSwaps: jest.fn(),
 };
 
+const defaultMarketInsightsResult = {
+  report: {
+    asset: 'eth',
+    generatedAt: '2026-02-17T11:55:00.000Z',
+    headline: 'ETH outlook stays positive',
+    summary: 'Momentum remains constructive.',
+    trends: [],
+    sources: [],
+  },
+  isLoading: false,
+  error: null,
+  timeAgo: '5m ago',
+};
+
 describe('AssetOverviewContent', () => {
   describe('Long / Short with perps eligibility', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'market-insights-opened' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
+      mockSelectMarketInsightsEnabled.mockReturnValue(true);
+      mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
     });
 
     it('shows geo block modal and tracks event when Long is pressed and user is not eligible', () => {
@@ -262,6 +283,82 @@ describe('AssetOverviewContent', () => {
           tokenChainId: '0x1',
         }),
       );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MARKET_INSIGHTS_OPENED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        caip19: 'eip155:1/erc20:0x123',
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({
+        category: 'market-insights-opened',
+      });
+    });
+
+    it('resolves market insights display as false when feature flag is disabled', () => {
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      const onMarketInsightsDisplayResolved = jest.fn();
+
+      renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
+    });
+
+    it('does not resolve market insights display while market insights is loading', () => {
+      mockUseMarketInsights.mockReturnValue({
+        ...defaultMarketInsightsResult,
+        report: null,
+        isLoading: true,
+      });
+      const onMarketInsightsDisplayResolved = jest.fn();
+
+      renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(onMarketInsightsDisplayResolved).not.toHaveBeenCalled();
+    });
+
+    it('resolves market insights display as true when report is available', () => {
+      const onMarketInsightsDisplayResolved = jest.fn();
+
+      renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(true);
+    });
+
+    it('resolves market insights display as false when report is unavailable after loading', () => {
+      mockUseMarketInsights.mockReturnValue({
+        ...defaultMarketInsightsResult,
+        report: null,
+        isLoading: false,
+      });
+      const onMarketInsightsDisplayResolved = jest.fn();
+
+      renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
     });
   });
 });
