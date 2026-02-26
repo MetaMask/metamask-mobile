@@ -1,8 +1,11 @@
 import React from 'react';
-import { Image } from 'react-native';
 import {
   Box,
   Text,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
   TextVariant,
   TextColor,
   BoxAlignItems,
@@ -11,8 +14,6 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import wifiOffIcon from '../../../../../images/wifi-off.png';
-import styles from './ErrorState.styles';
 
 interface ErrorStateProps {
   /** Text describing what failed to load (e.g., "Unable to load predictions") */
@@ -41,7 +42,11 @@ const ErrorState: React.FC<ErrorStateProps> = ({ title, onRetry }) => {
 
   return (
     <Box alignItems={BoxAlignItems.Center} gap={3} padding={4}>
-      <Image source={wifiOffIcon} style={styles.icon} />
+      <Icon
+        name={IconName.WifiOff}
+        size={IconSize.Xl}
+        color={IconColor.IconMuted}
+      />
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
@@ -53,6 +58,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ title, onRetry }) => {
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         onPress={handleRetry}
+        twClassName={'self-center'}
       >
         {strings('homepage.error.retry')}
       </Button>
