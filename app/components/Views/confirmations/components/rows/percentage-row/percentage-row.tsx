@@ -44,11 +44,7 @@ export function PercentageRow() {
   const { label, tooltip } = rowConfig;
 
   return (
-    <InfoRow
-      label={label}
-      tooltip={tooltip}
-      tooltipColor={IconColor.Alternative}
-    >
+    <InfoRow label={label} tooltip={tooltip} tooltipColor={IconColor.Muted}>
       <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
         {MUSD_CONVERSION_APY}%
       </Text>

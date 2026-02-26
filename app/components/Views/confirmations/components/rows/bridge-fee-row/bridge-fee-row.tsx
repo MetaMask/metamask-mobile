@@ -160,7 +160,7 @@ function NetworkFeeRow({
       alertField={RowAlertKey.PayWithFee}
       tooltipTitle={strings('confirm.label.network_fee')}
       tooltip={strings('confirm.tooltip.network_fee')}
-      tooltipColor={IconColor.Alternative}
+      tooltipColor={IconColor.Muted}
       rowVariant={InfoRowVariant.Small}
     >
       <Text

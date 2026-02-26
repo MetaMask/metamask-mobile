@@ -37,11 +37,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     modalContent: {
       width: '100%',
-      backgroundColor: theme.colors.background.default,
       marginTop: 16,
       paddingVertical: 20,
       paddingHorizontal: 16,
-      borderRadius: 8,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
