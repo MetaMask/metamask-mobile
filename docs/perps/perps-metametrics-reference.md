@@ -14,18 +14,18 @@ MetaMetrics uses **8 consolidated events** with discriminating properties (vs 38
 
 ```typescript
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 
 // Declarative: Track on mount
 usePerpsEventTracking({
   eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
   properties: {
-    [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.TRADING,
-    [PerpsEventProperties.ASSET]: 'BTC',
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+    [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
   },
   conditions: [!!asset], // Optional: wait for data
 });
@@ -33,40 +33,32 @@ usePerpsEventTracking({
 // Imperative: Track on action
 const { track } = usePerpsEventTracking();
 track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-  [PerpsEventProperties.INTERACTION_TYPE]:
-    PerpsEventValues.INTERACTION_TYPE.TAP,
-  [PerpsEventProperties.ACTION_TYPE]:
-    PerpsEventValues.ACTION_TYPE.START_TRADING,
+  [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+    PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+  [PERPS_EVENT_PROPERTY.ACTION_TYPE]:
+    PERPS_EVENT_VALUE.ACTION_TYPE.START_TRADING,
 });
 ```
 
-### 2. Controller Tracking (Transactions)
+### 2. Controller / Services Tracking (Transactions)
 
-**Location:** `app/controllers/perps/PerpsController.ts`
+**Location:** `app/controllers/perps/PerpsController.ts`, `app/controllers/perps/services/TradingService.ts`, etc.
+
+The controller and services use `trackPerpsEvent` from the metrics adapter (see `app/components/UI/Perps/adapters/mobileInfrastructure.ts`), which maps to MetaMetrics events via `AnalyticsEventBuilder`.
 
 ```typescript
-import MetaMetrics from '../../../../core/Analytics/MetaMetrics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../constants/eventNames';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 
-const startTime = performance.now();
-
-MetaMetrics.getInstance().trackEvent(
-  MetricsEventBuilder.createEventBuilder(
-    MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-  )
-    .addProperties({
-      [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-      [PerpsEventProperties.ASSET]: params.coin,
-      [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-      [PerpsEventProperties.COMPLETION_DURATION]: performance.now() - startTime,
-    })
-    .build(),
-);
+// Inside controller/service (metrics injected via dependencies)
+this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
+  [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+  [PERPS_EVENT_PROPERTY.ASSET]: params.coin,
+  [PERPS_EVENT_PROPERTY.ORDER_TYPE]: params.orderType,
+  [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: performance.now() - startTime,
+});
 ```
 
 ## 8 Events
@@ -91,14 +83,14 @@ MetaMetrics.getInstance().trackEvent(
   - **Home section sources:** `'perps_home'` | `'perps_home_position'` | `'perps_home_orders'` | `'perps_home_watchlist'` | `'perps_home_explore_crypto'` | `'perps_home_explore_stocks'` | `'perps_home_activity'` | `'perps_home_empty_state'`
   - **Market list sources:** `'perps_market_list_all'` | `'perps_market_list_crypto'` | `'perps_market_list_stocks'`
   - **Trade/Position sources:** `'trade_screen'` | `'position_screen'` | `'tp_sl_view'` | `'trade_menu_action'` | `'open_position'` | `'trade_details'`
-  - **Other sources:** `'tutorial'` | `'perps_tutorial'` | `'close_toast'` | `'position_close_toast'` | `'tooltip'` | `'magnifying_glass'` | `'crypto_button'` | `'stocks_button'` | `'order_book'` | `'full_screen_chart'` | `'stop_loss_prompt_banner'` | `'wallet_home'` | `'wallet_main_action_menu'` | `'homescreen_tab'`
-  - **Geo-block sources:** `'deposit_button'` | `'withdraw_button'` | `'trade_action'` | `'add_funds_action'` | `'cancel_order'` | `'asset_detail_screen'`
+  - **Other sources:** `'tutorial'` | `'perps_tutorial'` | `'close_toast'` | `'position_close_toast'` | `'tooltip'` | `'magnifying_glass'` | `'crypto_button'` | `'stocks_button'` | `'order_book'` | `'full_screen_chart'` | `'stop_loss_prompt_banner'` | `'wallet_home'` | `'wallet_main_action_menu'` | `'homescreen_tab'` | `'perps_asset_screen_no_funds'`
+  - **Geo-block sources:** `'deposit_button'` | `'withdraw_button'` | `'trade_action'` | `'add_funds_action'` | `'cancel_order'` | `'asset_detail_screen'` | `'close_position_action'` | `'modify_position_action'` | `'order_book_long_button'` | `'order_book_short_button'` | `'order_book_close_button'` | `'order_book_modify_button'` | `'auto_close_action'` | `'adjust_margin_action'` | `'stop_loss_prompt_add_margin'` | `'stop_loss_prompt_set_sl'` | `'close_all_positions_button'`
 - `open_position` (optional): Number of open positions (used for close_all_positions screen, number)
 - `has_perp_balance` (optional): Whether user has a perps balance or positions (boolean)
 - `has_take_profit` (optional): Whether take profit is set (boolean, used for TP/SL screens)
 - `has_stop_loss` (optional): Whether stop loss is set (boolean, used for TP/SL screens)
-- `pnl_dollar` (optional): P&L in dollars (number, used for pnl_hero_card screen)
-- `pnl_percent` (optional): P&L as percentage (number, used for pnl_hero_card screen)
+- `dollar_pnl` (optional): P&L in dollars (number, used for pnl_hero_card screen)
+- `percent_pnl` (optional): P&L as percentage (number, used for pnl_hero_card screen)
 - `button_clicked` (optional): Button that led to this screen (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
 - `button_location` (optional): Location of the button clicked (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
 - `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled (for baseline exposure tracking)
@@ -210,9 +202,9 @@ MetaMetrics.getInstance().trackEvent(
 
 **Properties:**
 
-- `status` (required): `'submitted' | 'executed' | 'failed'`
+- `status` (required): `'completed' | 'failed'` (withdrawal uses `completed` rather than `executed`)
 - `withdrawal_amount` (required): Amount being withdrawn in USDC (number)
-- `completion_duration` (required): Duration in milliseconds (number)
+- `completion_duration` (optional): Duration in milliseconds (number)
 - `error_message` (optional): Error description when status is 'failed'
 
 ### 7. PERPS_RISK_MANAGEMENT
@@ -238,31 +230,37 @@ MetaMetrics.getInstance().trackEvent(
 
 **Properties:**
 
-- `error_type` (required for errors): `'network' | 'app_crash' | 'backend' | 'validation'`
-- `error_message` (required for errors): Error description string
+- `error_type` (required for errors): `'network' | 'app_crash' | 'backend' | 'validation' | 'warning'`
+- `error_message` (required for errors): Error description string (prefer `PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY` for consistent analytics)
 - `warning_message` (required for warnings): Warning description string
 - `screen_type` (optional): Screen where error/warning occurred (e.g., `'trading'`, `'withdrawal'`, `'market_list'`, `'position_close'`)
-- `screen_name` (optional): Specific screen name (e.g., `'connection_error'`, `'perps_market_details'`, `'perps_order'`)
+- `screen_name` (optional): Specific screen name (e.g., `'connection_error'`, `'perps_market_details'`, `'perps_order'`, `'perps_hero_card'`, `'perps_activity_history'`, `'perps_home'`)
 - `retry_attempts` (optional): Number of retry attempts (number)
 - `asset` (optional): Asset symbol if error is asset-specific (e.g., `'BTC'`, `'ETH'`)
 - `action` (optional): Action being attempted when error occurred
 
-**Note:** This event is used for both errors (with `error_type` + `error_message`) and warnings (with `warning_message`).
+**Note:** This event is used for both errors (with `error_type` + `error_message`) and warnings (with `warning_message`). Use `PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY` for standardized error message keys (e.g., `insufficient_balance`, `order_failed`, `geo_restriction`).
 
 ## Quick Reference
 
-> **Note:** In code, property names and values are accessed via constants (e.g., `PerpsEventProperties.ASSET`, `PerpsEventValues.STATUS.EXECUTED`). The string values shown in the event sections above are what actually gets sent to Segment.
+> **Note:** In code, property names and values are accessed via `PERPS_EVENT_PROPERTY` and `PERPS_EVENT_VALUE` from `@metamask/perps-controller` (defined in `app/controllers/perps/constants/eventNames.ts`). The string values shown in the event sections above are what actually gets sent to Segment.
 
 ## Adding Events
 
 ### Screen View
 
 ```typescript
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+
 usePerpsEventTracking({
   eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
   properties: {
-    [PerpsEventProperties.SCREEN_TYPE]:
-      PerpsEventValues.SCREEN_TYPE.YOUR_SCREEN,
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+      PERPS_EVENT_VALUE.SCREEN_TYPE.YOUR_SCREEN,
   },
 });
 ```
@@ -272,24 +270,19 @@ usePerpsEventTracking({
 ```typescript
 const { track } = usePerpsEventTracking();
 track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-  [PerpsEventProperties.INTERACTION_TYPE]:
-    PerpsEventValues.INTERACTION_TYPE.TAP,
+  [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+    PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
 });
 ```
 
-### Transaction (Controller)
+### Transaction (Controller / Services)
 
 ```typescript
-MetaMetrics.getInstance().trackEvent(
-  MetricsEventBuilder.createEventBuilder(
-    MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-  )
-    .addProperties({
-      [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-      [PerpsEventProperties.COMPLETION_DURATION]: duration,
-    })
-    .build(),
-);
+// Via metrics adapter (trackPerpsEvent)
+this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
+  [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+  [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: duration,
+});
 ```
 
 ## Multiple Concurrent Tests
@@ -309,23 +302,28 @@ To support multiple AB tests running concurrently (e.g., TAT-1937 button colors,
 **Example with 3 concurrent tests:**
 
 ```typescript
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+
 usePerpsEventTracking({
   eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
   properties: {
-    [PerpsEventProperties.SCREEN_TYPE]:
-      PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
-    [PerpsEventProperties.ASSET]: 'BTC',
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+      PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+    [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
     // Test 1: Button color test (TAT-1937) - only included when enabled
     ...(isButtonColorTestEnabled && {
-      [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+      [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
     }),
     // Test 2: Asset CTA test (TAT-1940) - future
     ...(isAssetCTATestEnabled && {
-      [PerpsEventProperties.AB_TEST_ASSET_CTA]: assetCTAVariant,
+      [PERPS_EVENT_PROPERTY.AB_TEST_ASSET_CTA]: assetCTAVariant,
     }),
     // Test 3: Homepage CTA test (TAT-1827) - future
     ...(isHomepageCTATestEnabled && {
-      [PerpsEventProperties.AB_TEST_HOMEPAGE_CTA]: homepageCTAVariant,
+      [PERPS_EVENT_PROPERTY.AB_TEST_HOMEPAGE_CTA]: homepageCTAVariant,
     }),
   },
 });
@@ -370,8 +368,8 @@ The PnL Hero Card screen is tracked with additional P&L context and source infor
 
 - `screen_type`: `'pnl_hero_card'`
 - `source`: `'close_toast' | 'perp_asset_screen'` - How user arrived at the screen
-- `pnl_dollar`: P&L in dollars (number)
-- `pnl_percent`: P&L as percentage (ROE)
+- `dollar_pnl`: P&L in dollars (number)
+- `percent_pnl`: P&L as percentage (ROE)
 - `asset`: Asset symbol (e.g., `'BTC'`)
 - `direction`: `'long' | 'short'`
 
@@ -405,16 +403,21 @@ The TP/SL (Take Profit / Stop Loss) tracking differentiates between creating TP/
 ### Usage
 
 ```typescript
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+
 // Screen view tracking
 usePerpsEventTracking({
   eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
   properties: {
-    [PerpsEventProperties.SCREEN_TYPE]: isEditingExistingPosition
-      ? PerpsEventValues.SCREEN_TYPE.EDIT_TPSL
-      : PerpsEventValues.SCREEN_TYPE.CREATE_TPSL,
-    [PerpsEventProperties.ASSET]: asset,
-    [PerpsEventProperties.HAS_TAKE_PROFIT]: !!initialTakeProfitPrice,
-    [PerpsEventProperties.HAS_STOP_LOSS]: !!initialStopLossPrice,
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: isEditingExistingPosition
+      ? PERPS_EVENT_VALUE.SCREEN_TYPE.EDIT_TPSL
+      : PERPS_EVENT_VALUE.SCREEN_TYPE.CREATE_TPSL,
+    [PERPS_EVENT_PROPERTY.ASSET]: asset,
+    [PERPS_EVENT_PROPERTY.HAS_TAKE_PROFIT]: !!initialTakeProfitPrice,
+    [PERPS_EVENT_PROPERTY.HAS_STOP_LOSS]: !!initialStopLossPrice,
   },
 });
 ```
@@ -444,6 +447,9 @@ Entry point tracking captures how users navigate to screens, enabling analysis o
 | `'magnifying_glass'` | Search icon button                      |
 | `'crypto'`           | Crypto tab in market list               |
 | `'stocks'`           | Stocks & Commodities tab in market list |
+| `'commodities'`      | Commodities tab                         |
+| `'forex'`            | Forex tab                               |
+| `'new'`              | New markets                             |
 | `'give_feedback'`    | Give feedback button                    |
 
 ### Button Location Values
@@ -467,33 +473,38 @@ Entry point tracking captures how users navigate to screens, enabling analysis o
 ### Usage Example
 
 ```typescript
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+
 // Track button click
 track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-  [PerpsEventProperties.INTERACTION_TYPE]:
-    PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-  [PerpsEventProperties.BUTTON_CLICKED]:
-    PerpsEventValues.BUTTON_CLICKED.DEPOSIT,
-  [PerpsEventProperties.BUTTON_LOCATION]:
-    PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+  [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+    PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+  [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+    PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+  [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+    PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
 });
 
 // Pass to navigation for screen view tracking
 navigation.navigate(Routes.PERPS.MARKET_LIST, {
-  button_clicked: PerpsEventValues.BUTTON_CLICKED.MAGNIFYING_GLASS,
-  button_location: PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+  button_clicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
+  button_location: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
 });
 
 // Include in screen view event
 usePerpsEventTracking({
   eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
   properties: {
-    [PerpsEventProperties.SCREEN_TYPE]:
-      PerpsEventValues.SCREEN_TYPE.MARKET_LIST,
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+      PERPS_EVENT_VALUE.SCREEN_TYPE.MARKET_LIST,
     ...(buttonClicked && {
-      [PerpsEventProperties.BUTTON_CLICKED]: buttonClicked,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
     }),
     ...(buttonLocation && {
-      [PerpsEventProperties.BUTTON_LOCATION]: buttonLocation,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]: buttonLocation,
     }),
   },
 });
@@ -519,12 +530,17 @@ When users are geo-blocked, the `geo_block_notif` screen type is used to track w
 ### Usage
 
 ```typescript
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+
 usePerpsEventTracking({
   eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
   properties: {
-    [PerpsEventProperties.SCREEN_TYPE]:
-      PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-    [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.DEPOSIT_BUTTON, // or other blocked action
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+      PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+    [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.DEPOSIT_BUTTON, // or other blocked action
   },
 });
 ```
@@ -554,6 +570,7 @@ usePerpsEventTracking({
 
 - **Event Tracking Hook**: `app/components/UI/Perps/hooks/usePerpsEventTracking.ts`
 - **Events**: `app/core/Analytics/MetaMetrics.events.ts`
-- **Properties & Values**: `app/components/UI/Perps/constants/eventNames.ts`
+- **Properties & Values**: `app/controllers/perps/constants/eventNames.ts` (exported via `@metamask/perps-controller` as `PERPS_EVENT_PROPERTY`, `PERPS_EVENT_VALUE`)
+- **Metrics Adapter**: `app/components/UI/Perps/adapters/mobileInfrastructure.ts` (maps `trackPerpsEvent` to MetaMetrics)
 - **Controller**: `app/controllers/perps/PerpsController.ts`
 - **Trading Service**: `app/controllers/perps/services/TradingService.ts`
