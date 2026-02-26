@@ -75,6 +75,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const {
     data: market,
+    isLoading: isMarketLoading,
     isFetching: isMarketFetching,
     refetch: refetchMarket,
   } = usePredictMarket({
@@ -95,11 +96,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   // calculate sticky header indices based on content structure
   const stickyHeaderIndices = useMemo(() => {
-    if (isMarketFetching && !market) {
+    if (isMarketLoading) {
       return [];
     }
     return [1];
-  }, [isMarketFetching, market]);
+  }, [isMarketLoading]);
 
   const titleLineCount = useMemo(
     () => estimateLineCount(title ?? market?.title),
@@ -114,7 +115,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   } = usePredictPositions({
     marketId: resolvedMarketId,
     claimable: false,
-    enabled: !isMarketFetching && Boolean(resolvedMarketId),
+    enabled: !isMarketLoading && Boolean(resolvedMarketId),
   });
 
   // "claimable" positions
@@ -125,7 +126,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   } = usePredictPositions({
     marketId: resolvedMarketId,
     claimable: true,
-    enabled: !isMarketFetching && Boolean(resolvedMarketId),
+    enabled: !isMarketLoading && Boolean(resolvedMarketId),
   });
 
   // check if market has fee exemption (note: worth moveing to a const or util at some point))
@@ -134,10 +135,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(
     () =>
-      !isMarketFetching &&
+      !isMarketLoading &&
       !isActivePositionsLoading &&
       !isClaimablePositionsLoading,
-    [isMarketFetching, isActivePositionsLoading, isClaimablePositionsLoading],
+    [isMarketLoading, isActivePositionsLoading, isClaimablePositionsLoading],
   );
 
   const {
@@ -165,7 +166,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
     market,
-    isMarketFetching,
+    isMarketFetching: isMarketLoading,
   });
 
   const handleBackPress = () => {
@@ -356,7 +357,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     >
       <Box twClassName="px-3 gap-4">
         <PredictMarketDetailsHeader
-          isLoading={isMarketFetching && !market}
+          isLoading={isMarketLoading}
           market={market}
           title={title}
           image={image}
@@ -403,7 +404,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         </Box>
 
         {/* Show content skeleton while initial market data is fetching */}
-        {isMarketFetching && !market ? (
+        {isMarketLoading ? (
           <Box twClassName="px-3">
             <PredictDetailsContentSkeleton />
           </Box>
@@ -417,7 +418,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         )}
 
         {/* Tab content - only show when market is loaded */}
-        {!isMarketFetching && market && (
+        {!isMarketLoading && market && (
           <PredictMarketDetailsTabContent
             activeTab={activeTab}
             tabsReady={tabsReady}

@@ -129,7 +129,7 @@ describe('PredictMarketSportCardWrapper', () => {
     jest.clearAllMocks();
     mockUsePredictMarket.mockReturnValue({
       data: null,
-      isFetching: false,
+      isLoading: false,
       error: null,
       refetch: jest.fn(),
     } as unknown as ReturnType<typeof usePredictMarket>);
@@ -143,7 +143,7 @@ describe('PredictMarketSportCardWrapper', () => {
     it('returns null when fetching market data', () => {
       mockUsePredictMarket.mockReturnValue({
         data: null,
-        isFetching: true,
+        isLoading: true,
         error: null,
         refetch: jest.fn(),
       } as unknown as ReturnType<typeof usePredictMarket>);
@@ -161,7 +161,7 @@ describe('PredictMarketSportCardWrapper', () => {
     it('returns null when error occurs', () => {
       mockUsePredictMarket.mockReturnValue({
         data: null,
-        isFetching: false,
+        isLoading: false,
         error: new Error('Failed to fetch market'),
         refetch: jest.fn(),
       } as unknown as ReturnType<typeof usePredictMarket>);
@@ -179,7 +179,7 @@ describe('PredictMarketSportCardWrapper', () => {
     it('returns null when market is null', () => {
       mockUsePredictMarket.mockReturnValue({
         data: null,
-        isFetching: false,
+        isLoading: false,
         error: null,
         refetch: jest.fn(),
       } as unknown as ReturnType<typeof usePredictMarket>);
@@ -197,7 +197,7 @@ describe('PredictMarketSportCardWrapper', () => {
     beforeEach(() => {
       mockUsePredictMarket.mockReturnValue({
         data: mockMarket,
-        isFetching: false,
+        isLoading: false,
         error: null,
         refetch: jest.fn(),
       } as unknown as ReturnType<typeof usePredictMarket>);
@@ -334,7 +334,7 @@ describe('PredictMarketSportCardWrapper', () => {
       const mockOnLoad = jest.fn();
       mockUsePredictMarket.mockReturnValue({
         data: mockMarket,
-        isFetching: false,
+        isLoading: false,
         error: null,
         refetch: jest.fn(),
       } as unknown as ReturnType<typeof usePredictMarket>);
@@ -354,7 +354,7 @@ describe('PredictMarketSportCardWrapper', () => {
       const mockOnLoad = jest.fn();
       mockUsePredictMarket.mockReturnValue({
         data: null,
-        isFetching: true,
+        isLoading: true,
         error: null,
         refetch: jest.fn(),
       } as unknown as ReturnType<typeof usePredictMarket>);
@@ -374,7 +374,7 @@ describe('PredictMarketSportCardWrapper', () => {
       const mockOnLoad = jest.fn();
       mockUsePredictMarket.mockReturnValue({
         data: null,
-        isFetching: false,
+        isLoading: false,
         error: new Error('Failed to fetch'),
         refetch: jest.fn(),
       } as unknown as ReturnType<typeof usePredictMarket>);
@@ -394,7 +394,7 @@ describe('PredictMarketSportCardWrapper', () => {
       const mockOnLoad = jest.fn();
       mockUsePredictMarket.mockReturnValue({
         data: null,
-        isFetching: false,
+        isLoading: false,
         error: null,
         refetch: jest.fn(),
       } as unknown as ReturnType<typeof usePredictMarket>);
@@ -413,7 +413,7 @@ describe('PredictMarketSportCardWrapper', () => {
     it('does not call onLoad when onLoad is not provided', () => {
       mockUsePredictMarket.mockReturnValue({
         data: mockMarket,
-        isFetching: false,
+        isLoading: false,
         error: null,
         refetch: jest.fn(),
       } as unknown as ReturnType<typeof usePredictMarket>);
