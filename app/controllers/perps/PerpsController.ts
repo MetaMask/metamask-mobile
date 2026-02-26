@@ -206,14 +206,12 @@ export type PerpsControllerState = {
   withdrawInProgress: boolean;
   lastWithdrawResult: LastTransactionResult | null;
 
-  // Persisted FIFO guard — only written by completeWithdrawalFromHistory /
-  // completeDepositFromHistory so that submission calls never overwrite them.
-  // Survives app restarts (persist: true) unlike lastWithdrawResult / lastDepositResult.
+  // Persisted FIFO guard — only written by completeWithdrawalFromHistory
+  // so that submission calls never overwrite it.
+  // Survives app restarts (persist: true) unlike lastWithdrawResult.
   // The txHash disambiguates two completions that share the same millisecond timestamp.
   lastCompletedWithdrawalTimestamp: number | null;
   lastCompletedWithdrawalTxHash: string | null;
-  lastCompletedDepositTimestamp: number | null;
-  lastCompletedDepositTxHash: string | null;
 
   // Withdrawal request tracking (persistent, for transaction history)
   withdrawalRequests: {
@@ -367,8 +365,6 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   lastWithdrawResult: null,
   lastCompletedWithdrawalTimestamp: null,
   lastCompletedWithdrawalTxHash: null,
-  lastCompletedDepositTimestamp: null,
-  lastCompletedDepositTxHash: null,
   withdrawalRequests: [],
   withdrawalProgress: {
     progress: 0,
@@ -493,18 +489,6 @@ const metadata: StateMetadata<PerpsControllerState> = {
     usedInUi: true,
   },
   lastCompletedWithdrawalTxHash: {
-    includeInStateLogs: false,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  lastCompletedDepositTimestamp: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  lastCompletedDepositTxHash: {
     includeInStateLogs: false,
     persist: true,
     includeInDebugSnapshot: false,
@@ -2388,59 +2372,6 @@ export class PerpsController extends BaseController<
         [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: Number.parseFloat(
           completedWithdrawal.amount,
         ),
-      },
-    );
-  }
-
-  /**
-   * Complete a deposit from transaction history using FIFO queue matching.
-   *
-   * Called when a completed deposit is found via transaction history polling
-   * in history that happened after its submission time.
-   *
-   * @param depositRequestId - The ID of the pending deposit request to mark as complete.
-   * @param completedDeposit - The completed deposit data from the history API.
-   * @param completedDeposit.txHash - The on-chain transaction hash.
-   * @param completedDeposit.amount - The deposit amount.
-   * @param completedDeposit.timestamp - The completion timestamp from the history API.
-   * @param completedDeposit.asset - The asset symbol (e.g. USDC).
-   */
-  completeDepositFromHistory(
-    depositRequestId: string,
-    completedDeposit: {
-      txHash: string;
-      amount: string;
-      timestamp: number;
-      asset?: string;
-    },
-  ): void {
-    this.update((state) => {
-      const requestIndex = state.depositRequests.findIndex(
-        (req) => req.id === depositRequestId,
-      );
-
-      if (requestIndex !== -1) {
-        state.depositRequests.splice(requestIndex, 1);
-      }
-
-      state.lastCompletedDepositTimestamp = completedDeposit.timestamp;
-      state.lastCompletedDepositTxHash = completedDeposit.txHash;
-
-      const hasPendingDeposits = state.depositRequests.some(
-        (req) => req.status === 'pending' || req.status === 'bridging',
-      );
-
-      state.depositInProgress = hasPendingDeposits;
-
-      state.lastUpdateTimestamp = Date.now();
-    });
-
-    this.#debugLog(
-      'PerpsController: Completed deposit from transaction history (FIFO)',
-      {
-        depositRequestId,
-        txHash: completedDeposit.txHash,
-        amount: completedDeposit.amount,
       },
     );
   }

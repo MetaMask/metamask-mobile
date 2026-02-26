@@ -492,8 +492,6 @@
     "lastWithdrawResult": null,
     "lastCompletedWithdrawalTimestamp": null,
     "lastCompletedWithdrawalTxHash": null,
-    "lastCompletedDepositTimestamp": null,
-    "lastCompletedDepositTxHash": null,
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
