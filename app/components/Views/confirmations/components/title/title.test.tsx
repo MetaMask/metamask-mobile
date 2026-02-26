@@ -348,7 +348,7 @@ describe('Confirm Title', () => {
       state: musdMaxConversionState,
     });
 
-    expect(getByText('Convert max')).toBeTruthy();
+    expect(getByText('Convert max')).toBeOnTheScreen();
   });
 
   it.each([TransactionType.lendingDeposit, TransactionType.lendingWithdraw])(

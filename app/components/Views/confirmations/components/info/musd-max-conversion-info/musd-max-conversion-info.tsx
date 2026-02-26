@@ -93,12 +93,10 @@ export const MusdMaxConversionInfo = () => {
 
   const isConfirmDisabled = isLoading || Boolean(blockingAlert);
 
-  const buttonLabel = useMemo(() => {
-    if (blockingAlert) {
-      return blockingAlert.title;
-    }
-    return strings('earn.musd_conversion.convert');
-  }, [blockingAlert]);
+  const buttonLabel = useMemo(
+    () => blockingAlert?.title ?? strings('earn.musd_conversion.convert'),
+    [blockingAlert],
+  );
 
   return (
     <View
