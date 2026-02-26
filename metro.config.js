@@ -101,15 +101,23 @@ module.exports = function (baseConfig) {
           // @ecies/ciphers uses package.json "exports" subpaths that Metro
           // can't resolve without unstable_enablePackageExports. Map them to
           // the react-native condition targets manually.
+          // Note: require.resolve can't be used here because the package's
+          // "exports" field blocks direct dist/ access.
           if (moduleName === '@ecies/ciphers/aes') {
             return {
-              filePath: require.resolve('@ecies/ciphers/dist/aes/noble.js'),
+              filePath: path.resolve(
+                __dirname,
+                'node_modules/@ecies/ciphers/dist/aes/noble.js',
+              ),
               type: 'sourceFile',
             };
           }
           if (moduleName === '@ecies/ciphers/chacha') {
             return {
-              filePath: require.resolve('@ecies/ciphers/dist/chacha/noble.js'),
+              filePath: path.resolve(
+                __dirname,
+                'node_modules/@ecies/ciphers/dist/chacha/noble.js',
+              ),
               type: 'sourceFile',
             };
           }
