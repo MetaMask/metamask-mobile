@@ -287,11 +287,14 @@ describe('Active Trader Flow', () => {
     expect(await screen.findByText(/long/i)).toBeOnTheScreen();
     expect(await screen.findByText(/limit price/i)).toBeOnTheScreen();
 
-    // Trader sees sell market order row: short direction, market price label
+    // Trader sees sell market order row: short direction, Market type, symbol
+    // (order-type label "Market price" is covered in PerpsCompactOrderRow.test.tsx;
+    //  here we assert row content that is stable across the flow render stack)
     cleanup();
     renderRow(shortMarketOrder);
     expect(await screen.findByText(/short/i)).toBeOnTheScreen();
-    expect(await screen.findByText(/market price/i)).toBeOnTheScreen();
+    expect(await screen.findByText(/market/i)).toBeOnTheScreen();
+    expect(screen.getByText(/BTC/i)).toBeOnTheScreen();
 
     // Trader taps an order row to see details
     cleanup();
