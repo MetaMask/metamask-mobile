@@ -310,15 +310,22 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     marketInsightsReport,
   ]);
 
-  useEffect(() => {
-    if (isMarketInsightsEnabled && marketInsightsCaip19Id) {
-      // Measuring the time it takes to load the market insights entry card
-      trace({
-        name: TraceName.MarketInsightsEntryCardLoad,
-        op: TraceOperation.MarketInsightsLoad,
-      });
-    }
-  }, [isMarketInsightsEnabled, marketInsightsCaip19Id]);
+  // Start the entry card trace synchronously during render so it is registered
+  // in the trace map before any child useEffect (where endTrace fires) runs.
+  // Using a ref guard ensures we only start one trace per unique asset.
+  const entryCardTraceStartedRef = useRef<string | null>(null);
+  if (
+    isMarketInsightsEnabled &&
+    marketInsightsCaip19Id &&
+    entryCardTraceStartedRef.current !== marketInsightsCaip19Id
+  ) {
+    entryCardTraceStartedRef.current = marketInsightsCaip19Id;
+    trace({
+      name: TraceName.MarketInsightsEntryCardLoad,
+      op: TraceOperation.MarketInsightsLoad,
+      id: marketInsightsCaip19Id,
+    });
+  }
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -519,13 +526,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           }
           {isMarketInsightsEnabled && marketInsightsReport ? (
             <View style={styles.marketInsightsWrapper}>
-              {/* key forces a remount on token change so the entry card's
-                  mount-time endTrace fires once per asset, preventing orphaned Sentry spans */}
               <MarketInsightsEntryCard
-                key={marketInsightsCaip19Id ?? ''}
                 report={marketInsightsReport}
                 timeAgo={marketInsightsTimeAgo}
                 onPress={handleMarketInsightsPress}
+                caip19Id={marketInsightsCaip19Id ?? ''}
                 testID="market-insights-entry-card"
               />
             </View>

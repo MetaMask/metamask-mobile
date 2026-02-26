@@ -105,16 +105,19 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   report,
   timeAgo,
   onPress,
+  caip19Id,
   testID,
 }) => {
   const tw = useTailwind();
 
   useEffect(() => {
-    // Finishes measuring the time it takes to load the market insights entry card after
-    // the component is mounted. The parent uses a key tied to the asset's caip19 ID,
-    // so this fires once per token navigation.
-    endTrace({ name: TraceName.MarketInsightsEntryCardLoad });
-  }, []);
+    // End the trace started by the parent (AssetOverviewContent) to measure
+    // how long it takes for the entry card to mount after navigation.
+    endTrace({
+      name: TraceName.MarketInsightsEntryCardLoad,
+      id: caip19Id,
+    });
+  }, [caip19Id]);
 
   return (
     <Pressable

@@ -20,6 +20,7 @@ describe('MarketInsightsEntryCard', () => {
         report={report as never}
         timeAgo="3m ago"
         onPress={mockPress}
+        caip19Id="eip155:1/erc20:0xtest"
         testID="market-insights-entry-card"
       />,
     );
@@ -61,6 +62,7 @@ describe('MarketInsightsEntryCard', () => {
         report={report as never}
         timeAgo="1m ago"
         onPress={jest.fn()}
+        caip19Id="eip155:1/erc20:0xtest"
         testID="market-insights-entry-card"
       />,
     );
