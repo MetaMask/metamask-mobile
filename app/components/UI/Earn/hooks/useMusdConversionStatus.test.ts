@@ -128,10 +128,20 @@ describe('useMusdConversionStatus', () => {
     hapticsType: NotificationFeedbackType.Warning,
     labelOptions: [{ label: 'In Progress', isBold: true }],
   };
+  const mockExistingConversionInProgressToast = {
+    variant: ToastVariants.Icon as const,
+    iconName: IconName.Warning,
+    hasNoTimeout: true,
+    iconColor: '#000000',
+    backgroundColor: '#FFFFFF',
+    hapticsType: NotificationFeedbackType.Warning,
+    labelOptions: [{ label: 'Conversion already in progress', isBold: true }],
+  };
   const mockInProgressFn = jest.fn(() => mockInProgressToast);
   const mockEarnToastOptions: EarnToastOptionsConfig = {
     mUsdConversion: {
       inProgress: mockInProgressFn,
+      existingConversionInProgress: mockExistingConversionInProgressToast,
       success: {
         variant: ToastVariants.Icon as const,
         iconName: IconName.CheckBold,
