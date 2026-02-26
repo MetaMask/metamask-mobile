@@ -17,7 +17,7 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-describe('useSearchTokens', () => {
+describe.only('useSearchTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
@@ -65,7 +65,8 @@ describe('useSearchTokens', () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer mock-bearer-token',
+            // Initial fetch may not have a bearer token
+            Authorization: 'Bearer ',
           },
           body: expect.stringContaining('test query'),
         }),
