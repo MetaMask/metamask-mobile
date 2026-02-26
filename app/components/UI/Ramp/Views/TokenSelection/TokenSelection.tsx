@@ -283,6 +283,12 @@ function TokenSelection() {
           showBack: false,
         },
         theme,
+        () => {
+          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
+            location: 'Token Selection',
+            ramp_type: 'UNIFIED_BUY_2',
+          });
+        },
       ),
     );
   }, [navigation, theme]);
