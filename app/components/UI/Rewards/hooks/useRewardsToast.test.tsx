@@ -36,6 +36,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 jest.mock('../../../../util/theme', () => {
   const actualTheme = jest.requireActual('../../../../util/theme');
   return {
+    ...actualTheme,
     useAppThemeFromContext: () => actualTheme.mockTheme,
   };
 });
