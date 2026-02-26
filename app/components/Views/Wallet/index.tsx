@@ -11,7 +11,7 @@ import React, {
   useState,
 } from 'react';
 import type { TabRefreshHandle, WalletTokensTabViewHandle } from './types';
-import { useBalanceRefresh } from './hooks';
+import { useBalanceRefresh, useHomepageEntryPoint } from './hooks';
 
 import {
   ActivityIndicator,
@@ -123,11 +123,7 @@ import {
 } from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
 import { SectionRefreshHandle } from '../Homepage/types';
-import {
-  HomepageScrollContext,
-  HomepageEntryPoint,
-  HomepageEntryPoints,
-} from '../Homepage/context/HomepageScrollContext';
+import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -622,18 +618,11 @@ const Wallet = ({
   // ─── Homepage scroll context state ───────────────────────────────────────
   const [viewportHeight, setViewportHeight] = useState(0);
   const [containerScreenY, setContainerScreenY] = useState(0);
-  const [entryPoint, setEntryPoint] = useState<HomepageEntryPoint>(
-    HomepageEntryPoints.APP_OPENED,
-  );
-  const [visitId, setVisitId] = useState(0);
+  const { entryPoint, visitId } = useHomepageEntryPoint(navigation);
 
   // Ref to the scroll container View — used to measure its absolute screen Y
   // position so the visibility check in sections can use correct bounds.
   const containerViewRef = useRef<View>(null);
-  // Tracks whether this is the very first focus (app open) or a revisit.
-  const isFirstFocusRef = useRef(true);
-  // Set by the tabPress listener so useFocusEffect can pick it up.
-  const nextEntryPointRef = useRef<HomepageEntryPoint | null>(null);
   // Timestamp of the last scroll event — used for JS-level throttling.
   const lastScrollTickTimeRef = useRef(0);
   // Callbacks registered by sections to be notified of scroll events.
@@ -817,30 +806,6 @@ const Wallet = ({
       isMountedRef.current = false;
     };
   }, []);
-
-  // Detect home-tab press so useFocusEffect can distinguish it from back-nav.
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('tabPress' as never, () => {
-      nextEntryPointRef.current = HomepageEntryPoints.HOME_TAB;
-    });
-    return unsubscribe;
-  }, [navigation]);
-
-  // Determine entry point and increment visitId on every homepage focus.
-  useFocusEffect(
-    useCallback(() => {
-      let ep: HomepageEntryPoint;
-      if (isFirstFocusRef.current) {
-        ep = HomepageEntryPoints.APP_OPENED;
-        isFirstFocusRef.current = false;
-      } else {
-        ep = nextEntryPointRef.current ?? HomepageEntryPoints.NAVIGATED_BACK;
-      }
-      nextEntryPointRef.current = null;
-      setEntryPoint(ep);
-      setVisitId((prev) => prev + 1);
-    }, []),
-  );
 
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
   // This handles scrolling in the homepage .map() mode where TokenList can't scroll directly

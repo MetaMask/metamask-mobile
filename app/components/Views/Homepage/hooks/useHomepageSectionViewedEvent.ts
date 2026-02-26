@@ -139,7 +139,12 @@ const useHomepageSectionViewedEvent = ({
         const viewportBottom = containerScreenY + viewportHeight;
         const visiblePx =
           Math.min(y + height, viewportBottom) - Math.max(y, viewportTop);
-        if (visiblePx >= height * 0.5) {
+        // For sections taller than the viewport (e.g. a long NFTs list),
+        // 50% of the section height can exceed the full viewport, making the
+        // event nearly impossible to trigger. Cap the threshold at 50% of
+        // the viewport so tall sections fire reliably.
+        const threshold = Math.min(height * 0.5, viewportHeight * 0.5);
+        if (visiblePx >= threshold) {
           fireEvent();
         }
       });
