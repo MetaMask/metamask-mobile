@@ -100,7 +100,7 @@ describe('PerpsProviderSelectorBadge', () => {
     expect(getByText('MYX')).toBeTruthy();
   });
 
-  it('defaults to HyperLiquid when activeProvider is aggregated', () => {
+  it('shows All Providers when activeProvider is aggregated', () => {
     mockUsePerpsProvider.mockReturnValue({
       activeProvider: 'aggregated',
       isMultiProviderEnabled: true,
@@ -108,7 +108,7 @@ describe('PerpsProviderSelectorBadge', () => {
 
     const { getByText } = render(<PerpsProviderSelectorBadge testID="badge" />);
 
-    expect(getByText('HyperLiquid')).toBeTruthy();
+    expect(getByText('All Providers')).toBeOnTheScreen();
   });
 
   it('navigates to provider selection on press', () => {

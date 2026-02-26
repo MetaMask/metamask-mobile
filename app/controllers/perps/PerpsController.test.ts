@@ -5136,4 +5136,321 @@ describe('PerpsController', () => {
       unsub();
     });
   });
+
+  describe('getCachedMarketDataForActiveProvider', () => {
+    it('returns null when no cache exists', () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      controller.testUpdate((state) => {
+        state.activeProvider = 'hyperliquid';
+      });
+
+      const result = controller.getCachedMarketDataForActiveProvider();
+
+      expect(result).toBeNull();
+    });
+
+    it('returns cached data for single provider', () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      controller.testUpdate((state) => {
+        state.activeProvider = 'hyperliquid';
+        state.cachedMarketDataByProvider['hyperliquid:mainnet'] = {
+          data: [{ symbol: 'BTC', name: 'BTC', price: '50000' } as any],
+          timestamp: Date.now(),
+        };
+      });
+
+      const result = controller.getCachedMarketDataForActiveProvider();
+
+      expect(result).toHaveLength(1);
+      expect(result?.[0].symbol).toBe('BTC');
+    });
+
+    it('returns null when single provider cache is expired', () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      controller.testUpdate((state) => {
+        state.activeProvider = 'hyperliquid';
+        state.cachedMarketDataByProvider['hyperliquid:mainnet'] = {
+          data: [{ symbol: 'BTC', name: 'BTC', price: '50000' } as any],
+          timestamp: Date.now() - 999_999_999, // very old
+        };
+      });
+
+      const result = controller.getCachedMarketDataForActiveProvider();
+
+      expect(result).toBeNull();
+    });
+
+    it('assembles data from multiple providers in aggregated mode', () => {
+      const mockMYXProvider = createMockHyperLiquidProvider();
+      markControllerAsInitialized();
+      controller.testSetProviders(
+        new Map([
+          ['hyperliquid', mockProvider],
+          ['myx', mockMYXProvider],
+        ] as any),
+      );
+      controller.testUpdate((state) => {
+        state.activeProvider = 'aggregated';
+        state.cachedMarketDataByProvider['hyperliquid:mainnet'] = {
+          data: [
+            {
+              symbol: 'BTC',
+              name: 'BTC',
+              price: '50000',
+              providerId: 'hyperliquid',
+            } as any,
+          ],
+          timestamp: Date.now(),
+        };
+        state.cachedMarketDataByProvider['myx:mainnet'] = {
+          data: [
+            {
+              symbol: 'MYX',
+              name: 'MYX',
+              price: '1',
+              providerId: 'myx',
+            } as any,
+          ],
+          timestamp: Date.now(),
+        };
+      });
+
+      const result = controller.getCachedMarketDataForActiveProvider();
+
+      expect(result).toHaveLength(2);
+      const symbols = (result ?? []).map((m: any) => m.symbol);
+      expect(symbols).toEqual(expect.arrayContaining(['BTC', 'MYX']));
+    });
+
+    it('returns null in aggregated mode when all provider caches are empty', () => {
+      const mockMYXProvider = createMockHyperLiquidProvider();
+      markControllerAsInitialized();
+      controller.testSetProviders(
+        new Map([
+          ['hyperliquid', mockProvider],
+          ['myx', mockMYXProvider],
+        ] as any),
+      );
+      controller.testUpdate((state) => {
+        state.activeProvider = 'aggregated';
+        state.cachedMarketDataByProvider['hyperliquid:mainnet'] = {
+          data: [],
+          timestamp: Date.now(),
+        };
+      });
+
+      const result = controller.getCachedMarketDataForActiveProvider();
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null in aggregated mode when oldest entry exceeds TTL', () => {
+      const mockMYXProvider = createMockHyperLiquidProvider();
+      markControllerAsInitialized();
+      controller.testSetProviders(
+        new Map([
+          ['hyperliquid', mockProvider],
+          ['myx', mockMYXProvider],
+        ] as any),
+      );
+      controller.testUpdate((state) => {
+        state.activeProvider = 'aggregated';
+        state.cachedMarketDataByProvider['hyperliquid:mainnet'] = {
+          data: [{ symbol: 'BTC', name: 'BTC', price: '50000' } as any],
+          timestamp: Date.now() - 999_999_999, // very old
+        };
+        state.cachedMarketDataByProvider['myx:mainnet'] = {
+          data: [{ symbol: 'MYX', name: 'MYX', price: '1' } as any],
+          timestamp: Date.now(), // fresh
+        };
+      });
+
+      const result = controller.getCachedMarketDataForActiveProvider();
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('getCachedUserDataForActiveProvider', () => {
+    const mockAddress = '0x1234567890123456789012345678901234567890';
+
+    it('returns null when no cache exists', () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      controller.testUpdate((state) => {
+        state.activeProvider = 'hyperliquid';
+      });
+
+      const result = controller.getCachedUserDataForActiveProvider();
+
+      expect(result).toBeNull();
+    });
+
+    it('returns cached user data for single provider', () => {
+      const mockPosition = createMockPosition({ symbol: 'BTC', size: '1.0' });
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      controller.testUpdate((state) => {
+        state.activeProvider = 'hyperliquid';
+        state.cachedUserDataByProvider['hyperliquid:mainnet'] = {
+          positions: [mockPosition],
+          orders: [],
+          accountState: {
+            totalBalance: '50000',
+            availableBalance: '45000',
+            marginUsed: '5000',
+            unrealizedPnl: '1000',
+            returnOnEquity: '20',
+          },
+          timestamp: Date.now(),
+          address: mockAddress,
+        };
+      });
+
+      const result = controller.getCachedUserDataForActiveProvider();
+
+      expect(result).not.toBeNull();
+      expect(result?.positions).toHaveLength(1);
+      expect(result?.positions[0].symbol).toBe('BTC');
+      expect(result?.accountState?.totalBalance).toBe('50000');
+    });
+
+    it('assembles user data from multiple providers in aggregated mode', () => {
+      const hlPosition = createMockPosition({ symbol: 'BTC', size: '1.0' });
+      const myxPosition = createMockPosition({ symbol: 'MYX', size: '5.0' });
+      const mockMYXProvider = createMockHyperLiquidProvider();
+      markControllerAsInitialized();
+      controller.testSetProviders(
+        new Map([
+          ['hyperliquid', mockProvider],
+          ['myx', mockMYXProvider],
+        ] as any),
+      );
+      controller.testUpdate((state) => {
+        state.activeProvider = 'aggregated';
+        state.cachedUserDataByProvider['hyperliquid:mainnet'] = {
+          positions: [hlPosition],
+          orders: [],
+          accountState: {
+            totalBalance: '50000',
+            availableBalance: '45000',
+            marginUsed: '5000',
+            unrealizedPnl: '1000',
+            returnOnEquity: '20',
+          },
+          timestamp: Date.now(),
+          address: mockAddress,
+        };
+        state.cachedUserDataByProvider['myx:mainnet'] = {
+          positions: [myxPosition],
+          orders: [],
+          accountState: null,
+          timestamp: Date.now(),
+          address: mockAddress,
+        };
+      });
+
+      const result = controller.getCachedUserDataForActiveProvider();
+
+      expect(result).not.toBeNull();
+      expect(result?.positions).toHaveLength(2);
+      expect(result?.accountState?.totalBalance).toBe('50000');
+    });
+
+    it('returns null in aggregated mode when no valid entries exist', () => {
+      const mockMYXProvider = createMockHyperLiquidProvider();
+      markControllerAsInitialized();
+      controller.testSetProviders(
+        new Map([
+          ['hyperliquid', mockProvider],
+          ['myx', mockMYXProvider],
+        ] as any),
+      );
+      controller.testUpdate((state) => {
+        state.activeProvider = 'aggregated';
+      });
+
+      const result = controller.getCachedUserDataForActiveProvider();
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('performMarketDataPreload aggregated mode', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      controller.stopMarketDataPreload();
+      jest.useRealTimers();
+    });
+
+    it('splits market data by providerId into per-provider cache entries', async () => {
+      const mockData = [
+        {
+          symbol: 'BTC',
+          name: 'BTC',
+          price: '50000',
+          providerId: 'hyperliquid',
+        },
+        {
+          symbol: 'ETH',
+          name: 'ETH',
+          price: '3000',
+          providerId: 'hyperliquid',
+        },
+        { symbol: 'MYX', name: 'MYX', price: '1', providerId: 'myx' },
+      ];
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      controller.testUpdate((state) => {
+        state.activeProvider = 'aggregated';
+      });
+      mockProvider.getMarketDataWithPrices.mockResolvedValue(mockData);
+
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      // Per-provider entries should be written
+      const hlEntry =
+        controller.state.cachedMarketDataByProvider['hyperliquid:mainnet'];
+      expect(hlEntry?.data).toHaveLength(2);
+      expect(hlEntry?.data[0].symbol).toBe('BTC');
+
+      const myxEntry =
+        controller.state.cachedMarketDataByProvider['myx:mainnet'];
+      expect(myxEntry?.data).toHaveLength(1);
+      expect(myxEntry?.data[0].symbol).toBe('MYX');
+
+      // Aggregated sentinel should be empty
+      const sentinel =
+        controller.state.cachedMarketDataByProvider['aggregated:mainnet'];
+      expect(sentinel?.data).toHaveLength(0);
+      expect(sentinel?.timestamp).toBeGreaterThan(0);
+    });
+
+    it('assigns items without providerId to hyperliquid fallback', async () => {
+      const mockData = [
+        { symbol: 'BTC', name: 'BTC', price: '50000' }, // no providerId
+      ];
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      controller.testUpdate((state) => {
+        state.activeProvider = 'aggregated';
+      });
+      mockProvider.getMarketDataWithPrices.mockResolvedValue(mockData);
+
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      const hlEntry =
+        controller.state.cachedMarketDataByProvider['hyperliquid:mainnet'];
+      expect(hlEntry?.data).toHaveLength(1);
+      expect(hlEntry?.data[0].symbol).toBe('BTC');
+    });
+  });
 });
