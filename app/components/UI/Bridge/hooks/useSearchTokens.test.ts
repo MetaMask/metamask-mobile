@@ -17,7 +17,7 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-describe.only('useSearchTokens', () => {
+describe('useSearchTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
