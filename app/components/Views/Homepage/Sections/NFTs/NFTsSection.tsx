@@ -106,9 +106,14 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       navigation.navigate('AddAsset', { assetType: 'collectible' });
     }, [navigation]);
 
+    // Pass null while loading so the hook uses the immediate-fire path and
+    // does not fire from viewport visibility with stale itemCount/isEmpty.
+    const isLoadingSection = isNftFetchingProgress && !hasNfts;
+    const willRender = !isLoadingSection;
+
     useHomepageSectionViewedEvent({
-      sectionRef: sectionViewRef,
-      isLoading: isNftFetchingProgress && !hasNfts,
+      sectionRef: willRender ? sectionViewRef : null,
+      isLoading: isLoadingSection,
       sectionName: HomepageSectionNames.NFTS,
       sectionIndex,
       totalSectionsLoaded,

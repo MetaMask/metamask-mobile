@@ -195,9 +195,14 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       [navigation],
     );
 
+    // Pass null while loading so the hook uses the immediate-fire path and
+    // does not fire from viewport visibility with stale itemCount/isEmpty.
+    const isLoadingSection = hookLoading || deferredLoading || pendingTrending;
+    const willRender = !isLoadingSection;
+
     useHomepageSectionViewedEvent({
-      sectionRef: sectionViewRef,
-      isLoading: hookLoading || deferredLoading || pendingTrending,
+      sectionRef: willRender ? sectionViewRef : null,
+      isLoading: isLoadingSection,
       sectionName: HomepageSectionNames.PERPS,
       sectionIndex,
       totalSectionsLoaded,
