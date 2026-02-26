@@ -19,7 +19,6 @@ import Button, {
 import {
   ToastContext,
   ToastVariants,
-  ButtonIconVariant,
 } from '../../../../../component-library/components/Toast';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow';
 import useCashbackWallet from '../../hooks/useCashbackWallet';
@@ -77,30 +76,9 @@ const Cashback: React.FC = () => {
 
   useEffect(() => {
     if (cashbackWallet) {
-      fetchEstimation();
+      fetchEstimation().catch(() => undefined);
     }
   }, [cashbackWallet, fetchEstimation]);
-
-  useEffect(() => {
-    if (monitoringStatus === 'monitoring') {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: strings('card.cashback_screen.withdrawal_initiated'),
-          },
-        ],
-        iconName: IconName.Loading,
-        iconColor: theme.colors.icon.default,
-        hasNoTimeout: true,
-        closeButtonOptions: {
-          variant: ButtonIconVariant.Icon,
-          iconName: IconName.Close,
-          onPress: () => toastRef?.current?.closeToast(),
-        },
-      });
-    }
-  }, [monitoringStatus, toastRef, theme]);
 
   useEffect(() => {
     if (monitoringStatus === 'success') {

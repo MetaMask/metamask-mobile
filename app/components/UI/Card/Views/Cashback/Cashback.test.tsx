@@ -14,7 +14,6 @@ jest.mock('../../../../../component-library/components/Toast', () => {
   return {
     ToastContext,
     ToastVariants: { Icon: 'Icon' },
-    ButtonIconVariant: { Icon: 'Icon' },
   };
 });
 
@@ -70,7 +69,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 const mockWithdraw = jest.fn();
-const mockFetchEstimation = jest.fn();
+const mockFetchEstimation = jest.fn().mockResolvedValue(undefined);
 const mockResetWithdraw = jest.fn();
 
 let mockHookReturn = {
@@ -379,7 +378,7 @@ describe('Cashback Component', () => {
   });
 
   describe('toast notifications', () => {
-    it('shows monitoring toast when status is monitoring', () => {
+    it('does not show a toast when status is monitoring', () => {
       mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
@@ -391,13 +390,7 @@ describe('Cashback Component', () => {
 
       render();
 
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          variant: 'Icon',
-          hasNoTimeout: true,
-          labelOptions: [{ label: 'Withdrawal has been initiated' }],
-        }),
-      );
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
 
     it('shows success toast when monitoring completes', () => {
