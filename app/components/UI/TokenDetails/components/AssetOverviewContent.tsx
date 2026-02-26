@@ -524,13 +524,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
-          {isMarketInsightsEnabled && marketInsightsReport ? (
+          {isMarketInsightsEnabled &&
+          marketInsightsReport &&
+          marketInsightsCaip19Id ? (
             <View style={styles.marketInsightsWrapper}>
               <MarketInsightsEntryCard
                 report={marketInsightsReport}
                 timeAgo={marketInsightsTimeAgo}
                 onPress={handleMarketInsightsPress}
-                caip19Id={marketInsightsCaip19Id ?? ''}
+                caip19Id={marketInsightsCaip19Id}
                 testID="market-insights-entry-card"
               />
             </View>

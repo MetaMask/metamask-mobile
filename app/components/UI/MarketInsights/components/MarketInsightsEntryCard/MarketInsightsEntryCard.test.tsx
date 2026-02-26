@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
+import type { CaipAssetType } from '@metamask/utils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsEntryCard from './MarketInsightsEntryCard';
 
@@ -20,7 +21,7 @@ describe('MarketInsightsEntryCard', () => {
         report={report as never}
         timeAgo="3m ago"
         onPress={mockPress}
-        caip19Id="eip155:1/erc20:0xtest"
+        caip19Id={'eip155:1/erc20:0xtest' as CaipAssetType}
         testID="market-insights-entry-card"
       />,
     );
@@ -62,7 +63,7 @@ describe('MarketInsightsEntryCard', () => {
         report={report as never}
         timeAgo="1m ago"
         onPress={jest.fn()}
-        caip19Id="eip155:1/erc20:0xtest"
+        caip19Id={'eip155:1/erc20:0xtest' as CaipAssetType}
         testID="market-insights-entry-card"
       />,
     );

@@ -488,17 +488,6 @@ const MarketInsightsView: React.FC = () => {
     hasTrackedViewRef.current = true;
   }, [report, caip19Id, trackEvent, createEventBuilder]);
 
-  // End the ViewLoad trace on unmount if the report never loaded,
-  // preventing an orphaned Sentry span when the user navigates away early.
-  useEffect(
-    () => () => {
-      if (!hasTrackedViewRef.current) {
-        endTrace({ name: TraceName.MarketInsightsViewLoad });
-      }
-    },
-    [],
-  );
-
   if (showLoadingSkeleton && !report) {
     return (
       <MarketInsightsViewSkeleton
