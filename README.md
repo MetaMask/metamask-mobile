@@ -26,6 +26,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
 - [Reassure Performance Testing (pilot)](./docs/readme/reassure.md)
+- [Claude Code Setup](./docs/readme/claude-code-setup.md)
 
 ## Getting started
 
