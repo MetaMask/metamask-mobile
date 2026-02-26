@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import VeriffSdk from '@veriff/react-native-sdk';
-import { lightTheme } from '@metamask/design-tokens';
+import { brandColor } from '@metamask/design-tokens';
 import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
@@ -464,8 +464,8 @@ describe('VerifyIdentity Component', () => {
             success: expect.any(String),
             buttonRadius: 12,
             // Camera overlay colors are static — always dark + white text
-            cameraOverlay: lightTheme.colors.text.default,
-            onCameraOverlay: lightTheme.colors.overlay.inverse,
+            cameraOverlay: brandColor.grey900,
+            onCameraOverlay: brandColor.grey000,
           }),
         });
       });

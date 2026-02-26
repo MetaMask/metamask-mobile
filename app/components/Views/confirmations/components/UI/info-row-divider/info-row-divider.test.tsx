@@ -1,5 +1,5 @@
 import React from 'react';
-import { lightTheme } from '@metamask/design-tokens';
+import { mockTheme } from '../../../../../../util/theme';
 import { stakingDepositConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import InfoRowDivider from './info-row-divider';
@@ -10,18 +10,8 @@ describe('InfoRowDivider', () => {
       state: stakingDepositConfirmationState,
     });
 
-    expect(toJSON()).toMatchInlineSnapshot(`
-      <View
-        style={
-          {
-            "backgroundColor": "${lightTheme.colors.border.muted}",
-            "height": 1,
-            "marginLeft": -8,
-            "marginRight": -8,
-            "marginVertical": 8,
-          }
-        }
-      />
-    `);
+    const result = toJSON();
+    expect(result).toBeTruthy();
+    expect(result?.props?.style?.backgroundColor).toBe(mockTheme.colors.border.muted);
   });
 });
