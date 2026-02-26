@@ -30,6 +30,7 @@ import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { useMMPayOnRampHighlightedAction } from '../../../hooks/pay/useMMPayOnRampHighlightedAction';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -48,6 +49,7 @@ export function PayWithModal() {
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
+  const mmPayOnRampHighlightedAction = useMMPayOnRampHighlightedAction();
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -169,7 +171,12 @@ export function PayWithModal() {
         filteredTokens = perpsBalanceTokenFilter(availableTokens);
       }
 
-      return wrapHighlightedItemCallbacks(filteredTokens);
+      const availableTokensWithOnRampActions = [
+        ...mmPayOnRampHighlightedAction,
+        ...filteredTokens,
+      ];
+
+      return wrapHighlightedItemCallbacks(availableTokensWithOnRampActions);
     },
     [
       withdrawTokenFilter,
@@ -179,6 +186,7 @@ export function PayWithModal() {
       transactionMeta,
       perpsBalanceTokenFilter,
       wrapHighlightedItemCallbacks,
+      mmPayOnRampHighlightedAction,
     ],
   );
 
