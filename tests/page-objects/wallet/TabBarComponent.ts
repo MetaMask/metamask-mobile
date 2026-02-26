@@ -76,20 +76,12 @@ class TabBarComponent {
     await Utilities.executeWithRetry(
       async () => {
         // Navigate to Wallet first (where the hamburger menu lives)
-        await Gestures.waitAndTap(this.tabBarWalletButton, { timeout: 2000 });
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          timeout: 500,
-        });
-        await Gestures.waitAndTap(WalletView.hamburgerMenuButton, {
-          timeout: 2000,
-        });
-        await Assertions.expectElementToBeVisible(SettingsView.title, {
-          timeout: 500,
-        });
+        await Gestures.waitAndTap(this.tabBarWalletButton);
+        await Assertions.expectElementToBeVisible(WalletView.container);
+        await Gestures.waitAndTap(WalletView.hamburgerMenuButton);
+        await Assertions.expectElementToBeVisible(SettingsView.title);
       },
       {
-        // Each attempt: ~5s (2s wallet tap + 0.5s wallet check + 2s hamburger tap + 0.5s settings check).
-        maxRetries: 15,
         timeout: 45000,
         description: 'Tap Settings Button',
       },
@@ -140,11 +132,10 @@ class TabBarComponent {
       async () => {
         await Gestures.waitAndTap(this.tabBarRewardsButton, {
           timeout: 2000,
-          delay: 2500,
         });
       },
       {
-        // Each attempt: ~4.5s (2.5s delay + 2s tap). 15 retries ≈ ~67s total budget.
+        // Each attempt: ~2.5s (2s tap + 0.5s default delay) + 500ms retry interval ≈ 3s/cycle → ~15 retries within 45s.
         maxRetries: 15,
         timeout: 45000,
         description: 'Tap Rewards Button',
