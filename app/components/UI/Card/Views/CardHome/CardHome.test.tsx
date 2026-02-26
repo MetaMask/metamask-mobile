@@ -4074,7 +4074,7 @@ describe('CardHome Component', () => {
         // Then: view pin button is shown
         expect(
           screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       it('shows view pin button for international user with metal card', () => {
@@ -4097,7 +4097,7 @@ describe('CardHome Component', () => {
         // Then: view pin button is shown (non-virtual card)
         expect(
           screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       it('calls generatePinToken and navigates to ViewPinBottomSheet after biometric auth', async () => {

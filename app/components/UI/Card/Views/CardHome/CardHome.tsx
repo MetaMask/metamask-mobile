@@ -1444,7 +1444,8 @@ const CardHome = () => {
         )}
         {isAuthenticated &&
           !isLoading &&
-          (userLocation === 'us' || cardDetails?.type !== CardType.VIRTUAL) && (
+          cardDetails &&
+          (userLocation === 'us' || cardDetails.type !== CardType.VIRTUAL) && (
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.view_pin')}
               description={strings(

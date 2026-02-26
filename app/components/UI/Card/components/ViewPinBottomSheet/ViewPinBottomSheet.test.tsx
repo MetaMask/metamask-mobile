@@ -70,7 +70,7 @@ describe('ViewPinBottomSheet', () => {
   it('displays the title', () => {
     const { getByText } = renderWithProvider(() => <ViewPinBottomSheet />);
 
-    expect(getByText('Your Card PIN')).toBeTruthy();
+    expect(getByText('Your Card PIN')).toBeOnTheScreen();
   });
 
   it('renders the PIN image with correct source', () => {
@@ -78,7 +78,7 @@ describe('ViewPinBottomSheet', () => {
 
     const pinImage = getByTestId(ViewPinBottomSheetSelectors.PIN_IMAGE);
 
-    expect(pinImage).toBeTruthy();
+    expect(pinImage).toBeOnTheScreen();
     expect(pinImage.props.source).toEqual({ uri: TEST_IMAGE_URL });
   });
 
@@ -87,7 +87,7 @@ describe('ViewPinBottomSheet', () => {
 
     expect(
       getByTestId(ViewPinBottomSheetSelectors.PIN_IMAGE_SKELETON),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('hides skeleton after image loads', async () => {
@@ -133,6 +133,8 @@ describe('ViewPinBottomSheet', () => {
   it('renders the bottom sheet with correct testID', () => {
     const { getByTestId } = renderWithProvider(() => <ViewPinBottomSheet />);
 
-    expect(getByTestId(ViewPinBottomSheetSelectors.BOTTOM_SHEET)).toBeTruthy();
+    expect(
+      getByTestId(ViewPinBottomSheetSelectors.BOTTOM_SHEET),
+    ).toBeOnTheScreen();
   });
 });
