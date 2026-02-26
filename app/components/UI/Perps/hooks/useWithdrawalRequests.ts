@@ -254,11 +254,11 @@ export const useWithdrawalRequests = (
   }, [pendingQueue, lastCompletedTimestamp, lastCompletedTxHashes]);
 
   useEffect(() => {
-    if (
-      !skipInitialFetch &&
-      pendingQueue.length > 0 &&
-      !initialFetchDoneRef.current
-    ) {
+    if (pendingQueue.length === 0) {
+      initialFetchDoneRef.current = false;
+      return;
+    }
+    if (!skipInitialFetch && !initialFetchDoneRef.current) {
       initialFetchDoneRef.current = true;
       checkForWithdrawalCompletion();
     }
