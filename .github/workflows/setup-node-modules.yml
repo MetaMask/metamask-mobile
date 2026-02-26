@@ -65,6 +65,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write  # Required for Setup iOS environment (setup-e2e-env) when it uses OIDC for credentials
 
 jobs:
   setup:
