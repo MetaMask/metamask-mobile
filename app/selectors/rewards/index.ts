@@ -1,5 +1,10 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '../../reducers';
+import {
+  RecentDropPointCommit,
+  RecentDropAddressCommit,
+  RECENT_COMMIT_VALIDITY_WINDOW_MS,
+} from '../../reducers/rewards';
 
 /**
  *
@@ -51,3 +56,73 @@ export const selectRewardsActiveAccountAddress = createSelector(
     return parts[parts.length - 1];
   },
 );
+
+/**
+ * Selector to get all recent drop point commits
+ */
+export const selectRecentDropPointCommits = (state: RootState) =>
+  state.rewards.recentDropPointCommits;
+
+/**
+ * Factory selector to get a recent drop point commit by drop ID.
+ * Returns the commit only if it's still within the validity window.
+ * @param dropId - The drop ID to get the recent point commit for
+ */
+export const selectRecentDropPointCommitByDropId = (dropId: string) =>
+  createSelector(
+    selectRecentDropPointCommits,
+    (recentDropPointCommits): RecentDropPointCommit | null => {
+      const commit = recentDropPointCommits[dropId];
+      if (!commit) {
+        return null;
+      }
+
+      const now = Date.now();
+      if (now - commit.committedAt >= RECENT_COMMIT_VALIDITY_WINDOW_MS) {
+        return null;
+      }
+
+      return commit;
+    },
+  );
+
+/**
+ * Selector to get all recent drop address commits
+ */
+export const selectRecentDropAddressCommits = (state: RootState) =>
+  state.rewards.recentDropAddressCommits;
+
+/**
+ * Factory selector to get a recent drop address commit by drop ID.
+ * Returns the address commit only if it's still within the validity window.
+ * @param dropId - The drop ID to get the recent address commit for
+ */
+export const selectRecentDropAddressCommitByDropId = (dropId: string) =>
+  createSelector(
+    selectRecentDropAddressCommits,
+    (recentDropAddressCommits): RecentDropAddressCommit | null => {
+      const commit = recentDropAddressCommits[dropId];
+      if (!commit) {
+        return null;
+      }
+
+      const now = Date.now();
+      if (now - commit.committedAt >= RECENT_COMMIT_VALIDITY_WINDOW_MS) {
+        return null;
+      }
+
+      return commit;
+    },
+  );
+
+/**
+ * Selector for drop detail isLoading state (address update in progress)
+ */
+export const selectIsUpdatingDropAddress = (state: RootState) =>
+  state.rewards.isUpdatingDropAddress;
+
+/**
+ * Selector for drop detail isValidating state (account validation in progress)
+ */
+export const selectIsValidatingDropAddress = (state: RootState) =>
+  state.rewards.isValidatingDropAddress;

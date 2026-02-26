@@ -7345,7 +7345,7 @@
     "main_title": "Belohnungen",
     "referral_title": "Empfehlungen",
     "tab_overview_title": "Übersicht",
-    "tab_snapshots_title": "Schnappschüsse",
+    "tab_drops_title": "Airdrops",
     "tab_activity_title": "Aktivität",
     "referral_stats_earned_from_referrals": "Durch Empfehlungen verdient",
     "referral_stats_referrals": "Empfehlungen",
@@ -7579,30 +7579,30 @@
     "animation": {
       "could_not_load": "Laden fehlgeschlagen"
     },
-    "snapshot": {
-      "starts_date": "Beginnt am {{date}}",
-      "ends_date": "Endet am {{date}}",
-      "results_coming_soon": "Ergebnisse folgen in Kürze",
-      "tokens_on_the_way": "Tokens sind unterwegs",
-      "pill_up_next": "Als Nächstes",
-      "pill_live_now": "Jetzt live",
-      "pill_calculating": "Berechnungsvorgang",
-      "pill_results_ready": "Ergebnisse bereit",
-      "pill_complete": "Abgeschlossen"
+    "drop": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
+      "pill_calculating": "Calculating",
+      "pill_results_ready": "Results Ready",
+      "pill_complete": "Complete"
     },
-    "snapshots_section": {
-      "title": "Schnappschüsse",
-      "error_title": "Schnappschüsse konnten nicht geladen werden",
-      "error_description": "Die Schnappschüsse konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Erneut versuchen"
     },
-    "snapshots_tab": {
-      "active_title": "Aktiv",
-      "upcoming_title": "Bevorstehend",
-      "previous_title": "Vorherige",
-      "empty_state": "Keine Schnappschüsse verfügbar",
-      "error_title": "Schnappschüsse konnten nicht geladen werden",
-      "error_description": "Die Schnappschüsse konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+    "drop_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No airdrops available",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Erneut versuchen",
       "refreshing": "Aktualisierung ..."
     }

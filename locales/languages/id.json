@@ -7345,7 +7345,7 @@
     "main_title": "Reward",
     "referral_title": "Rujukan",
     "tab_overview_title": "Ikhtisar",
-    "tab_snapshots_title": "Snapshot",
+    "tab_drops_title": "Airdrops",
     "tab_activity_title": "Aktivitas",
     "referral_stats_earned_from_referrals": "Diperoleh dari rujukan",
     "referral_stats_referrals": "Rujukan",
@@ -7579,30 +7579,30 @@
     "animation": {
       "could_not_load": "Tidak dapat memuat"
     },
-    "snapshot": {
-      "starts_date": "Mulai {{date}}",
-      "ends_date": "Berakhir {{date}}",
-      "results_coming_soon": "Hasil akan segera diumumkan",
-      "tokens_on_the_way": "Token sedang dalam perjalanan",
-      "pill_up_next": "Selanjutnya",
-      "pill_live_now": "Sedang live",
+    "drop": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
       "pill_calculating": "Menghitung",
       "pill_results_ready": "Hasil Sudah Siap",
       "pill_complete": "Selesaikan"
     },
-    "snapshots_section": {
-      "title": "Snapshot",
-      "error_title": "Tidak dapat memuat snapshot",
-      "error_description": "Kami tidak dapat memuat snapshot. Coba lagi.",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Coba lagi"
     },
-    "snapshots_tab": {
-      "active_title": "Aktif",
-      "upcoming_title": "Mendatang",
-      "previous_title": "Sebelumnya",
-      "empty_state": "Snapshot tidak tersedia",
-      "error_title": "Tidak dapat memuat snapshot",
-      "error_description": "Kami tidak dapat memuat snapshot. Coba lagi.",
+    "drop_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No airdrops available",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Coba lagi",
       "refreshing": "Menyegarkan..."
     }

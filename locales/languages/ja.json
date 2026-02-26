@@ -7345,7 +7345,7 @@
     "main_title": "報酬",
     "referral_title": "紹介",
     "tab_overview_title": "概要",
-    "tab_snapshots_title": "スナップショット",
+    "tab_drops_title": "Airdrops",
     "tab_activity_title": "アクティビティ",
     "referral_stats_earned_from_referrals": "紹介して報酬を獲得",
     "referral_stats_referrals": "紹介",
@@ -7579,30 +7579,30 @@
     "animation": {
       "could_not_load": "読み込ませんでした"
     },
-    "snapshot": {
-      "starts_date": "{{date}}開始",
-      "ends_date": "{{date}}終了",
-      "results_coming_soon": "間もなく結果が出ます",
-      "tokens_on_the_way": "トークンを送金中です",
-      "pill_up_next": "次",
-      "pill_live_now": "現在進行中",
+    "drop": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
       "pill_calculating": "計算中",
       "pill_results_ready": "結果が出ました",
       "pill_complete": "完了"
     },
-    "snapshots_section": {
-      "title": "スナップショット",
-      "error_title": "スナップショットを読み込めません",
-      "error_description": "スナップショットを読み込めませんでした。もう一度お試しください。",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "再試行"
     },
-    "snapshots_tab": {
-      "active_title": "アクティブ",
-      "upcoming_title": "今後",
-      "previous_title": "以前",
-      "empty_state": "利用可能なスナップショットがありません",
-      "error_title": "スナップショットを読み込めません",
-      "error_description": "スナップショットを読み込めませんでした。もう一度お試しください。",
+    "drop_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No airdrops available",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "再試行",
       "refreshing": "更新中..."
     }

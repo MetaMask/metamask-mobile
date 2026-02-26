@@ -7345,7 +7345,7 @@
     "main_title": "Mga Reward",
     "referral_title": "Mga Referral",
     "tab_overview_title": "Overview",
-    "tab_snapshots_title": "Mga snapshot",
+    "tab_drops_title": "Airdrops",
     "tab_activity_title": "Aktibidad",
     "referral_stats_earned_from_referrals": "Nakuha mula sa mga referral",
     "referral_stats_referrals": "Mga Referral",
@@ -7579,30 +7579,30 @@
     "animation": {
       "could_not_load": "Hindi mai-load"
     },
-    "snapshot": {
-      "starts_date": "Magsisimula sa {{date}}",
-      "ends_date": "Matatapos sa {{date}}",
-      "results_coming_soon": "Paparating na ang mga resulta",
-      "tokens_on_the_way": "Malapit na ang mga token",
-      "pill_up_next": "Susunod",
-      "pill_live_now": "Live ngayon",
+    "drop": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
       "pill_calculating": "Kinakalkula",
       "pill_results_ready": "Handa na ang mga Resulta",
       "pill_complete": "Kumpleto na"
     },
-    "snapshots_section": {
-      "title": "Mga snapshot",
-      "error_title": "Hindi mai-load ang mga snapshot",
-      "error_description": "Hindi namin mai-load ang mga snapshot. Pakisubukan muli.",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Subukang muli"
     },
-    "snapshots_tab": {
-      "active_title": "Aktibo",
-      "upcoming_title": "Paparating",
-      "previous_title": "Nakaraan",
-      "empty_state": "Walang available na mga snapshot",
-      "error_title": "Hindi mai-load ang mga snapshot",
-      "error_description": "Hindi namin mai-load ang mga snapshot. Pakisubukan muli.",
+    "drop_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No airdrops available",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Subukang muli",
       "refreshing": "Nire-refresh..."
     }

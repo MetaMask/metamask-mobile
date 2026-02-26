@@ -745,7 +745,7 @@ describe('UpcomingRewards', () => {
 
       // Then: section header should be visible
       expect(getByText('rewards.upcoming_rewards.title')).toBeTruthy();
-      // Note: Count is displayed in a Box component and would be tested via snapshot or accessibility
+      // Note: Count is displayed in a Box component and would be tested via drops or accessibility (TODO: add tests for this)
     });
 
     it('should not display count when season has not started', () => {

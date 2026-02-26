@@ -123,7 +123,7 @@ describe('RewardsImageModal', () => {
       );
 
       // Assert - Modal component still exists but is not visible
-      // We can't easily test the Modal's visible prop behavior without snapshots
+      // We can't easily test the Modal's visible prop behavior without drops
       // but we can verify the component renders without errors
       expect(() =>
         render(

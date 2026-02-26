@@ -7345,7 +7345,7 @@
     "main_title": "보상",
     "referral_title": "추천",
     "tab_overview_title": "개요",
-    "tab_snapshots_title": "스냅샷",
+    "tab_drops_title": "Airdrops",
     "tab_activity_title": "활동",
     "referral_stats_earned_from_referrals": "추천을 통해 적립",
     "referral_stats_referrals": "추천",
@@ -7579,30 +7579,30 @@
     "animation": {
       "could_not_load": "불러올 수 없음"
     },
-    "snapshot": {
-      "starts_date": "시작일: {{date}}",
-      "ends_date": "종료일: {{date}}",
-      "results_coming_soon": "결과 곧 공개",
-      "tokens_on_the_way": "토큰 지급 예정",
-      "pill_up_next": "다음 일정",
-      "pill_live_now": "지금 진행 중",
+    "drop": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
       "pill_calculating": "계산 중",
       "pill_results_ready": "결과 준비 완료",
       "pill_complete": "완료"
     },
-    "snapshots_section": {
-      "title": "스냅샷",
-      "error_title": "스냅샷을 불러올 수 없습니다",
-      "error_description": "스냅샷을 불러오지 못했습니다. 다시 시도해 주세요.",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "다시 시도"
     },
-    "snapshots_tab": {
-      "active_title": "진행 중",
-      "upcoming_title": "예정",
-      "previous_title": "이전",
-      "empty_state": "사용 가능한 스냅샷 없음",
-      "error_title": "스냅샷을 불러올 수 없습니다",
-      "error_description": "스냅샷을 불러오지 못했습니다. 다시 시도해 주세요.",
+    "drop_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No airdrops available",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "다시 시도",
       "refreshing": "새로 고침 중..."
     }

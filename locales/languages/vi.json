@@ -7345,7 +7345,7 @@
     "main_title": "Phần thưởng",
     "referral_title": "Giới thiệu",
     "tab_overview_title": "Tổng quan",
-    "tab_snapshots_title": "Ảnh chụp nhanh",
+    "tab_drops_title": "Airdrops",
     "tab_activity_title": "Hoạt động",
     "referral_stats_earned_from_referrals": "Nhận được từ giới thiệu",
     "referral_stats_referrals": "Giới thiệu",
@@ -7579,30 +7579,30 @@
     "animation": {
       "could_not_load": "Không thể tải"
     },
-    "snapshot": {
-      "starts_date": "Bắt đầu {{date}}",
-      "ends_date": "Kết thúc {{date}}",
-      "results_coming_soon": "Kết quả sẽ sớm được công bố",
-      "tokens_on_the_way": "Token đang được gửi đến",
-      "pill_up_next": "Sắp tới",
-      "pill_live_now": "Đang diễn ra",
+    "drop": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
       "pill_calculating": "Đang tính toán",
       "pill_results_ready": "Kết quả đã sẵn sàng",
       "pill_complete": "Hoàn tất"
     },
-    "snapshots_section": {
-      "title": "Ảnh chụp nhanh",
-      "error_title": "Không thể tải ảnh chụp nhanh",
-      "error_description": "Chúng tôi không thể tải ảnh chụp nhanh. Vui lòng thử lại.",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Thử lại"
     },
-    "snapshots_tab": {
-      "active_title": "Đang hoạt động",
-      "upcoming_title": "Sắp tới",
-      "previous_title": "Trước đó",
-      "empty_state": "Không có ảnh chụp nhanh nào",
-      "error_title": "Không thể tải ảnh chụp nhanh",
-      "error_description": "Chúng tôi không thể tải ảnh chụp nhanh. Vui lòng thử lại.",
+    "drop_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No airdrops available",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Thử lại",
       "refreshing": "Đang làm mới..."
     }

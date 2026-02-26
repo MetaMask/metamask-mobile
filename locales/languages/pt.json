@@ -7345,7 +7345,7 @@
     "main_title": "Recompensas",
     "referral_title": "Indicações",
     "tab_overview_title": "Visão geral",
-    "tab_snapshots_title": "Capturas de tela",
+    "tab_drops_title": "Airdrops",
     "tab_activity_title": "Atividade",
     "referral_stats_earned_from_referrals": "Ganho por meio de indicações",
     "referral_stats_referrals": "Indicações",
@@ -7579,30 +7579,30 @@
     "animation": {
       "could_not_load": "Não foi possível carregar"
     },
-    "snapshot": {
-      "starts_date": "Começa em {{date}}",
-      "ends_date": "Termina em {{date}}",
-      "results_coming_soon": "Resultados em breve",
-      "tokens_on_the_way": "Tokens a caminho",
-      "pill_up_next": "Em seguida",
-      "pill_live_now": "Ao vivo agora",
+    "drop": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
       "pill_calculating": "Calculando",
       "pill_results_ready": "Resultados prontos",
       "pill_complete": "Concluído"
     },
-    "snapshots_section": {
-      "title": "Capturas de tela",
-      "error_title": "Não foi possível carregar capturas de tela",
-      "error_description": "Não foi possível carregar as capturas de tela. Tente novamente.",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Tentar novamente"
     },
-    "snapshots_tab": {
-      "active_title": "Ativo",
-      "upcoming_title": "Próximo",
-      "previous_title": "Anterior",
-      "empty_state": "Nenhuma captura de tela disponível",
-      "error_title": "Não foi possível carregar capturas de tela",
-      "error_description": "Não foi possível carregar as capturas de tela. Tente novamente.",
+    "drop_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No airdrops available",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Tentar novamente",
       "refreshing": "Atualizando..."
     }

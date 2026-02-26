@@ -7345,7 +7345,7 @@
     "main_title": "奖励",
     "referral_title": "推荐",
     "tab_overview_title": "概览",
-    "tab_snapshots_title": "快照",
+    "tab_drops_title": "Airdrops",
     "tab_activity_title": "活动",
     "referral_stats_earned_from_referrals": "通过推荐所获奖励",
     "referral_stats_referrals": "推荐",
@@ -7579,30 +7579,30 @@
     "animation": {
       "could_not_load": "无法加载"
     },
-    "snapshot": {
-      "starts_date": "开始于 {{date}}",
-      "ends_date": "结束于 {{date}}",
-      "results_coming_soon": "结果即将公布",
-      "tokens_on_the_way": "代币即将到账",
-      "pill_up_next": "即将到来",
-      "pill_live_now": "现已上线",
-      "pill_calculating": "正在计算",
-      "pill_results_ready": "结果已就绪",
-      "pill_complete": "完成"
+    "drop": {
+      "starts_date": "Starts {{date}}",
+      "ends_date": "Ends {{date}}",
+      "results_coming_soon": "Results coming soon",
+      "tokens_on_the_way": "Tokens on the way",
+      "pill_up_next": "Up next",
+      "pill_live_now": "Live now",
+      "pill_calculating": "Calculating",
+      "pill_results_ready": "Results Ready",
+      "pill_complete": "Complete"
     },
-    "snapshots_section": {
-      "title": "快照",
-      "error_title": "无法加载快照",
-      "error_description": "无法加载快照。请重试。",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "重试"
     },
-    "snapshots_tab": {
-      "active_title": "已激活",
-      "upcoming_title": "即将到来",
-      "previous_title": "先前",
-      "empty_state": "暂无快照",
-      "error_title": "无法加载快照",
-      "error_description": "无法加载快照。请重试。",
+    "drop_tab": {
+      "active_title": "Active",
+      "upcoming_title": "Upcoming",
+      "previous_title": "Previous",
+      "empty_state": "No airdrops available",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "重试",
       "refreshing": "正在刷新……"
     }

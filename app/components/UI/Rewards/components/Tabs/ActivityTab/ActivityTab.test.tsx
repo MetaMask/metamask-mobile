@@ -370,8 +370,8 @@ describe('ActivityTab', () => {
         levelNumber: '1',
         rewards: [],
       },
-      nextTier: null,
-      nextTierPointsNeeded: null,
+      nextTier: undefined,
+      nextTierPointsNeeded: undefined,
     },
   };
 
