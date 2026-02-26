@@ -116,7 +116,6 @@ jest.mock('../../../util/device', () => ({
 
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmNetworkConfigurationsByChainId: jest.fn(),
-  selectEvmChainId: jest.fn(),
   createProviderConfig: jest.fn(),
 }));
 
@@ -158,7 +157,6 @@ jest.mock('@shopify/flash-list', () => {
 
 jest.mock('../../../selectors/multichainNetworkController', () => ({
   selectIsEvmNetworkSelected: jest.fn(),
-  selectSelectedNonEvmNetworkChainId: jest.fn(),
 }));
 
 // Mock store setup
