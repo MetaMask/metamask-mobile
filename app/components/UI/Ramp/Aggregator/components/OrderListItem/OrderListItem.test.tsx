@@ -234,9 +234,13 @@ const testOrders: DeepPartial<FiatOrder>[] = [
 
 describe('OrderListItem', () => {
   it('should render correctly', () => {
-    testOrders.forEach((order) => {
+    testOrders.forEach((order, index) => {
       const rendered = renderWithProvider(
-        <OrderListItem order={order as FiatOrder} />,
+        <OrderListItem
+          order={order as FiatOrder}
+          rowIndex={index}
+          orderTypeSlug="buy"
+        />,
       );
       expect(rendered.toJSON()).toMatchSnapshot();
     });

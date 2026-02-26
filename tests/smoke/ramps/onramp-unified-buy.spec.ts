@@ -57,7 +57,7 @@ const expectedEventNames = [
   expectedEvents.RampsTokenSelected,
 ];
 describe(SmokeRamps('Onramp Unified Buy'), () => {
-  it('place ETH order', async () => {
+  it('Places ETH order through Transak', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -112,7 +112,11 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         // Verify order in transfers list
         await TabBarComponent.tapActivity();
         await ActivitiesView.tapOnTransfersTab();
-        await ActivitiesView.tapRampsOrder(expectedOrder.provider);
+
+        await Assertions.expectTextDisplayed(
+          `${expectedOrder.tokenAmount} ${expectedOrder.token}`,
+        );
+        await ActivitiesView.tapRampsOrder('buy', 1);
 
         for (const text of [
           `${expectedOrder.tokenAmount} ${expectedOrder.token}`,
