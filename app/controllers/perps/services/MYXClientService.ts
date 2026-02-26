@@ -15,6 +15,7 @@ import type {
 } from '@myx-trade/sdk';
 import { MyxClient } from '@myx-trade/sdk';
 
+import AppConstants from '../../../core/AppConstants';
 import {
   MYX_PRICE_POLLING_INTERVAL_MS,
   getMYXChainId,
@@ -113,8 +114,13 @@ export class MYXClientService {
     };
 
     const brokerAddress =
-      this.#authConfig.brokerAddress ||
-      '0x0000000000000000000000000000000000000000';
+      this.#authConfig.brokerAddress || AppConstants.ZERO_ADDRESS;
+
+    if (brokerAddress === AppConstants.ZERO_ADDRESS) {
+      this.#deps.debugLogger.log(
+        '[MYXClientService] brokerAddress not configured, using zero address',
+      );
+    }
 
     // Initialize MyxClient with broker address
     this.#myxClient = new MyxClient({
@@ -133,7 +139,7 @@ export class MYXClientService {
       chainId: this.#chainId,
       wsConnected: true,
       brokerAddress:
-        brokerAddress === '0x0000000000000000000000000000000000000000'
+        brokerAddress === AppConstants.ZERO_ADDRESS
           ? 'zero (not configured)'
           : 'configured',
     });

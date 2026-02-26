@@ -18,6 +18,10 @@ import { MYXProvider } from './MYXProvider';
 // Mocks
 // ============================================================================
 
+jest.mock('../../../core/AppConstants', () => ({
+  __esModule: true,
+  default: { ZERO_ADDRESS: '0x0000000000000000000000000000000000000000' },
+}));
 jest.mock('../services/MYXClientService');
 jest.mock('../services/MYXWalletService', () => ({
   MYXWalletService: jest.fn().mockImplementation(() => ({
@@ -302,14 +306,13 @@ describe('MYXProvider', () => {
       expect(result).toHaveLength(2);
     });
 
-    it('throws error on failure', async () => {
+    it('returns empty array on failure', async () => {
       mockClientService.getMarkets.mockRejectedValueOnce(
         new Error('Market fetch failed'),
       );
 
-      await expect(provider.getMarkets()).rejects.toThrow(
-        'Market fetch failed',
-      );
+      const result = await provider.getMarkets();
+      expect(result).toEqual([]);
       expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
@@ -356,14 +359,13 @@ describe('MYXProvider', () => {
       expect(mockAdaptMarketDataFromMYX).not.toHaveBeenCalled();
     });
 
-    it('throws error on failure', async () => {
+    it('returns empty array on failure', async () => {
       mockClientService.getMarkets.mockRejectedValueOnce(
         new Error('Data error'),
       );
 
-      await expect(provider.getMarketDataWithPrices()).rejects.toThrow(
-        'Data error',
-      );
+      const result = await provider.getMarketDataWithPrices();
+      expect(result).toEqual([]);
     });
   });
 

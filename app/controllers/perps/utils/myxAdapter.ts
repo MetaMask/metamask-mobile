@@ -18,6 +18,8 @@ import {
   fromMYXPrice,
   fromMYXSize,
   fromMYXCollateral,
+  MYX_MAX_LEVERAGE,
+  MYX_MINIMUM_ORDER_SIZE_USD,
 } from '../constants/myxConfig';
 import type {
   AccountState,
@@ -95,16 +97,12 @@ export function adaptMarketFromMYX(pool: MYXPoolSymbol): MarketInfo {
   // MYX uses fixed 18 decimals for sizes
   const szDecimals = 18;
 
-  // Default max leverage - MYX supports up to 100x on most markets
-  // Will be refined when pool level config is fetched
-  const maxLeverage = 100;
-
   return {
     name: symbol,
     szDecimals,
-    maxLeverage,
+    maxLeverage: MYX_MAX_LEVERAGE,
     marginTableId: 0, // MYX doesn't use margin tables like HyperLiquid
-    minimumOrderSize: 10, // MYX minimum order size is $10
+    minimumOrderSize: MYX_MINIMUM_ORDER_SIZE_USD,
     providerId: 'myx',
   };
 }
@@ -170,7 +168,7 @@ export function adaptMarketDataFromMYX(
   return {
     symbol,
     name: getTokenName(symbol),
-    maxLeverage: '100x', // MYX default
+    maxLeverage: `${MYX_MAX_LEVERAGE}x`,
     price: formattedPrice,
     change24h: formattedChange,
     change24hPercent: formattedChangePercent,
@@ -256,15 +254,19 @@ export function buildSymbolPoolsMap(
 
 /**
  * Extract symbol from pool ID
- * Pool IDs typically contain the symbol as a suffix or can be parsed
+ * Pool IDs typically contain the symbol as a suffix or can be parsed.
+ * When baseSymbol is unavailable, returns a truncated address for UI display.
  *
  * @param poolId - MYX pool ID string
- * @returns Extracted symbol or poolId as fallback
+ * @returns Extracted symbol or truncated poolId as fallback
  */
 export function extractSymbolFromPoolId(poolId: string): string {
-  // Pool IDs in MYX typically look like "0x..." hex addresses
+  // Pool IDs in MYX are hex addresses ("0x...")
   // The actual symbol comes from the pool's baseSymbol field
-  // This is a fallback when baseSymbol is not available
+  // Truncate hex addresses so they're UI-friendly
+  if (poolId.startsWith('0x') && poolId.length > 10) {
+    return `${poolId.slice(0, 6)}...${poolId.slice(-4)}`;
+  }
   return poolId;
 }
 
@@ -334,7 +336,7 @@ export function adaptPositionFromMYX(
       rawUsd: collateralNum.toString(),
     },
     liquidationPrice: null, // Requires separate calculation
-    maxLeverage: 100,
+    maxLeverage: MYX_MAX_LEVERAGE,
     returnOnEquity: '0',
     cumulativeFunding: {
       allTime: '0',
@@ -451,6 +453,8 @@ export function adaptAccountStateFromMYX(
   walletBalance?: string,
 ): AccountState {
   // accountInfo structure varies; extract what we can
+  // TODO: Verify SDK semantics — if totalCollateral already includes unrealizedPnl,
+  // the totalBalance formula below double-counts. Needs SDK documentation check.
   const marginUsed = accountInfo
     ? fromMYXCollateral(String(accountInfo.totalCollateral ?? '0'))
     : 0;
@@ -546,7 +550,7 @@ export function adaptFundingFromMYX(
       return {
         symbol,
         amountUsd: amountUsd.toString(),
-        rate: '0', // Funding rate not directly available in trade flow
+        rate: undefined, // Funding rate not available in MYX trade flow data
         timestamp: flow.txTime,
         transactionHash: flow.txHash,
       };

@@ -20,8 +20,8 @@ import type { CaipAccountId, Hex } from '@metamask/utils';
 
 import {
   getMYXChainId,
-  BNB_TESTNET_CHAIN_ID,
-  BNB_MAINNET_CHAIN_ID,
+  MYX_TESTNET_CHAIN_ID,
+  MYX_MAINNET_CHAIN_ID,
 } from '../constants/myxConfig';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
@@ -204,8 +204,8 @@ export class MYXWalletService {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
     }
     const chainId = this.#isTestnet
-      ? BNB_TESTNET_CHAIN_ID
-      : BNB_MAINNET_CHAIN_ID;
+      ? MYX_TESTNET_CHAIN_ID
+      : MYX_MAINNET_CHAIN_ID;
     const caipAccountId: CaipAccountId = `eip155:${chainId}:${evmAccount.address}`;
     return caipAccountId;
   }

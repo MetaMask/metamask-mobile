@@ -19,9 +19,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 8,
       gap: 4,
     },
-    badgeText: {
-      marginRight: 4,
-    },
+    badgeText: {},
 
     // Bottom sheet styles
     optionsList: {

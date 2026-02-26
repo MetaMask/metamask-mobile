@@ -15,6 +15,11 @@ import type { CaipAccountId } from '@metamask/utils';
 import type { KlineResolution } from '@myx-trade/sdk';
 
 import { calculateCandleCount } from '../constants/chartConfig';
+import {
+  MYX_MAX_LEVERAGE,
+  MYX_FEE_RATE,
+  MYX_PROTOCOL_FEE_RATE,
+} from '../constants/myxConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import { MYXClientService } from '../services/MYXClientService';
@@ -357,8 +362,6 @@ export class MYXProvider implements PerpsProvider {
   // Market Data Operations (Stage 1 - Fully Implemented)
   // ============================================================================
 
-  // TODO: Align error handling - read operations should return empty defaults
-  // instead of throwing, matching HyperLiquid pattern
   async getMarkets(_params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
       // Delegate cache freshness to MYXClientService
@@ -373,7 +376,7 @@ export class MYXProvider implements PerpsProvider {
         wrappedError,
         this.#getErrorContext('getMarkets'),
       );
-      throw wrappedError;
+      return [];
     }
   }
 
@@ -414,7 +417,7 @@ export class MYXProvider implements PerpsProvider {
         wrappedError,
         this.#getErrorContext('getMarketDataWithPrices'),
       );
-      throw wrappedError;
+      return [];
     }
   }
 
@@ -851,16 +854,15 @@ export class MYXProvider implements PerpsProvider {
   }
 
   async getMaxLeverage(_asset: string): Promise<number> {
-    return 100; // MYX default max leverage
+    return MYX_MAX_LEVERAGE;
   }
 
   async calculateFees(
     _params: FeeCalculationParams,
   ): Promise<FeeCalculationResult> {
-    // MYX fee structure (placeholder values)
     return {
-      feeRate: 0.0005, // 0.05% total fee rate
-      protocolFeeRate: 0.0005, // Protocol taker fee
+      feeRate: MYX_FEE_RATE,
+      protocolFeeRate: MYX_PROTOCOL_FEE_RATE,
     };
   }
 

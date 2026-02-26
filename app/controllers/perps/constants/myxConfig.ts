@@ -31,15 +31,6 @@ export const MYX_MAINNET_CAIP_CHAIN_ID =
 export const MYX_TESTNET_CAIP_CHAIN_ID =
   `eip155:${MYX_TESTNET_CHAIN_ID}` as CaipChainId;
 
-/** @deprecated Use MYX_MAINNET_CHAIN_ID */
-export const BNB_MAINNET_CHAIN_ID = MYX_MAINNET_CHAIN_ID;
-/** @deprecated Use MYX_TESTNET_CHAIN_ID */
-export const BNB_TESTNET_CHAIN_ID = MYX_TESTNET_CHAIN_ID;
-/** @deprecated Use MYX_MAINNET_CAIP_CHAIN_ID */
-export const BNB_MAINNET_CAIP_CHAIN_ID = MYX_MAINNET_CAIP_CHAIN_ID;
-/** @deprecated Use MYX_TESTNET_CAIP_CHAIN_ID */
-export const BNB_TESTNET_CAIP_CHAIN_ID = MYX_TESTNET_CAIP_CHAIN_ID;
-
 /**
  * Get numeric chain ID for MYX network
  *
@@ -263,9 +254,25 @@ export const MYX_HTTP_TIMEOUT_MS = 10000;
 export const MYX_MAX_RETRIES = 3;
 
 /**
- * Default slippage in basis points for MYX orders
+ * Default slippage in basis points for MYX orders (1% — matches SDK default)
  */
-export const MYX_DEFAULT_SLIPPAGE_BPS = 500;
+export const MYX_DEFAULT_SLIPPAGE_BPS = 100;
+
+/**
+ * Maximum leverage supported by MYX (most markets)
+ */
+export const MYX_MAX_LEVERAGE = 100;
+
+/**
+ * Minimum order size in USD
+ */
+export const MYX_MINIMUM_ORDER_SIZE_USD = 10;
+
+/**
+ * MYX fee rates (placeholder — will be replaced with per-market rates)
+ */
+export const MYX_FEE_RATE = 0.0005; // 0.05% total fee rate
+export const MYX_PROTOCOL_FEE_RATE = 0.0005; // Protocol taker fee
 
 /**
  * USDT execution fee token address per network (used for order execution fees)

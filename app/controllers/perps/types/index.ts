@@ -903,7 +903,7 @@ export type Order = {
 export type Funding = {
   symbol: string; // Asset symbol (e.g., 'ETH', 'BTC')
   amountUsd: string; // Funding amount in USD (positive = received, negative = paid)
-  rate: string; // Funding rate applied
+  rate?: string; // Funding rate applied (undefined when not available from provider)
   timestamp: number; // Funding payment timestamp
   transactionHash?: string; // Optional transaction hash
 };
