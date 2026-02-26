@@ -130,6 +130,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         dispatch(storePna25Acknowledged());
       }
     } else {
+      // Track opt-out event before calling optOut() to ensure it gets sent
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.METRICS_OPT_OUT,
@@ -140,8 +141,10 @@ const MetaMetricsAndDataCollectionSection: React.FC<
           })
           .build(),
       );
+
       await analytics.optOut();
       setAnalyticsEnabled(false);
+
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));
       }

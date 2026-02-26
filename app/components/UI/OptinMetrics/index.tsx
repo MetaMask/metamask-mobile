@@ -241,12 +241,14 @@ const OptinMetrics = () => {
   );
 
   const handleBasicUsageToggle = useCallback(() => {
-    const newValue = !isBasicUsageChecked;
-    if (!newValue) {
-      setIsMarketingChecked(false);
-    }
-    setIsBasicUsageChecked(newValue);
-  }, [isBasicUsageChecked]);
+    setIsBasicUsageChecked((prevValue) => {
+      const newValue = !prevValue;
+      if (!newValue) {
+        setIsMarketingChecked(false);
+      }
+      return newValue;
+    });
+  }, []);
 
   const handleMarketingToggle = useCallback(() => {
     if (isBasicUsageChecked) {
