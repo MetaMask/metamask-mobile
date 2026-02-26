@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Image, Linking, Pressable, ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -53,7 +53,7 @@ const SourceIcon: React.FC<{
 };
 
 // MarketInsightsSourcesBottomSheet renders a scrollable list of all sources
-const MarketInsightsSourcesBottomSheet: React.FC<
+export const MarketInsightsSourcesBottomSheet: React.FC<
   MarketInsightsSourcesBottomSheetProps
 > = ({ isVisible, onClose, sources, onSourcePress }) => {
   const tw = useTailwind();
@@ -144,101 +144,81 @@ const MarketInsightsSourcesBottomSheet: React.FC<
 
 const MarketInsightsSourcesFooter: React.FC<
   MarketInsightsSourcesFooterProps
-> = ({ sources, onSourcePress, onThumbsUp, onThumbsDown, testID }) => {
+> = ({ sources, onSourcesPress, onThumbsUp, onThumbsDown, testID }) => {
   const tw = useTailwind();
-  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
   const visibleCount = Math.min(sources.length, MAX_VISIBLE_SOURCES);
   const remainingCount = Math.max(sources.length - MAX_VISIBLE_SOURCES, 0);
 
-  const handleOpenSources = useCallback(() => {
-    setIsBottomSheetVisible(true);
-  }, []);
-
-  const handleCloseSources = useCallback(() => {
-    setIsBottomSheetVisible(false);
-  }, []);
-
   return (
-    <>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="px-4 pt-3 pb-3"
+      testID={testID}
+    >
+      <Pressable
+        onPress={onSourcesPress}
+        style={({ pressed }) =>
+          tw.style(
+            'flex-row items-center bg-muted rounded-full px-3 py-2',
+            pressed && 'opacity-70',
+          )
+        }
+      >
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="pr-2">
+          {sources.slice(0, visibleCount).map((source, index) => (
+            <SourceIcon
+              key={source.name}
+              source={source}
+              index={index}
+              isStacked
+            />
+          ))}
+        </Box>
+        {remainingCount > 0 ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {strings('market_insights.sources_count', {
+              count: String(remainingCount),
+            })}
+          </Text>
+        ) : null}
+      </Pressable>
+
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 pt-3 pb-8"
-        testID={testID}
+        gap={4}
       >
         <Pressable
-          onPress={handleOpenSources}
-          style={({ pressed }) =>
-            tw.style(
-              'flex-row items-center bg-muted rounded-full px-3 py-2',
-              pressed && 'opacity-70',
-            )
-          }
+          onPress={onThumbsUp}
+          style={({ pressed }) => tw.style(pressed && 'opacity-70')}
+          testID={MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON}
         >
-          <Box flexDirection={BoxFlexDirection.Row} twClassName="pr-2">
-            {sources.slice(0, visibleCount).map((source, index) => (
-              <SourceIcon
-                key={source.name}
-                source={source}
-                index={index}
-                isStacked
-              />
-            ))}
-          </Box>
-          {remainingCount > 0 ? (
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {strings('market_insights.sources_count', {
-                count: String(remainingCount),
-              })}
-            </Text>
-          ) : null}
+          <Icon
+            name={IconName.ThumbUp}
+            size={IconSize.Md}
+            color={IconColor.IconAlternative}
+          />
         </Pressable>
-
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={4}
+        <Pressable
+          onPress={onThumbsDown}
+          style={({ pressed }) => tw.style(pressed && 'opacity-70')}
+          testID={MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON}
         >
-          <Pressable
-            onPress={onThumbsUp}
-            style={({ pressed }) => tw.style(pressed && 'opacity-70')}
-            testID={MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON}
-          >
-            <Icon
-              name={IconName.ThumbUp}
-              size={IconSize.Md}
-              color={IconColor.IconAlternative}
-            />
-          </Pressable>
-          <Pressable
-            onPress={onThumbsDown}
-            style={({ pressed }) => tw.style(pressed && 'opacity-70')}
-            testID={MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON}
-          >
-            <Icon
-              name={IconName.ThumbDown}
-              size={IconSize.Md}
-              color={IconColor.IconAlternative}
-            />
-          </Pressable>
-        </Box>
+          <Icon
+            name={IconName.ThumbDown}
+            size={IconSize.Md}
+            color={IconColor.IconAlternative}
+          />
+        </Pressable>
       </Box>
-
-      {isBottomSheetVisible && (
-        <MarketInsightsSourcesBottomSheet
-          isVisible={isBottomSheetVisible}
-          onClose={handleCloseSources}
-          sources={sources}
-          onSourcePress={onSourcePress}
-        />
-      )}
-    </>
+    </Box>
   );
 };
 
