@@ -62,6 +62,7 @@ describe('BridgeFeeRow', () => {
         provider: { usd: '1.00' },
         sourceNetwork: { estimate: { usd: '0.20' } },
         targetNetwork: { usd: '0.03' },
+        metaMask: { usd: '0', fiat: '0' },
       },
     } as TransactionPayTotals);
 
@@ -134,6 +135,36 @@ describe('BridgeFeeRow', () => {
     useTransactionPayQuotesMock.mockReturnValue([]);
     const { queryByTestId } = render();
     expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
+  });
+
+  it('renders metamask fee from totals', () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '0.03' },
+        sourceNetwork: { estimate: { usd: '0.01' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0.00435', fiat: '0.00435' },
+      },
+    } as TransactionPayTotals);
+
+    const { getByText } = render();
+
+    expect(getByText('<$0.01')).toBeOnTheScreen();
+  });
+
+  it('renders metamask fee as $0 when fee is zero', () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '0.03' },
+        sourceNetwork: { estimate: { usd: '0.01' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0', fiat: '0' },
+      },
+    } as TransactionPayTotals);
+
+    const { getByText } = render();
+
+    expect(getByText('$0')).toBeOnTheScreen();
   });
 
   it('does not render metamask fee if no quotes', async () => {
