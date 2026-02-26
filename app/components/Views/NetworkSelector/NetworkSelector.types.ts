@@ -1,3 +1,6 @@
+import type { Hex } from '@metamask/utils';
+import type { NetworkSelectorSource } from '../../../constants/networkSelector';
+
 /**
  * Network navigation parameters
  */
@@ -5,6 +8,13 @@
 /** Network selector parameters */
 export interface NetworkSelectorParams {
   onNetworkSelected?: (chainId: string) => void;
+  chainId?: Hex;
+  hostInfo?: {
+    metadata?: {
+      origin?: string;
+    };
+  };
+  source?: NetworkSelectorSource;
 }
 
 /** Add network parameters */
