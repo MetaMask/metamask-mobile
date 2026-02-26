@@ -217,18 +217,12 @@ describe('AddressList', () => {
     // Simulate button press by calling the onPress function directly
     fireEvent.press(qrButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'MultichainAccountDetailActions',
-      {
-        screen: 'ShareAddressQR',
-        params: {
-          address: toFormattedAddress(mockEthEoaAccount.address),
-          networkName: 'Ethereum',
-          chainId: 'eip155:1',
-          groupId: ACCOUNT_GROUP_ID,
-        },
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('ShareAddressQR', {
+      address: toFormattedAddress(mockEthEoaAccount.address),
+      networkName: 'Ethereum',
+      chainId: 'eip155:1',
+      groupId: ACCOUNT_GROUP_ID,
+    });
   });
 
   describe('Analytics tracking', () => {

@@ -51,12 +51,8 @@ describe('RemoveAccount', () => {
     const button = getByTestId(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON);
     fireEvent.press(button);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'MultichainAccountDetailActions',
-      {
-        screen: 'DeleteAccount',
-        params: { account: mockAccount },
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('DeleteAccount', {
+      account: mockAccount,
+    });
   });
 });

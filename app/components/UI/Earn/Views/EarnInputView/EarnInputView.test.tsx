@@ -339,6 +339,9 @@ const mockInitialState: DeepPartial<RootState> = {
           },
         },
       },
+      MultichainAssetsRatesController: {
+        conversionRates: {},
+      },
     },
   },
 };

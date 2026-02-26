@@ -79,16 +79,12 @@ export const AddressList = () => {
               name: IconName.QrCode,
               callback: () => {
                 navigation.navigate(
-                  Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+                  Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
                   {
-                    screen:
-                      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
-                    params: {
-                      address: item.account.address,
-                      networkName: item.networkName,
-                      chainId: item.scope,
-                      groupId,
-                    },
+                    address: item.account.address,
+                    networkName: item.networkName,
+                    chainId: item.scope,
+                    groupId,
                   },
                 );
               },
