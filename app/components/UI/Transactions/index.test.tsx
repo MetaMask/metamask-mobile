@@ -1459,8 +1459,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(result.maxFeePerGas).toBe('0x4a817c800');
     expect(result.maxPriorityFeePerGas).toBe('0x77359400');
 
-    // Test legacy gas pricing
-    instance.existingGas = { gasPrice: 0 };
+    // Test legacy gas pricing (existingTx.txParams.gasPrice zero or missing)
+    instance.existingTx = { txParams: { gasPrice: '0x0' } };
     const legacyResult = instance.getCancelOrSpeedupValues({});
     expect(legacyResult.gasPrice).toBeDefined();
   });
@@ -1549,12 +1549,10 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test onSpeedUpAction method directly', () => {
     instance.setState = jest.fn();
-    const existingGas = { isEIP1559Transaction: false, gasPrice: 20000000000 };
     const tx = { id: 'tx-123' };
 
-    instance.onSpeedUpAction(true, existingGas, tx);
+    instance.onSpeedUpAction(true, tx);
 
-    expect(instance.existingGas).toBe(existingGas);
     expect(instance.speedUpTxId).toBe('tx-123');
     expect(instance.existingTx).toBe(tx);
     expect(instance.setState).toHaveBeenCalled();
@@ -1562,12 +1560,10 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test onCancelAction method directly', () => {
     instance.setState = jest.fn();
-    const existingGas = { isEIP1559Transaction: true };
     const tx = { id: 'tx-456' };
 
-    instance.onCancelAction(true, existingGas, tx);
+    instance.onCancelAction(true, tx);
 
-    expect(instance.existingGas).toBe(existingGas);
     expect(instance.cancelTxId).toBe('tx-456');
     expect(instance.existingTx).toBe(tx);
     expect(instance.setState).toHaveBeenCalledWith({
@@ -1578,7 +1574,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test onSpeedUpCompleted method directly', () => {
     instance.setState = jest.fn();
-    instance.existingGas = { gasPrice: 20000000000 };
     instance.speedUpTxId = 'tx-123';
     instance.existingTx = { id: 'tx-123' };
 
@@ -1588,14 +1583,12 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       speedUp1559IsOpen: false,
       speedUpIsOpen: false,
     });
-    expect(instance.existingGas).toBeNull();
     expect(instance.speedUpTxId).toBeNull();
     expect(instance.existingTx).toBeNull();
   });
 
   it('should test onCancelCompleted method directly', () => {
     instance.setState = jest.fn();
-    instance.existingGas = { gasPrice: 20000000000 };
     instance.cancelTxId = 'tx-456';
     instance.existingTx = { id: 'tx-456' };
 
@@ -1605,7 +1598,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       cancel1559IsOpen: false,
       cancelIsOpen: false,
     });
-    expect(instance.existingGas).toBeNull();
     expect(instance.cancelTxId).toBeNull();
     expect(instance.existingTx).toBeNull();
   });
@@ -1642,7 +1634,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.onSpeedUpAction = jest.fn();
     instance.onCancelAction = jest.fn();
     instance.speedUpTxId = 'speed-up-tx';
-    instance.existingGas = { gasPrice: 20000000000 };
     instance.existingTx = { id: 'speed-up-tx' };
 
     instance.retry();
@@ -2164,13 +2155,13 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   });
 
   it('should test getCancelOrSpeedupValues edge cases', () => {
-    // Test when transactionObject has no suggested values
-    instance.existingGas = { gasPrice: 100 };
+    // Test when transactionObject has no suggested values and existingTx has non-zero gasPrice
+    instance.existingTx = { txParams: { gasPrice: '0x64' } };
     const result1 = instance.getCancelOrSpeedupValues({});
-    expect(result1).toBeUndefined(); // Should return undefined for non-zero gasPrice
+    expect(result1).toBeUndefined();
 
     // Test when gasPrice is 0 but no suggested values
-    instance.existingGas = { gasPrice: 0 };
+    instance.existingTx = { txParams: { gasPrice: '0x0' } };
     const result2 = instance.getCancelOrSpeedupValues({});
     expect(result2.gasPrice).toBeDefined();
 
@@ -2370,7 +2361,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     // Test retry with speedUpTxId
     instance.speedUpTxId = 'speed-up-tx';
     instance.cancelTxId = null;
-    instance.existingGas = { gasPrice: 20000000000 };
     instance.existingTx = { id: 'speed-up-tx' };
 
     instance.retry();

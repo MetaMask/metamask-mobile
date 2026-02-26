@@ -217,7 +217,6 @@ class Transactions extends PureComponent {
     isLedgerAccount: false,
   };
 
-  existingGas = null;
   existingTx = null;
   cancelTxId = null;
   speedUpTxId = null;
@@ -424,9 +423,8 @@ class Transactions extends PureComponent {
 
   keyExtractor = (item) => item.id.toString();
 
-  onSpeedUpAction = (speedUpAction, existingGas, tx) => {
+  onSpeedUpAction = (speedUpAction, tx) => {
     if (!tx) return;
-    this.existingGas = existingGas;
     this.speedUpTxId = tx.id;
     this.existingTx = tx;
     const speedUpConfirmDisabled = validateTransactionActionBalance(
@@ -439,14 +437,12 @@ class Transactions extends PureComponent {
 
   onSpeedUpCompleted = () => {
     this.setState({ speedUp1559IsOpen: false, speedUpIsOpen: false });
-    this.existingGas = null;
     this.speedUpTxId = null;
     this.existingTx = null;
   };
 
-  onCancelAction = (cancelAction, existingGas, tx) => {
+  onCancelAction = (cancelAction, tx) => {
     if (!tx) return;
-    this.existingGas = existingGas;
     this.cancelTxId = tx.id;
     this.existingTx = tx;
     const cancelConfirmDisabled = validateTransactionActionBalance(
@@ -459,7 +455,6 @@ class Transactions extends PureComponent {
 
   onCancelCompleted = () => {
     this.setState({ cancel1559IsOpen: false, cancelIsOpen: false });
-    this.existingGas = null;
     this.cancelTxId = null;
     this.existingTx = null;
   };
@@ -659,12 +654,12 @@ class Transactions extends PureComponent {
     //If the exitsing TX id true then it is a speed up retry
     if (this.speedUpTxId) {
       InteractionManager.runAfterInteractions(() => {
-        this.onSpeedUpAction(true, this.existingGas, this.existingTx);
+        this.onSpeedUpAction(true, this.existingTx);
       });
     }
     if (this.cancelTxId) {
       InteractionManager.runAfterInteractions(() => {
-        this.onCancelAction(true, this.existingGas, this.existingTx);
+        this.onCancelAction(true, this.existingTx);
       });
     }
   };
@@ -765,7 +760,6 @@ class Transactions extends PureComponent {
             <CancelSpeedupModal
               isCancel={false}
               tx={this.existingTx}
-              existingGas={this.existingGas}
               onConfirm={this.speedUpTransaction}
               onClose={this.onSpeedUpCompleted}
               confirmDisabled={speedUpConfirmDisabled}
@@ -791,7 +785,6 @@ class Transactions extends PureComponent {
             <CancelSpeedupModal
               isCancel
               tx={this.existingTx}
-              existingGas={this.existingGas}
               onConfirm={this.cancelTransaction}
               onClose={this.onCancelCompleted}
               confirmDisabled={cancelConfirmDisabled}
@@ -834,9 +827,13 @@ class Transactions extends PureComponent {
       };
     }
 
-    if (this.existingGas.gasPrice !== 0) {
-      // Transaction controller will multiply existing gas price by the rate.
-      return undefined;
+    const txParams = this.existingTx?.txParams;
+    const existingGasPriceHex = txParams?.gasPrice;
+    if (existingGasPriceHex !== undefined && existingGasPriceHex !== '0x0') {
+      const existingGasPriceDecimal = parseInt(String(existingGasPriceHex), 16);
+      if (existingGasPriceDecimal !== 0) {
+        return undefined;
+      }
     }
 
     return { gasPrice: this.getGasPriceEstimate() };

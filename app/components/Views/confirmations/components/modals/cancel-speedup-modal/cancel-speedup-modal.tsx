@@ -28,12 +28,12 @@ import {
   FlexDirection,
 } from '../../../../../../components/UI/Box/box.types';
 import { useCancelSpeedupGas } from '../../../hooks/gas/useCancelSpeedupGas';
+import { GasSpeed } from '../../gas/gas-speed';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
 import InfoSection from '../../UI/info-row/info-section';
 import InfoRow from '../../UI/info-row/info-row';
 import styleSheet from './cancel-speedup-modal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { ExistingGas } from '../../../../UnifiedTransactionsView/useUnifiedTxActions';
 
 const NetworkFeeRow = ({
   fiat,
@@ -55,13 +55,16 @@ const NetworkFeeRow = ({
         gap={3}
         style={tw.style('flex-wrap')}
       >
-        {fiat ? <Text variant={TextVariant.BodyMD}>{fiat}</Text> : null}
+        {fiat ? (
+          <Text variant={TextVariant.BodyMD}>{fiat}</Text>
+        ) : (
+          <Text variant={TextVariant.BodyMD}>{native}</Text>
+        )}
         <Box
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
           gap={3}
         >
-          <Text variant={TextVariant.BodyMD}>{native}</Text>
           <NetworkAssetLogo
             chainId={chainId}
             ticker={symbol}
@@ -77,8 +80,10 @@ const NetworkFeeRow = ({
   );
 };
 
-const SpeedRow = ({ display }: { display: string }) => (
-  <InfoRow label={strings('transactions.gas_modal.speed')}>{display}</InfoRow>
+const SpeedRow = ({ transactionId }: { transactionId?: string }) => (
+  <InfoRow label={strings('transactions.gas_modal.speed')}>
+    <GasSpeed transactionId={transactionId} />
+  </InfoRow>
 );
 
 const Description = ({ text }: { text: string }) => {
@@ -97,7 +102,6 @@ const Description = ({ text }: { text: string }) => {
 export interface CancelSpeedupModalProps {
   isCancel: boolean;
   tx: TransactionMeta | null;
-  existingGas: ExistingGas | null;
   onConfirm: (
     params: GasPriceValue | FeeMarketEIP1559Values | undefined,
   ) => void;
@@ -108,7 +112,6 @@ export interface CancelSpeedupModalProps {
 export function CancelSpeedupModal({
   isCancel,
   tx,
-  existingGas,
   onConfirm,
   onClose,
   confirmDisabled = false,
@@ -121,9 +124,8 @@ export function CancelSpeedupModal({
     paramsForController,
     networkFeeNative,
     networkFeeFiat,
-    speedDisplay,
     nativeTokenSymbol,
-  } = useCancelSpeedupGas({ existingGas, tx, isCancel });
+  } = useCancelSpeedupGas({ tx, isCancel });
 
   const close = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
@@ -172,7 +174,7 @@ export function CancelSpeedupModal({
                 symbol={nativeTokenSymbol}
                 chainId={chainId}
               />
-              <SpeedRow display={speedDisplay} />
+              <SpeedRow transactionId={tx?.id} />
             </InfoSection>
             <Description text={description} />
           </Box>

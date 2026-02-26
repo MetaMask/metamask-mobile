@@ -50,13 +50,22 @@ const defaultGasValues = {
   networkFeeDisplay: '0.001 ETH',
   networkFeeNative: '0.001',
   networkFeeFiat: '$1.80',
-  speedDisplay: 'Market ~ 15 sec',
   nativeTokenSymbol: 'ETH',
 };
 
 jest.mock('../../../hooks/gas/useCancelSpeedupGas', () => ({
   useCancelSpeedupGas: jest.fn(),
 }));
+
+jest.mock('../../gas/gas-speed', () => {
+  const RN = jest.requireActual<typeof import('react')>('react');
+  return {
+    GasSpeed: ({ transactionId }: { transactionId?: string | null }) =>
+      transactionId
+        ? RN.createElement(RN.Fragment, null, 'Market ~ 15 sec')
+        : null,
+  };
+});
 
 const mockedUseCancelSpeedupGas = jest.mocked(useCancelSpeedupGas);
 
@@ -83,11 +92,6 @@ describe('CancelSpeedupModal', () => {
       chainId: '0x1',
       txParams: { gas: '0x5208' },
     } as unknown as TransactionMeta,
-    existingGas: {
-      isEIP1559Transaction: true,
-      maxFeePerGas: '0x1',
-      maxPriorityFeePerGas: '0x1',
-    },
     onConfirm: mockOnConfirm,
     onClose: mockOnClose,
     confirmDisabled: false,
@@ -178,15 +182,14 @@ describe('CancelSpeedupModal', () => {
     });
 
     expect(mockedUseCancelSpeedupGas).toHaveBeenCalledWith({
-      existingGas: defaultProps.existingGas,
       tx: defaultProps.tx,
       isCancel: false,
     });
   });
 
-  it('handles null tx and existingGas gracefully', () => {
+  it('handles null tx gracefully', () => {
     const { getByText } = renderWithProvider(
-      <CancelSpeedupModal {...defaultProps} tx={null} existingGas={null} />,
+      <CancelSpeedupModal {...defaultProps} tx={null} />,
       { state: baseState },
     );
 

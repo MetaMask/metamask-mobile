@@ -89,7 +89,6 @@ export function useUnifiedTxActions() {
   const [cancel1559IsOpen, setCancel1559IsOpen] = useState(false);
   const [speedUpConfirmDisabled, setSpeedUpConfirmDisabled] = useState(false);
   const [cancelConfirmDisabled, setCancelConfirmDisabled] = useState(false);
-  const [existingGas, setExistingGas] = useState<ExistingGas | null>(null);
   const [existingTx, setExistingTx] = useState<TransactionMeta | null>(null);
   const [speedUpTxId, setSpeedUpTxId] = useState<Maybe<string>>(null);
   const [cancelTxId, setCancelTxId] = useState<Maybe<string>>(null);
@@ -106,7 +105,6 @@ export function useUnifiedTxActions() {
   const onSpeedUpCompleted = useCallback(() => {
     setSpeedUp1559IsOpen(false);
     setSpeedUpIsOpen(false);
-    setExistingGas(null);
     setSpeedUpTxId(null);
     setExistingTx(null);
   }, []);
@@ -114,7 +112,6 @@ export function useUnifiedTxActions() {
   const onCancelCompleted = useCallback(() => {
     setCancel1559IsOpen(false);
     setCancelIsOpen(false);
-    setExistingGas(null);
     setCancelTxId(null);
     setExistingTx(null);
   }, []);
@@ -237,22 +234,18 @@ export function useUnifiedTxActions() {
         maxPriorityFeePerGas: `0x${suggestedMaxPriorityFeePerGasHex}`,
       };
     }
-    if (
-      existingGas &&
-      'gasPrice' in existingGas &&
-      existingGas.gasPrice !== 0
-    ) {
-      // Transaction controller will multiply existing gas price by the rate.
-      return undefined;
+    const txParams = existingTx?.txParams;
+    const existingGasPriceHex = txParams?.gasPrice;
+    if (existingGasPriceHex !== undefined && existingGasPriceHex !== '0x0') {
+      const existingGasPriceDecimal = parseInt(String(existingGasPriceHex), 16);
+      if (existingGasPriceDecimal !== 0) {
+        return undefined;
+      }
     }
     return { gasPrice: getGasPriceEstimate() };
   };
 
-  const onSpeedUpAction = (
-    open: boolean,
-    nextExistingGas?: ExistingGas,
-    tx?: TransactionMeta,
-  ) => {
+  const onSpeedUpAction = (open: boolean, tx?: TransactionMeta) => {
     if (!open) {
       setSpeedUpIsOpen(false);
       setSpeedUp1559IsOpen(false);
@@ -261,7 +254,6 @@ export function useUnifiedTxActions() {
     if (!tx) {
       return;
     }
-    setExistingGas(nextExistingGas ?? null);
     setExistingTx(tx);
     setSpeedUpTxId(tx.id ?? null);
     const disabled = Boolean(
@@ -271,11 +263,7 @@ export function useUnifiedTxActions() {
     setSpeedUpIsOpen(true);
   };
 
-  const onCancelAction = (
-    open: boolean,
-    nextExistingGas?: ExistingGas,
-    tx?: TransactionMeta,
-  ) => {
+  const onCancelAction = (open: boolean, tx?: TransactionMeta) => {
     if (!open) {
       setCancelIsOpen(false);
       setCancel1559IsOpen(false);
@@ -284,7 +272,6 @@ export function useUnifiedTxActions() {
     if (!tx) {
       return;
     }
-    setExistingGas(nextExistingGas ?? null);
     setExistingTx(tx);
     setCancelTxId(tx.id ?? null);
     const disabled = Boolean(
@@ -306,7 +293,9 @@ export function useUnifiedTxActions() {
     return getCancelOrSpeedupValues(params as ReplacementGasParams);
   };
 
-  const speedUpTransaction = async (params?: ReplacementGasParams) => {
+  const speedUpTransaction = async (
+    params?: ReplacementGasParams | CancelSpeedupModalParams,
+  ) => {
     try {
       if (params && 'error' in params && params.error) {
         throw new Error(params.error);
@@ -410,7 +399,6 @@ export function useUnifiedTxActions() {
     cancel1559IsOpen,
     speedUpConfirmDisabled,
     cancelConfirmDisabled,
-    existingGas,
     existingTx,
     speedUpTxId,
     cancelTxId,

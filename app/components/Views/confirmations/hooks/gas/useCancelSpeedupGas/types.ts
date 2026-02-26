@@ -3,7 +3,6 @@ import type {
   GasPriceValue,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import { ExistingGas } from '../../../../UnifiedTransactionsView/useUnifiedTxActions';
 
 /**
  * Result of useCancelSpeedupGas: params for controller and display strings.
@@ -17,14 +16,11 @@ export interface UseCancelSpeedupGasResult {
   networkFeeNative: string;
   /** Fiat fee (e.g. "$0.65") or null when testnet/hidden */
   networkFeeFiat: string | null;
-  /** Display string for "Speed" row (e.g. "Market < 30 sec") */
-  speedDisplay: string;
   /** Native currency symbol for the chain (e.g. "ETH") */
   nativeTokenSymbol: string;
 }
 
 export interface UseCancelSpeedupGasInput {
-  existingGas: ExistingGas | null;
   tx: TransactionMeta | null;
   isCancel: boolean;
 }

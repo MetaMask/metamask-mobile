@@ -63,7 +63,6 @@ jest.mock('./useUnifiedTxActions', () => ({
     cancel1559IsOpen: false,
     speedUpConfirmDisabled: false,
     cancelConfirmDisabled: false,
-    existingGas: null,
     existingTx: null,
     speedUpTxId: null,
     cancelTxId: null,

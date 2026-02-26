@@ -539,7 +539,6 @@ const UnifiedTransactionsView = ({
     cancelIsOpen,
     speedUpConfirmDisabled,
     cancelConfirmDisabled,
-    existingGas,
     existingTx,
     speedUpTxId,
     cancelTxId,
@@ -700,7 +699,6 @@ const UnifiedTransactionsView = ({
             <CancelSpeedupModal
               isCancel={false}
               tx={existingTx}
-              existingGas={existingGas}
               onConfirm={speedUpTransaction}
               onClose={onSpeedUpCompleted}
               confirmDisabled={speedUpConfirmDisabled}
@@ -726,7 +724,6 @@ const UnifiedTransactionsView = ({
             <CancelSpeedupModal
               isCancel
               tx={existingTx}
-              existingGas={existingGas}
               onConfirm={cancelTransaction}
               onClose={onCancelCompleted}
               confirmDisabled={cancelConfirmDisabled}
@@ -737,18 +734,8 @@ const UnifiedTransactionsView = ({
           onCancelPress={() => toggleRetry(undefined)}
           onConfirmPress={() => {
             toggleRetry(undefined);
-            if (speedUpTxId)
-              onSpeedUpAction(
-                true,
-                existingGas ?? undefined,
-                existingTx ?? undefined,
-              );
-            if (cancelTxId)
-              onCancelAction(
-                true,
-                existingGas ?? undefined,
-                existingTx ?? undefined,
-              );
+            if (speedUpTxId) onSpeedUpAction(true, existingTx ?? undefined);
+            if (cancelTxId) onCancelAction(true, existingTx ?? undefined);
           }}
           retryIsOpen={retryIsOpen}
           errorMsg={retryErrorMsg}

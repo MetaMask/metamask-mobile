@@ -43,7 +43,6 @@ import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensCon
 import { selectContractExchangeRatesByChainId } from '../../../../selectors/tokenRatesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { regex } from '../../../../../app/util/regex';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import {
   selectPrimaryCurrency,
   selectAvatarAccountType,
@@ -163,10 +162,6 @@ class TransactionDetails extends PureComponent {
     swapsTransactions: PropTypes.object,
     primaryCurrency: PropTypes.string,
 
-    /**
-     * Boolean that indicates if smart transaction should be used
-     */
-    shouldUseSmartTransaction: PropTypes.bool,
     /**
      * Avatar style to render for account icons
      */
@@ -370,8 +365,13 @@ class TransactionDetails extends PureComponent {
   render = () => {
     const {
       transactionObject,
-      transactionObject: { status, time, txParams, chainId: txChainId },
-      shouldUseSmartTransaction,
+      transactionObject: {
+        status,
+        time,
+        txParams,
+        chainId: txChainId,
+        isSmartTransaction,
+      },
     } = this.props;
     const chainId = txChainId;
     const hasNestedTransactions = Boolean(
@@ -379,13 +379,10 @@ class TransactionDetails extends PureComponent {
     );
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
-
     const isBridgeTransaction =
       transactionObject?.type === TransactionType.bridge;
-    const isSmartTransaction = Boolean(transactionObject?.isSmartTransaction);
     const renderTxActions =
       (status === 'submitted' || status === 'approved') &&
-      !shouldUseSmartTransaction &&
       !isSmartTransaction &&
       !isBridgeTransaction;
     const { rpcBlockExplorer } = this.state;
@@ -566,10 +563,6 @@ const mapStateToProps = (state, ownProps) => ({
   currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
-    state,
-    ownProps.transactionObject.chainId,
-  ),
   avatarAccountType: selectAvatarAccountType(state),
 });
 

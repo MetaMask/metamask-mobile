@@ -631,16 +631,11 @@ class TransactionElement extends PureComponent {
   };
 
   showCancelModal = () => {
-    const existingGas = this.parseGas();
-
-    this.mounted && this.props.onCancelAction(true, existingGas, this.props.tx);
+    this.mounted && this.props.onCancelAction(true, this.props.tx);
   };
 
   showSpeedUpModal = () => {
-    const existingGas = this.parseGas();
-
-    this.mounted &&
-      this.props.onSpeedUpAction(true, existingGas, this.props.tx);
+    this.mounted && this.props.onSpeedUpAction(true, this.props.tx);
   };
 
   hideSpeedUpModal = () => {
