@@ -207,7 +207,7 @@ https://link.metamask.io/buy?chain=1&token=ETH
 ```
 
 ```
-https://link.metamask.io/buy?assetId=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&amount=150&providerId=/providers/transak&paymentMethodId=/payments/debit-credit-card
+https://link.metamask.io/buy?assetId=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&amount=150&providerId=/providers/transak&paymentMethodId=/payments/debit-credit-card&autoProceed=true
 ```
 
 #### Swap Link (CAIP-19 Format)
@@ -884,28 +884,28 @@ describe('Dynamic signature verification', () => {
 
 ### Supported Actions
 
-| Action                 | Purpose                     | Handler Function         | Notes                                           |
-| ---------------------- | --------------------------- | ------------------------ | ----------------------------------------------- |
-| `swap`                 | Token swap/bridge (CAIP-19) | `handleSwapUrl`          | Params: `from`, `to`, `amount` (CAIP-19)        |
-| `buy` / `buy-crypto`   | Buy crypto                  | `handleRampUrl`          | Params: `assetId`, `amount`, `providerId`, `paymentMethodId` |
-| `sell` / `sell-crypto` | Sell crypto                 | `handleRampUrl`          |                                                 |
-| `deposit`              | Cash deposit                | `handleDepositCashUrl`   |                                                 |
-| `send`                 | Send transaction            | Recursive `parse()` call |                                                 |
-| `home`                 | Navigate home               | `navigateToHomeUrl`      | Params: `previewToken`, `openNetworkSelector`   |
-| `asset`                | Asset overview              | `handleAssetUrl`         | Params: `assetId` (CAIP-19)                     |
-| `dapp`                 | Open dApp browser           | `handleBrowserUrl`       |                                                 |
-| `create-account`       | Create new account          | `handleCreateAccountUrl` |                                                 |
-| `perps`                | Perpetuals trading          | `handlePerpsUrl`         | Params: `screen` (tabs/markets/asset), `symbol` |
-| `perps-markets`        | Perps markets list          | `handlePerpsUrl`         |                                                 |
-| `perps-asset`          | Perps specific asset        | ⚠️ NOT IMPLEMENTED       | Action defined but missing handler case         |
-| `predict`              | Prediction markets          | `handlePredictUrl`       | Params: `market` or `marketId`, `utm_source`    |
-| `rewards`              | Rewards program             | `handleRewardsUrl`       | Params: `referral` (referral code)              |
-| `wc`                   | WalletConnect               | Recursive `parse()` call |                                                 |
-| `onboarding`           | Fast onboarding             | `handleFastOnboarding`   |                                                 |
-| `enable-card-button`   | Enable card feature         | `handleEnableCardButton` |                                                 |
-| `bind`                 | Android SDK binding         | `handleMetaMaskDeeplink` |                                                 |
-| `connect`              | SDK connection              | `handleMetaMaskDeeplink` |                                                 |
-| `mmsdk`                | MetaMask SDK message        | `handleMetaMaskDeeplink` |                                                 |
+| Action                 | Purpose                     | Handler Function         | Notes                                                                       |
+| ---------------------- | --------------------------- | ------------------------ | --------------------------------------------------------------------------- |
+| `swap`                 | Token swap/bridge (CAIP-19) | `handleSwapUrl`          | Params: `from`, `to`, `amount` (CAIP-19)                                    |
+| `buy` / `buy-crypto`   | Buy crypto                  | `handleRampUrl`          | Params: `assetId`, `amount`, `providerId`, `paymentMethodId`, `autoProceed` |
+| `sell` / `sell-crypto` | Sell crypto                 | `handleRampUrl`          |                                                                             |
+| `deposit`              | Cash deposit                | `handleDepositCashUrl`   |                                                                             |
+| `send`                 | Send transaction            | Recursive `parse()` call |                                                                             |
+| `home`                 | Navigate home               | `navigateToHomeUrl`      | Params: `previewToken`, `openNetworkSelector`                               |
+| `asset`                | Asset overview              | `handleAssetUrl`         | Params: `assetId` (CAIP-19)                                                 |
+| `dapp`                 | Open dApp browser           | `handleBrowserUrl`       |                                                                             |
+| `create-account`       | Create new account          | `handleCreateAccountUrl` |                                                                             |
+| `perps`                | Perpetuals trading          | `handlePerpsUrl`         | Params: `screen` (tabs/markets/asset), `symbol`                             |
+| `perps-markets`        | Perps markets list          | `handlePerpsUrl`         |                                                                             |
+| `perps-asset`          | Perps specific asset        | ⚠️ NOT IMPLEMENTED       | Action defined but missing handler case                                     |
+| `predict`              | Prediction markets          | `handlePredictUrl`       | Params: `market` or `marketId`, `utm_source`                                |
+| `rewards`              | Rewards program             | `handleRewardsUrl`       | Params: `referral` (referral code)                                          |
+| `wc`                   | WalletConnect               | Recursive `parse()` call |                                                                             |
+| `onboarding`           | Fast onboarding             | `handleFastOnboarding`   |                                                                             |
+| `enable-card-button`   | Enable card feature         | `handleEnableCardButton` |                                                                             |
+| `bind`                 | Android SDK binding         | `handleMetaMaskDeeplink` |                                                                             |
+| `connect`              | SDK connection              | `handleMetaMaskDeeplink` |                                                                             |
+| `mmsdk`                | MetaMask SDK message        | `handleMetaMaskDeeplink` |                                                                             |
 
 > ⚠️ **Bug**: The `perps-asset` action is defined in `SUPPORTED_ACTIONS` and whitelisted, but **there is no case handler** for it in the switch statement. It will pass validation but silently do nothing.
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { useRampsController } from './useRampsController';
 import { useRampNavigation } from './useRampNavigation';
 import { registerQuickBuyErrorCallback } from '../utils/quickBuyCallbackRegistry';
@@ -23,6 +23,10 @@ export interface UseRampsQuickBuyResult {
   isLoading: boolean;
   error: string | null;
   hasOptions: boolean;
+}
+
+export interface RampsQuickBuyProps extends UseRampsQuickBuyParams {
+  children: (state: UseRampsQuickBuyResult) => ReactNode;
 }
 
 const createQuickBuyDeeplink = ({
@@ -119,6 +123,13 @@ export function useRampsQuickBuy({
     error,
     hasOptions: paymentOptions.length > 0,
   };
+}
+
+export function RampsQuickBuy({
+  children,
+  ...params
+}: RampsQuickBuyProps): ReactNode {
+  return children(useRampsQuickBuy(params));
 }
 
 export default useRampsQuickBuy;
