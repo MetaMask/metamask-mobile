@@ -38,10 +38,19 @@ export const MusdMaxConversionAssetHeaderSkeleton = () => {
 
   return (
     <View
-      style={styles.assetHeaderContainer}
+      style={[
+        styles.assetHeaderContainer,
+        styles.assetHeaderContainerHorizontal,
+      ]}
       testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON}
     >
-      <View style={styles.assetContainer}>
+      <View
+        style={[
+          styles.assetContainer,
+          styles.assetContainerHorizontal,
+          styles.assetContainerHorizontalInput,
+        ]}
+      >
         <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
         <View style={[styles.assetInfo, styles.assetInfoSkeleton]}>
           <Skeleton
@@ -50,18 +59,25 @@ export const MusdMaxConversionAssetHeaderSkeleton = () => {
             style={styles.skeletonBorderRadius}
           />
           <Skeleton
-            width={140}
+            width={65}
             height={20}
             style={styles.skeletonBorderRadius}
           />
         </View>
       </View>
       <Icon
-        name={IconName.Arrow2Down}
+        name={IconName.Arrow2Right}
         color={IconColor.IconAlternative}
         size={IconSize.Lg}
+        style={styles.assetDirectionIcon}
       />
-      <View style={styles.assetContainer}>
+      <View
+        style={[
+          styles.assetContainer,
+          styles.assetContainerHorizontal,
+          styles.assetContainerHorizontalOutput,
+        ]}
+      >
         <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
         <View style={[styles.assetInfo, styles.assetInfoSkeleton]}>
           <Skeleton
@@ -70,7 +86,7 @@ export const MusdMaxConversionAssetHeaderSkeleton = () => {
             style={styles.skeletonBorderRadius}
           />
           <Skeleton
-            width={140}
+            width={65}
             height={20}
             style={styles.skeletonBorderRadius}
           />
