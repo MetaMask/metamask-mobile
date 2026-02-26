@@ -206,12 +206,13 @@ export type PerpsControllerState = {
   withdrawInProgress: boolean;
   lastWithdrawResult: LastTransactionResult | null;
 
-  // Persisted FIFO guard — only written by completeWithdrawalFromHistory
-  // so that submission calls never overwrite it.
-  // Survives app restarts (persist: true) unlike lastWithdrawResult.
-  // The txHashes array tracks all completions at the guard timestamp so
-  // that N same-millisecond completions are each matched exactly once.
-  // The array resets whenever the timestamp advances.
+  // FIFO guard for withdrawal completion matching.
+  // Timestamp is persisted — survives app restarts so the hook skips
+  // already-processed history entries even after relaunch.
+  // TxHashes array is NOT persisted — it tracks completions within a
+  // single session to prevent re-matching (direct completions,
+  // same-millisecond API completions). Resets naturally on app restart;
+  // the timestamp guard provides cross-restart protection.
   lastCompletedWithdrawalTimestamp: number | null;
   lastCompletedWithdrawalTxHashes: string[];
 
@@ -492,7 +493,7 @@ const metadata: StateMetadata<PerpsControllerState> = {
   },
   lastCompletedWithdrawalTxHashes: {
     includeInStateLogs: false,
-    persist: true,
+    persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
@@ -2333,10 +2334,10 @@ export class PerpsController extends BaseController<
         state.withdrawalRequests.splice(requestIndex, 1);
       }
 
-      // Update the persisted FIFO guard. Always append — never reset the
-      // txHashes array — so that direct-completion hashes (pushed by
-      // AccountService without a timestamp update) are preserved when
-      // the timestamp advances from a later API-detected completion.
+      // Update the FIFO guard. The timestamp is persisted for cross-restart
+      // protection. The txHashes array (not persisted) accumulates within a
+      // session to prevent re-matching direct completions and same-millisecond
+      // API completions. It resets naturally on app restart.
       state.lastCompletedWithdrawalTimestamp = completedWithdrawal.timestamp;
       state.lastCompletedWithdrawalTxHashes.push(completedWithdrawal.txHash);
 
