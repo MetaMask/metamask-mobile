@@ -311,6 +311,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   useEffect(() => {
     if (isMarketInsightsEnabled && marketInsightsCaip19Id) {
+      // Measuring the time it takes to load the market insights entry card
       trace({
         name: TraceName.MarketInsightsEntryCardLoad,
         op: TraceOperation.MarketInsightsLoad,
