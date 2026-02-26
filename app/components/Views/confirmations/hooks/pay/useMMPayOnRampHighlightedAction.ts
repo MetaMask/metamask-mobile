@@ -11,12 +11,12 @@ import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../../../../UI/Earn/constants/musd';
 import { hasTransactionType } from '../../utils/transaction';
 import type { MMPayOnRampIntent } from '../../../../UI/Ramp/types';
-import { HighlightedActionListItem } from '../../types/token';
+import { HighlightedItem } from '../../types/token';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { startMMPayOnRampSession } from './useMMPayOnRampLifecycle';
 import { useMMPayOnRampStatus } from './useMMPayOnRampStatus';
 
-export function useMMPayOnRampHighlightedAction(): HighlightedActionListItem[] {
+export function useMMPayOnRampHighlightedAction(): HighlightedItem[] {
   const transactionMeta = useTransactionMetadataRequest();
   const { goToBuy } = useRampNavigation();
   const { inProgress } = useMMPayOnRampStatus();
@@ -65,13 +65,16 @@ export function useMMPayOnRampHighlightedAction(): HighlightedActionListItem[] {
 
     return [
       {
-        type: 'highlighted_action',
+        position: 'outside_of_asset_list',
         icon: IconName.Money,
         name: strings('pay_with_modal.top_up_title'),
         name_description: strings('pay_with_modal.top_up_description', {
           token: config.token,
           network: config.network,
         }),
+        action: () => {},
+        fiat: '',
+        fiat_description: '',
         isLoading: inProgress,
         actions: [
           {
