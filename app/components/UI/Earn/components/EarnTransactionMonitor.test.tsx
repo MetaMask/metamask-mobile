@@ -2,17 +2,17 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import EarnTransactionMonitor from './EarnTransactionMonitor';
 import { useMusdConversionStatus } from '../hooks/useMusdConversionStatus';
-import { useMusdConversionForegroundApprovalCleanup } from '../hooks/useMusdConversionForegroundApprovalCleanup';
+import { useMusdConversionStaleApprovalCleanup } from '../hooks/useMusdConversionStaleApprovalCleanup';
 import { useMerklClaimStatus } from '../hooks/useMerklClaimStatus';
 
 jest.mock('../hooks/useMusdConversionStatus');
-jest.mock('../hooks/useMusdConversionForegroundApprovalCleanup');
+jest.mock('../hooks/useMusdConversionStaleApprovalCleanup');
 jest.mock('../hooks/useMerklClaimStatus');
 
 describe('EarnTransactionMonitor', () => {
   const mockUseMusdConversionStatus = jest.mocked(useMusdConversionStatus);
-  const mockUseMusdConversionForegroundApprovalCleanup = jest.mocked(
-    useMusdConversionForegroundApprovalCleanup,
+  const mockUseMusdConversionStaleApprovalCleanup = jest.mocked(
+    useMusdConversionStaleApprovalCleanup,
   );
   const mockUseMerklClaimStatus = jest.mocked(useMerklClaimStatus);
 
@@ -36,12 +36,10 @@ describe('EarnTransactionMonitor', () => {
     expect(mockUseMusdConversionStatus).toHaveBeenCalledTimes(1);
   });
 
-  it('calls useMusdConversionForegroundApprovalCleanup hook', () => {
+  it('calls useMusdConversionStaleApprovalCleanup hook', () => {
     render(<EarnTransactionMonitor />);
 
-    expect(
-      mockUseMusdConversionForegroundApprovalCleanup,
-    ).toHaveBeenCalledTimes(1);
+    expect(mockUseMusdConversionStaleApprovalCleanup).toHaveBeenCalledTimes(1);
   });
 
   it('calls useMerklClaimStatus hook', () => {

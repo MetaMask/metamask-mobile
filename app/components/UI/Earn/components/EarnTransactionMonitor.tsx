@@ -1,6 +1,6 @@
 import React from 'react';
 import { useMusdConversionStatus } from '../hooks/useMusdConversionStatus';
-import { useMusdConversionForegroundApprovalCleanup } from '../hooks/useMusdConversionForegroundApprovalCleanup';
+import { useMusdConversionStaleApprovalCleanup } from '../hooks/useMusdConversionStaleApprovalCleanup';
 import { useMerklClaimStatus } from '../hooks/useMerklClaimStatus';
 
 /**
@@ -15,7 +15,7 @@ const EarnTransactionMonitor: React.FC = () => {
    * For example, resuming via notification or deeplink can bypass
    * the normal confirmation rejection path.
    */
-  useMusdConversionForegroundApprovalCleanup();
+  useMusdConversionStaleApprovalCleanup();
   // Enable mUSD conversion status monitoring and toasts
   useMusdConversionStatus();
   // Enable Merkl bonus claim status monitoring and toasts
