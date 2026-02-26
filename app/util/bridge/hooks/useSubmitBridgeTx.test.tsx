@@ -22,6 +22,7 @@ let mockSubmitIntent: jest.Mock<
   Promise<TransactionMeta>,
   [{ quoteResponse: BridgeQuoteResponse; accountAddress: string }]
 >;
+const mockSignTypedMessage = jest.fn(() => '0xintent-signature');
 
 jest.mock('../../../core/Engine', () => {
   mockSubmitTx = jest.fn<
@@ -33,6 +34,7 @@ jest.mock('../../../core/Engine', () => {
     [{ quoteResponse: BridgeQuoteResponse; accountAddress: string }]
   >();
   return {
+    controllerMessenger: {},
     context: {
       BridgeStatusController: {
         startPollingForBridgeTxStatus: jest.fn(),
@@ -42,6 +44,15 @@ jest.mock('../../../core/Engine', () => {
     },
   };
 });
+
+jest.mock(
+  '../../../core/Engine/messengers/signature-controller-messenger',
+  () => ({
+    getSignatureControllerMessenger: jest.fn(() => ({
+      call: mockSignTypedMessage,
+    })),
+  }),
+);
 
 jest.mock('../../../selectors/networkController', () => {
   const original = jest.requireActual('../../../selectors/networkController');
@@ -100,6 +111,7 @@ const mockStore = configureMockStore();
 describe('useSubmitBridgeTx', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSignTypedMessage.mockResolvedValue('0xintent-signature');
   });
 
   const createWrapper = (mockState = {}) => {
@@ -433,8 +445,99 @@ describe('useSubmitBridgeTx', () => {
       quoteResponse: mockQuoteResponse,
       accountAddress: '0x1234567890123456789012345678901234567890',
       location: undefined,
+      signature: '0xintent-signature',
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
+  });
+
+  it('calls submitIntent when intent exists at top-level quoteResponse.intent', async () => {
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    const mockIntentResult = {
+      chainId: '0x1',
+      id: 'intent-2',
+      networkClientId: '1',
+      status: 'submitted',
+      time: Date.now(),
+      txParams: {
+        from: '0x1234567890123456789012345678901234567890',
+      },
+    } as TransactionMeta;
+
+    mockSubmitIntent.mockResolvedValueOnce(mockIntentResult);
+
+    const baseQuote = DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0];
+    const intent = {
+      protocol: 'cowswap',
+      order: {
+        sellToken: '0x0000000000000000000000000000000000000000',
+        buyToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        sellAmount: '1000000000000000000',
+        buyAmount: '2000000000',
+        validTo: '1234567890',
+        appData: '0x',
+        receiver: '0x1234567890123456789012345678901234567890',
+        feeAmount: '0',
+        kind: 'sell',
+        partiallyFillable: false,
+        sellTokenBalance: 'erc20',
+        buyTokenBalance: 'erc20',
+      },
+      settlementContract: '0x9008D19f58AAbd9eD0D60971565AA8510560ab41',
+      typedData: {
+        types: {
+          EIP712Domain: [
+            { name: 'name', type: 'string' },
+            { name: 'version', type: 'string' },
+            { name: 'chainId', type: 'uint256' },
+            { name: 'verifyingContract', type: 'address' },
+          ],
+          Order: [{ name: 'sellToken', type: 'address' }],
+        },
+        primaryType: 'Order',
+        domain: {
+          name: 'Gnosis Protocol',
+          version: 'v2',
+          chainId: 1,
+          verifyingContract: '0x9008D19f58AAbd9eD0D60971565AA8510560ab41',
+        },
+        message: {
+          sellToken: '0x0000000000000000000000000000000000000000',
+        },
+      },
+    };
+
+    const mockQuoteResponse = {
+      ...baseQuote,
+      ...DummyQuoteMetadata,
+      aggregator: 'test-aggregator',
+      walletAddress: '0x1234567890123456789012345678901234567890',
+      intent,
+      quote: {
+        ...baseQuote.quote,
+        intent: undefined,
+      },
+    } as unknown as BridgeQuoteResponse;
+
+    await result.current.submitBridgeTx({
+      quoteResponse: mockQuoteResponse,
+    });
+
+    expect(mockSubmitIntent).toHaveBeenCalledWith({
+      quoteResponse: {
+        ...mockQuoteResponse,
+        quote: {
+          ...mockQuoteResponse.quote,
+          intent,
+        },
+      },
+      accountAddress: '0x1234567890123456789012345678901234567890',
+      location: undefined,
+      signature: '0xintent-signature',
+    });
+    expect(mockSubmitTx).not.toHaveBeenCalled();
   });
 });
