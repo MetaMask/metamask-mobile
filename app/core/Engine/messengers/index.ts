@@ -125,7 +125,10 @@ import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-c
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
 import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
-import { getRampsControllerMessenger } from './ramps-controller-messenger';
+import {
+  getRampsControllerMessenger,
+  getRampsControllerInitMessenger,
+} from './ramps-controller-messenger';
 import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
@@ -399,7 +402,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   RampsController: {
     getMessenger: getRampsControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getRampsControllerInitMessenger,
   },
   RampsService: {
     getMessenger: getRampsServiceMessenger,

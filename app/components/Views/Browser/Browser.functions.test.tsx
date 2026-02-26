@@ -310,7 +310,7 @@ describe('Browser - Function Coverage Tests', () => {
       let closeTabCallback:
         | ((tab: { id: number; url: string }) => void)
         | undefined;
-      const TabsMock = jest.mocked(Tabs);
+      const TabsMock = Tabs as unknown as jest.Mock;
       TabsMock.mockImplementation((props) => {
         if (props?.closeTab) {
           closeTabCallback = props.closeTab;
@@ -371,7 +371,7 @@ describe('Browser - Function Coverage Tests', () => {
       let closeTabCallback:
         | ((tab: { id: number; url: string }) => void)
         | undefined;
-      const TabsMock = jest.mocked(Tabs);
+      const TabsMock = Tabs as unknown as jest.Mock;
       TabsMock.mockImplementation((props) => {
         if (props?.closeTab) {
           closeTabCallback = props.closeTab;
@@ -534,7 +534,7 @@ describe('Browser - Function Coverage Tests', () => {
       ];
 
       let closeTabsViewCallback: (() => void) | undefined;
-      const TabsMock = jest.mocked(Tabs);
+      const TabsMock = Tabs as unknown as jest.Mock;
       TabsMock.mockImplementation((props) => {
         if (props?.closeTabsView) {
           closeTabsViewCallback = props.closeTabsView;
@@ -692,7 +692,7 @@ describe('Browser - Function Coverage Tests', () => {
       let switchToTabCallback:
         | ((tab: { id: number; url: string }) => void)
         | undefined;
-      const TabsMock = jest.mocked(Tabs);
+      const TabsMock = Tabs as unknown as jest.Mock;
       TabsMock.mockImplementation((props) => {
         if (props?.switchToTab) {
           switchToTabCallback = props.switchToTab;
@@ -832,7 +832,7 @@ describe('Browser - Function Coverage Tests', () => {
       const mockCreateNewTab = jest.fn();
 
       let newTabCallback: ((url?: string) => void) | undefined;
-      const TabsMock = jest.mocked(Tabs);
+      const TabsMock = Tabs as unknown as jest.Mock;
       TabsMock.mockImplementation((props) => {
         if (props?.newTab) {
           newTabCallback = props.newTab;
@@ -1009,7 +1009,7 @@ describe('Browser - Function Coverage Tests', () => {
       let closeTabCallback:
         | ((tab: { id: number; url: string }) => void)
         | undefined;
-      const TabsMock = jest.mocked(Tabs);
+      const TabsMock = Tabs as unknown as jest.Mock;
       TabsMock.mockImplementation((props) => {
         if (props?.closeTab) {
           closeTabCallback = props.closeTab;
@@ -1077,7 +1077,7 @@ describe('Browser - Function Coverage Tests', () => {
       let closeTabCallback:
         | ((tab: { id: number; url: string }) => void)
         | undefined;
-      const TabsMock = jest.mocked(Tabs);
+      const TabsMock = Tabs as unknown as jest.Mock;
       TabsMock.mockImplementation((props) => {
         if (props?.closeTab) {
           closeTabCallback = props.closeTab;
@@ -1246,7 +1246,7 @@ describe('Browser - Function Coverage Tests', () => {
       const mockCreateNewTab = jest.fn();
 
       let newTabCallback: ((url?: string) => void) | undefined;
-      const TabsMock = jest.mocked(Tabs);
+      const TabsMock = Tabs as unknown as jest.Mock;
       TabsMock.mockImplementation((props) => {
         if (props?.newTab) {
           newTabCallback = props.newTab;
@@ -1355,7 +1355,7 @@ describe('Browser - Function Coverage Tests', () => {
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];
 
-      const TabsMock = jest.mocked(Tabs);
+      const TabsMock = Tabs as unknown as jest.Mock;
       TabsMock.mockClear();
 
       renderWithProvider(

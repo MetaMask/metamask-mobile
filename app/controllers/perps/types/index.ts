@@ -126,6 +126,9 @@ export type TrackingData = {
   tradeWithToken?: boolean;
   mmPayTokenSelected?: string; // Token symbol when tradeWithToken is true
   mmPayNetworkSelected?: string; // chainId when tradeWithToken is true
+
+  // A/B test context to attribute trade events to specific experiments
+  abTests?: Record<string, string>;
 };
 
 // TP/SL-specific tracking data for analytics events
@@ -896,6 +899,9 @@ export type Order = {
   detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
   isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
   reduceOnly?: boolean; // Whether this is a reduce-only order
+  isPositionTpsl?: boolean; // Whether this TP/SL is associated with the full position
+  parentOrderId?: string; // Parent order ID for display-only synthetic TP/SL rows
+  isSynthetic?: boolean; // Whether this order is synthetic (display-only, cancelable only when linked to a real child order ID)
   triggerPrice?: string; // Trigger condition price for trigger orders (e.g., TP/SL trigger level)
   providerId?: PerpsProviderType; // Multi-provider: which provider this order is on (injected by aggregator)
 };
@@ -1286,7 +1292,7 @@ export type PerpsTraceValue = string | number | boolean;
  */
 export type PerpsAnalyticsProperties = Record<
   string,
-  string | number | boolean | null | undefined
+  string | number | boolean | Record<string, string> | null | undefined
 >;
 
 /**
