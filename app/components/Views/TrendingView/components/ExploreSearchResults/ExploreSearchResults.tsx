@@ -252,6 +252,8 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         keyExtractor={keyExtractor}
         contentContainerStyle={tw.style('px-4')}
         showsVerticalScrollIndicator={false}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
         testID="trending-search-results-list"
         ListFooterComponent={renderFooter}
       />
