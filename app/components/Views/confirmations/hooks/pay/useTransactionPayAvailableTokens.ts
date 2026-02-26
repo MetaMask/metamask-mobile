@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useAccountTokens } from '../send/useAccountTokens';
-import { getAvailableTokens } from '../../utils/transaction-pay';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { isTransactionPayWithdraw } from '../../utils/transaction';
+
 import {
   selectMetaMaskPayTokensFlags,
   getBlockedTokensForTransactionType,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import { useAccountTokens } from '../send/useAccountTokens';
+import { getAvailableTokens } from '../../utils/transaction-pay';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
 
 export function useTransactionPayAvailableTokens() {
   const tokens = useAccountTokens({ includeNoBalance: true });
@@ -15,7 +16,7 @@ export function useTransactionPayAvailableTokens() {
   const isPostQuote = isTransactionPayWithdraw(transactionMeta);
   const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
 
-  const blockedTokensList = useMemo(
+  const blockedTokens = useMemo(
     () =>
       getBlockedTokensForTransactionType(
         payTokensFlags.blockedTokens,
@@ -28,9 +29,9 @@ export function useTransactionPayAvailableTokens() {
     () =>
       getAvailableTokens({
         tokens,
-        blockedTokens: blockedTokensList,
+        blockedTokens,
       }),
-    [tokens, blockedTokensList],
+    [tokens, blockedTokens],
   );
 
   // For post-quote transactions, tokens are always available

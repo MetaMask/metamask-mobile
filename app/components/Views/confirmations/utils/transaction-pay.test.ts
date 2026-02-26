@@ -20,7 +20,10 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { store } from '../../../../store';
-import { selectGasFeeTokenFlags , BlockedTokensListConfig } from '../../../../selectors/featureFlagController/confirmations';
+import {
+  selectGasFeeTokenFlags,
+  BlockedTokensListConfig,
+} from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
 
 jest.mock('../../../../store', () => ({

@@ -12,6 +12,10 @@ import BottomSheet, {
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
+  selectMetaMaskPayTokensFlags,
+  getBlockedTokensForTransactionType,
+} from '../../../../../../selectors/featureFlagController/confirmations';
+import {
   AssetType,
   isHighlightedItemInAssetList,
   isHighlightedItemOutsideAssetList,
@@ -31,10 +35,6 @@ import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPayment
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { useSelector } from 'react-redux';
-import {
-  selectMetaMaskPayTokensFlags,
-  getBlockedTokensForTransactionType,
-} from '../../../../../../selectors/featureFlagController/confirmations';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -54,7 +54,7 @@ export function PayWithModal() {
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
   const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
-  const blockedTokensList = useMemo(
+  const blockedTokens = useMemo(
     () =>
       getBlockedTokensForTransactionType(
         payTokensFlags.blockedTokens,
@@ -167,7 +167,7 @@ export function PayWithModal() {
         payToken,
         requiredTokens,
         tokens,
-        blockedTokens: blockedTokensList,
+        blockedTokens,
       });
 
       let filteredTokens: TokenListItem[] = availableTokens;
@@ -187,7 +187,7 @@ export function PayWithModal() {
       return wrapHighlightedItemCallbacks(filteredTokens);
     },
     [
-      blockedTokensList,
+      blockedTokens,
       withdrawTokenFilter,
       musdTokenFilter,
       payToken,
