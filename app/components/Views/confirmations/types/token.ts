@@ -37,11 +37,18 @@ export interface HighlightedActionButton {
 
 export type HighlightedItemPosition = 'in_asset_list' | 'outside_of_asset_list';
 
+export interface HighlightedPaymentIcon {
+  type: 'payment';
+  icon: string;
+}
+
+export type HighlightedItemIcon = string | HighlightedPaymentIcon;
+
 export interface HighlightedItem {
   /** Controls where the row is rendered in the asset picker UI. */
   position: HighlightedItemPosition;
-  /** Either an IconName string or a remote icon URI. */
-  icon: string;
+  /** Either an IconName string, a remote icon URI, or a payment icon descriptor. */
+  icon: HighlightedItemIcon;
   /** Primary label shown for the highlighted row. */
   name: string;
   /** Secondary label shown under the primary name. */

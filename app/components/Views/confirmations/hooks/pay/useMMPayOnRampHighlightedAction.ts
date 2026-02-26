@@ -1,91 +1,49 @@
-import { useCallback, useMemo } from 'react';
-import { IconName } from '@metamask/design-system-react-native';
+import { useMemo } from 'react';
+import { noop } from 'lodash';
 import {
-  CHAIN_IDS,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentMethod } from '@metamask/ramps-controller';
 
-import { strings } from '../../../../../../locales/i18n';
-import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
-import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../../../../UI/Earn/constants/musd';
 import { hasTransactionType } from '../../utils/transaction';
-import type { MMPayOnRampIntent } from '../../../../UI/Ramp/types';
 import { HighlightedItem } from '../../types/token';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { startMMPayOnRampSession } from './useMMPayOnRampLifecycle';
 import { useMMPayOnRampStatus } from './useMMPayOnRampStatus';
+import { useMMPayOnRampPaymentMethods } from './useMMPayOnRampPaymentMethods';
+import { formatDelayFromArray } from '../../../../UI/Ramp/Aggregator/utils';
 
 export function useMMPayOnRampHighlightedAction(): HighlightedItem[] {
   const transactionMeta = useTransactionMetadataRequest();
-  const { goToBuy } = useRampNavigation();
   const { inProgress } = useMMPayOnRampStatus();
 
   const config = useMemo(
     () => getMMPayOnRampConfig(transactionMeta),
     [transactionMeta],
   );
-
-  const onPressBuy = useCallback(() => {
-    const transactionType =
-      deriveMMPayTransactionTypeFromTransactionMeta(transactionMeta);
-    const mmPayTransactionId = transactionMeta?.id;
-
-    if (!config || !transactionType || !mmPayTransactionId) {
-      return;
-    }
-
-    const startedAt = Date.now();
-    const session = startMMPayOnRampSession({
-      assetId: config.assetId,
-      mmPayTransactionId,
-      startedAt,
-      transactionType,
-    });
-
-    const mmPayOnRamp: MMPayOnRampIntent = {
-      mmPayTransactionId: session.mmPayTransactionId,
-      startedAt: session.startedAt,
-      source: session.source,
-      transactionType: session.transactionType,
-    };
-
-    goToBuy(
-      {
-        assetId: config.assetId,
-      },
-      { mmPayOnRamp },
-    );
-  }, [config, goToBuy, transactionMeta]);
+  const { paymentMethods } = useMMPayOnRampPaymentMethods({
+    assetId: config?.assetId,
+  });
 
   return useMemo(() => {
-    if (!config) {
+    if (!config || paymentMethods.length === 0) {
       return [];
     }
 
-    return [
-      {
-        position: 'outside_of_asset_list',
-        icon: IconName.Money,
-        name: strings('pay_with_modal.top_up_title'),
-        name_description: strings('pay_with_modal.top_up_description', {
-          token: config.token,
-          network: config.network,
-        }),
-        action: () => {},
-        fiat: '',
-        fiat_description: '',
-        isLoading: inProgress,
-        actions: [
-          {
-            buttonLabel: strings('pay_with_modal.buy'),
-            onPress: onPressBuy,
-            isDisabled: inProgress,
-          },
-        ],
+    return paymentMethods.map((paymentMethod) => ({
+      position: 'outside_of_asset_list',
+      icon: {
+        type: 'payment',
+        icon: paymentMethod.paymentType,
       },
-    ];
-  }, [config, onPressBuy, inProgress]);
+      name: paymentMethod.name,
+      name_description: deriveDelayDescription(paymentMethod),
+      action: noop,
+      fiat: '',
+      fiat_description: '',
+      isLoading: inProgress,
+    }));
+  }, [config, inProgress, paymentMethods]);
 }
 
 interface MMPayOnRampConfig {
@@ -94,31 +52,26 @@ interface MMPayOnRampConfig {
   network: string;
 }
 
-const POLYGON_USDC_CAIP_ASSET_ID =
-  'eip155:137/erc20:0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359';
+const POLYGON_POL_CAIP_ASSET_ID = 'eip155:137/slip44:966';
+const ARBITRUM_ETH_CAIP_ASSET_ID = 'eip155:42161/slip44:60';
 
 const MMPAY_ON_RAMP_CONFIG_BY_TX_TYPE: Partial<
   Record<TransactionType, MMPayOnRampConfig>
 > = {
   [TransactionType.predictDeposit]: {
-    assetId: POLYGON_USDC_CAIP_ASSET_ID,
-    token: 'USDC',
+    assetId: POLYGON_POL_CAIP_ASSET_ID,
+    token: 'POL',
     network: 'Polygon',
   },
   [TransactionType.perpsDeposit]: {
-    assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
-    token: 'mUSD',
-    network: 'Linea',
+    assetId: ARBITRUM_ETH_CAIP_ASSET_ID,
+    token: 'ETH',
+    network: 'Arbitrum',
   },
   [TransactionType.perpsDepositAndOrder]: {
-    assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
-    token: 'mUSD',
-    network: 'Linea',
-  },
-  [TransactionType.musdConversion]: {
-    assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
-    token: 'mUSD',
-    network: 'Linea',
+    assetId: ARBITRUM_ETH_CAIP_ASSET_ID,
+    token: 'ETH',
+    network: 'Arbitrum',
   },
 };
 
@@ -165,4 +118,12 @@ function deriveMMPayTransactionTypeFromTransactionMeta(
   }
 
   return undefined;
+}
+
+function deriveDelayDescription(paymentMethod: PaymentMethod): string {
+  if (!Array.isArray(paymentMethod.delay) || paymentMethod.delay.length < 2) {
+    return paymentMethod.pendingOrderDescription ?? '';
+  }
+
+  return formatDelayFromArray(paymentMethod.delay);
 }
