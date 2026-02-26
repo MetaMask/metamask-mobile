@@ -14,6 +14,7 @@ import {
   mergeFixtureChanges,
   sortObjectKeysDeep,
   normalizeExportedState,
+  getAutoUpdatableKeys,
   FixtureSchemaDiff,
 } from '../../framework/fixtures/fixture-validation';
 
@@ -111,17 +112,27 @@ describe(FixtureValidation('Fixture Validation — Post-Onboarding'), () => {
           'utf-8',
         );
 
-        // --- Export: update fixture file when structural changes exist ---
+        // --- Export: update fixture file when changes exist ---
 
-        if (hasStructuralChanges) {
-          // Only merge structural changes (new keys, missing keys, type mismatches).
-          // Value mismatches are NOT auto-merged because the default fixture
-          // represents an existing user, not a fresh post-onboarding state.
+        // Promote auto-updatable value mismatches (e.g. fiatOrders.networks)
+        // so they get merged alongside structural changes.
+        const autoUpdatableKeys = getAutoUpdatableKeys();
+        const autoUpdateMismatches = diff.valueMismatches.filter((m) =>
+          autoUpdatableKeys.includes(m.key),
+        );
+
+        const shouldUpdate =
+          hasStructuralChanges || autoUpdateMismatches.length > 0;
+
+        if (shouldUpdate) {
+          // Merge structural changes + auto-updatable value mismatches.
+          // Other value mismatches are NOT auto-merged because the default
+          // fixture represents an existing user, not a fresh post-onboarding state.
           const structuralDiff: FixtureSchemaDiff = {
             newKeys: diff.newKeys,
             missingKeys: diff.missingKeys,
             typeMismatches: diff.typeMismatches,
-            valueMismatches: [],
+            valueMismatches: autoUpdateMismatches,
           };
 
           const mergedState = mergeFixtureChanges(
@@ -151,13 +162,14 @@ describe(FixtureValidation('Fixture Validation — Post-Onboarding'), () => {
 
           // TODO: Change console.warn to throw once fixture validation is stable
           console.warn(
-            `Committed fixture schema is out of date.\n` +
+            `Committed fixture is out of date.\n` +
               `  New keys: ${diff.newKeys.length}\n` +
               `  Missing keys: ${diff.missingKeys.length}\n` +
-              `  Type mismatches: ${diff.typeMismatches.length}\n\n` +
+              `  Type mismatches: ${diff.typeMismatches.length}\n` +
+              `  Auto-updated values: ${autoUpdateMismatches.length}\n\n` +
               `Updated fixture written to: ${fixturePath}\n` +
-              `Only structural changes were applied. Value mismatches\n` +
-              `require manual review — the fixture represents an existing user.`,
+              `Structural changes and auto-updatable keys were applied.\n` +
+              `Other value mismatches require manual review.`,
           );
         } else if (diff.valueMismatches.length > 0) {
           console.log(

@@ -54,7 +54,7 @@
         "timestamps": {}
       },
       "cardholderAccounts": [],
-      "geoLocation": "{\"id\":\"/regions/us-ca\",\"name\":\"California\",\"emoji\":\"🇺🇸\",\"detected\":true}",
+      "geoLocation": "UNKNOWN",
       "hasViewedCardButton": false,
       "isAuthenticated": false,
       "isDaimoDemo": false,
@@ -76,34 +76,7 @@
     "confirmationMetrics": {
       "metricsById": {}
     },
-    "cronjobController": {
-      "storage": {
-        "events": {
-          "cronjob-npm:@metamask/bitcoin-wallet-snap-0": {
-            "date": "2026-02-26T07:27:07.560Z",
-            "id": "cronjob-npm:@metamask/bitcoin-wallet-snap-0",
-            "recurring": true,
-            "request": {
-              "method": "synchronizeAccounts"
-            },
-            "schedule": "PT30S",
-            "scheduledAt": "2026-02-26T07:26:37.559Z",
-            "snapId": "npm:@metamask/bitcoin-wallet-snap"
-          },
-          "cronjob-npm:@metamask/tron-wallet-snap-0": {
-            "date": "2026-02-26T07:27:07.577Z",
-            "id": "cronjob-npm:@metamask/tron-wallet-snap-0",
-            "recurring": true,
-            "request": {
-              "method": "onSynchronizeSelectedAccountsCronjob"
-            },
-            "schedule": "PT30S",
-            "scheduledAt": "2026-02-26T07:26:37.577Z",
-            "snapId": "npm:@metamask/tron-wallet-snap"
-          }
-        }
-      }
-    },
+    "cronjobController": {},
     "engine": {
       "backgroundState": {
         "AccountTrackerController": {

@@ -288,6 +288,10 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.CronJobController',
     'engine.backgroundState.CronjobController',
     'engine.backgroundState.RampsController',
+    'cronjobController',
+
+    // ── Runtime-detected values (non-deterministic between environments) ──
+    'card.geoLocation',
 
     // ── Dynamic network client IDs and port-dependent URLs ──
     'engine.backgroundState.NetworkController.networkConfigurationsByChainId.*.rpcEndpoints.*.networkClientId',
@@ -309,6 +313,16 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Redux-persist internals ──
     '_persist',
   ];
+}
+
+/**
+ * Keys whose value mismatches should be auto-merged during fixture export.
+ * Normally only structural changes (new/missing keys, type mismatches) are
+ * merged. These keys contain data that is expected to evolve over time
+ * (e.g. supported network lists) and should be kept current.
+ */
+export function getAutoUpdatableKeys(): string[] {
+  return ['fiatOrders.networks'];
 }
 
 export function computeSchemaDiff(
