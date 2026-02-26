@@ -2270,7 +2270,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ecies/ciphers@npm:^0.2.5":
+"@ecies/ciphers@npm:0.2.5, @ecies/ciphers@npm:^0.2.5":
   version: 0.2.5
   resolution: "@ecies/ciphers@npm:0.2.5"
   peerDependencies:
@@ -35346,6 +35346,7 @@ __metadata:
     "@consensys/native-ramps-sdk": "npm:^2.1.7"
     "@consensys/on-ramp-sdk": "npm:2.1.12"
     "@craftzdog/react-native-buffer": "npm:^6.1.0"
+    "@ecies/ciphers": "npm:0.2.5"
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.2"
