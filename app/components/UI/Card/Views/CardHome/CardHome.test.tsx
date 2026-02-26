@@ -99,6 +99,7 @@ import {
 } from '../../../../../core/redux/slices/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
+import useCardPinToken from '../../hooks/useCardPinToken';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -272,6 +273,26 @@ jest.mock('../../hooks/useCardDetailsToken', () => ({
     imageUrl: null,
     clearImageUrl: mockClearCardDetailsImageUrl,
   })),
+}));
+
+const mockGeneratePinToken = jest.fn();
+const mockResetPinToken = jest.fn();
+jest.mock('../../hooks/useCardPinToken', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    generatePinToken: mockGeneratePinToken,
+    isLoading: false,
+    error: null,
+    imageUrl: null,
+    reset: mockResetPinToken,
+  })),
+}));
+
+jest.mock('../../components/ViewPinBottomSheet', () => ({
+  createViewPinBottomSheetNavigationDetails: jest.fn((params) => [
+    'CardModals',
+    { screen: 'CardViewPinModal', params },
+  ]),
 }));
 
 // Mock useAuthentication for biometric verification
@@ -503,6 +524,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Authentication required to resume spending on your card.',
       'card.password_bottomsheet.description_unfreeze':
         'Enter your wallet password to unfreeze your card.',
+      'card.card_home.manage_card_options.view_pin': 'View PIN',
+      'card.card_home.manage_card_options.view_pin_description':
+        'View your card PIN securely',
+      'card.card_home.manage_card_options.view_pin_error':
+        'Failed to load PIN. Please try again.',
+      'card.password_bottomsheet.description_view_pin':
+        'Enter your wallet password to view your card PIN.',
     };
     return strings[key] || key;
   },
@@ -3935,6 +3963,308 @@ describe('CardHome Component', () => {
             expect(mockClearCardDetailsImageUrl).toHaveBeenCalled();
           });
           expect(mockReauthenticate).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('View PIN Button', () => {
+      beforeEach(() => {
+        mockGeneratePinToken.mockClear();
+        mockResetPinToken.mockClear();
+        mockReauthenticate.mockClear();
+        mockReauthenticate.mockResolvedValue(undefined);
+      });
+
+      it('does not show view pin button when user is not authenticated', () => {
+        // Given: User is not authenticated
+        setupMockSelectors({ isAuthenticated: false });
+        setupLoadCardDataMock({
+          isAuthenticated: false,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+        });
+
+        // When: component renders
+        render();
+
+        // Then: view pin button is not shown
+        expect(
+          screen.queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+        ).toBeNull();
+      });
+
+      it('does not show view pin button when user has no card', () => {
+        // Given: Authenticated user without card
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: null,
+          warning: CardStateWarning.NoCard,
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        // When: component renders
+        render();
+
+        // Then: view pin button is not shown
+        expect(
+          screen.queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+        ).toBeNull();
+      });
+
+      it('does not show view pin button while loading', () => {
+        // Given: Loading state
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: true,
+        });
+
+        // When: component renders
+        render();
+
+        // Then: view pin button is not shown
+        expect(
+          screen.queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+        ).toBeNull();
+      });
+
+      it('does not show view pin button for international virtual card', () => {
+        // Given: International user with virtual card
+        setupMockSelectors({
+          isAuthenticated: true,
+          userLocation: 'international',
+        });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        // When: component renders
+        render();
+
+        // Then: view pin button is not shown
+        expect(
+          screen.queryByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+        ).toBeNull();
+      });
+
+      it('shows view pin button for US user with virtual card', () => {
+        // Given: US user with virtual card
+        setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        // When: component renders
+        render();
+
+        // Then: view pin button is shown
+        expect(
+          screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+        ).toBeTruthy();
+      });
+
+      it('shows view pin button for international user with metal card', () => {
+        // Given: International user with metal card
+        setupMockSelectors({
+          isAuthenticated: true,
+          userLocation: 'international',
+        });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.METAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        // When: component renders
+        render();
+
+        // Then: view pin button is shown (non-virtual card)
+        expect(
+          screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+        ).toBeTruthy();
+      });
+
+      it('calls generatePinToken and navigates to ViewPinBottomSheet after biometric auth', async () => {
+        // Given: Authenticated US user with card and biometric auth succeeds
+        setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockResolvedValueOnce(undefined);
+        mockGeneratePinToken.mockResolvedValueOnce({
+          token: 'pin-token-123',
+          imageUrl: 'https://cards.baanx.com/pin-image?token=pin-token-123',
+        });
+
+        // When: component renders and button is pressed
+        render();
+        const button = screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON);
+        fireEvent.press(button);
+
+        // Then: reauthenticate is called first, then generatePinToken, then navigation
+        await waitFor(() => {
+          expect(mockReauthenticate).toHaveBeenCalled();
+        });
+        await waitFor(() => {
+          expect(mockGeneratePinToken).toHaveBeenCalled();
+        });
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith('CardModals', {
+            screen: 'CardViewPinModal',
+            params: {
+              imageUrl: 'https://cards.baanx.com/pin-image?token=pin-token-123',
+            },
+          });
+        });
+      });
+
+      it('resets pin token after successful navigation', async () => {
+        // Given: Authenticated US user with card
+        setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockResolvedValueOnce(undefined);
+        mockGeneratePinToken.mockResolvedValueOnce({
+          token: 'pin-token-123',
+          imageUrl: 'https://cards.baanx.com/pin-image?token=pin-token-123',
+        });
+
+        // When: button is pressed
+        render();
+        fireEvent.press(screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON));
+
+        // Then: resetPinToken is called after navigation
+        await waitFor(() => {
+          expect(mockResetPinToken).toHaveBeenCalled();
+        });
+      });
+
+      it('does not call generatePinToken when already loading', async () => {
+        // Given: Hook reports loading
+        setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { type: CardType.VIRTUAL },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        (useCardPinToken as jest.Mock).mockReturnValueOnce({
+          generatePinToken: mockGeneratePinToken,
+          isLoading: true,
+          error: null,
+          imageUrl: null,
+          reset: mockResetPinToken,
+        });
+
+        // When: button is pressed while loading
+        render();
+        fireEvent.press(screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON));
+
+        // Then: reauthenticate is not called
+        await waitFor(() => {
+          expect(mockReauthenticate).not.toHaveBeenCalled();
+        });
+        expect(mockGeneratePinToken).not.toHaveBeenCalled();
+      });
+
+      describe('Biometric Authentication', () => {
+        it('does not fetch pin when biometric authentication fails', async () => {
+          // Given: Authenticated US user with card but biometric auth fails
+          setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+          setupLoadCardDataMock({
+            isAuthenticated: true,
+            isBaanxLoginEnabled: true,
+            cardDetails: { type: CardType.VIRTUAL },
+            isLoading: false,
+            kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          });
+
+          mockReauthenticate.mockRejectedValueOnce(
+            new Error('BIOMETRIC_ERROR: User cancelled'),
+          );
+
+          // When: component renders and button is pressed
+          render();
+          fireEvent.press(
+            screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+          );
+
+          // Then: reauthenticate is called but generatePinToken is NOT called
+          await waitFor(() => {
+            expect(mockReauthenticate).toHaveBeenCalled();
+          });
+          expect(mockGeneratePinToken).not.toHaveBeenCalled();
+        });
+
+        it('navigates to password bottom sheet with view pin description when biometrics not configured', async () => {
+          // Given: Authenticated US user with card but biometrics not configured
+          setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+          setupLoadCardDataMock({
+            isAuthenticated: true,
+            isBaanxLoginEnabled: true,
+            cardDetails: { type: CardType.VIRTUAL },
+            isLoading: false,
+            kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          });
+
+          mockReauthenticate.mockRejectedValueOnce(
+            new Error(
+              'PASSWORD_NOT_SET_WITH_BIOMETRICS: Biometrics not configured',
+            ),
+          );
+
+          // When: component renders and button is pressed
+          render();
+          fireEvent.press(
+            screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
+          );
+
+          // Then: navigation to password bottom sheet is triggered with view pin description
+          await waitFor(() => {
+            expect(mockReauthenticate).toHaveBeenCalled();
+          });
+          await waitFor(() => {
+            expect(mockNavigate).toHaveBeenCalledWith(
+              Routes.CARD.MODALS.ID,
+              expect.objectContaining({
+                screen: Routes.CARD.MODALS.PASSWORD,
+                params: expect.objectContaining({
+                  onSuccess: expect.any(Function),
+                  description:
+                    'Enter your wallet password to view your card PIN.',
+                }),
+              }),
+            );
+          });
         });
       });
     });

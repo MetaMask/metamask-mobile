@@ -49,6 +49,8 @@ import {
   GetOnboardingConsentResponse,
   CardDetailsTokenRequest,
   CardDetailsTokenResponse,
+  CardPinTokenRequest,
+  CardPinTokenResponse,
   CreateOrderRequest,
   CreateOrderResponse,
   GetOrderStatusResponse,
@@ -1132,6 +1134,45 @@ export class CardSDK {
     }
 
     return (await response.json()) as CardDetailsTokenResponse;
+  };
+
+  /**
+   * Generate a secure token for viewing the card PIN through an image-based display.
+   * The token is time-limited (~10 minutes) and single-use.
+   * The PIN is never transmitted as plain text, ensuring PCI compliance.
+   *
+   * @param request - Optional customization for the PIN image appearance
+   * @returns Promise containing the token and imageUrl for displaying the card PIN
+   */
+  generateCardPinToken = async (
+    request?: CardPinTokenRequest,
+  ): Promise<CardPinTokenResponse> => {
+    const response = await this.makeRequest('/v1/card/pin/token', {
+      fetchOptions: {
+        method: 'POST',
+        ...(request && { body: JSON.stringify(request) }),
+      },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
+
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to generate card PIN token. Please try again.',
+        'generateCardPinToken',
+        'card/pin/token',
+        response.status,
+      );
+    }
+
+    return (await response.json()) as CardPinTokenResponse;
   };
 
   getCardExternalWalletDetails = async (
