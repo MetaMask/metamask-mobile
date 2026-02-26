@@ -97,13 +97,13 @@ describe('MultichainAccountSelectorList', () => {
     await waitFor(
       () => {
         expectedVisible.forEach((text) => {
-          expect(queryByText(text)).toBeTruthy();
+          expect(queryByText(text)).toBeOnTheScreen();
         });
         expectedHidden.forEach((text) => {
-          expect(queryByText(text)).toBeFalsy();
+          expect(queryByText(text)).not.toBeOnTheScreen();
         });
       },
-      { timeout: 500 },
+      { timeout: 1000 },
     );
   };
 

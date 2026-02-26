@@ -24,7 +24,10 @@ import {
   BASE_MAINNET_BLOCK_EXPLORER,
 } from '../../constants/urls';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { formatBlockExplorerAddressUrl } from '../../core/Multichain/networks';
+import {
+  formatBlockExplorerAddressUrl,
+  formatBlockExplorerTokenUrl,
+} from '../../core/Multichain/networks';
 import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../core/Multichain/constants';
 import { isNonEvmChainId } from '../../core/Multichain/utils';
 import { parseCaipChainId, isCaipChainId } from '@metamask/utils';
@@ -124,6 +127,30 @@ const useBlockExplorer = (chainId?: string) => {
       getEvmBlockExplorerUrl,
       convertToHexChainId,
     ],
+  );
+
+  /**
+   * Returns the block explorer URL for a token's detail page.
+   * Uses a dedicated token page URL when the explorer supports it,
+   * otherwise falls back to the standard address URL.
+   */
+  const getBlockExplorerTokenUrl = useCallback(
+    (address: string, targetChainId?: string) => {
+      const currentChainId = targetChainId || chainId;
+
+      if (currentChainId && isNonEvmChainId(currentChainId)) {
+        const blockExplorerUrls =
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
+            currentChainId as keyof typeof MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP
+          ];
+        return blockExplorerUrls
+          ? formatBlockExplorerTokenUrl(blockExplorerUrls, address)
+          : null;
+      }
+
+      return getBlockExplorerUrl(address, targetChainId);
+    },
+    [chainId, getBlockExplorerUrl],
   );
 
   /**
@@ -243,6 +270,7 @@ const useBlockExplorer = (chainId?: string) => {
   return {
     toBlockExplorer,
     getBlockExplorerUrl,
+    getBlockExplorerTokenUrl,
     getBlockExplorerName,
     getEvmBlockExplorerUrl,
     getBlockExplorerBaseUrl,
