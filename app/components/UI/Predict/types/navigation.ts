@@ -57,6 +57,7 @@ export interface PredictBuyPreviewParams {
   entryPoint?: PredictEntryPoint;
   amount?: number;
   transactionId?: string;
+  animationEnabled?: boolean;
 }
 
 /** Predict sell preview parameters */

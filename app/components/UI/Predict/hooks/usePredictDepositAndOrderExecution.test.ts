@@ -122,7 +122,7 @@ describe('usePredictDepositAndOrderExecution', () => {
 
     expect(mockOnApprovalConfirm).toHaveBeenCalledWith({
       deleteAfterResult: true,
-      waitForResult: false,
+      waitForResult: true,
       handleErrors: false,
     });
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -132,6 +132,7 @@ describe('usePredictDepositAndOrderExecution', () => {
         outcomeToken,
         amount: 25,
         transactionId: 'deposit-tx-id',
+        animationEnabled: false,
       }),
     );
     expect(mockPlaceOrder).not.toHaveBeenCalled();

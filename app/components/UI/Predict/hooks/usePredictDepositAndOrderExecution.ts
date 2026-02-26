@@ -84,6 +84,7 @@ export function usePredictDepositAndOrderExecution({
         outcomeToken,
         amount: orderAmountUsd,
         transactionId: depositTransactionId,
+        animationEnabled: false,
       }),
     );
   }, [
@@ -139,7 +140,7 @@ export function usePredictDepositAndOrderExecution({
     try {
       await onApprovalConfirm({
         deleteAfterResult: true,
-        waitForResult: false,
+        waitForResult: true,
         handleErrors: false,
       });
       redirectToBuyPreviewForAutoOrder();

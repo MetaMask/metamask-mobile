@@ -58,7 +58,10 @@ describe('usePredictConfirmNavigation', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       StackActions.replace(
         Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        { loader: ConfirmationLoader.CustomAmount },
+        {
+          loader: ConfirmationLoader.CustomAmount,
+          animationEnabled: false,
+        },
       ),
     );
     expect(mockNavigate).not.toHaveBeenCalled();

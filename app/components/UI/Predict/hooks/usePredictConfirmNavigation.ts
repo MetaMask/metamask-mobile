@@ -38,6 +38,7 @@ export function usePredictConfirmNavigation() {
     dispatch(
       StackActions.replace(ROUTE, {
         loader: ConfirmationLoader.CustomAmount,
+        animationEnabled: false,
       }),
     );
   }, [dispatch, isPendingNavigation, pendingTransactions]);

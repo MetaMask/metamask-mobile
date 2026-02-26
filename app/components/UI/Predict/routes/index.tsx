@@ -70,17 +70,37 @@ const PredictModalStack = () => (
     <ModalStack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={Confirm}
-      options={{
-        headerLeft: () => null,
-        headerShown: true,
-        title: '',
+      options={({ route }) => {
+        const disableOpenAnimation = route.params?.animationEnabled === false;
+
+        return {
+          headerLeft: () => null,
+          headerShown: true,
+          title: '',
+          transitionSpec: disableOpenAnimation
+            ? {
+                open: { animation: 'timing', config: { duration: 0 } },
+                close: { animation: 'timing', config: { duration: 300 } },
+              }
+            : undefined,
+        };
       }}
     />
     <ModalStack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
       component={Confirm}
-      options={{
-        headerShown: false,
+      options={({ route }) => {
+        const disableOpenAnimation = route.params?.animationEnabled === false;
+
+        return {
+          headerShown: false,
+          transitionSpec: disableOpenAnimation
+            ? {
+                open: { animation: 'timing', config: { duration: 0 } },
+                close: { animation: 'timing', config: { duration: 300 } },
+              }
+            : undefined,
+        };
       }}
     />
   </ModalStack.Navigator>
@@ -101,18 +121,38 @@ const PredictScreenStack = () => (
     <Stack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={Confirm}
-      options={{
-        headerLeft: () => null,
-        headerShown: true,
-        title: '',
+      options={({ route }) => {
+        const disableOpenAnimation = route.params?.animationEnabled === false;
+
+        return {
+          headerLeft: () => null,
+          headerShown: true,
+          title: '',
+          transitionSpec: disableOpenAnimation
+            ? {
+                open: { animation: 'timing', config: { duration: 0 } },
+                close: { animation: 'timing', config: { duration: 300 } },
+              }
+            : undefined,
+        };
       }}
     />
 
     <Stack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
       component={Confirm}
-      options={{
-        headerShown: false,
+      options={({ route }) => {
+        const disableOpenAnimation = route.params?.animationEnabled === false;
+
+        return {
+          headerShown: false,
+          transitionSpec: disableOpenAnimation
+            ? {
+                open: { animation: 'timing', config: { duration: 0 } },
+                close: { animation: 'timing', config: { duration: 300 } },
+              }
+            : undefined,
+        };
       }}
     />
 
@@ -140,21 +180,31 @@ const PredictScreenStack = () => (
     <Stack.Screen
       name={Routes.PREDICT.MODALS.BUY_PREVIEW}
       component={PredictBuyPreview}
-      options={{
-        headerShown: false,
-        // slide from right to left when entering
-        cardStyleInterpolator: ({ current }) => ({
-          cardStyle: {
-            transform: [
-              {
-                translateX: current.progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [Dimensions.get('window').width, 0],
-                }),
-              },
-            ],
-          },
-        }),
+      options={({ route }) => {
+        const disableOpenAnimation = route.params?.animationEnabled === false;
+
+        return {
+          headerShown: false,
+          transitionSpec: disableOpenAnimation
+            ? {
+                open: { animation: 'timing', config: { duration: 0 } },
+                close: { animation: 'timing', config: { duration: 300 } },
+              }
+            : undefined,
+          // slide from right to left when entering
+          cardStyleInterpolator: ({ current }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [Dimensions.get('window').width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        };
       }}
     />
 
