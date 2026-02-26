@@ -9,6 +9,16 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 16,
       paddingBottom: 36,
     },
+    measurementContainer: {
+      position: 'relative',
+    },
+    hiddenMeasurementContent: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      opacity: 0,
+    },
     assetHeaderContainerHorizontal: {
       flexDirection: 'row',
       alignItems: 'center',

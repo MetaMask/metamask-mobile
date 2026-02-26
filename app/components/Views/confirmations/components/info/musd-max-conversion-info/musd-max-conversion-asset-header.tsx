@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useRef, useMemo, useState } from 'react';
 import { NativeSyntheticEvent, TextLayoutEventData, View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Badge, {
@@ -33,22 +33,30 @@ export const MusdMaxConversionAssetHeaderTestIds = {
   ASSET_HEADER_OUTPUT: 'musd-max-conversion-asset-header-output',
 } as const;
 
-export const MusdMaxConversionAssetHeaderSkeleton = () => {
+export const MusdMaxConversionAssetHeaderSkeleton = ({
+  isStackedLayout = false,
+}: {
+  isStackedLayout?: boolean;
+}) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View
       style={[
         styles.assetHeaderContainer,
-        styles.assetHeaderContainerHorizontal,
+        isStackedLayout
+          ? styles.assetHeaderContainerStacked
+          : styles.assetHeaderContainerHorizontal,
       ]}
       testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON}
     >
       <View
         style={[
           styles.assetContainer,
-          styles.assetContainerHorizontal,
-          styles.assetContainerHorizontalInput,
+          isStackedLayout
+            ? styles.assetContainerStacked
+            : styles.assetContainerHorizontal,
+          !isStackedLayout && styles.assetContainerHorizontalInput,
         ]}
       >
         <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
@@ -66,7 +74,7 @@ export const MusdMaxConversionAssetHeaderSkeleton = () => {
         </View>
       </View>
       <Icon
-        name={IconName.Arrow2Right}
+        name={isStackedLayout ? IconName.Arrow2Down : IconName.Arrow2Right}
         color={IconColor.IconAlternative}
         size={IconSize.Lg}
         style={styles.assetDirectionIcon}
@@ -74,8 +82,10 @@ export const MusdMaxConversionAssetHeaderSkeleton = () => {
       <View
         style={[
           styles.assetContainer,
-          styles.assetContainerHorizontal,
-          styles.assetContainerHorizontalOutput,
+          isStackedLayout
+            ? styles.assetContainerStacked
+            : styles.assetContainerHorizontal,
+          !isStackedLayout && styles.assetContainerHorizontalOutput,
         ]}
       >
         <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
@@ -109,6 +119,8 @@ export const MusdMaxConversionAssetHeader = memo(
     const { styles } = useStyles(styleSheet, {});
     const isLoading = useIsTransactionPayLoading();
     const [isStackedLayout, setIsStackedLayout] = useState(false);
+    const [isLayoutResolved, setIsLayoutResolved] = useState(false);
+    const measuredTextKeysRef = useRef<Record<string, true>>({});
 
     const fiatBalanceText = useMemo(() => {
       if (!token?.fiat?.balance) {
@@ -119,30 +131,48 @@ export const MusdMaxConversionAssetHeader = memo(
     }, [formatFiat, token?.fiat?.balance]);
 
     const handleTextLayout = useCallback(
-      (event: NativeSyntheticEvent<TextLayoutEventData>) => {
-        if (isStackedLayout) {
-          return;
+      (
+        textKey: 'inputSymbol' | 'inputAmount',
+        event: NativeSyntheticEvent<TextLayoutEventData>,
+      ) => {
+        if (!isStackedLayout && event.nativeEvent.lines.length > 1) {
+          setIsStackedLayout(true);
         }
 
-        if (event.nativeEvent.lines.length > 1) {
-          setIsStackedLayout(true);
+        if (!measuredTextKeysRef.current[textKey]) {
+          measuredTextKeysRef.current[textKey] = true;
+          if (Object.keys(measuredTextKeysRef.current).length === 2) {
+            setIsLayoutResolved(true);
+          }
         }
       },
       [isStackedLayout],
     );
 
-    if (isLoading) {
-      return <MusdMaxConversionAssetHeaderSkeleton />;
-    }
+    const handleInputSymbolTextLayout = useCallback(
+      (event: NativeSyntheticEvent<TextLayoutEventData>) =>
+        handleTextLayout('inputSymbol', event),
+      [handleTextLayout],
+    );
 
-    return (
+    const handleInputAmountTextLayout = useCallback(
+      (event: NativeSyntheticEvent<TextLayoutEventData>) =>
+        handleTextLayout('inputAmount', event),
+      [handleTextLayout],
+    );
+
+    const shouldShowSkeleton = isLoading || !isLayoutResolved;
+
+    const assetHeaderContent = (
       <View
         style={[
           styles.assetHeaderContainer,
           isStackedLayout
             ? styles.assetHeaderContainerStacked
             : styles.assetHeaderContainerHorizontal,
+          shouldShowSkeleton && styles.hiddenMeasurementContent,
         ]}
+        pointerEvents={shouldShowSkeleton ? 'none' : 'auto'}
       >
         {/* Input Asset (Top) */}
         <View
@@ -176,6 +206,7 @@ export const MusdMaxConversionAssetHeader = memo(
           </BadgeWrapper>
           <View
             style={[
+              styles.assetInfo,
               isStackedLayout
                 ? styles.assetInfoStacked
                 : styles.assetInfoHorizontal,
@@ -186,7 +217,7 @@ export const MusdMaxConversionAssetHeader = memo(
               color={TextColor.Alternative}
               numberOfLines={isStackedLayout ? undefined : 2}
               ellipsizeMode="tail"
-              onTextLayout={handleTextLayout}
+              onTextLayout={handleInputSymbolTextLayout}
             >
               {token?.symbol}
             </Text>
@@ -194,7 +225,7 @@ export const MusdMaxConversionAssetHeader = memo(
               style={styles.assetAmount}
               numberOfLines={isStackedLayout ? undefined : 2}
               ellipsizeMode="tail"
-              onTextLayout={handleTextLayout}
+              onTextLayout={handleInputAmountTextLayout}
             >
               {fiatBalanceText}
             </Text>
@@ -249,7 +280,6 @@ export const MusdMaxConversionAssetHeader = memo(
               color={TextColor.Alternative}
               numberOfLines={isStackedLayout ? undefined : 2}
               ellipsizeMode="tail"
-              onTextLayout={handleTextLayout}
             >
               {MUSD_TOKEN.symbol}
             </Text>
@@ -257,7 +287,6 @@ export const MusdMaxConversionAssetHeader = memo(
               style={styles.assetAmount}
               numberOfLines={isStackedLayout ? undefined : 2}
               ellipsizeMode="tail"
-              onTextLayout={handleTextLayout}
             >
               {fiatBalanceText}
             </Text>
@@ -265,5 +294,18 @@ export const MusdMaxConversionAssetHeader = memo(
         </View>
       </View>
     );
+
+    if (shouldShowSkeleton) {
+      return (
+        <View style={styles.measurementContainer}>
+          <MusdMaxConversionAssetHeaderSkeleton
+            isStackedLayout={isStackedLayout}
+          />
+          {assetHeaderContent}
+        </View>
+      );
+    }
+
+    return assetHeaderContent;
   },
 );
