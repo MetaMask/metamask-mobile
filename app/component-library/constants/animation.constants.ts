@@ -2,7 +2,11 @@
 
 /**
  * Animation Tokens in miliseconds.
+ * @deprecated
+ * Use the new AnimationDuration from @metamask/design-tokens
+ * import { AnimationDuration } from @metamask/design-tokens
  */
+
 export enum AnimationDuration {
   Instantly = 0,
   Immediately = 50,
