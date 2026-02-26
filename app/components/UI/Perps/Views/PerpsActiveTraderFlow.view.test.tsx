@@ -285,13 +285,13 @@ describe('Active Trader Flow', () => {
     cleanup();
     renderRow(baseLimitOrder);
     expect(await screen.findByText(/long/i)).toBeOnTheScreen();
-    expect(screen.getByText('Limit price')).toBeOnTheScreen();
+    expect(await screen.findByText(/limit price/i)).toBeOnTheScreen();
 
     // Trader sees sell market order row: short direction, market price label
     cleanup();
     renderRow(shortMarketOrder);
     expect(await screen.findByText(/short/i)).toBeOnTheScreen();
-    expect(screen.getByText('Market price')).toBeOnTheScreen();
+    expect(await screen.findByText(/market price/i)).toBeOnTheScreen();
 
     // Trader taps an order row to see details
     cleanup();
