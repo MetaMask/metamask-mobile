@@ -23,6 +23,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { SolScope } from '@metamask/keyring-api';
 import { setContentPreviewToken } from '../../../actions/notification/helpers';
+import { selectHasInFlightMusdConversion } from '../Earn/selectors/musdConversionStatus';
 
 const makeMockState = () =>
   ({
@@ -90,6 +91,23 @@ jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => {
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(() => Promise.resolve()),
 }));
+const mockShowToast = jest.fn();
+const existingConversionInProgressToast = {
+  variant: 'icon',
+  iconName: 'warning',
+  labelOptions: [{ label: 'mUSD Conversion already in progress.' }],
+};
+jest.mock('../Earn/hooks/useEarnToasts', () => ({
+  __esModule: true,
+  default: () => ({
+    showToast: mockShowToast,
+    EarnToastOptions: {
+      mUsdConversion: {
+        existingConversionInProgress: existingConversionInProgressToast,
+      },
+    },
+  }),
+}));
 
 jest.mock('./fetchCarouselSlidesFromContentful', () => ({
   ...jest.requireActual('./fetchCarouselSlidesFromContentful'),
@@ -110,11 +128,17 @@ const createMockSlide = (
   ...overrides,
 });
 
-const mockReduxHooks = (state?: RootState) => {
+const mockReduxHooks = (
+  state?: RootState,
+  hasInFlightMusdConversion: boolean = false,
+) => {
   jest.mocked(useDispatch).mockReturnValue(mockDispatch);
-  jest
-    .mocked(useSelector)
-    .mockImplementation((selector) => selector(state ?? makeMockState()));
+  jest.mocked(useSelector).mockImplementation((selector) => {
+    if (selector === selectHasInFlightMusdConversion) {
+      return hasInFlightMusdConversion;
+    }
+    return selector(state ?? makeMockState());
+  });
 };
 
 beforeEach(() => {
@@ -295,6 +319,31 @@ describe('Carousel Navigation', () => {
     const slide = await findByTestId('carousel-slide-route-slide');
     fireEvent.press(slide);
     expect(mockNavigate).toHaveBeenCalledWith('Settings');
+  });
+
+  it('shows existing conversion toast and blocks mUSD deeplink when conversion is in-flight', async () => {
+    mockReduxHooks(undefined, true);
+
+    const slideID = 'musd-slide';
+    const slideTestID = `carousel-slide-${slideID}`;
+    const musdDeeplinkSlide = createMockSlide({
+      id: slideID,
+      navigation: { type: 'url', href: 'https://link.metamask.io/earn-musd' },
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [musdDeeplinkSlide],
+    });
+
+    const { findByTestId } = render(<Carousel />);
+    const slide = await findByTestId(slideTestID);
+    fireEvent.press(slide);
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      existingConversionInProgressToast,
+    );
+    expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+    expect(Linking.openURL).not.toHaveBeenCalled();
   });
 });
 

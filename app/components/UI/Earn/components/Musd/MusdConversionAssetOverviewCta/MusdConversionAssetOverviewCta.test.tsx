@@ -11,6 +11,8 @@ import { TokenI } from '../../../../Tokens/types';
 
 jest.mock('../../../hooks/useMusdConversion');
 jest.mock('../../../selectors/featureFlags');
+jest.mock('../../../selectors/musdConversionStatus');
+jest.mock('../../../hooks/useEarnToasts');
 jest.mock('../../../../../../util/Logger');
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../../../../../Views/confirmations/hooks/useNetworkName');
@@ -23,6 +25,8 @@ import { strings } from '../../../../../../../locales/i18n';
 import { MUSD_CONVERSION_APY } from '../../../constants/musd';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../../../selectors/featureFlags';
+import { selectHasInFlightMusdConversion } from '../../../selectors/musdConversionStatus';
+import useEarnToasts from '../../../hooks/useEarnToasts';
 
 const createMockToken = (overrides: Partial<TokenI> = {}): TokenI => ({
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -49,14 +53,25 @@ describe('MusdConversionAssetOverviewCta', () => {
   const mockInitiateMaxConversion = jest.fn();
   const mockClearError = jest.fn();
   const mockLoggerError = jest.mocked(Logger.error);
+  const mockShowToast = jest.fn();
+  const existingConversionInProgressToast = {
+    variant: 'icon',
+    iconName: 'warning',
+    labelOptions: [{ label: 'mUSD Conversion already in progress.' }],
+  };
   const mockSelectMusdQuickConvertEnabledFlag =
     selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
       typeof selectMusdQuickConvertEnabledFlag
+    >;
+  const mockSelectHasInFlightMusdConversion =
+    selectHasInFlightMusdConversion as jest.MockedFunction<
+      typeof selectHasInFlightMusdConversion
     >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(false);
+    mockSelectHasInFlightMusdConversion.mockReturnValue(false);
 
     jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
 
@@ -70,6 +85,16 @@ describe('MusdConversionAssetOverviewCta', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     } as unknown as ReturnType<typeof useAnalytics>);
+    (
+      useEarnToasts as jest.MockedFunction<typeof useEarnToasts>
+    ).mockReturnValue({
+      showToast: mockShowToast,
+      EarnToastOptions: {
+        mUsdConversion: {
+          existingConversionInProgress: existingConversionInProgressToast,
+        },
+      },
+    } as unknown as ReturnType<typeof useEarnToasts>);
 
     (
       useNetworkName as jest.MockedFunction<typeof useNetworkName>
@@ -249,6 +274,28 @@ describe('MusdConversionAssetOverviewCta', () => {
           navigationStack: Routes.EARN.ROOT,
         });
       });
+    });
+
+    it('shows existing conversion toast and skips initiation when in-flight conversion exists', async () => {
+      mockSelectHasInFlightMusdConversion.mockReturnValue(true);
+      const mockToken = createMockToken();
+
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetOverviewCta asset={mockToken} />,
+        { state: initialRootState },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        existingConversionInProgressToast,
+      );
+      expect(mockInitiateConversion).not.toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
   });
 
