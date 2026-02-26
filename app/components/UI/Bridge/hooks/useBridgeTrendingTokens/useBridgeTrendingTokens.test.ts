@@ -109,7 +109,6 @@ describe('useBridgeTrendingTokens', () => {
     act(() => {
       result.current.handleTimeSelect('h1_trending', TimeOption.OneHour);
     });
-    expect(result.current.sortBy).toBe('h1_trending');
     expect(result.current.selectedTimeOption).toBe(TimeOption.OneHour);
 
     act(() => {

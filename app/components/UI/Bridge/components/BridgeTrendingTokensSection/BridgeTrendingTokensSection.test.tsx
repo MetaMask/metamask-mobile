@@ -66,7 +66,6 @@ const createTrendingTokens = (count: number): TrendingAsset[] =>
   }));
 
 const buildHookResult = (trendingTokens: TrendingAsset[]) => ({
-  sortBy: undefined,
   selectedTimeOption: '24h',
   selectedNetwork: null,
   selectedPriceChangeOption: 'price_change',
@@ -85,22 +84,6 @@ const buildHookResult = (trendingTokens: TrendingAsset[]) => ({
   handleNetworkSelect: jest.fn(),
   handleTimeSelect: jest.fn(),
 });
-
-let dateNowSpy: jest.SpyInstance;
-let currentTime = 1000;
-
-beforeEach(() => {
-  dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => currentTime);
-});
-
-afterEach(() => {
-  dateNowSpy.mockRestore();
-  currentTime = 1000;
-});
-
-const advanceTime = (ms: number) => {
-  currentTime += ms;
-};
 
 describe('BridgeTrendingTokensSection', () => {
   beforeEach(() => {
@@ -126,8 +109,6 @@ describe('BridgeTrendingTokensSection', () => {
       <BridgeTrendingTokensSection ref={ref} />,
     );
 
-    advanceTime(300);
-
     act(() => {
       ref.current?.loadNextChunkIfAvailable();
     });
@@ -140,8 +121,6 @@ describe('BridgeTrendingTokensSection', () => {
     const { getAllByTestId, queryByTestId, rerender } = render(
       <BridgeTrendingTokensSection ref={ref} />,
     );
-
-    advanceTime(300);
 
     act(() => {
       ref.current?.loadNextChunkIfAvailable();
@@ -164,8 +143,6 @@ describe('BridgeTrendingTokensSection', () => {
     );
 
     fireEvent.press(getByTestId('bridge-trending-price-filter'));
-
-    advanceTime(300);
 
     act(() => {
       ref.current?.loadNextChunkIfAvailable();

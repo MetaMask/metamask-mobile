@@ -8,9 +8,16 @@ import {
   PriceChangeOption,
   SortDirection,
   TimeOption,
+  mapTimeOptionToSortBy,
 } from '../../../Trending/components/TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../../../Trending/components/TrendingTokensList/TrendingTokensList';
 import { sortTrendingTokens } from '../../../Trending/utils/sortTrendingTokens';
+
+const PRICE_CHANGE_LABELS: Record<PriceChangeOption, string> = {
+  [PriceChangeOption.PriceChange]: 'trending.price_change',
+  [PriceChangeOption.Volume]: 'trending.volume',
+  [PriceChangeOption.MarketCap]: 'trending.market_cap',
+};
 
 export interface UseBridgeTrendingTokensParams {
   networkConfigurations: Record<CaipChainId, { name?: string } | undefined>;
@@ -19,7 +26,6 @@ export interface UseBridgeTrendingTokensParams {
 export const useBridgeTrendingTokens = ({
   networkConfigurations,
 }: UseBridgeTrendingTokensParams) => {
-  const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(undefined);
   const [selectedTimeOption, setSelectedTimeOption] = useState<TimeOption>(
     TimeOption.TwentyFourHours,
   );
@@ -31,6 +37,11 @@ export const useBridgeTrendingTokens = ({
   >(PriceChangeOption.PriceChange);
   const [priceChangeSortDirection, setPriceChangeSortDirection] =
     useState<SortDirection>(SortDirection.Descending);
+
+  const sortBy = useMemo(
+    () => mapTimeOptionToSortBy(selectedTimeOption),
+    [selectedTimeOption],
+  );
 
   const { results: trendingResults, isLoading } = useTrendingRequest({
     sortBy,
@@ -97,17 +108,11 @@ export const useBridgeTrendingTokens = ({
     [selectedTimeOption, selectedPriceChangeOption, selectedNetwork],
   );
 
-  const priceChangeButtonText = useMemo(() => {
-    switch (selectedPriceChangeOption) {
-      case PriceChangeOption.Volume:
-        return strings('trending.volume');
-      case PriceChangeOption.MarketCap:
-        return strings('trending.market_cap');
-      case PriceChangeOption.PriceChange:
-      default:
-        return strings('trending.price_change');
-    }
-  }, [selectedPriceChangeOption]);
+  const priceChangeButtonText = strings(
+    PRICE_CHANGE_LABELS[
+      selectedPriceChangeOption ?? PriceChangeOption.PriceChange
+    ],
+  );
 
   const handlePriceChangeSelect = useCallback(
     (option: PriceChangeOption, sortDirection: SortDirection) => {
@@ -117,20 +122,14 @@ export const useBridgeTrendingTokens = ({
     [],
   );
 
-  const handleNetworkSelect = useCallback((chainIds: CaipChainId[] | null) => {
-    setSelectedNetwork(chainIds);
-  }, []);
-
   const handleTimeSelect = useCallback(
-    (selectedSortBy: SortTrendingBy, timeOption: TimeOption) => {
-      setSortBy(selectedSortBy);
+    (_sortBy: SortTrendingBy, timeOption: TimeOption) => {
       setSelectedTimeOption(timeOption);
     },
     [],
   );
 
   return {
-    sortBy,
     selectedTimeOption,
     selectedNetwork,
     selectedPriceChangeOption,
@@ -141,7 +140,7 @@ export const useBridgeTrendingTokens = ({
     trendingTokens,
     isLoading,
     handlePriceChangeSelect,
-    handleNetworkSelect,
+    handleNetworkSelect: setSelectedNetwork,
     handleTimeSelect,
   };
 };

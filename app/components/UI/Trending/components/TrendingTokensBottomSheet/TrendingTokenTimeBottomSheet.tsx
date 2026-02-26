@@ -32,7 +32,7 @@ export interface TrendingTokenTimeBottomSheetProps {
 /**
  * Maps TimeOption to SortTrendingBy
  */
-const mapTimeOptionToSortBy = (option: TimeOption): SortTrendingBy => {
+export const mapTimeOptionToSortBy = (option: TimeOption): SortTrendingBy => {
   switch (option) {
     case TimeOption.TwentyFourHours:
       return 'h24_trending' as SortTrendingBy;

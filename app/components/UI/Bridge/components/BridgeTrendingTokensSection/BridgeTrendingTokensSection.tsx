@@ -4,7 +4,6 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import { Modal, Pressable } from 'react-native';
@@ -37,7 +36,6 @@ import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testId
 import { useBridgeTrendingTokens } from '../../hooks/useBridgeTrendingTokens/useBridgeTrendingTokens';
 
 const TOKEN_CHUNK_SIZE = 12;
-const LOAD_THROTTLE_MS = 200;
 
 type ActiveBottomSheet = 'none' | 'time' | 'network' | 'price_change';
 
@@ -84,27 +82,15 @@ const BridgeTrendingTokensSection = forwardRef<BridgeTrendingTokensSectionRef>(
 
     const hasMore = visibleTokenCount < trendingTokens.length;
 
-    const loadNextChunk = useCallback(() => {
-      setVisibleTokenCount((currentCount) =>
-        Math.min(currentCount + TOKEN_CHUNK_SIZE, trendingTokens.length),
-      );
-    }, [trendingTokens.length]);
-
-    const lastLoadTriggeredRef = useRef(0);
-
     const loadNextChunkIfAvailable = useCallback(() => {
       if (activeBottomSheet !== 'none' || isLoading || !hasMore) {
         return;
       }
 
-      const now = Date.now();
-      if (now - lastLoadTriggeredRef.current < LOAD_THROTTLE_MS) {
-        return;
-      }
-      lastLoadTriggeredRef.current = now;
-
-      loadNextChunk();
-    }, [activeBottomSheet, hasMore, isLoading, loadNextChunk]);
+      setVisibleTokenCount((currentCount) =>
+        Math.min(currentCount + TOKEN_CHUNK_SIZE, trendingTokens.length),
+      );
+    }, [activeBottomSheet, hasMore, isLoading, trendingTokens.length]);
 
     useImperativeHandle(
       ref,
