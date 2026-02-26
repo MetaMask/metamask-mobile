@@ -241,7 +241,7 @@ describe('accountUtils', () => {
   });
 
   describe('getSelectedEvmAccount', () => {
-    it('returns EVM account when accountTree returns accounts with EVM', () => {
+    it('returns EVM account when accounts array contains EVM account', () => {
       const mockAccounts = [
         {
           address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
@@ -258,19 +258,14 @@ describe('accountUtils', () => {
         },
       ] as unknown as InternalAccount[];
 
-      const mockAccountTree = {
-        getAccountsFromSelectedGroup: jest.fn().mockReturnValue(mockAccounts),
-      };
+      const result = getSelectedEvmAccount(mockAccounts);
 
-      const result = getSelectedEvmAccount(mockAccountTree);
-
-      expect(mockAccountTree.getAccountsFromSelectedGroup).toHaveBeenCalled();
       expect(result).toEqual({
         address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
       });
     });
 
-    it('returns undefined when no EVM account in selected group', () => {
+    it('returns undefined when no EVM account in accounts array', () => {
       const mockAccounts = [
         {
           address: '0x1234567890123456789012345678901234567890',
@@ -287,21 +282,13 @@ describe('accountUtils', () => {
         },
       ] as unknown as InternalAccount[];
 
-      const mockAccountTree = {
-        getAccountsFromSelectedGroup: jest.fn().mockReturnValue(mockAccounts),
-      };
-
-      const result = getSelectedEvmAccount(mockAccountTree);
+      const result = getSelectedEvmAccount(mockAccounts);
 
       expect(result).toBeUndefined();
     });
 
-    it('returns undefined when accountTree returns empty accounts', () => {
-      const mockAccountTree = {
-        getAccountsFromSelectedGroup: jest.fn().mockReturnValue([]),
-      };
-
-      const result = getSelectedEvmAccount(mockAccountTree);
+    it('returns undefined when accounts array is empty', () => {
+      const result = getSelectedEvmAccount([]);
 
       expect(result).toBeUndefined();
     });
