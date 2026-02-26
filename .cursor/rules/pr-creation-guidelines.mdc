@@ -32,14 +32,14 @@ Small focused PRs • Clear titles/descriptions • Complete template • Correc
 
 ## 2. PR Template Compliance
 
-**ALWAYS read `.github/pull-request-template.md` before creating a PR.** Use it as the body and fill ALL sections:
+Use `.github/pull-request-template.md` - fill ALL sections:
 
 - **Description**: What changed and why (context, constraints, trade-offs)
-- **Changelog**: User-facing summary in past tense (`Added`, `Fixed`) OR `CHANGELOG entry: null`
+- **Changelog**: User-facing summary in past participle (`Added`, `Fixed`) OR `CHANGELOG entry: null`
 - **Related issues**: `Fixes: #NUMBER`, `Closes: #NUMBER`, or `Refs: #NUMBER`
-- **Manual testing**: Test cases using Gherkin syntax (see sample in template)
+- **Manual testing**: test cases desciption using Gherkin syntax (see sample in template)
 - **Screenshots/Recordings**: Required for UI changes (before/after)
-- **Pre-merge checklist**: Ensure all items checked, even if they don't apply, it shows that you thought about the specific item.
+- **Pre-merge checklist**: Ensure all items checked, even if thye don't apply, it shows that you thought about the specific item.
 
 ## 3. Required Labels and Assignment
 
@@ -102,29 +102,14 @@ Small focused PRs • Clear titles/descriptions • Complete template • Correc
 
 **DON'T**: Leave unassigned • Skip template • Push unrelated changes • Force push after first review
 
-## GitHub CLI — Creating PRs
+## GitHub CLI Example
 
 ```bash
-# Create PR as draft
+# Create PR with auto team detection
 gh pr create \
   --title "feat: add NFT gallery to collectibles tab" \
   --assignee @me \
   --draft
-```
-
-### Setting the PR Body (CRITICAL)
-
-Do **not** use `gh pr edit --body` or shell heredocs — they strip indentation and escape backticks. Always use Python + `gh api` with a JSON payload:
-
-```python
-import subprocess, json
-body = """<full PR body with backticks and indentation>"""
-payload = json.dumps({"body": body})
-subprocess.run(
-    ["gh", "api", "repos/MetaMask/metamask-mobile/pulls/<PR_NUMBER>",
-     "--method", "PATCH", "--input", "-"],
-    input=payload, text=True
-)
 ```
 
 ## Enforcement
