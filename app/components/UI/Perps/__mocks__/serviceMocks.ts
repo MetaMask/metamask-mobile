@@ -89,39 +89,9 @@ export const createMockInfrastructure =
         invalidateAll: jest.fn(),
       },
 
-      // === Controllers (cross-controller DI) ===
-      controllers: {
-        network: {
-          getState: jest.fn(() => ({ selectedNetworkClientId: 'mainnet' })),
-          getNetworkClientById: jest
-            .fn()
-            .mockReturnValue({ configuration: { chainId: '0x1' } }),
-          findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
-        },
-        keyring: {
-          getState: jest.fn(() => ({ isUnlocked: true })),
-          signTypedMessage: jest.fn().mockResolvedValue('0xSignatureResult'),
-        },
-        transaction: {
-          addTransaction: jest.fn().mockResolvedValue({
-            result: Promise.resolve('0xTxHash'),
-            transactionMeta: { id: 'tx-id-123' },
-          }),
-        },
-        remoteFeatureFlags: {
-          getState: jest.fn(() => ({ remoteFeatureFlags: {} })),
-          onStateChange: jest.fn().mockReturnValue(jest.fn()),
-        },
-        accountTree: {
-          getAccountsFromSelectedGroup: jest.fn(() => [createMockEvmAccount()]),
-          onSelectedAccountGroupChange: jest.fn().mockReturnValue(jest.fn()),
-        },
-        authentication: {
-          getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
-        },
-        rewards: {
-          getPerpsDiscountForAccount: jest.fn().mockResolvedValue(0),
-        },
+      // === Rewards (DI — no RewardsController in Core yet) ===
+      rewards: {
+        getPerpsDiscountForAccount: jest.fn().mockResolvedValue(0),
       },
     }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 

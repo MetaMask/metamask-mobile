@@ -67,6 +67,7 @@ import type {
   HistoricalPortfolioResult,
   InitializeResult,
   PerpsPlatformDependencies,
+  PerpsControllerMessengerBase,
   PerpsProvider,
   LiquidationPriceParams,
   LiveDataConfig,
@@ -332,6 +333,8 @@ export class HyperLiquidProvider implements PerpsProvider {
   // Promise-based lock to prevent race conditions in concurrent initialization
   #initializationPromise: Promise<void> | null = null;
 
+  readonly #messenger: PerpsControllerMessengerBase;
+
   constructor(options: {
     isTestnet?: boolean;
     hip3Enabled?: boolean;
@@ -339,9 +342,11 @@ export class HyperLiquidProvider implements PerpsProvider {
     blocklistMarkets?: string[];
     useDexAbstraction?: boolean;
     platformDependencies: PerpsPlatformDependencies;
+    messenger: PerpsControllerMessengerBase;
     initialAssetMapping?: [string, number][];
   }) {
     this.#deps = options.platformDependencies;
+    this.#messenger = options.messenger;
     const isTestnet = options.isTestnet ?? false;
 
     // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
@@ -356,9 +361,13 @@ export class HyperLiquidProvider implements PerpsProvider {
     this.#clientService = new HyperLiquidClientService(this.#deps, {
       isTestnet,
     });
-    this.#walletService = new HyperLiquidWalletService(this.#deps, {
-      isTestnet,
-    });
+    this.#walletService = new HyperLiquidWalletService(
+      this.#deps,
+      this.#messenger,
+      {
+        isTestnet,
+      },
+    );
     this.#subscriptionService = new HyperLiquidSubscriptionService(
       this.#clientService,
       this.#walletService,

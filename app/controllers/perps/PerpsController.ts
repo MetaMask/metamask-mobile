@@ -104,6 +104,8 @@ import type {
   PerpsProviderType,
   PerpsSelectedPaymentToken,
   PerpsRemoteFeatureFlagState,
+  PerpsControllerAllowedActions,
+  PerpsControllerAllowedEvents,
 } from './types';
 import type { CandleData } from './types/perps-types';
 import {
@@ -721,13 +723,13 @@ export type PerpsControllerActions =
 
 /**
  * PerpsController messenger constraints.
- * Only PerpsController's own actions and events — no delegated external controller actions.
- * Cross-controller interactions go through PerpsPlatformDependencies.controllers.
+ * Includes both PerpsController's own actions/events and
+ * allowed actions/events from external controllers.
  */
 export type PerpsControllerMessenger = Messenger<
   'PerpsController',
-  PerpsControllerActions,
-  PerpsControllerEvents
+  PerpsControllerActions | PerpsControllerAllowedActions,
+  PerpsControllerEvents | PerpsControllerAllowedEvents
 >;
 
 /**
@@ -739,7 +741,8 @@ export type PerpsControllerOptions = {
   clientConfig?: PerpsControllerConfig;
   /**
    * Platform-specific dependencies (required)
-   * Provides logging, metrics, tracing, stream management, and account utilities.
+   * Provides logging, metrics, tracing, stream management, and rewards.
+   * Cross-controller communication uses the messenger pattern.
    * Must be provided by the platform (mobile/extension) at instantiation time.
    */
   infrastructure: PerpsPlatformDependencies;
@@ -843,8 +846,9 @@ export class PerpsController extends BaseController<
 
     try {
       const localFlag = getLocalFlag();
-      const remoteState =
-        this.#options.infrastructure.controllers.remoteFeatureFlags.getState();
+      const remoteState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
       const remoteFlag =
         remoteState.remoteFeatureFlags?.perpsMyxProviderEnabled;
 
@@ -923,18 +927,19 @@ export class PerpsController extends BaseController<
     };
 
     // Instantiate services with platform dependencies
-    // All cross-controller access goes through infrastructure.controllers.*
+    // Services that need cross-controller access receive the messenger
     this.#tradingService = new TradingService(infrastructure);
     this.#marketDataService = new MarketDataService(infrastructure);
-    this.#accountService = new AccountService(infrastructure);
+    this.#accountService = new AccountService(infrastructure, messenger);
     this.#eligibilityService = new EligibilityService(infrastructure);
-    this.#dataLakeService = new DataLakeService(infrastructure);
-    this.#depositService = new DepositService(infrastructure);
+    this.#dataLakeService = new DataLakeService(infrastructure, messenger);
+    this.#depositService = new DepositService(infrastructure, messenger);
     this.#featureFlagConfigurationService = new FeatureFlagConfigurationService(
       infrastructure,
     );
     this.#rewardsIntegrationService = new RewardsIntegrationService(
       infrastructure,
+      messenger,
     );
 
     // Set HIP-3 fallback configuration from client (will be updated if remote flags available)
@@ -960,8 +965,9 @@ export class PerpsController extends BaseController<
      * We still subscribe in case the RemoteFeatureFlagController is not yet populated and updates later.
      */
     try {
-      const currentRemoteFeatureFlagState =
-        infrastructure.controllers.remoteFeatureFlags.getState();
+      const currentRemoteFeatureFlagState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
 
       this.refreshEligibilityOnFeatureFlagChange(currentRemoteFeatureFlagState);
     } catch (error) {
@@ -979,7 +985,8 @@ export class PerpsController extends BaseController<
     // Subscribe for the full controller lifetime — intentionally not stored;
     // geo-blocking and HIP-3 flag propagation must remain active across
     // disconnect → reconnect cycles and must never be torn down.
-    infrastructure.controllers.remoteFeatureFlags.onStateChange(
+    this.messenger.subscribe(
+      'RemoteFeatureFlagController:stateChange',
       this.refreshEligibilityOnFeatureFlagChange.bind(this),
     );
 
@@ -1054,6 +1061,7 @@ export class PerpsController extends BaseController<
       allowlistMarkets: this.#hip3AllowlistMarkets,
       blocklistMarkets: this.#hip3BlocklistMarkets,
       platformDependencies: this.#options.infrastructure,
+      messenger: this.messenger,
     });
     this.#standaloneProviderIsTestnet = currentIsTestnet;
     this.#standaloneProviderHip3Version = currentHip3Version;
@@ -1109,7 +1117,8 @@ export class PerpsController extends BaseController<
    * @returns The resulting string value.
    */
   #findNetworkClientIdForChain(chainId: string): string | undefined {
-    return this.#options.infrastructure.controllers.network.findNetworkClientIdByChainId(
+    return this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
       chainId as `0x${string}`,
     );
   }
@@ -1148,9 +1157,14 @@ export class PerpsController extends BaseController<
     result: Promise<string>;
     transactionMeta: { id: string; hash?: string };
   }> {
-    return this.#options.infrastructure.controllers.transaction.addTransaction(
-      txParams,
-      options,
+    // Cast needed: PerpsController uses loose string types for txParams/options
+    // while TransactionController uses strict branded types (TransactionParams, AddTransactionOptions)
+    return this.messenger.call(
+      'TransactionController:addTransaction',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      txParams as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      options as any,
     );
   }
 
@@ -1407,6 +1421,7 @@ export class PerpsController extends BaseController<
           allowlistMarkets: this.#hip3AllowlistMarkets,
           blocklistMarkets: this.#hip3BlocklistMarkets,
           platformDependencies: this.#options.infrastructure,
+          messenger: this.messenger,
         });
         this.providers.set('hyperliquid', hyperLiquidProvider);
 
@@ -1895,7 +1910,9 @@ export class PerpsController extends BaseController<
 
       // Get current account address via messenger (outside of update() for proper typing)
       const evmAccount = getSelectedEvmAccount(
-        this.#options.infrastructure.controllers.accountTree,
+        this.messenger.call(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        ),
       );
       const accountAddress = evmAccount?.address ?? 'unknown';
 
@@ -2598,7 +2615,9 @@ export class PerpsController extends BaseController<
     // Watch for account changes via AccountTreeController
     const accountChangeHandler = (): void => {
       const evmAccount = getSelectedEvmAccount(
-        this.#options.infrastructure.controllers.accountTree,
+        this.messenger.call(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        ),
       );
       const currentAddress = evmAccount?.address ?? null;
 
@@ -2625,10 +2644,16 @@ export class PerpsController extends BaseController<
         }
       }
     };
-    this.#accountChangeUnsubscribe =
-      this.#options.infrastructure.controllers.accountTree.onSelectedAccountGroupChange(
+    this.messenger.subscribe(
+      'AccountTreeController:selectedAccountGroupChange',
+      accountChangeHandler,
+    );
+    this.#accountChangeUnsubscribe = (): void => {
+      this.messenger.unsubscribe(
+        'AccountTreeController:selectedAccountGroupChange',
         accountChangeHandler,
       );
+    };
   }
 
   /**
@@ -2746,7 +2771,9 @@ export class PerpsController extends BaseController<
 
     // Get current user address
     const evmAccount = getSelectedEvmAccount(
-      this.#options.infrastructure.controllers.accountTree,
+      this.messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
     );
     if (!evmAccount?.address) {
       return;

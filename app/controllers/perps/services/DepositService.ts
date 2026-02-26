@@ -5,6 +5,7 @@ import type { Hex } from '@metamask/utils';
 import type {
   PerpsProvider,
   PerpsPlatformDependencies,
+  PerpsControllerMessengerBase,
   PerpsTransactionParams,
 } from '../types';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
@@ -27,13 +28,20 @@ const DEPOSIT_GAS_LIMIT = toHex(100000);
 export class DepositService {
   readonly #deps: PerpsPlatformDependencies;
 
+  readonly #messenger: PerpsControllerMessengerBase;
+
   /**
    * Create a new DepositService instance
    *
    * @param deps - Platform dependencies for logging, metrics, etc.
+   * @param messenger - Controller messenger for cross-controller communication.
    */
-  constructor(deps: PerpsPlatformDependencies) {
+  constructor(
+    deps: PerpsPlatformDependencies,
+    messenger: PerpsControllerMessengerBase,
+  ) {
     this.#deps = deps;
+    this.#messenger = messenger;
   }
 
   /**
@@ -67,9 +75,11 @@ export class DepositService {
       '0x0',
     );
 
-    // Get EVM account from selected account group via DI accountTree
+    // Get EVM account from selected account group via messenger
     const evmAccount = getSelectedEvmAccount(
-      this.#deps.controllers.accountTree,
+      this.#messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
     );
     if (!evmAccount) {
       throw new Error(

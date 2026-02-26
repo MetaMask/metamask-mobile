@@ -5,6 +5,7 @@ import { createMockHyperLiquidProvider } from '../../../components/UI/Perps/__mo
 import {
   createMockEvmAccount,
   createMockInfrastructure,
+  createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
 import { generateDepositId } from '../utils/idUtils';
@@ -35,6 +36,7 @@ jest.mock('@metamask/controller-utils', () => {
 describe('DepositService', () => {
   let mockProvider: jest.Mocked<PerpsProvider>;
   let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
+  let mockMessenger: ReturnType<typeof createMockMessenger>;
   let service: DepositService;
   const mockEvmAccount = createMockEvmAccount();
   const mockDepositId = 'deposit-123';
@@ -47,7 +49,8 @@ describe('DepositService', () => {
       createMockHyperLiquidProvider() as unknown as jest.Mocked<PerpsProvider>;
 
     mockDeps = createMockInfrastructure();
-    service = new DepositService(mockDeps);
+    mockMessenger = createMockMessenger();
+    service = new DepositService(mockDeps, mockMessenger);
 
     mockProvider.getDepositRoutes.mockReturnValue([
       {
@@ -57,10 +60,15 @@ describe('DepositService', () => {
       },
     ]);
 
-    // Setup mock EVM account via DI accountTree
-    (
-      mockDeps.controllers.accountTree.getAccountsFromSelectedGroup as jest.Mock
-    ).mockReturnValue([mockEvmAccount]);
+    // Setup mock EVM account via messenger
+    (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+      if (
+        action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+      ) {
+        return [mockEvmAccount];
+      }
+      return undefined;
+    });
     (generateDepositId as jest.Mock).mockReturnValue(mockDepositId);
     // Mock generateERC20TransferData to return a valid ERC-20 transfer data
     (generateERC20TransferData as jest.Mock).mockReturnValue(
@@ -155,21 +163,25 @@ describe('DepositService', () => {
       expect(result.transaction.data).toMatch(/^0xa9059cbb/);
     });
 
-    it('retrieves EVM account from accountTree via DI', async () => {
+    it('retrieves EVM account from messenger via accountTree action', async () => {
       await service.prepareTransaction({
         provider: mockProvider,
       });
 
-      expect(
-        mockDeps.controllers.accountTree.getAccountsFromSelectedGroup,
-      ).toHaveBeenCalled();
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
     });
 
     it('throws error when no EVM account is found', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([]);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [];
+        }
+        return undefined;
+      });
 
       await expect(
         service.prepareTransaction({
@@ -321,7 +333,8 @@ describe('DepositService', () => {
   describe('instance isolation', () => {
     it('each instance uses its own deps', async () => {
       const mockDeps2 = createMockInfrastructure();
-      const service2 = new DepositService(mockDeps2);
+      const mockMessenger2 = createMockMessenger();
+      const service2 = new DepositService(mockDeps2, mockMessenger2);
 
       await service.prepareTransaction({ provider: mockProvider });
       await service2.prepareTransaction({ provider: mockProvider });

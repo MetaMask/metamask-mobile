@@ -9,9 +9,11 @@ import {
 /**
  * Get the PerpsControllerMessenger for the PerpsController.
  *
- * PerpsController no longer delegates cross-controller actions through the messenger.
- * All controller interactions are handled via PerpsPlatformDependencies.controllers.*
- * injected through mobileInfrastructure.ts.
+ * PerpsController uses the messenger for all cross-controller communication:
+ * NetworkController, KeyringController, TransactionController,
+ * RemoteFeatureFlagController, AccountTreeController, AuthenticationController.
+ * The root messenger already registers actions for these controllers,
+ * so the child messenger can call them through the parent.
  *
  * @param rootExtendedMessenger - The root extended messenger.
  * @returns The PerpsControllerMessenger.

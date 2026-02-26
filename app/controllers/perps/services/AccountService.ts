@@ -17,6 +17,7 @@ import type {
   WithdrawParams,
   WithdrawResult,
   PerpsPlatformDependencies,
+  PerpsControllerMessengerBase,
 } from '../types';
 import type { ServiceContext } from './ServiceContext';
 import type { TransactionStatus } from '../types/transactionTypes';
@@ -36,13 +37,20 @@ import { ensureError } from '../utils/errorUtils';
 export class AccountService {
   readonly #deps: PerpsPlatformDependencies;
 
+  readonly #messenger: PerpsControllerMessengerBase;
+
   /**
    * Create a new AccountService instance
    *
    * @param deps - Platform dependencies for logging, metrics, etc.
+   * @param messenger - Controller messenger for cross-controller communication.
    */
-  constructor(deps: PerpsPlatformDependencies) {
+  constructor(
+    deps: PerpsPlatformDependencies,
+    messenger: PerpsControllerMessengerBase,
+  ) {
     this.#deps = deps;
+    this.#messenger = messenger;
   }
 
   /**
@@ -112,9 +120,11 @@ export class AccountService {
           const feeAmount = 1.0; // HyperLiquid withdrawal fee is $1 USDC
           const netAmount = Math.max(0, grossAmount - feeAmount);
 
-          // Get current account address via DI accountTree
+          // Get current account address via messenger
           const evmAccount = getSelectedEvmAccount(
-            this.#deps.controllers.accountTree,
+            this.#messenger.call(
+              'AccountTreeController:getAccountsFromSelectedAccountGroup',
+            ),
           );
           const accountAddress = evmAccount?.address ?? 'unknown';
 

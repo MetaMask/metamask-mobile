@@ -29,14 +29,9 @@ export function getEvmAccountFromAccountGroup(
   return evmAccount ? { address: evmAccount.address } : undefined;
 }
 
-type AccountTreeDep = {
-  getAccountsFromSelectedGroup(): PerpsInternalAccount[];
-};
-
 export function getSelectedEvmAccount(
-  accountTree: AccountTreeDep,
+  accounts: (InternalAccount | PerpsInternalAccount)[],
 ): { address: string } | undefined {
-  const accounts = accountTree.getAccountsFromSelectedGroup();
   return getEvmAccountFromAccountGroup(accounts);
 }
 

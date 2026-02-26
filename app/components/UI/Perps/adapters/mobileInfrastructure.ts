@@ -229,141 +229,14 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
     // === Cache Invalidation ===
     cacheInvalidator: createCacheInvalidatorAdapter(),
 
-    // === Controllers (cross-controller DI) ===
-    controllers: {
-      network: {
-        getState() {
-          return Engine.context.NetworkController.state;
-        },
-        getNetworkClientById(id: string) {
-          return Engine.context.NetworkController.getNetworkClientById(id);
-        },
-        findNetworkClientIdByChainId(chainId: `0x${string}`) {
-          return Engine.context.NetworkController.findNetworkClientIdByChainId(
-            chainId,
-          );
-        },
-      },
-      keyring: {
-        getState() {
-          return Engine.context.KeyringController.state;
-        },
-        signTypedMessage(
-          params: Parameters<
-            typeof Engine.context.KeyringController.signTypedMessage
-          >[0],
-          version: string,
-        ) {
-          return Engine.context.KeyringController.signTypedMessage(
-            params,
-            version as Parameters<
-              typeof Engine.context.KeyringController.signTypedMessage
-            >[1],
-          );
-        },
-      },
-      transaction: {
-        addTransaction(
-          txParams: Parameters<
-            typeof Engine.context.TransactionController.addTransaction
-          >[0],
-          opts: Parameters<
-            typeof Engine.context.TransactionController.addTransaction
-          >[1],
-        ) {
-          return Engine.context.TransactionController.addTransaction(
-            txParams,
-            opts,
-          );
-        },
-      },
-      remoteFeatureFlags: {
-        getState() {
-          return Engine.context.RemoteFeatureFlagController.state;
-        },
-        onStateChange(
-          handler: (state: {
-            remoteFeatureFlags: Record<string, unknown>;
-          }) => void,
-        ) {
-          const typedHandler = handler as Parameters<
-            typeof Engine.controllerMessenger.subscribe<'RemoteFeatureFlagController:stateChange'>
-          >[1];
-          let disposed = false;
-          const doSubscribe = () => {
-            if (disposed) return;
-            Engine.controllerMessenger.subscribe(
-              'RemoteFeatureFlagController:stateChange',
-              typedHandler,
-            );
-          };
-          try {
-            doSubscribe();
-          } catch {
-            // Engine.instance not yet assigned during constructor — defer to next tick
-            setTimeout(doSubscribe, 0);
-          }
-          return () => {
-            disposed = true;
-            try {
-              Engine.controllerMessenger.unsubscribe(
-                'RemoteFeatureFlagController:stateChange',
-                typedHandler,
-              );
-            } catch {
-              // Engine not available during teardown — safe to ignore
-            }
-          };
-        },
-      },
-      accountTree: {
-        getAccountsFromSelectedGroup() {
-          return Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup();
-        },
-        onSelectedAccountGroupChange(handler: () => void) {
-          const typedHandler = handler as Parameters<
-            typeof Engine.controllerMessenger.subscribe<'AccountTreeController:selectedAccountGroupChange'>
-          >[1];
-          let disposed = false;
-          const doSubscribe = () => {
-            if (disposed) return;
-            Engine.controllerMessenger.subscribe(
-              'AccountTreeController:selectedAccountGroupChange',
-              typedHandler,
-            );
-          };
-          try {
-            doSubscribe();
-          } catch {
-            // Engine.instance not yet assigned during constructor — defer to next tick
-            setTimeout(doSubscribe, 0);
-          }
-          return () => {
-            disposed = true;
-            try {
-              Engine.controllerMessenger.unsubscribe(
-                'AccountTreeController:selectedAccountGroupChange',
-                typedHandler,
-              );
-            } catch {
-              // Engine not available during teardown — safe to ignore
-            }
-          };
-        },
-      },
-      authentication: {
-        getBearerToken() {
-          return Engine.context.AuthenticationController.getBearerToken();
-        },
-      },
-      rewards: {
-        getPerpsDiscountForAccount(
-          caipAccountId: `${string}:${string}:${string}`,
-        ) {
-          return Engine.context.RewardsController.getPerpsDiscountForAccount(
-            caipAccountId,
-          );
-        },
+    // === Rewards (DI — no RewardsController in Core yet) ===
+    rewards: {
+      getPerpsDiscountForAccount(
+        caipAccountId: `${string}:${string}:${string}`,
+      ) {
+        return Engine.context.RewardsController.getPerpsDiscountForAccount(
+          caipAccountId,
+        );
       },
     },
   };

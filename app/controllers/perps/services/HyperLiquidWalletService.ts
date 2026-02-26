@@ -5,6 +5,7 @@ import { getChainId } from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type {
   PerpsPlatformDependencies,
+  PerpsControllerMessengerBase,
   PerpsTypedMessageParams,
 } from '../types';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
@@ -16,14 +17,18 @@ import { getSelectedEvmAccount } from '../utils/accountUtils';
 export class HyperLiquidWalletService {
   #isTestnet: boolean;
 
-  // Platform dependencies for observability and controller access
+  // Platform dependencies for observability
   readonly #deps: PerpsPlatformDependencies;
+
+  readonly #messenger: PerpsControllerMessengerBase;
 
   constructor(
     deps: PerpsPlatformDependencies,
+    messenger: PerpsControllerMessengerBase,
     options: { isTestnet?: boolean } = {},
   ) {
     this.#deps = deps;
+    this.#messenger = messenger;
     this.#isTestnet = options.isTestnet ?? false;
   }
 
@@ -33,7 +38,7 @@ export class HyperLiquidWalletService {
    * @returns True if the keyring is unlocked and available for signing.
    */
   public isKeyringUnlocked(): boolean {
-    return this.#deps.controllers.keyring.getState().isUnlocked;
+    return this.#messenger.call('KeyringController:getState').isUnlocked;
   }
 
   /**
@@ -46,7 +51,15 @@ export class HyperLiquidWalletService {
     if (!this.isKeyringUnlocked()) {
       throw new Error(PERPS_ERROR_CODES.KEYRING_LOCKED);
     }
-    return this.#deps.controllers.keyring.signTypedMessage(msgParams, 'V4');
+    // Cast needed: PerpsTypedMessageParams uses loose `data: unknown` type
+    // while KeyringController uses strict TypedMessageParams / SignTypedDataVersion
+    return this.#messenger.call(
+      'KeyringController:signTypedMessage',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      msgParams as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      'V4' as any,
+    );
   }
 
   /**
@@ -74,7 +87,9 @@ export class HyperLiquidWalletService {
   } {
     // Get current EVM account via DI accountTree
     const evmAccount = getSelectedEvmAccount(
-      this.#deps.controllers.accountTree,
+      this.#messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
     );
 
     if (!evmAccount?.address) {
@@ -101,7 +116,9 @@ export class HyperLiquidWalletService {
         // Get FRESH account on every sign to handle account switches
         // This prevents race conditions where wallet adapter was created with old account
         const currentEvmAccount = getSelectedEvmAccount(
-          this.#deps.controllers.accountTree,
+          this.#messenger.call(
+            'AccountTreeController:getAccountsFromSelectedAccountGroup',
+          ),
         );
 
         if (!currentEvmAccount?.address) {
@@ -147,7 +164,9 @@ export class HyperLiquidWalletService {
    */
   public async getCurrentAccountId(): Promise<CaipAccountId> {
     const evmAccount = getSelectedEvmAccount(
-      this.#deps.controllers.accountTree,
+      this.#messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
     );
 
     if (!evmAccount?.address) {

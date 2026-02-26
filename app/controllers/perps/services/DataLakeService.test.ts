@@ -2,6 +2,7 @@ import {
   createMockServiceContext,
   createMockEvmAccount,
   createMockInfrastructure,
+  createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import type { PerpsPlatformDependencies } from '../types';
 
@@ -19,13 +20,15 @@ global.setTimeout = jest.fn((fn: () => void) => {
 describe('DataLakeService', () => {
   let mockContext: ServiceContext;
   let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
+  let mockMessenger: ReturnType<typeof createMockMessenger>;
   let dataLakeService: DataLakeService;
   const mockEvmAccount = createMockEvmAccount();
   const mockToken = 'mock-bearer-token';
 
   beforeEach(() => {
     mockDeps = createMockInfrastructure();
-    dataLakeService = new DataLakeService(mockDeps);
+    mockMessenger = createMockMessenger();
+    dataLakeService = new DataLakeService(mockDeps, mockMessenger);
 
     mockContext = createMockServiceContext({
       errorContext: { controller: 'DataLakeService', method: 'test' },
@@ -35,13 +38,18 @@ describe('DataLakeService', () => {
       },
     });
 
-    // Configure deps to return expected values
-    (
-      mockDeps.controllers.accountTree.getAccountsFromSelectedGroup as jest.Mock
-    ).mockReturnValue([mockEvmAccount]);
-    (
-      mockDeps.controllers.authentication.getBearerToken as jest.Mock
-    ).mockResolvedValue(mockToken);
+    // Configure messenger to return expected values
+    (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+      if (
+        action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+      ) {
+        return [mockEvmAccount];
+      }
+      if (action === 'AuthenticationController:getBearerToken') {
+        return Promise.resolve(mockToken);
+      }
+      return undefined;
+    });
 
     jest.clearAllMocks();
   });
@@ -68,13 +76,17 @@ describe('DataLakeService', () => {
     });
 
     it('reports order successfully on first attempt', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
         status: 201,
@@ -91,9 +103,9 @@ describe('DataLakeService', () => {
       });
 
       expect(result).toEqual({ success: true });
-      expect(
-        mockDeps.controllers.authentication.getBearerToken,
-      ).toHaveBeenCalled();
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AuthenticationController:getBearerToken',
+      );
       expect(fetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
@@ -124,13 +136,17 @@ describe('DataLakeService', () => {
     });
 
     it('includes performance measurement on success', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
         status: 201,
@@ -152,13 +168,17 @@ describe('DataLakeService', () => {
     });
 
     it('returns error when account is missing', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
@@ -179,13 +199,17 @@ describe('DataLakeService', () => {
     });
 
     it('returns error when token is missing', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(null);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(null);
+        }
+        return undefined;
+      });
 
       const result = await dataLakeService.reportOrder({
         action: 'open',
@@ -202,13 +226,17 @@ describe('DataLakeService', () => {
     });
 
     it('retries on network error with exponential backoff', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock)
         .mockRejectedValueOnce(new Error('Network error'))
         .mockRejectedValueOnce(new Error('Network error'))
@@ -235,13 +263,17 @@ describe('DataLakeService', () => {
     });
 
     it('retries up to 3 times then gives up', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockRejectedValue(new Error('Persistent error'));
 
       const result = await dataLakeService.reportOrder({
@@ -278,13 +310,17 @@ describe('DataLakeService', () => {
     });
 
     it('calculates exponential backoff delays correctly', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       await dataLakeService.reportOrder({
@@ -297,13 +333,17 @@ describe('DataLakeService', () => {
       expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 1000);
 
       jest.clearAllMocks();
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       await dataLakeService.reportOrder({
@@ -316,13 +356,17 @@ describe('DataLakeService', () => {
       expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 2000);
 
       jest.clearAllMocks();
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       await dataLakeService.reportOrder({
@@ -336,13 +380,17 @@ describe('DataLakeService', () => {
     });
 
     it('handles API error responses', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 500,
@@ -362,13 +410,17 @@ describe('DataLakeService', () => {
     });
 
     it('handles API 4xx error responses', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 400,
@@ -387,13 +439,17 @@ describe('DataLakeService', () => {
     });
 
     it('logs all retry attempts correctly', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       await dataLakeService.reportOrder({
@@ -410,13 +466,17 @@ describe('DataLakeService', () => {
     });
 
     it('uses custom trace ID when provided', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
         status: 201,
@@ -437,13 +497,17 @@ describe('DataLakeService', () => {
     });
 
     it('reports close action with TP/SL prices', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
         status: 201,
@@ -473,13 +537,17 @@ describe('DataLakeService', () => {
     });
 
     it('reports order without TP/SL prices when not provided', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
         status: 201,
@@ -507,13 +575,17 @@ describe('DataLakeService', () => {
     });
 
     it('handles response with body text', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
         status: 201,
@@ -535,13 +607,17 @@ describe('DataLakeService', () => {
     });
 
     it('handles empty response body', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
         status: 201,
@@ -563,13 +639,17 @@ describe('DataLakeService', () => {
     });
 
     it('only starts trace on first attempt', async () => {
-      (
-        mockDeps.controllers.accountTree
-          .getAccountsFromSelectedGroup as jest.Mock
-      ).mockReturnValue([mockEvmAccount]);
-      (
-        mockDeps.controllers.authentication.getBearerToken as jest.Mock
-      ).mockResolvedValue(mockToken);
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'AuthenticationController:getBearerToken') {
+          return Promise.resolve(mockToken);
+        }
+        return undefined;
+      });
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
         status: 201,

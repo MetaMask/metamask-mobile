@@ -6,7 +6,10 @@ import {
   PERPS_CONSTANTS,
 } from '../constants/perpsConfig';
 import { PerpsTraceNames, PerpsTraceOperations } from '../types';
-import type { PerpsPlatformDependencies } from '../types';
+import type {
+  PerpsPlatformDependencies,
+  PerpsControllerMessengerBase,
+} from '../types';
 import type { ServiceContext } from './ServiceContext';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
@@ -23,13 +26,20 @@ import { ensureError } from '../utils/errorUtils';
 export class DataLakeService {
   readonly #deps: PerpsPlatformDependencies;
 
+  readonly #messenger: PerpsControllerMessengerBase;
+
   /**
    * Create a new DataLakeService instance
    *
    * @param deps - Platform dependencies for logging, metrics, etc.
+   * @param messenger - Controller messenger for cross-controller communication.
    */
-  constructor(deps: PerpsPlatformDependencies) {
+  constructor(
+    deps: PerpsPlatformDependencies,
+    messenger: PerpsControllerMessengerBase,
+  ) {
     this.#deps = deps;
+    this.#messenger = messenger;
   }
 
   /**
@@ -38,7 +48,7 @@ export class DataLakeService {
    * @returns The bearer token string for API authentication.
    */
   async #getBearerToken(): Promise<string> {
-    return this.#deps.controllers.authentication.getBearerToken();
+    return this.#messenger.call('AuthenticationController:getBearerToken');
   }
 
   /**
@@ -124,7 +134,9 @@ export class DataLakeService {
     try {
       const token = await this.#getBearerToken();
       const evmAccount = getSelectedEvmAccount(
-        this.#deps.controllers.accountTree,
+        this.#messenger.call(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        ),
       );
 
       if (!evmAccount || !token) {
