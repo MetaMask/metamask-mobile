@@ -209,9 +209,11 @@ export type PerpsControllerState = {
   // Persisted FIFO guard — only written by completeWithdrawalFromHistory
   // so that submission calls never overwrite it.
   // Survives app restarts (persist: true) unlike lastWithdrawResult.
-  // The txHash disambiguates two completions that share the same millisecond timestamp.
+  // The txHashes array tracks all completions at the guard timestamp so
+  // that N same-millisecond completions are each matched exactly once.
+  // The array resets whenever the timestamp advances.
   lastCompletedWithdrawalTimestamp: number | null;
-  lastCompletedWithdrawalTxHash: string | null;
+  lastCompletedWithdrawalTxHashes: string[];
 
   // Withdrawal request tracking (persistent, for transaction history)
   withdrawalRequests: {
@@ -364,7 +366,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   lastDepositTransactionId: null,
   lastWithdrawResult: null,
   lastCompletedWithdrawalTimestamp: null,
-  lastCompletedWithdrawalTxHash: null,
+  lastCompletedWithdrawalTxHashes: [],
   withdrawalRequests: [],
   withdrawalProgress: {
     progress: 0,
@@ -488,7 +490,7 @@ const metadata: StateMetadata<PerpsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  lastCompletedWithdrawalTxHash: {
+  lastCompletedWithdrawalTxHashes: {
     includeInStateLogs: false,
     persist: true,
     includeInDebugSnapshot: false,
@@ -2331,13 +2333,18 @@ export class PerpsController extends BaseController<
         state.withdrawalRequests.splice(requestIndex, 1);
       }
 
-      // Unconditionally update the persisted FIFO guard so that the next poll
-      // cycle skips this history entry even after an app restart (when
-      // lastWithdrawResult is null because it has persist: false).
-      // Store both timestamp and txHash so the hook can disambiguate two
-      // completions that share the same millisecond timestamp.
-      state.lastCompletedWithdrawalTimestamp = completedWithdrawal.timestamp;
-      state.lastCompletedWithdrawalTxHash = completedWithdrawal.txHash;
+      // Update the persisted FIFO guard. When the new completion shares the
+      // same millisecond timestamp, append to the txHashes array so the hook
+      // can exclude every already-consumed entry. Reset the array when the
+      // timestamp advances.
+      if (
+        completedWithdrawal.timestamp === state.lastCompletedWithdrawalTimestamp
+      ) {
+        state.lastCompletedWithdrawalTxHashes.push(completedWithdrawal.txHash);
+      } else {
+        state.lastCompletedWithdrawalTimestamp = completedWithdrawal.timestamp;
+        state.lastCompletedWithdrawalTxHashes = [completedWithdrawal.txHash];
+      }
 
       const hasPendingWithdrawals = state.withdrawalRequests.some(
         (req) => req.status === 'pending' || req.status === 'bridging',

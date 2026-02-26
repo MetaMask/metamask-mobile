@@ -491,7 +491,7 @@
     },
     "lastWithdrawResult": null,
     "lastCompletedWithdrawalTimestamp": null,
-    "lastCompletedWithdrawalTxHash": null,
+    "lastCompletedWithdrawalTxHashes": [],
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,

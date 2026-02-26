@@ -330,7 +330,7 @@ describe('useWithdrawalRequests', () => {
         selector({
           withdrawalRequests: mockPendingWithdrawals,
           lastCompletedWithdrawalTimestamp: lastCompletedTimestamp,
-          lastCompletedWithdrawalTxHash: '0xalreadyKnown',
+          lastCompletedWithdrawalTxHashes: ['0xalreadyKnown'],
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
 
@@ -388,7 +388,7 @@ describe('useWithdrawalRequests', () => {
         selector({
           withdrawalRequests: mockPendingWithdrawals,
           lastCompletedWithdrawalTimestamp: lastCompletedTimestamp,
-          lastCompletedWithdrawalTxHash: '0xoldWithdrawal',
+          lastCompletedWithdrawalTxHashes: ['0xoldWithdrawal'],
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
 
@@ -431,7 +431,7 @@ describe('useWithdrawalRequests', () => {
         selector({
           withdrawalRequests: mockPendingWithdrawals,
           lastCompletedWithdrawalTimestamp: sameTimestamp,
-          lastCompletedWithdrawalTxHash: '0xfirstCompletion',
+          lastCompletedWithdrawalTxHashes: ['0xfirstCompletion'],
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
 
@@ -474,7 +474,7 @@ describe('useWithdrawalRequests', () => {
         selector({
           withdrawalRequests: mockPendingWithdrawals,
           lastCompletedWithdrawalTimestamp: sameTimestamp,
-          lastCompletedWithdrawalTxHash: '0xalreadyMatched',
+          lastCompletedWithdrawalTxHashes: ['0xalreadyMatched'],
         } as Partial<PerpsControllerState> as PerpsControllerState),
       );
 

@@ -71,8 +71,8 @@ export const useWithdrawalRequests = (
   const lastCompletedTimestamp = usePerpsSelector(
     (state) => state?.lastCompletedWithdrawalTimestamp ?? null,
   );
-  const lastCompletedTxHash = usePerpsSelector(
-    (state) => state?.lastCompletedWithdrawalTxHash ?? null,
+  const lastCompletedTxHashes = usePerpsSelector(
+    (state) => state?.lastCompletedWithdrawalTxHashes ?? [],
   );
 
   const prevWithdrawalStatesRef = useRef<Map<string, string>>(new Map());
@@ -193,7 +193,7 @@ export const useWithdrawalRequests = (
           (lastCompletedTimestamp === null ||
             completed.timestamp > lastCompletedTimestamp ||
             (completed.timestamp === lastCompletedTimestamp &&
-              completed.txHash !== lastCompletedTxHash)),
+              !lastCompletedTxHashes.includes(completed.txHash))),
       );
 
       if (!matchingCompleted) {
@@ -251,7 +251,7 @@ export const useWithdrawalRequests = (
     } finally {
       setIsLoading(false);
     }
-  }, [pendingQueue, lastCompletedTimestamp, lastCompletedTxHash]);
+  }, [pendingQueue, lastCompletedTimestamp, lastCompletedTxHashes]);
 
   useEffect(() => {
     if (
