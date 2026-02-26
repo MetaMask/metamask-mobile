@@ -56,6 +56,10 @@ import { parseUserFacingError } from '../../utils/parseUserFacingError';
 
 export interface BuildQuoteParams {
   assetId?: string;
+  amount?: string;
+  currency?: string;
+  providerId?: string;
+  paymentMethodId?: string;
   nativeFlowError?: string;
 }
 
@@ -63,6 +67,7 @@ export interface BuildQuoteParams {
  * Creates navigation details for the BuildQuote screen (RampAmountInput).
  * This screen is nested inside TokenListRoutes, so navigation must go through
  * the parent route Routes.RAMP.TOKEN_SELECTION.
+ * Supports optional routing hints (providerId/paymentMethodId) and amount.
  */
 export const createBuildQuoteNavDetails = (
   params?: BuildQuoteParams,
@@ -110,6 +115,20 @@ function BuildQuote() {
     }
   }, [params?.nativeFlowError, navigation]);
 
+  useEffect(() => {
+    const amountFromIntent = Number(params?.amount);
+    if (
+      !userHasEnteredAmount &&
+      params?.amount &&
+      Number.isFinite(amountFromIntent) &&
+      amountFromIntent > 0
+    ) {
+      setAmount(params.amount);
+      setAmountAsNumber(amountFromIntent);
+      setUserHasEnteredAmount(true);
+    }
+  }, [params?.amount, userHasEnteredAmount]);
+
   useFocusEffect(
     useCallback(() => {
       setIsOnBuildQuoteScreen(true);
@@ -121,12 +140,83 @@ function BuildQuote() {
 
   const {
     userRegion,
+    providers,
     selectedProvider,
+    setSelectedProvider,
+    paymentMethods,
+    setSelectedPaymentMethod,
     selectedToken,
     getWidgetUrl,
     paymentMethodsLoading,
     selectedPaymentMethod,
+    providersLoading,
   } = useRampsController();
+
+  const hasAppliedRoutingSelectionsRef = useRef(false);
+  useEffect(() => {
+    if (hasAppliedRoutingSelectionsRef.current) {
+      return;
+    }
+
+    const hasProviderIntent = Boolean(params?.providerId);
+    const hasPaymentMethodIntent = Boolean(params?.paymentMethodId);
+    if (!hasProviderIntent && !hasPaymentMethodIntent) {
+      hasAppliedRoutingSelectionsRef.current = true;
+      return;
+    }
+
+    let hasResolvedProviderSelection = !hasProviderIntent;
+    if (hasProviderIntent) {
+      const intendedProvider = providers.find(
+        (provider) => provider.id === params?.providerId,
+      );
+
+      if (!intendedProvider) {
+        hasResolvedProviderSelection = !providersLoading;
+      } else if (selectedProvider?.id === intendedProvider.id) {
+        hasResolvedProviderSelection = true;
+      } else {
+        setSelectedProvider(intendedProvider);
+        return;
+      }
+    }
+
+    let hasResolvedPaymentSelection = !hasPaymentMethodIntent;
+    if (hasPaymentMethodIntent) {
+      const intendedPaymentMethod = paymentMethods.find(
+        (paymentMethod) => paymentMethod.id === params?.paymentMethodId,
+      );
+
+      if (!intendedPaymentMethod) {
+        hasResolvedPaymentSelection = !paymentMethodsLoading;
+      } else {
+        if (selectedPaymentMethod?.id !== intendedPaymentMethod.id) {
+          setSelectedPaymentMethod(intendedPaymentMethod);
+        }
+        hasResolvedPaymentSelection = true;
+      }
+    }
+
+    if (hasResolvedProviderSelection && hasResolvedPaymentSelection) {
+      hasAppliedRoutingSelectionsRef.current = true;
+      navigation.setParams({
+        providerId: undefined,
+        paymentMethodId: undefined,
+      });
+    }
+  }, [
+    params?.providerId,
+    params?.paymentMethodId,
+    paymentMethods,
+    paymentMethodsLoading,
+    providers,
+    providersLoading,
+    navigation,
+    selectedPaymentMethod?.id,
+    selectedProvider?.id,
+    setSelectedPaymentMethod,
+    setSelectedProvider,
+  ]);
 
   const isTokenUnavailable = useMemo(
     () =>

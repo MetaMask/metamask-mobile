@@ -152,6 +152,35 @@ describe('useRampNavigation', () => {
         expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
       });
 
+      it('forwards provider, payment method, and suggested amount to BuildQuote', () => {
+        const intent = {
+          assetId: 'eip155:1/erc20:0x123',
+          amount: '150',
+          currency: 'USD',
+          providerId: '/providers/transak',
+          paymentMethodId: '/payments/debit-credit-card',
+        };
+        const mockNavDetails = [
+          Routes.RAMP.TOKEN_SELECTION,
+          {
+            screen: Routes.RAMP.TOKEN_SELECTION,
+            params: {
+              screen: Routes.RAMP.AMOUNT_INPUT,
+              params: intent,
+            },
+          },
+        ] as const;
+        mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
+
+        const { result } = renderHookWithProvider(() => useRampNavigation());
+
+        result.current.goToBuy(intent);
+
+        expect(mockSetSelectedToken).toHaveBeenCalledWith(intent.assetId);
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith(intent);
+        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+      });
+
       it('does not navigate to BuildQuote when assetId is not provided', () => {
         mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
         const mockNavDetails = [

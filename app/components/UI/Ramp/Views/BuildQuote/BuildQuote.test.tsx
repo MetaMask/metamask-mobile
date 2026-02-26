@@ -161,6 +161,12 @@ const defaultUserRegion: MockUserRegion = {
 let mockUserRegion: MockUserRegion | null = defaultUserRegion;
 let mockSelectedProvider: unknown = null;
 let mockSelectedPaymentMethod: unknown = null;
+let mockProviders: { id: string; name: string }[] = [];
+let mockPaymentMethods: { id: string; name: string }[] = [];
+let mockProvidersLoading = false;
+let mockPaymentMethodsLoading = false;
+const mockSetSelectedProvider = jest.fn();
+const mockSetSelectedPaymentMethod = jest.fn();
 let mockSelectedQuote: Record<string, unknown> | null = null;
 let mockTokens: {
   allTokens: ReturnType<typeof createMockToken>[];
@@ -182,11 +188,16 @@ let mockQuotesError: string | null = null;
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: () => ({
     userRegion: mockUserRegion,
+    providers: mockProviders,
     selectedProvider: mockSelectedProvider,
+    setSelectedProvider: mockSetSelectedProvider,
+    paymentMethods: mockPaymentMethods,
+    setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
     selectedToken: mockTokens?.allTokens?.[0] ?? null,
     getWidgetUrl: mockGetWidgetUrl,
-    paymentMethodsLoading: false,
+    paymentMethodsLoading: mockPaymentMethodsLoading,
     selectedPaymentMethod: mockSelectedPaymentMethod,
+    providersLoading: mockProvidersLoading,
   }),
 }));
 
@@ -248,6 +259,10 @@ describe('BuildQuote', () => {
     mockUserRegion = defaultUserRegion;
     mockSelectedProvider = null;
     mockSelectedPaymentMethod = null;
+    mockProviders = [];
+    mockPaymentMethods = [];
+    mockProvidersLoading = false;
+    mockPaymentMethodsLoading = false;
     mockQuotesData = null;
     mockQuotesLoading = false;
     mockQuotesError = null;
@@ -283,6 +298,52 @@ describe('BuildQuote', () => {
     const { getByText } = renderWithTheme(<BuildQuote />);
 
     expect(getByText('$250')).toBeOnTheScreen();
+  });
+
+  it('applies suggested amount from route params', () => {
+    mockUseParams.mockReturnValue({
+      assetId: MOCK_ASSET_ID,
+      amount: '175',
+    });
+
+    const { getByText } = renderWithTheme(<BuildQuote />);
+
+    expect(getByText('$175')).toBeOnTheScreen();
+  });
+
+  it('preselects provider from route params when available', () => {
+    const intendedProvider = { id: '/providers/transak', name: 'Transak' };
+    mockUseParams.mockReturnValue({
+      assetId: MOCK_ASSET_ID,
+      providerId: intendedProvider.id,
+    });
+    mockProviders = [intendedProvider];
+
+    renderWithTheme(<BuildQuote />);
+
+    expect(mockSetSelectedProvider).toHaveBeenCalledWith(intendedProvider);
+  });
+
+  it('preselects payment method from route params when available', () => {
+    const intendedProvider = { id: '/providers/transak', name: 'Transak' };
+    const intendedPaymentMethod = {
+      id: '/payments/debit-credit-card',
+      name: 'Card',
+    };
+    mockUseParams.mockReturnValue({
+      assetId: MOCK_ASSET_ID,
+      providerId: intendedProvider.id,
+      paymentMethodId: intendedPaymentMethod.id,
+    });
+    mockProviders = [intendedProvider];
+    mockSelectedProvider = intendedProvider;
+    mockPaymentMethods = [intendedPaymentMethod];
+
+    renderWithTheme(<BuildQuote />);
+
+    expect(mockSetSelectedPaymentMethod).toHaveBeenCalledWith(
+      intendedPaymentMethod,
+    );
   });
 
   it('renders the keypad', () => {

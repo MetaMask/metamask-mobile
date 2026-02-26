@@ -14,6 +14,8 @@ export default function parseRampIntent(
     assetId: pathParams.assetId,
     amount: pathParams.amount,
     currency: pathParams.currency,
+    providerId: pathParams.providerId,
+    paymentMethodId: pathParams.paymentMethodId,
   };
 
   // return with undefined if the pathParams do not contain necessary fields
