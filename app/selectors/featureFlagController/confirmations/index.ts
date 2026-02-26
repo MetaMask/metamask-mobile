@@ -62,7 +62,10 @@ export const selectMetaMaskPayFlags = createSelector(
       | Record<string, Json>
       | undefined;
 
-    const payTokenFlags = (featureFlags as Record<string, Json>)?.confirmations_pay_tokens as Record<string, Json | PreferredTokensConfig> | undefined;
+    const payTokenFlags = (featureFlags as Record<string, Json>)
+      ?.confirmations_pay_tokens as
+      | Record<string, Json | PreferredTokensConfig>
+      | undefined;
 
     const attemptsMax =
       (metaMaskPayFlags?.attemptsMax as number) ?? ATTEMPTS_MAX_DEFAULT;
@@ -99,6 +102,55 @@ export const selectMetaMaskPayFlags = createSelector(
       },
       minimumRequiredTokenBalance:
         (payTokenFlags?.minimumRequiredTokenBalance as number) ?? 0,
+    };
+  },
+);
+
+interface RawPayPostQuoteFlag {
+  default?: PayPostQuoteConfig;
+  overrides?: Record<string, PayPostQuoteConfig>;
+}
+
+const selectPayPostQuoteFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): PayPostQuoteFlags => {
+    const raw = featureFlags?.confirmations_pay_post_quote as
+      | RawPayPostQuoteFlag
+      | undefined;
+
+    const defaultConfig: PayPostQuoteConfig = {
+      enabled: raw?.default?.enabled ?? false,
+      tokens: raw?.default?.tokens,
+    };
+
+    return {
+      default: defaultConfig,
+      overrides: raw?.overrides,
+    };
+  },
+);
+
+/**
+ * Resolves the effective post-quote config for a given transaction type.
+ * If the type has an override entry, unset properties fall back to default.
+ */
+export const selectPayQuoteConfig = createSelector(
+  [
+    selectPayPostQuoteFlags,
+    (_state: RootState, transactionType?: string) => transactionType,
+  ],
+  (flags, transactionType): PayPostQuoteConfig => {
+    const override = transactionType
+      ? flags.overrides?.[transactionType]
+      : undefined;
+
+    if (!override) {
+      return flags.default;
+    }
+
+    return {
+      enabled: override.enabled ?? flags.default.enabled,
+      tokens: override.tokens ?? flags.default.tokens,
     };
   },
 );

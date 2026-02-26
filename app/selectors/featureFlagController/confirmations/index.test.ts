@@ -9,6 +9,7 @@ import {
   selectNonZeroUnusedApprovalsAllowList,
   selectGasFeeTokenFlags,
   GasFeeTokenFlags,
+  selectPayQuoteConfig,
   PreferredToken,
   getPreferredTokensForTransactionType,
 } from '.';
