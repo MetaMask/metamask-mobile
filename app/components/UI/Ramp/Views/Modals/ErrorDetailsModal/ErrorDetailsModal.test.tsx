@@ -1,18 +1,27 @@
 import React from 'react';
-import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../../constants/navigation/Routes';
 import ErrorDetailsModal from './ErrorDetailsModal';
 
-const mockOnCloseBottomSheet = jest.fn();
+const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
+  callback?.();
+});
 const mockReplace = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     replace: mockReplace,
+    navigate: mockNavigate,
   }),
+}));
+
+jest.mock('react-native-inappbrowser-reborn', () => ({
+  isAvailable: jest.fn(),
+  open: jest.fn(),
 }));
 
 jest.mock(
@@ -105,7 +114,9 @@ describe('ErrorDetailsModal', () => {
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 
-  it('opens support URL when Contact provider support is pressed', () => {
+  it('opens support URL in InAppBrowser when available', async () => {
+    (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
+
     mockUseParams.mockReturnValue({
       errorMessage: 'Provider error occurred.',
       providerName: 'Transak',
@@ -116,7 +127,36 @@ describe('ErrorDetailsModal', () => {
 
     fireEvent.press(getByText('Contact Transak support'));
 
-    expect(Linking.openURL).toHaveBeenCalledWith('https://support.transak.com');
+    await waitFor(() => {
+      expect(InAppBrowser.open).toHaveBeenCalledWith(
+        'https://support.transak.com',
+      );
+    });
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to SimpleWebview when InAppBrowser is not available', async () => {
+    (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(false);
+
+    mockUseParams.mockReturnValue({
+      errorMessage: 'Provider error occurred.',
+      providerName: 'Transak',
+      providerSupportUrl: 'https://support.transak.com',
+    });
+
+    const { getByText } = renderWithProvider(ErrorDetailsModal);
+
+    fireEvent.press(getByText('Contact Transak support'));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://support.transak.com',
+          title: 'Transak',
+        },
+      });
+    });
   });
 
   it('does not render contact support button when provider info is missing', () => {
@@ -135,7 +175,7 @@ describe('ErrorDetailsModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('navigates to provider selection with amount when Change provider is pressed', () => {
+  it('closes the sheet then navigates to provider selection when Change provider is pressed', () => {
     mockUseParams.mockReturnValue({
       errorMessage: 'No quotes available.',
       showChangeProvider: true,
@@ -146,6 +186,7 @@ describe('ErrorDetailsModal', () => {
 
     fireEvent.press(getByText('Change provider'));
 
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockReplace).toHaveBeenCalledWith(
       Routes.RAMP.MODALS.PROVIDER_SELECTION,
       { amount: 250 },

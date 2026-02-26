@@ -131,6 +131,10 @@ function BuildQuote() {
     selectedPaymentMethod,
   } = useRampsController();
 
+  useEffect(() => {
+    setNativeFlowError(null);
+  }, [selectedProvider]);
+
   const isTokenUnavailable = useMemo(
     () =>
       !!(

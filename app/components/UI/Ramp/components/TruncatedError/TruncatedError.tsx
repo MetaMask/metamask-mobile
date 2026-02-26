@@ -39,6 +39,9 @@ const styles = StyleSheet.create({
   text: {
     flexShrink: 1,
   },
+  measuring: {
+    opacity: 0,
+  },
 });
 
 const TruncatedError: React.FC<TruncatedErrorProps> = ({
@@ -52,21 +55,22 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
 }) => {
   const navigation = useNavigation();
   const [isTruncated, setIsTruncated] = useState(false);
+  const [hasMeasured, setHasMeasured] = useState(false);
 
   useEffect(() => {
     setIsTruncated(false);
+    setHasMeasured(false);
   }, [error]);
 
   const handleTextLayout = useCallback(
     (event: NativeSyntheticEvent<TextLayoutEventData>) => {
-      if (isTruncated) return;
+      if (hasMeasured) return;
       const { lines } = event.nativeEvent;
       const renderedText = lines.map((line) => line.text).join('');
-      if (renderedText.length < error.length) {
-        setIsTruncated(true);
-      }
+      setIsTruncated(renderedText.length < error.length);
+      setHasMeasured(true);
     },
-    [error, isTruncated],
+    [error, hasMeasured],
   );
 
   const handleInfoPress = useCallback(() => {
@@ -97,9 +101,11 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
         numberOfLines={maxLines}
         ellipsizeMode="tail"
         onTextLayout={handleTextLayout}
-        style={styles.text}
+        style={[styles.text, !hasMeasured && styles.measuring]}
       >
-        {isTruncated ? strings('fiat_on_ramp.encountered_error') : error}
+        {hasMeasured && isTruncated
+          ? strings('fiat_on_ramp.encountered_error')
+          : error}
       </Text>
       <TouchableOpacity
         onPress={handleInfoPress}

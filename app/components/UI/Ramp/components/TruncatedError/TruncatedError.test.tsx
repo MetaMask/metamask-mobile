@@ -28,6 +28,21 @@ function triggerTruncation(
   });
 }
 
+function triggerFitsMeasurement(
+  getByText: ReturnType<typeof render>['getByText'],
+  errorText: string,
+) {
+  const mockEvent = {
+    nativeEvent: {
+      lines: [{ text: errorText, x: 0, y: 0, width: 200, height: 20 }],
+    },
+  };
+  const textComponent = getByText(errorText);
+  act(() => {
+    fireEvent(textComponent, 'onTextLayout', mockEvent);
+  });
+}
+
 describe('TruncatedError', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -61,11 +76,16 @@ describe('TruncatedError', () => {
       expect(getByLabelText('View error details')).toBeOnTheScreen();
     });
 
-    it('displays the error text when not truncated', () => {
+    it('displays the error text after measurement confirms it fits', () => {
       const shortError = 'Short error message';
-      const { getByText } = render(<TruncatedError error={shortError} />);
+      const { getByText, toJSON } = render(
+        <TruncatedError error={shortError} />,
+      );
+
+      triggerFitsMeasurement(getByText, shortError);
 
       expect(getByText(shortError)).toBeOnTheScreen();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 

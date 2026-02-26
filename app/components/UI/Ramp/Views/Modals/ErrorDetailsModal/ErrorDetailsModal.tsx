@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
-import { Linking, View, ScrollView, useWindowDimensions } from 'react-native';
+import { View, ScrollView, useWindowDimensions } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { useNavigation, type ParamListBase } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import Text, {
@@ -62,14 +63,26 @@ function ErrorDetailsModal() {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const handleContactSupport = useCallback(() => {
-    if (providerSupportUrl) {
-      Linking.openURL(providerSupportUrl);
+  const handleContactSupport = useCallback(async () => {
+    if (!providerSupportUrl) return;
+    if (await InAppBrowser.isAvailable()) {
+      handleClose();
+      await InAppBrowser.open(providerSupportUrl);
+    } else {
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: providerSupportUrl,
+          title: providerName,
+        },
+      });
     }
-  }, [providerSupportUrl]);
+  }, [providerSupportUrl, providerName, handleClose, navigation]);
 
   const handleChangeProvider = useCallback(() => {
-    navigation.replace(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.replace(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });
+    });
   }, [navigation, amount]);
 
   return (
