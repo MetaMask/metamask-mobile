@@ -326,7 +326,10 @@ export default class MockServerE2E implements Resource {
 
             return {
               statusCode: matchingEvent.responseCode,
-              body: JSON.stringify(matchingEvent.response),
+              body:
+                typeof matchingEvent.response === 'string'
+                  ? matchingEvent.response
+                  : JSON.stringify(matchingEvent.response),
             };
           }
 
