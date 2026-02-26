@@ -54,6 +54,10 @@ import {
   CreateOrderRequest,
   CreateOrderResponse,
   GetOrderStatusResponse,
+  CashbackWalletResponse,
+  CashbackWithdrawRequest,
+  CashbackWithdrawResponse,
+  CashbackWithdrawEstimationResponse,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import {
@@ -203,6 +207,9 @@ export class CardSDK {
       lowerOp.includes('authorize')
     ) {
       return 'card_auth';
+    }
+    if (lowerOp.includes('cashback')) {
+      return 'card_cashback';
     }
     return 'card_api_request';
   }
@@ -2235,6 +2242,80 @@ export class CardSDK {
         return data;
       },
     );
+  };
+
+  getCashbackWallet = async (): Promise<CashbackWalletResponse> =>
+    this.withErrorHandling(
+      'getCashbackWallet',
+      'wallet/reward',
+      'Failed to get cashback wallet. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/wallet/reward', {
+          fetchOptions: { method: 'GET' },
+          authenticated: true,
+        });
+        return this.handleApiResponse<CashbackWalletResponse>(
+          response,
+          'getCashbackWallet',
+          'wallet/reward',
+          'Failed to get cashback wallet',
+        );
+      },
+    );
+
+  getCashbackWithdrawEstimation =
+    async (): Promise<CashbackWithdrawEstimationResponse> =>
+      this.withErrorHandling(
+        'getCashbackWithdrawEstimation',
+        'wallet/reward/withdraw-estimation',
+        'Failed to estimate withdrawal fees. Please try again.',
+        async () => {
+          const response = await this.makeRequest(
+            '/v1/wallet/reward/withdraw-estimation',
+            {
+              fetchOptions: { method: 'GET' },
+              authenticated: true,
+            },
+          );
+          return this.handleApiResponse<CashbackWithdrawEstimationResponse>(
+            response,
+            'getCashbackWithdrawEstimation',
+            'wallet/reward/withdraw-estimation',
+            'Failed to estimate withdrawal fees',
+          );
+        },
+      );
+
+  withdrawCashback = async (
+    request: CashbackWithdrawRequest,
+  ): Promise<CashbackWithdrawResponse> =>
+    this.withErrorHandling(
+      'withdrawCashback',
+      'wallet/reward/withdraw',
+      'Failed to withdraw cashback. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/wallet/reward/withdraw', {
+          fetchOptions: {
+            method: 'POST',
+            body: JSON.stringify(request),
+          },
+          authenticated: true,
+        });
+        return this.handleApiResponse<CashbackWithdrawResponse>(
+          response,
+          'withdrawCashback',
+          'wallet/reward/withdraw',
+          'Failed to withdraw cashback',
+        );
+      },
+    );
+
+  getTransactionReceipt = async (
+    txHash: string,
+    network: CardNetwork = 'linea',
+  ): Promise<ethers.providers.TransactionReceipt | null> => {
+    const provider = this.getEthersProvider(network);
+    return provider.getTransactionReceipt(txHash);
   };
 
   private getFirstSupportedTokenOrNull(): CardToken | null {
