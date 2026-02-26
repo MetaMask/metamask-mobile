@@ -35,11 +35,11 @@ export const useMusdConversionForegroundApprovalCleanup = () => {
     let previousAppState = AppState.currentState;
 
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      const shouldRecoverApprovals =
+      const shouldRejectStaleApprovals =
         Boolean(previousAppState.match(/inactive|background/)) &&
         nextAppState === 'active';
 
-      if (!shouldRecoverApprovals) {
+      if (!shouldRejectStaleApprovals) {
         previousAppState = nextAppState;
         return;
       }
@@ -67,7 +67,7 @@ export const useMusdConversionForegroundApprovalCleanup = () => {
             message:
               'Automatically rejected stale mUSD conversion pending approval on app foreground',
             data: {
-              cause: 'musdConversionForegroundRecovery',
+              cause: 'useMusdConversionForegroundApprovalCleanup',
               transactionId,
             },
           }),
