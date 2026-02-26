@@ -158,7 +158,7 @@ const QuoteDetailsCard: React.FC = () => {
           }}
           value={{
             label: (
-              <Pressable style={styles.rateValue} onPress={handleRatePress}>
+              <>
                 <Text
                   variant={TextVariant.BodyMD}
                   numberOfLines={1}
@@ -168,12 +168,14 @@ const QuoteDetailsCard: React.FC = () => {
                 >
                   {rate}
                 </Text>
-                <Icon
-                  name={IconName.ArrowRight}
-                  size={IconSize.Sm}
-                  color={IconColor.Alternative}
-                />
-              </Pressable>
+                <Pressable style={styles.rateValue} onPress={handleRatePress}>
+                  <Icon
+                    name={IconName.ArrowRight}
+                    size={IconSize.Sm}
+                    color={IconColor.Alternative}
+                  />
+                </Pressable>
+              </>
             ),
           }}
         />
