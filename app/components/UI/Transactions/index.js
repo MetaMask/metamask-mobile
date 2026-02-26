@@ -66,7 +66,6 @@ import TransactionElement from '../TransactionElement';
 import RetryModal from './RetryModal';
 import TransactionsFooter from './TransactionsFooter';
 import { filterDuplicateOutgoingTransactions } from './utils';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 
 const createStyles = (colors) =>
@@ -186,10 +185,6 @@ class Transactions extends PureComponent {
      * Chain ID of the token
      */
     tokenChainId: PropTypes.string,
-    /**
-     * Whether multichain accounts state 2 is enabled
-     */
-    isMultichainAccountsState2Enabled: PropTypes.bool,
     /**
      * (optional) Skip automatic scrolling when a transaction is clicked/expanded.
      * Useful in views like Asset Details scrolling inside modals will cause issues (such as closing the stacked tx modal)
@@ -373,30 +368,6 @@ class Transactions extends PureComponent {
     const { colors } = this.context || mockTheme;
     const styles = createStyles(colors);
 
-    const shouldShowSwitchNetwork = () => {
-      if (this.props.isMultichainAccountsState2Enabled) {
-        return false;
-      }
-      if (!this.props.tokenChainId || !this.props.chainId) {
-        return false;
-      }
-
-      if (this.isNonEvmChain || this.isTokenNonEvmChain) {
-        return this.props.tokenChainId !== this.props.chainId;
-      }
-
-      return this.props.tokenChainId !== this.props.chainId;
-    };
-
-    if (shouldShowSwitchNetwork()) {
-      return (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.textTransactions}>
-            {strings('wallet.switch_network_to_view_transactions')}
-          </Text>
-        </View>
-      );
-    }
     return (
       <View style={styles.emptyContainer}>
         <TabEmptyState description={strings('wallet.no_transactions')} />
@@ -897,8 +868,6 @@ const mapStateToProps = (state) => ({
   primaryCurrency: selectPrimaryCurrency(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
-  isMultichainAccountsState2Enabled:
-    selectMultichainAccountsState2Enabled(state),
 });
 
 Transactions.contextType = ThemeContext;

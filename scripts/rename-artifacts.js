@@ -114,17 +114,19 @@ function renameAndroid() {
     const newApk = path.join(apkDir, `${newBaseName}.apk`);
     fs.copyFileSync(oldApk, newApk);
     console.log(`✅ Renamed APK: ${newApk}`);
+    setGithubOutput('android_apk_path', newApk);
   } else {
     console.log(`⚠️  APK not found: ${oldApk}`);
   }
 
-  // Rename AAB (only for Release builds)
+  // Rename AAB (only for Release builds — mirrors Bitrise's run_if: IS_DEV_BUILD != true)
   if (buildConfig === 'release') {
     const oldAab = path.join(bundleDir, `app-${appFlavor}-release.aab`);
     if (fs.existsSync(oldAab)) {
       const newAab = path.join(bundleDir, `${newBaseName}.aab`);
       fs.copyFileSync(oldAab, newAab);
       console.log(`✅ Renamed AAB: ${newAab}`);
+      setGithubOutput('android_aab_path', newAab);
     } else {
       console.log(`⚠️  AAB not found: ${oldAab}`);
     }
@@ -144,6 +146,17 @@ function renameAndroid() {
       console.log(`  ${file}`);
     }
   });
+}
+
+/**
+ * Write key=value pairs to $GITHUB_OUTPUT (mirrors Bitrise's envman add).
+ * No-ops outside of GitHub Actions.
+ */
+function setGithubOutput(key, value) {
+  const githubOutput = process.env.GITHUB_OUTPUT;
+  if (githubOutput) {
+    fs.appendFileSync(githubOutput, `${key}=${value}\n`);
+  }
 }
 
 /**
@@ -201,6 +214,18 @@ function renameIos() {
       fs.copyFileSync(oldBinary, newBinary);
     }
     console.log(`✅ Renamed binary: ${newBinary}`);
+
+    if (isSimBuild) {
+      // Zip the .app bundle for clean single-file download (mirrors Bitrise's is_compress: true)
+      const zipPath = path.join(buildDir, `${newBaseName}.zip`);
+      execSync(
+        `ditto -c -k --sequesterRsrc --keepParent "${newBinary}" "${zipPath}"`,
+      );
+      console.log(`✅ Zipped: ${zipPath}`);
+      setGithubOutput('ios_deploy_path', zipPath);
+    } else {
+      setGithubOutput('ios_deploy_path', newBinary);
+    }
   } else {
     console.log(`⚠️  Binary not found: ${oldBinary}`);
   }
@@ -215,6 +240,7 @@ function renameIos() {
       );
       execSync(`cp -r "${oldArchive}" "${newArchive}"`);
       console.log(`✅ Renamed archive: ${newArchive}`);
+      setGithubOutput('ios_archive_path', newArchive);
     } else {
       console.log(`⚠️  Archive not found: ${oldArchive}`);
     }
@@ -223,12 +249,15 @@ function renameIos() {
   // List final artifacts
   console.log('📦 Final artifacts:');
   if (isSimBuild) {
-    const apps = findDirs(
-      path.join(__dirname, '../ios/build/Build/Products'),
-      '*.app',
-    );
-    apps.forEach((app) => {
-      console.log(`  ${app}`);
+    const zips = findFiles(buildDir, '*.zip');
+    zips.forEach((zip) => {
+      try {
+        const stats = fs.statSync(zip);
+        const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
+        console.log(`  ${zip} (${sizeMB} MB)`);
+      } catch {
+        console.log(`  ${zip}`);
+      }
     });
   } else {
     const ipas = findFiles(path.join(__dirname, '../ios/build/output'), '*.ipa');

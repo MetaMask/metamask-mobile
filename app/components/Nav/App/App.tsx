@@ -172,10 +172,6 @@ const clearStackNavigatorOptions = {
 
 const Stack = createStackNavigator();
 
-const AccountAlreadyExists = () => <AccountStatus type="found" />;
-
-const AccountNotFound = () => <AccountStatus type="not_exist" />;
-
 const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
 
 const SocialLoginSuccessExistingUser = () => (
@@ -267,12 +263,14 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name="AccountAlreadyExists"
-      component={AccountAlreadyExists}
+      component={AccountStatus}
+      initialParams={{ type: 'found' }}
       options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AccountNotFound"
-      component={AccountNotFound}
+      component={AccountStatus}
+      initialParams={{ type: 'not_exist' }}
       options={{ headerShown: false }}
     />
     <Stack.Screen

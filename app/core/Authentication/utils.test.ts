@@ -11,7 +11,9 @@ import {
   checkPasswordRequirement,
   getAuthLabel,
   getAuthType,
+  getAuthIcon,
 } from './utils';
+import { IconName } from '@metamask/design-system-react-native';
 import { AuthenticationType } from 'expo-local-authentication';
 
 // Mock expo-local-authentication
@@ -339,6 +341,135 @@ describe('getAuthLabel', () => {
     it('returns "Password" when nothing is available', () => {
       const result = getAuthLabel(baseParams);
       expect(result).toBe('Password');
+    });
+  });
+});
+
+describe('getAuthIcon', () => {
+  const baseParams = {
+    supportedBiometricTypes: [] as number[],
+    legacyUserChoseBiometrics: false,
+    legacyUserChosePasscode: false,
+    isBiometricsAvailable: false,
+    passcodeAvailable: false,
+  };
+
+  describe('ios', () => {
+    beforeEach(() => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+    });
+
+    it('returns FaceId when legacyUserChoseBiometrics and Face ID supported', () => {
+      const result = getAuthIcon({
+        ...baseParams,
+        legacyUserChoseBiometrics: true,
+        supportedBiometricTypes: [AuthenticationType.FACIAL_RECOGNITION],
+      });
+      expect(result).toBe(IconName.FaceId);
+    });
+
+    it('returns Fingerprint when legacyUserChoseBiometrics and Touch ID supported', () => {
+      const result = getAuthIcon({
+        ...baseParams,
+        legacyUserChoseBiometrics: true,
+        supportedBiometricTypes: [AuthenticationType.FINGERPRINT],
+      });
+      expect(result).toBe(IconName.Fingerprint);
+    });
+
+    it('returns Lock when legacyUserChoseBiometrics and only IRIS supported', () => {
+      const result = getAuthIcon({
+        ...baseParams,
+        legacyUserChoseBiometrics: true,
+        supportedBiometricTypes: [AuthenticationType.IRIS],
+      });
+      expect(result).toBe(IconName.Lock);
+    });
+
+    it('returns Lock when legacyUserChosePasscode is true', () => {
+      const result = getAuthIcon({
+        ...baseParams,
+        legacyUserChosePasscode: true,
+        passcodeAvailable: true,
+      });
+      expect(result).toBe(IconName.Lock);
+    });
+
+    it('returns FaceId when isBiometricsAvailable and Face ID supported (modern path)', () => {
+      const result = getAuthIcon({
+        ...baseParams,
+        isBiometricsAvailable: true,
+        supportedBiometricTypes: [AuthenticationType.FACIAL_RECOGNITION],
+      });
+      expect(result).toBe(IconName.FaceId);
+    });
+
+    it('returns Fingerprint when isBiometricsAvailable and Fingerprint supported (modern path)', () => {
+      const result = getAuthIcon({
+        ...baseParams,
+        isBiometricsAvailable: true,
+        supportedBiometricTypes: [AuthenticationType.FINGERPRINT],
+      });
+      expect(result).toBe(IconName.Fingerprint);
+    });
+
+    it('returns Lock when passcodeAvailable only (modern path)', () => {
+      const result = getAuthIcon({
+        ...baseParams,
+        passcodeAvailable: true,
+      });
+      expect(result).toBe(IconName.Lock);
+    });
+
+    it('returns Lock when neither biometrics nor passcode available', () => {
+      const result = getAuthIcon(baseParams);
+      expect(result).toBe(IconName.Lock);
+    });
+  });
+
+  describe('android', () => {
+    beforeEach(() => {
+      jest.replaceProperty(Platform, 'OS', 'android');
+    });
+
+    it('returns Lock when legacyUserChoseBiometrics (Android always uses Lock)', () => {
+      const result = getAuthIcon({
+        ...baseParams,
+        legacyUserChoseBiometrics: true,
+        supportedBiometricTypes: [AuthenticationType.FINGERPRINT],
+      });
+      expect(result).toBe(IconName.Lock);
+    });
+
+    it('returns Lock when legacyUserChosePasscode', () => {
+      const result = getAuthIcon({
+        ...baseParams,
+        legacyUserChosePasscode: true,
+        passcodeAvailable: true,
+      });
+      expect(result).toBe(IconName.Lock);
+    });
+
+    it('returns Lock when isBiometricsAvailable', () => {
+      const result = getAuthIcon({
+        ...baseParams,
+        isBiometricsAvailable: true,
+        supportedBiometricTypes: [AuthenticationType.FACIAL_RECOGNITION],
+      });
+      expect(result).toBe(IconName.Lock);
+    });
+
+    it('returns Lock when passcodeAvailable only', () => {
+      const result = getAuthIcon({
+        ...baseParams,
+        passcodeAvailable: true,
+      });
+      expect(result).toBe(IconName.Lock);
+    });
+
+    it('returns Lock when nothing is available', () => {
+      const result = getAuthIcon(baseParams);
+      expect(result).toBe(IconName.Lock);
     });
   });
 });
