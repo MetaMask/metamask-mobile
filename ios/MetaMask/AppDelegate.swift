@@ -30,7 +30,16 @@ class AppDelegate: ExpoAppDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    let superResult = super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    let delegate = MetaMaskReactNativeDelegate()
+    let factory = ExpoReactNativeFactory(delegate: delegate)
+    delegate.dependencyProvider = RCTAppDependencyProvider()
+
+    reactNativeDelegate = delegate
+    reactNativeFactory = factory
+    bindReactNativeFactory(factory)
+
+    window = UIWindow(frame: UIScreen.main.bounds)
+    window?.makeKeyAndVisible()
 
     if FirebaseApp.app() == nil {
       FirebaseApp.configure()
@@ -42,21 +51,14 @@ class AppDelegate: ExpoAppDelegate {
     RNBranch.branch.checkPasteboardOnInstall()
     RNBranch.initSession(launchOptions: launchOptions, isReferrable: true)
 
-    let delegate = MetaMaskReactNativeDelegate()
-    let factory = ExpoReactNativeFactory(delegate: delegate)
-    delegate.dependencyProvider = RCTAppDependencyProvider()
-
-    reactNativeDelegate = delegate
-    reactNativeFactory = factory
-    bindReactNativeFactory(factory)
-
-    window = UIWindow(frame: UIScreen.main.bounds)
     factory.startReactNative(
       withModuleName: "MetaMask",
       in: window,
       initialProperties: initialProps,
       launchOptions: launchOptions
     )
+
+    let superResult = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
     return superResult
   }
