@@ -29,7 +29,6 @@ export interface TrendingTokenNetworkBottomSheetProps {
   onClose: () => void;
   onNetworkSelect?: (chainIds: CaipChainId[] | null) => void;
   selectedNetwork?: CaipChainId[] | null;
-  isFullscreen?: boolean;
 }
 
 const TrendingTokenNetworkBottomSheet: React.FC<
@@ -39,7 +38,6 @@ const TrendingTokenNetworkBottomSheet: React.FC<
   onClose,
   onNetworkSelect,
   selectedNetwork: initialSelectedNetwork,
-  isFullscreen = false,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const networks = TRENDING_NETWORKS_LIST;
@@ -112,7 +110,6 @@ const TrendingTokenNetworkBottomSheet: React.FC<
       ref={sheetRef}
       onClose={handleSheetClose}
       testID="trending-token-network-bottom-sheet"
-      isFullscreen={isFullscreen}
     >
       <HeaderCompactStandard
         title={strings('trending.networks')}

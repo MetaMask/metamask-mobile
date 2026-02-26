@@ -27,7 +27,6 @@ export interface TrendingTokenTimeBottomSheetProps {
   onClose: () => void;
   onTimeSelect?: (sortBy: SortTrendingBy, timeOption: TimeOption) => void;
   selectedTime?: TimeOption;
-  isFullscreen?: boolean;
 }
 
 /**
@@ -75,7 +74,6 @@ const TrendingTokenTimeBottomSheet: React.FC<
   onClose,
   onTimeSelect,
   selectedTime: initialSelectedTime,
-  isFullscreen = false,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { colors } = useTheme();
@@ -140,7 +138,6 @@ const TrendingTokenTimeBottomSheet: React.FC<
       ref={sheetRef}
       onClose={handleSheetClose}
       testID="trending-token-time-bottom-sheet"
-      isFullscreen={isFullscreen}
     >
       <HeaderCompactStandard
         title={strings('trending.time')}
