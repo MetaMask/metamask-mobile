@@ -6,9 +6,11 @@ import { createLogger } from '../framework/logger';
 import {
   configureAndroidProxy,
   removeAndroidProxy,
+  removeCACertAndroid,
   installCACertAndroid,
   configureIOSProxy,
   removeIOSProxy,
+  removeCACertIOS,
 } from '../framework/fixtures/DeviceProxyConfig';
 
 const logger = createLogger({ name: 'TransparentProxy' });
@@ -70,7 +72,11 @@ export default class TransparentProxy implements Resource {
     process.removeAllListeners('unhandledRejection');
 
     this._rejectionHandler = (reason: unknown, promise: Promise<unknown>) => {
-      if (reason instanceof Error && reason.message === 'Aborted') {
+      if (
+        reason instanceof Error &&
+        reason.message === 'Aborted' &&
+        reason.stack?.includes('mockttp')
+      ) {
         // eslint-disable-next-line no-empty-function
         promise.catch(() => {});
         return;
@@ -181,17 +187,26 @@ export default class TransparentProxy implements Resource {
   }
 
   /**
-   * Removes the device/simulator proxy configuration.
+   * Removes the device/simulator proxy configuration and uninstalls the CA certificate.
    * Should be called before stopping the proxy server.
    */
   async removeDeviceConfig(): Promise<void> {
     if (FrameworkDetector.isDetox()) {
       const isAndroid = device.getPlatform() === 'android';
+      const certPem = TransparentProxy._caCert?.cert;
+
       if (isAndroid) {
         const deviceId = (device as { id?: string }).id || '';
         await removeAndroidProxy(deviceId);
+        if (certPem) {
+          await removeCACertAndroid(deviceId, certPem);
+        }
       } else {
         await removeIOSProxy();
+        if (certPem) {
+          const simulatorId = (device as { id?: string }).id || 'booted';
+          await removeCACertIOS(simulatorId, certPem);
+        }
       }
     }
   }

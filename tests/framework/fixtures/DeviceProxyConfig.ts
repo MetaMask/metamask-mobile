@@ -124,6 +124,31 @@ export async function installCACertAndroid(
   await pushCert();
 }
 
+/**
+ * Removes the proxy CA certificate from the Android emulator's system trust store.
+ */
+export async function removeCACertAndroid(
+  deviceId: string,
+  certPem: string,
+): Promise<void> {
+  const certPath = await writeCertToTempFile(certPem);
+  const deviceFlag = deviceId ? `-s ${deviceId}` : getAdbDeviceFlag();
+
+  const { stdout: hashOutput } = await execAsync(
+    `openssl x509 -subject_hash_old -noout -in "${certPath}"`,
+  );
+  const certHash = hashOutput.trim();
+  const remotePath = `/system/etc/security/cacerts/${certHash}.0`;
+
+  try {
+    await execAsync(`adb ${deviceFlag} root`);
+    await execAsync(`adb ${deviceFlag} remount`);
+    await execAsync(`adb ${deviceFlag} shell rm -f "${remotePath}"`);
+  } catch {
+    logger.debug('CA cert removal from Android emulator skipped or not needed');
+  }
+}
+
 // ─── iOS ─────────────────────────────────────────────────────────────────────
 
 /**
@@ -187,6 +212,23 @@ export async function configureIOSProxy(
   await execAsync(
     `networksetup -setsecurewebproxy "${service}" localhost ${proxyPort}`,
   );
+}
+
+/**
+ * Removes the proxy CA certificate from the iOS simulator's keychain.
+ */
+export async function removeCACertIOS(
+  simulatorId: string,
+  certPem: string,
+): Promise<void> {
+  const certPath = await writeCertToTempFile(certPem);
+  try {
+    await execAsync(
+      `xcrun simctl keychain ${simulatorId} delete-certificate -f "${certPath}"`,
+    );
+  } catch {
+    logger.debug('CA cert removal from iOS simulator skipped or not needed');
+  }
 }
 
 /**

@@ -92,6 +92,7 @@ describe(SmokeTrade('Swap on Solana'), () => {
           fixture: new FixtureBuilder().build(),
           testSpecificMock: mock,
           restartDevice: true,
+          disableLocalNodes: true,
           useTransparentProxy: true,
         },
         async () => {

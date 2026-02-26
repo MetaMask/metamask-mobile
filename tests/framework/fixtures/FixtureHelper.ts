@@ -652,7 +652,11 @@ export async function withFixtures(
 
     // Configure device proxy AFTER launchApp + dismissDevScreens so Detox sync
     // can settle during startup. Then disable sync before the test callback.
-    if (useTransparentProxy && transparentProxyInstance && !isBrowserStack) {
+    if (
+      useTransparentProxy &&
+      transparentProxyInstance?.isStarted() &&
+      !isBrowserStack
+    ) {
       await transparentProxyInstance.configureDevice();
     }
 
@@ -732,14 +736,22 @@ export async function withFixtures(
       }
     }
 
-    // Clean up the transparent proxy (remove device proxy config first, then stop server)
-    if (transparentProxyInstance?.isStarted()) {
+    // Always attempt to remove device proxy config, even if the proxy failed to start
+    if (transparentProxyInstance) {
       try {
         await transparentProxyInstance.removeDeviceConfig();
-        await transparentProxyInstance.stop();
       } catch (cleanupError) {
-        logger.error('Error during transparent proxy cleanup:', cleanupError);
+        logger.error('Error removing device proxy config:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
+      }
+
+      if (transparentProxyInstance.isStarted()) {
+        try {
+          await transparentProxyInstance.stop();
+        } catch (cleanupError) {
+          logger.error('Error stopping transparent proxy:', cleanupError);
+          cleanupErrors.push(cleanupError as Error);
+        }
       }
     }
 
