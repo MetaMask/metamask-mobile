@@ -384,6 +384,10 @@ jobs:
             echo "without-srp-apk-uploaded=false"
           } >> "$GITHUB_OUTPUT"
           
+          # Determine APK name pattern based on build variant (rc or exp)
+          BUILD_VARIANT="${{ inputs.build_variant || 'rc' }}"
+          echo "Build variant: $BUILD_VARIANT"
+          
           # Get build IDs from job outputs
           WITH_SRP_BUILD_ID="${{ needs.trigger-android-with-srp-build.outputs.build-id }}"
           WITHOUT_SRP_BUILD_ID="${{ needs.trigger-android-without-srp-build.outputs.build-id }}"
@@ -417,13 +421,13 @@ jobs:
             echo "All artifact titles:"
             echo "$WITH_SRP_ARTIFACTS" | jq -r '.data[]?.title // empty' 2>/dev/null || echo "Could not extract titles"
             
-            # Find the APK artifact - matches metamask-main-rc-[number].apk
-            # Pattern matches reference script: filter by artifact_type if available, then by title pattern
-            # Note: Without -r flag, this returns JSON object which we can parse again
-            WITH_SRP_APK_ARTIFACT=$(echo "$WITH_SRP_ARTIFACTS" | jq '.data[] | 
+            # Find the APK artifact - matches metamask-main-<variant>-[number].apk
+            WITH_SRP_APK_ARTIFACT=$(echo "$WITH_SRP_ARTIFACTS" | jq --arg variant "$BUILD_VARIANT" '.data[] | 
               select((.artifact_type == "android-apk") or (.artifact_type | not)) | 
               select(.title | endswith(".apk")) | 
-              select(.title | test("metamask-main-rc-[0-9]+\\.apk"))')
+              select(.title | test("metamask-main-" + $variant + "-[0-9]+\\.apk"))')
+            
+            echo "Looking for APK matching: metamask-main-${BUILD_VARIANT}-[0-9]+.apk"
             
             if [[ -n "$WITH_SRP_APK_ARTIFACT" && "$WITH_SRP_APK_ARTIFACT" != "null" && "$WITH_SRP_APK_ARTIFACT" != "" ]]; then
               WITH_SRP_APK_SLUG=$(echo "$WITH_SRP_APK_ARTIFACT" | jq -r '.slug')
@@ -496,10 +500,12 @@ jobs:
                 echo "Failed to get with-SRP APK download URL"
               fi
             else
-              echo "With-SRP APK artifact not found (looking for metamask-main-rc-*.apk)"
+              echo "❌ Error: With-SRP APK artifact not found (looking for metamask-main-${BUILD_VARIANT}-*.apk)"
+              exit 1
             fi
           else
-            echo "With-SRP build ID not available"
+            echo "❌ Error: With-SRP build ID not available"
+            exit 1
           fi
           
           # Download without-SRP APK
@@ -528,13 +534,13 @@ jobs:
             echo "All artifact titles:"
             echo "$WITHOUT_SRP_ARTIFACTS" | jq -r '.data[]?.title // empty' 2>/dev/null || echo "Could not extract titles"
             
-            # Find the APK artifact - matches metamask-main-rc-[number].apk
-            # Pattern matches reference script: filter by artifact_type if available, then by title pattern
-            # Note: Without -r flag, this returns JSON object which we can parse again
-            WITHOUT_SRP_APK_ARTIFACT=$(echo "$WITHOUT_SRP_ARTIFACTS" | jq '.data[] | 
+            # Find the APK artifact - matches metamask-main-<variant>-[number].apk
+            WITHOUT_SRP_APK_ARTIFACT=$(echo "$WITHOUT_SRP_ARTIFACTS" | jq --arg variant "$BUILD_VARIANT" '.data[] | 
               select((.artifact_type == "android-apk") or (.artifact_type | not)) | 
               select(.title | endswith(".apk")) | 
-              select(.title | test("metamask-main-rc-[0-9]+\\.apk"))')
+              select(.title | test("metamask-main-" + $variant + "-[0-9]+\\.apk"))')
+            
+            echo "Looking for APK matching: metamask-main-${BUILD_VARIANT}-[0-9]+.apk"
             
             if [[ -n "$WITHOUT_SRP_APK_ARTIFACT" && "$WITHOUT_SRP_APK_ARTIFACT" != "null" && "$WITHOUT_SRP_APK_ARTIFACT" != "" ]]; then
               WITHOUT_SRP_APK_SLUG=$(echo "$WITHOUT_SRP_APK_ARTIFACT" | jq -r '.slug')
@@ -607,10 +613,12 @@ jobs:
                 echo "Failed to get without-SRP APK download URL"
               fi
             else
-              echo "Without-SRP APK artifact not found (looking for metamask-main-rc-*.apk)"
+              echo "❌ Error: Without-SRP APK artifact not found (looking for metamask-main-${BUILD_VARIANT}-*.apk)"
+              exit 1
             fi
           else
-            echo "Without-SRP build ID not available"
+            echo "❌ Error: Without-SRP build ID not available"
+            exit 1
           fi
           
           echo "BrowserStack upload process completed!"
