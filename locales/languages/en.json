@@ -6028,6 +6028,7 @@
       "no_tokens_to_convert": "You don't have any tokens that can be converted to mUSD.",
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
+        "already_in_progress": "mUSD Conversion already in progress.",
         "eta": "~{{time}}",
         "delivered": "Your mUSD is here!",
         "failed": "mUSD conversion failed"

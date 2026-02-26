@@ -132,3 +132,15 @@ export const selectMusdConversionStatuses = createSelector(
     return statusMap;
   },
 );
+
+/**
+ * True when any mUSD conversion is currently in-flight.
+ * Used to guard conversion entry points while a conversion is active.
+ */
+export const selectHasInFlightMusdConversion = createSelector(
+  [selectMusdConversionStatuses],
+  (conversionStatuses): boolean =>
+    Object.values(conversionStatuses).some(
+      (conversionStatus) => conversionStatus.isPending,
+    ),
+);

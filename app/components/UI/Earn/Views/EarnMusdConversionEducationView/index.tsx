@@ -41,6 +41,8 @@ import { EARN_TEST_IDS } from '../../constants/testIds';
 import AppConstants from '../../../../../core/AppConstants';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
+import { selectHasInFlightMusdConversion } from '../../selectors/musdConversionStatus';
+import useEarnToasts from '../../hooks/useEarnToasts';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
@@ -67,6 +69,10 @@ const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
   const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
+  const hasInFlightMusdConversion = useSelector(
+    selectHasInFlightMusdConversion,
+  );
+  const { showToast, EarnToastOptions } = useEarnToasts();
 
   const { initiateCustomConversion } = useMusdConversion();
   const { goToBuy } = useRampNavigation();
@@ -251,6 +257,13 @@ const EarnMusdConversionEducationView = () => {
           return;
         }
 
+        if (hasInFlightMusdConversion) {
+          showToast(
+            EarnToastOptions.mUsdConversion.existingConversionInProgress,
+          );
+          return;
+        }
+
         if (deeplinkState.action === 'convert') {
           await initiateCustomConversion({
             preferredPaymentToken: deeplinkState.paymentToken,
@@ -291,6 +304,9 @@ const EarnMusdConversionEducationView = () => {
     navigation,
     goToBuy,
     isDeeplink,
+    hasInFlightMusdConversion,
+    showToast,
+    EarnToastOptions,
   ]);
 
   const handleGoBack = () => {
