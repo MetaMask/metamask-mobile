@@ -67,6 +67,8 @@ import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
 import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
+import { selectHasInFlightMusdConversion } from '../../../Earn/selectors/musdConversionStatus';
+import useEarnToasts from '../../../Earn/hooks/useEarnToasts';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -159,6 +161,10 @@ export const TokenListItem = React.memo(
 
     const { initiateCustomConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
+    const hasInFlightMusdConversion = useSelector(
+      selectHasInFlightMusdConversion,
+    );
+    const { showToast, EarnToastOptions } = useEarnToasts();
 
     const shouldShowConvertToMusdCta = useMemo(
       () => shouldShowTokenListItemCta(asset),
@@ -257,6 +263,13 @@ export const TokenListItem = React.memo(
       try {
         submitCtaPressedEvent();
 
+        if (hasInFlightMusdConversion) {
+          showToast(
+            EarnToastOptions.mUsdConversion.existingConversionInProgress,
+          );
+          return;
+        }
+
         if (!asset?.address || !asset?.chainId) {
           throw new Error('Asset address or chain ID is not set');
         }
@@ -282,10 +295,13 @@ export const TokenListItem = React.memo(
       asset?.symbol,
       chainId,
       createEventBuilder,
+      EarnToastOptions,
       hasSeenConversionEducationScreen,
+      hasInFlightMusdConversion,
       initiateCustomConversion,
       isQuickConvertEnabled,
       networkName,
+      showToast,
       trackEvent,
     ]);
 
