@@ -20,13 +20,6 @@ import { dismissDevScreens } from '../../flows/general.flow';
 import TestHelpers from '../../helpers';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import TransparentProxy from '../../api-mocking/TransparentProxy';
-import {
-  configureAndroidProxy,
-  removeAndroidProxy,
-  installCACertAndroid,
-  configureIOSProxy,
-  removeIOSProxy,
-} from './DeviceProxyConfig';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import {
@@ -593,7 +586,7 @@ export async function withFixtures(
     // Skip on BrowserStack — the tunnel handles routing there
     const isBrowserStack =
       process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-    if (useTransparentProxy && !isBrowserStack) {
+    if (useTransparentProxy) {
       transparentProxyInstance = new TransparentProxy({ testSpecificMock });
       await startResourceWithRetry(
         ResourceType.TRANSPARENT_PROXY,
@@ -660,23 +653,7 @@ export async function withFixtures(
     // Configure device proxy AFTER launchApp + dismissDevScreens so Detox sync
     // can settle during startup. Then disable sync before the test callback.
     if (useTransparentProxy && transparentProxyInstance && !isBrowserStack) {
-      logger.debug('Configuring device proxy after app launch...');
-      const proxyPort = transparentProxyInstance.getServerPort();
-      const certPem = transparentProxyInstance.getCACertPem();
-      const isAndroid = device.getPlatform() === 'android';
-
-      if (isAndroid) {
-        const deviceId = (device as { id?: string }).id || '';
-        await installCACertAndroid(deviceId, certPem);
-        await configureAndroidProxy(deviceId, proxyPort);
-      } else {
-        const simulatorId = (device as { id?: string }).id || 'booted';
-        await configureIOSProxy(simulatorId, proxyPort, certPem);
-      }
-
-      await device.setURLBlacklist(['.*']);
-      await device.disableSynchronization();
-      logger.debug('Device proxy configured and Detox sync disabled.');
+      await transparentProxyInstance.configureDevice();
     }
 
     await testSuite({
@@ -758,13 +735,7 @@ export async function withFixtures(
     // Clean up the transparent proxy (remove device proxy config first, then stop server)
     if (transparentProxyInstance?.isStarted()) {
       try {
-        const isAndroid = device.getPlatform() === 'android';
-        if (isAndroid) {
-          const deviceId = (device as { id?: string }).id || '';
-          await removeAndroidProxy(deviceId);
-        } else {
-          await removeIOSProxy();
-        }
+        await transparentProxyInstance.removeDeviceConfig();
         await transparentProxyInstance.stop();
       } catch (cleanupError) {
         logger.error('Error during transparent proxy cleanup:', cleanupError);

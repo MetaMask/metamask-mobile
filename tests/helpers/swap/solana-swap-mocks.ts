@@ -332,11 +332,12 @@ const ALT_ACCOUNT_ENTRY = {
  */
 async function startSolanaWebSocketMock(transactionSubmittedRef: {
   value: boolean;
-}): Promise<number> {
+}): Promise<{ port: number; close: () => void }> {
   return new Promise((resolve) => {
     const wss = new WebSocketServer({ port: 0 }, () => {
       const addr = wss.address();
-      resolve(typeof addr === 'object' && addr !== null ? addr.port : 0);
+      const port = typeof addr === 'object' && addr !== null ? addr.port : 0;
+      resolve({ port, close: () => wss.close() });
     });
 
     wss.on('connection', (ws) => {
@@ -395,9 +396,12 @@ async function startSolanaWebSocketMock(transactionSubmittedRef: {
 
 export type SolanaSwapScenario = 'sol-to-usdc' | 'usdc-to-sol' | 'no-quotes';
 
-export const buildSolanaSwapTestSpecificMock =
-  (scenario: SolanaSwapScenario): TestSpecificMock =>
-  async (mockServer: Mockttp) => {
+export const buildSolanaSwapTestSpecificMock = (
+  scenario: SolanaSwapScenario,
+): { mock: TestSpecificMock; cleanup: () => void } => {
+  const wsCleanups: (() => void)[] = [];
+
+  const mock: TestSpecificMock = async (mockServer: Mockttp) => {
     const quoteResponse =
       scenario === 'sol-to-usdc'
         ? quoteSolToUsdcResponse
@@ -608,7 +612,7 @@ export const buildSolanaSwapTestSpecificMock =
     // (transparent proxy) so that transactionSubmitted / actualSwapSignature
     // state is shared regardless of which rule matched.
     const handleSolanaRpc = async (request: {
-      body: { getText(): Promise<string | null> };
+      body: { getText(): Promise<string | undefined> };
     }) => {
       let requestBody: unknown;
       try {
@@ -821,9 +825,9 @@ export const buildSolanaSwapTestSpecificMock =
 
     // Mock Solana RPC WebSocket (signatureSubscribe) so the app receives
     // a confirmation notification for the fake transaction.
-    const solanaWsPort = await startSolanaWebSocketMock(
-      transactionSubmittedRef,
-    );
+    const { port: solanaWsPort, close: closeWss } =
+      await startSolanaWebSocketMock(transactionSubmittedRef);
+    wsCleanups.push(closeWss);
     logger.info(`Solana WSS mock listening on port ${solanaWsPort}`);
 
     await mockServer
@@ -832,3 +836,17 @@ export const buildSolanaSwapTestSpecificMock =
       .asPriority(1001)
       .thenForwardTo(`ws://localhost:${solanaWsPort}`);
   };
+
+  const cleanup = () => {
+    for (const close of wsCleanups) {
+      try {
+        close();
+      } catch {
+        /* ignore close errors */
+      }
+    }
+    wsCleanups.length = 0;
+  };
+
+  return { mock, cleanup };
+};

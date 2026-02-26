@@ -55,8 +55,9 @@ export async function removeAndroidProxy(deviceId: string): Promise<void> {
 /**
  * Installs the proxy CA certificate into the Android emulator's system trust store.
  *
- * Requires the emulator to be running with a writable system partition.
- * Typical flags: `-writable-system` or the AVD must be a "user debug" build.
+ * Requires the emulator to be booted with `-writable-system` (and without `-read-only`)
+ * so that `adb root` + `adb remount` can make `/system` writable.
+ * See `.detoxrc.js` — the CI emulator configs are set up for this.
  */
 export async function installCACertAndroid(
   deviceId: string,

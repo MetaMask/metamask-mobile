@@ -85,66 +85,82 @@ describe(SmokeTrade('Swap on Solana'), () => {
   });
 
   it('completes SOL to USDC swap with mocked Solana tx execution', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        testSpecificMock: buildSolanaSwapTestSpecificMock('sol-to-usdc'),
-        restartDevice: true,
-        useTransparentProxy: true,
-      },
-      async () => {
-        await loginToApp();
-        await openSwapFromSolanaToken();
-        await setSourceAmount('1');
-        await submitSwapAndAssertActivity(SOL_SYMBOL, USDC_SYMBOL);
-      },
-    );
+    const { mock, cleanup } = buildSolanaSwapTestSpecificMock('sol-to-usdc');
+    try {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().build(),
+          testSpecificMock: mock,
+          restartDevice: true,
+          useTransparentProxy: true,
+        },
+        async () => {
+          await loginToApp();
+          await openSwapFromSolanaToken();
+          await setSourceAmount('1');
+          await submitSwapAndAssertActivity(SOL_SYMBOL, USDC_SYMBOL);
+        },
+      );
+    } finally {
+      cleanup();
+    }
   });
 
   it('completes USDC to SOL swap with mocked Solana tx execution', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        testSpecificMock: buildSolanaSwapTestSpecificMock('usdc-to-sol'),
-        restartDevice: true,
-        disableLocalNodes: true,
-        useTransparentProxy: true,
-      },
-      async () => {
-        await loginToApp();
-        await openSwapFromSolanaToken();
-        await selectSourceTokenOnSolana(USDC_SYMBOL);
-        await selectDestinationTokenOnSolana(SOL_SYMBOL);
-        await setSourceAmount('1');
-        await submitSwapAndAssertActivity(USDC_SYMBOL, SOL_SYMBOL);
-      },
-    );
+    const { mock, cleanup } = buildSolanaSwapTestSpecificMock('usdc-to-sol');
+    try {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().build(),
+          testSpecificMock: mock,
+          restartDevice: true,
+          disableLocalNodes: true,
+          useTransparentProxy: true,
+        },
+        async () => {
+          await loginToApp();
+          await openSwapFromSolanaToken();
+          await selectSourceTokenOnSolana(USDC_SYMBOL);
+          await selectDestinationTokenOnSolana(SOL_SYMBOL);
+          await setSourceAmount('1');
+          await submitSwapAndAssertActivity(USDC_SYMBOL, SOL_SYMBOL);
+        },
+      );
+    } finally {
+      cleanup();
+    }
   });
 
   it('shows no route available when Solana swap has no quotes', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        testSpecificMock: buildSolanaSwapTestSpecificMock('no-quotes'),
-        restartDevice: true,
-        disableLocalNodes: true,
-        useTransparentProxy: true,
-      },
-      async () => {
-        await loginToApp();
-        await openSwapFromSolanaToken();
-        await selectDestinationTokenOnSolana(USDC_SYMBOL);
-        await QuoteView.tapSourceAmountInput();
-        await QuoteView.enterAmount('1');
+    const { mock, cleanup } = buildSolanaSwapTestSpecificMock('no-quotes');
+    try {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().build(),
+          testSpecificMock: mock,
+          restartDevice: true,
+          disableLocalNodes: true,
+          useTransparentProxy: true,
+        },
+        async () => {
+          await loginToApp();
+          await openSwapFromSolanaToken();
+          await selectDestinationTokenOnSolana(USDC_SYMBOL);
+          await QuoteView.tapSourceAmountInput();
+          await QuoteView.enterAmount('1');
 
-        await Assertions.expectTextDisplayed(
-          enContent.bridge.error_banner_description,
-          {
-            timeout: 90000,
-            description: 'No route available error banner should be displayed',
-          },
-        );
-      },
-    );
+          await Assertions.expectTextDisplayed(
+            enContent.bridge.error_banner_description,
+            {
+              timeout: 90000,
+              description:
+                'No route available error banner should be displayed',
+            },
+          );
+        },
+      );
+    } finally {
+      cleanup();
+    }
   });
 });
