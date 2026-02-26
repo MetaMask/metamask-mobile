@@ -2,6 +2,12 @@
 
 If you're submitting code to MetaMask, there are some simple things we'd appreciate you doing to help us stay organized!
 
+### Branch Naming Convention
+When contributing, please name your branches using the following format:
+- `feature/your-feature-name` for new features.
+- `bugfix/your-fix-name` for bug fixes.
+- `docs/your-change-name` for documentation updates.
+
 ### Finding the right project
 
 Before taking the time to code and implement something, feel free to open an issue and discuss it! There may even be an issue already open, and together we may come up with a specific strategy before you take your precious time to write code.
