@@ -11,6 +11,7 @@ import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import {
   createTokenChainKey,
+  selectHasInFlightMusdConversion,
   selectHasUnapprovedMusdConversion,
   selectMusdConversionStatuses,
 } from '../../selectors/musdConversionStatus';
@@ -41,6 +42,7 @@ jest.mock('../../selectors/featureFlags', () => ({
 }));
 jest.mock('../../selectors/musdConversionStatus', () => ({
   ...jest.requireActual('../../selectors/musdConversionStatus'),
+  selectHasInFlightMusdConversion: jest.fn(),
   selectHasUnapprovedMusdConversion: jest.fn(),
   selectMusdConversionStatuses: jest.fn(),
 }));
@@ -93,6 +95,10 @@ const mockUseMusdBalance = useMusdBalance as jest.MockedFunction<
 const mockSelectHasUnapprovedMusdConversion =
   selectHasUnapprovedMusdConversion as jest.MockedFunction<
     typeof selectHasUnapprovedMusdConversion
+  >;
+const mockSelectHasInFlightMusdConversion =
+  selectHasInFlightMusdConversion as jest.MockedFunction<
+    typeof selectHasInFlightMusdConversion
   >;
 const mockSelectMusdConversionStatuses =
   selectMusdConversionStatuses as jest.MockedFunction<
@@ -170,6 +176,7 @@ describe('MusdQuickConvertView', () => {
       fiatBalanceAggregated: undefined,
       fiatBalanceAggregatedFormatted: '$0.00',
     });
+    mockSelectHasInFlightMusdConversion.mockReturnValue(false);
     mockSelectHasUnapprovedMusdConversion.mockReturnValue(false);
     mockSelectMusdConversionStatuses.mockReturnValue({});
   });
@@ -488,6 +495,56 @@ describe('MusdQuickConvertView', () => {
       await act(async () => {
         fireEvent.press(editButton);
       });
+      expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('in-flight conversion', () => {
+    it('does not call initiateMaxConversion when Max is pressed and hasInFlightMusdConversion is true', async () => {
+      const token = createMockToken();
+      mockUseMusdConversionTokens.mockReturnValue({
+        tokens: [token],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn(),
+        hasConvertibleTokensByChainId: jest.fn(),
+      });
+      mockSelectHasInFlightMusdConversion.mockReturnValue(true);
+
+      const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      const maxButton = getAllByTestId(ConvertTokenRowTestIds.MAX_BUTTON)[0];
+
+      await act(async () => {
+        fireEvent.press(maxButton);
+      });
+
+      expect(mockInitiateMaxConversion).not.toHaveBeenCalled();
+    });
+
+    it('does not call initiateCustomConversion when Edit is pressed and hasInFlightMusdConversion is true', async () => {
+      const token = createMockToken();
+      mockUseMusdConversionTokens.mockReturnValue({
+        tokens: [token],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn(),
+        hasConvertibleTokensByChainId: jest.fn(),
+      });
+      mockSelectHasInFlightMusdConversion.mockReturnValue(true);
+
+      const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      const editButton = getAllByTestId(ConvertTokenRowTestIds.EDIT_BUTTON)[0];
+
+      await act(async () => {
+        fireEvent.press(editButton);
+      });
+
       expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
     });
   });
