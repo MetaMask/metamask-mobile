@@ -92,30 +92,33 @@ env:
 - **Updated**: Already had similar logic, ensured it follows same pattern
 - **Added**: Better validation and error messages
 
-## Root Cause #2: Intermittent Corruption from Cache+Repack
+## Root Cause #2: Intermittent Corruption (Under Investigation)
 
-The build has two code paths:
-1. **Full build** (cache miss) - consistently works ✅
-2. **Restore + Repack** (cache hit) - occasionally corrupts the bundle ⚠️
+**Observation**: Failures occur even with full builds from scratch, not just with cache+repack.
 
-When cache is hit, the workflow:
-1. Restores cached `.app` bundle from previous build
-2. Runs `@expo/repack-app` to update JavaScript
-3. Sometimes this repack process corrupts the bundle structure
-4. Build job still succeeds and uploads corrupt artifact
-5. All test shards download the corrupt artifact  
-6. All shards fail to install it
+**What We Know:**
+- Build job completes successfully
+- Artifact uploads successfully  
+- Artifact size looks correct (~126MB)
+- All test shards download the same artifact
+- All shards fail to install it with identical error
 
-### Evidence from Failing Run
+**What Causes Intermittent Corruption:** Unknown. Possibilities:
+- Xcode build process edge case
+- macOS/Xcode version inconsistency
+- GitHub Actions artifact upload issue
+- Bundle structure variation in build output
+- Race condition or timing issue
+
+**Why All Shards Fail Together:**
 ```
-Cache hits: 2 (XCode + iOS app)
-📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app...
-✅ 🎉 iOS App repack completed in 179s
-📦 Final app size: 273M
-
-# Build job: SUCCESS ✅
-# But artifact is corrupt - missing executable inside bundle
-# All test shards fail: "main-qa-MetaMask.app is missing its bundle executable"
+Build Job (1) → Artifact (corrupt or malformed)
+                       ↓
+      ┌────────────────┼────────────────┐
+      ↓                ↓                ↓
+   Shard 1          Shard 2          Shard 3
+      ❌                ❌                ❌
+All download SAME artifact = cascade failure
 ```
 
 ## Why This Works
@@ -127,35 +130,43 @@ Cache hits: 2 (XCode + iOS app)
 5. **Same as Android**: Follows the working Android pattern
 6. **Fail Fast**: Build fails if bundle is corrupt, preventing bad artifact upload
 
-## Why Failures Were Intermittent
+## Why Failures are Intermittent (Partial Understanding)
 
-**Question**: If `PREBUILT_IOS_APP_PATH` always points to the wrong location, why don't we have 100% failure?
+**Key Observation**: Path is always wrong, but failures are intermittent. Why?
 
-**Answer**: Two compounding issues create intermittent failures:
+**Honest Answer**: We don't fully understand the intermittency root cause yet.
 
-### Issue #1: Path Always Wrong
-`PREBUILT_IOS_APP_PATH=artifacts/main-qa-MetaMask.app` points to wrapper folder, not bundle.
+### What We Know:
+1. **Path is consistently wrong**: `PREBUILT_IOS_APP_PATH` points to wrapper folder
+2. **Failures affect all shards**: When one build produces bad artifact, all shards fail
+3. **Happens with fresh builds**: Not just cache+repack (per user report)
+4. **Build always reports success**: No build failures, only test failures
 
-### Issue #2: Sometimes the Artifact is Corrupt  
-- When **cache miss** → full build → artifact is valid → **path issue is masked** (test failure is rare/different)
-- When **cache hit** → repack occasionally corrupts bundle → **both path AND corruption** → consistent failure
+### Hypotheses (Unconfirmed):
+- Artifact upload/download inconsistency with GitHub Actions
+- Xcode build occasionally produces malformed bundle structure  
+- macOS runner environment variations
+- Race condition or timing issue in build process
+- Bundle symlink or permission handling edge case
 
 ### Why All Shards Fail Together
 ```
-Build Job (1)  →  Bad Artifact
+Build Job (1)  →  Artifact (sometimes malformed)
                        ↓
       ┌────────────────┼────────────────┐
       ↓                ↓                ↓
    Shard 1          Shard 2          Shard 3
       ❌                ❌                ❌
-   (same bad artifact downloaded by all)
+All download SAME artifact = cascade failure
 ```
 
-One corrupt artifact from build = cascading failure across all test shards.
+One malformed artifact cascades to all test shards.
 
-### The Fix Addresses Both Issues
-1. **Validation**: Catches corrupt bundles before upload (build fails fast)
-2. **Correct Path**: Copies actual bundle to default location (no PREBUILT variable needed)
+### The Fix (Defensive Programming)
+Without knowing exact root cause, the fix uses multiple layers of defense:
+1. **Validation**: Catches malformed bundles before upload
+2. **Correct Path**: Extracts bundle correctly from nested structure
+3. **Fail Fast**: Build fails immediately if bundle is invalid
 
 ## Verification
 
