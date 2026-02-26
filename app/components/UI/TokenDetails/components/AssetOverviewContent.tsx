@@ -519,7 +519,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           }
           {isMarketInsightsEnabled && marketInsightsReport ? (
             <View style={styles.marketInsightsWrapper}>
+              {/* key forces a remount on token change so the entry card's
+                  mount-time endTrace fires once per asset, preventing orphaned Sentry spans */}
               <MarketInsightsEntryCard
+                key={marketInsightsCaip19Id ?? ''}
                 report={marketInsightsReport}
                 timeAgo={marketInsightsTimeAgo}
                 onPress={handleMarketInsightsPress}
