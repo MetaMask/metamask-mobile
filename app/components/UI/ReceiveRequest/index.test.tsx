@@ -49,6 +49,21 @@ jest.mock('../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
 }));
 
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
+
+jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({ build: jest.fn() })),
+      build: jest.fn(),
+    })),
+  },
+}));
+
 // Mock QRCode component to test props
 jest.mock('react-native-qrcode-svg', () => {
   const actualReact = jest.requireActual('react');
@@ -219,10 +234,6 @@ describe('ReceiveRequest', () => {
           navigation: { navigate: mockNavigate },
           selectedAddress: '0x123',
           receiveAsset,
-          metrics: {
-            trackEvent: jest.fn(),
-            createEventBuilder: jest.fn(() => ({ build: jest.fn() })),
-          },
         }),
       { name: 'ReceiveRequest' },
       { state: initialState },

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountOverview should render correctly 1`] = `
+exports[`AccountOverview matches snapshot when given account with address and label 1`] = `
 <View
   collapsable={false}
 >
@@ -165,6 +165,7 @@ exports[`AccountOverview should render correctly 1`] = `
               "paddingVertical": 7,
             }
           }
+          testID="account-overview-address-copy-button"
         >
           <Text
             numberOfLines={1}

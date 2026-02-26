@@ -190,6 +190,10 @@ export function usePredictPlaceOrder(
           queryKey: predictQueries.positions.keys.all(),
         });
 
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.activity.keys.all(),
+        });
+
         if (side === Side.BUY) {
           showOrderPlacedToast();
         } else {
