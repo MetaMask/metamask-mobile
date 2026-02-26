@@ -47,9 +47,9 @@ jest.mock('../../../core', () => ({
 
 import { Authentication } from '../../../core';
 
-describe('SocialLoginErrorSheet', () => {
-  const mockError = new Error('Test social login error');
+const mockError = new Error('Test social login error');
 
+describe('SocialLoginErrorSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAddProperties.mockReturnThis();
