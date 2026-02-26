@@ -612,8 +612,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         requestPermission: mockRequestPermission,
       });
 
-      let appStateChangeHandler: ((nextAppState: AppStateStatus) => void) | null =
-        null;
+      let appStateChangeHandler:
+        | ((nextAppState: AppStateStatus) => void)
+        | null = null;
       const addEventListenerSpy = jest
         .spyOn(AppState, 'addEventListener')
         .mockImplementation((eventType, listener) => {
