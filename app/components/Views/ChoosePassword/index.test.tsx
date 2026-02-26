@@ -1322,7 +1322,7 @@ describe('ChoosePassword', () => {
       fireEvent.press(learnMoreLink);
     });
 
-    expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',

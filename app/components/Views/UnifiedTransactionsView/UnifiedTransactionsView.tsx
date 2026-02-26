@@ -11,7 +11,11 @@ import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectInternalAccounts,
+} from '../../../selectors/accountsController';
+import { selectAddressBook } from '../../../selectors/addressBookController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -30,6 +34,7 @@ import {
   filterByAddress,
   isTransactionOnChains,
   sortTransactions,
+  buildTrustedAddressSet,
 } from '../../../util/activity';
 import { areAddressesEqual, isHardwareAccount } from '../../../util/address';
 import { getBlockExplorerAddressUrl } from '../../../util/networks';
@@ -153,6 +158,17 @@ const UnifiedTransactionsView = ({
   );
 
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+  const addressBook = useSelector(selectAddressBook);
+  const internalAccounts = useSelector(selectInternalAccounts);
+
+  const trustedAddresses = useMemo(
+    () =>
+      buildTrustedAddressSet(
+        addressBook,
+        internalAccounts.map((account) => account.address),
+      ),
+    [addressBook, internalAccounts],
+  );
 
   const { data, nonEvmTransactionsForSelectedChain } = useMemo<{
     data: UnifiedItem[];
@@ -195,7 +211,14 @@ const UnifiedTransactionsView = ({
 
       const isReceivedOrSentTransaction =
         selectedAccountGroupInternalAccountsAddresses.some((addr) =>
-          filterByAddress(tx, tokens, addr, transactionMetaPool, bridgeHistory),
+          filterByAddress(
+            tx,
+            tokens,
+            addr,
+            transactionMetaPool,
+            bridgeHistory,
+            trustedAddresses,
+          ),
         );
       if (!isReceivedOrSentTransaction) return false;
 
@@ -337,6 +360,7 @@ const UnifiedTransactionsView = ({
     selectedInternalAccount,
     tokens,
     bridgeHistory,
+    trustedAddresses,
   ]);
 
   const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;
