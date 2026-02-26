@@ -14,16 +14,6 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../util/Logger', () => ({
-  __esModule: true,
-  default: { error: jest.fn() },
-}));
-
-jest.mock('../utils/predictErrorHandler', () => ({
-  ensureError: (err: unknown) =>
-    err instanceof Error ? err : new Error(String(err)),
-}));
-
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -187,8 +177,7 @@ describe('usePredictMarket', () => {
       });
 
       expect(result.current.data).toBeUndefined();
-      expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toBe('String error');
+      expect(result.current.error).toBe('String error');
     });
   });
 
