@@ -79,9 +79,11 @@ Shard wallet-platform-ios-smoke-3: ❌ "missing its bundle executable"
 
 This is NOT test flakiness - it's **one build failure cascading** to all test shards.
 
-## The Fix: Two-Pronged Approach
+## The Fix: Defensive Approach Without Full Root Cause
 
-### 1. Validation (Prevents Corrupt Uploads)
+Since we don't fully understand WHY corruption occurs, the fix uses multiple defensive layers:
+
+### 1. Validation (Catch Corruption Early)
 ```yaml
 # In build-ios-e2e.yml
 - name: Validate iOS app bundle integrity
@@ -96,40 +98,40 @@ This is NOT test flakiness - it's **one build failure cascading** to all test sh
     file "${APP_PATH}/MetaMask" | grep -q "Mach-O" || exit 1
 ```
 
-**Effect**: Build job FAILS if bundle is corrupt. No bad artifact uploaded.
+**Effect**: Build job FAILS if bundle is malformed. No bad artifact uploaded.
 
-### 2. Correct Path (Fixes Download Handling)
+### 2. Correct Path (Handle Nested Structure)
 ```yaml
 # In run-e2e-workflow.yml  
 - name: Setup iOS artifacts
   run: |
-    # Copy from downloaded location to Detox default path
+    # Copy from downloaded nested structure to Detox default path
     cp -R artifacts/main-qa-MetaMask.app/MetaMask.app \
           ios/build/.../MetaMask.app
     
     # Validate copied bundle
-    [ -f ios/build/.../MetaMask.app/Info.plist" ] || exit 1
+    [ -f ios/build/.../MetaMask.app/Info.plist ] || exit 1
 ```
 
-**Effect**: Test shards use correct bundle location. No PREBUILT variable needed.
+**Effect**: Explicitly extract bundle from nested download structure. No PREBUILT variable ambiguity.
 
-## Why This Solves the Problem
+## Expected Outcome (Not Proven, But Defensive)
 
-**Before:**
-- Repack occasionally corrupts bundle
-- Build uploads corrupt artifact (validation missing)
-- All shards download corrupt artifact
-- All shards fail to install
-- Build job shows SUCCESS, but cascade of test failures
+**Current State:**
+- Build occasionally produces malformed bundle (cause unknown)
+- Build reports SUCCESS
+- Bad artifact uploaded
+- All shards download bad artifact
+- All shards fail → cascade failure
 
-**After:**
-- Repack occasionally corrupts bundle  
-- **Build FAILS validation** (corrupt detected early)
+**After Fix:**
+- Build occasionally produces malformed bundle (cause still unknown)
+- **Build validation catches it** → Build reports FAILURE
 - No artifact uploaded
-- No cascade failure to test shards
-- Build job shows FAILURE with clear error message
+- No cascade to test shards
+- Clear error message in build logs
 
-**Bonus:** Even if a valid artifact is uploaded, correct path ensures it's used properly.
+**Also Fixed:** Even when artifact is valid, correct path ensures proper extraction and use.
 
 ## Summary
 
