@@ -210,16 +210,6 @@ export interface RewardsDataServiceApplyBonusCodeAction {
   handler: RewardsDataService['applyBonusCode'];
 }
 
-export interface RewardsDataServiceValidateBonusCodeAction {
-  type: `${typeof SERVICE_NAME}:validateBonusCode`;
-  handler: RewardsDataService['validateBonusCode'];
-}
-
-export interface RewardsDataServiceApplyBonusCodeAction {
-  type: `${typeof SERVICE_NAME}:applyBonusCode`;
-  handler: RewardsDataService['applyBonusCode'];
-}
-
 export interface RewardsDataServiceGetDropsAction {
   type: `${typeof SERVICE_NAME}:getDrops`;
   handler: RewardsDataService['getDrops'];
@@ -449,14 +439,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:applyReferralCode`,
       this.applyReferralCode.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:validateBonusCode`,
-      this.validateBonusCode.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:applyBonusCode`,
-      this.applyBonusCode.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:validateBonusCode`,
