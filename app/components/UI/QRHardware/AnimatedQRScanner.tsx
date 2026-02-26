@@ -189,7 +189,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
       return;
     }
 
-    void requestPermission();
+    requestPermission();
   }, [hasPermission, requestPermission, visible]);
 
   useEffect(() => {
