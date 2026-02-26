@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   TouchableOpacity,
   View,
@@ -53,13 +53,20 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   const navigation = useNavigation();
   const [isTruncated, setIsTruncated] = useState(false);
 
+  useEffect(() => {
+    setIsTruncated(false);
+  }, [error]);
+
   const handleTextLayout = useCallback(
     (event: NativeSyntheticEvent<TextLayoutEventData>) => {
+      if (isTruncated) return;
       const { lines } = event.nativeEvent;
       const renderedText = lines.map((line) => line.text).join('');
-      setIsTruncated(renderedText.length < error.length);
+      if (renderedText.length < error.length) {
+        setIsTruncated(true);
+      }
     },
-    [error],
+    [error, isTruncated],
   );
 
   const handleInfoPress = useCallback(() => {

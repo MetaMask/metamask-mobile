@@ -84,6 +84,38 @@ describe('TruncatedError', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
+    it('does not oscillate when a short error is truncated and fallback is longer', () => {
+      const shortError = 'Invalid OTP';
+      const { getByText, queryByText } = render(
+        <TruncatedError error={shortError} />,
+      );
+
+      const truncatedSlice = shortError.slice(0, 5);
+      const truncateEvent = {
+        nativeEvent: {
+          lines: [{ text: truncatedSlice, x: 0, y: 0, width: 100, height: 20 }],
+        },
+      };
+      act(() => {
+        fireEvent(getByText(shortError), 'onTextLayout', truncateEvent);
+      });
+
+      expect(getByText("We've encountered an error")).toBeOnTheScreen();
+
+      const fallbackText = "We've encountered an error";
+      const fallbackEvent = {
+        nativeEvent: {
+          lines: [{ text: fallbackText, x: 0, y: 0, width: 200, height: 20 }],
+        },
+      };
+      act(() => {
+        fireEvent(getByText(fallbackText), 'onTextLayout', fallbackEvent);
+      });
+
+      expect(getByText("We've encountered an error")).toBeOnTheScreen();
+      expect(queryByText(shortError)).toBeNull();
+    });
+
     it('still navigates with the full error message when truncated', () => {
       const { getByText, getByLabelText } = render(
         <TruncatedError
