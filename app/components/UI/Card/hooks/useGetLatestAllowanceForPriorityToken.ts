@@ -64,7 +64,13 @@ const useGetLatestAllowanceForPriorityToken = (
   const decimals = applicable ? priorityToken.decimals || 0 : 0;
 
   const { data, isLoading, error, refetch } = useQuery<string | null>({
-    queryKey: cardKeys.latestAllowance(tokenAddress, delegationContract),
+    queryKey: cardKeys.latestAllowance(
+      tokenAddress,
+      delegationContract,
+      walletAddress,
+      caipChainId,
+      decimals,
+    ),
     queryFn: async () => {
       if (!sdk || !applicable) return null;
 

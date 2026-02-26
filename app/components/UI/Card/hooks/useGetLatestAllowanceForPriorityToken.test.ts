@@ -1,5 +1,10 @@
 import React from 'react';
-import { renderHook, waitFor, act } from '@testing-library/react-native';
+import {
+  renderHook,
+  waitFor,
+  act,
+  cleanup,
+} from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ethers } from 'ethers';
 import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
@@ -31,8 +36,10 @@ jest.mock('../../../../core/Multichain/utils', () => ({
   isNonEvmChainId: (...args: unknown[]) => mockIsNonEvmChainId(...args),
 }));
 
+let queryClient: QueryClient;
+
 const createWrapper = () => {
-  const queryClient = new QueryClient({
+  queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   return ({ children }: { children: React.ReactNode }) =>
@@ -75,6 +82,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
   });
 
   afterEach(() => {
+    queryClient.cancelQueries();
+    queryClient.clear();
+    cleanup();
     jest.resetAllMocks();
   });
 

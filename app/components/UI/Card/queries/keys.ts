@@ -7,12 +7,21 @@ export const cardKeys = {
   kycStatus: () => [...cardKeys.all(), 'kycStatus'] as const,
   priorityTokenOnChain: (address: string) =>
     [...cardKeys.all(), 'priorityToken', 'onChain', address] as const,
-  latestAllowance: (tokenAddress: string, delegationContract: string) =>
+  latestAllowance: (
+    tokenAddress: string,
+    delegationContract: string,
+    walletAddress: string,
+    caipChainId: string,
+    decimals: number,
+  ) =>
     [
       ...cardKeys.all(),
       'latestAllowance',
       tokenAddress,
       delegationContract,
+      walletAddress,
+      caipChainId,
+      decimals,
     ] as const,
   registrationSettings: () =>
     [...cardKeys.all(), 'registrationSettings'] as const,
