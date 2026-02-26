@@ -12,20 +12,20 @@ The iOS E2E test failures are caused by a **structural mismatch** between how Gi
 
 ### The Problem
 
-When `actions/download-artifact@v4` downloads artifacts, it creates an **extra directory wrapper** with the artifact name:
+When `actions/download-artifact@v4` downloads artifacts, it creates a **folder with the artifact name** that contains the actual `.app` bundle:
 
 ```
-# What GitHub Actions creates:
+# What GitHub Actions creates after download:
 artifacts/
-  └── main-qa-MetaMask.app/          <- wrapper directory
+  └── main-qa-MetaMask.app/          <- regular folder (not an .app bundle)
       └── MetaMask.app/               <- actual iOS app bundle
           ├── Info.plist
           ├── MetaMask                <- executable
           └── ...other bundle files
 
-# What Detox expects:
-artifacts/
-  └── main-qa-MetaMask.app/           <- should BE the app bundle
+# What Detox expects (from .detoxrc.js default):
+ios/build/Build/Products/Release-iphonesimulator/
+  └── MetaMask.app/                   <- the actual .app bundle
       ├── Info.plist
       ├── MetaMask                    <- executable
       └── ...other bundle files
@@ -33,30 +33,33 @@ artifacts/
 
 ### Why This Happens
 
-The artifact upload step in `build-ios-e2e.yml` uploads:
+The artifact upload step in `build-ios-e2e.yml` uploads the `.app` bundle:
 ```yaml
 path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
 name: main-qa-MetaMask.app
 ```
 
-GitHub Actions preserves the directory structure, so the uploaded content is `MetaMask.app/` (directory). When downloaded, `actions/download-artifact@v4` creates an additional wrapper directory with the artifact name, resulting in nested structure.
+When downloaded, `actions/download-artifact@v4` creates a folder named `main-qa-MetaMask.app` and extracts the artifact contents into it. The contents are the `.app` bundle itself (`MetaMask.app`).
 
 ### The Failure
 
-When Detox tries to install the app:
+The workflow was using `PREBUILT_IOS_APP_PATH=artifacts/main-qa-MetaMask.app` to point Detox to the downloaded artifact. However, this path points to the **wrapper folder**, not the actual `.app` bundle inside.
+
+When Detox tries to install:
 ```bash
 xcrun simctl install <simulator-id> "artifacts/main-qa-MetaMask.app"
 ```
 
 It fails because:
-- `artifacts/main-qa-MetaMask.app` is a wrapper directory, not a valid iOS app bundle
+- `artifacts/main-qa-MetaMask.app` is a regular folder, not a valid iOS `.app` bundle
 - The actual bundle is at `artifacts/main-qa-MetaMask.app/MetaMask.app`
-- `xcrun simctl install` requires a valid `.app` bundle, not a wrapper directory
+- `xcrun simctl install` requires a valid `.app` bundle with the executable at the root
 
 Error message:
 ```
-An error was encountered processing the command (domain=IXUserPresentableErrorDomain, code=1):
-App installation failed: Unable to Install "MetaMask"
+main-qa-MetaMask.app is missing its bundle executable. 
+Please check your build settings to make sure that a bundle executable 
+is produced at the path "main-qa-MetaMask.app/MetaMask".
 ```
 
 ## Evidence
@@ -83,29 +86,34 @@ From CI logs (run 22441737582, job 64987739665):
 
 ## Solution Implemented
 
-### 1. Artifact Extraction Fix (`run-e2e-workflow.yml`)
+### 1. Copy to Default Detox Path (`run-e2e-workflow.yml`)
 
-Added a new step after artifact download to move the app bundle to the expected location:
+**Key Change**: Instead of using `PREBUILT_IOS_APP_PATH` to point to the downloaded artifact, copy the actual `.app` bundle to where Detox expects it by default:
 
 ```yaml
-- name: Move iOS artifacts to expected locations
+- name: Setup iOS artifacts from build job
   if: ${{ inputs.platform == 'ios' }}
   run: |
-    # Detect nested structure and move app bundle to correct location
-    ARTIFACT_DIR="artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"
+    # artifacts/main-qa-MetaMask.app/MetaMask.app is the actual bundle
+    # Copy it to ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+    # This is the default path Detox looks for (from .detoxrc.js)
     
-    if [ -d "${ARTIFACT_DIR}/MetaMask.app" ]; then
-      # Move nested bundle one level up
-      mv "${ARTIFACT_DIR}/MetaMask.app" "${ARTIFACT_DIR}.tmp"
-      rm -rf "${ARTIFACT_DIR}"
-      mv "${ARTIFACT_DIR}.tmp" "${ARTIFACT_DIR}"
-    fi
+    ARTIFACT_FOLDER="artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"
+    APP_BUNDLE="${ARTIFACT_FOLDER}/MetaMask.app"
+    TARGET_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
     
-    # Validate bundle has required files
-    if [ ! -f "${ARTIFACT_DIR}/Info.plist" ]; then
-      exit 1
-    fi
+    cp -R "${APP_BUNDLE}" "${TARGET_PATH}"
+    
+    # Validate the copied bundle
+    [ -f "${TARGET_PATH}/Info.plist" ] || exit 1
+    [ -f "${TARGET_PATH}/MetaMask" ] || exit 1
 ```
+
+**Why This Works:**
+- Removes dependency on `PREBUILT_IOS_APP_PATH` environment variable
+- Uses Detox's default path from `.detoxrc.js`
+- Follows the same pattern as Android artifact handling
+- Simpler and more explicit than path manipulation
 
 ### 2. Build Validation (`build-ios-e2e.yml`)
 
@@ -162,10 +170,11 @@ Updated artifact copying logic to handle nested structure:
 
 ## Expected Benefits
 
-1. **Fail Fast**: Invalid builds are detected at build time, not test time
-2. **Clear Error Messages**: Validation failures provide specific error messages about what's missing
-3. **Reduced Test Flakiness**: Tests won't fail due to corrupt app artifacts
-4. **Better CI Success Rate**: Should contribute to improving the main branch success rate from ~50% to >80%
+1. **Correct App Installation**: Detox now installs the actual `.app` bundle, not a wrapper folder
+2. **Fail Fast**: Invalid builds are detected at build time with validation checks
+3. **Clear Error Messages**: Setup failures show exactly what's missing and where
+4. **Simplified Configuration**: Removes dependency on `PREBUILT_IOS_APP_PATH` variable
+5. **Better CI Success Rate**: Should significantly improve the main branch success rate from ~50% toward >80%
 
 ## Testing Strategy
 
@@ -218,20 +227,29 @@ This fix addresses **Issue #1** from the flaky test investigation:
 
 ### Why Android Doesn't Have This Issue
 
-Android workflows explicitly move artifacts to expected locations:
+Android workflows explicitly copy artifacts from the downloaded nested structure to expected locations:
 ```yaml
 - name: Move Android artifacts to expected locations
   run: |
     cp artifacts/main-e2e-release.apk/app-prod-release.apk ${{ target-path }}/
 ```
 
-The Android setup was already aware of the nested structure and handled it correctly. iOS workflows were missing this step.
+The Android setup was already handling the nested download structure correctly. iOS workflows needed the same approach.
 
-### Alternative Solutions Considered
+### Why Not Use PREBUILT_IOS_APP_PATH?
 
-1. **Change artifact upload structure**: Would require coordinating changes across multiple workflows
-2. **Use `tar` archives**: More complex and slower than directory-based artifacts
-3. **Current solution**: Simplest - just move the bundle after download with validation
+The original workflow used:
+```yaml
+env:
+  PREBUILT_IOS_APP_PATH: artifacts/main-qa-MetaMask.app
+```
+
+But this pointed to the **wrapper folder**, not the `.app` bundle. The error message confirmed this:
+```
+main-qa-MetaMask.app is missing its bundle executable.
+```
+
+**Solution:** Copy the actual bundle from `artifacts/main-qa-MetaMask.app/MetaMask.app` to the default Detox path `ios/build/.../MetaMask.app`, removing the need for the `PREBUILT_IOS_APP_PATH` variable entirely.
 
 ---
 
