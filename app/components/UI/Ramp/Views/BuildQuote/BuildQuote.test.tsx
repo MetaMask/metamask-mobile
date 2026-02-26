@@ -83,10 +83,8 @@ const mockGetQuickBuyErrorCallback = jest.fn(() => mockQuickBuyErrorCallback);
 const mockRemoveQuickBuyErrorCallback = jest.fn();
 
 jest.mock('../../utils/quickBuyCallbackRegistry', () => ({
-  getQuickBuyErrorCallback: (...args: unknown[]) =>
-    mockGetQuickBuyErrorCallback(...args),
-  removeQuickBuyErrorCallback: (...args: unknown[]) =>
-    mockRemoveQuickBuyErrorCallback(...args),
+  getQuickBuyErrorCallback: mockGetQuickBuyErrorCallback,
+  removeQuickBuyErrorCallback: mockRemoveQuickBuyErrorCallback,
 }));
 
 const mockUseParams = jest.fn<Record<string, unknown>, []>(() => ({

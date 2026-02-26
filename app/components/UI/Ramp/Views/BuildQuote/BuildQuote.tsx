@@ -599,9 +599,19 @@ function BuildQuote() {
         removeQuickBuyErrorCallback(params.callbackKey);
       }
 
-      const topLevelNavigation = navigation.getParent?.()?.getParent?.();
+      const navigationWithParent = navigation as typeof navigation & {
+        getParent?: () => {
+          getParent?: () => {
+            canGoBack?: () => boolean;
+            goBack?: () => void;
+          };
+        };
+      };
+      const topLevelNavigation = navigationWithParent
+        .getParent?.()
+        ?.getParent?.();
       if (topLevelNavigation?.canGoBack?.()) {
-        topLevelNavigation.goBack();
+        topLevelNavigation.goBack?.();
         return;
       }
       if (navigation.canGoBack?.()) {
@@ -634,7 +644,12 @@ function BuildQuote() {
       return;
     }
 
-    if (quoteFetchEnabled && !selectedQuoteLoading && quotesResponse && !canContinue) {
+    if (
+      quoteFetchEnabled &&
+      !selectedQuoteLoading &&
+      quotesResponse &&
+      !canContinue
+    ) {
       autoProceedFailedRef.current = true;
       exitQuickBuyFlow(strings('fiat_on_ramp.quote_unavailable'));
     }
