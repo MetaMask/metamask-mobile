@@ -44,11 +44,13 @@ import { OrderPreview, PlaceOrderParams } from '../types';
 import { PolymarketProvider } from './PolymarketProvider';
 import {
   computeProxyAddress,
+  createPermit2FeeAuthorization,
   createSafeFeeAuthorization,
   getClaimTransaction,
   getDeployProxyWalletTransaction,
   getProxyWalletAllowancesTransaction,
   hasAllowances,
+  hasPermit2Allowance,
 } from './safe/utils';
 import {
   createApiKey,
@@ -114,11 +116,13 @@ jest.mock('./utils', () => {
 
 jest.mock('./safe/utils', () => ({
   computeProxyAddress: jest.fn(),
+  createPermit2FeeAuthorization: jest.fn(),
   createSafeFeeAuthorization: jest.fn(),
   getClaimTransaction: jest.fn(),
   getDeployProxyWalletTransaction: jest.fn(),
   getProxyWalletAllowancesTransaction: jest.fn(),
   hasAllowances: jest.fn(),
+  hasPermit2Allowance: jest.fn(),
   getWithdrawTransactionCallData: jest
     .fn()
     .mockResolvedValue('0xsignedcalldata'),
@@ -209,6 +213,9 @@ const mockSubmitClobOrder = submitClobOrder as jest.Mock;
 const mockEncodeClaim = encodeClaim as jest.Mock;
 const mockComputeProxyAddress = computeProxyAddress as jest.Mock;
 const mockCreateSafeFeeAuthorization = createSafeFeeAuthorization as jest.Mock;
+const mockCreatePermit2FeeAuthorization =
+  createPermit2FeeAuthorization as jest.Mock;
+const mockHasPermit2Allowance = hasPermit2Allowance as jest.Mock;
 const mockGetClaimTransaction = getClaimTransaction as jest.Mock;
 const mockHasAllowances = hasAllowances as jest.Mock;
 const mockQuery = query as jest.Mock;
@@ -1600,6 +1607,198 @@ describe('PolymarketProvider', () => {
           to: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
         }),
       );
+    });
+  });
+
+  describe('placeOrder with Permit2 fee authorization', () => {
+    const permit2FeeAuth = {
+      type: 'safe-permit2' as const,
+      authorization: {
+        permit: {
+          permitted: { token: '0xUSDC', amount: '40000' },
+          nonce: '0',
+          deadline: '1700000000',
+        },
+        spender: '0xExecutorAddress',
+        signature: '0xPermit2Signature',
+      },
+    };
+
+    beforeEach(() => {
+      mockCreatePermit2FeeAuthorization.mockClear();
+      mockCreateSafeFeeAuthorization.mockClear();
+      mockHasPermit2Allowance.mockClear();
+    });
+
+    function setupPermit2Test() {
+      const result = setupPlaceOrderTest();
+      mockHasPermit2Allowance.mockResolvedValue(true);
+      mockCreatePermit2FeeAuthorization.mockResolvedValue(permit2FeeAuth);
+      return result;
+    }
+
+    it('uses Permit2 authorization when permit2Enabled and allowance set', async () => {
+      const { provider, mockSigner } = setupPermit2Test();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          permit2Enabled: true,
+          executors: ['0xExecutorAddress'],
+        },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockCreatePermit2FeeAuthorization).toHaveBeenCalled();
+      expect(mockCreateSafeFeeAuthorization).not.toHaveBeenCalled();
+    });
+
+    it('submits FAK order type when Permit2 is used', async () => {
+      const { provider, mockSigner } = setupPermit2Test();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          permit2Enabled: true,
+          executors: ['0xExecutorAddress'],
+        },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clobOrder: expect.objectContaining({
+            orderType: 'FAK',
+          }),
+          executor: expect.any(String),
+        }),
+      );
+    });
+
+    it('includes executor in submitClobOrder call', async () => {
+      const { provider, mockSigner } = setupPermit2Test();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          permit2Enabled: true,
+          executors: ['0xExecutorAddress'],
+        },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          executor: '0xExecutorAddress',
+        }),
+      );
+    });
+
+    it('falls back to Safe authorization when Permit2 allowance not set', async () => {
+      const { provider, mockSigner } = setupPermit2Test();
+      mockHasPermit2Allowance.mockResolvedValue(false);
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          permit2Enabled: true,
+          executors: ['0xExecutorAddress'],
+        },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockCreateSafeFeeAuthorization).toHaveBeenCalled();
+      expect(mockCreatePermit2FeeAuthorization).not.toHaveBeenCalled();
+    });
+
+    it('submits FOK order type when falling back to Safe authorization', async () => {
+      const { provider, mockSigner } = setupPermit2Test();
+      mockHasPermit2Allowance.mockResolvedValue(false);
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          permit2Enabled: true,
+          executors: ['0xExecutorAddress'],
+        },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clobOrder: expect.objectContaining({
+            orderType: 'FOK',
+          }),
+        }),
+      );
+    });
+
+    it('uses Safe authorization when permit2Enabled is false', async () => {
+      const { provider, mockSigner } = setupPermit2Test();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          permit2Enabled: false,
+          executors: [],
+        },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockCreateSafeFeeAuthorization).toHaveBeenCalled();
+      expect(mockCreatePermit2FeeAuthorization).not.toHaveBeenCalled();
+      expect(mockHasPermit2Allowance).not.toHaveBeenCalled();
+    });
+
+    it('uses Safe authorization when executors array is empty', async () => {
+      const { provider, mockSigner } = setupPermit2Test();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          permit2Enabled: true,
+          executors: [],
+        },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockCreateSafeFeeAuthorization).toHaveBeenCalled();
+      expect(mockCreatePermit2FeeAuthorization).not.toHaveBeenCalled();
     });
   });
 

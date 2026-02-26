@@ -2894,6 +2894,49 @@ describe('polymarket utils', () => {
       expect(fees.totalFeePercentage).toBe(0);
       expect(fees.collector).toBe('0x0');
     });
+
+    it('includes executors and permit2Enabled from feeCollection config', async () => {
+      const feeCollectionWithPermit2 = {
+        ...feeCollection,
+        executors: ['0xABC', '0xDEF'],
+        permit2Enabled: true,
+      };
+      const params = {
+        feeCollection: feeCollectionWithPermit2,
+        marketId: 'market-1',
+        userBetAmount: 1,
+      };
+
+      const fees = await calculateFees(params);
+
+      expect(fees.executors).toEqual(['0xABC', '0xDEF']);
+      expect(fees.permit2Enabled).toBe(true);
+    });
+
+    it('returns empty executors and permit2Enabled false when not configured', async () => {
+      const params = {
+        feeCollection,
+        marketId: 'market-1',
+        userBetAmount: 1,
+      };
+
+      const fees = await calculateFees(params);
+
+      expect(fees.executors).toEqual([]);
+      expect(fees.permit2Enabled).toBe(false);
+    });
+
+    it('returns empty executors and permit2Enabled false when fees are waived', async () => {
+      const params = {
+        marketId: 'market-1',
+        userBetAmount: 100,
+      };
+
+      const fees = await calculateFees(params);
+
+      expect(fees.executors).toEqual([]);
+      expect(fees.permit2Enabled).toBe(false);
+    });
   });
 
   describe('submitClobOrder error handling', () => {
@@ -3001,6 +3044,83 @@ describe('polymarket utils', () => {
         success: false,
         error: 'Bad Gateway',
       });
+    });
+
+    it('includes executor in request body when provided', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue({
+          orderID: 'test-order-id',
+          success: true,
+        }),
+      });
+      const executorAddress = '0xABCDEF1234567890ABCDEF1234567890ABCDEF12';
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        executor: executorAddress,
+      });
+
+      const fetchCall = mockFetch.mock.calls[0];
+      const body = JSON.parse(fetchCall[1].body as string);
+      expect(body.executor).toBe(executorAddress);
+    });
+
+    it('omits executor from request body when not provided', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue({
+          orderID: 'test-order-id',
+          success: true,
+        }),
+      });
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      const fetchCall = mockFetch.mock.calls[0];
+      const body = JSON.parse(fetchCall[1].body as string);
+      expect(body.executor).toBeUndefined();
+    });
+
+    it('includes Permit2 fee authorization in request body', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue({
+          orderID: 'test-order-id',
+          success: true,
+        }),
+      });
+      const permit2Auth = {
+        type: 'safe-permit2' as const,
+        authorization: {
+          permit: {
+            permitted: { token: '0xUSDC', amount: '1000000' },
+            nonce: '0',
+            deadline: '1700000000',
+          },
+          spender: '0xEXECUTOR',
+          signature: '0xSIGNATURE',
+        },
+      };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization: permit2Auth,
+        executor: '0xEXECUTOR',
+      });
+
+      const fetchCall = mockFetch.mock.calls[0];
+      const body = JSON.parse(fetchCall[1].body as string);
+      expect(body.feeAuthorization).toEqual(permit2Auth);
+      expect(body.executor).toBe('0xEXECUTOR');
     });
   });
 
