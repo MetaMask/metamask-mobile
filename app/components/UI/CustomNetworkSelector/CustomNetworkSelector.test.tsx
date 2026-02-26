@@ -17,7 +17,6 @@ import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkS
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import CustomNetworkSelector from './CustomNetworkSelector';
 import { CustomNetworkItem } from './CustomNetworkSelector.types';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
@@ -124,13 +123,6 @@ jest.mock('../../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(),
   createProviderConfig: jest.fn(),
 }));
-
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(),
-  }),
-);
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -307,9 +299,6 @@ describe('CustomNetworkSelector', () => {
     mockSelectIsEvmNetworkSelected.mockReturnValue(true);
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return true;
-      }
       if (selector === mockSelectIsEvmNetworkSelected) {
         return true;
       }
