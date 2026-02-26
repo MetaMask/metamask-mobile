@@ -4,7 +4,6 @@ import { login } from '../../framework/utils/Flows.js';
 import RNPlaygroundDapp from '../../../wdio/screen-objects/RNPlaygroundDapp.js';
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
-import { APP_PACKAGE_IDS } from '../../framework/Constants.ts';
 import {
   unlockIfLockScreenVisible,
   ensurePlaygroundInstalled,
@@ -140,6 +139,7 @@ test('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send trans
   );
   const txResponse = await RNPlaygroundDapp.getLegacyEvmResponseText();
   console.log(`eth_sendTransaction (cancelled) response: ${txResponse}`);
+  expect(txResponse.toLowerCase()).toContain('reject');
 
   //
   // 6. Chain switching from the dapp — wallet_switchEthereumChain
