@@ -13,6 +13,10 @@ import {
   selectPayQuoteConfig,
   PreferredToken,
   getPreferredTokensForTransactionType,
+  BlockedTokensConfig,
+  BlockedTokensListConfig,
+  getBlockedTokensForTransactionType,
+  isTokenBlocked,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -352,6 +356,40 @@ describe('selectMetaMaskPayTokensFlags (confirmations_pay_tokens)', () => {
     expect(result.preferredTokens).toEqual({ default: [], overrides: {} });
   });
 
+  it('returns default empty blockedTokens when confirmations_pay_tokens is missing', () => {
+    const result = selectMetaMaskPayTokensFlags(mockedEmptyFlagsState);
+
+    expect(result.blockedTokens).toEqual({
+      default: { chainIds: [], tokens: [] },
+      overrides: {},
+    });
+  });
+
+  it('returns blockedTokens with overrides from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_tokens: {
+          blockedTokens: {
+            default: { chainIds: ['0xa4b1'], tokens: [] },
+            overrides: {
+              perpsDeposit: {
+                chainIds: [],
+                tokens: [{ address: '0xabc', chainId: '0x1' }],
+              },
+            },
+          },
+        },
+      };
+
+    const result = selectMetaMaskPayTokensFlags(state);
+    expect(result.blockedTokens.default.chainIds).toEqual(['0xa4b1']);
+    expect(result.blockedTokens.overrides.perpsDeposit).toEqual({
+      chainIds: [],
+      tokens: [{ address: '0xabc', chainId: '0x1' }],
+    });
+  });
+
   it('returns default minimumRequiredTokenBalance of 0 when not in feature flags', () => {
     const result = selectMetaMaskPayTokensFlags(mockedEmptyFlagsState);
 
@@ -443,5 +481,76 @@ describe('getPreferredTokensForTransactionType', () => {
     expect(getPreferredTokensForTransactionType(config, undefined)).toEqual(
       defaultTokens,
     );
+  });
+});
+
+describe('getBlockedTokensForTransactionType', () => {
+  const defaultBlocked: BlockedTokensListConfig = {
+    chainIds: ['0x1'],
+    tokens: [],
+  };
+
+  const perpsBlocked: BlockedTokensListConfig = {
+    chainIds: ['0xa4b1'],
+    tokens: [{ address: '0xabc', chainId: '0x1' }],
+  };
+
+  const config: BlockedTokensConfig = {
+    default: defaultBlocked,
+    overrides: {
+      perpsDeposit: perpsBlocked,
+    },
+  };
+
+  it('returns override when transaction type has an override', () => {
+    expect(getBlockedTokensForTransactionType(config, 'perpsDeposit')).toEqual(
+      perpsBlocked,
+    );
+  });
+
+  it('returns default when transaction type has no override', () => {
+    expect(
+      getBlockedTokensForTransactionType(config, 'predictDeposit'),
+    ).toEqual(defaultBlocked);
+  });
+
+  it('returns default when transaction type is undefined', () => {
+    expect(getBlockedTokensForTransactionType(config, undefined)).toEqual(
+      defaultBlocked,
+    );
+  });
+});
+
+describe('isTokenBlocked', () => {
+  const blockedConfig: BlockedTokensListConfig = {
+    chainIds: ['0xa4b1'],
+    tokens: [{ address: '0xabc', chainId: '0x1' }],
+  };
+
+  it('returns true when token chain is in blocked chainIds', () => {
+    expect(
+      isTokenBlocked({ address: '0xany', chainId: '0xa4b1' }, blockedConfig),
+    ).toBe(true);
+  });
+
+  it('returns true when token address+chainId matches a blocked token', () => {
+    expect(
+      isTokenBlocked({ address: '0xABC', chainId: '0x1' }, blockedConfig),
+    ).toBe(true);
+  });
+
+  it('returns false when token does not match any blocked entry', () => {
+    expect(
+      isTokenBlocked({ address: '0xdef', chainId: '0x89' }, blockedConfig),
+    ).toBe(false);
+  });
+
+  it('returns false with empty blocked config', () => {
+    expect(
+      isTokenBlocked(
+        { address: '0xabc', chainId: '0x1' },
+        { chainIds: [], tokens: [] },
+      ),
+    ).toBe(false);
   });
 });

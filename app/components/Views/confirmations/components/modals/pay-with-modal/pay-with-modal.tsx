@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { noop } from 'lodash';
 import Engine from '../../../../../../core/Engine';
@@ -30,6 +30,11 @@ import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { useSelector } from 'react-redux';
+import {
+  selectMetaMaskPayTokensFlags,
+  getBlockedTokensForTransactionType,
+} from '../../../../../../selectors/featureFlagController/confirmations';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -48,6 +53,15 @@ export function PayWithModal() {
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
+  const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
+  const blockedTokensList = useMemo(
+    () =>
+      getBlockedTokensForTransactionType(
+        payTokensFlags.blockedTokens,
+        transactionMeta?.type,
+      ),
+    [payTokensFlags.blockedTokens, transactionMeta?.type],
+  );
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -153,6 +167,7 @@ export function PayWithModal() {
         payToken,
         requiredTokens,
         tokens,
+        blockedTokens: blockedTokensList,
       });
 
       let filteredTokens: TokenListItem[] = availableTokens;
@@ -172,6 +187,7 @@ export function PayWithModal() {
       return wrapHighlightedItemCallbacks(filteredTokens);
     },
     [
+      blockedTokensList,
       withdrawTokenFilter,
       musdTokenFilter,
       payToken,

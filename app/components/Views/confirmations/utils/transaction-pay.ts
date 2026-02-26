@@ -14,7 +14,11 @@ import {
 import { BigNumber } from 'bignumber.js';
 import { isTestNet } from '../../../../util/networks';
 import { store } from '../../../../store';
-import { selectGasFeeTokenFlags } from '../../../../selectors/featureFlagController/confirmations';
+import {
+  selectGasFeeTokenFlags,
+  BlockedTokensListConfig,
+  isTokenBlocked,
+} from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
@@ -87,10 +91,12 @@ export function getAvailableTokens({
   payToken,
   requiredTokens,
   tokens,
+  blockedTokens,
 }: {
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
+  blockedTokens?: BlockedTokensListConfig;
 }): AssetType[] {
   const supportedGasFeeTokens = getSupportedGasFeeTokens();
 
@@ -140,11 +146,18 @@ export function getAvailableTokens({
         token.address?.toLowerCase() as Hex,
       );
 
-      const disabled = noNativeBalance && !isGasStationSupported;
+      const noGasDisabled = noNativeBalance && !isGasStationSupported;
 
-      const disabledMessage = disabled
+      const blocked =
+        blockedTokens != null && isTokenBlocked(token, blockedTokens);
+
+      const disabled = noGasDisabled || blocked;
+
+      const disabledMessage = noGasDisabled
         ? strings('pay_with_modal.no_gas')
-        : undefined;
+        : blocked
+          ? strings('pay_with_modal.not_supported')
+          : undefined;
 
       const isSelected =
         payToken?.address.toLowerCase() === token.address.toLowerCase() &&
@@ -156,7 +169,8 @@ export function getAvailableTokens({
         disabledMessage,
         isSelected,
       };
-    });
+    })
+    .sort((a, b) => Number(a.disabled) - Number(b.disabled));
 }
 
 function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {

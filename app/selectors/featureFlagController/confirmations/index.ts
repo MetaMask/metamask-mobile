@@ -20,6 +20,21 @@ export interface PreferredTokensConfig {
   overrides: Record<string, PreferredToken[]>;
 }
 
+export interface BlockedTokenEntry {
+  address: string;
+  chainId: string;
+}
+
+export interface BlockedTokensListConfig {
+  chainIds: string[];
+  tokens: BlockedTokenEntry[];
+}
+
+export interface BlockedTokensConfig {
+  default: BlockedTokensListConfig;
+  overrides: Record<string, BlockedTokensListConfig>;
+}
+
 export interface MetaMaskPayFlags {
   attemptsMax: number;
   bufferInitial: number;
@@ -30,6 +45,7 @@ export interface MetaMaskPayFlags {
 
 export interface MetaMaskPayTokensFlags {
   preferredTokens: PreferredTokensConfig;
+  blockedTokens: BlockedTokensConfig;
   minimumRequiredTokenBalance: number;
 }
 
@@ -95,6 +111,10 @@ export const selectMetaMaskPayTokensFlags = createSelector(
       | Record<string, Json | PreferredTokensConfig>
       | undefined;
 
+    const rawBlockedTokens = payTokenFlags?.blockedTokens as
+      | BlockedTokensConfig
+      | undefined;
+
     return {
       preferredTokens: {
         default:
@@ -103,6 +123,13 @@ export const selectMetaMaskPayTokensFlags = createSelector(
         overrides:
           ((payTokenFlags?.preferredTokens as PreferredTokensConfig)
             ?.overrides as Record<string, PreferredToken[]>) ?? {},
+      },
+      blockedTokens: {
+        default: {
+          chainIds: rawBlockedTokens?.default?.chainIds ?? [],
+          tokens: rawBlockedTokens?.default?.tokens ?? [],
+        },
+        overrides: rawBlockedTokens?.overrides ?? {},
       },
       minimumRequiredTokenBalance:
         (payTokenFlags?.minimumRequiredTokenBalance as number) ?? 0,
@@ -158,6 +185,34 @@ export const selectPayQuoteConfig = createSelector(
     };
   },
 );
+
+export function getBlockedTokensForTransactionType(
+  blockedTokens: BlockedTokensConfig,
+  transactionType?: string,
+): BlockedTokensListConfig {
+  if (transactionType && blockedTokens.overrides[transactionType]) {
+    return blockedTokens.overrides[transactionType];
+  }
+  return blockedTokens.default;
+}
+
+export function isTokenBlocked(
+  token: { address: string; chainId?: string },
+  blockedConfig: BlockedTokensListConfig,
+): boolean {
+  if (
+    token.chainId &&
+    blockedConfig.chainIds.includes(token.chainId.toString().toLowerCase())
+  ) {
+    return true;
+  }
+
+  return blockedConfig.tokens.some(
+    (blocked) =>
+      blocked.address.toLowerCase() === token.address.toLowerCase() &&
+      blocked.chainId === token.chainId,
+  );
+}
 
 export function getPreferredTokensForTransactionType(
   preferredTokens: PreferredTokensConfig,

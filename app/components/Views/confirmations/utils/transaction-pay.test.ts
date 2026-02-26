@@ -20,7 +20,7 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { store } from '../../../../store';
-import { selectGasFeeTokenFlags } from '../../../../selectors/featureFlagController/confirmations';
+import { selectGasFeeTokenFlags , BlockedTokensListConfig } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
 
 jest.mock('../../../../store', () => ({
@@ -31,6 +31,9 @@ jest.mock('../../../../store', () => ({
 
 jest.mock('../../../../selectors/featureFlagController/confirmations', () => ({
   selectGasFeeTokenFlags: jest.fn(),
+  isTokenBlocked: jest.requireActual(
+    '../../../../selectors/featureFlagController/confirmations',
+  ).isTokenBlocked,
 }));
 
 const CHAIN_ID_MOCK = '0x1';
@@ -337,6 +340,114 @@ describe('Transaction Pay Utils', () => {
       it('marks token as disabled when native token is not found in tokens list', () => {
         const result = getAvailableTokens({
           tokens: [ERC20_TOKEN_MOCK],
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].disabled).toBe(true);
+        expect(result[0].disabledMessage).toBe(
+          strings('pay_with_modal.no_gas'),
+        );
+      });
+    });
+
+    describe('blockedTokens', () => {
+      it('marks token as disabled when its chain is in blocklist chainIds', () => {
+        const blockedTokens: BlockedTokensListConfig = {
+          chainIds: [CHAIN_ID_MOCK],
+          tokens: [],
+        };
+
+        const result = getAvailableTokens({
+          tokens: [TOKEN_MOCK, ERC20_TOKEN_MOCK],
+          blockedTokens,
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].disabled).toBe(true);
+        expect(result[0].disabledMessage).toBe(
+          strings('pay_with_modal.not_supported'),
+        );
+        expect(result[1].disabled).toBe(true);
+        expect(result[1].disabledMessage).toBe(
+          strings('pay_with_modal.not_supported'),
+        );
+      });
+
+      it('marks specific token as disabled when address+chainId matches blocklist', () => {
+        const blockedTokens: BlockedTokensListConfig = {
+          chainIds: [],
+          tokens: [
+            {
+              address: ERC20_TOKEN_MOCK.address,
+              chainId: ERC20_TOKEN_MOCK.chainId as string,
+            },
+          ],
+        };
+
+        const result = getAvailableTokens({
+          tokens: [TOKEN_MOCK, ERC20_TOKEN_MOCK],
+          blockedTokens,
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].disabled).toBe(false);
+        expect(result[1].disabled).toBe(true);
+        expect(result[1].disabledMessage).toBe(
+          strings('pay_with_modal.not_supported'),
+        );
+      });
+
+      it('sorts blocked tokens to the bottom of the list', () => {
+        const blockedTokens: BlockedTokensListConfig = {
+          chainIds: [],
+          tokens: [
+            {
+              address: TOKEN_MOCK.address,
+              chainId: TOKEN_MOCK.chainId as string,
+            },
+          ],
+        };
+
+        const result = getAvailableTokens({
+          tokens: [TOKEN_MOCK, ERC20_TOKEN_MOCK],
+          blockedTokens,
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].address).toBe(ERC20_TOKEN_MOCK.address);
+        expect(result[0].disabled).toBe(false);
+        expect(result[1].address).toBe(TOKEN_MOCK.address);
+        expect(result[1].disabled).toBe(true);
+      });
+
+      it('does not disable non-blocked tokens', () => {
+        const blockedTokens: BlockedTokensListConfig = {
+          chainIds: ['0x999'],
+          tokens: [{ address: '0xunrelated', chainId: '0x999' }],
+        };
+
+        const result = getAvailableTokens({
+          tokens: [TOKEN_MOCK, ERC20_TOKEN_MOCK],
+          blockedTokens,
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].disabled).toBe(false);
+        expect(result[1].disabled).toBe(false);
+      });
+
+      it('keeps no-gas disabled message when token is disabled for no gas but not blocked', () => {
+        const blockedTokens: BlockedTokensListConfig = {
+          chainIds: [],
+          tokens: [],
+        };
+
+        const result = getAvailableTokens({
+          tokens: [
+            ERC20_TOKEN_MOCK,
+            { ...TOKEN_MOCK, balance: '0' } as AssetType,
+          ],
+          blockedTokens,
         });
 
         expect(result).toHaveLength(1);
