@@ -301,7 +301,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('changes candle period when period button is pressed', async () => {
-      renderPerpsMarketDetailsView({
+      const { store } = renderPerpsMarketDetailsView({
         streamOverrides: { positions: [] },
         overrides: {
           engine: {
@@ -315,13 +315,17 @@ describe('PerpsMarketDetailsView', () => {
       const period3mButton = await screen.findByTestId(
         getPerpsCandlePeriodSelector.periodButton(CANDLE_SELECTOR_BASE, '3m'),
       );
+      expect(period3mButton).toBeOnTheScreen();
+
       fireEvent.press(period3mButton);
 
-      expect(period3mButton).toBeOnTheScreen();
+      expect(
+        store.getState().settings.perpsChartPreferences.preferredCandlePeriod,
+      ).toBe('3m');
     });
 
     it('opens more candle periods bottom sheet and selects a period', async () => {
-      renderPerpsMarketDetailsView({
+      const { store } = renderPerpsMarketDetailsView({
         streamOverrides: { positions: [] },
         overrides: {
           engine: {
@@ -345,6 +349,9 @@ describe('PerpsMarketDetailsView', () => {
       );
       fireEvent.press(period1mInSheet);
 
+      expect(
+        store.getState().settings.perpsChartPreferences.preferredCandlePeriod,
+      ).toBe('1m');
       expect(
         screen.queryByTestId(
           getPerpsCandlePeriodBottomSheetSelector.periodButton(
