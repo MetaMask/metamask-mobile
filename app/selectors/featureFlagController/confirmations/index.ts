@@ -12,7 +12,6 @@ export const SLIPPAGE_DEFAULT = 0.005;
 export interface PreferredToken {
   address: string;
   chainId: string;
-  name?: string;
   successRate: number;
 }
 
@@ -27,8 +26,9 @@ export interface MetaMaskPayFlags {
   bufferStep: number;
   bufferSubsequent: number;
   slippage: number;
-  predictWithdrawAnyToken: boolean;
-  perpsWithdrawAnyToken: boolean;
+}
+
+export interface MetaMaskPayTokensFlags {
   preferredTokens: PreferredTokensConfig;
   minimumRequiredTokenBalance: number;
 }
@@ -62,11 +62,6 @@ export const selectMetaMaskPayFlags = createSelector(
       | Record<string, Json>
       | undefined;
 
-    const payTokenFlags = (featureFlags as Record<string, Json>)
-      ?.confirmations_pay_tokens as
-      | Record<string, Json | PreferredTokensConfig>
-      | undefined;
-
     const attemptsMax =
       (metaMaskPayFlags?.attemptsMax as number) ?? ATTEMPTS_MAX_DEFAULT;
 
@@ -88,10 +83,19 @@ export const selectMetaMaskPayFlags = createSelector(
       bufferStep,
       bufferSubsequent,
       slippage,
-      predictWithdrawAnyToken:
-        (metaMaskPayFlags?.predictWithdrawAnyToken as boolean) ?? false,
-      perpsWithdrawAnyToken:
-        (metaMaskPayFlags?.perpsWithdrawAnyToken as boolean) ?? false,
+    };
+  },
+);
+
+export const selectMetaMaskPayTokensFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): MetaMaskPayTokensFlags => {
+    const payTokenFlags = (featureFlags as Record<string, Json>)
+      ?.confirmations_pay_tokens as
+      | Record<string, Json | PreferredTokensConfig>
+      | undefined;
+
+    return {
       preferredTokens: {
         default:
           ((payTokenFlags?.preferredTokens as PreferredTokensConfig)

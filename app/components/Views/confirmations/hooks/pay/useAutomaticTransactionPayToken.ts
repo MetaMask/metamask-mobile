@@ -11,7 +11,7 @@ import { AssetType } from '../../types/token';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
 import { useSelector } from 'react-redux';
 import {
-  selectMetaMaskPayFlags,
+  selectMetaMaskPayTokensFlags,
   PreferredToken,
   getPreferredTokensForTransactionType,
 } from '../../../../../selectors/featureFlagController/confirmations';
@@ -34,7 +34,7 @@ export function useAutomaticTransactionPayToken({
   const { setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
   const { availableTokens: tokens } = useTransactionPayAvailableTokens();
-  const payFlags = useSelector(selectMetaMaskPayFlags);
+  const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
 
   const tokensWithBalance = useMemo(
     () => tokens.filter((t) => !t.disabled),
@@ -64,10 +64,10 @@ export function useAutomaticTransactionPayToken({
   const preferredTokensFromFlags = useMemo(
     () =>
       getPreferredTokensForTransactionType(
-        payFlags.preferredTokens,
+        payTokensFlags.preferredTokens,
         transactionMeta.type,
       ),
-    [transactionMeta.type, payFlags.preferredTokens],
+    [transactionMeta.type, payTokensFlags.preferredTokens],
   );
 
   // For withdrawals, skip auto-selection — the default token is derived
@@ -85,7 +85,7 @@ export function useAutomaticTransactionPayToken({
       tokens: tokensWithBalance,
       preferredToken,
       preferredTokensFromFlags,
-      minimumRequiredTokenBalance: payFlags.minimumRequiredTokenBalance,
+      minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
     });
 
     if (!automaticToken) {
@@ -105,7 +105,7 @@ export function useAutomaticTransactionPayToken({
     disable,
     isHardwareWallet,
     isWithdraw,
-    payFlags.minimumRequiredTokenBalance,
+    payTokensFlags.minimumRequiredTokenBalance,
     preferredToken,
     preferredTokensFromFlags,
     requiredTokens,

@@ -1,6 +1,7 @@
 import { cloneDeep } from 'lodash';
 import {
   selectMetaMaskPayFlags,
+  selectMetaMaskPayTokensFlags,
   BUFFER_STEP_DEFAULT,
   BUFFER_INITIAL_DEFAULT,
   ATTEMPTS_MAX_DEFAULT,
@@ -339,20 +340,20 @@ describe('selectPayQuoteConfig', () => {
   });
 });
 
-describe('Preferred Tokens and Minimum Balance Flags (in selectMetaMaskPayFlags)', () => {
+describe('selectMetaMaskPayTokensFlags (confirmations_pay_tokens)', () => {
   const preferredTokensMock: PreferredToken[] = [
     { address: '0xtoken1', chainId: '0x1', successRate: 0.95 },
     { address: '0xtoken2', chainId: '0x89', successRate: 0.8 },
   ];
 
-  it('returns empty preferred tokens when confirmations-pay-tokens is missing', () => {
-    const result = selectMetaMaskPayFlags(mockedEmptyFlagsState);
+  it('returns empty preferred tokens when confirmations_pay_tokens is missing', () => {
+    const result = selectMetaMaskPayTokensFlags(mockedEmptyFlagsState);
 
     expect(result.preferredTokens).toEqual({ default: [], overrides: {} });
   });
 
   it('returns default minimumRequiredTokenBalance of 0 when not in feature flags', () => {
-    const result = selectMetaMaskPayFlags(mockedEmptyFlagsState);
+    const result = selectMetaMaskPayTokensFlags(mockedEmptyFlagsState);
 
     expect(result.minimumRequiredTokenBalance).toBe(0);
   });
@@ -361,7 +362,7 @@ describe('Preferred Tokens and Minimum Balance Flags (in selectMetaMaskPayFlags)
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        'confirmations-pay-tokens': {
+        confirmations_pay_tokens: {
           preferredTokens: {
             default: [],
             overrides: {
@@ -371,7 +372,7 @@ describe('Preferred Tokens and Minimum Balance Flags (in selectMetaMaskPayFlags)
         },
       };
 
-    const result = selectMetaMaskPayFlags(state);
+    const result = selectMetaMaskPayTokensFlags(state);
     expect(result.preferredTokens.overrides.perpsDeposit).toEqual(
       preferredTokensMock,
     );
@@ -382,7 +383,7 @@ describe('Preferred Tokens and Minimum Balance Flags (in selectMetaMaskPayFlags)
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        'confirmations-pay-tokens': {
+        confirmations_pay_tokens: {
           preferredTokens: {
             default: preferredTokensMock,
             overrides: {},
@@ -390,7 +391,7 @@ describe('Preferred Tokens and Minimum Balance Flags (in selectMetaMaskPayFlags)
         },
       };
 
-    const result = selectMetaMaskPayFlags(state);
+    const result = selectMetaMaskPayTokensFlags(state);
     expect(result.preferredTokens.default).toEqual(preferredTokensMock);
     expect(result.preferredTokens.overrides).toEqual({});
   });
@@ -399,12 +400,12 @@ describe('Preferred Tokens and Minimum Balance Flags (in selectMetaMaskPayFlags)
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        'confirmations-pay-tokens': {
+        confirmations_pay_tokens: {
           minimumRequiredTokenBalance: 10,
         },
       };
 
-    const result = selectMetaMaskPayFlags(state);
+    const result = selectMetaMaskPayTokensFlags(state);
     expect(result.minimumRequiredTokenBalance).toBe(10);
   });
 });

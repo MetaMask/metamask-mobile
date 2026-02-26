@@ -7,7 +7,7 @@ import {
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
-import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectMetaMaskPayTokensFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { isHardwareAccount } from '../../../../../util/address';
 import { TransactionType } from '@metamask/transaction-controller';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
@@ -27,7 +27,7 @@ jest.mock(
     ...jest.requireActual(
       '../../../../../selectors/featureFlagController/confirmations',
     ),
-    selectMetaMaskPayFlags: jest.fn(),
+    selectMetaMaskPayTokensFlags: jest.fn(),
   }),
 );
 
@@ -83,7 +83,9 @@ describe('useAutomaticTransactionPayToken', () => {
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
-  const selectMetaMaskPayFlagsMock = jest.mocked(selectMetaMaskPayFlags);
+  const selectMetaMaskPayTokensFlagsMock = jest.mocked(
+    selectMetaMaskPayTokensFlags,
+  );
 
   const setPayTokenMock: jest.MockedFn<
     ReturnType<typeof useTransactionPayToken>['setPayToken']
@@ -106,14 +108,7 @@ describe('useAutomaticTransactionPayToken', () => {
 
     isHardwareAccountMock.mockReturnValue(false);
 
-    selectMetaMaskPayFlagsMock.mockReturnValue({
-      attemptsMax: 2,
-      bufferInitial: 0.025,
-      bufferStep: 0.025,
-      bufferSubsequent: 0.05,
-      slippage: 0.005,
-      predictWithdrawAnyToken: false,
-      perpsWithdrawAnyToken: false,
+    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
       preferredTokens: { default: [], overrides: {} },
       minimumRequiredTokenBalance: 0,
     });
@@ -327,14 +322,7 @@ describe('useAutomaticTransactionPayToken', () => {
   });
 
   it('selects preferred token from feature flags sorted by highest success rate', () => {
-    selectMetaMaskPayFlagsMock.mockReturnValue({
-      attemptsMax: 2,
-      bufferInitial: 0.025,
-      bufferStep: 0.025,
-      bufferSubsequent: 0.05,
-      slippage: 0.005,
-      predictWithdrawAnyToken: false,
-      perpsWithdrawAnyToken: false,
+    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
       preferredTokens: {
         default: [],
         overrides: {
@@ -380,14 +368,7 @@ describe('useAutomaticTransactionPayToken', () => {
   });
 
   it('skips preferred token from flags if balance is below minimum', () => {
-    selectMetaMaskPayFlagsMock.mockReturnValue({
-      attemptsMax: 2,
-      bufferInitial: 0.025,
-      bufferStep: 0.025,
-      bufferSubsequent: 0.05,
-      slippage: 0.005,
-      predictWithdrawAnyToken: false,
-      perpsWithdrawAnyToken: false,
+    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
       preferredTokens: {
         default: [],
         overrides: {
@@ -433,14 +414,7 @@ describe('useAutomaticTransactionPayToken', () => {
   });
 
   it('falls back to first available token when no preferred tokens meet minimum balance', () => {
-    selectMetaMaskPayFlagsMock.mockReturnValue({
-      attemptsMax: 2,
-      bufferInitial: 0.025,
-      bufferStep: 0.025,
-      bufferSubsequent: 0.05,
-      slippage: 0.005,
-      predictWithdrawAnyToken: false,
-      perpsWithdrawAnyToken: false,
+    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
       preferredTokens: {
         default: [],
         overrides: {
@@ -500,14 +474,7 @@ describe('useAutomaticTransactionPayToken', () => {
       },
     );
 
-    selectMetaMaskPayFlagsMock.mockReturnValue({
-      attemptsMax: 2,
-      bufferInitial: 0.025,
-      bufferStep: 0.025,
-      bufferSubsequent: 0.05,
-      slippage: 0.005,
-      predictWithdrawAnyToken: false,
-      perpsWithdrawAnyToken: false,
+    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
       preferredTokens: {
         default: [],
         overrides: {
@@ -557,14 +524,7 @@ describe('useAutomaticTransactionPayToken', () => {
   });
 
   it('treats missing fiat balance as 0 for minimum balance check', () => {
-    selectMetaMaskPayFlagsMock.mockReturnValue({
-      attemptsMax: 2,
-      bufferInitial: 0.025,
-      bufferStep: 0.025,
-      bufferSubsequent: 0.05,
-      slippage: 0.005,
-      predictWithdrawAnyToken: false,
-      perpsWithdrawAnyToken: false,
+    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
       preferredTokens: {
         default: [],
         overrides: {
