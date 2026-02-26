@@ -70,11 +70,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
-import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-} from 'react-native';
+import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -102,12 +98,11 @@ import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.ts
 import { useBridgeViewOnFocus } from '../../hooks/useBridgeViewOnFocus/index.ts';
 import { useRenderQuoteExpireModal } from '../../hooks/useRenderQuoteExpireModal/index.ts';
 import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/index.ts';
-import BridgeTrendingZeroState, {
-  type BridgeTrendingZeroStateRef,
-} from '../../components/BridgeTrendingZeroState/BridgeTrendingZeroState';
+import BridgeTrendingTokensSection, {
+  type BridgeTrendingTokensSectionRef,
+} from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 
-const TRENDING_NEAR_BOTTOM_THRESHOLD_PX = 160;
-const TRENDING_LOAD_THROTTLE_MS = 200;
+const SCROLL_NEAR_BOTTOM_PX = 160;
 
 const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
@@ -411,39 +406,27 @@ const BridgeView = () => {
     isZeroState,
   ]);
 
-  const trendingZeroStateRef = useRef<BridgeTrendingZeroStateRef>(null);
-  const lastTrendingLoadTriggeredAtRef = useRef(0);
-
-  const tryLoadMoreTrendingRows = useCallback(() => {
-    if (contentMode !== 'zero') {
-      return;
-    }
-
-    const now = Date.now();
-    if (
-      now - lastTrendingLoadTriggeredAtRef.current <
-      TRENDING_LOAD_THROTTLE_MS
-    ) {
-      return;
-    }
-
-    lastTrendingLoadTriggeredAtRef.current = now;
-    trendingZeroStateRef.current?.loadNextChunkIfAvailable();
-  }, [contentMode]);
+  const trendingSectionRef = useRef<BridgeTrendingTokensSectionRef>(null);
 
   const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    (event: {
+      nativeEvent: {
+        contentOffset: { y: number };
+        contentSize: { height: number };
+        layoutMeasurement: { height: number };
+      };
+    }) => {
+      if (contentMode !== 'zero') return;
       const { contentOffset, contentSize, layoutMeasurement } =
         event.nativeEvent;
-      const isNearBottom =
+      if (
         contentOffset.y + layoutMeasurement.height >=
-        contentSize.height - TRENDING_NEAR_BOTTOM_THRESHOLD_PX;
-      if (!isNearBottom) {
-        return;
+        contentSize.height - SCROLL_NEAR_BOTTOM_PX
+      ) {
+        trendingSectionRef.current?.loadNextChunkIfAvailable();
       }
-      tryLoadMoreTrendingRows();
     },
-    [tryLoadMoreTrendingRows],
+    [contentMode],
   );
 
   const renderBottomContent = () => {
@@ -608,7 +591,7 @@ const BridgeView = () => {
                 </Box>
               ) : null}
               {contentMode === 'zero' ? (
-                <BridgeTrendingZeroState ref={trendingZeroStateRef} />
+                <BridgeTrendingTokensSection ref={trendingSectionRef} />
               ) : null}
             </Box>
           </Box>

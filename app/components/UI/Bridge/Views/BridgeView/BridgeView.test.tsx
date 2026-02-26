@@ -283,7 +283,7 @@ jest.mock('react-native-fade-in-image', () => {
 });
 
 jest.mock(
-  '../../components/BridgeTrendingZeroState/BridgeTrendingZeroState',
+  '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection',
   () => {
     const React = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
