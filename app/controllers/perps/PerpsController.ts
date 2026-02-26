@@ -2930,14 +2930,9 @@ export class PerpsController extends BaseController<
     }
 
     // Determine actual provider and cache key for debounce
-    let actualProviderId: string;
-    if (!this.activeProviderInstance) {
-      actualProviderId = 'hyperliquid';
-    } else if (this.state.activeProvider === 'aggregated') {
-      actualProviderId = 'hyperliquid'; // aggregated preload still uses standalone HL
-    } else {
-      actualProviderId = this.state.activeProvider;
-    }
+    const actualProviderId = this.activeProviderInstance
+      ? this.state.activeProvider // includes 'aggregated'
+      : 'hyperliquid';
     const cacheKey = this.#marketCacheKey(
       actualProviderId,
       this.#providerIsTestnet(actualProviderId),
@@ -2980,9 +2975,10 @@ export class PerpsController extends BaseController<
         this.activeProviderInstance
       ) {
         // Split returned data by providerId and store each slice
+        const fallbackProviderId = 'hyperliquid'; // default for items missing providerId
         const byProvider = new Map<string, PerpsMarketData[]>();
         for (const item of data) {
-          const pid = item.providerId ?? actualProviderId;
+          const pid = item.providerId ?? fallbackProviderId;
           const existing = byProvider.get(pid);
           if (existing) {
             existing.push(item);
@@ -2998,6 +2994,11 @@ export class PerpsController extends BaseController<
               timestamp: ts,
             };
           }
+          // Write aggregated sentinel so the staleness guard sees it
+          state.cachedMarketDataByProvider[cacheKey] = {
+            data: [], // sentinel — real data is in per-provider keys
+            timestamp: ts,
+          };
         });
       } else {
         this.update((state) => {
@@ -3064,14 +3065,9 @@ export class PerpsController extends BaseController<
     const userAddress = evmAccount.address;
 
     // Determine actual provider (same logic as market preload)
-    let actualProviderId: string;
-    if (!this.activeProviderInstance) {
-      actualProviderId = 'hyperliquid';
-    } else if (this.state.activeProvider === 'aggregated') {
-      actualProviderId = 'hyperliquid';
-    } else {
-      actualProviderId = this.state.activeProvider;
-    }
+    const actualProviderId = this.activeProviderInstance
+      ? this.state.activeProvider // includes 'aggregated'
+      : 'hyperliquid';
     const userCacheKey = this.#marketCacheKey(
       actualProviderId,
       this.#providerIsTestnet(actualProviderId),
@@ -3132,15 +3128,77 @@ export class PerpsController extends BaseController<
         this.getAccountState({ standalone: true, userAddress }),
       ]);
 
-      this.update((state) => {
-        state.cachedUserDataByProvider[userCacheKey] = {
-          positions,
-          orders,
-          accountState,
-          timestamp: Date.now(),
-          address: userAddress,
+      if (
+        this.state.activeProvider === 'aggregated' &&
+        this.activeProviderInstance
+      ) {
+        // Split by providerId and write one cache entry per provider key
+        // (mirrors the market-data preload pattern at ~line 2976)
+        const ts = Date.now();
+        type UserDataBucket = {
+          positions: typeof positions;
+          orders: typeof orders;
+          accountState: typeof accountState | null;
         };
-      });
+        const fallbackProviderId = 'hyperliquid'; // default for items missing providerId
+        const byProvider = new Map<string, UserDataBucket>();
+
+        const ensureBucket = (pid: string): UserDataBucket => {
+          let bucket = byProvider.get(pid);
+          if (!bucket) {
+            bucket = { positions: [], orders: [], accountState: null };
+            byProvider.set(pid, bucket);
+          }
+          return bucket;
+        };
+
+        for (const pos of positions) {
+          ensureBucket(pos.providerId ?? fallbackProviderId).positions.push(
+            pos,
+          );
+        }
+
+        for (const order of orders) {
+          ensureBucket(order.providerId ?? fallbackProviderId).orders.push(
+            order,
+          );
+        }
+
+        // AccountState — assign to its provider bucket
+        ensureBucket(
+          accountState.providerId ?? fallbackProviderId,
+        ).accountState = accountState;
+
+        this.update((state) => {
+          for (const [pid, data] of byProvider) {
+            const key = this.#marketCacheKey(pid, this.#providerIsTestnet(pid));
+            state.cachedUserDataByProvider[key] = {
+              ...data,
+              timestamp: ts,
+              address: userAddress,
+            };
+          }
+          // Write aggregated sentinel so the staleness guard sees it
+          state.cachedUserDataByProvider[userCacheKey] = {
+            positions: [],
+            orders: [],
+            accountState: null,
+            timestamp: ts,
+            address: userAddress,
+          };
+        });
+      } else {
+        // Single provider — store directly under its key
+        this.update((state) => {
+          state.cachedUserDataByProvider[userCacheKey] = {
+            positions,
+            orders,
+            accountState,
+            timestamp: Date.now(),
+            address: userAddress,
+          };
+        });
+      }
 
       this.#debugLog('PerpsController: User data preloaded', {
         positionCount: positions.length,

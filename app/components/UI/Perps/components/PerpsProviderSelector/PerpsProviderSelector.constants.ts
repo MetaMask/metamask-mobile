@@ -1,4 +1,4 @@
-import type { PerpsProviderType } from '@metamask/perps-controller';
+import type { PerpsActiveProviderMode } from '@metamask/perps-controller';
 import type {
   ProviderDisplayInfo,
   ProviderNetworkOption,
@@ -8,7 +8,7 @@ import type {
  * Provider display configuration
  */
 export const PROVIDER_DISPLAY_INFO: Record<
-  PerpsProviderType,
+  PerpsActiveProviderMode,
   ProviderDisplayInfo
 > = {
   hyperliquid: {
@@ -21,12 +21,33 @@ export const PROVIDER_DISPLAY_INFO: Record<
     name: 'MYX',
     description: 'BNB Chain perps (Beta)',
   },
+  aggregated: {
+    id: 'aggregated',
+    name: 'All Providers',
+    description: 'Aggregated multi-provider view',
+  },
 };
 
 /**
  * Combined provider + network options for the unified selector
  */
 export const PROVIDER_NETWORK_OPTIONS: ProviderNetworkOption[] = [
+  {
+    id: 'aggregated-mainnet',
+    providerId: 'aggregated',
+    isTestnet: false,
+    name: 'All Providers',
+    network: 'Mainnet',
+    description: 'Aggregated multi-provider view',
+  },
+  {
+    id: 'aggregated-testnet',
+    providerId: 'aggregated',
+    isTestnet: true,
+    name: 'All Providers',
+    network: 'Testnet',
+    description: 'Aggregated multi-provider view',
+  },
   {
     id: 'hyperliquid-mainnet',
     providerId: 'hyperliquid',

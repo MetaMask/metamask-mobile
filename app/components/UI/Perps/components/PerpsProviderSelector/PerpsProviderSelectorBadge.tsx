@@ -47,10 +47,9 @@ const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
   }
 
   // Get display info for current provider
-  const currentProvider =
-    activeProvider && activeProvider !== 'aggregated'
-      ? PROVIDER_DISPLAY_INFO[activeProvider]
-      : PROVIDER_DISPLAY_INFO.hyperliquid;
+  const currentProvider = activeProvider
+    ? PROVIDER_DISPLAY_INFO[activeProvider]
+    : PROVIDER_DISPLAY_INFO.hyperliquid;
 
   return (
     <TouchableOpacity

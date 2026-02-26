@@ -1,4 +1,4 @@
-import type { PerpsProviderType } from '@metamask/perps-controller';
+import type { PerpsActiveProviderMode } from '@metamask/perps-controller';
 
 /**
  * Props for PerpsProviderSelectorBadge component
@@ -44,7 +44,7 @@ export interface PerpsProviderSelectorSheetProps {
  * Provider display info for UI
  */
 export interface ProviderDisplayInfo {
-  id: PerpsProviderType;
+  id: PerpsActiveProviderMode;
   name: string;
   description: string;
   iconName?: string;
@@ -55,7 +55,7 @@ export interface ProviderDisplayInfo {
  */
 export interface ProviderNetworkOption {
   id: string;
-  providerId: PerpsProviderType;
+  providerId: PerpsActiveProviderMode;
   isTestnet: boolean;
   name: string;
   network: string;

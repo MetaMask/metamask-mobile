@@ -25,19 +25,14 @@ const PerpsSelectProviderView: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const normalizedProvider = useMemo(
-    () => (activeProvider === 'aggregated' ? 'hyperliquid' : activeProvider),
-    [activeProvider],
-  );
-
   const selectedOptionId = useMemo(
-    () => `${normalizedProvider}-${isTestnet ? 'testnet' : 'mainnet'}`,
-    [normalizedProvider, isTestnet],
+    () => `${activeProvider}-${isTestnet ? 'testnet' : 'mainnet'}`,
+    [activeProvider, isTestnet],
   );
 
   const handleOptionSelect = useCallback(
     async (option: ProviderNetworkOption) => {
-      const providerChanged = option.providerId !== normalizedProvider;
+      const providerChanged = option.providerId !== activeProvider;
       const networkChanged = option.isTestnet !== isTestnet;
 
       if (!providerChanged && !networkChanged) {
@@ -69,7 +64,7 @@ const PerpsSelectProviderView: React.FC = () => {
         }
       }
     },
-    [normalizedProvider, isTestnet, switchProvider, toggleTestnet],
+    [activeProvider, isTestnet, switchProvider, toggleTestnet],
   );
 
   return (
