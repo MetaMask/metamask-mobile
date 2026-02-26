@@ -83,99 +83,22 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
           "
 
-  # Setup dependencies (no secrets) - platform-specific to match build OS
+  # Setup dependencies (no secrets) - uses reusable workflow on platform-specific runner
   setup-dependencies:
     name: Setup Dependencies (${{ matrix.platform }})
     needs: [prepare]
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
-    # CRITICAL: Match the OS with the build job so binaries work
-    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
-    # NO environment/secrets declared here ✅
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      # iOS: Use MetaMask's setup action (handles Node, Ruby, CocoaPods, Xcode)
-      - name: Setup iOS environment
-        if: matrix.platform == 'ios'
-        timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
-        with:
-          platform: ios
-          setup-simulator: false
-
-      # Android: Setup Node
-      - name: Setup Node
-        if: matrix.platform == 'android'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'yarn'
-
-      - name: Install dependencies (NO SECRETS)
-        run: yarn install --immutable
-
-      # Apply build config before setup so METAMASK_BUILD_TYPE is set when
-      # build-inpage-bridge runs (InpageBridgeWeb3.js uses flask vs main app ID).
-      - name: Apply build config (for setup)
-        run: |
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
-
-      # Skip CocoaPods in setup: we do not pack ios/Pods or ios/*.xcconfig (they embed
-      # absolute paths); the build job runs pod install on the build runner. Saves
-      # ~10–20 min and avoids transient pod failures here blocking the build.
-      # Retry: setup does network-dependent work (Terms of Use curl, Foundry install).
-      - name: Run project setup (NO SECRETS)
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: |
-            echo "🔧 Running setup for ${{ matrix.platform }}..."
-            if [ "${{ matrix.platform }}" = "ios" ]; then
-              yarn setup:github-ci --build-ios --no-build-android --no-install-pods
-            else
-              yarn setup:github-ci --no-build-ios
-            fi
-
-      - name: Verify setup completed
-        run: |
-          echo "✅ Verifying setup artifacts..."
-          if [ ! -d "node_modules" ]; then
-            echo "❌ node_modules not found"
-            exit 1
-          fi
-          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
-            echo "❌ InpageBridgeWeb3.js not found"
-            exit 1
-          fi
-          echo "✅ Setup verification passed"
-
-      # Do NOT pack ios/Pods or ios/*.xcconfig: CocoaPods outputs embed absolute paths
-      # and machine-specific details; restoring on a different runner causes Xcode failures.
-      # The build job runs pod install on the build runner instead.
-      - name: Create tarball with node_modules (preserves symlinks)
-        run: |
-          echo "📦 Creating tarball to preserve symlinks..."
-          tar -czf node-modules-${{ matrix.platform }}.tar.gz \
-            node_modules \
-            app/util/termsOfUse/termsOfUseContent.ts \
-            app/core/InpageBridgeWeb3.js \
-            scripts/inpage-bridge/dist
-          echo "✅ Tarball created: $(du -h node-modules-${{ matrix.platform }}.tar.gz)"
-
-      - name: Upload node_modules tarball
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-modules-${{ matrix.platform }}
-          path: node-modules-${{ matrix.platform }}.tar.gz
-          retention-days: 1
-          compression-level: 0
-          if-no-files-found: error
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      checkout-submodules: true
+      platform: ${{ matrix.platform }}
+      build_name: ${{ inputs.build_name }}
+      use-tarball: true
+      upload-artifact: true
+      artifact-name: node-modules-${{ matrix.platform }}
+      artifact-retention-days: 1
 
   # Build
   build:

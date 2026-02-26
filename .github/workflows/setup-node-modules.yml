@@ -1,6 +1,12 @@
 # Reusable workflow for setting up node_modules
 # This workflow installs dependencies and runs the project setup, then uploads
 # the prepared node_modules as an artifact for consumption by other workflows.
+#
+# Use cases:
+# - EAS update: platform='', use-tarball=false, one ubuntu-latest runner.
+# - Build: platform=ios|android, use-tarball=true, build_name set; runs on
+#   platform-specific runner (macOS for iOS, Ubuntu for Android) and uploads
+#   a tarball to preserve symlinks.
 
 name: Setup Node Modules
 
@@ -17,13 +23,33 @@ on:
         required: false
         type: number
         default: 1
+      checkout-submodules:
+        description: 'Checkout with submodules recursive (required for build)'
+        required: false
+        type: boolean
+        default: false
+      platform:
+        description: "Platform for native setup: '' (generic/ubuntu), 'ios', or 'android'. When set, runs on platform-specific runner and uses platform-specific setup."
+        required: false
+        type: string
+        default: ''
+      build_name:
+        description: 'Build config name (e.g. main-prod). When set, applies build config before setup so METAMASK_BUILD_TYPE is correct for InpageBridgeWeb3.js.'
+        required: false
+        type: string
+        default: ''
+      use-tarball:
+        description: 'Upload a tar.gz artifact (preserves symlinks). Use for build.yml so the build job can extract on the same OS.'
+        required: false
+        type: boolean
+        default: false
       upload-artifact:
         description: 'Whether to upload node_modules as an artifact'
         required: false
         type: boolean
         default: true
       artifact-name:
-        description: 'Name of the artifact to upload'
+        description: 'Name of the artifact to upload. When platform is set, used as-is; otherwise suffix with node version and OS.'
         required: false
         type: string
         default: 'node-modules'
@@ -34,7 +60,7 @@ on:
         default: 1
     outputs:
       artifact-name:
-        description: 'The actual artifact name used (includes node version and OS)'
+        description: 'The actual artifact name used'
         value: ${{ jobs.setup.outputs.artifact-name }}
 
 permissions:
@@ -42,8 +68,9 @@ permissions:
 
 jobs:
   setup:
-    name: Setup Node Modules
-    runs-on: ubuntu-latest
+    name: Setup Node Modules ${{ inputs.platform && format('({0})', inputs.platform) || '' }}
+    # Platform-specific runner to match consumer (build needs same OS for native deps/symlinks)
+    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || (inputs.platform == 'android' && 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' || 'ubuntu-latest') }}
     outputs:
       artifact-name: ${{ steps.set-artifact-name.outputs.artifact-name }}
     steps:
@@ -52,27 +79,66 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
           fetch-depth: ${{ inputs.fetch-depth }}
+          submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
-      - name: Setup Node.js
+      # iOS: MetaMask setup (Node, Ruby, CocoaPods, Xcode)
+      - name: Setup iOS environment
+        if: inputs.platform == 'ios'
+        timeout-minutes: 15
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        with:
+          platform: ios
+          setup-simulator: false
+
+      # Android or generic: Setup Node (iOS has Node from setup-e2e-env)
+      - name: Setup Node
+        if: inputs.platform != 'ios'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: ${{ inputs.platform == 'android' && 'yarn' || '' }}
 
-      - name: Set artifact name with node version and OS
+      - name: Set artifact name
         id: set-artifact-name
         run: |
-          NODE_VERSION=$(node --version | sed 's/v//')
-          OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
-          ARTIFACT_NAME="${{ inputs.artifact-name }}-node${NODE_VERSION}-${OS_NAME}"
-          echo "artifact-name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
-          echo "📦 Artifact name: $ARTIFACT_NAME"
+          if [ -n "${{ inputs.platform }}" ]; then
+            echo "artifact-name=${{ inputs.artifact-name }}" >> "$GITHUB_OUTPUT"
+            echo "📦 Artifact name: ${{ inputs.artifact-name }}"
+          else
+            NODE_VERSION=$(node --version | sed 's/v//')
+            OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
+            ARTIFACT_NAME="${{ inputs.artifact-name }}-node${NODE_VERSION}-${OS_NAME}"
+            echo "artifact-name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
+            echo "📦 Artifact name: $ARTIFACT_NAME"
+          fi
 
       - name: Install dependencies
         run: |
           echo "📦 Installing dependencies..."
           yarn install --immutable
 
+      - name: Apply build config (for setup)
+        if: inputs.build_name != ''
+        run: |
+          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+
       - name: Setup project
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        if: inputs.platform != ''
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🔧 Running setup for ${{ inputs.platform }}..."
+            if [ "${{ inputs.platform }}" = "ios" ]; then
+              yarn setup:github-ci --build-ios --no-build-android --no-install-pods
+            else
+              yarn setup:github-ci --no-build-ios
+            fi
+
+      - name: Setup project (generic)
+        if: inputs.platform == ''
         run: |
           echo "🔧 Running setup for GitHub CI..."
           yarn setup:github-ci
@@ -80,7 +146,6 @@ jobs:
       - name: Verify setup completed
         run: |
           echo "✅ Verifying setup artifacts..."
-          # Check that critical setup artifacts exist
           if [ ! -d "node_modules" ]; then
             echo "❌ node_modules directory not found"
             exit 1
@@ -100,6 +165,7 @@ jobs:
           echo "✅ Setup verification passed"
 
       - name: Debug - List .yarn contents
+        if: inputs.platform == ''
         run: |
           echo "📂 Contents of .yarn directory:"
           ls -la .yarn/ || echo "No .yarn directory"
@@ -107,8 +173,29 @@ jobs:
           echo "📄 install-state.gz exists: $(test -f .yarn/install-state.gz && echo 'yes' || echo 'no')"
           echo "📁 cache dir exists: $(test -d .yarn/cache && echo 'yes' || echo 'no')"
 
-      - name: Upload node_modules artifact
-        if: inputs.upload-artifact
+      - name: Create tarball (preserves symlinks)
+        if: inputs.upload-artifact && inputs.use-tarball
+        run: |
+          echo "📦 Creating tarball to preserve symlinks..."
+          tar -czf node-modules-${{ inputs.platform }}.tar.gz \
+            node_modules \
+            app/util/termsOfUse/termsOfUseContent.ts \
+            app/core/InpageBridgeWeb3.js \
+            scripts/inpage-bridge/dist
+          echo "✅ Tarball created: $(du -h node-modules-${{ inputs.platform }}.tar.gz)"
+
+      - name: Upload node_modules tarball
+        if: inputs.upload-artifact && inputs.use-tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.set-artifact-name.outputs.artifact-name }}
+          path: node-modules-${{ inputs.platform }}.tar.gz
+          retention-days: ${{ inputs.artifact-retention-days }}
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Upload node_modules artifact (zip)
+        if: inputs.upload-artifact && !inputs.use-tarball
         uses: actions/upload-artifact@v4.5.0
         with:
           name: ${{ steps.set-artifact-name.outputs.artifact-name }}
