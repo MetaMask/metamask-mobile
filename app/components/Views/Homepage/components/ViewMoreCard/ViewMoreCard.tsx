@@ -13,24 +13,37 @@ import {
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 
 interface ViewMoreCardProps {
   onPress: () => void;
+  /** Tailwind classes for the card dimensions, e.g. "w-[180px] h-[140px]" */
+  twClassName: string;
+  textVariant?: TextVariant;
+  activeOpacity?: number;
+  testID?: string;
 }
 
 /**
- * "View more" card shown at the end of the trending markets carousel.
- * Matches the height and width of PredictMarketCard for visual consistency.
- * Blends with the background and shows a circular arrow icon above the label.
+ * Shared "View more" card shown at the end of a horizontal carousel.
+ * Renders a circular ArrowRight icon above a label, blending with the background.
  */
-const ViewMoreCard: React.FC<ViewMoreCardProps> = ({ onPress }) => (
-  <TouchableOpacity onPress={onPress}>
+const ViewMoreCard: React.FC<ViewMoreCardProps> = ({
+  onPress,
+  twClassName,
+  textVariant = TextVariant.BodyMd,
+  activeOpacity,
+  testID,
+}) => (
+  <TouchableOpacity
+    onPress={onPress}
+    activeOpacity={activeOpacity}
+    testID={testID}
+  >
     <Box
-      twClassName="w-[180px] h-[180px]"
+      twClassName={twClassName}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      padding={4}
       gap={2}
     >
       <Box
@@ -45,7 +58,7 @@ const ViewMoreCard: React.FC<ViewMoreCardProps> = ({ onPress }) => (
         />
       </Box>
       <Text
-        variant={TextVariant.BodyLg}
+        variant={textVariant}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
       >

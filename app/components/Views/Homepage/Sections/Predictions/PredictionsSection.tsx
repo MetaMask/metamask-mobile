@@ -16,7 +16,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, TextVariant } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import SectionTitle from '../../components/SectionTitle';
 import ErrorState from '../../components/ErrorState';
@@ -33,8 +33,8 @@ import {
   PredictMarketCardSkeleton,
   PredictPositionRow,
   PredictPositionRowSkeleton,
-  ViewMoreCard,
 } from './components';
+import ViewMoreCard from '../../components/ViewMoreCard';
 import { colorWithOpacity } from '../../../../../util/colors';
 import type { PredictPosition } from '../../../../UI/Predict/types';
 import type { PredictNavigationParamList } from '../../../../UI/Predict/types/navigation';
@@ -254,7 +254,11 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               {markets.map((market) => (
                 <PredictMarketCard key={market.id} market={market} />
               ))}
-              <ViewMoreCard onPress={handleViewAllPredictions} />
+              <ViewMoreCard
+                onPress={handleViewAllPredictions}
+                twClassName="w-[180px] h-[180px]"
+                textVariant={TextVariant.BodyLg}
+              />
             </>
           )}
         </ScrollView>
