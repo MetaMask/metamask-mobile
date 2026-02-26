@@ -104,6 +104,8 @@ import type {
   PerpsProviderType,
   PerpsSelectedPaymentToken,
   PerpsRemoteFeatureFlagState,
+  PerpsTransactionParams,
+  PerpsAddTransactionOptions,
 } from './types';
 import type {
   PerpsControllerAllowedActions,
@@ -1142,19 +1144,8 @@ export class PerpsController extends BaseController<
    * @returns The transaction result containing a hash promise and transaction metadata.
    */
   async #submitTransaction(
-    txParams: {
-      from: string;
-      to?: string;
-      value?: string;
-      data?: string;
-      gas?: string;
-    },
-    options: {
-      networkClientId: string;
-      origin?: string;
-      type?: string;
-      skipInitialGasEstimate?: boolean;
-    },
+    txParams: PerpsTransactionParams,
+    options: PerpsAddTransactionOptions,
   ): Promise<{
     result: Promise<string>;
     transactionMeta: { id: string; hash?: string };
