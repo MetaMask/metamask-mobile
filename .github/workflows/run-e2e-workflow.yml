@@ -58,7 +58,6 @@ jobs:
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
 
     env:
-      PREBUILT_IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
       METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
       METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -172,6 +171,12 @@ jobs:
           cp artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           echo "✅ Android artifacts ready for E2E tests"
 
+      - name: Download iOS build artifacts
+        if: ${{ inputs.platform == 'ios' }}
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
       - name: Setup iOS artifacts from build job
         if: ${{ inputs.platform == 'ios' }}
         run: |
@@ -179,53 +184,42 @@ jobs:
 
           # Create required directories
           mkdir -p ios/build/Build/Products/Release-iphonesimulator/
-
-      - name: Download iOS build artifacts
-        if: ${{ inputs.platform == 'ios' }}
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
-
-      - name: Move iOS artifacts to expected locations
-        if: ${{ inputs.platform == 'ios' }}
-        run: |
-          echo "📦 Moving iOS app bundle to expected location..."
           
-          # GitHub Actions download-artifact@v4 creates an extra directory with the artifact name
-          # So artifacts/main-qa-MetaMask.app/MetaMask.app needs to move to artifacts/main-qa-MetaMask.app
-          ARTIFACT_DIR="artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"
+          # GitHub Actions download-artifact@v4 creates a folder with the artifact name
+          # that CONTAINS the actual .app bundle, not IS the .app bundle
+          # Structure: artifacts/main-qa-MetaMask.app/MetaMask.app (where first is folder, second is bundle)
+          ARTIFACT_FOLDER="artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"
+          APP_BUNDLE="${ARTIFACT_FOLDER}/MetaMask.app"
+          TARGET_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
           
-          # Check if the nested structure exists (app bundle inside artifact directory)
-          if [ -d "${ARTIFACT_DIR}/MetaMask.app" ]; then
-            echo "🔄 Found nested app bundle at ${ARTIFACT_DIR}/MetaMask.app"
-            
-            # Move the actual .app bundle one level up
-            mv "${ARTIFACT_DIR}/MetaMask.app" "${ARTIFACT_DIR}.tmp"
-            rm -rf "${ARTIFACT_DIR}"
-            mv "${ARTIFACT_DIR}.tmp" "${ARTIFACT_DIR}"
-            
-            echo "✅ iOS app bundle moved to ${ARTIFACT_DIR}"
-          elif [ -d "${ARTIFACT_DIR}" ]; then
-            echo "✅ iOS app bundle already at correct location: ${ARTIFACT_DIR}"
+          echo "📂 Checking artifact structure..."
+          ls -la "${ARTIFACT_FOLDER}/" || true
+          
+          # Copy the actual .app bundle to where Detox expects it (default path from .detoxrc.js)
+          # This removes dependency on PREBUILT_IOS_APP_PATH variable
+          if [ -d "${APP_BUNDLE}" ]; then
+            echo "✅ Found iOS app bundle at ${APP_BUNDLE}"
+            echo "📦 Copying to ${TARGET_PATH}..."
+            cp -R "${APP_BUNDLE}" "${TARGET_PATH}"
           else
-            echo "❌ Error: iOS app artifact not found at expected location"
-            echo "📂 Contents of artifacts/:"
-            ls -la artifacts/ || true
+            echo "❌ Error: iOS app bundle not found at ${APP_BUNDLE}"
+            echo "📂 Contents of artifact folder:"
+            ls -la "${ARTIFACT_FOLDER}/" || echo "Artifact folder not found"
             exit 1
           fi
           
-          # Validate the .app bundle structure
-          if [ ! -d "${ARTIFACT_DIR}" ]; then
-            echo "❌ Error: ${ARTIFACT_DIR} is not a directory"
+          # Validate the copied .app bundle
+          if [ ! -f "${TARGET_PATH}/Info.plist" ]; then
+            echo "❌ Error: ${TARGET_PATH} is missing Info.plist - invalid app bundle"
             exit 1
           fi
           
-          if [ ! -f "${ARTIFACT_DIR}/Info.plist" ]; then
-            echo "❌ Error: ${ARTIFACT_DIR} is missing Info.plist - invalid app bundle"
+          if [ ! -f "${TARGET_PATH}/MetaMask" ]; then
+            echo "❌ Error: ${TARGET_PATH} is missing MetaMask executable"
             exit 1
           fi
           
-          echo "📊 iOS app bundle size: $(du -sh "${ARTIFACT_DIR}" | cut -f1)"
+          echo "📊 iOS app bundle size: $(du -sh "${TARGET_PATH}" | cut -f1)"
           echo "✅ iOS artifacts ready for E2E tests"
 
       # On re-run (run_attempt > 1), download previous test results to identify failed tests
