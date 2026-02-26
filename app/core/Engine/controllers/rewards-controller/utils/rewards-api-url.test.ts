@@ -33,44 +33,54 @@ describe('canChangeRewardsEnvUrl', () => {
 
 describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
   it('returns UAT api url for local or dev env', () => {
-    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev')).toEqual(
+    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev')).toEqual([
       'https://api.uat',
-    );
-    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('local')).toEqual(
+      true,
+    ]);
+    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('local')).toEqual([
       'https://api.uat',
-    );
+      true,
+    ]);
   });
 
   it('returns UAT api url for undefined or unknown env', () => {
-    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv(undefined)).toEqual(
+    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv(undefined)).toEqual([
       'https://api.uat',
-    );
-    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('unknown')).toEqual(
+      false,
+    ]);
+    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('unknown')).toEqual([
       'https://api.uat',
-    );
+      false,
+    ]);
   });
 
   it('returns UAT api url for e2e or exp env', () => {
-    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('e2e')).toEqual(
+    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('e2e')).toEqual([
       'https://api.uat',
-    );
-    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('exp')).toEqual(
+      true,
+    ]);
+    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('exp')).toEqual([
       'https://api.uat',
-    );
+      true,
+    ]);
   });
 
   it('returns PRD api url for production, beta, pre-release, or rc env', () => {
-    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('production')).toEqual(
+    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('production')).toEqual([
       'https://api.prd',
-    );
-    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('beta')).toEqual(
+      false,
+    ]);
+    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('beta')).toEqual([
       'https://api.prd',
-    );
-    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('pre-release')).toEqual(
+      true,
+    ]);
+    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('pre-release')).toEqual([
       'https://api.prd',
-    );
-    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('rc')).toEqual(
+      true,
+    ]);
+    expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('rc')).toEqual([
       'https://api.prd',
-    );
+      true,
+    ]);
   });
 });
