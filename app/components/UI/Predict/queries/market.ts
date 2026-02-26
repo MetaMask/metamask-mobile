@@ -1,8 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
-import { PREDICT_CONSTANTS } from '../constants/errors';
-import { ensureError } from '../utils/predictErrorHandler';
 import type { PredictMarket } from '../types';
 
 /**
@@ -20,28 +17,9 @@ export const predictMarketOptions = ({ marketId }: { marketId: string }) =>
   queryOptions({
     queryKey: predictMarketKeys.detail(marketId),
     queryFn: async (): Promise<PredictMarket | null> => {
-      try {
-        const controller = Engine.context.PredictController;
-        const marketData = await controller.getMarket({ marketId });
-        return marketData ?? null;
-      } catch (err) {
-        Logger.error(ensureError(err), {
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            component: 'usePredictMarket',
-          },
-          context: {
-            name: 'usePredictMarket',
-            data: {
-              method: 'loadMarket',
-              action: 'market_load',
-              operation: 'data_fetching',
-              marketId,
-            },
-          },
-        });
-        throw ensureError(err);
-      }
+      const controller = Engine.context.PredictController;
+      const marketData = await controller.getMarket({ marketId });
+      return marketData ?? null;
     },
     staleTime: 10_000,
   });
