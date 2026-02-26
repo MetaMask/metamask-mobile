@@ -1180,6 +1180,7 @@
       "title": "New order",
       "leverage": "Leverage",
       "limit_price": "Limit price",
+      "market_price": "Market price",
       "enter_price": "Enter price",
       "trigger_price": "Trigger price",
       "liquidation_price": "Liquidation price",
@@ -1338,16 +1339,28 @@
     },
     "order_details": {
       "title": "Order Details",
-      "cancel_order": "Cancel Order",
+      "cancel_order": "Cancel order",
       "date": "Date",
+      "trigger_condition": "Trigger condition",
+      "price": "Price",
       "fee": "Fee",
       "limit_buy": "Limit Long",
       "limit_price": "Limit Price",
       "limit_sell": "Limit Short",
       "market_buy": "Market Long",
       "market_sell": "Market Short",
+      "market": "Market",
       "open": "Open",
       "size": "Size",
+      "original_size": "Original size",
+      "order_value": "Order value",
+      "reduce_only": "Reduce only",
+      "yes": "Yes",
+      "no": "No",
+      "price_above": "Price above {{price}}",
+      "price_below": "Price below {{price}}",
+      "take_profit": "Take profit",
+      "stop_loss": "Stop loss",
       "status": "Status",
       "view_explorer": "View on Explorer"
     },
@@ -2057,11 +2070,10 @@
   },
   "market_insights": {
     "title": "Market insights",
-    "updated_ago": "Updated {{time}}",
     "disclaimer": "AI insights. Not financial advice.",
+    "a_closer_look": "A closer look",
+    "whats_being_said": "What's being said",
     "fixed_footer_disclaimer": "AI summary • Not financial advice",
-    "whats_driving_price": "What's driving the price?",
-    "what_people_saying": "What people are saying",
     "trade_button": "Trade",
     "sources_count": "+{{count}} sources",
     "sources_title": "Sources",
@@ -2308,7 +2320,15 @@
       "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
       "points_error": "We can't load points right now",
       "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
-      "slippage": "Slippage"
+      "slippage": "Slippage",
+      "price_details": "Price details",
+      "prediction_order": "Prediction order",
+      "prediction_order_description": "~{{count}} contracts at {{price}} each. Final amount may vary based on order book availability (up to {{slippage}}%).",
+      "metamask_fee_description": "Service fee for processing this prediction",
+      "exchange_fee": "Exchange fee",
+      "exchange_fee_description": "Fee paid to the exchange or market",
+      "total_incl_fees": "incl. fees",
+      "close": "Close"
     },
     "error": {
       "title": "Unable to connect to predictions",
@@ -7786,7 +7806,11 @@
       "nfts": "NFTs",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
-      "more_predictions": "More predictions"
+      "more_predictions": "More predictions",
+      "more_perps": "More perps",
+      "positions": {
+        "no_tp_sl": "No TP/SL"
+      }
     },
     "error": {
       "unable_to_load": "Unable to load {{section}}",
