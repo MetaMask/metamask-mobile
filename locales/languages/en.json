@@ -6318,7 +6318,8 @@
       "transaction_fees": "Transaction fees",
       "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
-      "bridge_fee": "Bridge provider fee"
+      "bridge_fee": "Bridge provider fee",
+      "provider_fee": "Provider fee"
     },
     "title": {
       "signature": "Signature request",

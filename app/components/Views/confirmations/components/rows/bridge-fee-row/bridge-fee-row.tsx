@@ -246,7 +246,7 @@ function FeesTooltip({
         justifyContent={JustifyContent.spaceBetween}
       >
         <Text color={TextColor.Alternative}>
-          {strings('confirm.label.bridge_fee')}
+          {strings('confirm.label.provider_fee')}
         </Text>
         <Text color={TextColor.Alternative}>{providerFeeUsd}</Text>
       </Box>
