@@ -4,8 +4,10 @@ import { promisify } from 'util';
 import { writeFile } from 'fs/promises';
 import { createHash } from 'crypto';
 import { FrameworkDetector } from '../FrameworkDetector';
+import { createLogger } from '../logger';
 
 const execAsync = promisify(exec);
+const logger = createLogger({ name: 'DeviceProxyConfig' });
 
 /**
  * Writes a PEM certificate to a stable temp path based on its content hash.
@@ -58,6 +60,9 @@ export async function removeAndroidProxy(deviceId: string): Promise<void> {
  * Requires the emulator to be booted with `-writable-system` (and without `-read-only`)
  * so that `adb root` + `adb remount` can make `/system` writable.
  * See `.detoxrc.js` — the CI emulator configs are set up for this.
+ *
+ * On newer emulators (API 30+) `remount` may fail until dm-verity is disabled
+ * and the device is rebooted, so this function handles that automatically.
  */
 export async function installCACertAndroid(
   deviceId: string,
@@ -66,18 +71,57 @@ export async function installCACertAndroid(
   const certPath = await writeCertToTempFile(certPem);
   const deviceFlag = deviceId ? `-s ${deviceId}` : getAdbDeviceFlag();
 
-  // Compute the OpenSSL subject_hash_old (the filename Android expects)
   const { stdout: hashOutput } = await execAsync(
     `openssl x509 -subject_hash_old -noout -in "${certPath}"`,
   );
   const certHash = hashOutput.trim();
-
   const remotePath = `/system/etc/security/cacerts/${certHash}.0`;
 
   await execAsync(`adb ${deviceFlag} root`);
+
+  const pushCert = async () => {
+    await execAsync(`adb ${deviceFlag} push "${certPath}" "${remotePath}"`);
+    await execAsync(`adb ${deviceFlag} shell chmod 644 "${remotePath}"`);
+  };
+
+  // Try remount + push directly first (fast path).
+  try {
+    await execAsync(`adb ${deviceFlag} remount`);
+    await pushCert();
+    return;
+  } catch {
+    logger.info('remount failed, attempting disable-verity + reboot cycle...');
+  }
+
+  // Disable dm-verity, reboot, then remount.
+  try {
+    await execAsync(`adb ${deviceFlag} disable-verity`);
+  } catch {
+    logger.info('disable-verity not needed or already disabled');
+  }
+  await execAsync(`adb ${deviceFlag} reboot`);
+  await execAsync(`adb ${deviceFlag} wait-for-device`);
+  // wait-for-device returns as soon as ADB sees the device, but the
+  // system may not be fully booted. Poll getprop to confirm boot.
+  const waitForBoot = async (timeoutMs = 120000) => {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      try {
+        const { stdout } = await execAsync(
+          `adb ${deviceFlag} shell getprop sys.boot_completed`,
+        );
+        if (stdout.trim() === '1') return;
+      } catch {
+        /* device still booting */
+      }
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+    throw new Error('Android emulator did not finish booting after reboot');
+  };
+  await waitForBoot();
+  await execAsync(`adb ${deviceFlag} root`);
   await execAsync(`adb ${deviceFlag} remount`);
-  await execAsync(`adb ${deviceFlag} push "${certPath}" "${remotePath}"`);
-  await execAsync(`adb ${deviceFlag} shell chmod 644 "${remotePath}"`);
+  await pushCert();
 }
 
 // ─── iOS ─────────────────────────────────────────────────────────────────────
