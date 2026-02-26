@@ -22,6 +22,14 @@ jest.mock('@metamask/bridge-controller', () => ({
   fetchBridgeTokens: jest.fn(),
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    AuthenticationController: {
+      getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+    },
+  },
+}));
+
 describe('useTopTokens', () => {
   // Expected tokens from cached TokenListController data for ethChainId
   const expectedCachedToken1: BridgeToken = {
@@ -164,6 +172,7 @@ describe('useTopTokens', () => {
       expect(fetchBridgeTokens).toHaveBeenCalledWith(
         ethChainId,
         BridgeClientId.MOBILE,
+        'mock-bearer-token',
         handleFetch,
         BRIDGE_PROD_API_BASE_URL,
         expect.stringMatching(/^\d+\.\d+\.\d+$/), // Version from package.json

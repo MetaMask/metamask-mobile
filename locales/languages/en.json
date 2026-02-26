@@ -1180,6 +1180,7 @@
       "title": "New order",
       "leverage": "Leverage",
       "limit_price": "Limit price",
+      "market_price": "Market price",
       "enter_price": "Enter price",
       "trigger_price": "Trigger price",
       "liquidation_price": "Liquidation price",
@@ -1323,6 +1324,7 @@
       "funds_are_available_to_trade": "Funds are available to trade",
       "close_order_still_active": "Close order still active",
       "order_submitted": "Order submitted",
+      "submitting_your_trade": "Submitting your trade",
       "order_filled": "Order filled",
       "order_placed": "Order placed",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
@@ -1338,16 +1340,28 @@
     },
     "order_details": {
       "title": "Order Details",
-      "cancel_order": "Cancel Order",
+      "cancel_order": "Cancel order",
       "date": "Date",
+      "trigger_condition": "Trigger condition",
+      "price": "Price",
       "fee": "Fee",
       "limit_buy": "Limit Long",
       "limit_price": "Limit Price",
       "limit_sell": "Limit Short",
       "market_buy": "Market Long",
       "market_sell": "Market Short",
+      "market": "Market",
       "open": "Open",
       "size": "Size",
+      "original_size": "Original size",
+      "order_value": "Order value",
+      "reduce_only": "Reduce only",
+      "yes": "Yes",
+      "no": "No",
+      "price_above": "Price above {{price}}",
+      "price_below": "Price below {{price}}",
+      "take_profit": "Take profit",
+      "stop_loss": "Stop loss",
       "status": "Status",
       "view_explorer": "View on Explorer"
     },
@@ -2057,11 +2071,10 @@
   },
   "market_insights": {
     "title": "Market insights",
-    "updated_ago": "Updated {{time}}",
     "disclaimer": "AI insights. Not financial advice.",
+    "a_closer_look": "A closer look",
+    "whats_being_said": "What's being said",
     "fixed_footer_disclaimer": "AI summary • Not financial advice",
-    "whats_driving_price": "What's driving the price?",
-    "what_people_saying": "What people are saying",
     "trade_button": "Trade",
     "sources_count": "+{{count}} sources",
     "sources_title": "Sources",
@@ -2308,7 +2321,15 @@
       "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
       "points_error": "We can't load points right now",
       "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
-      "slippage": "Slippage"
+      "slippage": "Slippage",
+      "price_details": "Price details",
+      "prediction_order": "Prediction order",
+      "prediction_order_description": "~{{count}} contracts at {{price}} each. Final amount may vary based on order book availability (up to {{slippage}}%).",
+      "metamask_fee_description": "Service fee for processing this prediction",
+      "exchange_fee": "Exchange fee",
+      "exchange_fee_description": "Fee paid to the exchange or market",
+      "total_incl_fees": "incl. fees",
+      "close": "Close"
     },
     "error": {
       "title": "Unable to connect to predictions",
@@ -5956,8 +5977,21 @@
       "ok": "OK",
       "continue": "Continue",
       "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
+      "no_boost": "No boost",
+      "your_musd": "Your mUSD",
+      "balance_breakdown_title": "Your mUSD balances by network",
+      "balance_amount": "{{amount}} mUSD",
+      "balance_amount_with_symbol": "{{amount}} {{symbol}}",
+      "balance_fiat_unavailable": "—",
+      "convert_to_musd": "Convert to mUSD",
       "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
+      "fetching_quote": "Fetching quote...",
+      "you_convert": "You convert",
+      "network_fee": "Network fee",
+      "earning": "Earning",
+      "quick_convert_description": "Select a token to convert your full balance or tap the edit icon to enter a custom amount.",
+      "no_tokens_to_convert": "You don't have any tokens that can be converted to mUSD.",
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
         "eta": "~{{time}}",
@@ -5975,7 +6009,26 @@
       "get_musd": "Get mUSD",
       "boost_title": "Get {{percentage}}% on your stablecoins",
       "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
-      "powered_by_relay": "Powered by Relay"
+      "powered_by_relay": "Powered by Relay",
+      "earn_rewards_when": "Earn rewards when",
+      "you_convert_to": "you convert to",
+      "max": "Max",
+      "quick_convert_button": "Convert",
+      "cta_body_earn_apy": "Earn {{apy}} yield automatically for holding mUSD.",
+      "learn_more": "Learn more",
+      "tooltip_title": "Earn yield with mUSD",
+      "tooltip_content": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn {{apy}} yield on every dollar you hold.",
+      "quick_convert": {
+        "title": "Convert and get {{apy}}%",
+        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{apy}}% bonus.",
+        "inline_failed_message": "Conversion failed. Try again.",
+        "confirmation": {
+          "title": "Convert max"
+        },
+        "failed_to_get_quotes": "Failed to get quotes. Please close this modal and try again."
+      },
+      "percentage_boost": "{{percentage}}% boost",
+      "rate": "Rate"
     },
     "bonus_claim": {
       "toasts": {
@@ -5992,7 +6045,8 @@
       "tooltip_opted_in_footer": "Points will be automatically added to your account.",
       "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
       "tooltip_close": "Close"
-    }
+    },
+    "your_stablecoins": "Your stablecoins"
   },
   "stake": {
     "stake": "Stake",
@@ -6264,7 +6318,8 @@
       "transaction_fees": "Transaction fees",
       "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
-      "bridge_fee": "Bridge provider fee"
+      "bridge_fee": "Bridge provider fee",
+      "provider_fee": "Provider fee"
     },
     "title": {
       "signature": "Signature request",
@@ -7147,6 +7202,8 @@
         "card_tos_title": "Terms and conditions",
         "order_metal_card": "Metal Card",
         "order_metal_card_description": "Order your physical Metal Card now",
+        "cashback": "Cashback",
+        "cashback_description": "Earn 1% back on all spending",
         "freeze_card": "Freeze card",
         "unfreeze_card": "Unfreeze card",
         "freeze_card_description": "Pause all spending on your card",
@@ -7183,6 +7240,19 @@
       "load_error": "Unable to load tokens. Please try again.",
       "retry": "Try again",
       "on_linea": "on Linea"
+    },
+    "cashback_screen": {
+      "title": "Cashback",
+      "available_cashback": "Available cashback",
+      "network_fee": "Network fee",
+      "expected_to_receive": "Expected to receive",
+      "withdraw": "Withdraw",
+      "withdraw_unavailable": "Withdrawal unavailable",
+      "withdrawal_initiated": "Withdrawal has been initiated",
+      "withdrawal_success": "Withdrawal completed successfully",
+      "withdrawal_failed": "Withdrawal failed. Please try again.",
+      "no_cashback": "No cashback available",
+      "loading_error": "Failed to load cashback. Please try again."
     },
     "change_asset": {
       "title": "Change token and network",
@@ -7786,7 +7856,11 @@
       "nfts": "NFTs",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
-      "more_predictions": "More predictions"
+      "more_predictions": "More predictions",
+      "more_perps": "More perps",
+      "positions": {
+        "no_tp_sl": "No TP/SL"
+      }
     },
     "error": {
       "unable_to_load": "Unable to load {{section}}",

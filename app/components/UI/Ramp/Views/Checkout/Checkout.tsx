@@ -50,6 +50,10 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
+import {
+  getCheckoutCallback,
+  removeCheckoutCallback,
+} from '../../utils/checkoutCallbackRegistry';
 
 interface CheckoutParams {
   url: string;
@@ -70,6 +74,11 @@ interface CheckoutParams {
   cryptocurrency?: string;
   /** V2: the Redux provider type for this order. Defaults to AGGREGATOR. */
   providerType?: FIAT_ORDER_PROVIDERS;
+  /**
+   * Key into the checkout callback registry. Used by Transak/Deposit flows.
+   * The actual callback lives outside navigation state so that route params stay serializable.
+   */
+  callbackKey?: string;
   /** Optional callback invoked on every navigation state change (e.g. to intercept redirect URLs). */
   onNavigationStateChange?: (navState: { url: string }) => void;
 }
@@ -197,6 +206,7 @@ export function createInitialFiatOrder(params: {
 
 const Checkout = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const previousUrlRef = useRef<string | null>(null);
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const [error, setError] = useState('');
@@ -220,11 +230,22 @@ const Checkout = () => {
     userAgent,
     providerType,
     onNavigationStateChange,
+    callbackKey,
   } = params ?? {};
 
   const headerTitle = providerName ?? '';
   const initialUriRef = useRef(uri);
+  const callbackKeyRef = useRef(callbackKey);
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
+
+  useEffect(() => {
+    callbackKeyRef.current = callbackKey;
+    return () => {
+      if (callbackKey) {
+        removeCheckoutCallback(callbackKey);
+      }
+    };
+  }, [callbackKey]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -399,6 +420,18 @@ const Checkout = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, [handleCancelPress]);
 
+  const handleNavigationStateChangeWithDedup = useCallback(
+    (navState: { url: string }) => {
+      if (navState.url !== previousUrlRef.current) {
+        previousUrlRef.current = navState.url;
+        if (callbackKeyRef.current) {
+          getCheckoutCallback(callbackKeyRef.current)?.(navState);
+        }
+      }
+    },
+    [],
+  );
+
   const handleShouldStartLoadWithRequest = useCallback(
     ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
     [],
@@ -487,7 +520,9 @@ const Checkout = () => {
           onNavigationStateChange={
             hasCallbackFlow
               ? handleNavigationStateChange
-              : onNavigationStateChange
+              : callbackKey
+                ? handleNavigationStateChangeWithDedup
+                : onNavigationStateChange
           }
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           testID="checkout-webview"

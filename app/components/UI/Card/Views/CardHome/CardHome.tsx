@@ -1426,6 +1426,26 @@ const CardHome = () => {
                 testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
               />
             )}
+            {isAuthenticated && kycStatus?.verificationState === 'VERIFIED' && (
+              <ManageCardListItem
+                title={strings('card.card_home.manage_card_options.cashback')}
+                description={strings(
+                  'card.card_home.manage_card_options.cashback_description',
+                )}
+                rightIcon={IconName.ArrowRight}
+                onPress={() => {
+                  trackEvent(
+                    createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+                      .addProperties({
+                        action: CardActions.CASHBACK_BUTTON,
+                      })
+                      .build(),
+                  );
+                  navigation.navigate(Routes.CARD.CASHBACK);
+                }}
+                testID={CardHomeSelectors.CASHBACK_ITEM}
+              />
+            )}
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.travel_title')}
               description={strings(
