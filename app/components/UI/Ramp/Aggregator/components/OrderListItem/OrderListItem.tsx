@@ -11,6 +11,11 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../../util/date';
 import { addCurrencySymbol, renderFiat } from '../../../../../../util/number';
+import {
+  getOrderRowCryptoAmountTestId,
+  getOrderRowFiatAmountTestId,
+  type RampsOrderTypeSlug,
+} from '../../Views/OrdersList/OrdersList.testIds';
 import { getOrderAmount } from '../../utils';
 import Text, {
   TextColor,
@@ -34,6 +39,8 @@ const transactionIconSent = require('images/transaction-icons/receive-inverted.p
 
 interface Props {
   readonly order: FiatOrder;
+  readonly rowIndex: number;
+  readonly orderTypeSlug: RampsOrderTypeSlug;
 }
 
 function getStatusColorAndText(order: FiatOrder): [TextColor, string] {
@@ -81,7 +88,7 @@ function getStatusColorAndText(order: FiatOrder): [TextColor, string] {
   return [statusColor, statusText];
 }
 
-function OrderListItem({ order }: Props) {
+function OrderListItem({ order, rowIndex, orderTypeSlug }: Props) {
   const styles = createStyles();
   const amount = getOrderAmount(order);
   const isBuy = order.orderType === 'BUY';
@@ -160,10 +167,17 @@ function OrderListItem({ order }: Props) {
       </ListItemColumn>
 
       <ListItemColumnEnd>
-        <Text variant={TextVariant.BodyMD}>
+        <Text
+          variant={TextVariant.BodyMD}
+          testID={getOrderRowCryptoAmountTestId(orderTypeSlug, rowIndex)}
+        >
           {amount} {order.cryptocurrency}
         </Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodySM}
+          color={TextColor.Alternative}
+          testID={getOrderRowFiatAmountTestId(orderTypeSlug, rowIndex)}
+        >
           {order.amount == null
             ? '...'
             : addCurrencySymbol(

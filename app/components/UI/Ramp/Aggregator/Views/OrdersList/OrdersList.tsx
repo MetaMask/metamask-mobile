@@ -10,6 +10,10 @@ import { createRampsOrderDetailsNavDetails } from '../../../Views/OrderDetails';
 import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import createStyles from './OrdersList.styles';
+import {
+  getOrderRowTestId,
+  type RampsOrderTypeSlug,
+} from './OrdersList.testIds';
 import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
 
 import {
@@ -18,6 +22,13 @@ import {
 } from '../../../../../../constants/on-ramp';
 import { getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
+
+function getOrderTypeSlug(order: FiatOrder): RampsOrderTypeSlug {
+  if (order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
+    return 'deposit';
+  }
+  return order.orderType === OrderOrderTypeEnum.Buy ? 'buy' : 'sell';
+}
 import { useTheme } from '../../../../../../util/theme';
 import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
 import {
@@ -230,44 +241,35 @@ function OrdersList() {
     ],
   );
 
-  const handleItemPress = useCallback(
-    (item: DisplayOrder) => {
-      if (item.source === 'v2') {
-        handleNavigateToRampsTxDetails(item.id);
-        return;
-      }
-
-      const legacyOrder = allLegacyOrders.find((o) => o.id === item.id);
-      if (!legacyOrder) return;
-
-      if (legacyOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
-        handleNavigateToDepositTxDetails(item.id);
-      } else if (legacyOrder.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
-        handleNavigateToRampsTxDetails(item.id);
-      } else {
-        handleNavigateToAggregatorTxDetails(item.id);
-      }
-    },
-    [
-      allLegacyOrders,
-      handleNavigateToAggregatorTxDetails,
-      handleNavigateToRampsTxDetails,
-      handleNavigateToDepositTxDetails,
-    ],
-  );
-
-  const renderItem = ({ item }: { item: DisplayOrder }) => (
-    <TouchableHighlight
-      accessibilityRole="button"
-      accessible
-      style={styles.row}
-      onPress={() => handleItemPress(item)}
-      underlayColor={colors.background.alternative}
-      activeOpacity={1}
-    >
-      <DisplayOrderListItem item={item} />
-    </TouchableHighlight>
-  );
+  const renderItem = ({ item, index }: { item: FiatOrder; index: number }) => {
+    const rowIndex = index + 1;
+    const orderType = getOrderTypeSlug(item);
+    return (
+      <TouchableHighlight
+        testID={getOrderRowTestId(orderType, rowIndex)}
+        accessibilityRole="button"
+        accessible
+        style={styles.row}
+        onPress={
+          item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR
+            ? () => handleNavigateToAggregatorTxDetails(item.id)
+            : item.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+              ? () => handleNavigateToRampsTxDetails(item.id)
+              : item.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
+                ? () => handleNavigateToDepositTxDetails(item.id)
+                : undefined
+        }
+        underlayColor={colors.background.alternative}
+        activeOpacity={1}
+      >
+        <OrderListItem
+          order={item}
+          rowIndex={rowIndex}
+          orderTypeSlug={orderType}
+        />
+      </TouchableHighlight>
+    );
+  };
 
   return (
     <FlatList

@@ -2,6 +2,12 @@ import {
   ActivitiesViewSelectorsIDs,
   ActivitiesViewSelectorsText,
 } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import {
+  getOrderRowFiatAmountTestId,
+  getOrderRowCryptoAmountTestId,
+  getOrderRowTestId,
+  type RampsOrderTypeSlug,
+} from '../../../app/components/UI/Ramp/Aggregator/Views/OrdersList/OrdersList.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
@@ -153,10 +159,33 @@ class ActivitiesView {
     });
   }
 
-  async tapRampsOrder(rampsOrderType: string): Promise<void> {
-    const order = Matchers.getElementByID('listitemcolumn', 1); // this need some loving as well
+  rampsOrderCryptoAmount(
+    orderType: RampsOrderTypeSlug,
+    rowIndex: number,
+  ): DetoxElement {
+    return Matchers.getElementByID(
+      getOrderRowCryptoAmountTestId(orderType, rowIndex),
+    );
+  }
+
+  rampsOrderFiatAmount(
+    orderType: RampsOrderTypeSlug,
+    rowIndex: number,
+  ): DetoxElement {
+    return Matchers.getElementByID(
+      getOrderRowFiatAmountTestId(orderType, rowIndex),
+    );
+  }
+
+  async tapRampsOrder(
+    orderType: RampsOrderTypeSlug,
+    rowIndex: number,
+  ): Promise<void> {
+    const order = Matchers.getElementByID(
+      getOrderRowTestId(orderType, rowIndex),
+    );
     await Gestures.waitAndTap(order, {
-      elemDescription: `Tapping Ramps Order: ${rampsOrderType}`,
+      elemDescription: `Tapping Ramps Order: ${orderType} ${rowIndex}`,
     });
   }
 
