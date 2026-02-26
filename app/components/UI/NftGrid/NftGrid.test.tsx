@@ -617,7 +617,7 @@ describe('NftGrid', () => {
     const addButton = getByTestId('import-token-button');
     fireEvent.press(addButton);
 
-    expect(mockPush).toHaveBeenCalledWith('AddAsset', {
+    expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
       assetType: 'collectible',
     });
     expect(mockTrackEvent).toHaveBeenCalled();
