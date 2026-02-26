@@ -11,7 +11,7 @@ import BrowserPlaygroundDapp from '../../../wdio/screen-objects/BrowserPlaygroun
 import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
-import SolanaSignModal from '../../../wdio/screen-objects/Modals/SolanaSignModal.js';
+import SnapSignModal from '../../../wdio/screen-objects/Modals/SnapSignModal.js';
 import AppwrightHelpers from '../../framework/AppwrightHelpers.ts';
 import {
   DappServer,
@@ -82,7 +82,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   AndroidScreenHelpers.device = device;
   DappConnectionModal.device = device;
   SignModal.device = device;
-  SolanaSignModal.device = device;
+  SnapSignModal.device = device;
   AccountListComponent.device = device;
 
   await device.webDriverClient.updateSettings({
@@ -182,7 +182,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-    await SolanaSignModal.tapConfirmButton();
+    await SnapSignModal.tapConfirmButton();
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -297,7 +297,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-    await SolanaSignModal.tapConfirmButton();
+    await SnapSignModal.tapConfirmButton();
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -377,7 +377,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-    await SolanaSignModal.tapConfirmButton();
+    await SnapSignModal.tapConfirmButton();
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
