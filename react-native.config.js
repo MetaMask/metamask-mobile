@@ -11,6 +11,12 @@
 
 // Build dependencies config
 const dependencies = {
+  '@react-native-community/viewpager': {
+    platforms: {
+      ios: null, // react-native-pager-view is the modern replacement; both link identical Obj-C symbols
+      android: null,
+    },
+  },
   'react-native-aes-crypto-forked': {
     platforms: {
       ios: null, // disable Android platform, other platforms will still autolink if provided
