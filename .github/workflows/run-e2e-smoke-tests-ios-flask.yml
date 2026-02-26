@@ -56,8 +56,32 @@ jobs:
 
       - name: Setup Main iOS App artifacts
         run: |
+          echo "🏗 Setting up Main iOS App artifacts..."
           mkdir -p ios/build/Build/Products/Release-iphonesimulator/
-          cp -R artifacts/main-qa-MetaMask.app ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          
+          # GitHub Actions download-artifact@v4 creates nested directory structure
+          # Check if we have artifacts/main-qa-MetaMask.app/MetaMask.app (nested)
+          # or artifacts/main-qa-MetaMask.app (direct)
+          if [ -d "artifacts/main-qa-MetaMask.app/MetaMask.app" ]; then
+            echo "🔄 Found nested app bundle, copying inner MetaMask.app"
+            cp -R artifacts/main-qa-MetaMask.app/MetaMask.app ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          elif [ -d "artifacts/main-qa-MetaMask.app" ]; then
+            echo "✅ Found app bundle at root level"
+            cp -R artifacts/main-qa-MetaMask.app ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          else
+            echo "❌ Error: Main iOS app artifact not found"
+            ls -la artifacts/ || true
+            exit 1
+          fi
+          
+          # Validate the copied app bundle
+          APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
+          if [ ! -f "${APP_PATH}/Info.plist" ]; then
+            echo "❌ Error: Copied app bundle is missing Info.plist"
+            exit 1
+          fi
+          
+          echo "✅ Main iOS app artifacts ready for repack"
 
       - name: Repack Main iOS App
         run: node scripts/repack.js
