@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.68.0",
+  "version": "7.69.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -174,6 +174,8 @@
     "@metamask/core-backend": "^5.0.0",
     "bn.js@npm:4.11.6": "4.12.3",
     "bn.js@npm:5.2.1": "5.2.3",
+    "@metamask/bridge-controller@npm:^67.1.1": "patch:@metamask/bridge-controller@npm%3A67.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-67.2.0-32d3aafe1f.patch",
+    "@metamask/bridge-status-controller@npm:^67.0.1": "patch:@metamask/bridge-status-controller@npm%3A67.0.1#~/.yarn/patches/@metamask-bridge-status-controller-npm-67.0.1-d8a41d9c02.patch",
     "@metamask/assets-controllers@npm:^99.4.0": "patch:@metamask/assets-controllers@npm%3A100.0.3#~/.yarn/patches/@metamask-assets-controllers-npm-100.0.3-ea172b88c9.patch"
   },
   "dependencies": {
@@ -203,8 +205,8 @@
     "@metamask/assets-controllers": "patch:@metamask/assets-controllers@npm%3A100.0.3#~/.yarn/patches/@metamask-assets-controllers-npm-100.0.3-ea172b88c9.patch",
     "@metamask/base-controller": "^9.0.0",
     "@metamask/bitcoin-wallet-snap": "^1.10.0",
-    "@metamask/bridge-controller": "patch:@metamask/bridge-controller@npm%3A66.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-66.2.0-8ed148964f.patch",
-    "@metamask/bridge-status-controller": "patch:@metamask/bridge-status-controller@npm%3A66.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-66.1.0-a2a478ef94.patch",
+    "@metamask/bridge-controller": "patch:@metamask/bridge-controller@npm%3A67.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-67.2.0-32d3aafe1f.patch",
+    "@metamask/bridge-status-controller": "patch:@metamask/bridge-status-controller@npm%3A67.0.1#~/.yarn/patches/@metamask-bridge-status-controller-npm-67.0.1-d8a41d9c02.patch",
     "@metamask/chain-agnostic-permission": "^1.3.0",
     "@metamask/connectivity-controller": "^0.1.0",
     "@metamask/controller-utils": "^11.18.0",
