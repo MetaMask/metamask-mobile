@@ -11,6 +11,8 @@ import {
   ensurePlaygroundInstalled,
 } from './utils.js';
 import AppwrightGestures from '../../framework/AppwrightGestures.ts';
+import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
+import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
 
 const CHAINS = {
   ETHEREUM: 'eip155:1',
@@ -31,6 +33,24 @@ const NETWORK_DISPLAY_NAMES = {
 const DEFAULT_SCROLL_PARAMS = {
   scrollParams: { percent: 0.2 },
 };
+
+/**
+ * Cycle the app to ensure account groups are fully loaded
+ * @param {*} device - The device instance that will be used for running the test.
+ */
+async function ensureAccountGroupsLoaded(device) {
+  await AppwrightGestures.terminateApp(device);
+  await AppwrightGestures.activateApp(device);
+  await login(device);
+  await WalletMainScreen.isMainWalletViewVisible();
+  await WalletMainScreen.tapIdenticon();
+  await AccountListComponent.isComponentDisplayed();
+  await AccountListComponent.waitForSyncingToComplete();
+  await AppwrightGestures.terminateApp(device);
+  await AppwrightGestures.activateApp(device);
+  await login(device);
+  await WalletMainScreen.isMainWalletViewVisible();
+}
 
 /**
  * After a MetaMask action (approve / sign), wait for the callback deeplink
@@ -54,6 +74,8 @@ test('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Solana, 
   SignModal.device = device;
   SnapSignModal.device = device;
   AppwrightGestures.device = device;
+  WalletMainScreen.device = device;
+  AccountListComponent.device = device;
 
   await device.webDriverClient.updateSettings({
     waitForIdleTimeout: 100,
@@ -66,7 +88,9 @@ test('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Solana, 
   //
 
   await login(device);
+  await WalletMainScreen.isMainWalletViewVisible();
 
+  await ensureAccountGroupsLoaded(device);
   //
   // 2. Switch to the RN playground and select networks
   //
@@ -192,33 +216,30 @@ test('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Solana, 
     );
   }
 
-  // FIXME: This flow is broken on the e2e test environment (issue does not manifest itself when manually going through this flow)
-  // https://consensyssoftware.atlassian.net/browse/WAPI-1136
-
   // Solana write request
-  // await RNPlaygroundDapp.scrollToElement(
-  //   RNPlaygroundDapp.getMethodSelect(CHAINS.SOLANA),
-  //   DEFAULT_SCROLL_PARAMS,
-  // );
-  // await RNPlaygroundDapp.selectMethod(CHAINS.SOLANA, 'signMessage');
+  await RNPlaygroundDapp.scrollToElement(
+    RNPlaygroundDapp.getMethodSelect(CHAINS.SOLANA),
+    DEFAULT_SCROLL_PARAMS,
+  );
+  await RNPlaygroundDapp.selectMethod(CHAINS.SOLANA, 'signMessage');
 
-  // await RNPlaygroundDapp.scrollToElement(
-  //   RNPlaygroundDapp.getInvokeButton(CHAINS.SOLANA),
-  //   DEFAULT_SCROLL_PARAMS,
-  // );
-  // await RNPlaygroundDapp.tapInvoke(CHAINS.SOLANA);
-  // await AppwrightGestures.wait(3000);
+  await RNPlaygroundDapp.scrollToElement(
+    RNPlaygroundDapp.getInvokeButton(CHAINS.SOLANA),
+    DEFAULT_SCROLL_PARAMS,
+  );
+  await RNPlaygroundDapp.tapInvoke(CHAINS.SOLANA);
+  await AppwrightGestures.wait(3000);
 
-  // await unlockIfLockScreenVisible(device);
-  // await AppwrightGestures.wait(1000);
-  // await SnapSignModal.tapConfirmButton();
-  // await returnToPlayground();
+  await unlockIfLockScreenVisible(device);
+  await AppwrightGestures.wait(1000);
+  await SnapSignModal.tapConfirmButton();
+  await returnToPlayground();
 
-  // await RNPlaygroundDapp.scrollToElement(
-  //   RNPlaygroundDapp.getResultCode(CHAINS.SOLANA, 'signMessage'),
-  //   DEFAULT_SCROLL_PARAMS,
-  // );
-  // await RNPlaygroundDapp.waitForResult(CHAINS.SOLANA, 'signMessage');
+  await RNPlaygroundDapp.scrollToElement(
+    RNPlaygroundDapp.getResultCode(CHAINS.SOLANA, 'signMessage'),
+    DEFAULT_SCROLL_PARAMS,
+  );
+  await RNPlaygroundDapp.waitForResult(CHAINS.SOLANA, 'signMessage');
 
   //
   // 7. Disconnect (wallet_revokeSession) and verify session termination
