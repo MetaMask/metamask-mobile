@@ -6,11 +6,9 @@ import {
   PERPS_CONSTANTS,
 } from '../constants/perpsConfig';
 import { PerpsTraceNames, PerpsTraceOperations } from '../types';
-import type {
-  PerpsPlatformDependencies,
-  PerpsControllerMessengerBase,
-} from '../types';
+import type { PerpsPlatformDependencies } from '../types';
 import type { ServiceContext } from './ServiceContext';
+import type { PerpsControllerMessengerBase } from '../types/messenger';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 

@@ -17,9 +17,9 @@ import type {
   WithdrawParams,
   WithdrawResult,
   PerpsPlatformDependencies,
-  PerpsControllerMessengerBase,
 } from '../types';
 import type { ServiceContext } from './ServiceContext';
+import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { TransactionStatus } from '../types/transactionTypes';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';

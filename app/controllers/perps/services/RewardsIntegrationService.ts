@@ -1,8 +1,6 @@
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type {
-  PerpsPlatformDependencies,
-  PerpsControllerMessengerBase,
-} from '../types';
+import type { PerpsPlatformDependencies } from '../types';
+import type { PerpsControllerMessengerBase } from '../types/messenger';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';

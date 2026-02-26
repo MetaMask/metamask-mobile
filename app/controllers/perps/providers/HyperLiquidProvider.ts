@@ -67,7 +67,6 @@ import type {
   HistoricalPortfolioResult,
   InitializeResult,
   PerpsPlatformDependencies,
-  PerpsControllerMessengerBase,
   PerpsProvider,
   LiquidationPriceParams,
   LiveDataConfig,
@@ -106,6 +105,7 @@ import type {
   FrontendOrder,
   SpotMetaResponse,
 } from '../types/hyperliquid-types';
+import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
 import { aggregateAccountStates } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';

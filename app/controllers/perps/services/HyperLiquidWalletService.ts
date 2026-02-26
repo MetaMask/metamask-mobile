@@ -5,9 +5,9 @@ import { getChainId } from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type {
   PerpsPlatformDependencies,
-  PerpsControllerMessengerBase,
   PerpsTypedMessageParams,
 } from '../types';
+import type { PerpsControllerMessengerBase } from '../types/messenger';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 
 /**

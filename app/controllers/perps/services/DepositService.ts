@@ -5,9 +5,9 @@ import type { Hex } from '@metamask/utils';
 import type {
   PerpsProvider,
   PerpsPlatformDependencies,
-  PerpsControllerMessengerBase,
   PerpsTransactionParams,
 } from '../types';
+import type { PerpsControllerMessengerBase } from '../types/messenger';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { generateDepositId } from '../utils/idUtils';
 import { generateERC20TransferData } from '../utils/transferData';

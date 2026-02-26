@@ -104,9 +104,11 @@ import type {
   PerpsProviderType,
   PerpsSelectedPaymentToken,
   PerpsRemoteFeatureFlagState,
+} from './types';
+import type {
   PerpsControllerAllowedActions,
   PerpsControllerAllowedEvents,
-} from './types';
+} from './types/messenger';
 import type { CandleData } from './types/perps-types';
 import {
   LastTransactionResult,
