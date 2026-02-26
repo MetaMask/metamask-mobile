@@ -168,7 +168,7 @@ jest.mock('../../utils/format', () => ({
 
 jest.mock('../../hooks/usePredictMarket', () => ({
   usePredictMarket: jest.fn(() => ({
-    market: null,
+    data: null,
     isFetching: false,
     refetch: jest.fn(),
   })),
@@ -501,7 +501,7 @@ function setupPredictMarketDetailsTest(
   });
 
   usePredictMarket.mockReturnValue({
-    market: mockMarket,
+    data: mockMarket,
     isFetching: false,
     refetch: jest.fn(),
     ...hookOverrides.market,
@@ -669,7 +669,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
-        { market: { isFetching: true, market: null } },
+        { market: { isFetching: true, data: null } },
       );
 
       // Check that skeleton loaders appear
@@ -685,7 +685,7 @@ describe('PredictMarketDetails', () => {
     });
 
     it('displays fallback title when market data is unavailable', () => {
-      setupPredictMarketDetailsTest({}, {}, { market: { market: null } });
+      setupPredictMarketDetailsTest({}, {}, { market: { data: null } });
 
       // Screen renders without a title; other sections may still show loading keys
       expect(
@@ -719,7 +719,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
-        { market: { isFetching: true, market: null } },
+        { market: { isFetching: true, data: null } },
       );
 
       expect(
@@ -756,7 +756,9 @@ describe('PredictMarketDetails', () => {
       expect(
         screen.getByText('predict.market_details.end_date'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('12/31/2024')).toBeOnTheScreen();
+      expect(
+        screen.getByText(new Date('2024-12-31T23:59:59Z').toLocaleDateString()),
+      ).toBeOnTheScreen();
     });
 
     it('displays resolution details information', () => {
@@ -3386,7 +3388,7 @@ describe('PredictMarketDetails', () => {
       });
 
       usePredictMarket.mockReturnValue({
-        market: marketWithoutMiddleEastTag,
+        data: marketWithoutMiddleEastTag,
         isFetching: false,
         refetch: jest.fn(),
       });
