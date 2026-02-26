@@ -363,7 +363,7 @@
               "blockExplorerUrls": [],
               "chainId": "0x1",
               "defaultRpcEndpointIndex": 0,
-              "name": "Ethereum",
+              "name": "Ethereum Main Network",
               "nativeCurrency": "ETH",
               "rpcEndpoints": [
                 {
@@ -517,8 +517,8 @@
               "blockExplorerUrls": [],
               "chainId": "0xe708",
               "defaultRpcEndpointIndex": 0,
-              "name": "Linea",
-              "nativeCurrency": "ETH",
+              "name": "Linea Main Network",
+              "nativeCurrency": "LineaETH",
               "rpcEndpoints": [
                 {
                   "failoverUrls": [],

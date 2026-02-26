@@ -294,7 +294,9 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'card.geoLocation',
     'fiatOrders.detectedGeolocation',
 
-    // ── Dynamic network client IDs and port-dependent URLs ──
+    // ── Dynamic network client IDs, port-dependent URLs, and display names ──
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.*.name',
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.*.nativeCurrency',
     'engine.backgroundState.NetworkController.networkConfigurationsByChainId.*.rpcEndpoints.*.networkClientId',
     'engine.backgroundState.NetworkController.networkConfigurationsByChainId.*.rpcEndpoints.*.url',
     'engine.backgroundState.NetworkController.networksMetadata',
