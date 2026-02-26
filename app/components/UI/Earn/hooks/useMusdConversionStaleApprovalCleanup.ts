@@ -14,7 +14,7 @@ import { selectPendingUnapprovedMusdConversions } from '../selectors/musdConvers
  * This hook rejects those stale unapproved mUSD approvals when the app returns
  * to active state.
  */
-export const useMusdConversionForegroundApprovalCleanup = () => {
+export const useMusdConversionStaleApprovalCleanup = () => {
   const pendingUnapprovedMusdConversions = useSelector(
     selectPendingUnapprovedMusdConversions,
   );
@@ -67,7 +67,7 @@ export const useMusdConversionForegroundApprovalCleanup = () => {
             message:
               'Automatically rejected stale mUSD conversion pending approval on app foreground',
             data: {
-              cause: 'useMusdConversionForegroundApprovalCleanup',
+              cause: 'useMusdConversionStaleApprovalCleanup',
               transactionId,
             },
           }),

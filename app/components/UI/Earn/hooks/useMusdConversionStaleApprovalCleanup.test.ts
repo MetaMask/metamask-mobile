@@ -3,7 +3,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { useMusdConversionForegroundApprovalCleanup } from './useMusdConversionForegroundApprovalCleanup';
+import { useMusdConversionStaleApprovalCleanup } from './useMusdConversionStaleApprovalCleanup';
 import { selectPendingUnapprovedMusdConversions } from '../selectors/musdConversionStatus';
 
 jest.mock('react-redux', () => ({
@@ -28,7 +28,7 @@ jest.mock('../selectors/musdConversionStatus', () => ({
   selectPendingUnapprovedMusdConversions: jest.fn(),
 }));
 
-describe('useMusdConversionForegroundApprovalCleanup', () => {
+describe('useMusdConversionStaleApprovalCleanup', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
@@ -74,7 +74,7 @@ describe('useMusdConversionForegroundApprovalCleanup', () => {
 
   it('registers app state listener and removes it on unmount', () => {
     const { unmount } = renderHook(() =>
-      useMusdConversionForegroundApprovalCleanup(),
+      useMusdConversionStaleApprovalCleanup(),
     );
 
     expect(AppState.addEventListener).toHaveBeenCalledWith(
@@ -92,7 +92,7 @@ describe('useMusdConversionForegroundApprovalCleanup', () => {
       { id: 'tx-1' } as never,
     ]);
 
-    renderHook(() => useMusdConversionForegroundApprovalCleanup());
+    renderHook(() => useMusdConversionStaleApprovalCleanup());
 
     act(() => {
       appStateHandler?.('background');
@@ -111,7 +111,7 @@ describe('useMusdConversionForegroundApprovalCleanup', () => {
       'tx-1',
       expect.objectContaining({
         data: expect.objectContaining({
-          cause: 'musdConversionForegroundRecovery',
+          cause: 'useMusdConversionStaleApprovalCleanup',
           transactionId: 'tx-1',
         }),
       }),
@@ -127,7 +127,7 @@ describe('useMusdConversionForegroundApprovalCleanup', () => {
       { id: 'tx-1' } as never,
     ]);
 
-    renderHook(() => useMusdConversionForegroundApprovalCleanup());
+    renderHook(() => useMusdConversionStaleApprovalCleanup());
 
     act(() => {
       appStateHandler?.('inactive');
@@ -139,7 +139,7 @@ describe('useMusdConversionForegroundApprovalCleanup', () => {
   it('does not reject approvals when there are no stale pending approvals', () => {
     mockSelectPendingUnapprovedMusdConversions.mockReturnValue([]);
 
-    renderHook(() => useMusdConversionForegroundApprovalCleanup());
+    renderHook(() => useMusdConversionStaleApprovalCleanup());
 
     act(() => {
       appStateHandler?.('background');
@@ -156,7 +156,7 @@ describe('useMusdConversionForegroundApprovalCleanup', () => {
       .mockReturnValue([{ id: 'tx-latest' } as never]);
 
     const { rerender } = renderHook(() =>
-      useMusdConversionForegroundApprovalCleanup(),
+      useMusdConversionStaleApprovalCleanup(),
     );
 
     rerender({});
