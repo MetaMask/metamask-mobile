@@ -3,7 +3,10 @@ import { useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import usePerpsToasts, { PerpsToastOptions } from './usePerpsToasts';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+import {
+  ButtonIconVariant,
+  ToastVariants,
+} from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
@@ -459,6 +462,32 @@ describe('usePerpsToasts', () => {
     });
 
     describe('orderManagement.shared', () => {
+      it('returns submitting your trade configuration with dismiss option', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.submitting();
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Submitting your trade', isBold: true },
+        ]);
+        expect(config.hasNoTimeout).toBe(true);
+        expect(config.closeButtonOptions).toMatchObject({
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
+        });
+        expect(config.closeButtonOptions?.onPress).toBeDefined();
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hapticsType: NotificationFeedbackType.Warning,
+        });
+
+        act(() => {
+          config.closeButtonOptions?.onPress?.();
+        });
+        expect(mockCloseToast).toHaveBeenCalled();
+      });
+
       it('returns cancellation in progress configuration with detailed order type', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
