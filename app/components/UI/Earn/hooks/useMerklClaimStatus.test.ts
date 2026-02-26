@@ -118,9 +118,19 @@ describe('useMerklClaimStatus', () => {
     hapticsType: NotificationFeedbackType.Error,
     labelOptions: [{ label: 'Bonus claim failed', isBold: true }],
   };
+  const mockExistingConversionInProgressToast = {
+    variant: ToastVariants.Icon as const,
+    iconName: IconName.Warning,
+    hasNoTimeout: true,
+    iconColor: '#000000',
+    backgroundColor: '#FFFFFF',
+    hapticsType: NotificationFeedbackType.Warning,
+    labelOptions: [{ label: 'Conversion already in progress', isBold: true }],
+  };
   const mockEarnToastOptions: EarnToastOptionsConfig = {
     mUsdConversion: {
       inProgress: jest.fn(),
+      existingConversionInProgress: mockExistingConversionInProgressToast,
       success: mockSuccessToast,
       failed: mockFailedToast,
     },
