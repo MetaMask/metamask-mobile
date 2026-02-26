@@ -39,7 +39,7 @@ describe('useWithdrawalRequests', () => {
   );
 
   let mockController: {
-    getActiveProvider: jest.MockedFunction<() => unknown>;
+    getActiveProviderOrNull: jest.MockedFunction<() => unknown>;
     completeWithdrawalFromHistory: jest.MockedFunction<
       (
         withdrawalRequestId: string,
@@ -162,7 +162,7 @@ describe('useWithdrawalRequests', () => {
     jest.useFakeTimers();
 
     mockController = {
-      getActiveProvider: jest.fn(),
+      getActiveProviderOrNull: jest.fn(),
       completeWithdrawalFromHistory: jest.fn(),
     };
 
@@ -191,7 +191,7 @@ describe('useWithdrawalRequests', () => {
       return result;
     });
 
-    mockController.getActiveProvider.mockReturnValue(mockProvider);
+    mockController.getActiveProviderOrNull.mockReturnValue(mockProvider);
     mockProvider.getUserHistory.mockResolvedValue(mockUserHistory);
   });
 
@@ -555,8 +555,8 @@ describe('useWithdrawalRequests', () => {
   });
 
   describe('error handling', () => {
-    it('handles provider errors gracefully', async () => {
-      mockController.getActiveProvider.mockReturnValue(null);
+    it('silently returns when provider is null', async () => {
+      mockController.getActiveProviderOrNull.mockReturnValue(null);
 
       const { result } = renderHookWithProvider(() => useWithdrawalRequests(), {
         state: createMockState(),
@@ -567,10 +567,13 @@ describe('useWithdrawalRequests', () => {
       });
 
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe('No active provider available');
+      expect(result.current.error).toBeNull();
+      expect(
+        mockController.completeWithdrawalFromHistory,
+      ).not.toHaveBeenCalled();
     });
 
-    it('handles controller errors gracefully', async () => {
+    it('silently returns when controller is unavailable', async () => {
       (mockEngine as unknown as { context: unknown }).context = {};
 
       const { result } = renderHookWithProvider(() => useWithdrawalRequests(), {
@@ -582,12 +585,14 @@ describe('useWithdrawalRequests', () => {
       });
 
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe('PerpsController not available');
+      expect(result.current.error).toBeNull();
     });
 
-    it('handles provider method not supported', async () => {
+    it('silently returns when provider lacks getUserHistory', async () => {
       const providerWithoutMethod = {};
-      mockController.getActiveProvider.mockReturnValue(providerWithoutMethod);
+      mockController.getActiveProviderOrNull.mockReturnValue(
+        providerWithoutMethod,
+      );
 
       const { result } = renderHookWithProvider(() => useWithdrawalRequests(), {
         state: createMockState(),
@@ -598,9 +603,7 @@ describe('useWithdrawalRequests', () => {
       });
 
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe(
-        'Provider does not support user history',
-      );
+      expect(result.current.error).toBeNull();
     });
 
     it('handles API errors gracefully', async () => {

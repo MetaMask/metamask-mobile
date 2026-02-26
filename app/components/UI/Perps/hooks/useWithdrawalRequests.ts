@@ -146,16 +146,12 @@ export const useWithdrawalRequests = (
 
       const controller = Engine.context.PerpsController;
       if (!controller) {
-        throw new Error('PerpsController not available');
+        return;
       }
 
-      const provider = controller.getActiveProvider();
-      if (!provider) {
-        throw new Error('No active provider available');
-      }
-
-      if (!('getUserHistory' in provider)) {
-        throw new Error('Provider does not support user history');
+      const provider = controller.getActiveProviderOrNull();
+      if (!provider || !('getUserHistory' in provider)) {
+        return;
       }
 
       const oldestPending = pendingQueue[0];
@@ -196,10 +192,9 @@ export const useWithdrawalRequests = (
       const matchingCompleted = completedWithdrawals.find(
         (completed) =>
           completed.timestamp > oldestPending.timestamp &&
+          !lastCompletedTxHashes.includes(completed.txHash) &&
           (lastCompletedTimestamp === null ||
-            completed.timestamp > lastCompletedTimestamp ||
-            (completed.timestamp === lastCompletedTimestamp &&
-              !lastCompletedTxHashes.includes(completed.txHash))),
+            completed.timestamp >= lastCompletedTimestamp),
       );
 
       if (!matchingCompleted) {

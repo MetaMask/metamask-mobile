@@ -2333,18 +2333,12 @@ export class PerpsController extends BaseController<
         state.withdrawalRequests.splice(requestIndex, 1);
       }
 
-      // Update the persisted FIFO guard. When the new completion shares the
-      // same millisecond timestamp, append to the txHashes array so the hook
-      // can exclude every already-consumed entry. Reset the array when the
-      // timestamp advances.
-      if (
-        completedWithdrawal.timestamp === state.lastCompletedWithdrawalTimestamp
-      ) {
-        state.lastCompletedWithdrawalTxHashes.push(completedWithdrawal.txHash);
-      } else {
-        state.lastCompletedWithdrawalTimestamp = completedWithdrawal.timestamp;
-        state.lastCompletedWithdrawalTxHashes = [completedWithdrawal.txHash];
-      }
+      // Update the persisted FIFO guard. Always append — never reset the
+      // txHashes array — so that direct-completion hashes (pushed by
+      // AccountService without a timestamp update) are preserved when
+      // the timestamp advances from a later API-detected completion.
+      state.lastCompletedWithdrawalTimestamp = completedWithdrawal.timestamp;
+      state.lastCompletedWithdrawalTxHashes.push(completedWithdrawal.txHash);
 
       const hasPendingWithdrawals = state.withdrawalRequests.some(
         (req) => req.status === 'pending' || req.status === 'bridging',
