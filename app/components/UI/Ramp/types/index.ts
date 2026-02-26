@@ -6,6 +6,8 @@ export interface RampIntent {
   currency?: string;
   providerId?: string;
   paymentMethodId?: string;
+  autoProceed?: boolean;
+  callbackKey?: string;
 }
 
 /**

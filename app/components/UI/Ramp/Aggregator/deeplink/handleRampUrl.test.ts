@@ -96,7 +96,7 @@ describe('handleRampUrl', () => {
   it('passes provider and payment method intent params for buy deeplinks', () => {
     handleRampUrl({
       rampPath:
-        '?assetId=eip155:1%2Ferc20:0x123456&providerId=%2Fproviders%2Ftransak&paymentMethodId=%2Fpayments%2Fdebit-credit-card',
+        '?assetId=eip155:1%2Ferc20:0x123456&providerId=%2Fproviders%2Ftransak&paymentMethodId=%2Fpayments%2Fdebit-credit-card&autoProceed=true',
       rampType: RampType.BUY,
     });
     expect(handleRedirection).not.toHaveBeenCalled();
@@ -110,6 +110,7 @@ describe('handleRampUrl', () => {
             assetId: 'eip155:1/erc20:0x123456',
             providerId: '/providers/transak',
             paymentMethodId: '/payments/debit-credit-card',
+            autoProceed: true,
           },
         },
       },

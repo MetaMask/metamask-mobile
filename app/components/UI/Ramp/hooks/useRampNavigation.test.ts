@@ -159,6 +159,8 @@ describe('useRampNavigation', () => {
           currency: 'USD',
           providerId: '/providers/transak',
           paymentMethodId: '/payments/debit-credit-card',
+          autoProceed: true,
+          callbackKey: 'quick-buy-cb-1',
         };
         const mockNavDetails = [
           Routes.RAMP.TOKEN_SELECTION,

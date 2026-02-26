@@ -28,7 +28,7 @@ enum RampMode {
  * Hook that returns functions to navigate to ramp flows.
  *
  * @returns An object containing navigation functions:
- * - goToBuy: Smart routing based on unified settings and routing decision; supports optional intent params assetId, amount, currency, providerId, paymentMethodId
+ * - goToBuy: Smart routing based on unified settings and routing decision; supports optional intent params assetId, amount, currency, providerId, paymentMethodId, autoProceed, callbackKey
  * - goToAggregator: deprecated Always navigates to aggregator BUY flow (bypasses smart routing)
  * - goToSell: Always navigates to aggregator SELL flow
  * - goToDeposit: deprecated Always navigates to deposit flow (bypasses smart routing)
@@ -111,6 +111,8 @@ export const useRampNavigation = () => {
           ...(intent.paymentMethodId
             ? { paymentMethodId: intent.paymentMethodId }
             : {}),
+          ...(intent.autoProceed ? { autoProceed: intent.autoProceed } : {}),
+          ...(intent.callbackKey ? { callbackKey: intent.callbackKey } : {}),
         };
         try {
           setSelectedToken(controllerAssetId);

@@ -16,6 +16,7 @@ const mockUseEffect = jest.requireActual('react').useEffect;
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
+const mockRootGoBack = jest.fn();
 const mockSetParams = jest.fn();
 const mockGetWidgetUrl = jest.fn<
   Promise<string | null>,
@@ -58,6 +59,13 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     setOptions: mockSetOptions,
     goBack: mockGoBack,
+    canGoBack: () => true,
+    getParent: () => ({
+      getParent: () => ({
+        canGoBack: () => true,
+        goBack: mockRootGoBack,
+      }),
+    }),
     setParams: mockSetParams,
   }),
   useRoute: () => ({
@@ -68,6 +76,17 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: (callback: () => void) => {
     mockUseEffect(() => callback(), [callback]);
   },
+}));
+
+const mockQuickBuyErrorCallback = jest.fn();
+const mockGetQuickBuyErrorCallback = jest.fn(() => mockQuickBuyErrorCallback);
+const mockRemoveQuickBuyErrorCallback = jest.fn();
+
+jest.mock('../../utils/quickBuyCallbackRegistry', () => ({
+  getQuickBuyErrorCallback: (...args: unknown[]) =>
+    mockGetQuickBuyErrorCallback(...args),
+  removeQuickBuyErrorCallback: (...args: unknown[]) =>
+    mockRemoveQuickBuyErrorCallback(...args),
 }));
 
 const mockUseParams = jest.fn<Record<string, unknown>, []>(() => ({
@@ -241,6 +260,7 @@ const renderWithTheme = (component: React.ReactElement) =>
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetQuickBuyErrorCallback.mockReturnValue(mockQuickBuyErrorCallback);
     mockUseParams.mockImplementation(() => ({
       assetId: MOCK_ASSET_ID,
     }));
@@ -344,6 +364,19 @@ describe('BuildQuote', () => {
     expect(mockSetSelectedPaymentMethod).toHaveBeenCalledWith(
       intendedPaymentMethod,
     );
+  });
+
+  it('shows loader-only UI when autoProceed is enabled', () => {
+    mockUseParams.mockReturnValue({
+      assetId: MOCK_ASSET_ID,
+      amount: '100',
+      autoProceed: true,
+    });
+
+    const { getByTestId, queryByTestId } = renderWithTheme(<BuildQuote />);
+
+    expect(getByTestId('build-quote-auto-proceed-loader')).toBeOnTheScreen();
+    expect(queryByTestId('build-quote-continue-button')).toBeNull();
   });
 
   it('renders the keypad', () => {

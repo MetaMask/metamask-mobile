@@ -37,6 +37,20 @@ describe('parseRampIntent', () => {
     });
   });
 
+  it('parses autoProceed intent field when provided as query param', () => {
+    const pathParams = {
+      assetId: 'eip155:1/erc20:0x1234567890',
+      autoProceed: 'true',
+    };
+
+    const result = parseRampIntent(pathParams);
+
+    expect(result).toEqual({
+      assetId: 'eip155:1/erc20:0x1234567890',
+      autoProceed: true,
+    });
+  });
+
   it('Returns a RampIntent object with only defined fields', () => {
     const pathParams = {
       assetId: 'eip155:1/erc20:0x1234567890',
