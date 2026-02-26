@@ -79,10 +79,26 @@ From CI logs (run 22441737582, job 64987739665):
 2. ✅ **`run-e2e-smoke-tests-ios-flask.yml`** - Flask iOS E2E tests (FIXED)
 3. ✅ **`build-ios-e2e.yml`** - iOS build validation added (FIXED)
 
-### Blast Radius
-- **High Impact**: When this issue occurs, it causes immediate test suite failures across multiple shards
-- **Frequency**: Intermittent but significant contributor to the ~50% failure rate on main
-- **Test Categories Affected**: All iOS E2E smoke tests (SmokeWalletPlatform, SmokeIdentity, SmokeConfirmations, etc.)
+### Blast Radius: Why All Shards Fail Together
+
+This is a **build-level failure**, not a test-level failure:
+
+```
+Build Job (produces ONE artifact)
+         ↓
+    Bad Artifact
+         ├─────────┬─────────┬─────────┐
+         ↓         ↓         ↓         ↓
+     Shard 1   Shard 2   Shard 3   Shard N
+        ❌        ❌        ❌        ❌
+```
+
+When the build uploads a corrupt artifact:
+- All test shards download the SAME corrupt artifact
+- All shards fail to install it with identical error
+- Looks like many "flaky tests" but it's actually one build failure
+- **Frequency**: Intermittent but significant contributor to ~50% failure rate
+- **Test Categories Affected**: All iOS E2E smoke tests when corruption occurs
 
 ## Solution Implemented
 
@@ -168,13 +184,39 @@ Updated artifact copying logic to handle nested structure:
     [ -f "${APP_PATH}/Info.plist" ] || exit 1
 ```
 
+## Why Failures are Intermittent (Not 100%)
+
+Despite `PREBUILT_IOS_APP_PATH` always pointing to the wrong location, failures are intermittent because there are **two compounding issues**:
+
+### Build Has Two Code Paths
+1. **Cache miss** → Full Xcode build → Usually produces valid artifact
+2. **Cache hit** → Restore bundle + Repack with `@expo/repack-app` → Occasionally corrupts bundle
+
+### The Intermittent Pattern
+- When **repack succeeds**: Bundle structure is intact, even though path is wrong in test workflow, the issue might be less noticeable
+- When **repack corrupts**: Bundle is missing executable → Wrong path + corrupt bundle = guaranteed failure
+
+### From Failing Build (Run 22441737582):
+```
+Cache hits: 2 (used repack path)
+📦 Repacking iOS app with @expo/repack-app...
+✅ iOS App repack completed in 179s
+📦 Final app size: 273M
+
+# Build reports SUCCESS
+# But bundle is missing MetaMask executable
+# All test shards download this corrupt artifact
+# All shards fail: "missing its bundle executable"
+```
+
 ## Expected Benefits
 
-1. **Correct App Installation**: Detox now installs the actual `.app` bundle, not a wrapper folder
-2. **Fail Fast**: Invalid builds are detected at build time with validation checks
-3. **Clear Error Messages**: Setup failures show exactly what's missing and where
-4. **Simplified Configuration**: Removes dependency on `PREBUILT_IOS_APP_PATH` variable
-5. **Better CI Success Rate**: Should significantly improve the main branch success rate from ~50% toward >80%
+1. **Validation Catches Corruption**: Pre-upload checks fail build if bundle is corrupt  
+2. **Fail Fast**: Bad builds detected before artifact upload, not during test execution
+3. **Correct App Installation**: Detox installs actual `.app` bundle, not wrapper folder
+4. **Clear Error Messages**: Build failures show exactly what's invalid
+5. **Eliminates Cascading Failures**: One corrupt build won't cause 10+ shard failures
+6. **Better CI Success Rate**: Should significantly improve main branch success rate from ~50% toward >80%
 
 ## Testing Strategy
 
