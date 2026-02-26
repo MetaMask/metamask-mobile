@@ -124,7 +124,7 @@ jobs:
           ref: ${{ needs.update-build-version.outputs.commit-hash }}
           submodules: recursive
 
-      # iOS: Use MetaMask's setup action (handles Node, Ruby, CocoaPods, Xcode)
+      # iOS: Use MetaMask's setup action (handles Node, Ruby, CocoaPods, Xcode). Signing is handled by Configure signing certificates below.
       - name: Setup iOS environment
         if: matrix.platform == 'ios'
         timeout-minutes: 15
@@ -132,6 +132,7 @@ jobs:
         with:
           platform: ios
           setup-simulator: false
+          configure-keystores: false  # Skip OIDC/AWS here; signing is done in Configure signing certificates step
 
       # Android: Setup Node
       - name: Setup Node
