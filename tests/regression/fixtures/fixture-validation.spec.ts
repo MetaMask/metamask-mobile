@@ -11,7 +11,10 @@ import {
   readFixtureFile,
   computeSchemaDiff,
   formatSchemaDiff,
+  mergeFixtureChanges,
+  sortObjectKeysDeep,
   normalizeExportedState,
+  FixtureSchemaDiff,
 } from '../../framework/fixtures/fixture-validation';
 
 describe(FixtureValidation('Fixture Validation — Post-Onboarding'), () => {
@@ -19,7 +22,7 @@ describe(FixtureValidation('Fixture Validation — Post-Onboarding'), () => {
     jest.setTimeout(150000);
   });
 
-  it('fails when the committed default fixture schema is out of date', async () => {
+  it('validates the committed fixture and exports updates when structural changes exist', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
@@ -47,18 +50,15 @@ describe(FixtureValidation('Fixture Validation — Post-Onboarding'), () => {
 
         // Compare
         const diff = computeSchemaDiff(fixtureState, liveState);
-
         const report = formatSchemaDiff(diff);
 
-        // Structural changes = CI-blocking (schema is out of date)
         const hasStructuralChanges =
           diff.newKeys.length > 0 ||
           diff.missingKeys.length > 0 ||
           diff.typeMismatches.length > 0;
 
-        // Write results to both artifacts/ and reports/ directories.
-        // reports/ is always uploaded by run-e2e-workflow.yml so the
-        // downstream CI job can read it for PR comments and annotations.
+        // --- Validation: write reports for CI ---
+
         const artifactsDir = path.resolve(__dirname, '..', '..', 'artifacts');
         const reportsDir = path.resolve(__dirname, '..', '..', 'reports');
         for (const dir of [artifactsDir, reportsDir]) {
@@ -67,7 +67,7 @@ describe(FixtureValidation('Fixture Validation — Post-Onboarding'), () => {
           }
         }
 
-        // Write human-readable diff report
+        // Human-readable diff report
         const diffPath = path.join(artifactsDir, 'fixture-validation-diff.txt');
         if (hasStructuralChanges || diff.valueMismatches.length > 0) {
           const summary = [
@@ -94,36 +94,72 @@ describe(FixtureValidation('Fixture Validation — Post-Onboarding'), () => {
           );
         }
 
-        // Write machine-readable JSON summary for downstream CI job
-        const jsonResult = {
-          hasStructuralChanges,
-          newKeys: diff.newKeys.length,
-          missingKeys: diff.missingKeys.length,
-          typeMismatches: diff.typeMismatches.length,
-          valueMismatches: diff.valueMismatches.length,
-        };
+        // Machine-readable JSON summary for downstream CI job
         fs.writeFileSync(
           path.join(reportsDir, 'fixture-validation-result.json'),
-          JSON.stringify(jsonResult, null, 2),
+          JSON.stringify(
+            {
+              hasStructuralChanges,
+              newKeys: diff.newKeys.length,
+              missingKeys: diff.missingKeys.length,
+              typeMismatches: diff.typeMismatches.length,
+              valueMismatches: diff.valueMismatches.length,
+            },
+            null,
+            2,
+          ),
           'utf-8',
         );
 
-        // Only fail on structural changes — value mismatches are expected
-        // because the fixture represents an existing user, not a fresh
-        // post-onboarding state.
-        // TODO: Change console.warn to throw once fixture validation is stable
+        // --- Export: update fixture file when structural changes exist ---
+
         if (hasStructuralChanges) {
+          // Only merge structural changes (new keys, missing keys, type mismatches).
+          // Value mismatches are NOT auto-merged because the default fixture
+          // represents an existing user, not a fresh post-onboarding state.
+          const structuralDiff: FixtureSchemaDiff = {
+            newKeys: diff.newKeys,
+            missingKeys: diff.missingKeys,
+            typeMismatches: diff.typeMismatches,
+            valueMismatches: [],
+          };
+
+          const mergedState = mergeFixtureChanges(
+            fixtureState,
+            liveState,
+            structuralDiff,
+          );
+          const updatedFixture = sortObjectKeysDeep({
+            ...fixture,
+            state: mergedState,
+          }) as Record<string, unknown>;
+
+          const fixturePath = path.resolve(
+            __dirname,
+            '..',
+            '..',
+            'framework',
+            'fixtures',
+            'json',
+            'default-fixture.json',
+          );
+          fs.writeFileSync(
+            fixturePath,
+            JSON.stringify(updatedFixture, null, 2) + '\n',
+            'utf-8',
+          );
+
+          // TODO: Change console.warn to throw once fixture validation is stable
           console.warn(
             `Committed fixture schema is out of date.\n` +
               `  New keys: ${diff.newKeys.length}\n` +
               `  Missing keys: ${diff.missingKeys.length}\n` +
               `  Type mismatches: ${diff.typeMismatches.length}\n\n` +
-              `Run "@metamaskbot update-mobile-fixture" to update the fixture.\n` +
-              `See ${diffPath} for the full diff.`,
+              `Updated fixture written to: ${fixturePath}\n` +
+              `Only structural changes were applied. Value mismatches\n` +
+              `require manual review — the fixture represents an existing user.`,
           );
-        }
-
-        if (diff.valueMismatches.length > 0) {
+        } else if (diff.valueMismatches.length > 0) {
           console.log(
             `\nFixture schema is up to date. ${diff.valueMismatches.length} value mismatches detected (expected — fixture represents an existing user).`,
           );

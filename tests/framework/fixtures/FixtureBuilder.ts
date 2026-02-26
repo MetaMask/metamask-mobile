@@ -219,6 +219,9 @@ class FixtureBuilder {
       this.fixture.state.engine.backgroundState.NetworkController
         .networkConfigurationsByChainId;
     if (!networkConfigs['0x539']) {
+      const networkClientId = `networkClientId${
+        Object.keys(networkConfigs).length + 1
+      }`;
       networkConfigs['0x539'] = {
         blockExplorerUrls: ['https://localhost'],
         chainId: '0x539',
@@ -227,7 +230,12 @@ class FixtureBuilder {
         name: 'Localhost',
         nativeCurrency: 'ETH',
         rpcEndpoints: [
-          { name: 'Localhost default RPC', type: 'custom', url: '' },
+          {
+            networkClientId,
+            name: 'Localhost default RPC',
+            type: 'custom',
+            url: '',
+          },
         ],
       };
     }

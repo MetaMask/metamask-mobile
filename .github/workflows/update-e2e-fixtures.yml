@@ -197,12 +197,12 @@ jobs:
         env:
           PREBUILT_IOS_APP_PATH: artifacts/main-qa-MetaMask.app
 
-      - name: Run fixture export spec
+      - name: Run fixture validation spec
         timeout-minutes: 30
         run: |
           IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' \
             detox test -c ios.sim.main.ci --headless \
-            tests/regression/fixtures/fixture-export.spec.ts
+            tests/regression/fixtures/fixture-validation.spec.ts
         env:
           PREBUILT_IOS_APP_PATH: artifacts/main-qa-MetaMask.app
 
