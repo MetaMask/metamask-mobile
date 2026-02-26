@@ -6323,7 +6323,8 @@
       "transaction_fees": "Transaction fees",
       "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
-      "bridge_fee": "Bridge provider fee"
+      "bridge_fee": "Bridge provider fee",
+      "provider_fee": "Provider fee"
     },
     "title": {
       "signature": "Signature request",
@@ -7206,6 +7207,8 @@
         "card_tos_title": "Terms and conditions",
         "order_metal_card": "Metal Card",
         "order_metal_card_description": "Order your physical Metal Card now",
+        "cashback": "Cashback",
+        "cashback_description": "Earn 1% back on all spending",
         "freeze_card": "Freeze card",
         "unfreeze_card": "Unfreeze card",
         "freeze_card_description": "Pause all spending on your card",
@@ -7242,6 +7245,19 @@
       "load_error": "Unable to load tokens. Please try again.",
       "retry": "Try again",
       "on_linea": "on Linea"
+    },
+    "cashback_screen": {
+      "title": "Cashback",
+      "available_cashback": "Available cashback",
+      "network_fee": "Network fee",
+      "expected_to_receive": "Expected to receive",
+      "withdraw": "Withdraw",
+      "withdraw_unavailable": "Withdrawal unavailable",
+      "withdrawal_initiated": "Withdrawal has been initiated",
+      "withdrawal_success": "Withdrawal completed successfully",
+      "withdrawal_failed": "Withdrawal failed. Please try again.",
+      "no_cashback": "No cashback available",
+      "loading_error": "Failed to load cashback. Please try again."
     },
     "change_asset": {
       "title": "Change token and network",
