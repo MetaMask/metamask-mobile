@@ -861,13 +861,7 @@ export class BackgroundBridge extends EventEmitter {
    */
   createEip5792Middleware() {
     return createEip5792Middleware({
-      getAccounts: () => {
-        const { AccountsController } = Engine.context;
-        const addresses = AccountsController.listAccounts().map(
-          (acc) => acc.address,
-        );
-        return Promise.resolve(addresses);
-      },
+      getPermittedAccounts: (origin) => getPermittedAccounts(origin),
       // EIP-5792
       processSendCalls: processSendCalls.bind(
         null,
