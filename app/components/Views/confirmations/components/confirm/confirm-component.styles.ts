@@ -6,13 +6,18 @@ const styleSheet = (params: {
   vars: {
     isFullScreenConfirmation: boolean;
     disableSafeArea?: boolean;
+    useDefaultBackground?: boolean;
+    disableHorizontalPadding?: boolean;
   };
 }) => {
   const { theme, vars } = params;
+  const backgroundColor = vars.useDefaultBackground
+    ? theme.colors.background.default
+    : theme.colors.background.alternative;
 
   return StyleSheet.create({
     bottomSheetDialogSheet: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor,
     },
     confirmContainer: {
       display: 'flex',
@@ -21,17 +26,20 @@ const styleSheet = (params: {
     flatContainer: {
       flex: 1,
       zIndex: 9999,
-      backgroundColor: theme.colors.background.default,
+      backgroundColor,
       justifyContent: 'space-between',
     },
     scrollView: {
-      paddingHorizontal: vars.disableSafeArea === true ? 0 : 16,
+      paddingHorizontal:
+        vars.disableSafeArea === true || vars.disableHorizontalPadding === true
+          ? 0
+          : 16,
     },
     scrollViewContent: {
       flex: vars.isFullScreenConfirmation ? 1 : undefined,
     },
     spinnerContainer: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor,
       width: '100%',
       height: '100%',
       justifyContent: 'center',

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PlaceOrderParams } from '../providers/types';
 import { usePredictDepositAndOrder } from './usePredictDepositAndOrder';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
@@ -7,7 +7,8 @@ import { PredictBuyPreviewParams } from '../types/navigation';
 interface UsePredictTokenSelectionParams {
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
   amountUsd: number;
-  onTokenSelected?: () => void;
+  isInputFocused: boolean;
+  onTokenSelected?: () => boolean | void;
   market: PredictBuyPreviewParams['market'];
   outcome: PredictBuyPreviewParams['outcome'];
   outcomeToken: PredictBuyPreviewParams['outcomeToken'];
@@ -16,6 +17,7 @@ interface UsePredictTokenSelectionParams {
 export function usePredictTokenSelection({
   analyticsProperties,
   amountUsd,
+  isInputFocused,
   onTokenSelected,
   market,
   outcome,
@@ -24,10 +26,20 @@ export function usePredictTokenSelection({
   const { depositAndOrder } = usePredictDepositAndOrder();
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
+  const [isDepositAndOrderLoading, setIsDepositAndOrderLoading] =
+    useState(false);
 
   const hasInitializedTokenSelectionRef = useRef(false);
   const previousSelectedTokenKeyRef = useRef<string | null>(null);
   const shouldPreserveActiveOrderOnUnmountRef = useRef(false);
+  const isMountedRef = useRef(true);
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+    },
+    [],
+  );
 
   useEffect(() => {
     const selectedTokenAddress = selectedPaymentToken?.address ?? null;
@@ -46,25 +58,37 @@ export function usePredictTokenSelection({
     }
 
     previousSelectedTokenKeyRef.current = selectedTokenKey;
-    onTokenSelected?.();
+    const nextIsInputFocused = onTokenSelected?.();
 
     if (isPredictBalanceSelected || !selectedTokenAddress) {
       return;
     }
 
     shouldPreserveActiveOrderOnUnmountRef.current = true;
+    setIsDepositAndOrderLoading(true);
 
     depositAndOrder({
       market,
       outcome,
       outcomeToken,
+      isInputFocused:
+        typeof nextIsInputFocused === 'boolean'
+          ? nextIsInputFocused
+          : isInputFocused,
       ...(amountUsd > 0 ? { amountUsd } : {}),
       analyticsProperties,
-    }).catch(() => undefined);
+    })
+      .catch(() => undefined)
+      .finally(() => {
+        if (isMountedRef.current) {
+          setIsDepositAndOrderLoading(false);
+        }
+      });
   }, [
     amountUsd,
     analyticsProperties,
     depositAndOrder,
+    isInputFocused,
     isPredictBalanceSelected,
     market,
     onTokenSelected,
@@ -73,5 +97,8 @@ export function usePredictTokenSelection({
     selectedPaymentToken?.address,
   ]);
 
-  return { shouldPreserveActiveOrderOnUnmountRef };
+  return {
+    shouldPreserveActiveOrderOnUnmountRef,
+    isDepositAndOrderLoading,
+  };
 }

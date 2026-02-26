@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -10,16 +11,28 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonSize as ButtonSizeHero,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { ActivityIndicator, Linking, ScrollView } from 'react-native';
+import {
+  ActivityIndicator,
+  Linking,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -44,7 +57,6 @@ import { usePredictRewards } from '../../hooks/usePredictRewards';
 import { Side } from '../../types';
 import { formatCents, formatPrice } from '../../utils/format';
 import { BigNumber } from 'bignumber.js';
-import { useConfirmationContext } from '../../../../Views/confirmations/context/confirmation-context';
 import {
   POLYGON_USDCE,
   PREDICT_CURRENCY,
@@ -59,18 +71,30 @@ import { useTransactionCustomAmount } from '../../../../Views/confirmations/hook
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
-import useNavbar from '../../../../Views/confirmations/hooks/ui/useNavbar';
-import { NavbarOverrides } from '../../../../Views/confirmations/components/UI/navbar/navbar';
+import {
+  getNavbar,
+  NavbarOverrides,
+} from '../../../../Views/confirmations/components/UI/navbar/navbar';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
+import { useTheme } from '../../../../../util/theme';
+import { StakeNavigationParamsList } from '../../../Stake/types';
+import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
+import { useFullScreenConfirmation } from '../../../../Views/confirmations/hooks/ui/useFullScreenConfirmation';
 
 const MINIMUM_BET = 1;
 
 export function PredictDepositAndOrderInfo() {
   const activeOrder = usePredictActiveOrder();
-
+  const theme = useTheme();
+  const tw = useTailwind();
+  const navigation =
+    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const { onReject } = useConfirmActions();
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const market = activeOrder?.market;
   const outcome = activeOrder?.outcome;
   const outcomeToken = activeOrder?.outcomeToken;
+  const initialInputFocused = activeOrder?.isInputFocused;
   const prefilledAmountUsd =
     activeOrder?.amountUsd && activeOrder.amountUsd > 0
       ? activeOrder.amountUsd
@@ -79,25 +103,56 @@ export function PredictDepositAndOrderInfo() {
   const renderHeaderTitle = useCallback(
     () =>
       outcomeToken ? (
-        <PredictBuyPreviewHeaderTitle
-          title={market?.title ?? ''}
-          outcomeImage={outcome?.image}
-          outcomeGroupTitle={outcome?.groupItemTitle ?? ''}
-          outcomeToken={outcomeToken}
-        />
-      ) : null,
+        <Box twClassName="mt-4 -ml-4">
+          <PredictBuyPreviewHeaderTitle
+            title={market?.title ?? ''}
+            outcomeImage={outcome?.image}
+            outcomeGroupTitle={outcome?.groupItemTitle ?? ''}
+            outcomeToken={outcomeToken}
+          />
+        </Box>
+      ) : (
+        <Box twClassName="h-24" />
+      ),
     [market?.title, outcome?.image, outcome?.groupItemTitle, outcomeToken],
+  );
+  const renderHeaderLeft = useCallback(
+    (onBackPress: () => void) => (
+      <TouchableOpacity onPress={onBackPress} style={tw.style('mt-4 ml-4')}>
+        <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
+      </TouchableOpacity>
+    ),
+    [tw],
   );
 
   const navbarOverrides = useMemo<NavbarOverrides>(
     () => ({
       headerTitleAlign: 'left' as const,
       headerTitle: renderHeaderTitle,
+      headerLeft: renderHeaderLeft,
+      headerStyle: {
+        backgroundColor: theme.colors.background.default,
+      },
     }),
-    [renderHeaderTitle],
+    [renderHeaderLeft, renderHeaderTitle, theme.colors.background.default],
   );
 
-  useNavbar(strings('confirm.title.predict_deposit'), true, navbarOverrides);
+  useLayoutEffect(() => {
+    if (!isFullScreenConfirmation) {
+      return;
+    }
+
+    navigation.setOptions(
+      getNavbar({
+        title: strings('confirm.title.predict_deposit'),
+        onReject,
+        addBackButton: true,
+        theme,
+        overrides: navbarOverrides,
+      }),
+    );
+  }, [isFullScreenConfirmation, navigation, navbarOverrides, onReject, theme]);
+
   useClearConfirmationOnBackSwipe();
 
   useAddToken({
@@ -111,12 +166,10 @@ export function PredictDepositAndOrderInfo() {
   const { payToken } = useTransactionPayToken();
   const { isPredictBalanceSelected } = usePredictPaymentToken();
 
-  const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const previousValueRef = useRef(0);
   const hasAppliedPrefillRef = useRef(false);
-  const { setIsFooterVisible } = useConfirmationContext();
 
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();
@@ -126,7 +179,11 @@ export function PredictDepositAndOrderInfo() {
   const [currentValueUSDString, setCurrentValueUSDString] = useState(
     prefilledAmountUsd > 0 ? prefilledAmountUsd.toString() : '',
   );
-  const [isInputFocused, setIsInputFocused] = useState(prefilledAmountUsd <= 0);
+  const [isInputFocused, setIsInputFocused] = useState(
+    typeof initialInputFocused === 'boolean'
+      ? initialInputFocused
+      : prefilledAmountUsd <= 0,
+  );
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
 
@@ -138,7 +195,6 @@ export function PredictDepositAndOrderInfo() {
     hasAppliedPrefillRef.current = true;
     setCurrentValue(prefilledAmountUsd);
     setCurrentValueUSDString(prefilledAmountUsd.toString());
-    setIsInputFocused(false);
   }, [prefilledAmountUsd]);
 
   const {
@@ -173,10 +229,6 @@ export function PredictDepositAndOrderInfo() {
 
     previousValueRef.current = currentValue;
   }, [currentValue, isCalculating]);
-
-  useEffect(() => {
-    setIsFooterVisible(false);
-  }, [setIsFooterVisible]);
 
   useEffect(
     () => () => {
@@ -434,24 +486,20 @@ export function PredictDepositAndOrderInfo() {
     }
 
     return (
-      <Button
-        size={ButtonSize.Lg}
-        variant={ButtonVariants.Primary}
-        width={ButtonWidthTypes.Full}
+      <ButtonHero
         disabled={!canPlaceBet}
         onPress={handleConfirm}
-        style={tw.style(!canPlaceBet ? 'opacity-50' : '')}
-        label={
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.PrimaryInverse}
-            twClassName="font-medium"
-          >
-            {outcomeToken?.title} ·{' '}
-            {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
-          </Text>
-        }
-      />
+        size={ButtonSizeHero.Lg}
+        style={tw.style('w-full', !canPlaceBet && 'opacity-50')}
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          style={tw.style('text-white font-medium')}
+        >
+          {outcomeToken?.title} ·{' '}
+          {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
+        </Text>
+      </ButtonHero>
     );
   };
 
@@ -556,7 +604,7 @@ export function PredictDepositAndOrderInfo() {
   };
 
   return (
-    <Box twClassName="flex-1">
+    <Box twClassName="flex-1 bg-background-default">
       {renderAmount()}
       {renderFeesSummary()}
       {renderErrorMessage()}

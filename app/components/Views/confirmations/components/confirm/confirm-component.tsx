@@ -118,9 +118,15 @@ export const Confirm = ({
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
+  const transaction = useTransactionMetadataRequest();
+  const isPredictDepositAndOrder = hasTransactionType(transaction, [
+    PREDICT_DEPOSIT_AND_ORDER_TYPE,
+  ]);
   const { styles } = useStyles(styleSheet, {
     isFullScreenConfirmation,
     disableSafeArea,
+    useDefaultBackground: isPredictDepositAndOrder,
+    disableHorizontalPadding: isPredictDepositAndOrder,
   });
 
   useEffect(() => {

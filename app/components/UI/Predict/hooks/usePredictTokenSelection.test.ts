@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { PredictBuyPreviewParams } from '../types/navigation';
 import { usePredictTokenSelection } from './usePredictTokenSelection';
 
@@ -45,6 +45,7 @@ describe('usePredictTokenSelection', () => {
     renderHook(() =>
       usePredictTokenSelection({
         amountUsd: 0,
+        isInputFocused: true,
         market,
         outcome,
         outcomeToken,
@@ -58,6 +59,7 @@ describe('usePredictTokenSelection', () => {
     const { rerender, result } = renderHook(() =>
       usePredictTokenSelection({
         amountUsd: 25,
+        isInputFocused: false,
         market,
         outcome,
         outcomeToken,
@@ -75,6 +77,7 @@ describe('usePredictTokenSelection', () => {
       market,
       outcome,
       outcomeToken,
+      isInputFocused: false,
       amountUsd: 25,
       analyticsProperties: undefined,
     });
@@ -87,6 +90,7 @@ describe('usePredictTokenSelection', () => {
     const { rerender } = renderHook(() =>
       usePredictTokenSelection({
         amountUsd: 0,
+        isInputFocused: true,
         market,
         outcome,
         outcomeToken,
@@ -104,6 +108,7 @@ describe('usePredictTokenSelection', () => {
       market,
       outcome,
       outcomeToken,
+      isInputFocused: true,
       analyticsProperties: undefined,
     });
   });
@@ -113,6 +118,7 @@ describe('usePredictTokenSelection', () => {
     const { rerender } = renderHook(() =>
       usePredictTokenSelection({
         amountUsd: 0,
+        isInputFocused: true,
         market,
         outcome,
         outcomeToken,
@@ -128,5 +134,45 @@ describe('usePredictTokenSelection', () => {
     });
 
     expect(onTokenSelected).toHaveBeenCalledTimes(1);
+  });
+
+  it('sets loading while depositAndOrder is in progress', async () => {
+    let resolveDepositAndOrder: (() => void) | undefined;
+    mockDepositAndOrder.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveDepositAndOrder = resolve;
+        }),
+    );
+
+    const { rerender, result } = renderHook(() =>
+      usePredictTokenSelection({
+        amountUsd: 25,
+        isInputFocused: false,
+        market,
+        outcome,
+        outcomeToken,
+      }),
+    );
+
+    mockIsPredictBalanceSelected = false;
+    mockSelectedTokenAddress = '0x1234';
+
+    await act(async () => {
+      rerender();
+    });
+
+    await waitFor(() => {
+      expect(result.current.isDepositAndOrderLoading).toBe(true);
+    });
+
+    await act(async () => {
+      resolveDepositAndOrder?.();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(result.current.isDepositAndOrderLoading).toBe(false);
+    });
   });
 });

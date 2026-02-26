@@ -148,17 +148,15 @@ const PredictBuyPreview = () => {
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
   const previousValueRef = useRef(0);
-  const handleTokenSelected = useCallback(() => {
-    setIsInputFocused(false);
-  }, []);
-  const { shouldPreserveActiveOrderOnUnmountRef } = usePredictTokenSelection({
-    market,
-    outcome,
-    outcomeToken,
-    analyticsProperties,
-    amountUsd: currentValue,
-    onTokenSelected: handleTokenSelected,
-  });
+  const { shouldPreserveActiveOrderOnUnmountRef, isDepositAndOrderLoading } =
+    usePredictTokenSelection({
+      market,
+      outcome,
+      outcomeToken,
+      analyticsProperties,
+      amountUsd: currentValue,
+      isInputFocused,
+    });
 
   const { deposit } = usePredictDeposit();
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
@@ -438,7 +436,7 @@ const PredictBuyPreview = () => {
         disabled={!canPlaceBetAction}
         isLoading={isPlacingOrder}
         size={ButtonSizeHero.Lg}
-        style={tw.style('w-full')}
+        style={tw.style('w-full', isDepositAndOrderLoading && 'opacity-50')}
       >
         <Text
           variant={TextVariant.BodyMd}

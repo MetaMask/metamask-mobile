@@ -22,6 +22,7 @@ import { usePredictTrading } from './usePredictTrading';
 
 interface PredictDepositAndOrderParams {
   amountUsd?: number;
+  isInputFocused?: boolean;
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
   market: PredictBuyPreviewParams['market'];
   outcome: PredictBuyPreviewParams['outcome'];
@@ -96,6 +97,9 @@ export const usePredictDepositAndOrder = () => {
           market: params.market,
           outcome: params.outcome,
           outcomeToken: params.outcomeToken,
+          ...(typeof params.isInputFocused === 'boolean'
+            ? { isInputFocused: params.isInputFocused }
+            : {}),
           ...(params.amountUsd && params.amountUsd > 0
             ? { amountUsd: params.amountUsd }
             : {}),
