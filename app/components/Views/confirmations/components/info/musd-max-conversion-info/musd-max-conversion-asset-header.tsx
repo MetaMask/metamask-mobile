@@ -1,5 +1,5 @@
-import React, { memo, useMemo } from 'react';
-import { View } from 'react-native';
+import React, { memo, useCallback, useMemo, useState } from 'react';
+import { NativeSyntheticEvent, TextLayoutEventData, View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Badge, {
   BadgeVariant,
@@ -92,6 +92,7 @@ export const MusdMaxConversionAssetHeader = memo(
   }) => {
     const { styles } = useStyles(styleSheet, {});
     const isLoading = useIsTransactionPayLoading();
+    const [isStackedLayout, setIsStackedLayout] = useState(false);
 
     const fiatBalanceText = useMemo(() => {
       if (!token?.fiat?.balance) {
@@ -101,15 +102,41 @@ export const MusdMaxConversionAssetHeader = memo(
       return formatFiat(new BigNumber(token.fiat.balance));
     }, [formatFiat, token?.fiat?.balance]);
 
+    const handleTextLayout = useCallback(
+      (event: NativeSyntheticEvent<TextLayoutEventData>) => {
+        if (isStackedLayout) {
+          return;
+        }
+
+        if (event.nativeEvent.lines.length > 1) {
+          setIsStackedLayout(true);
+        }
+      },
+      [isStackedLayout],
+    );
+
     if (isLoading) {
       return <MusdMaxConversionAssetHeaderSkeleton />;
     }
 
     return (
-      <View style={styles.assetHeaderContainer}>
+      <View
+        style={[
+          styles.assetHeaderContainer,
+          isStackedLayout
+            ? styles.assetHeaderContainerStacked
+            : styles.assetHeaderContainerHorizontal,
+        ]}
+      >
         {/* Input Asset (Top) */}
         <View
-          style={styles.assetContainer}
+          style={[
+            styles.assetContainer,
+            isStackedLayout
+              ? styles.assetContainerStacked
+              : styles.assetContainerHorizontal,
+            !isStackedLayout && styles.assetContainerHorizontalInput,
+          ]}
           testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_INPUT}
         >
           <BadgeWrapper
@@ -131,24 +158,47 @@ export const MusdMaxConversionAssetHeader = memo(
               testID={`earn-token-avatar-${token.symbol}`}
             />
           </BadgeWrapper>
-          <View style={styles.assetInfo}>
+          <View
+            style={[
+              isStackedLayout
+                ? styles.assetInfoStacked
+                : styles.assetInfoHorizontal,
+            ]}
+          >
             <Text
               variant={TextVariant.BodySMMedium}
               color={TextColor.Alternative}
+              numberOfLines={isStackedLayout ? undefined : 2}
+              ellipsizeMode="tail"
+              onTextLayout={handleTextLayout}
             >
               {token?.symbol}
             </Text>
-            <Text style={styles.assetAmount}>{fiatBalanceText}</Text>
+            <Text
+              style={styles.assetAmount}
+              numberOfLines={isStackedLayout ? undefined : 2}
+              ellipsizeMode="tail"
+              onTextLayout={handleTextLayout}
+            >
+              {fiatBalanceText}
+            </Text>
           </View>
         </View>
         <Icon
-          name={IconName.Arrow2Down}
+          name={isStackedLayout ? IconName.Arrow2Down : IconName.Arrow2Right}
           color={IconColor.IconAlternative}
           size={IconSize.Lg}
+          style={styles.assetDirectionIcon}
         />
         {/* Output Asset (Bottom) */}
         <View
-          style={styles.assetContainer}
+          style={[
+            styles.assetContainer,
+            isStackedLayout
+              ? styles.assetContainerStacked
+              : styles.assetContainerHorizontal,
+            !isStackedLayout && styles.assetContainerHorizontalOutput,
+          ]}
           testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT}
         >
           <BadgeWrapper
@@ -170,14 +220,31 @@ export const MusdMaxConversionAssetHeader = memo(
               testID={`earn-token-avatar-${MUSD_TOKEN.symbol}`}
             />
           </BadgeWrapper>
-          <View style={styles.assetInfo}>
+          <View
+            style={[
+              styles.assetInfo,
+              isStackedLayout
+                ? styles.assetInfoStacked
+                : styles.assetInfoHorizontal,
+            ]}
+          >
             <Text
               variant={TextVariant.BodySMMedium}
               color={TextColor.Alternative}
+              numberOfLines={isStackedLayout ? undefined : 2}
+              ellipsizeMode="tail"
+              onTextLayout={handleTextLayout}
             >
               {MUSD_TOKEN.symbol}
             </Text>
-            <Text style={styles.assetAmount}>{fiatBalanceText}</Text>
+            <Text
+              style={styles.assetAmount}
+              numberOfLines={isStackedLayout ? undefined : 2}
+              ellipsizeMode="tail"
+              onTextLayout={handleTextLayout}
+            >
+              {fiatBalanceText}
+            </Text>
           </View>
         </View>
       </View>

@@ -9,13 +9,43 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 16,
       paddingBottom: 36,
     },
+    assetHeaderContainerHorizontal: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    assetHeaderContainerStacked: {
+      flexDirection: 'column',
+    },
     assetContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
     },
-    assetInfo: {
+    assetContainerHorizontal: {
       flex: 1,
+      minWidth: 0,
+    },
+    assetContainerHorizontalInput: {
+      justifyContent: 'flex-end',
+    },
+    assetContainerHorizontalOutput: {
+      justifyContent: 'flex-start',
+    },
+    assetContainerStacked: {
+      width: '100%',
+    },
+    assetInfo: {
+      minWidth: 0,
+    },
+    assetInfoHorizontal: {
+      flexShrink: 1,
+    },
+    assetInfoStacked: {
+      flex: 1,
+    },
+    assetDirectionIcon: {
+      flexShrink: 0,
+      marginHorizontal: 8,
     },
     assetInfoSkeleton: {
       gap: 6,
