@@ -1,6 +1,7 @@
 import {
   HardwareWalletType,
   DeviceEventPayload,
+  ErrorCode,
 } from '@metamask/hw-wallet-sdk';
 
 /**
@@ -127,6 +128,24 @@ export interface HardwareWalletAdapter {
    * For QR/others: undefined (no app concept)
    */
   getRequiredAppName?(): string | undefined;
+
+  /**
+   * Get the ErrorCode to use when this adapter's transport is unavailable,
+   * or null if this adapter does not require persistent transport monitoring.
+   *
+   * Returning a non-null value means the provider will monitor transport
+   * availability and show an error if it becomes unavailable during an
+   * active operation.
+   */
+  getTransportDisabledErrorCode(): ErrorCode | null;
+
+  /**
+   * Get connection tips relevant to this adapter's transport mechanism.
+   * Returns an array of i18n string keys.
+   * For Ledger: BLE-specific tips (unlock, open app, enable bluetooth, DND)
+   * For QR: camera-specific tips
+   */
+  getConnectionTips(): string[];
 }
 
 /**
@@ -139,4 +158,18 @@ export interface DiscoveredDevice {
   name: string;
   /** Device-specific metadata (rssi for BLE, etc.) */
   metadata?: Record<string, unknown>;
+}
+
+/**
+ * Device selection state for device discovery (BLE, camera, etc.)
+ */
+export interface DeviceSelectionState {
+  /** List of discovered devices */
+  devices: DiscoveredDevice[];
+  /** Currently selected device (before connection) */
+  selectedDevice: DiscoveredDevice | null;
+  /** Whether device scanning is in progress */
+  isScanning: boolean;
+  /** Error during device scanning */
+  scanError: Error | null;
 }
