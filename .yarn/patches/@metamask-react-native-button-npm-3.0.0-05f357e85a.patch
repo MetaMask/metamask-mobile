@@ -1,0 +1,35 @@
+diff --git a/Button.js b/Button.js
+index 46dc1e06fa389a3660f6ce67c0d2eaead3e2782d..7f92ea9421bd90ba858ad9f81c7f4c1008a2553e 100644
+--- a/Button.js
++++ b/Button.js
+@@ -11,18 +11,23 @@ import {
+ import coalesceNonElementChildren from './coalesceNonElementChildren';
+ 
+ const systemButtonOpacity = 0.2;
++const touchableOpacityPropTypes = TouchableOpacity.propTypes || {};
++const textPropTypes = Text.propTypes || {};
++const viewStylePropType = (ViewPropTypes && ViewPropTypes.style) || PropTypes.any;
++const textStylePropType = textPropTypes.style || PropTypes.any;
++const allowFontScalingPropType = textPropTypes.allowFontScaling || PropTypes.bool;
+ 
+ export default class Button extends Component {
+   static propTypes = {
+-    ...TouchableOpacity.propTypes,
++    ...touchableOpacityPropTypes,
+     accessibilityLabel: PropTypes.string,
+-    allowFontScaling: Text.propTypes.allowFontScaling,
+-    containerStyle: ViewPropTypes.style,
+-    disabledContainerStyle: ViewPropTypes.style,
++    allowFontScaling: allowFontScalingPropType,
++    containerStyle: viewStylePropType,
++    disabledContainerStyle: viewStylePropType,
+     disabled: PropTypes.bool,
+-    style: Text.propTypes.style,
+-    styleDisabled: Text.propTypes.style,
+-    childGroupStyle: ViewPropTypes.style,
++    style: textStylePropType,
++    styleDisabled: textStylePropType,
++    childGroupStyle: viewStylePropType,
+   };
+ 
+   render() {
