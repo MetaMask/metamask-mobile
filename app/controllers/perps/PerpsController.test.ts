@@ -1559,6 +1559,32 @@ describe('PerpsController', () => {
 
       expect(mockProvider.disconnect).toHaveBeenCalled();
     });
+
+    it('cleans up preload subscriptions on disconnect', async () => {
+      jest.useFakeTimers();
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.disconnect.mockResolvedValue({ success: true });
+      mockProvider.getMarketDataWithPrices.mockResolvedValue([]);
+
+      // Arrange: start preloading to set up timer + subscriptions
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      // Act: disconnect should tear down all preload state
+      await controller.disconnect();
+
+      // Assert: provider disconnected and no interval fires after disconnect
+      expect(mockProvider.disconnect).toHaveBeenCalled();
+      const callsBefore =
+        mockProvider.getMarketDataWithPrices.mock.calls.length;
+      jest.advanceTimersByTime(10 * 60 * 1000);
+      expect(mockProvider.getMarketDataWithPrices.mock.calls.length).toBe(
+        callsBefore,
+      );
+
+      jest.useRealTimers();
+    });
   });
 
   describe('utility methods', () => {
