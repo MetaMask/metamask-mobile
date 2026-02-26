@@ -14,6 +14,7 @@ import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants.ts';
 const DEFAULT_DAPP_PORT = 8090;
 
 const UNLOCK_WAIT_MS = 3000;
+
 // Path from metamask-mobile root to the playground release APK in the sibling connect-monorepo
 const PLAYGROUND_APK_RELATIVE =
   '../connect-monorepo/playground/react-native-playground/android/app/build/outputs/apk/release/app-release.apk';
