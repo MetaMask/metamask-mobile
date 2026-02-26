@@ -140,6 +140,10 @@ function DisplayOrderListItem({ item }: { item: DisplayOrder }) {
   );
 }
 
+/**
+ * Merges legacy FiatOrder[] from Redux with V2 RampsOrder[] from controller into a single list
+ * Routes to the appropriate detail screen based on order source.
+ */
 function OrdersList() {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -205,14 +209,10 @@ function OrdersList() {
       ) {
         goToDeposit();
       } else {
-        navigation.navigate(
-          ...createRampsOrderDetailsNavDetails({
-            orderId,
-          }),
-        );
+        handleNavigateToAggregatorTxDetails(orderId);
       }
     },
-    [navigation, allLegacyOrders, goToDeposit],
+    [allLegacyOrders, goToDeposit, handleNavigateToAggregatorTxDetails],
   );
 
   const handleItemPress = useCallback(
@@ -225,12 +225,10 @@ function OrdersList() {
       const legacyOrder = allLegacyOrders.find((o) => o.id === item.id);
       if (!legacyOrder) return;
 
-      if (legacyOrder.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR) {
-        handleNavigateToAggregatorTxDetails(item.id);
-      } else if (legacyOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
+      if (legacyOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
         handleNavigateToDepositTxDetails(item.id);
       } else {
-        handleNavigateToRampsTxDetails(item.id);
+        handleNavigateToAggregatorTxDetails(item.id);
       }
     },
     [

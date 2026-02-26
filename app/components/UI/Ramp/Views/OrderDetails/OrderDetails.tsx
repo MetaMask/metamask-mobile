@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   Box,
@@ -12,7 +11,7 @@ import {
   IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -30,8 +29,6 @@ import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
 import OrderContent from './OrderContent';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
-import { getOrderById as getReduxOrderById } from '../../../../../reducers/fiatOrders';
-import { RootState } from '../../../../../reducers';
 
 interface RampsOrderDetailsParams {
   orderId: string;
@@ -50,21 +47,15 @@ const PENDING_STATUSES = new Set([
   RampsOrderStatus.Unknown,
 ]);
 
+/**
+ * V2 order detail screen. Reads RampsOrder from controller state only.
+ * Legacy orders (DEPOSIT, RAMPS_V2 in Redux) are routed to the aggregator
+ * detail screen by OrdersList — they never reach this component.
+ */
 const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
   const { getOrderById, refreshOrder } = useRampsOrders();
-  const controllerOrder = getOrderById(params.orderId);
-
-  const reduxOrder = useSelector((state: RootState) =>
-    getReduxOrderById(state, params.orderId),
-  );
-
-  const order: RampsOrder | undefined = useMemo(() => {
-    if (controllerOrder) return controllerOrder;
-    if (!reduxOrder) return undefined;
-    return reduxOrder.data as RampsOrder;
-  }, [controllerOrder, reduxOrder]);
-
+  const order = getOrderById(params.orderId);
   const isPending = order ? PENDING_STATUSES.has(order.status) : false;
 
   const [isLoading, setIsLoading] = useState(isPending);
