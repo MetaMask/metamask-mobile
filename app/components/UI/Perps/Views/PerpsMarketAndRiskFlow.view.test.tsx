@@ -408,9 +408,11 @@ describe('Market Browsing & Risk Awareness Flow', () => {
       { height: 200, candleData: null },
     );
     expect(
-      await screen.findByTestId(TradingViewChartSelectorsIDs.CONTAINER, {
-        timeout: 3000,
-      }),
+      await screen.findByTestId(
+        TradingViewChartSelectorsIDs.CONTAINER,
+        {},
+        { timeout: 3000 },
+      ),
     ).toBeOnTheScreen();
 
     // ── PHASE 11: Notification tooltip (no sheet when orderSuccess false) ─
