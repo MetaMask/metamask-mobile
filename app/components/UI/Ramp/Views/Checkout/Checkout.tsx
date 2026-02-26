@@ -49,6 +49,10 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
+import {
+  getCheckoutCallback,
+  removeCheckoutCallback,
+} from '../../utils/checkoutCallbackRegistry';
 
 interface CheckoutParams {
   url: string;
@@ -69,6 +73,11 @@ interface CheckoutParams {
   cryptocurrency?: string;
   /** V2: the Redux provider type for this order. Defaults to AGGREGATOR. */
   providerType?: FIAT_ORDER_PROVIDERS;
+  /**
+   * Key into the checkout callback registry. Used by Transak/Deposit flows.
+   * The actual callback lives outside navigation state so that route params stay serializable.
+   */
+  callbackKey?: string;
   /** Optional callback invoked on every navigation state change (e.g. to intercept redirect URLs). */
   onNavigationStateChange?: (navState: { url: string }) => void;
 }
@@ -196,6 +205,7 @@ export function createInitialFiatOrder(params: {
 
 const Checkout = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const previousUrlRef = useRef<string | null>(null);
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const [error, setError] = useState('');
@@ -219,11 +229,22 @@ const Checkout = () => {
     userAgent,
     providerType,
     onNavigationStateChange,
+    callbackKey,
   } = params ?? {};
 
   const headerTitle = providerName ?? '';
   const initialUriRef = useRef(uri);
+  const callbackKeyRef = useRef(callbackKey);
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
+
+  useEffect(() => {
+    callbackKeyRef.current = callbackKey;
+    return () => {
+      if (callbackKey) {
+        removeCheckoutCallback(callbackKey);
+      }
+    };
+  }, [callbackKey]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -258,8 +279,6 @@ const Checkout = () => {
   const handleOrderCreated = useCallback(
     (order: FiatOrder) => {
       dispatch(protectWalletModalVisible());
-      // @ts-expect-error navigation prop mismatch
-      navigation.dangerouslyGetParent()?.pop();
 
       dispatchThunk((_dispatch, getState) => {
         const state = getState();
@@ -272,8 +291,27 @@ const Checkout = () => {
           NotificationManager.showSimpleNotification(notificationDetails);
         }
       });
+
+      if (providerType === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
+        // Use reset() instead of pop() + navigate() to avoid a race condition:
+        // dangerouslyGetParent()?.pop() removes the ramp modal from the stack
+        // before navigate() can push the order details screen, sending the user
+        // to the home screen instead.
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: { orderId: order.id, showCloseButton: true },
+            },
+          ],
+        });
+      } else {
+        // @ts-expect-error navigation prop mismatch
+        navigation.dangerouslyGetParent()?.pop();
+      }
     },
-    [dispatch, dispatchThunk, navigation],
+    [dispatch, dispatchThunk, navigation, providerType],
   );
 
   const handleNavigationStateChange = useCallback(
@@ -366,6 +404,18 @@ const Checkout = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, [handleCancelPress]);
 
+  const handleNavigationStateChangeWithDedup = useCallback(
+    (navState: { url: string }) => {
+      if (navState.url !== previousUrlRef.current) {
+        previousUrlRef.current = navState.url;
+        if (callbackKeyRef.current) {
+          getCheckoutCallback(callbackKeyRef.current)?.(navState);
+        }
+      }
+    },
+    [],
+  );
+
   const handleShouldStartLoadWithRequest = useCallback(
     ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
     [],
@@ -454,7 +504,9 @@ const Checkout = () => {
           onNavigationStateChange={
             hasCallbackFlow
               ? handleNavigationStateChange
-              : onNavigationStateChange
+              : callbackKey
+                ? handleNavigationStateChangeWithDedup
+                : onNavigationStateChange
           }
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           testID="checkout-webview"

@@ -1180,6 +1180,7 @@
       "title": "New order",
       "leverage": "Leverage",
       "limit_price": "Limit price",
+      "market_price": "Market price",
       "enter_price": "Enter price",
       "trigger_price": "Trigger price",
       "liquidation_price": "Liquidation price",
@@ -1338,16 +1339,28 @@
     },
     "order_details": {
       "title": "Order Details",
-      "cancel_order": "Cancel Order",
+      "cancel_order": "Cancel order",
       "date": "Date",
+      "trigger_condition": "Trigger condition",
+      "price": "Price",
       "fee": "Fee",
       "limit_buy": "Limit Long",
       "limit_price": "Limit Price",
       "limit_sell": "Limit Short",
       "market_buy": "Market Long",
       "market_sell": "Market Short",
+      "market": "Market",
       "open": "Open",
       "size": "Size",
+      "original_size": "Original size",
+      "order_value": "Order value",
+      "reduce_only": "Reduce only",
+      "yes": "Yes",
+      "no": "No",
+      "price_above": "Price above {{price}}",
+      "price_below": "Price below {{price}}",
+      "take_profit": "Take profit",
+      "stop_loss": "Stop loss",
       "status": "Status",
       "view_explorer": "View on Explorer"
     },
@@ -2057,13 +2070,27 @@
   },
   "market_insights": {
     "title": "Market insights",
-    "updated_ago": "Updated {{time}}",
     "disclaimer": "AI insights. Not financial advice.",
-    "whats_driving_price": "What's driving the price?",
-    "what_people_saying": "What people are saying",
+    "a_closer_look": "A closer look",
+    "whats_being_said": "What's being said",
+    "fixed_footer_disclaimer": "AI summary • Not financial advice",
     "trade_button": "Trade",
     "sources_count": "+{{count}} sources",
-    "sources_title": "Sources"
+    "sources_title": "Sources",
+    "feedback_submitted": "Feedback submitted",
+    "feedback": {
+      "title": "Feedback",
+      "description": "Help improve our AI-generated market insights.",
+      "not_relevant": "Not relevant",
+      "not_accurate": "Not accurate",
+      "hard_to_understand": "Hard to understand",
+      "harmful_or_offensive": "Harmful or offensive",
+      "something_else": "Something else",
+      "additional_feedback_label": "Additional feedback (optional)",
+      "additional_feedback_placeholder": "How can we improve?",
+      "characters_remaining": "{{count}} characters remaining",
+      "submit": "Submit"
+    }
   },
   "predict": {
     "title": "MetaMask Predictions",
@@ -2276,6 +2303,7 @@
       "withdrawing_subtitle": "Available in about 1 minute",
       "withdraw_completed": "Withdrawal complete",
       "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
+      "withdraw_any_token_completed_subtitle": "{{amount}} {{token}} moved to your wallet",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdraw",
       "try_again": "Try again"
@@ -2292,7 +2320,15 @@
       "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
       "points_error": "We can't load points right now",
       "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
-      "slippage": "Slippage"
+      "slippage": "Slippage",
+      "price_details": "Price details",
+      "prediction_order": "Prediction order",
+      "prediction_order_description": "~{{count}} contracts at {{price}} each. Final amount may vary based on order book availability (up to {{slippage}}%).",
+      "metamask_fee_description": "Service fee for processing this prediction",
+      "exchange_fee": "Exchange fee",
+      "exchange_fee_description": "Fee paid to the exchange or market",
+      "total_incl_fees": "incl. fees",
+      "close": "Close"
     },
     "error": {
       "title": "Unable to connect to predictions",
@@ -2864,7 +2900,7 @@
     "permissions": "Permissions",
     "card_title": "MetaMask Card",
     "settings": "Settings",
-    "networks": "Networks",    
+    "networks": "Networks",
     "log_out": "Log out",
     "notifications": "Notifications",
     "buy": "Buy",
@@ -4794,7 +4830,9 @@
     "no_payment_methods_available": "No payment methods are available.",
     "error_fetching_quotes": "Something went wrong. Please try again.",
     "no_quotes_available": "No providers available.",
+    "quote_unavailable": "Quote unavailable.",
     "providers": "Providers",
+    "quotes_displayed_for": "Quotes displayed for {{paymentMethodName}}.",
     "continue": "Continue",
     "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
@@ -5129,6 +5167,26 @@
       "no_date": "Unknown"
     },
     "deposit_order_title": "{{currency}} Deposit"
+  },
+  "ramps_order_details": {
+    "title": "Order details",
+    "status": "Status",
+    "processing": "Processing",
+    "complete": "Complete",
+    "failed": "Failed",
+    "cancelled": "Cancelled",
+    "view_on_provider": "View on {{provider}}",
+    "order_id": "Order ID",
+    "date_and_time": "Date and time",
+    "fees": "Fees",
+    "total": "Total",
+    "card_processing_info": "Card purchases typically take a few minutes",
+    "processing_info_modal_description": "Card purchases typically take a few minutes. You can contact support if you have questions.",
+    "go_to_provider_support": "Go to {{provider}} support page",
+    "error_title": "Something went wrong",
+    "error_message": "Unable to load order details. Please try again.",
+    "try_again": "Try again",
+    "close": "Close"
   },
   "swaps": {
     "title": "Swap",
@@ -7335,7 +7393,10 @@
       "service_not_available": "Service is not available at the moment. Please try again shortly.",
       "invalid_referral_code": "Invalid referral code. Please check and try again.",
       "already_referred": "You have already been referred by another user.",
-      "cannot_use_own_referral_code": "You cannot use your own referral code."
+      "cannot_use_own_referral_code": "You cannot use your own referral code.",
+      "invalid_bonus_code": "Invalid bonus code",
+      "already_redeemed": "You have already redeemed this bonus code",
+      "reached_maximum": "This bonus code has reached its maximum number of uses"
     },
     "claim_reward_error": {
       "title": "Failed to claim reward"
@@ -7392,8 +7453,10 @@
         "predict": "Prediction",
         "musd_deposit": "mUSD deposit",
         "apply_referral_bonus": "Referral code bonus",
+        "bonus_code": "Bonus code",
         "uncategorized_event": "Uncategorized event"
       },
+      "code": "Code",
       "date": "Date",
       "account": "Account",
       "bonus": "Bonus",
@@ -7493,7 +7556,10 @@
       "show_less": "Show less",
       "linking_progress": "Adding accounts... ({{current}}/{{total}})",
       "accounts_linked_count": "{{linked}}/{{total}} enrolled",
-      "add_all_accounts": "Add all accounts"
+      "add_all_accounts": "Add all accounts",
+      "environment_selector": "Environment",
+      "environment_cancel": "Cancel",
+      "environment_default": "Default"
     },
     "referred_by_code": {
       "title": "Referral Code",
@@ -7502,6 +7568,10 @@
       "input_placeholder": "Enter referral code",
       "invalid_code": "Invalid referral code",
       "apply_button": "Apply referral code"
+    },
+    "bonus_code": {
+      "input_placeholder": "Enter bonus code",
+      "apply_success": "Bonus code applied!"
     },
     "optout": {
       "title": "Opt out of Rewards",
@@ -7751,7 +7821,11 @@
       "nfts": "NFTs",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
-      "more_predictions": "More predictions"
+      "more_predictions": "More predictions",
+      "more_perps": "More perps",
+      "positions": {
+        "no_tp_sl": "No TP/SL"
+      }
     },
     "error": {
       "unable_to_load": "Unable to load {{section}}",
