@@ -59,6 +59,7 @@ const Cashback: React.FC = () => {
     fetchEstimation,
     withdraw,
     isWithdrawing,
+    withdrawError,
     monitoringStatus,
     monitoringError,
     resetWithdraw,
@@ -111,6 +112,22 @@ const Cashback: React.FC = () => {
       });
     }
   }, [monitoringStatus, monitoringError, toastRef, theme]);
+
+  useEffect(() => {
+    if (withdrawError) {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('card.cashback_screen.withdrawal_failed'),
+          },
+        ],
+        iconName: IconName.Danger,
+        iconColor: theme.colors.error.default,
+        hasNoTimeout: false,
+      });
+    }
+  }, [withdrawError, toastRef, theme]);
 
   useEffect(
     () => () => {

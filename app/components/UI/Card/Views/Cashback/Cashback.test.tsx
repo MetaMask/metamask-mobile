@@ -91,6 +91,7 @@ let mockHookReturn = {
   fetchEstimation: mockFetchEstimation,
   withdraw: mockWithdraw,
   isWithdrawing: false,
+  withdrawError: null as Error | null,
   monitoringStatus: 'idle' as string,
   monitoringError: null as Error | null,
   resetWithdraw: mockResetWithdraw,
@@ -155,6 +156,7 @@ describe('Cashback Component', () => {
       fetchEstimation: mockFetchEstimation,
       withdraw: mockWithdraw,
       isWithdrawing: false,
+      withdrawError: null,
       monitoringStatus: 'idle',
       monitoringError: null,
       resetWithdraw: mockResetWithdraw,
@@ -449,6 +451,27 @@ describe('Cashback Component', () => {
 
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
+          labelOptions: [{ label: 'Withdrawal failed. Please try again.' }],
+        }),
+      );
+    });
+
+    it('shows failure toast when withdraw mutation fails', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.withdrawError = new Error('POST /reward failed');
+
+      render();
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          hasNoTimeout: false,
           labelOptions: [{ label: 'Withdrawal failed. Please try again.' }],
         }),
       );
