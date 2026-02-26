@@ -192,6 +192,60 @@ jest.mock('./components/PopularTokenRow', () => {
   };
 });
 
+// Mock RemoveTokenBottomSheet (default export)
+jest.mock('../../../../UI/Tokens/TokenList/RemoveTokenBottomSheet', () => {
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  const MockRemoveTokenBottomSheet = ({
+    isVisible,
+    onRemove,
+    onClose,
+  }: {
+    isVisible: boolean;
+    onRemove: () => void;
+    onClose: () => void;
+  }) =>
+    isVisible ? (
+      <View testID="remove-token-bottom-sheet">
+        <TouchableOpacity testID="remove-token-confirm" onPress={onRemove}>
+          <Text>Remove</Text>
+        </TouchableOpacity>
+        <TouchableOpacity testID="remove-token-cancel" onPress={onClose}>
+          <Text>Cancel</Text>
+        </TouchableOpacity>
+      </View>
+    ) : null;
+  return {
+    __esModule: true,
+    default: MockRemoveTokenBottomSheet,
+  };
+});
+
+// Mock ScamWarningModal
+jest.mock(
+  '../../../../UI/Tokens/TokenList/ScamWarningModal/ScamWarningModal',
+  () => ({
+    ScamWarningModal: () => null,
+  }),
+);
+
+// Mock useAnalytics
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(),
+  }),
+}));
+
+// Mock token removal utilities
+jest.mock('../../../../UI/Tokens/util', () => ({
+  removeEvmToken: jest.fn().mockResolvedValue(undefined),
+  removeNonEvmToken: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn().mockReturnValue(false),
+}));
+
 const mockPopularTokens = [
   {
     assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
@@ -444,6 +498,19 @@ describe('TokensSection', () => {
     });
 
     expect(mockRefreshTokens).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not show RemoveTokenBottomSheet by default', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+
+    renderWithProvider(<TokensSection />);
+
+    expect(
+      screen.queryByTestId('remove-token-bottom-sheet'),
+    ).not.toBeOnTheScreen();
   });
 
   it('calls refreshTokens for non-zero balance pull-to-refresh', async () => {
