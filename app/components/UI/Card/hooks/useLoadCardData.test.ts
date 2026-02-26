@@ -436,7 +436,7 @@ describe('useLoadCardData', () => {
       mockUseGetCardExternalWalletDetails.mockReturnValue({
         data: {
           walletDetails: [],
-          priorityWalletDetail: null,
+          priorityWalletDetail: undefined,
           mappedWalletDetails: [],
         },
         isLoading: false,
