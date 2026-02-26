@@ -140,7 +140,7 @@ test('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send trans
   );
   const txResponse = await RNPlaygroundDapp.getLegacyEvmResponseText();
   console.log(`eth_sendTransaction (cancelled) response: ${txResponse}`);
-  expect(txResponse.toLowerCase()).toContain('reject');
+  expect(txResponse.toLowerCase()).toContain('denied');
 
   //
   // 6. Chain switching from the dapp — wallet_switchEthereumChain
