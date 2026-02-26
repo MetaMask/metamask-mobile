@@ -318,7 +318,11 @@ export class MYXProvider implements PerpsProvider {
 
     if (this.#authPromise) {
       await this.#authPromise;
-      return;
+      // Re-check: the in-flight auth may have been for a different address
+      if (this.#clientService.isAuthenticatedForAddress(currentAddress)) {
+        return;
+      }
+      // Otherwise fall through to start a new auth for the current address
     }
 
     this.#authPromise = this.#doEnsureAuthenticated();
