@@ -232,6 +232,12 @@ const Checkout = () => {
         navigation,
         { title: providerName ?? headerTitle },
         theme,
+        () => {
+          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
+            location: 'Aggregator Checkout',
+            ramp_type: 'UNIFIED_BUY_2',
+          });
+        },
       ),
     );
   }, [navigation, theme, providerName, headerTitle]);

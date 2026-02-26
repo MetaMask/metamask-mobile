@@ -304,6 +304,12 @@ function BuildQuote() {
           });
           navigation.navigate(...createSettingsModalNavDetails());
         },
+        onBackPress: () => {
+          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
+            location: 'Amount Input',
+            ramp_type: 'UNIFIED_BUY_2',
+          });
+        },
       }),
     );
   }, [navigation, selectedToken, networkInfo]);
