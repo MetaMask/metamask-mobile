@@ -445,7 +445,10 @@ export class MYXProvider implements PerpsProvider {
       );
       this.#deps.debugLogger.log(
         '[MYXProvider] getMarketDataWithPrices failed',
-        { error: String(wrappedError) },
+        {
+          error: String(wrappedError),
+          ...this.#getErrorContext('getMarketDataWithPrices'),
+        },
       );
       return [];
     }
@@ -629,6 +632,7 @@ export class MYXProvider implements PerpsProvider {
       const wrappedError = ensureError(caughtError, 'MYXProvider.getPositions');
       this.#deps.debugLogger.log('[MYXProvider] getPositions failed', {
         error: String(wrappedError),
+        ...this.#getErrorContext('getPositions'),
       });
       return [];
     }
@@ -679,6 +683,7 @@ export class MYXProvider implements PerpsProvider {
       );
       this.#deps.debugLogger.log('[MYXProvider] getAccountState failed', {
         error: String(wrappedError),
+        ...this.#getErrorContext('getAccountState'),
       });
       return {
         availableBalance: '0',
@@ -710,6 +715,7 @@ export class MYXProvider implements PerpsProvider {
       const wrappedError = ensureError(caughtError, 'MYXProvider.getOrders');
       this.#deps.debugLogger.log('[MYXProvider] getOrders failed', {
         error: String(wrappedError),
+        ...this.#getErrorContext('getOrders'),
       });
       return [];
     }
@@ -726,6 +732,7 @@ export class MYXProvider implements PerpsProvider {
       );
       this.#deps.debugLogger.log('[MYXProvider] getOpenOrders failed', {
         error: String(wrappedError),
+        ...this.#getErrorContext('getOpenOrders'),
       });
       return [];
     }
@@ -755,6 +762,7 @@ export class MYXProvider implements PerpsProvider {
       );
       this.#deps.debugLogger.log('[MYXProvider] getOrderFills failed', {
         error: String(wrappedError),
+        ...this.#getErrorContext('getOrderFills'),
       });
       return [];
     }
@@ -783,6 +791,7 @@ export class MYXProvider implements PerpsProvider {
       const wrappedError = ensureError(caughtError, 'MYXProvider.getFunding');
       this.#deps.debugLogger.log('[MYXProvider] getFunding failed', {
         error: String(wrappedError),
+        ...this.#getErrorContext('getFunding'),
       });
       return [];
     }
@@ -830,6 +839,7 @@ export class MYXProvider implements PerpsProvider {
       );
       this.#deps.debugLogger.log('[MYXProvider] getUserHistory failed', {
         error: String(wrappedError),
+        ...this.#getErrorContext('getUserHistory'),
       });
       return [];
     }
@@ -1069,8 +1079,7 @@ export class MYXProvider implements PerpsProvider {
       const wrappedError = ensureError(error, 'MYXProvider.subscribeToCandles');
       this.#deps.debugLogger.log('[MYXProvider] subscribeToCandles failed', {
         error: String(wrappedError),
-        symbol,
-        interval,
+        ...this.#getErrorContext('subscribeToCandles', { symbol, interval }),
       });
       if (onError) {
         onError(wrappedError);
