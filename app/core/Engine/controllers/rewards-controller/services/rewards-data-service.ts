@@ -488,30 +488,6 @@ export class RewardsDataService {
       `${SERVICE_NAME}:getDefaultRewardsEnvUrl`,
       this.getDefaultRewardsEnvUrl.bind(this),
     );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getDrops`,
-      this.getDrops.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getDropEligibility`,
-      this.getDropEligibility.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getDropLeaderboard`,
-      this.getDropLeaderboard.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:commitDropPoints`,
-      this.commitDropPoints.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:updateDropReceivingAddress`,
-      this.updateDropReceivingAddress.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getDropCommittedAddress`,
-      this.getDropCommittedAddress.bind(this),
-    );
   }
 
   /**
