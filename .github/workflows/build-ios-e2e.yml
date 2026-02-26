@@ -203,7 +203,22 @@ jobs:
           echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
           yarn build:repack:ios
-          echo "📦 Final app size: $(du -sh "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" | cut -f1)"
+          
+          # Validate the app bundle after repack
+          APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
+          
+          if [ ! -f "${APP_PATH}/MetaMask" ]; then
+            echo "❌ Error: Repack process corrupted the app bundle - missing executable"
+            exit 1
+          fi
+          
+          if [ ! -f "${APP_PATH}/Info.plist" ]; then
+            echo "❌ Error: Repack process corrupted the app bundle - missing Info.plist"
+            exit 1
+          fi
+          
+          echo "📦 Final app size: $(du -sh "${APP_PATH}" | cut -f1)"
+          echo "✅ Repack validation passed"
         env:
           PLATFORM: ios
           METAMASK_ENVIRONMENT: qa
