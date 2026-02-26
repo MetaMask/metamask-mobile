@@ -48,10 +48,10 @@ const GAP = 12;
 const PADDING = 16; // px-4
 
 // Calculate snap offsets: first card at 0, then padding + card + (gap + card) * n
-// +1 for the ViewMoreCard at the end
-const SNAP_OFFSETS = Array.from(
-  { length: MAX_MARKETS_DISPLAYED + 1 },
-  (_, i) => (i === 0 ? 0 : PADDING + CARD_WIDTH + (GAP + CARD_WIDTH) * (i - 1)),
+// ViewMoreCard is excluded — its snap position would exceed max scroll on typical screens,
+// causing the scroll view to snap back and never reach it.
+const SNAP_OFFSETS = Array.from({ length: MAX_MARKETS_DISPLAYED }, (_, i) =>
+  i === 0 ? 0 : PADDING + CARD_WIDTH + (GAP + CARD_WIDTH) * (i - 1),
 );
 
 // Skeleton keys for loading state
