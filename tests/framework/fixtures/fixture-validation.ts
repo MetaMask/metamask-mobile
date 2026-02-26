@@ -284,6 +284,25 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.NotificationServicesController.subscriptionAccountsSeen',
     'engine.backgroundState.NotificationServicesPushController',
 
+    // ── Controllers omitted from fixture (state matches controller defaults) ──
+    // These are excluded to reduce fixture size and startup CPU pressure.
+    // The controllers initialise with their own default state automatically.
+    'engine.backgroundState.AiDigestController',
+    'engine.backgroundState.AssetsController',
+    'engine.backgroundState.BridgeController',
+    'engine.backgroundState.BridgeStatusController',
+    'engine.backgroundState.ConnectivityController',
+    'engine.backgroundState.DeFiPositionsController',
+    'engine.backgroundState.DelegationController',
+    'engine.backgroundState.GatorPermissionsController',
+    'engine.backgroundState.LoggingController',
+    'engine.backgroundState.PredictController',
+    'engine.backgroundState.RewardsController',
+    'engine.backgroundState.SeedlessOnboardingController',
+    'engine.backgroundState.SelectedNetworkController',
+    'engine.backgroundState.SignatureController',
+    'engine.backgroundState.SmartTransactionsController',
+
     // ── Cron jobs and ramps (runtime-populated) ──
     'engine.backgroundState.CronJobController',
     'engine.backgroundState.CronjobController',

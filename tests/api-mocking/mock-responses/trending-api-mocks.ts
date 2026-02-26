@@ -76,6 +76,12 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
       priority: 1000,
     },
     {
+      urlEndpoint: 'https://app.uniswap.org/',
+      responseCode: 200,
+      response: FAVICON_HTML,
+      priority: 1000,
+    },
+    {
       urlEndpoint: /https:\/\/gamma-api\.polymarket\.com\/events\/pagination.*/,
       responseCode: 200,
       response: {

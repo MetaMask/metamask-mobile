@@ -131,9 +131,6 @@
         "AddressBookController": {
           "addressBook": {}
         },
-        "AiDigestController": {
-          "marketInsights": {}
-        },
         "AnalyticsController": {
           "analyticsId": "",
           "optedIn": false
@@ -149,32 +146,6 @@
           "pendingApprovalCount": 0,
           "pendingApprovals": {}
         },
-        "AssetsController": {
-          "assetPreferences": {},
-          "assetsBalance": {},
-          "assetsInfo": {},
-          "assetsPrice": {},
-          "customAssets": {}
-        },
-        "BridgeController": {
-          "assetExchangeRates": {},
-          "minimumBalanceForRentExemptionInLamports": "0",
-          "quoteFetchError": null,
-          "quoteRequest": {
-            "srcTokenAddress": "0x0000000000000000000000000000000000000000"
-          },
-          "quotes": [],
-          "quotesInitialLoadTime": null,
-          "quotesLastFetched": null,
-          "quotesLoadingStatus": null,
-          "quotesRefreshCount": 0
-        },
-        "BridgeStatusController": {
-          "txHistory": {}
-        },
-        "ConnectivityController": {
-          "connectivityStatus": "online"
-        },
         "CronJobController": {
           "events": {},
           "jobs": {}
@@ -188,13 +159,6 @@
             }
           },
           "currentCurrency": "usd"
-        },
-        "DeFiPositionsController": {
-          "allDeFiPositions": {},
-          "allDeFiPositionsCount": {}
-        },
-        "DelegationController": {
-          "delegations": {}
         },
         "EarnController": {
           "lastUpdated": 0,
@@ -258,12 +222,6 @@
           "gasFeeEstimatesByChainId": {},
           "nonRPCGasFeeApisDisabled": false
         },
-        "GatorPermissionsController": {
-          "gatorPermissionsMapSerialized": "{\"native-token-stream\":{},\"native-token-periodic\":{},\"erc20-token-stream\":{},\"erc20-token-periodic\":{},\"other\":{}}",
-          "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
-          "isFetchingGatorPermissions": false,
-          "isGatorPermissionsEnabled": false
-        },
         "KeyringController": {
           "keyrings": [
             {
@@ -273,9 +231,6 @@
             }
           ],
           "vault": "{\"cipher\":\"ynNI8tAH4fcpmXo8S88A/3T3Dd1w0LY5ftpL59gW0ObYxovgFhrtKpRe/WD7WU42KwGBNKVicB9W9at4ePgOJGS6IMWr//C3jh0vKQTabkDzDy1ZfSvztRxGpVjmrnU3fC5B0eq/MBMSrgu8Bww309pk5jghyRfzp9YsG0ONo1CXUm2brQo/eRve7i9aDbiGXiEK0ch0BO7AvZPGMhHtYRrrOro4QrDVHGUgAF5SA1LD4dv/2AB8ctHwn4YbUmICieqlhJhprx3CNOJ086g7vPQOr21T4IbvtTumFaTibfoD3GWHQo11CvE04z3cN3rRERriP7bww/tZOe8OAMFGWANkmOJHwPPwEo1NBr6w3GD2VObEmqNhXeNc6rrM23Vm1JU40Hl+lVKubnbT1vujdGLmOpDY0GdekscQQrETEQJfhKlXIT0wwyPoLwR+Ja+GjyOhBr0nfWVoVoVrcTUwAk5pStBMt+5OwDRpP29L1+BL9eMwDgKpjVXRTh4MGagKYmFc6eKDf6jV0Yt9pG+jevv5IuyhwX0TRtfQCGgRTtS7oxhDQPxGqu01rr+aI7vGMfRQpaKEEXEWVmMaqCmktyUV35evK9h/xv1Yif00XBll55ShxN8t2/PnATvZxFKQfjJe5f/monbwf8rpfXHuFoh8M9hzjbcS5eh/TPYZZu1KltpeHSIAh5C+4aFyZw0e1DeAg/wdRO3PhBrVztsHSyISHlRdfEyw7QF4Lemr++2MVR1dTxS2I5mUEHjh+hmp64euH1Vb/RUppXlmE8t1RYYXfcsF2DlRwPswP739E/EpVtY3Syf/zOTyHyrOJBldzw22sauIzt8Q5Fe5qA/hGRWiejjK31P/P5j7wEKY7vrOJB1LWNXHSuSjffx9Ai9E\",\"iv\":\"d5dc0252424ac0c08ca49ef320d09569\",\"salt\":\"feAPSGdL4R2MVj2urJFl4A==\",\"lib\":\"original\"}"
-        },
-        "LoggingController": {
-          "logs": {}
         },
         "MultichainAssetsController": {
           "accountsAssets": {},
@@ -694,19 +649,6 @@
           "stalelistLastFetched": 1684231917,
           "whitelist": []
         },
-        "PredictController": {
-          "accountMeta": {},
-          "balances": {},
-          "claimablePositions": {},
-          "eligibility": {
-            "country": "PT",
-            "eligible": false
-          },
-          "lastError": null,
-          "lastUpdateTimestamp": 0,
-          "pendingDeposits": {},
-          "withdrawTransaction": null
-        },
         "PreferencesController": {
           "dismissSmartAccountSuggestionEnabled": false,
           "displayNftMedia": true,
@@ -791,63 +733,6 @@
               "featureVersion": null,
               "minimumVersion": null
             }
-          }
-        },
-        "RewardsController": {
-          "accounts": {},
-          "activeAccount": null,
-          "activeBoosts": {},
-          "pointsEstimateHistory": [],
-          "pointsEvents": {},
-          "rewardsEnvUrl": null,
-          "seasonStatuses": {},
-          "seasons": {},
-          "snapshots": {},
-          "subscriptionReferralDetails": {},
-          "subscriptions": {},
-          "unlockedRewards": {}
-        },
-        "SeedlessOnboardingController": {
-          "isSeedlessOnboardingUserAuthenticated": false,
-          "socialBackupsMetadata": []
-        },
-        "SelectedNetworkController": {
-          "activeDappNetwork": null,
-          "domains": {}
-        },
-        "SignatureController": {
-          "signatureRequests": {},
-          "unapprovedPersonalMsgCount": 0,
-          "unapprovedPersonalMsgs": {},
-          "unapprovedTypedMessages": {},
-          "unapprovedTypedMessagesCount": 0
-        },
-        "SmartTransactionsController": {
-          "smartTransactionsState": {
-            "fees": {
-              "approvalTxFees": null,
-              "tradeTxFees": null
-            },
-            "feesByChainId": {
-              "0x1": {
-                "approvalTxFees": null,
-                "tradeTxFees": null
-              },
-              "0xaa36a7": {
-                "approvalTxFees": null,
-                "tradeTxFees": null
-              }
-            },
-            "liveness": true,
-            "livenessByChainId": {
-              "0x1": true,
-              "0xaa36a7": true
-            },
-            "smartTransactions": {
-              "0x1": []
-            },
-            "userOptIn": null,
-            "userOptInV2": null
           }
         },
         "SnapController": {},
