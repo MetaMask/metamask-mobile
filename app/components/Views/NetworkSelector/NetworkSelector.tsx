@@ -1,6 +1,5 @@
 // Third party dependencies.
 import {
-  ImageSourcePropType,
   KeyboardAvoidingView,
   Linking,
   Switch,
@@ -10,7 +9,8 @@ import {
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, type RouteProp } from '@react-navigation/native';
+import type { RootStackParamList } from '../../../core/NavigationService/types';
 
 // External dependencies.
 import Cell, {
@@ -59,6 +59,7 @@ import {
 
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
+import { ShowConfirmDeleteModalState, infuraNetwork } from './types';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import InfoModal from '../../Base/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -104,38 +105,17 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { analytics } from '../../../util/analytics/analytics';
-import {
-  NETWORK_SELECTOR_SOURCES,
-  NetworkSelectorSource,
-} from '../../../constants/networkSelector';
+import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored';
 import TagColored, {
   TagColor,
 } from '../../../component-library/components-temp/TagColored';
 
-interface infuraNetwork {
-  name: string;
-  imageSource: ImageSourcePropType;
-  chainId: Hex;
+interface NetworkSelectorProps {
+  route: RouteProp<RootStackParamList, 'NetworkSelector'>;
 }
 
-interface ShowConfirmDeleteModalState {
-  isVisible: boolean;
-  networkName: string;
-  chainId?: `0x${string}`;
-}
-
-interface NetworkSelectorRouteParams {
-  chainId?: Hex;
-  hostInfo?: {
-    metadata?: {
-      origin?: string;
-    };
-  };
-  source?: NetworkSelectorSource;
-}
-
-const NetworkSelector = () => {
+const NetworkSelector = ({ route }: NetworkSelectorProps) => {
   trace({
     name: TraceName.NetworkSwitch,
     op: TraceOperation.NetworkSwitch,
@@ -171,12 +151,9 @@ const NetworkSelector = () => {
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
 
-  const route =
-    useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
-
   // origin is defined if network selector is opened from a dapp
-  const origin = route.params?.hostInfo?.metadata?.origin || '';
-  const browserChainId = route.params?.chainId || null;
+  const origin = route?.params?.hostInfo?.metadata?.origin || '';
+  const browserChainId = route?.params?.chainId || null;
   const parentSpan = trace({
     name: TraceName.NetworkSwitch,
     tags: getTraceTags(store.getState()),
@@ -192,7 +169,7 @@ const NetworkSelector = () => {
   const { addPopularNetwork } = useAddPopularNetwork();
 
   const isSendFlow =
-    route.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
+    route?.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
