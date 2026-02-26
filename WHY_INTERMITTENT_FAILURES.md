@@ -24,17 +24,22 @@ if cache miss:
 if cache hit:
   - Restore .app from cache
   - Run @expo/repack-app to update JS
-  - Occasionally corrupts bundle structure ⚠️
-  - Missing executable inside bundle
+  - ??? Sometimes produces malformed bundle
   - Uploaded artifact is bad
   - All tests fail to install
 ```
 
-### Why It's Intermittent
-- **Cache miss builds** → Valid artifacts → Tests usually pass
-- **Cache hit + repack** → Sometimes corrupt → **All shards fail**
+**HOWEVER**: User reports failures happen even with fresh builds (cache miss), not just with repack.
 
-The wrong path was always there, but only became visible when the repack process produced corrupt bundles.
+### Current Understanding: Root Cause Unknown
+
+We don't know exactly what causes the intermittent corruption. Could be:
+- Xcode build edge case
+- Runner environment variation
+- Artifact upload/download issue
+- Bundle structure inconsistency
+
+**What we DO know**: The fix should work regardless of root cause.
 
 ## Question 2: Why Do ALL Shards Fail Together?
 
