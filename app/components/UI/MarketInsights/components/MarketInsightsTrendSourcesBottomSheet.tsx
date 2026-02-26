@@ -32,11 +32,19 @@ interface MarketInsightsTrendSourcesBottomSheetProps {
   trendTitle: string;
   articles: MarketInsightsArticle[];
   tweets?: MarketInsightsTweet[];
+  onSourcePress?: (url: string) => void;
 }
 
 const MarketInsightsTrendSourcesBottomSheet: React.FC<
   MarketInsightsTrendSourcesBottomSheetProps
-> = ({ isVisible, onClose, trendTitle, articles, tweets = [] }) => {
+> = ({
+  isVisible,
+  onClose,
+  trendTitle,
+  articles,
+  tweets = [],
+  onSourcePress,
+}) => {
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -49,9 +57,13 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
     }
   }, [isVisible]);
 
-  const handleSourcePress = useCallback((url: string) => {
-    Linking.openURL(url);
-  }, []);
+  const handleSourcePress = useCallback(
+    (url: string) => {
+      onSourcePress?.(url);
+      Linking.openURL(url);
+    },
+    [onSourcePress],
+  );
 
   return (
     <BottomSheet
@@ -88,7 +100,7 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
           >
             <Box twClassName="w-8 h-8 rounded-full overflow-hidden mr-3">
               <Image
-                source={{ uri: getFaviconUrl(article.source) }}
+                source={{ uri: getFaviconUrl(article.url || article.source) }}
                 style={tw.style('w-8 h-8 rounded-full')}
               />
             </Box>

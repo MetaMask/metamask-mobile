@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
+import { RootState } from '../../../reducers';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
@@ -30,6 +31,16 @@ export interface MetaMaskPayFlags {
   perpsWithdrawAnyToken: boolean;
   preferredTokens: PreferredTokensConfig;
   minimumRequiredTokenBalance: number;
+}
+
+export interface PayPostQuoteConfig {
+  enabled?: boolean;
+  tokens?: Record<Hex, Hex[]>;
+}
+
+export interface PayPostQuoteFlags {
+  default: PayPostQuoteConfig;
+  overrides?: Record<string, PayPostQuoteConfig>;
 }
 
 export interface GasFeeTokenFlags {

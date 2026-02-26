@@ -2086,6 +2086,15 @@ export class PerpsController extends BaseController<
                 state.depositInProgress = false;
                 state.lastDepositTransactionId = null;
                 // Don't set lastDepositResult - no toast needed
+
+                // Mark deposit request as cancelled
+                const requestToUpdate = state.depositRequests.find(
+                  (req) => req.id === currentDepositId,
+                );
+                if (requestToUpdate) {
+                  requestToUpdate.status = 'cancelled' as TransactionStatus;
+                  requestToUpdate.success = false;
+                }
               });
             } else {
               // Transaction failed after confirmation - show error toast
@@ -2138,7 +2147,8 @@ export class PerpsController extends BaseController<
             const isCancellation =
               errorMessage.includes('User denied') ||
               errorMessage.includes('User rejected') ||
-              errorMessage.includes('cancelled');
+              errorMessage.includes('cancelled') ||
+              errorMessage.includes('canceled');
             this.update((state) => {
               const requestToUpdate = state.depositRequests.find(
                 (req) => req.id === currentDepositId,
@@ -2228,6 +2238,8 @@ export class PerpsController extends BaseController<
     txHash?: string,
   ): void {
     let withdrawalAmount: string | undefined;
+    let shouldTrack = false;
+    let found = false;
 
     this.update((state) => {
       const withdrawalIndex = state.withdrawalRequests.findIndex(
@@ -2235,9 +2247,11 @@ export class PerpsController extends BaseController<
       );
 
       if (withdrawalIndex >= 0) {
+        found = true;
         const request = state.withdrawalRequests[withdrawalIndex];
         withdrawalAmount = request.amount;
-        const originalStatus = request.status;
+        shouldTrack =
+          withdrawalAmount !== undefined && request.status !== status;
         request.status = status;
         request.success = status === 'completed';
         if (txHash) {
@@ -2252,29 +2266,30 @@ export class PerpsController extends BaseController<
             activeWithdrawalId: null,
           };
         }
-
-        // Track withdrawal transaction completed/failed (confirmed via HyperLiquid API)
-        if (withdrawalAmount !== undefined && originalStatus !== status) {
-          this.#getMetrics().trackPerpsEvent(
-            PerpsAnalyticsEvent.WithdrawalTransaction,
-            {
-              [PERPS_EVENT_PROPERTY.STATUS]:
-                status === 'completed'
-                  ? PERPS_EVENT_VALUE.STATUS.COMPLETED
-                  : PERPS_EVENT_VALUE.STATUS.FAILED,
-              [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]:
-                Number.parseFloat(withdrawalAmount),
-            },
-          );
-        }
-
-        this.#debugLog('PerpsController: Updated withdrawal status', {
-          withdrawalId,
-          status,
-          txHash,
-        });
       }
     });
+
+    if (shouldTrack && withdrawalAmount !== undefined) {
+      this.#getMetrics().trackPerpsEvent(
+        PerpsAnalyticsEvent.WithdrawalTransaction,
+        {
+          [PERPS_EVENT_PROPERTY.STATUS]:
+            status === 'completed'
+              ? PERPS_EVENT_VALUE.STATUS.COMPLETED
+              : PERPS_EVENT_VALUE.STATUS.FAILED,
+          [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]:
+            Number.parseFloat(withdrawalAmount),
+        },
+      );
+    }
+
+    if (found) {
+      this.#debugLog('PerpsController: Updated withdrawal status', {
+        withdrawalId,
+        status,
+        txHash,
+      });
+    }
   }
 
   /**
@@ -3658,6 +3673,23 @@ export class PerpsController extends BaseController<
       },
     );
 
+    // Stop preload interval and messenger subscriptions first,
+    // so no background work fires while we tear down providers.
+    if (this.#preloadTimer) {
+      clearInterval(this.#preloadTimer);
+      this.#preloadTimer = null;
+    }
+    if (this.#preloadStateUnsubscribe) {
+      this.#preloadStateUnsubscribe();
+      this.#preloadStateUnsubscribe = null;
+    }
+    if (this.#accountChangeUnsubscribe) {
+      this.#accountChangeUnsubscribe();
+      this.#accountChangeUnsubscribe = null;
+    }
+    this.#previousIsTestnet = null;
+    this.#previousHip3ConfigVersion = null;
+
     // Only disconnect the provider if we're initialized
     if (this.isInitialized && !this.isCurrentlyReinitializing()) {
       try {
@@ -3671,7 +3703,10 @@ export class PerpsController extends BaseController<
       }
     }
 
-    // Cleanup cached standalone provider (if any)
+    // Clear stale reference so standalone reads don't route through old provider
+    this.activeProviderInstance = null;
+
+    // Cleanup cached standalone provider (if any) — awaited to prevent races
     await this.#cleanupStandaloneProvider();
 
     // Note: Feature-flag subscription is NOT cleaned up here.
