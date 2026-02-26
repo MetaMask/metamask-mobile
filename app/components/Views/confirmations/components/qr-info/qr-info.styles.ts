@@ -11,7 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
       flexDirection: 'column',
       alignItems: 'center',
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: theme.colors.background.alternative,
     },
     title: {
       flexDirection: 'row',

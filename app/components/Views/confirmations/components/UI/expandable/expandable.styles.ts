@@ -11,7 +11,7 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     container: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: theme.colors.background.alternative,
       borderRadius: 8,
       display: 'flex',
       flexDirection: 'row',
