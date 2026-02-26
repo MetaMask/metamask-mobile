@@ -633,6 +633,7 @@ exports[`ActivityView matches snapshot 1`] = `
                               }
                             }
                             tabLabel="Transfers"
+                            tabTestID="activity-view-tabs-bar-tab-1"
                           >
                             <View
                               testID="ramp-orders-list"

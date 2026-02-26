@@ -166,6 +166,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
           undefined,
         ]
       }
+      testID="ramps-order-details-token-amount"
     >
       0.05
        
@@ -757,6 +758,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
           undefined,
         ]
       }
+      testID="ramps-order-details-token-amount"
     >
       0.05
        
