@@ -5390,20 +5390,34 @@ describe('PerpsController', () => {
     });
 
     it('splits market data by providerId into per-provider cache entries', async () => {
+      const base = {
+        maxLeverage: '50x',
+        change24h: '+1',
+        change24hPercent: '+0.1%',
+        volume: '$1M',
+      };
       const mockData = [
         {
+          ...base,
           symbol: 'BTC',
           name: 'BTC',
           price: '50000',
-          providerId: 'hyperliquid',
+          providerId: 'hyperliquid' as const,
         },
         {
+          ...base,
           symbol: 'ETH',
           name: 'ETH',
           price: '3000',
-          providerId: 'hyperliquid',
+          providerId: 'hyperliquid' as const,
         },
-        { symbol: 'MYX', name: 'MYX', price: '1', providerId: 'myx' },
+        {
+          ...base,
+          symbol: 'MYX',
+          name: 'MYX',
+          price: '1',
+          providerId: 'myx' as const,
+        },
       ];
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
@@ -5435,7 +5449,15 @@ describe('PerpsController', () => {
 
     it('assigns items without providerId to hyperliquid fallback', async () => {
       const mockData = [
-        { symbol: 'BTC', name: 'BTC', price: '50000' }, // no providerId
+        {
+          symbol: 'BTC',
+          name: 'BTC',
+          price: '50000',
+          maxLeverage: '50x',
+          change24h: '+1',
+          change24hPercent: '+0.1%',
+          volume: '$1M',
+        }, // no providerId
       ];
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
