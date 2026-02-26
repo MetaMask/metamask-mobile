@@ -88,6 +88,8 @@ _secrets: &secrets # Infrastructure
   ANDROID_GOOGLE_SERVER_CLIENT_ID: 'ANDROID_GOOGLE_SERVER_CLIENT_ID'
   # Card/Baanx
   MM_CARD_BAANX_API_CLIENT_KEY: 'MM_CARD_BAANX_API_CLIENT_KEY'
+  # Expo
+  EXPO_PROJECT_ID: 'EXPO_PROJECT_ID'
 
 # Signing config (AWS Secrets Manager) - omit for dev/simulator builds
 # android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)
