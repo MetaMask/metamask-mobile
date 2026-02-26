@@ -292,6 +292,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
 
     // ── Runtime-detected values (non-deterministic between environments) ──
     'card.geoLocation',
+    'fiatOrders.detectedGeolocation',
 
     // ── Dynamic network client IDs and port-dependent URLs ──
     'engine.backgroundState.NetworkController.networkConfigurationsByChainId.*.rpcEndpoints.*.networkClientId',
@@ -302,6 +303,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Post-onboarding runtime UI state (non-deterministic between runs) ──
     'legalNotices.isPna25Acknowledged',
     'modals.shouldNetworkSwitchPopToWallet',
+    'user.appServicesReady',
     'user.seedphraseBackedUp',
     'user.backUpSeedphraseVisible',
     'user.multichainAccountsIntroModalSeen',
