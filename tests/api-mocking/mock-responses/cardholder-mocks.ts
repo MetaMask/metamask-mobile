@@ -1,8 +1,8 @@
 import { TestSpecificMock } from '../../framework/types.ts';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder.ts';
 import { setupMockRequest } from '../helpers/mockHelpers.ts';
-import { createGeolocationResponse } from './ramps/ramps-geolocation.ts';
-import { RAMPS_NETWORKS_RESPONSE } from './ramps/ramps-mocks.ts';
+import { createGeolocationResponse } from './ramps/responses/ramps-geolocation.ts';
+import { RAMPS_NETWORKS_RESPONSE } from './ramps/responses/ramps-networks-response.ts';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants.ts';
 import { ethers } from 'ethers';
 
