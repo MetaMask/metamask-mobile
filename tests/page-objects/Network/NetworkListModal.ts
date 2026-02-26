@@ -96,7 +96,7 @@ class NetworkListModal {
         .withAncestor(
           by.id(NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORKS_CONTAINER),
         ),
-    );
+    ) as unknown as DetoxElement;
     await Gestures.waitAndTap(elem);
   }
 

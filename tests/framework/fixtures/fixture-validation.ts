@@ -223,7 +223,6 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'browser.activeTab',
 
     // ── Random IDs (generated fresh each onboarding) ──
-    'engine.backgroundState.AnalyticsController.analyticsId',
     'engine.backgroundState.PerpsController.cachedUserDataAddress',
 
     // ── Timestamps (non-deterministic) ──
@@ -236,7 +235,6 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.PerpsController.cachedUserDataTimestamp',
     'legalNotices.newPrivacyPolicyToastShownDate',
     'engine.backgroundState.RemoteFeatureFlagController.cacheTimestamp',
-    'engine.backgroundState.EarnController.lastUpdated',
     'cronjobController.storage.events.*.date',
     'cronjobController.storage.events.*.scheduledAt',
 
@@ -288,12 +286,15 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // These are excluded to reduce fixture size and startup CPU pressure.
     // The controllers initialise with their own default state automatically.
     'engine.backgroundState.AiDigestController',
+    'engine.backgroundState.AnalyticsController',
+    'engine.backgroundState.AppMetadataController',
     'engine.backgroundState.AssetsController',
     'engine.backgroundState.BridgeController',
     'engine.backgroundState.BridgeStatusController',
     'engine.backgroundState.ConnectivityController',
     'engine.backgroundState.DeFiPositionsController',
     'engine.backgroundState.DelegationController',
+    'engine.backgroundState.EarnController',
     'engine.backgroundState.GatorPermissionsController',
     'engine.backgroundState.LoggingController',
     'engine.backgroundState.PredictController',
