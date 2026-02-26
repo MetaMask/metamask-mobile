@@ -20,6 +20,7 @@ class OrderDetailsView {
 
   async tapCloseButton(): Promise<void> {
     await Gestures.waitAndTap(this.closeButton, {
+      timeout: 2500,
       elemDescription: 'Ramps Order Details Close Button',
     });
   }

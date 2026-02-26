@@ -106,6 +106,7 @@ class BuildQuoteView {
 
   async tapContinueButton(): Promise<void> {
     await Gestures.waitAndTap(this.continueButton, {
+      timeout: 2500,
       elemDescription: 'Continue Button in Build Quote View',
     });
   }
