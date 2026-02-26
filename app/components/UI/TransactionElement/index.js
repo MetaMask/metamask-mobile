@@ -60,7 +60,6 @@ import {
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
@@ -232,10 +231,6 @@ class TransactionElement extends PureComponent {
       navigate: PropTypes.func.isRequired,
     }).isRequired,
     /**
-     * Whether multichain accounts state 2 is enabled
-     */
-    isMultichainAccountsState2Enabled: PropTypes.bool,
-    /**
      * Whether to render a bottom border for row separation (used in unified list)
      */
     showBottomBorder: PropTypes.bool,
@@ -345,24 +340,15 @@ class TransactionElement extends PureComponent {
     let incoming = false;
     let selfSent = false;
 
-    if (this.props.isMultichainAccountsState2Enabled) {
-      const selectedAddresses = selectSelectedAccountGroupInternalAccounts.map(
-        (account) => account.address,
-      );
-      incoming = selectedAddresses.includes(
-        safeToChecksumAddress(tx.txParams.to),
-      );
-      selfSent =
-        incoming &&
-        selectedAddresses.includes(safeToChecksumAddress(tx.txParams.from));
-    } else {
-      const selectedAddress = safeToChecksumAddress(
-        selectedInternalAccount?.address,
-      );
-      incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
-      selfSent =
-        incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
-    }
+    const selectedAddresses = selectSelectedAccountGroupInternalAccounts.map(
+      (account) => account.address,
+    );
+    incoming = selectedAddresses.includes(
+      safeToChecksumAddress(tx.txParams.to),
+    );
+    selfSent =
+      incoming &&
+      selectedAddresses.includes(safeToChecksumAddress(tx.txParams.from));
     const shouldShowFromDevice =
       (!incoming || selfSent) &&
       tx.deviceConfirmedOn === WalletDevice.MM_MOBILE;
@@ -742,8 +728,6 @@ const mapStateToProps = (state, ownProps) => ({
     ownProps.txChainId,
   ),
   tokens: selectTokensByChainIdAndAddress(state, ownProps.txChainId),
-  isMultichainAccountsState2Enabled:
-    selectMultichainAccountsState2Enabled(state),
 });
 
 TransactionElement.contextType = ThemeContext;
