@@ -1185,6 +1185,7 @@ export class PerpsController extends BaseController<
       const allPositions: Position[] = [];
       const allOrders: Order[] = [];
       let defaultAccountState: AccountState | null = null;
+      let hasValidEntry = false;
 
       for (const [providerId] of this.providers) {
         const key = this.#marketCacheKey(
@@ -1195,6 +1196,7 @@ export class PerpsController extends BaseController<
         if (!isValidEntry(entry)) {
           continue;
         }
+        hasValidEntry = true;
         allPositions.push(...entry.positions);
         allOrders.push(...entry.orders);
         // AccountState from default provider (hyperliquid)
@@ -1203,11 +1205,7 @@ export class PerpsController extends BaseController<
         }
       }
 
-      if (
-        allPositions.length === 0 &&
-        allOrders.length === 0 &&
-        !defaultAccountState
-      ) {
+      if (!hasValidEntry) {
         return null;
       }
 
