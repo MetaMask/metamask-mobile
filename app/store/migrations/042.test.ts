@@ -226,6 +226,7 @@ function createMockAccountsControllerState(selectedAccount = 'id1') {
   };
 }
 
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
 describe('Migration #042', () => {
   beforeEach(() => {
     jest.resetAllMocks();

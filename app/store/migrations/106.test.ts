@@ -5,6 +5,7 @@ jest.mock('react-native-mmkv', () => ({
   MMKV: jest.fn(),
 }));
 
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
 describe('Migration #106', () => {
   const mockMMKVInstance = {
     getAllKeys: jest.fn(),

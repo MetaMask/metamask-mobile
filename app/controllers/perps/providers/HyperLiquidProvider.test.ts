@@ -5091,6 +5091,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   // TODO: Refactor to test through public API — ES # private fields prevent direct access
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   describe.skip('Builder Fee Global Cache (PR #25334)', () => {
     interface ProviderWithBuilderFee {
       ensureBuilderFeeApproval(): Promise<void>;
@@ -5259,6 +5260,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   // TODO: Refactor to test through public API — ES # private fields prevent direct access
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   describe.skip('Referral Global Cache (PR #25334)', () => {
     interface ProviderWithReferral {
       ensureReferralSet(): Promise<void>;

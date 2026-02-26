@@ -91,6 +91,7 @@ function createMockState(
   };
 }
 
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
 describe('Migration #036', () => {
   beforeEach(() => {
     mockedCaptureException.mockReset();
