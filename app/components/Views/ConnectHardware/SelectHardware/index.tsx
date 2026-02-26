@@ -3,13 +3,8 @@
 
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import {
-  Image,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -160,8 +155,9 @@ const SelectHardwareWallet = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
       <HeaderStackedStandard
+        includesTopInset
         onBack={navigation.goBack}
         titleStandardProps={{
           title: strings('connect_hardware.title_select_hardware'),

@@ -13,7 +13,8 @@ export function findEvmAccount(
   accounts: InternalAccount[],
 ): InternalAccount | null {
   const evmAccount = accounts.find(
-    (account) => account && isEvmAccountType(account.type),
+    (account) =>
+      account && isEvmAccountType(account.type as InternalAccount['type']),
   );
   return evmAccount ?? null;
 }
