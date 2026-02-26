@@ -1,4 +1,4 @@
-import { MockApiEndpoint, RampsRegion } from '../../../framework';
+import { MockApiEndpoint, RampsRegion } from '../../../../framework';
 
 /**
  * Creates a region-specific geolocation response based on the selected region
