@@ -82,7 +82,16 @@ jest.mock('../../hooks/useRampsController', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+const mockTrackRampsEvent = jest.fn();
+jest.mock('../../hooks/useAnalytics', () => ({
+  __esModule: true,
+  default: () => mockTrackEvent,
+  trackEvent: (...args: unknown[]) => mockTrackRampsEvent(...args),
+}));
+
+jest.mock('../../../../hooks/useDebouncedValue', () => ({
+  useDebouncedValue: <T,>(value: T) => value,
+}));
 
 const mockGetNetworkName = jest.fn();
 jest.mock('../../Deposit/hooks/useDepositCryptoCurrencyNetworkName', () => ({

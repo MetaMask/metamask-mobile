@@ -2099,7 +2099,7 @@ export function getRampsOrderDetailsNavbarOptions(
   navigation,
   { title, showBack = true },
   theme,
-  onClose = undefined,
+  onClose,
 ) {
   let startButtonIconProps;
   if (showBack) {
