@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { Linking, View, ScrollView, useWindowDimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, type ParamListBase } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import Text, {
   TextVariant,
   TextColor,
@@ -43,7 +44,7 @@ export const createErrorDetailsModalNavDetails =
 
 function ErrorDetailsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
@@ -68,10 +69,7 @@ function ErrorDetailsModal() {
   }, [providerSupportUrl]);
 
   const handleChangeProvider = useCallback(() => {
-    navigation.replace(
-      Routes.RAMP.MODALS.PROVIDER_SELECTION as never,
-      { amount } as never,
-    );
+    navigation.replace(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });
   }, [navigation, amount]);
 
   return (
