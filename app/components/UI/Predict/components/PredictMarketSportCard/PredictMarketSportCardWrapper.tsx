@@ -15,7 +15,11 @@ interface PredictMarketSportCardWrapperProps {
 const PredictMarketSportCardWrapper: React.FC<
   PredictMarketSportCardWrapperProps
 > = ({ marketId, testID, entryPoint, onDismiss, onLoad }) => {
-  const { market, isFetching, error } = usePredictMarket({
+  const {
+    data: market,
+    isFetching,
+    error,
+  } = usePredictMarket({
     id: marketId,
     enabled: Boolean(marketId),
   });

@@ -97,36 +97,13 @@ describe('usePredictMarket', () => {
   });
 
   describe('initial state', () => {
-    it('returns null market and not fetching when no id provided', () => {
-      const { Wrapper } = createWrapper();
-      const { result } = renderHook(() => usePredictMarket(), {
-        wrapper: Wrapper,
-      });
-
-      expect(result.current.market).toBe(null);
-      expect(result.current.isFetching).toBe(false);
-      expect(result.current.error).toBe(null);
-      expect(typeof result.current.refetch).toBe('function');
-    });
-
-    it('returns null market and not fetching when id is undefined', () => {
-      const { Wrapper } = createWrapper();
-      const { result } = renderHook(() => usePredictMarket({ id: undefined }), {
-        wrapper: Wrapper,
-      });
-
-      expect(result.current.market).toBe(null);
-      expect(result.current.isFetching).toBe(false);
-      expect(result.current.error).toBe(null);
-    });
-
-    it('returns null market and not fetching when id is empty string', () => {
+    it('does not fetch when id is empty string', () => {
       const { Wrapper } = createWrapper();
       const { result } = renderHook(() => usePredictMarket({ id: '' }), {
         wrapper: Wrapper,
       });
 
-      expect(result.current.market).toBe(null);
+      expect(result.current.data).toBeUndefined();
       expect(result.current.isFetching).toBe(false);
       expect(result.current.error).toBe(null);
     });
@@ -144,35 +121,17 @@ describe('usePredictMarket', () => {
 
       // Initially fetching
       expect(result.current.isFetching).toBe(true);
-      expect(result.current.market).toBe(null);
+      expect(result.current.data).toBeUndefined();
       expect(result.current.error).toBe(null);
 
       await waitFor(() => {
         expect(result.current.isFetching).toBe(false);
       });
 
-      expect(result.current.market).toEqual(mockMarket);
+      expect(result.current.data).toEqual(mockMarket);
       expect(result.current.error).toBe(null);
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'market-1',
-      });
-    });
-
-    it('fetches market data successfully with number id', async () => {
-      const { Wrapper } = createWrapper();
-      mockGetMarket.mockResolvedValue(mockMarket);
-
-      const { result } = renderHook(() => usePredictMarket({ id: 123 }), {
-        wrapper: Wrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.isFetching).toBe(false);
-      });
-
-      expect(result.current.market).toEqual(mockMarket);
-      expect(mockGetMarket).toHaveBeenCalledWith({
-        marketId: '123',
       });
     });
 
@@ -189,7 +148,7 @@ describe('usePredictMarket', () => {
         expect(result.current.isFetching).toBe(false);
       });
 
-      expect(result.current.market).toBe(null);
+      expect(result.current.data).toBe(null);
       expect(result.current.error).toBe(null);
     });
   });
@@ -209,8 +168,9 @@ describe('usePredictMarket', () => {
         expect(result.current.isFetching).toBe(false);
       });
 
-      expect(result.current.market).toBe(null);
-      expect(result.current.error).toBe(errorMessage);
+      expect(result.current.data).toBeUndefined();
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toBe(errorMessage);
     });
 
     it('handles API error with non-Error instance', async () => {
@@ -226,8 +186,9 @@ describe('usePredictMarket', () => {
         expect(result.current.isFetching).toBe(false);
       });
 
-      expect(result.current.market).toBe(null);
-      expect(result.current.error).toBe('String error');
+      expect(result.current.data).toBeUndefined();
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toBe('String error');
     });
   });
 
@@ -239,28 +200,6 @@ describe('usePredictMarket', () => {
       });
 
       expect(mockGetMarket).not.toHaveBeenCalled();
-    });
-
-    it('clears state when disabled after being enabled', async () => {
-      const { Wrapper } = createWrapper();
-      mockGetMarket.mockResolvedValue(mockMarket);
-
-      const { result, rerender } = renderHook(
-        ({ enabled }: { enabled: boolean }) =>
-          usePredictMarket({ id: 'market-1', enabled }),
-        { wrapper: Wrapper, initialProps: { enabled: true } },
-      );
-
-      await waitFor(() => {
-        expect(result.current.market).toEqual(mockMarket);
-      });
-
-      // Disable the hook
-      rerender({ enabled: false });
-
-      expect(result.current.market).toBe(null);
-      expect(result.current.error).toBe(null);
-      expect(result.current.isFetching).toBe(false);
     });
 
     it('fetches when enabled changes from false to true', async () => {
@@ -282,7 +221,7 @@ describe('usePredictMarket', () => {
         expect(result.current.isFetching).toBe(false);
       });
 
-      expect(result.current.market).toEqual(mockMarket);
+      expect(result.current.data).toEqual(mockMarket);
       expect(mockGetMarket).toHaveBeenCalledWith({
         marketId: 'market-1',
       });

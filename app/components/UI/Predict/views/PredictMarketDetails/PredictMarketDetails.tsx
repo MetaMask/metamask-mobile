@@ -74,11 +74,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   });
 
   const {
-    market,
+    data: market,
     isFetching: isMarketFetching,
     refetch: refetchMarket,
   } = usePredictMarket({
-    id: resolvedMarketId,
+    id: resolvedMarketId ?? '',
     enabled: Boolean(resolvedMarketId),
   });
 
