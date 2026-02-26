@@ -68,8 +68,8 @@ describe(FixtureValidation('Fixture Validation — Post-Onboarding'), () => {
           }
         }
 
-        // Human-readable diff report
-        const diffPath = path.join(artifactsDir, 'fixture-validation-diff.txt');
+        // Human-readable diff report (written to reportsDir so it's always uploaded)
+        const diffPath = path.join(reportsDir, 'fixture-validation-diff.txt');
         if (hasStructuralChanges || diff.valueMismatches.length > 0) {
           const summary = [
             '--- Fixture Diff Report ---',

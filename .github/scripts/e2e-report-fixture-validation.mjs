@@ -62,7 +62,7 @@ function buildComment(results) {
       '```',
       '@metamaskbot update-mobile-fixture',
       '```',
-      `[View full details](${RUN_URL})`,
+      `[View full details](${RUN_URL}) | [Download diff report](${RUN_URL}#artifacts)`,
     ].join('\n');
   }
 
