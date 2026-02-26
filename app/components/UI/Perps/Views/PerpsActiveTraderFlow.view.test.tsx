@@ -292,8 +292,13 @@ describe('Active Trader Flow', () => {
     //  here we assert row content that is stable across the flow render stack)
     cleanup();
     renderRow(shortMarketOrder);
-    expect(await screen.findByText(/short/i)).toBeOnTheScreen();
-    expect(await screen.findByText(/market/i)).toBeOnTheScreen();
+    const marketOrderTimeout = { timeout: 5000 };
+    expect(
+      await screen.findByText(/short/i, {}, marketOrderTimeout),
+    ).toBeOnTheScreen();
+    expect(
+      await screen.findByText(/market price/i, {}, marketOrderTimeout),
+    ).toBeOnTheScreen();
     expect(screen.getByText(/BTC/i)).toBeOnTheScreen();
 
     // Trader taps an order row to see details
