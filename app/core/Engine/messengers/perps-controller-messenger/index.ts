@@ -30,5 +30,23 @@ export function getPerpsControllerMessenger(
     namespace: 'PerpsController',
     parent: rootExtendedMessenger,
   });
+  rootExtendedMessenger.delegate({
+    actions: [
+      'NetworkController:getState',
+      'NetworkController:getNetworkClientById',
+      'NetworkController:findNetworkClientIdByChainId',
+      'KeyringController:getState',
+      'KeyringController:signTypedMessage',
+      'TransactionController:addTransaction',
+      'RemoteFeatureFlagController:getState',
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      'AuthenticationController:getBearerToken',
+    ],
+    events: [
+      'RemoteFeatureFlagController:stateChange',
+      'AccountTreeController:selectedAccountGroupChange',
+    ],
+    messenger,
+  });
   return messenger;
 }
