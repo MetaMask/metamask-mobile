@@ -215,11 +215,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.AccountTreeController.accountGroupsMetadata',
     'engine.backgroundState.AccountTreeController.accountWalletsMetadata',
     'engine.backgroundState.TokenBalancesController.tokenBalances',
-    'engine.backgroundState.DeFiPositionsController.allDeFiPositions',
-    'engine.backgroundState.DeFiPositionsController.allDeFiPositionsCount',
     'engine.backgroundState.MultichainNetworkController.networksWithTransactionActivity',
-    'engine.backgroundState.RewardsController.activeAccount',
-    'engine.backgroundState.RewardsController.accounts',
     'browser.activeTab',
 
     // ── Random IDs (generated fresh each onboarding) ──
@@ -276,8 +272,6 @@ export function getMobileFixtureIgnoredKeys(): string[] {
 
     // ── Session-based state ──
     'engine.backgroundState.PermissionController.subjects',
-    'engine.backgroundState.SelectedNetworkController.domains',
-    'engine.backgroundState.SmartTransactionsController.smartTransactionsState',
     'engine.backgroundState.NotificationServicesController.metamaskNotificationsList',
     'engine.backgroundState.NotificationServicesController.subscriptionAccountsSeen',
     'engine.backgroundState.NotificationServicesPushController',

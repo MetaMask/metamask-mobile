@@ -95,25 +95,28 @@ function emitAnnotation(results) {
 }
 
 async function ghApi(endpoint, options = {}) {
+  const { headers: extraHeaders, ...restOptions } = options;
   const res = await fetch(`https://api.github.com${endpoint}`, {
     headers: {
       Authorization: `Bearer ${GITHUB_TOKEN}`,
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
       'Content-Type': 'application/json',
+      ...extraHeaders,
     },
-    ...options,
+    ...restOptions,
   });
-  if (!res.ok && options.method !== 'DELETE') {
+  if (!res.ok && restOptions.method !== 'DELETE') {
     const text = await res.text().catch(() => '');
     throw new Error(`GitHub API ${res.status}: ${text}`);
   }
   if (res.status === 204) return null;
+  if (!res.ok) return null; // DELETE with error — skip silently
   return res.json();
 }
 
 async function deletePreviousComments() {
-  const comments = await ghApi(`/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments`);
+  const comments = await ghApi(`/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100`);
   for (const comment of comments) {
     if (comment.body && comment.body.includes(COMMENT_MARKER)) {
       await ghApi(`/repos/${GITHUB_REPOSITORY}/issues/comments/${comment.id}`, { method: 'DELETE' });

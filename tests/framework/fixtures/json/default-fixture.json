@@ -316,12 +316,6 @@
                 "1559": true
               },
               "status": "available"
-            },
-            "networkId1": {
-              "EIPS": {
-                "1559": true
-              },
-              "status": "available"
             }
           },
           "selectedNetworkClientId": "mainnet"

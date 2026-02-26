@@ -101,7 +101,7 @@ const isUrlAllowed = (url: string): boolean => {
     const parsedUrl = new URL(url);
     const hostname = parsedUrl.hostname;
 
-    if (parsedUrl.protocol === 'data:') {
+    if (parsedUrl.protocol === 'data:' || parsedUrl.protocol === 'npm:') {
       return true;
     }
 
