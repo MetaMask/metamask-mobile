@@ -13,6 +13,7 @@ interface UsePredictAutoPlaceOrderParams {
   setCurrentValue: (value: number) => void;
   setCurrentValueUSDString: (value: string) => void;
   setIsInputFocused: (value: boolean) => void;
+  onDepositFailed?: (errorMessage?: string) => Promise<void> | void;
 }
 
 interface UsePredictAutoPlaceOrderResult {
@@ -30,6 +31,7 @@ export function usePredictAutoPlaceOrder({
   setCurrentValue,
   setCurrentValueUSDString,
   setIsInputFocused,
+  onDepositFailed,
 }: UsePredictAutoPlaceOrderParams): UsePredictAutoPlaceOrderResult {
   const shouldAutoPlaceOrder = useMemo(
     () => typeof amount === 'number' && amount > 0,
@@ -40,10 +42,12 @@ export function usePredictAutoPlaceOrder({
   );
   const hasInitializedAutoPlaceOrderRef = useRef(false);
   const hasTriggeredAutoPlaceOrderRef = useRef(false);
+  const hasHandledFailedDepositRef = useRef(false);
 
   const {
     isConfirmed: isAutoPlaceDepositConfirmed,
     hasFailed: hasAutoPlaceDepositFailed,
+    errorMessage: autoPlaceDepositErrorMessage,
   } = usePredictOrderDepositTracking({
     transactionId: shouldAutoPlaceOrder ? transactionId : undefined,
   });
@@ -73,6 +77,28 @@ export function usePredictAutoPlaceOrder({
       setIsAutoPlaceLoading(false);
     }
   }, [transactionId, hasAutoPlaceDepositFailed, shouldAutoPlaceOrder]);
+
+  useEffect(() => {
+    if (
+      !shouldAutoPlaceOrder ||
+      !hasAutoPlaceDepositFailed ||
+      hasHandledFailedDepositRef.current
+    ) {
+      return;
+    }
+
+    hasHandledFailedDepositRef.current = true;
+    setIsAutoPlaceLoading(false);
+    const retryResult = onDepositFailed?.(autoPlaceDepositErrorMessage);
+    if (retryResult) {
+      Promise.resolve(retryResult).catch(() => undefined);
+    }
+  }, [
+    autoPlaceDepositErrorMessage,
+    hasAutoPlaceDepositFailed,
+    onDepositFailed,
+    shouldAutoPlaceOrder,
+  ]);
 
   useEffect(() => {
     if (!shouldAutoPlaceOrder || hasTriggeredAutoPlaceOrderRef.current) {

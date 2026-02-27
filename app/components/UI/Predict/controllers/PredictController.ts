@@ -159,6 +159,7 @@ export type PredictControllerState = {
     outcomeToken: PredictOutcomeToken;
     amountUsd?: number;
     isInputFocused?: boolean;
+    transactionError?: string;
   } | null;
 
   selectedPaymentToken: {

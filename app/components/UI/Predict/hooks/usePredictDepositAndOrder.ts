@@ -24,6 +24,7 @@ import { usePredictTrading } from './usePredictTrading';
 interface PredictDepositAndOrderParams {
   amountUsd?: number;
   isInputFocused?: boolean;
+  transactionError?: string;
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
   market: PredictBuyPreviewParams['market'];
   outcome: PredictBuyPreviewParams['outcome'];
@@ -110,6 +111,9 @@ export const usePredictDepositAndOrder = ({
           ...(params.amountUsd && params.amountUsd > 0
             ? { amountUsd: params.amountUsd }
             : {}),
+          ...(params.transactionError
+            ? { transactionError: params.transactionError }
+            : {}),
         });
 
         await depositAndOrderWithConfirmation({}).catch((err) => {
@@ -157,13 +161,24 @@ export const usePredictDepositAndOrder = ({
     [depositAndOrder, tokenSelectionParams],
   );
 
-  const { shouldPreserveActiveOrderOnUnmountRef, isDepositAndOrderLoading } =
-    usePredictTokenSelection({
-      onTokenSelected: tokenSelectionParams ? handleTokenSelected : undefined,
-    });
+  const {
+    shouldPreserveActiveOrderOnUnmountRef,
+    markShouldPreserveActiveOrderOnUnmount,
+    isDepositAndOrderLoading,
+  } = usePredictTokenSelection({
+    onTokenSelected: tokenSelectionParams ? handleTokenSelected : undefined,
+  });
+
+  const triggerDepositAndOrder = useCallback(
+    async (params: PredictDepositAndOrderParams) => {
+      markShouldPreserveActiveOrderOnUnmount();
+      await depositAndOrder(params);
+    },
+    [depositAndOrder, markShouldPreserveActiveOrderOnUnmount],
+  );
 
   return {
-    depositAndOrder,
+    depositAndOrder: triggerDepositAndOrder,
     isDepositPending: !!depositBatchId,
     shouldPreserveActiveOrderOnUnmountRef,
     isDepositAndOrderLoading,

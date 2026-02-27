@@ -80,6 +80,7 @@ export function PredictDepositAndOrderInfo() {
   const market = activeOrder?.market;
   const outcome = activeOrder?.outcome;
   const outcomeToken = activeOrder?.outcomeToken;
+  const transactionError = activeOrder?.transactionError;
   const initialInputFocused = activeOrder?.isInputFocused;
   const prefilledAmountUsd =
     activeOrder?.amountUsd && activeOrder.amountUsd > 0
@@ -398,7 +399,7 @@ export function PredictDepositAndOrderInfo() {
     return null;
   };
 
-  const errorMessage = previewError ?? confirmError;
+  const errorMessage = confirmError ?? transactionError ?? previewError;
 
   const renderActionButton = () => {
     if (isConfirming) {

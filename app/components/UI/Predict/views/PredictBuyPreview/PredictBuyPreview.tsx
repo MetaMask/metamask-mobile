@@ -146,17 +146,20 @@ const PredictBuyPreview = () => {
   const [isInputFocused, setIsInputFocused] = useState(() => !autoPlaceAmount);
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const previousValueRef = useRef(0);
-  const { shouldPreserveActiveOrderOnUnmountRef, isDepositAndOrderLoading } =
-    usePredictDepositAndOrder({
-      tokenSelectionParams: {
-        market,
-        outcome,
-        outcomeToken,
-        isInputFocused,
-        ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
-        analyticsProperties,
-      },
-    });
+  const {
+    shouldPreserveActiveOrderOnUnmountRef,
+    isDepositAndOrderLoading,
+    depositAndOrder,
+  } = usePredictDepositAndOrder({
+    tokenSelectionParams: {
+      market,
+      outcome,
+      outcomeToken,
+      isInputFocused,
+      ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
+      analyticsProperties,
+    },
+  });
 
   const { deposit } = usePredictDeposit();
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
@@ -265,6 +268,19 @@ const PredictBuyPreview = () => {
     !isRateLimited &&
     !isCalculating;
 
+  const handleAutoPlaceDepositFailed = async (depositErrorMessage?: string) => {
+    await depositAndOrder({
+      market,
+      outcome,
+      outcomeToken,
+      isInputFocused,
+      ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
+      analyticsProperties,
+      transactionError:
+        depositErrorMessage ?? strings('predict.deposit.error_description'),
+    });
+  };
+
   const { isAutoPlaceLoading } = usePredictAutoPlaceOrder({
     amount,
     transactionId,
@@ -276,6 +292,7 @@ const PredictBuyPreview = () => {
     setCurrentValue,
     setCurrentValueUSDString,
     setIsInputFocused,
+    onDepositFailed: handleAutoPlaceDepositFailed,
   });
   const isPlacingOrder = isLoading || isAutoPlaceLoading;
   const canPlaceBetAction = canPlaceBet && !isAutoPlaceLoading;

@@ -5,6 +5,7 @@ import { usePredictAutoPlaceOrder } from './usePredictAutoPlaceOrder';
 let mockTrackingState = {
   isConfirmed: false,
   hasFailed: false,
+  errorMessage: undefined as string | undefined,
 };
 
 jest.mock('./usePredictOrderDepositTracking', () => ({
@@ -47,6 +48,9 @@ const createParams = () => ({
   setCurrentValue: jest.fn(),
   setCurrentValueUSDString: jest.fn(),
   setIsInputFocused: jest.fn(),
+  onDepositFailed: undefined as
+    | ((errorMessage?: string) => Promise<void> | void)
+    | undefined,
 });
 
 describe('usePredictAutoPlaceOrder', () => {
@@ -55,6 +59,7 @@ describe('usePredictAutoPlaceOrder', () => {
     mockTrackingState = {
       isConfirmed: false,
       hasFailed: false,
+      errorMessage: undefined,
     };
   });
 
@@ -118,5 +123,23 @@ describe('usePredictAutoPlaceOrder', () => {
     });
 
     expect(params.placeOrder).not.toHaveBeenCalled();
+  });
+
+  it('calls onDepositFailed when deposit transaction fails', async () => {
+    const params = createParams();
+    const onDepositFailed = jest.fn();
+    params.onDepositFailed = onDepositFailed;
+    mockTrackingState = {
+      isConfirmed: false,
+      hasFailed: true,
+      errorMessage: 'Deposit failed',
+    };
+
+    const { result } = renderHook(() => usePredictAutoPlaceOrder(params));
+
+    await waitFor(() => {
+      expect(onDepositFailed).toHaveBeenCalledWith('Deposit failed');
+      expect(result.current.isAutoPlaceLoading).toBe(false);
+    });
   });
 });

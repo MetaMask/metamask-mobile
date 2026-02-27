@@ -8,6 +8,34 @@ interface UsePredictOrderDepositTrackingParams {
   transactionId?: string;
 }
 
+function getTransactionErrorMessage(
+  transactionMeta: {
+    error?: unknown;
+    errormsg?: unknown;
+  } | null,
+) {
+  const errorMessage =
+    typeof transactionMeta?.error === 'object' &&
+    transactionMeta?.error &&
+    'message' in transactionMeta.error &&
+    typeof transactionMeta.error.message === 'string'
+      ? transactionMeta.error.message
+      : undefined;
+
+  if (errorMessage && errorMessage.trim() !== '') {
+    return errorMessage;
+  }
+
+  if (
+    typeof transactionMeta?.errormsg === 'string' &&
+    transactionMeta.errormsg.trim() !== ''
+  ) {
+    return transactionMeta.errormsg;
+  }
+
+  return undefined;
+}
+
 export function usePredictOrderDepositTracking({
   transactionId,
 }: UsePredictOrderDepositTrackingParams) {
@@ -16,6 +44,7 @@ export function usePredictOrderDepositTracking({
   );
 
   const status = transactionMeta?.status;
+  const errorMessage = getTransactionErrorMessage(transactionMeta ?? null);
 
   return useMemo(
     () => ({
@@ -23,7 +52,8 @@ export function usePredictOrderDepositTracking({
       hasFailed:
         status === TransactionStatus.failed ||
         status === TransactionStatus.rejected,
+      errorMessage,
     }),
-    [status],
+    [errorMessage, status],
   );
 }

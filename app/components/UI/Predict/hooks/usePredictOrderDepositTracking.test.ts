@@ -42,6 +42,7 @@ describe('usePredictOrderDepositTracking', () => {
 
     expect(result.current.isConfirmed).toBe(true);
     expect(result.current.hasFailed).toBe(false);
+    expect(result.current.errorMessage).toBeUndefined();
   });
 
   it('returns failed state when deposit transaction fails', () => {
@@ -51,12 +52,16 @@ describe('usePredictOrderDepositTracking', () => {
         {
           id: 'tx-1',
           status: TransactionStatus.failed,
+          error: {
+            message: 'Transaction failed on-chain',
+          },
         } as TransactionMeta,
       ],
     });
 
     expect(result.current.isConfirmed).toBe(false);
     expect(result.current.hasFailed).toBe(true);
+    expect(result.current.errorMessage).toBe('Transaction failed on-chain');
   });
 
   it('returns neutral state when transaction id is missing', () => {
@@ -72,5 +77,6 @@ describe('usePredictOrderDepositTracking', () => {
 
     expect(result.current.isConfirmed).toBe(false);
     expect(result.current.hasFailed).toBe(false);
+    expect(result.current.errorMessage).toBeUndefined();
   });
 });

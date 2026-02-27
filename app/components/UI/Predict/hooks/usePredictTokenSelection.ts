@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
 
 interface UsePredictTokenSelectionParams {
@@ -20,6 +20,9 @@ export function usePredictTokenSelection({
   const previousSelectedTokenKeyRef = useRef<string | null>(null);
   const shouldPreserveActiveOrderOnUnmountRef = useRef(false);
   const isMountedRef = useRef(true);
+  const markShouldPreserveActiveOrderOnUnmount = useCallback(() => {
+    shouldPreserveActiveOrderOnUnmountRef.current = true;
+  }, []);
 
   useEffect(
     () => () => {
@@ -87,6 +90,7 @@ export function usePredictTokenSelection({
 
   return {
     shouldPreserveActiveOrderOnUnmountRef,
+    markShouldPreserveActiveOrderOnUnmount,
     isDepositAndOrderLoading,
   };
 }
