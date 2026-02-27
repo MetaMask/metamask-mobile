@@ -1,5 +1,5 @@
-import React, { useCallback, useRef } from 'react';
-import { Hex } from '@metamask/utils';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { Hex, toCaipAssetType } from '@metamask/utils';
 import { noop } from 'lodash';
 import Engine from '../../../../../../core/Engine';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
@@ -30,6 +30,9 @@ import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import RampsQuickBuyPaymentMethods from '../../../../../UI/Ramp/components/RampsQuickBuyPaymentMethods';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { Box } from '@metamask/design-system-react-native';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -187,6 +190,57 @@ export function PayWithModal() {
     ? strings('pay_with_modal.title_receive')
     : strings('pay_with_modal.title');
 
+  const primaryRequiredToken = useMemo(
+    () => requiredTokens.find((token) => !token.skipIfBalance),
+    [requiredTokens],
+  );
+
+  const quickBuyAssetId = useMemo(() => {
+    const selectedToken = payToken ?? primaryRequiredToken;
+    if (!selectedToken?.address || !selectedToken?.chainId) {
+      return undefined;
+    }
+
+    const nativeAddress = getNativeTokenAddress(selectedToken.chainId as Hex);
+    if (selectedToken.address.toLowerCase() === nativeAddress.toLowerCase()) {
+      return undefined;
+    }
+
+    const chainReference = Number(selectedToken.chainId).toString();
+    if (!chainReference || chainReference === 'NaN') {
+      return undefined;
+    }
+
+    return toCaipAssetType(
+      'eip155',
+      chainReference,
+      'erc20',
+      selectedToken.address,
+    );
+  }, [payToken, primaryRequiredToken]);
+
+  const quickBuyAmount = useMemo(() => {
+    if (!primaryRequiredToken?.amountUsd) {
+      return undefined;
+    }
+
+    const amount = Number(primaryRequiredToken.amountUsd);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return undefined;
+    }
+
+    return amount.toString();
+  }, [primaryRequiredToken?.amountUsd]);
+
+  const shouldShowQuickBuyPaymentMethods =
+    !isWithdraw &&
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.predictDeposit,
+    ]) &&
+    Boolean(quickBuyAssetId && quickBuyAmount);
+
   return (
     <BottomSheet
       isFullscreen
@@ -199,6 +253,15 @@ export function PayWithModal() {
         // isn't forwarded to `onCloseBottomSheet` as the post-close callback.
         onClose={() => close()}
       />
+      {shouldShowQuickBuyPaymentMethods && quickBuyAssetId && quickBuyAmount ? (
+        <Box twClassName="px-4 pb-2">
+          <RampsQuickBuyPaymentMethods
+            assetId={quickBuyAssetId}
+            amount={quickBuyAmount}
+            testID="transaction-add-funds-quick-buy"
+          />
+        </Box>
+      ) : null}
       <Asset
         includeNoBalance
         hideNfts

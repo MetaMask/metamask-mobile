@@ -21,6 +21,38 @@ describe('parseRampIntent', () => {
     });
   });
 
+  it('returns provider and payment method intent fields when provided', () => {
+    const pathParams = {
+      assetId: 'eip155:1/erc20:0x1234567890',
+      providerId: '/providers/transak',
+      paymentMethodId: '/payments/debit-credit-card',
+    };
+
+    const result = parseRampIntent(pathParams);
+
+    expect(result).toEqual({
+      assetId: 'eip155:1/erc20:0x1234567890',
+      providerId: '/providers/transak',
+      paymentMethodId: '/payments/debit-credit-card',
+    });
+  });
+
+  it('returns autoProceed and callback key when provided', () => {
+    const pathParams = {
+      assetId: 'eip155:1/erc20:0x1234567890',
+      autoProceed: 'true',
+      callbackKey: 'quick-buy-cb-1',
+    };
+
+    const result = parseRampIntent(pathParams);
+
+    expect(result).toEqual({
+      assetId: 'eip155:1/erc20:0x1234567890',
+      autoProceed: true,
+      callbackKey: 'quick-buy-cb-1',
+    });
+  });
+
   it('Returns a RampIntent object with only defined fields', () => {
     const pathParams = {
       assetId: 'eip155:1/erc20:0x1234567890',

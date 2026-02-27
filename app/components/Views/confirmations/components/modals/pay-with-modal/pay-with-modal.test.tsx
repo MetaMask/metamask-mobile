@@ -55,6 +55,21 @@ jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../utils/transaction-pay');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter');
+jest.mock(
+  '../../../../../UI/Ramp/components/RampsQuickBuyPaymentMethods',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { Text } = jest.requireActual('react-native');
+
+    return function MockRampsQuickBuyPaymentMethods({
+      testID,
+    }: {
+      testID?: string;
+    }) {
+      return ReactActual.createElement(Text, { testID }, 'Quick Buy Options');
+    };
+  },
+);
 
 jest.mock('../../../hooks/send/useAccountTokens', () => {
   // Return a stable reference to avoid infinite re-render loops.
@@ -322,6 +337,55 @@ describe('PayWithModal', () => {
     render();
 
     expect(perpsFilterFn).toHaveBeenCalledWith(TOKENS_MOCK);
+  });
+
+  it('renders quick buy payment methods for add funds transaction types', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      chainId: CHAIN_ID_1_MOCK,
+      networkClientId: '',
+      status: TransactionStatus.unapproved,
+      time: 0,
+      txParams: { from: EMPTY_ADDRESS },
+      type: TransactionType.perpsDepositAndOrder,
+    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: TOKENS_MOCK[6].address,
+        chainId: CHAIN_ID_1_MOCK,
+      },
+      setPayToken: setPayTokenMock,
+    } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        address: TOKENS_MOCK[6].address,
+        chainId: CHAIN_ID_1_MOCK,
+        amountUsd: '123.45',
+        skipIfBalance: false,
+      } as unknown as TransactionPayRequiredToken,
+    ]);
+
+    const { getByTestId } = render();
+
+    expect(getByTestId('transaction-add-funds-quick-buy')).toBeOnTheScreen();
+  });
+
+  it('does not render quick buy payment methods for non add funds transactions', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      chainId: CHAIN_ID_1_MOCK,
+      networkClientId: '',
+      status: TransactionStatus.unapproved,
+      time: 0,
+      txParams: { from: EMPTY_ADDRESS },
+      type: TransactionType.simpleSend,
+    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+    const { queryByTestId } = render();
+
+    expect(queryByTestId('transaction-add-funds-quick-buy')).toBeNull();
   });
 
   describe('withdraw mode', () => {
