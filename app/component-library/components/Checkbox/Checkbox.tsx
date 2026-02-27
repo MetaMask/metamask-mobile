@@ -1,11 +1,5 @@
 /* eslint-disable react/prop-types */
 
-/**
- * @deprecated Please update your code to use `Checkbox` from `@metamask/design-system-react-native`.
- * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Checkbox/README.md}
- */
-
 // Third party dependencies.
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
@@ -27,6 +21,11 @@ import {
   DEFAULT_CHECKBOX_ISINDETERMINATE_ICONNAME,
 } from './Checkbox.constants';
 
+/**
+ * @deprecated Please update your code to use `Checkbox` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Checkbox/README.md}
+ */
 const Checkbox = ({
   style,
   label,

@@ -1,11 +1,5 @@
 /* eslint-disable react/prop-types */
 
-/**
- * @deprecated Please update your code to use `Button` from `@metamask/design-system-react-native` with variant `ButtonVariant.Primary`.
- * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Button/README.md}
- */
-
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, GestureResponderEvent } from 'react-native';
@@ -21,6 +15,11 @@ import { ButtonPrimaryProps } from './ButtonPrimary.types';
 import styleSheet from './ButtonPrimary.styles';
 import { DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT } from './ButtonPrimary.constants';
 
+/**
+ * @deprecated Please update your code to use `Button` from `@metamask/design-system-react-native` with variant `ButtonVariant.Primary`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Button/README.md}
+ */
 const ButtonPrimary = ({
   style,
   onPressIn,

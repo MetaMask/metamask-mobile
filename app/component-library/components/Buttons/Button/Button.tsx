@@ -1,11 +1,5 @@
 /* eslint-disable react/prop-types */
 
-/**
- * @deprecated Please update your code to use `Button` from `@metamask/design-system-react-native`.
- * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Button/README.md}
- */
-
 import React from 'react';
 
 // External dependencies.
@@ -16,6 +10,11 @@ import ButtonSecondary from './variants/ButtonSecondary';
 // Internal dependencies.
 import { ButtonProps, ButtonVariants } from './Button.types';
 
+/**
+ * @deprecated Please update your code to use `Button` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Button/README.md}
+ */
 const Button = (buttonProps: ButtonProps) => {
   const { variant, ...restProps } = buttonProps;
 
