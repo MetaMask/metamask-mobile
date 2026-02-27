@@ -30,7 +30,8 @@ export const predictPricesOptions = ({ queries }: { queries: PriceQuery[] }) =>
       } catch (err) {
         DevLogger.log('usePredictPrices: Error fetching prices', err);
 
-        Logger.error(ensureError(err), {
+        const error = ensureError(err);
+        Logger.error(error, {
           tags: {
             feature: PREDICT_CONSTANTS.FEATURE_NAME,
             component: 'usePredictPrices',
@@ -45,7 +46,7 @@ export const predictPricesOptions = ({ queries }: { queries: PriceQuery[] }) =>
             },
           },
         });
-        throw ensureError(err);
+        throw error;
       }
     },
     staleTime: 5_000,
