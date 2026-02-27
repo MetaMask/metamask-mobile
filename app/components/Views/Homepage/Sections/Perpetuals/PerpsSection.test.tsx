@@ -634,7 +634,7 @@ describe('PerpsSection', () => {
       expect(screen.queryByText('MKT5')).toBeNull();
     });
 
-    it('renders "More perps" card at the end of the carousel', () => {
+    it('renders "View more" card at the end of the carousel', () => {
       const markets = Array.from({ length: 4 }, (_, i) =>
         makeTrendingMarket({
           symbol: `MKT${i}`,
@@ -652,10 +652,10 @@ describe('PerpsSection', () => {
       renderWithProvider(<PerpsSection />);
 
       expect(screen.getByTestId('perps-view-more-card')).toBeOnTheScreen();
-      expect(screen.getByText('More perps')).toBeOnTheScreen();
+      expect(screen.getByText('View more')).toBeOnTheScreen();
     });
 
-    it('navigates to perps home when "More perps" card is pressed', () => {
+    it('navigates to perps home when "View more" card is pressed', () => {
       usePerpsMarkets.mockReturnValue({
         markets: [
           makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),

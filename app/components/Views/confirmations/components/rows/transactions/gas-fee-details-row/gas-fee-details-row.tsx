@@ -46,24 +46,23 @@ import TagColored, {
   TagColor,
 } from '../../../../../../../component-library/components-temp/TagColored';
 
-const PaidByMetaMask = () => {
-  const { styles } = useStyles(styleSheet, {});
-
-  return (
-    <TagColored
-      color={TagColor.Success}
-      style={styles.gasFeesSponsoredContainer}
-    >
-      <Text
-        variant={TextVariant.BodyMD}
-        testID="paid-by-metamask"
-        color={TextColor.Success}
-      >
-        {strings('transactions.paid_by_metamask')}
-      </Text>
-    </TagColored>
-  );
-};
+const PaidByMetaMask = () => (
+  <TagColored
+    color={TagColor.Success}
+    labelProps={{
+      variant: TextVariant.BodySM,
+      style: {
+        textTransform: 'none',
+        textAlign: 'center',
+        bottom: 1,
+        fontWeight: 'normal',
+      },
+      testID: 'paid-by-metamask',
+    }}
+  >
+    {strings('transactions.paid_by_metamask')}
+  </TagColored>
+);
 
 const SkeletonEstimationInfo = () => {
   const { styles } = useStyles(styleSheet, {});
