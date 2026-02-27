@@ -506,6 +506,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-buy-1"
         underlayColor="#f3f5f9"
       >
         <View
@@ -732,6 +733,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-buy-1-crypto-amount"
               >
                 0.01231
                  
@@ -748,6 +750,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-buy-1-fiat-amount"
               >
                 $34.23 
               </Text>
@@ -772,6 +775,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-buy-2"
         underlayColor="#f3f5f9"
       >
         <View
@@ -998,6 +1002,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-buy-2-crypto-amount"
               >
                 0.01231
                  
@@ -1014,6 +1019,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-buy-2-fiat-amount"
               >
                 $34.23 
               </Text>
@@ -1038,6 +1044,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-buy-3"
         underlayColor="#f3f5f9"
       >
         <View
@@ -1264,6 +1271,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-buy-3-crypto-amount"
               >
                 ...
                  
@@ -1280,6 +1288,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-buy-3-fiat-amount"
               >
                 ...
               </Text>
@@ -1304,6 +1313,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-deposit-4"
         underlayColor="#f3f5f9"
       >
         <View
@@ -1530,6 +1540,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-deposit-4-crypto-amount"
               >
                 100
                  
@@ -1546,6 +1557,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-deposit-4-fiat-amount"
               >
                 $100 
               </Text>
@@ -1570,6 +1582,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-deposit-5"
         underlayColor="#f3f5f9"
       >
         <View
@@ -1796,6 +1809,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-deposit-5-crypto-amount"
               >
                 20
                  
@@ -1812,6 +1826,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-deposit-5-fiat-amount"
               >
                 $20 
               </Text>
@@ -2353,6 +2368,7 @@ exports[`OrdersList renders correctly 1`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-buy-1"
         underlayColor="#f3f5f9"
       >
         <View
@@ -2579,6 +2595,7 @@ exports[`OrdersList renders correctly 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-buy-1-crypto-amount"
               >
                 0.01231
                  
@@ -2595,6 +2612,7 @@ exports[`OrdersList renders correctly 1`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-buy-1-fiat-amount"
               >
                 $34.23 
               </Text>
@@ -2619,6 +2637,7 @@ exports[`OrdersList renders correctly 1`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-sell-2"
         underlayColor="#f3f5f9"
       >
         <View
@@ -2845,6 +2864,7 @@ exports[`OrdersList renders correctly 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-sell-2-crypto-amount"
               >
                 0.01231
                  
@@ -2861,6 +2881,7 @@ exports[`OrdersList renders correctly 1`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-sell-2-fiat-amount"
               >
                 $34.23 
               </Text>
@@ -2885,6 +2906,7 @@ exports[`OrdersList renders correctly 1`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-buy-3"
         underlayColor="#f3f5f9"
       >
         <View
@@ -3111,6 +3133,7 @@ exports[`OrdersList renders correctly 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-buy-3-crypto-amount"
               >
                 0.01231
                  
@@ -3127,6 +3150,7 @@ exports[`OrdersList renders correctly 1`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-buy-3-fiat-amount"
               >
                 $34.23 
               </Text>
@@ -3151,6 +3175,7 @@ exports[`OrdersList renders correctly 1`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-buy-4"
         underlayColor="#f3f5f9"
       >
         <View
@@ -3377,6 +3402,7 @@ exports[`OrdersList renders correctly 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-buy-4-crypto-amount"
               >
                 ...
                  
@@ -3393,6 +3419,7 @@ exports[`OrdersList renders correctly 1`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-buy-4-fiat-amount"
               >
                 ...
               </Text>
@@ -3417,6 +3444,7 @@ exports[`OrdersList renders correctly 1`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-deposit-5"
         underlayColor="#f3f5f9"
       >
         <View
@@ -3643,6 +3671,7 @@ exports[`OrdersList renders correctly 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-deposit-5-crypto-amount"
               >
                 100
                  
@@ -3659,6 +3688,7 @@ exports[`OrdersList renders correctly 1`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-deposit-5-fiat-amount"
               >
                 $100 
               </Text>
@@ -3683,6 +3713,7 @@ exports[`OrdersList renders correctly 1`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-deposit-6"
         underlayColor="#f3f5f9"
       >
         <View
@@ -3909,6 +3940,7 @@ exports[`OrdersList renders correctly 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-deposit-6-crypto-amount"
               >
                 20
                  
@@ -3925,6 +3957,7 @@ exports[`OrdersList renders correctly 1`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-deposit-6-fiat-amount"
               >
                 $20 
               </Text>
@@ -5210,6 +5243,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-sell-1"
         underlayColor="#f3f5f9"
       >
         <View
@@ -5436,6 +5470,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-sell-1-crypto-amount"
               >
                 0.01231
                  
@@ -5452,6 +5487,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-sell-1-fiat-amount"
               >
                 $34.23 
               </Text>
@@ -5879,6 +5915,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-sell-1"
         underlayColor="#f3f5f9"
       >
         <View
@@ -6105,6 +6142,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-sell-1-crypto-amount"
               >
                 0.01231
                  
@@ -6121,6 +6159,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-sell-1-fiat-amount"
               >
                 $34.23 
               </Text>
@@ -6662,6 +6701,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-buy-1"
         underlayColor="#f3f5f9"
       >
         <View
@@ -6888,6 +6928,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-buy-1-crypto-amount"
               >
                 0.01231
                  
@@ -6904,6 +6945,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-buy-1-fiat-amount"
               >
                 $34.23 
               </Text>
@@ -6928,6 +6970,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-sell-2"
         underlayColor="#f3f5f9"
       >
         <View
@@ -7154,6 +7197,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-sell-2-crypto-amount"
               >
                 0.01231
                  
@@ -7170,6 +7214,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-sell-2-fiat-amount"
               >
                 $34.23 
               </Text>
@@ -7194,6 +7239,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-buy-3"
         underlayColor="#f3f5f9"
       >
         <View
@@ -7420,6 +7466,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-buy-3-crypto-amount"
               >
                 0.01231
                  
@@ -7436,6 +7483,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-buy-3-fiat-amount"
               >
                 $34.23 
               </Text>
@@ -7460,6 +7508,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-buy-4"
         underlayColor="#f3f5f9"
       >
         <View
@@ -7686,6 +7735,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-buy-4-crypto-amount"
               >
                 ...
                  
@@ -7702,6 +7752,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-buy-4-fiat-amount"
               >
                 ...
               </Text>
@@ -7726,6 +7777,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-deposit-5"
         underlayColor="#f3f5f9"
       >
         <View
@@ -7952,6 +8004,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-deposit-5-crypto-amount"
               >
                 100
                  
@@ -7968,6 +8021,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-deposit-5-fiat-amount"
               >
                 $100 
               </Text>
@@ -7992,6 +8046,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             "borderColor": "#b7bbc866",
           }
         }
+        testID="ramps-order-deposit-6"
         underlayColor="#f3f5f9"
       >
         <View
@@ -8218,6 +8273,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     "lineHeight": 24,
                   }
                 }
+                testID="ramps-order-deposit-6-crypto-amount"
               >
                 20
                  
@@ -8234,6 +8290,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     "lineHeight": 22,
                   }
                 }
+                testID="ramps-order-deposit-6-fiat-amount"
               >
                 $20 
               </Text>
