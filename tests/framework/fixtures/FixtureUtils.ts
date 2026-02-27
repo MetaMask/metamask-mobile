@@ -120,6 +120,86 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
 }
 
 /**
+ * Re-establishes all adb reverse port forwards for currently allocated resources.
+ *
+ * WHY THIS IS NEEDED:
+ * `adb root` (called during CA cert installation) restarts the adbd daemon.
+ * That restart clears every `adb reverse` tunnel that was set up by
+ * startResourceWithRetry() — fixture server, mock server, etc. — so the
+ * app can no longer reach them when it launches.
+ *
+ * Call this immediately after installCACertAndroid() to restore the tunnels
+ * before device.launchApp() is invoked.
+ */
+export async function restoreAndroidPortForwarding(): Promise<void> {
+  if (!(await PlatformDetector.isAndroid())) {
+    return;
+  }
+
+  if (isBrowserStack()) {
+    return;
+  }
+
+  let deviceFlag = '';
+  if (FrameworkDetector.isDetox()) {
+    const deviceId = device.id || '';
+    deviceFlag = deviceId ? `-s ${deviceId}` : '';
+  }
+
+  const portManager = PortManager.getInstance();
+
+  // Single-instance resources
+  const singleResources: ResourceType[] = [
+    ResourceType.FIXTURE_SERVER,
+    ResourceType.COMMAND_QUEUE_SERVER,
+    ResourceType.MOCK_SERVER,
+    ResourceType.GANACHE,
+    ResourceType.ANVIL,
+  ];
+
+  for (const resourceType of singleResources) {
+    const actualPort = portManager.getPort(resourceType);
+    if (actualPort === undefined) continue;
+    const fallbackPort = getFallbackPort(resourceType);
+    try {
+      await execAsync(
+        `adb ${deviceFlag} reverse tcp:${fallbackPort} tcp:${actualPort}`,
+      );
+      logger.debug(
+        `✓ Restored port forward ${fallbackPort} → ${actualPort} (${resourceType})`,
+      );
+    } catch (err) {
+      logger.warn(`Failed to restore adb reverse for ${resourceType}: ${err}`);
+    }
+  }
+
+  // Multi-instance dapp servers
+  let index = 0;
+  while (true) {
+    const instanceId = `dapp-server-${index}`;
+    const actualPort = portManager.getMultiInstancePort(
+      ResourceType.DAPP_SERVER,
+      instanceId,
+    );
+    if (actualPort === undefined) break;
+    const fallbackPort = FALLBACK_DAPP_SERVER_PORT + index;
+    try {
+      await execAsync(
+        `adb ${deviceFlag} reverse tcp:${fallbackPort} tcp:${actualPort}`,
+      );
+      logger.debug(
+        `✓ Restored port forward ${fallbackPort} → ${actualPort} (${instanceId})`,
+      );
+    } catch (err) {
+      logger.warn(`Failed to restore adb reverse for ${instanceId}: ${err}`);
+    }
+    index++;
+  }
+
+  logger.debug('✓ Android port forwarding restored after CA cert installation');
+}
+
+/**
  * Sets up adb reverse for Android to map fallback port to actual allocated port.
  *
  * WHY THIS IS NEEDED:

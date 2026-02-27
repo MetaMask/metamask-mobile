@@ -14,6 +14,7 @@ import {
   startResourceWithRetry,
   startMultiInstanceResourceWithRetry,
   cleanupAllAndroidPortForwarding,
+  restoreAndroidPortForwarding,
 } from './FixtureUtils';
 import Utilities from '../Utilities';
 import { dismissDevScreens } from '../../flows/general.flow';
@@ -624,6 +625,12 @@ export async function withFixtures(
       !isBrowserStack
     ) {
       await transparentProxyInstance.installCACert();
+      // `adb root` (called inside installCACertAndroid) restarts adbd, which
+      // clears every adb reverse tunnel set up by startResourceWithRetry().
+      // Restore them now so the app can reach fixture/mock servers on launch.
+      if (device.getPlatform() === 'android') {
+        await restoreAndroidPortForwarding();
+      }
     }
 
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
