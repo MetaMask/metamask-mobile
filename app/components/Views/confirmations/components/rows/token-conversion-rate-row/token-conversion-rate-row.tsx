@@ -57,7 +57,7 @@ export function TokenConversionRateRow() {
       !targetAmountUsd ||
       new BigNumber(sourceAmountUsd).isZero()
     ) {
-      return 1;
+      return '1';
     }
 
     return new BigNumber(targetAmountUsd)
