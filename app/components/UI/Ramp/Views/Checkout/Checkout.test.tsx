@@ -35,11 +35,13 @@ jest.mock('../../../../hooks/useThunkDispatch', () => ({
 }));
 
 const mockGetOrderFromCallback = jest.fn();
+const mockAddOrder = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     RampsController: {
       getOrderFromCallback: (...args: unknown[]) =>
         mockGetOrderFromCallback(...args),
+      addOrder: (...args: unknown[]) => mockAddOrder(...args),
     },
   },
 }));
@@ -277,14 +279,14 @@ describe('Checkout', () => {
       ).toBeOnTheScreen();
     });
 
-    it('handles callback error when order has no ID', async () => {
+    it('navigates to order details even when order IDs are null', async () => {
       mockGetOrderFromCallback.mockResolvedValue({
         status: 'PENDING',
         id: null,
         providerOrderId: null,
       });
 
-      const { getByTestId, getByText } = render();
+      const { getByTestId } = render();
       const webview = getByTestId('checkout-webview');
 
       await act(async () => {
@@ -294,9 +296,20 @@ describe('Checkout', () => {
         });
       });
 
-      expect(
-        getByText('Order response did not contain an order ID'),
-      ).toBeOnTheScreen();
+      expect(mockAddOrder).toHaveBeenCalled();
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: expect.arrayContaining([
+            expect.objectContaining({
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: expect.objectContaining({
+                orderId: null,
+                showCloseButton: true,
+              }),
+            }),
+          ]),
+        }),
+      );
     });
 
     it('successfully creates order from callback with customOrderId', async () => {
@@ -344,7 +357,16 @@ describe('Checkout', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'FIAT_REMOVE_CUSTOM_ID_DATA' }),
       );
-      expect(mockDangerouslyGetParent).toHaveBeenCalled();
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: expect.arrayContaining([
+            expect.objectContaining({
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: expect.objectContaining({ showCloseButton: true }),
+            }),
+          ]),
+        }),
+      );
     });
 
     it('navigates to Ramps order details with showCloseButton when providerType is RAMPS_V2', async () => {
@@ -435,7 +457,7 @@ describe('Checkout', () => {
       );
     });
 
-    it('uses customOrderId as fallback when order IDs are missing', async () => {
+    it('navigates to order details with null orderId when order IDs are missing', async () => {
       const mockOrder = {
         id: null,
         providerOrderId: null,
@@ -467,7 +489,20 @@ describe('Checkout', () => {
         });
       });
 
-      expect(mockDangerouslyGetParent).toHaveBeenCalled();
+      expect(mockAddOrder).toHaveBeenCalledWith(mockOrder);
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: expect.arrayContaining([
+            expect.objectContaining({
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: expect.objectContaining({
+                orderId: null,
+                showCloseButton: true,
+              }),
+            }),
+          ]),
+        }),
+      );
     });
 
     it('does not process callback twice when already handled', async () => {

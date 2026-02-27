@@ -13,6 +13,7 @@ import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
 import { createCheckoutNavDetails } from '../Views/Checkout';
 import { registerCheckoutCallback } from '../utils/checkoutCallbackRegistry';
 import useAnalytics from './useAnalytics';
+import { showV2OrderToast } from '../utils/v2OrderToast';
 import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTransakController } from './useTransakController';
@@ -289,6 +290,13 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
           paymentDetails: depositOrder.paymentDetails,
         });
 
+        showV2OrderToast({
+          orderId: rampsOrder.providerOrderId,
+          cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
+          cryptoAmount: rampsOrder.cryptoAmount,
+          status: rampsOrder.status,
+        });
+
         navigateToOrderProcessingCallback({
           orderId: rampsOrder.providerOrderId,
         });
@@ -431,6 +439,13 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                 addOrder({
                   ...rampsOrder,
                   paymentDetails: depositOrder.paymentDetails,
+                });
+
+                showV2OrderToast({
+                  orderId: rampsOrder.providerOrderId,
+                  cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
+                  cryptoAmount: rampsOrder.cryptoAmount,
+                  status: rampsOrder.status,
                 });
 
                 navigateToBankDetailsCallback({
