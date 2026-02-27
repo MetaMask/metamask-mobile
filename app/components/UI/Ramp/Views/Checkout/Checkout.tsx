@@ -217,6 +217,7 @@ const Checkout = () => {
   const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
   const theme = useTheme();
+  const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
   const isV2Enabled = useRampsUnifiedV2Enabled();
 
@@ -295,6 +296,7 @@ const Checkout = () => {
             cryptocurrency: order.cryptocurrency,
             cryptoAmount: order.cryptoAmount,
             state: order.state,
+            colors,
           });
         } else {
           const notificationDetails = getNotificationDetails(order);
@@ -323,7 +325,7 @@ const Checkout = () => {
         navigation.dangerouslyGetParent()?.pop();
       }
     },
-    [dispatch, dispatchThunk, navigation, providerType, isV2Enabled],
+    [dispatch, dispatchThunk, navigation, providerType, isV2Enabled, colors],
   );
 
   const handleNavigationStateChange = useCallback(

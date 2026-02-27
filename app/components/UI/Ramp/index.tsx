@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { InteractionManager, StyleSheet, View } from 'react-native';
+import { Appearance, InteractionManager, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
@@ -38,8 +38,20 @@ import useHydrateRampsController from './hooks/useHydrateRampsController';
 import useRampsSmartRouting from './hooks/useRampsSmartRouting';
 import { isRampsUnifiedV2Enabled } from './utils/isRampsUnifiedV2Enabled';
 import { showV2OrderToast } from './utils/v2OrderToast';
+import { lightTheme, darkTheme } from '@metamask/design-tokens';
+import { AppThemeKey } from '../../../util/theme/models';
+import { RootState } from '../../../reducers';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
+
+function getThemeColors(state: RootState) {
+  const appTheme = state.user.appTheme;
+  if (appTheme === AppThemeKey.dark) return darkTheme.colors;
+  if (appTheme === AppThemeKey.light) return lightTheme.colors;
+  return Appearance.getColorScheme() === 'dark'
+    ? darkTheme.colors
+    : lightTheme.colors;
+}
 
 export interface ProcessorOptions {
   forced?: boolean;
@@ -69,6 +81,7 @@ export async function processFiatOrder(
             cryptocurrency: updatedOrder.cryptocurrency,
             cryptoAmount: updatedOrder.cryptoAmount,
             state: updatedOrder.state,
+            colors: getThemeColors(state),
           });
         } else {
           const notificationDetails = getNotificationDetails(updatedOrder);
@@ -115,6 +128,7 @@ async function processCustomOrderId(
             cryptocurrency: fiatOrder.cryptocurrency,
             cryptoAmount: fiatOrder.cryptoAmount,
             state: fiatOrder.state,
+            colors: getThemeColors(state),
           });
         } else {
           const notificationDetails = getNotificationDetails(fiatOrder);

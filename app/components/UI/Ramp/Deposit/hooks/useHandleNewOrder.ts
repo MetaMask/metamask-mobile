@@ -7,10 +7,12 @@ import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import { getNotificationDetails } from '../utils';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
+import { useTheme } from '../../../../../util/theme';
 
 function useHandleNewOrder() {
   const dispatchThunk = useThunkDispatch();
   const isV2Enabled = useRampsUnifiedV2Enabled();
+  const { colors } = useTheme();
 
   return useCallback(
     async (order: FiatOrder) => {
@@ -27,6 +29,7 @@ function useHandleNewOrder() {
               cryptocurrency: order.cryptocurrency,
               cryptoAmount: order.cryptoAmount,
               state: order.state,
+              colors,
             });
           } else {
             const notificationDetails = getNotificationDetails(order);
@@ -37,7 +40,7 @@ function useHandleNewOrder() {
         });
       });
     },
-    [dispatchThunk, isV2Enabled],
+    [dispatchThunk, isV2Enabled, colors],
   );
 }
 

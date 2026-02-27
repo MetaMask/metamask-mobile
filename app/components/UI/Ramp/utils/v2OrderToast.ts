@@ -5,7 +5,6 @@ import {
   IconSize as ReactNativeDsIconSize,
 } from '@metamask/design-system-react-native';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
-import { lightTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
@@ -17,6 +16,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
 import ToastService from '../../../../core/ToastService';
 import { renderNumber } from '../../../../util/number';
+import { Colors } from '../../../../util/theme/models';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -27,6 +27,7 @@ export interface V2OrderToastParams {
   cryptocurrency: string;
   cryptoAmount?: string | number;
   state: FIAT_ORDER_STATES;
+  colors: Colors;
 }
 
 const toastStyles = StyleSheet.create({
@@ -53,7 +54,7 @@ const toastStyles = StyleSheet.create({
 export function buildV2OrderToastOptions(
   params: V2OrderToastParams,
 ): ToastOptions | null {
-  const { orderId, cryptocurrency, cryptoAmount, state } = params;
+  const { orderId, cryptocurrency, cryptoAmount, state, colors } = params;
 
   switch (state) {
     case FIAT_ORDER_STATES.PENDING: {
@@ -108,7 +109,7 @@ export function buildV2OrderToastOptions(
             variant: AvatarVariant.Icon,
             name: IconName.Confirmation,
             size: AvatarSize.Lg,
-            iconColor: lightTheme.colors.success.default,
+            iconColor: colors.success.default,
             backgroundColor: 'transparent',
           }),
         ),
@@ -143,7 +144,7 @@ export function buildV2OrderToastOptions(
             variant: AvatarVariant.Icon,
             name: IconName.Warning,
             size: AvatarSize.Lg,
-            iconColor: lightTheme.colors.error.default,
+            iconColor: colors.error.default,
             backgroundColor: 'transparent',
           }),
         ),
@@ -174,7 +175,7 @@ export function buildV2OrderToastOptions(
             variant: AvatarVariant.Icon,
             name: IconName.Warning,
             size: AvatarSize.Lg,
-            iconColor: lightTheme.colors.warning.default,
+            iconColor: colors.warning.default,
             backgroundColor: 'transparent',
           }),
         ),

@@ -1,3 +1,4 @@
+import { lightTheme } from '@metamask/design-tokens';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import {
@@ -39,6 +40,7 @@ describe('v2OrderToast', () => {
         cryptocurrency: 'ETH',
         cryptoAmount: 1.5,
         state: FIAT_ORDER_STATES.PENDING,
+        colors: lightTheme.colors,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -68,6 +70,7 @@ describe('v2OrderToast', () => {
         orderId: 'test-order-id',
         cryptocurrency: 'ETH',
         state: FIAT_ORDER_STATES.PENDING,
+        colors: lightTheme.colors,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -90,6 +93,7 @@ describe('v2OrderToast', () => {
         cryptocurrency: 'USDC',
         cryptoAmount: 100.5,
         state: FIAT_ORDER_STATES.COMPLETED,
+        colors: lightTheme.colors,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -117,6 +121,7 @@ describe('v2OrderToast', () => {
         orderId: 'test-order-id',
         cryptocurrency: 'BTC',
         state: FIAT_ORDER_STATES.FAILED,
+        colors: lightTheme.colors,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -141,6 +146,7 @@ describe('v2OrderToast', () => {
         orderId: 'test-order-id',
         cryptocurrency: 'DAI',
         state: FIAT_ORDER_STATES.CANCELLED,
+        colors: lightTheme.colors,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -163,6 +169,7 @@ describe('v2OrderToast', () => {
         orderId: 'test-order-id',
         cryptocurrency: 'ETH',
         state: FIAT_ORDER_STATES.CREATED,
+        colors: lightTheme.colors,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -179,6 +186,7 @@ describe('v2OrderToast', () => {
         orderId: 'test-order-id',
         cryptocurrency: 'ETH',
         state: FIAT_ORDER_STATES.COMPLETED,
+        colors: lightTheme.colors,
       };
 
       const result = buildV2OrderToastOptions(params);
@@ -201,6 +209,7 @@ describe('v2OrderToast', () => {
         cryptocurrency: 'ETH',
         cryptoAmount: 1.5,
         state: FIAT_ORDER_STATES.COMPLETED,
+        colors: lightTheme.colors,
       };
 
       showV2OrderToast(params);
@@ -216,6 +225,7 @@ describe('v2OrderToast', () => {
         orderId: 'test-order-id',
         cryptocurrency: 'ETH',
         state: FIAT_ORDER_STATES.CREATED,
+        colors: lightTheme.colors,
       };
 
       showV2OrderToast(params);
