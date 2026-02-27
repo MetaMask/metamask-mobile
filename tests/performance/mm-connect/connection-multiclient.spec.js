@@ -102,7 +102,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   //
   // Connect via Multichain API
@@ -127,9 +127,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await DappConnectionModal.tapConnectButton();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
   await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -161,9 +161,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await SignModal.tapConfirmButton();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
   await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -185,9 +185,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await SnapSignModal.tapConfirmButton();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
   await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -207,9 +207,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await SignModal.tapConfirmButton();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
   await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -242,9 +242,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await DappConnectionModal.tapConnectButton();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
   await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -272,9 +272,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await SignModal.tapConfirmButton();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
   await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -300,9 +300,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await SnapSignModal.tapConfirmButton();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
   await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -335,9 +335,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await SignModal.tapConfirmButton();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
   await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -355,9 +355,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await DappConnectionModal.tapConnectButton();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
   await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -380,9 +380,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await SnapSignModal.tapConfirmButton();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
   await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -407,9 +407,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await SignModal.tapConfirmButton();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
   await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -435,9 +435,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await WalletMainScreen.isMainWalletViewVisible();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
   await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   await AppwrightHelpers.withWebAction(
     device,
@@ -452,9 +452,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await DappConnectionModal.tapConnectButton();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
   await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await AppwrightGestures.wait(1000);
 
   await AppwrightHelpers.withWebAction(
     device,
