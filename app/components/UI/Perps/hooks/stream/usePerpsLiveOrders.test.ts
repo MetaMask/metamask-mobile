@@ -292,4 +292,82 @@ describe('usePerpsLiveOrders', () => {
       expect(result.current.orders).not.toContain(mockOrder);
     });
   });
+
+  it('filters reduce-only orders when hideReduceOnly is enabled', async () => {
+    let capturedCallback: (orders: Order[]) => void = jest.fn();
+    mockSubscribe.mockImplementation((params) => {
+      capturedCallback = params.callback;
+      return jest.fn();
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsLiveOrders({ hideReduceOnly: true }),
+    );
+
+    const orders: Order[] = [
+      {
+        ...mockOrder,
+        orderId: 'regular-order',
+        reduceOnly: false,
+        detailedOrderType: 'Limit',
+      } as Order,
+      {
+        ...mockOrder,
+        orderId: 'reduce-only-order',
+        reduceOnly: true,
+        detailedOrderType: 'Limit',
+      } as Order,
+    ];
+
+    act(() => {
+      capturedCallback(orders);
+    });
+
+    await waitFor(() => {
+      expect(result.current.orders).toHaveLength(1);
+      expect(result.current.orders[0].orderId).toBe('regular-order');
+    });
+  });
+
+  it('applies hideTpSl and hideReduceOnly together', async () => {
+    let capturedCallback: (orders: Order[]) => void = jest.fn();
+    mockSubscribe.mockImplementation((params) => {
+      capturedCallback = params.callback;
+      return jest.fn();
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsLiveOrders({ hideTpSl: true, hideReduceOnly: true }),
+    );
+
+    const orders: Order[] = [
+      {
+        ...mockOrder,
+        orderId: 'regular-order',
+        reduceOnly: false,
+        detailedOrderType: 'Limit',
+      } as Order,
+      {
+        ...mockOrder,
+        orderId: 'tpsl-order',
+        reduceOnly: false,
+        detailedOrderType: 'Stop Market',
+      } as Order,
+      {
+        ...mockOrder,
+        orderId: 'reduce-only-order',
+        reduceOnly: true,
+        detailedOrderType: 'Limit',
+      } as Order,
+    ];
+
+    act(() => {
+      capturedCallback(orders);
+    });
+
+    await waitFor(() => {
+      expect(result.current.orders).toHaveLength(1);
+      expect(result.current.orders[0].orderId).toBe('regular-order');
+    });
+  });
 });
