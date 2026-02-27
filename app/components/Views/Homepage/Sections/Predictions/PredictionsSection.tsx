@@ -39,6 +39,8 @@ import { colorWithOpacity } from '../../../../../util/colors';
 import type { PredictPosition } from '../../../../UI/Predict/types';
 import type { PredictNavigationParamList } from '../../../../UI/Predict/types/navigation';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
+import { PredictClaimButton } from '../../../../UI/Predict/components/PredictActionButtons';
+import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
 
 const MAX_MARKETS_DISPLAYED = 5;
 
@@ -93,6 +95,7 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const title = strings('homepage.sections.predictions');
+  const { claim } = usePredictClaim();
 
   // Track scroll position for fade effect
   const [fadeOpacity, setFadeOpacity] = useState(1);
@@ -112,6 +115,22 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     refresh: refreshMarkets,
   } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
 
+  const {
+    positions: claimablePositions,
+    isLoading: isLoadingClaimable,
+    refresh: refreshClaimable,
+  } = usePredictPositionsForHomepage(undefined, true);
+
+  const handleClaim = useCallback(async () => {
+    await claim();
+    await refreshClaimable();
+  }, [claim, refreshClaimable]);
+
+  const totalClaimable = claimablePositions.reduce(
+    (sum, p) => sum + (p.currentValue ?? 0),
+    0,
+  );
+
   // Determine if user has positions
   const hasPositions = positions.length > 0;
 
@@ -119,14 +138,18 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const hasPositionsRef = useRef(hasPositions);
   hasPositionsRef.current = hasPositions;
 
-  // Refresh: only refresh positions if user has them, always refresh markets
+  // Refresh: only refresh positions if user has them, always refresh markets + claimable
   const refresh = useCallback(async () => {
     if (hasPositionsRef.current) {
-      await Promise.all([refreshPositions(), refreshMarkets()]);
+      await Promise.all([
+        refreshPositions(),
+        refreshMarkets(),
+        refreshClaimable(),
+      ]);
     } else {
-      await refreshMarkets();
+      await Promise.all([refreshMarkets(), refreshClaimable()]);
     }
-  }, [refreshPositions, refreshMarkets]);
+  }, [refreshPositions, refreshMarkets, refreshClaimable]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -222,6 +245,14 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
                 onPress={handlePositionPress}
               />
             ))
+          )}
+          {!isLoadingPositions && !isLoadingClaimable && totalClaimable > 0 && (
+            <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
+              <PredictClaimButton
+                amount={totalClaimable}
+                onPress={handleClaim}
+              />
+            </Box>
           )}
         </Box>
       </Box>
