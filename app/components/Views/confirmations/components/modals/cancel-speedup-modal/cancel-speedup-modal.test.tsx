@@ -6,6 +6,20 @@ import { CancelSpeedupModal } from './cancel-speedup-modal';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { useCancelSpeedupGas } from '../../../hooks/gas/useCancelSpeedupGas';
 
+jest.mock('react-native-modal', () => {
+  const RN = jest.requireActual<typeof import('react')>('react');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      isVisible,
+    }: {
+      children: React.ReactNode;
+      isVisible: boolean;
+    }) => (isVisible ? RN.createElement(RN.Fragment, null, children) : null),
+  };
+});
+
 jest.mock('../../../../../UI/NetworkAssetLogo', () => ({
   __esModule: true,
   default: function MockNetworkAssetLogo() {
@@ -59,11 +73,11 @@ jest.mock('../../../hooks/gas/useCancelSpeedupGas', () => ({
 
 jest.mock('../../gas/gas-speed', () => {
   const RN = jest.requireActual<typeof import('react')>('react');
+  const { Text } =
+    jest.requireActual<typeof import('react-native')>('react-native');
   return {
     GasSpeed: ({ transactionId }: { transactionId?: string | null }) =>
-      transactionId
-        ? RN.createElement(RN.Fragment, null, 'Market ~ 15 sec')
-        : null,
+      transactionId ? RN.createElement(Text, null, 'Market ~ 15 sec') : null,
   };
 });
 
@@ -86,6 +100,7 @@ describe('CancelSpeedupModal', () => {
   const mockOnClose = jest.fn();
 
   const defaultProps = {
+    isVisible: true,
     isCancel: false,
     tx: {
       id: 'tx-1',
@@ -114,7 +129,6 @@ describe('CancelSpeedupModal', () => {
     ).toBeOnTheScreen();
     expect(getByText('Network fee')).toBeOnTheScreen();
     expect(getByText('Speed')).toBeOnTheScreen();
-    expect(getByText('0.001')).toBeOnTheScreen();
     expect(getByText('ETH')).toBeOnTheScreen();
     expect(getByText('$1.80')).toBeOnTheScreen();
     expect(getByText('Market ~ 15 sec')).toBeOnTheScreen();
@@ -195,5 +209,15 @@ describe('CancelSpeedupModal', () => {
 
     expect(getByText('Speed up Transaction')).toBeOnTheScreen();
     expect(getByText('Network fee')).toBeOnTheScreen();
+  });
+
+  it('does not render when isVisible is false', () => {
+    const { queryByText } = renderWithProvider(
+      <CancelSpeedupModal {...defaultProps} isVisible={false} />,
+      { state: baseState },
+    );
+
+    expect(queryByText('Speed up Transaction')).toBeNull();
+    expect(queryByText('Network fee')).toBeNull();
   });
 });

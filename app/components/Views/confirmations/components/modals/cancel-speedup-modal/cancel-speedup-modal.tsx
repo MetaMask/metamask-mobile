@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
+import Modal from 'react-native-modal';
 import type {
   FeeMarketEIP1559Values,
   GasPriceValue,
@@ -8,6 +9,7 @@ import type {
 import { Hex } from '@metamask/utils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
+import { useTheme } from '../../../../../../util/theme';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -100,6 +102,7 @@ const Description = ({ text }: { text: string }) => {
 };
 
 export interface CancelSpeedupModalProps {
+  isVisible: boolean;
   isCancel: boolean;
   tx: TransactionMeta | null;
   onConfirm: (
@@ -109,7 +112,15 @@ export interface CancelSpeedupModalProps {
   confirmDisabled?: boolean;
 }
 
+const modalStyle = StyleSheet.create({
+  bottom: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+});
+
 export function CancelSpeedupModal({
+  isVisible,
   isCancel,
   tx,
   onConfirm,
@@ -119,6 +130,7 @@ export function CancelSpeedupModal({
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
 
   const {
     paramsForController,
@@ -157,34 +169,53 @@ export function CancelSpeedupModal({
     },
   ];
 
+  if (!isVisible) {
+    return null;
+  }
+
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      style={styles.bottomSheetDialogSheet}
+    <Modal
+      isVisible={isVisible}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      style={modalStyle.bottom}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
+      useNativeDriver
+      onBackdropPress={onClose}
+      onBackButtonPress={onClose}
+      onSwipeComplete={onClose}
+      swipeDirection="down"
+      propagateSwipe
     >
-      <HeaderCompactStandard title={title} onClose={close} />
-      <Box style={tw.style('px-3')}>
-        <ScrollView>
-          <Box gap={4}>
-            <InfoSection>
-              <NetworkFeeRow
-                fiat={networkFeeFiat}
-                native={networkFeeNative}
-                symbol={nativeTokenSymbol}
-                chainId={chainId}
-              />
-              <SpeedRow transactionId={tx?.id} />
-            </InfoSection>
-            <Description text={description} />
-          </Box>
-        </ScrollView>
-        <BottomSheetFooter
-          buttonsAlignment={ButtonsAlignment.Vertical}
-          buttonPropsArray={buttons}
-          style={tw.style('px-0')}
-        />
-      </Box>
-    </BottomSheet>
+      <BottomSheet
+        ref={bottomSheetRef}
+        shouldNavigateBack={false}
+        style={styles.bottomSheetDialogSheet}
+      >
+        <HeaderCompactStandard title={title} onClose={close} />
+        <Box style={tw.style('px-3')}>
+          <ScrollView>
+            <Box gap={4}>
+              <InfoSection>
+                <NetworkFeeRow
+                  fiat={networkFeeFiat}
+                  native={networkFeeNative}
+                  symbol={nativeTokenSymbol}
+                  chainId={chainId}
+                />
+                <SpeedRow transactionId={tx?.id} />
+              </InfoSection>
+              <Description text={description} />
+            </Box>
+          </ScrollView>
+          <BottomSheetFooter
+            buttonsAlignment={ButtonsAlignment.Vertical}
+            buttonPropsArray={buttons}
+            style={tw.style('px-0')}
+          />
+        </Box>
+      </BottomSheet>
+    </Modal>
   );
 }

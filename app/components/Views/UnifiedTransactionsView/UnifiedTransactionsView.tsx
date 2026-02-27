@@ -6,7 +6,6 @@ import { useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { RefreshControl, View } from 'react-native';
-import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
@@ -680,56 +679,22 @@ const UnifiedTransactionsView = ({
           )}
         </PriceChartContext.Consumer>
         {/* Speed up / Cancel modals */}
-        {speedUpIsOpen && (
-          <Modal
-            isVisible
-            animationIn="slideInUp"
-            animationOut="slideOutDown"
-            style={styles.modal}
-            backdropColor={colors.overlay.default}
-            backdropOpacity={1}
-            animationInTiming={600}
-            animationOutTiming={600}
-            onBackdropPress={onSpeedUpCompleted}
-            onBackButtonPress={onSpeedUpCompleted}
-            onSwipeComplete={onSpeedUpCompleted}
-            swipeDirection="down"
-            propagateSwipe
-          >
-            <CancelSpeedupModal
-              isCancel={false}
-              tx={existingTx}
-              onConfirm={speedUpTransaction}
-              onClose={onSpeedUpCompleted}
-              confirmDisabled={speedUpConfirmDisabled}
-            />
-          </Modal>
-        )}
-        {cancelIsOpen && (
-          <Modal
-            isVisible
-            animationIn="slideInUp"
-            animationOut="slideOutDown"
-            style={styles.modal}
-            backdropColor={colors.overlay.default}
-            backdropOpacity={1}
-            animationInTiming={600}
-            animationOutTiming={600}
-            onBackdropPress={onCancelCompleted}
-            onBackButtonPress={onCancelCompleted}
-            onSwipeComplete={onCancelCompleted}
-            swipeDirection="down"
-            propagateSwipe
-          >
-            <CancelSpeedupModal
-              isCancel
-              tx={existingTx}
-              onConfirm={cancelTransaction}
-              onClose={onCancelCompleted}
-              confirmDisabled={cancelConfirmDisabled}
-            />
-          </Modal>
-        )}
+        <CancelSpeedupModal
+          isVisible={speedUpIsOpen}
+          isCancel={false}
+          tx={existingTx}
+          onConfirm={speedUpTransaction}
+          onClose={onSpeedUpCompleted}
+          confirmDisabled={speedUpConfirmDisabled}
+        />
+        <CancelSpeedupModal
+          isVisible={cancelIsOpen}
+          isCancel
+          tx={existingTx}
+          onConfirm={cancelTransaction}
+          onClose={onCancelCompleted}
+          confirmDisabled={cancelConfirmDisabled}
+        />
         <RetryModal
           onCancelPress={() => toggleRetry(undefined)}
           onConfirmPress={() => {

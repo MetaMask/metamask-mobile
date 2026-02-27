@@ -33,6 +33,13 @@ jest.mock('../../../../../../selectors/networkController', () => ({
   selectNetworkConfigurationByChainId: jest.fn(() => mockNetworkConfig),
 }));
 
+jest.mock('../../../../../../selectors/confirmTransaction', () => ({
+  ...jest.requireActual('../../../../../../selectors/confirmTransaction'),
+  selectGasFeeEstimates: jest.fn(() => ({
+    medium: { suggestedMaxFeePerGas: '25' },
+  })),
+}));
+
 jest.mock('../../../../../../selectors/currencyRateController', () => ({
   ...jest.requireActual('../../../../../../selectors/currencyRateController'),
   selectConversionRateByChainId: jest.fn(() => 2000),

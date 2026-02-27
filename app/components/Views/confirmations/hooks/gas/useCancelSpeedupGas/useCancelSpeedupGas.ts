@@ -11,7 +11,9 @@ import BigNumber from 'bignumber.js';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
+import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
+import { getMediumGasPriceHex } from '../../../../../../util/confirmation/gas';
 import {
   decGWEIToHexWEI,
   multiplyHexes,
@@ -40,6 +42,7 @@ export function useCancelSpeedupGas({
   const networkConfig = useSelector((state: RootState) =>
     chainId ? selectNetworkConfigurationByChainId(state, chainId) : undefined,
   );
+  const gasFeeEstimates = useSelector(selectGasFeeEstimates);
   const nativeTokenSymbol = networkConfig?.nativeCurrency ?? 'ETH';
 
   const bumpResult = useMemo(() => {
@@ -92,14 +95,19 @@ export function useCancelSpeedupGas({
       );
       const existingGasPrice = new BigNumber(existingGasPriceDecimal, 10);
       const suggestedGasPrice = existingGasPrice.times(rate).integerValue();
-      const gasPriceHex = addHexPrefix(suggestedGasPrice.toString(16));
+      let gasPriceHex = addHexPrefix(suggestedGasPrice.toString(16));
+
+      // Legacy tx with existing gasPrice 0x0 yields 0 * rate = 0; that would never get mined. Fall back to current network gas price estimate.
+      if (suggestedGasPrice.isZero()) {
+        gasPriceHex = getMediumGasPriceHex(gasFeeEstimates);
+      }
 
       paramsForController = { gasPrice: gasPriceHex };
       finalFeeHex = addHexPrefix(multiplyHexes(gasLimit, gasPriceHex));
     }
 
     return { paramsForController, finalFeeHex };
-  }, [tx, isCancel]);
+  }, [tx, isCancel, gasFeeEstimates]);
 
   const displayTx = useMemo((): TransactionMeta | null => {
     if (!tx?.txParams || !bumpResult.paramsForController) return null;

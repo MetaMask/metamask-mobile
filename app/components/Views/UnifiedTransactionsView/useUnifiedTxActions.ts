@@ -1,15 +1,9 @@
 import { providerErrors } from '@metamask/rpc-errors';
 import {
   CANCEL_RATE,
-  GasFeeEstimateLevel,
-  GasFeeEstimateType,
   SPEED_UP_RATE,
   type FeeMarketEIP1559Values,
-  type FeeMarketGasFeeEstimates,
-  type GasFeeEstimates,
-  type GasPriceGasFeeEstimates,
   type GasPriceValue,
-  type LegacyGasFeeEstimates,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
@@ -22,8 +16,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { isHardwareAccount } from '../../../util/address';
-import { decGWEIToHexWEI } from '../../../util/conversions';
-import { addHexPrefix } from '../../../util/number';
+import { getMediumGasPriceHex } from '../../../util/confirmation/gas';
 import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import {
@@ -48,14 +41,8 @@ export interface Eip1559ExistingGas {
 
 export type ExistingGas = LegacyExistingGas | Eip1559ExistingGas;
 
-interface ReplacementGasParams {
-  error?: string;
-  suggestedMaxFeePerGasHex?: string;
-  suggestedMaxPriorityFeePerGasHex?: string;
-}
-
-/** Params from CancelSpeedupModal (controller union + optional error for legacy flow) */
-type CancelSpeedupModalParams = (GasPriceValue | FeeMarketEIP1559Values) & {
+/** Params for speed-up/cancel: controller shape only; optional error for UI flow */
+export type SpeedUpCancelParams = (GasPriceValue | FeeMarketEIP1559Values) & {
   error?: string;
 };
 
@@ -142,98 +129,12 @@ export function useUnifiedTxActions() {
     [navigation, onSpeedUpCompleted, onCancelCompleted],
   );
 
-  const getGasPriceEstimate = () => {
-    if (!gasFeeEstimates) {
-      return addHexPrefix(String(decGWEIToHexWEI('0')));
-    }
+  const getGasPriceEstimate = () => getMediumGasPriceHex(gasFeeEstimates);
 
-    if ('type' in (gasFeeEstimates as object)) {
-      const typedEstimates = gasFeeEstimates as GasFeeEstimates;
-      let estimateGweiDecimalRaw: string;
-
-      switch (typedEstimates.type) {
-        case GasFeeEstimateType.FeeMarket: {
-          const level = (typedEstimates as FeeMarketGasFeeEstimates)[
-            GasFeeEstimateLevel.Medium
-          ];
-          // suggestedMaxFeePerGas exists at medium level in FeeMarket estimates
-          estimateGweiDecimalRaw = (
-            level as unknown as { suggestedMaxFeePerGas: string }
-          ).suggestedMaxFeePerGas;
-          break;
-        }
-        case GasFeeEstimateType.Legacy: {
-          estimateGweiDecimalRaw = (typedEstimates as LegacyGasFeeEstimates)[
-            GasFeeEstimateLevel.Medium
-          ] as unknown as string;
-          break;
-        }
-        case GasFeeEstimateType.GasPrice: {
-          estimateGweiDecimalRaw = (typedEstimates as GasPriceGasFeeEstimates)
-            .gasPrice as string;
-          break;
-        }
-        default: {
-          estimateGweiDecimalRaw = '0';
-        }
-      }
-
-      return addHexPrefix(
-        String(decGWEIToHexWEI(String(estimateGweiDecimalRaw))),
-      );
-    }
-
-    const maybeFeeMarket = (
-      gasFeeEstimates as {
-        medium?: { suggestedMaxFeePerGas?: string } | string;
-      }
-    ).medium;
-
-    if (
-      maybeFeeMarket &&
-      typeof maybeFeeMarket === 'object' &&
-      'suggestedMaxFeePerGas' in maybeFeeMarket
-    ) {
-      return addHexPrefix(
-        String(
-          decGWEIToHexWEI(
-            String(
-              (maybeFeeMarket as { suggestedMaxFeePerGas?: string })
-                .suggestedMaxFeePerGas ?? '0',
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (
-      maybeFeeMarket &&
-      typeof maybeFeeMarket === 'string' &&
-      maybeFeeMarket.length > 0
-    ) {
-      return addHexPrefix(String(decGWEIToHexWEI(maybeFeeMarket)));
-    }
-
-    const maybeGasPrice = (gasFeeEstimates as { gasPrice?: string }).gasPrice;
-    if (maybeGasPrice) {
-      return addHexPrefix(String(decGWEIToHexWEI(String(maybeGasPrice))));
-    }
-
-    return addHexPrefix(String(decGWEIToHexWEI('0')));
-  };
-
-  const getCancelOrSpeedupValues = (
-    transactionObject?: ReplacementGasParams,
-  ) => {
-    const { suggestedMaxFeePerGasHex, suggestedMaxPriorityFeePerGasHex } =
-      transactionObject ?? {};
-
-    if (suggestedMaxFeePerGasHex) {
-      return {
-        maxFeePerGas: `0x${suggestedMaxFeePerGasHex}`,
-        maxPriorityFeePerGas: `0x${suggestedMaxPriorityFeePerGasHex}`,
-      };
-    }
+  const getCancelOrSpeedupValues = ():
+    | GasPriceValue
+    | FeeMarketEIP1559Values
+    | undefined => {
     const txParams = existingTx?.txParams;
     const existingGasPriceHex = txParams?.gasPrice;
     if (existingGasPriceHex !== undefined && existingGasPriceHex !== '0x0') {
@@ -282,20 +183,26 @@ export function useUnifiedTxActions() {
   };
 
   const getParamsToSend = (
-    params?: ReplacementGasParams | CancelSpeedupModalParams,
+    params?: SpeedUpCancelParams,
   ): GasPriceValue | FeeMarketEIP1559Values | undefined => {
     if (params?.error) {
       return undefined;
     }
+    // Legacy tx with gasPrice 0x0 would produce 0 from the modal; fall back to market estimate so the replacement gets mined.
+    if (
+      params &&
+      'gasPrice' in params &&
+      (params.gasPrice === '0x0' || parseInt(String(params.gasPrice), 16) === 0)
+    ) {
+      return getCancelOrSpeedupValues();
+    }
     if (params && ('maxFeePerGas' in params || 'gasPrice' in params)) {
       return params;
     }
-    return getCancelOrSpeedupValues(params as ReplacementGasParams);
+    return getCancelOrSpeedupValues();
   };
 
-  const speedUpTransaction = async (
-    params?: ReplacementGasParams | CancelSpeedupModalParams,
-  ) => {
+  const speedUpTransaction = async (params?: SpeedUpCancelParams) => {
     try {
       if (params && 'error' in params && params.error) {
         throw new Error(params.error);
@@ -330,9 +237,7 @@ export function useUnifiedTxActions() {
     }
   };
 
-  const cancelTransaction = async (
-    params?: ReplacementGasParams | CancelSpeedupModalParams,
-  ) => {
+  const cancelTransaction = async (params?: SpeedUpCancelParams) => {
     try {
       if (params && 'error' in params && params.error) {
         throw new Error(params.error);

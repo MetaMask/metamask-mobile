@@ -298,12 +298,12 @@ describe('useUnifiedTxActions', () => {
       expect(speedUpTx).toHaveBeenCalledWith('6', { gasPrice: '0xabc' });
     });
 
-    it('success with 1559 gas from modal values', async () => {
+    it('success with 1559 gas from modal values (controller shape)', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '7' } as unknown as TransactionMeta;
       const replacement = {
-        suggestedMaxFeePerGasHex: '10',
-        suggestedMaxPriorityFeePerGasHex: '2',
+        maxFeePerGas: '0x10',
+        maxPriorityFeePerGas: '0x2',
       };
 
       act(() => result.current.onSpeedUpAction(true, tx));
@@ -386,12 +386,12 @@ describe('useUnifiedTxActions', () => {
       expect(result.current.existingTx).toBeNull();
     });
 
-    it('success with 1559 gas from modal values', async () => {
+    it('success with 1559 gas from modal values (controller shape)', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '10' } as unknown as TransactionMeta;
       const replacement = {
-        suggestedMaxFeePerGasHex: 'a',
-        suggestedMaxPriorityFeePerGasHex: 'b',
+        maxFeePerGas: '0xa',
+        maxPriorityFeePerGas: '0xb',
       };
 
       act(() => result.current.onCancelAction(true, tx));
@@ -545,8 +545,8 @@ describe('useUnifiedTxActions', () => {
           const { result } = renderHook(() => useUnifiedTxActions());
           const tx = { id: 'ledger-speedup-1' } as unknown as TransactionMeta;
           const replacement = {
-            suggestedMaxFeePerGasHex: 'ff',
-            suggestedMaxPriorityFeePerGasHex: 'ee',
+            maxFeePerGas: '0xff',
+            maxPriorityFeePerGas: '0xee',
           };
 
           act(() => result.current.onSpeedUpAction(true, tx));
@@ -577,8 +577,8 @@ describe('useUnifiedTxActions', () => {
           act(() => result.current.onSpeedUpAction(true, tx));
           await act(async () => {
             await result.current.speedUpTransaction({
-              suggestedMaxFeePerGasHex: 'aa',
-              suggestedMaxPriorityFeePerGasHex: 'bb',
+              maxFeePerGas: '0xaa',
+              maxPriorityFeePerGas: '0xbb',
             });
           });
 
@@ -651,8 +651,8 @@ describe('useUnifiedTxActions', () => {
 
           await act(async () => {
             await result.current.speedUpTransaction({
-              suggestedMaxFeePerGasHex: 'cc',
-              suggestedMaxPriorityFeePerGasHex: 'dd',
+              maxFeePerGas: '0xcc',
+              maxPriorityFeePerGas: '0xdd',
             });
           });
 
@@ -687,8 +687,8 @@ describe('useUnifiedTxActions', () => {
 
           await act(async () => {
             await result.current.speedUpTransaction({
-              suggestedMaxFeePerGasHex: 'ff',
-              suggestedMaxPriorityFeePerGasHex: 'ee',
+              maxFeePerGas: '0xff',
+              maxPriorityFeePerGas: '0xee',
             });
           });
 
@@ -711,8 +711,8 @@ describe('useUnifiedTxActions', () => {
           const { result } = renderHook(() => useUnifiedTxActions());
           const tx = { id: 'ledger-cancel-1' } as unknown as TransactionMeta;
           const replacement = {
-            suggestedMaxFeePerGasHex: '11',
-            suggestedMaxPriorityFeePerGasHex: '22',
+            maxFeePerGas: '0x11',
+            maxPriorityFeePerGas: '0x22',
           };
 
           act(() => result.current.onCancelAction(true, tx));
@@ -745,8 +745,8 @@ describe('useUnifiedTxActions', () => {
           act(() => result.current.onCancelAction(true, tx));
           await act(async () => {
             await result.current.cancelTransaction({
-              suggestedMaxFeePerGasHex: '33',
-              suggestedMaxPriorityFeePerGasHex: '44',
+              maxFeePerGas: '0x33',
+              maxPriorityFeePerGas: '0x44',
             });
           });
 
@@ -822,8 +822,8 @@ describe('useUnifiedTxActions', () => {
 
           await act(async () => {
             await result.current.cancelTransaction({
-              suggestedMaxFeePerGasHex: '55',
-              suggestedMaxPriorityFeePerGasHex: '66',
+              maxFeePerGas: '0x55',
+              maxPriorityFeePerGas: '0x66',
             });
           });
 
@@ -858,8 +858,8 @@ describe('useUnifiedTxActions', () => {
 
           await act(async () => {
             await result.current.cancelTransaction({
-              suggestedMaxFeePerGasHex: '11',
-              suggestedMaxPriorityFeePerGasHex: '22',
+              maxFeePerGas: '0x11',
+              maxPriorityFeePerGas: '0x22',
             });
           });
 

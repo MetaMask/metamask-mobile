@@ -314,19 +314,11 @@ class TransactionDetails extends PureComponent {
   };
 
   showSpeedUpModal = () => {
-    const { showSpeedUpModal, close } = this.props;
-    if (close) {
-      close();
-      showSpeedUpModal();
-    }
+    this.props.showSpeedUpModal?.();
   };
 
   showCancelModal = () => {
-    const { showCancelModal, close } = this.props;
-    if (close) {
-      close();
-      showCancelModal();
-    }
+    this.props.showCancelModal?.();
   };
 
   renderSpeedUpButton = () => {

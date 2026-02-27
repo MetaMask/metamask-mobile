@@ -73,8 +73,6 @@ const TransactionDetailsSheet: React.FC = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  // Note: TransactionDetails internally calls close() before invoking these,
-  // so we don't need to close the sheet here - it's already handled
   const handleSpeedUp = useCallback(() => {
     route.params.showSpeedUpModal();
   }, [route.params]);
@@ -82,10 +80,6 @@ const TransactionDetailsSheet: React.FC = () => {
   const handleCancel = useCallback(() => {
     route.params.showCancelModal();
   }, [route.params]);
-
-  const noOpClose = useCallback(() => {
-    // No-op close function since TransactionDetails calls close() before invoking the speed up and cancel handlers
-  }, []);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
@@ -103,7 +97,7 @@ const TransactionDetailsSheet: React.FC = () => {
         transactionDetails={transactionDetails}
         showSpeedUpModal={handleSpeedUp}
         showCancelModal={handleCancel}
-        close={noOpClose}
+        close={handleClose}
       />
     </BottomSheet>
   );

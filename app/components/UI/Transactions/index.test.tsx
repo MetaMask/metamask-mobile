@@ -346,19 +346,14 @@ describe('Transactions', () => {
       expect(mockGasFeeEstimates.medium.suggestedMaxFeePerGas).toBe('20');
     });
 
-    it('handles EIP-1559 transaction parameters', () => {
+    it('handles EIP-1559 transaction parameters (controller shape)', () => {
       const eip1559Tx = {
-        suggestedMaxFeePerGasHex: '4a817c800',
-        suggestedMaxPriorityFeePerGasHex: '77359400',
+        maxFeePerGas: '0x4a817c800',
+        maxPriorityFeePerGas: '0x77359400',
       };
 
-      const result = {
-        maxFeePerGas: `0x${eip1559Tx.suggestedMaxFeePerGasHex}`,
-        maxPriorityFeePerGas: `0x${eip1559Tx.suggestedMaxPriorityFeePerGasHex}`,
-      };
-
-      expect(result.maxFeePerGas).toBe('0x4a817c800');
-      expect(result.maxPriorityFeePerGas).toBe('0x77359400');
+      expect(eip1559Tx.maxFeePerGas).toBe('0x4a817c800');
+      expect(eip1559Tx.maxPriorityFeePerGas).toBe('0x77359400');
     });
 
     it('generates block explorer URLs for mainnet addresses', () => {
@@ -1227,23 +1222,15 @@ describe('Transactions', () => {
       expect(foundIndex).toBe(0);
     });
 
-    it('should exercise getCancelOrSpeedupValues with EIP-1559', () => {
-      // Test getCancelOrSpeedupValues method logic
-      const transactionObject = {
-        suggestedMaxFeePerGasHex: '4a817c800',
-        suggestedMaxPriorityFeePerGasHex: '77359400',
-      };
-
-      // Call getCancelOrSpeedupValues to cover EIP-1559 logic
-      const result = transactionObject.suggestedMaxFeePerGasHex
-        ? {
-            maxFeePerGas: `0x${transactionObject.suggestedMaxFeePerGasHex}`,
-            maxPriorityFeePerGas: `0x${transactionObject.suggestedMaxPriorityFeePerGasHex}`,
-          }
-        : undefined;
-
-      expect(result?.maxFeePerGas).toBe('0x4a817c800');
-      expect(result?.maxPriorityFeePerGas).toBe('0x77359400');
+    it('should exercise getCancelOrSpeedupValues (no arg, derives from existingTx)', () => {
+      // getCancelOrSpeedupValues() takes no arg; when existingTx has gasPrice 0x0 it returns { gasPrice } from estimate
+      const mockExistingTx = { txParams: { gasPrice: '0x0' } };
+      const existingGasPriceHex = mockExistingTx.txParams.gasPrice;
+      const shouldReturnEstimate =
+        existingGasPriceHex === undefined ||
+        existingGasPriceHex === '0x0' ||
+        parseInt(String(existingGasPriceHex), 16) === 0;
+      expect(shouldReturnEstimate).toBe(true);
     });
 
     it('should exercise getCancelOrSpeedupValues with legacy transaction', () => {
@@ -1450,19 +1437,14 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     const estimate = instance.getGasPriceEstimate();
     expect(estimate).toBeDefined();
 
-    // Test getCancelOrSpeedupValues method directly
-    const transactionObject = {
-      suggestedMaxFeePerGasHex: '4a817c800',
-      suggestedMaxPriorityFeePerGasHex: '77359400',
-    };
-    const result = instance.getCancelOrSpeedupValues(transactionObject);
-    expect(result.maxFeePerGas).toBe('0x4a817c800');
-    expect(result.maxPriorityFeePerGas).toBe('0x77359400');
-
-    // Test legacy gas pricing (existingTx.txParams.gasPrice zero or missing)
+    // Test getCancelOrSpeedupValues (no arg; derives from existingTx)
     instance.existingTx = { txParams: { gasPrice: '0x0' } };
-    const legacyResult = instance.getCancelOrSpeedupValues({});
-    expect(legacyResult.gasPrice).toBeDefined();
+    const result = instance.getCancelOrSpeedupValues();
+    expect(result?.gasPrice).toBeDefined();
+
+    instance.existingTx = { txParams: { gasPrice: '0x64' } };
+    const legacyResult = instance.getCancelOrSpeedupValues();
+    expect(legacyResult).toBeUndefined();
   });
 
   it('should test updateBlockExplorer method directly', () => {
@@ -1709,19 +1691,13 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   });
 
   it('should test gas and EIP-1559 patterns for coverage', () => {
-    // Test EIP-1559 transaction handling
+    // Test EIP-1559 transaction handling (controller shape)
     const eip1559Tx = {
-      suggestedMaxFeePerGasHex: '4a817c800',
-      suggestedMaxPriorityFeePerGasHex: '77359400',
+      maxFeePerGas: '0x4a817c800',
+      maxPriorityFeePerGas: '0x77359400',
     };
-    const result = eip1559Tx.suggestedMaxFeePerGasHex
-      ? {
-          maxFeePerGas: `0x${eip1559Tx.suggestedMaxFeePerGasHex}`,
-          maxPriorityFeePerGas: `0x${eip1559Tx.suggestedMaxPriorityFeePerGasHex}`,
-        }
-      : undefined;
-    expect(result?.maxFeePerGas).toBe('0x4a817c800');
-    expect(result?.maxPriorityFeePerGas).toBe('0x77359400');
+    expect(eip1559Tx.maxFeePerGas).toBe('0x4a817c800');
+    expect(eip1559Tx.maxPriorityFeePerGas).toBe('0x77359400');
 
     // Test legacy gas handling
     const mockExistingGas = { gasPrice: 0 };
@@ -1966,8 +1942,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.onSpeedUpCompleted = jest.fn();
 
     const transactionObject = {
-      suggestedMaxFeePerGasHex: '123',
-      suggestedMaxPriorityFeePerGasHex: '456',
+      maxFeePerGas: '0x123',
+      maxPriorityFeePerGas: '0x456',
     };
 
     await instance.speedUpTransaction(transactionObject);
@@ -1985,8 +1961,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.onCancelCompleted = jest.fn();
 
     const transactionObject = {
-      suggestedMaxFeePerGasHex: '123',
-      suggestedMaxPriorityFeePerGasHex: '456',
+      maxFeePerGas: '0x123',
+      maxPriorityFeePerGas: '0x456',
     };
 
     await instance.cancelTransaction(transactionObject);
@@ -2155,19 +2131,14 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
   });
 
   it('should test getCancelOrSpeedupValues edge cases', () => {
-    // Test when transactionObject has no suggested values and existingTx has non-zero gasPrice
+    // getCancelOrSpeedupValues() takes no arg; derives from existingTx only
     instance.existingTx = { txParams: { gasPrice: '0x64' } };
-    const result1 = instance.getCancelOrSpeedupValues({});
+    const result1 = instance.getCancelOrSpeedupValues();
     expect(result1).toBeUndefined();
 
-    // Test when gasPrice is 0 but no suggested values
     instance.existingTx = { txParams: { gasPrice: '0x0' } };
-    const result2 = instance.getCancelOrSpeedupValues({});
-    expect(result2.gasPrice).toBeDefined();
-
-    // Test with null/undefined transactionObject
-    const result3 = instance.getCancelOrSpeedupValues(null);
-    expect(result3.gasPrice).toBeDefined();
+    const result2 = instance.getCancelOrSpeedupValues();
+    expect(result2?.gasPrice).toBeDefined();
   });
 
   it('should test getGasPriceEstimate with different scenarios', () => {

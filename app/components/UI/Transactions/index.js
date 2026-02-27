@@ -11,7 +11,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import Modal from 'react-native-modal';
 import { connect } from 'react-redux';
 import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { strings } from '../../../../locales/i18n';
@@ -460,13 +459,22 @@ class Transactions extends PureComponent {
   };
 
   getParamsToSend = (transactionObject) => {
+    // Legacy tx with gasPrice 0x0 would produce 0 from the modal; fall back to market estimate so the replacement gets mined.
+    if (
+      transactionObject &&
+      transactionObject.gasPrice !== undefined &&
+      (transactionObject.gasPrice === '0x0' ||
+        parseInt(String(transactionObject.gasPrice), 16) === 0)
+    ) {
+      return this.getCancelOrSpeedupValues();
+    }
     if (
       transactionObject &&
       (transactionObject.maxFeePerGas || transactionObject.gasPrice)
     ) {
       return transactionObject;
     }
-    return this.getCancelOrSpeedupValues(transactionObject);
+    return this.getCancelOrSpeedupValues();
   };
 
   onScroll = (event) => {
@@ -513,19 +521,15 @@ class Transactions extends PureComponent {
 
       const params = this.getParamsToSend(transactionObject);
       if (isLedgerAccount) {
-        const eip1559GasFee =
-          params?.maxFeePerGas && params?.maxPriorityFeePerGas
-            ? {
-                maxFeePerGas: params.maxFeePerGas,
-                maxPriorityFeePerGas: params.maxPriorityFeePerGas,
-              }
-            : {
-                maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-                maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-              };
+        const isEip1559 = params?.maxFeePerGas && params?.maxPriorityFeePerGas;
         await this.signLedgerTransaction({
           id: this.speedUpTxId,
-          replacementParams: { type: 'speedUp', eip1559GasFee },
+          replacementParams: {
+            type: 'speedUp',
+            ...(isEip1559
+              ? { eip1559GasFee: params }
+              : { legacyGasFee: params }),
+          },
         });
       } else {
         await speedUpTransaction(this.speedUpTxId, params);
@@ -593,19 +597,15 @@ class Transactions extends PureComponent {
 
       const params = this.getParamsToSend(transactionObject);
       if (isLedgerAccount) {
-        const eip1559GasFee =
-          params?.maxFeePerGas && params?.maxPriorityFeePerGas
-            ? {
-                maxFeePerGas: params.maxFeePerGas,
-                maxPriorityFeePerGas: params.maxPriorityFeePerGas,
-              }
-            : {
-                maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-                maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-              };
+        const isEip1559 = params?.maxFeePerGas && params?.maxPriorityFeePerGas;
         await this.signLedgerTransaction({
           id: this.cancelTxId,
-          replacementParams: { type: 'cancel', eip1559GasFee },
+          replacementParams: {
+            type: 'cancel',
+            ...(isEip1559
+              ? { eip1559GasFee: params }
+              : { legacyGasFee: params }),
+          },
         });
       } else {
         await Engine.context.TransactionController.stopTransaction(
@@ -741,55 +741,25 @@ class Transactions extends PureComponent {
           )}
         </PriceChartContext.Consumer>
 
-        {!isSigningQRObject && this.state.speedUpIsOpen && (
-          <Modal
-            isVisible
-            animationIn="slideInUp"
-            animationOut="slideOutDown"
-            style={styles.bottomModal}
-            backdropColor={colors.overlay.default}
-            backdropOpacity={1}
-            animationInTiming={600}
-            animationOutTiming={600}
-            onBackdropPress={this.onSpeedUpCompleted}
-            onBackButtonPress={this.onSpeedUpCompleted}
-            onSwipeComplete={this.onSpeedUpCompleted}
-            swipeDirection="down"
-            propagateSwipe
-          >
-            <CancelSpeedupModal
-              isCancel={false}
-              tx={this.existingTx}
-              onConfirm={this.speedUpTransaction}
-              onClose={this.onSpeedUpCompleted}
-              confirmDisabled={speedUpConfirmDisabled}
-            />
-          </Modal>
+        {!isSigningQRObject && (
+          <CancelSpeedupModal
+            isVisible={this.state.speedUpIsOpen}
+            isCancel={false}
+            tx={this.existingTx}
+            onConfirm={this.speedUpTransaction}
+            onClose={this.onSpeedUpCompleted}
+            confirmDisabled={speedUpConfirmDisabled}
+          />
         )}
-        {!isSigningQRObject && this.state.cancelIsOpen && (
-          <Modal
-            isVisible
-            animationIn="slideInUp"
-            animationOut="slideOutDown"
-            style={styles.bottomModal}
-            backdropColor={colors.overlay.default}
-            backdropOpacity={1}
-            animationInTiming={600}
-            animationOutTiming={600}
-            onBackdropPress={this.onCancelCompleted}
-            onBackButtonPress={this.onCancelCompleted}
-            onSwipeComplete={this.onCancelCompleted}
-            swipeDirection="down"
-            propagateSwipe
-          >
-            <CancelSpeedupModal
-              isCancel
-              tx={this.existingTx}
-              onConfirm={this.cancelTransaction}
-              onClose={this.onCancelCompleted}
-              confirmDisabled={cancelConfirmDisabled}
-            />
-          </Modal>
+        {!isSigningQRObject && (
+          <CancelSpeedupModal
+            isVisible={this.state.cancelIsOpen}
+            isCancel
+            tx={this.existingTx}
+            onConfirm={this.cancelTransaction}
+            onClose={this.onCancelCompleted}
+            confirmDisabled={cancelConfirmDisabled}
+          />
         )}
       </View>
     );
@@ -816,17 +786,7 @@ class Transactions extends PureComponent {
     );
   };
 
-  getCancelOrSpeedupValues(transactionObject) {
-    const { suggestedMaxFeePerGasHex, suggestedMaxPriorityFeePerGasHex } =
-      transactionObject ?? {};
-
-    if (suggestedMaxFeePerGasHex) {
-      return {
-        maxFeePerGas: `0x${suggestedMaxFeePerGasHex}`,
-        maxPriorityFeePerGas: `0x${suggestedMaxPriorityFeePerGasHex}`,
-      };
-    }
-
+  getCancelOrSpeedupValues() {
     const txParams = this.existingTx?.txParams;
     const existingGasPriceHex = txParams?.gasPrice;
     if (existingGasPriceHex !== undefined && existingGasPriceHex !== '0x0') {
