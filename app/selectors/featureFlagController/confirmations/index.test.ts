@@ -519,6 +519,21 @@ describe('getBlockedTokensForTransactionType', () => {
       defaultBlocked,
     );
   });
+
+  it('returns safe defaults when override has missing chainIds or tokens', () => {
+    const partialConfig = {
+      default: defaultBlocked,
+      overrides: {
+        perpsDeposit: {} as BlockedTokensListConfig,
+      },
+    };
+
+    const result = getBlockedTokensForTransactionType(
+      partialConfig,
+      'perpsDeposit',
+    );
+    expect(result).toEqual({ chainIds: [], tokens: [] });
+  });
 });
 
 describe('isTokenBlocked', () => {

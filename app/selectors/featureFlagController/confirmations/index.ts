@@ -190,10 +190,15 @@ export function getBlockedTokensForTransactionType(
   blockedTokens: BlockedTokensConfig,
   transactionType?: string,
 ): BlockedTokensListConfig {
-  if (transactionType && blockedTokens.overrides[transactionType]) {
-    return blockedTokens.overrides[transactionType];
-  }
-  return blockedTokens.default;
+  const config =
+    transactionType && blockedTokens.overrides[transactionType]
+      ? blockedTokens.overrides[transactionType]
+      : blockedTokens.default;
+
+  return {
+    chainIds: config.chainIds ?? [],
+    tokens: config.tokens ?? [],
+  };
 }
 
 export function isTokenBlocked(
@@ -210,7 +215,7 @@ export function isTokenBlocked(
   return blockedConfig.tokens.some(
     (blocked) =>
       blocked.address.toLowerCase() === token.address.toLowerCase() &&
-      blocked.chainId === token.chainId,
+      blocked.chainId.toLowerCase() === token.chainId?.toLowerCase(),
   );
 }
 
