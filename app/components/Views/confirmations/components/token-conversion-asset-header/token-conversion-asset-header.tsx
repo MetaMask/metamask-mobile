@@ -1,48 +1,51 @@
 import React from 'react';
 import { View } from 'react-native';
-import { useStyles } from '../../../../../hooks/useStyles';
+import { useStyles } from '../../../../hooks/useStyles';
 import Badge, {
   BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
+} from '../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper, {
   BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { getNetworkImageSource } from '../../../../../../util/networks';
+} from '../../../../../component-library/components/Texts/Text';
+import { getNetworkImageSource } from '../../../../../util/networks';
 import BigNumber from 'bignumber.js';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
-import { AssetType } from '../../../types/token';
-import styleSheet from './musd-max-conversion-asset-header.styles';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { AssetType } from '../../types/token';
+import styleSheet from './token-conversion-asset-header.styles';
 import {
   useIsTransactionPayLoading,
   useTransactionPayTotals,
-} from '../../../hooks/pay/useTransactionPayData';
+} from '../../hooks/pay/useTransactionPayData';
 import {
   Icon,
   IconColor,
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { MUSD_TOKEN } from '../../../../../UI/Earn/constants/musd';
+import { Hex } from '@metamask/utils';
+import { useNetworkName } from '../../hooks/useNetworkName';
 
-export const MusdMaxConversionAssetHeaderTestIds = {
-  ASSET_HEADER_SKELETON: 'musd-max-conversion-asset-header-skeleton',
-  ASSET_HEADER_INPUT: 'musd-max-conversion-asset-header-input',
-  ASSET_HEADER_OUTPUT: 'musd-max-conversion-asset-header-output',
+export const TokenConversionAssetHeaderTestIds = {
+  ASSET_HEADER_SKELETON: 'token-conversion-asset-header-skeleton',
+  ASSET_HEADER_INPUT: 'token-conversion-asset-header-input',
+  ASSET_HEADER_OUTPUT: 'token-conversion-asset-header-output',
+  INPUT_TOKEN_AVATAR: 'token-conversion-asset-header-input-token-avatar',
+  OUTPUT_TOKEN_AVATAR: 'token-conversion-asset-header-output-token-avatar',
 } as const;
 
-export const MusdMaxConversionAssetHeaderSkeleton = () => {
+export const TokenConversionAssetHeaderSkeleton = () => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View
       style={styles.assetHeaderContainer}
-      testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON}
+      testID={TokenConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON}
     >
       <View style={styles.assetContainer}>
         <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
@@ -83,13 +86,13 @@ export const MusdMaxConversionAssetHeaderSkeleton = () => {
   );
 };
 
-export const MusdMaxConversionAssetHeader = ({
-  token,
-  networkName,
+export const TokenConversionAssetHeader = ({
+  inputToken,
+  outputToken,
   formatFiat,
 }: {
-  token: AssetType;
-  networkName: string;
+  inputToken: AssetType;
+  outputToken: AssetType;
   formatFiat: (value: BigNumber) => string;
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -100,6 +103,9 @@ export const MusdMaxConversionAssetHeader = ({
   const inputTokenAmount = totals?.sourceAmount?.usd;
   const outputTokenAmount = totals?.targetAmount?.usd;
 
+  const inputNetworkName = useNetworkName(inputToken?.chainId as Hex);
+  const outputNetworkName = useNetworkName(outputToken?.chainId as Hex);
+
   const formatAmount = (amount?: string) => {
     if (!amount) {
       return '';
@@ -109,33 +115,32 @@ export const MusdMaxConversionAssetHeader = ({
   };
 
   if (isLoading) {
-    return <MusdMaxConversionAssetHeaderSkeleton />;
+    return <TokenConversionAssetHeaderSkeleton />;
   }
 
   return (
     <View style={styles.assetHeaderContainer}>
-      {/* Input Asset (Top) */}
       <View
         style={styles.assetContainer}
-        testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_INPUT}
+        testID={TokenConversionAssetHeaderTestIds.ASSET_HEADER_INPUT}
       >
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}
-              name={networkName}
+              name={inputNetworkName}
               imageSource={getNetworkImageSource({
-                chainId: token?.chainId ?? '',
+                chainId: inputToken?.chainId ?? '',
               })}
             />
           }
         >
           <AvatarToken
-            name={token.symbol}
-            imageSource={{ uri: token.image }}
+            name={inputToken.symbol}
+            imageSource={{ uri: inputToken.image }}
             size={AvatarSize.Lg}
-            testID={`earn-token-avatar-${token.symbol}`}
+            testID={TokenConversionAssetHeaderTestIds.INPUT_TOKEN_AVATAR}
           />
         </BadgeWrapper>
         <View style={styles.assetInfo}>
@@ -143,7 +148,7 @@ export const MusdMaxConversionAssetHeader = ({
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            {token?.symbol}
+            {inputToken?.symbol}
           </Text>
           <Text style={styles.assetAmount}>
             {formatAmount(inputTokenAmount)}
@@ -155,28 +160,27 @@ export const MusdMaxConversionAssetHeader = ({
         color={IconColor.IconAlternative}
         size={IconSize.Lg}
       />
-      {/* Output Asset (Bottom) */}
       <View
         style={styles.assetContainer}
-        testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT}
+        testID={TokenConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT}
       >
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}
-              name={networkName}
+              name={outputNetworkName}
               imageSource={getNetworkImageSource({
-                chainId: token?.chainId ?? '',
+                chainId: outputToken?.chainId ?? '',
               })}
             />
           }
         >
           <AvatarToken
-            name={MUSD_TOKEN.symbol}
-            imageSource={MUSD_TOKEN.imageSource}
+            name={outputToken.symbol}
+            imageSource={{ uri: outputToken.image }}
             size={AvatarSize.Lg}
-            testID={`earn-token-avatar-${MUSD_TOKEN.symbol}`}
+            testID={TokenConversionAssetHeaderTestIds.OUTPUT_TOKEN_AVATAR}
           />
         </BadgeWrapper>
         <View style={styles.assetInfo}>
@@ -184,7 +188,7 @@ export const MusdMaxConversionAssetHeader = ({
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            {MUSD_TOKEN.symbol}
+            {outputToken.symbol}
           </Text>
           <Text style={styles.assetAmount}>
             {formatAmount(outputTokenAmount)}

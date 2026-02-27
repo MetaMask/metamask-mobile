@@ -68,12 +68,16 @@ jest.mock(
   }),
 );
 
-jest.mock('./musd-max-conversion-asset-header', () => ({
-  MusdMaxConversionAssetHeader: () => null,
+jest.mock('../../token-conversion-asset-header', () => ({
+  TokenConversionAssetHeader: () => null,
 }));
 
 jest.mock('../../rows/bridge-fee-row', () => ({
   BridgeFeeRow: () => null,
+}));
+
+jest.mock('../../rows/token-conversion-rate-row', () => ({
+  TokenConversionRateRow: () => null,
 }));
 
 jest.mock('../../rows/total-row', () => ({

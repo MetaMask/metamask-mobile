@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
-import { useSelector } from 'react-redux';
+import { Image, View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
@@ -9,7 +8,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
-import { selectNetworkName } from '../../../../../../selectors/networkInfos';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
@@ -20,12 +18,16 @@ import { AssetType } from '../../../types/token';
 import stylesheet from './musd-max-conversion-info.styles';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { PercentageRow } from '../../rows/percentage-row';
-import { MusdMaxConversionAssetHeader } from './musd-max-conversion-asset-header';
+import { TokenConversionAssetHeader } from '../../token-conversion-asset-header';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { TokenConversionRateRow } from '../../rows/token-conversion-rate-row';
+import {
+  MUSD_TOKEN,
+  MUSD_TOKEN_ADDRESS,
+} from '../../../../../UI/Earn/constants/musd';
 
 /**
  * Navigation params for MusdMaxConversionInfo
@@ -44,7 +46,6 @@ export const MusdMaxConversionInfoTestIds = {
 
 export const MusdMaxConversionInfo = () => {
   const { styles } = useStyles(stylesheet, {});
-  const networkName = useSelector(selectNetworkName);
 
   const { token } = useParams<MusdMaxConversionParams>();
 
@@ -69,14 +70,31 @@ export const MusdMaxConversionInfo = () => {
     [blockingAlert],
   );
 
+  const outputToken = useMemo((): AssetType => {
+    const imageUri =
+      Image.resolveAssetSource(MUSD_TOKEN.imageSource)?.uri ?? '';
+
+    return {
+      address: MUSD_TOKEN_ADDRESS,
+      symbol: MUSD_TOKEN.symbol,
+      name: MUSD_TOKEN.name,
+      decimals: MUSD_TOKEN.decimals,
+      image: imageUri,
+      balance: '0',
+      logo: imageUri,
+      isETH: false,
+      chainId: token.chainId,
+    };
+  }, [token.chainId]);
+
   return (
     <View
       style={styles.container}
       testID={MusdMaxConversionInfoTestIds.CONTAINER}
     >
-      <MusdMaxConversionAssetHeader
-        token={token}
-        networkName={networkName}
+      <TokenConversionAssetHeader
+        inputToken={token}
+        outputToken={outputToken}
         formatFiat={formatFiat}
       />
       <View style={styles.detailsSection}>
