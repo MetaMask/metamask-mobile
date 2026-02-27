@@ -26,8 +26,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../../util/Logger';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface EnterEmailParams {
   redirectToRootAfterAuth?: boolean;
@@ -46,7 +45,7 @@ const EnterEmail = () => {
 
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const trackEvent = useAnalytics();
 
   useEffect(() => {
     navigation.setOptions(
@@ -54,31 +53,9 @@ const EnterEmail = () => {
         navigation,
         { title: strings('deposit.enter_email.navbar_title') },
         theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'Enter Email',
-                ramp_type: 'UNIFIED_BUY_2',
-              })
-              .build(),
-          );
-        },
       ),
     );
-  }, [navigation, theme, trackEvent, createEventBuilder]);
-
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
-        .addProperties({
-          location: 'Enter Email',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [navigation, theme]);
 
   const [, submitEmail] = useDepositSdkMethod(
     { method: 'sendUserOtp', onMount: false, throws: true },
@@ -108,13 +85,9 @@ const EnterEmail = () => {
           throw new Error('State token is required for OTP verification');
         }
 
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.RAMPS_EMAIL_SUBMITTED)
-            .addProperties({
-              ramp_type: 'DEPOSIT',
-            })
-            .build(),
-        );
+        trackEvent('RAMPS_EMAIL_SUBMITTED', {
+          ramp_type: 'DEPOSIT',
+        });
         navigation.navigate(
           ...createOtpCodeNavDetails({
             email,
@@ -135,14 +108,7 @@ const EnterEmail = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    email,
-    navigation,
-    submitEmail,
-    trackEvent,
-    createEventBuilder,
-    redirectToRootAfterAuth,
-  ]);
+  }, [email, navigation, submitEmail, trackEvent, redirectToRootAfterAuth]);
 
   return (
     <ScreenLayout>

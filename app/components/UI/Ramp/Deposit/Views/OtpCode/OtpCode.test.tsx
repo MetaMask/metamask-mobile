@@ -16,6 +16,8 @@ const mockGetString = Clipboard.getString as jest.Mock;
 
 const mockEmail = 'test@email.com';
 
+const mockTrackEvent = jest.fn();
+
 const mockSetAuthToken = jest.fn();
 
 jest.mock('../../sdk', () => ({
@@ -25,6 +27,8 @@ jest.mock('../../sdk', () => ({
     selectedRegion: { isoCode: 'US' },
   }),
 }));
+
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 const mockUseParams = jest.fn(() => ({
   email: mockEmail,
@@ -118,6 +122,7 @@ describe('OtpCode Screen', () => {
     jest.clearAllMocks();
     mockVerifyUserOtp.mockResolvedValue('Success');
     mockSendUserOtp.mockResolvedValue('Success');
+    mockTrackEvent.mockClear();
     mockGetString.mockResolvedValue('');
   });
 
@@ -205,6 +210,45 @@ describe('OtpCode Screen', () => {
       expect(mockSetAuthToken).toHaveBeenCalledWith(mockTokenResponse);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.BUILD_QUOTE, {
         shouldRouteImmediately: true,
+      });
+    });
+  });
+
+  it('tracks analytics event when OTP is successfully confirmed', async () => {
+    const mockTokenResponse: NativeTransakAccessToken = {
+      accessToken: 'mock-access-token-456',
+      ttl: 1000,
+      created: new Date('2024-01-01'),
+    };
+
+    mockVerifyUserOtp.mockResolvedValue(mockTokenResponse);
+    mockSetAuthToken.mockResolvedValue(undefined);
+    const { getByTestId } = render(OtpCode);
+    act(() => {
+      const codeInput = getByTestId('otp-code-input');
+      fireEvent.changeText(codeInput, '123456');
+    });
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_OTP_CONFIRMED', {
+        ramp_type: 'DEPOSIT',
+        region: 'US',
+      });
+    });
+  });
+
+  it('tracks analytics event when OTP submission fails', async () => {
+    mockVerifyUserOtp.mockImplementation(() => {
+      throw new Error('API call failed');
+    });
+    const { getByTestId } = render(OtpCode);
+    act(() => {
+      const codeInput = getByTestId('otp-code-input');
+      fireEvent.changeText(codeInput, '123456');
+    });
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_OTP_FAILED', {
+        ramp_type: 'DEPOSIT',
+        region: 'US',
       });
     });
   });

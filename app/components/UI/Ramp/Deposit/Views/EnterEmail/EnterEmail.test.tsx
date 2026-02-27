@@ -9,6 +9,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockTrackEvent = jest.fn();
 
 const mockResponse = {
   data: null,
@@ -33,6 +34,8 @@ let mockUseDepositSdkMethodValues: DepositSdkMethodResult<'sendUserOtp'> = {
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
 }));
+
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 const mockUseRoute = jest.fn(() => ({
   params: {
@@ -108,6 +111,18 @@ describe('EnterEmail Component', () => {
         email: 'test@example.com',
         stateToken: 'mock-state-token',
         redirectToRootAfterAuth: false,
+      });
+    });
+  });
+
+  it('tracks analytics event when submit button is pressed with valid email', async () => {
+    render(EnterEmail);
+    const emailInput = screen.getByPlaceholderText('name@domain.com');
+    fireEvent.changeText(emailInput, 'test@example.com');
+    fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_EMAIL_SUBMITTED', {
+        ramp_type: 'DEPOSIT',
       });
     });
   });

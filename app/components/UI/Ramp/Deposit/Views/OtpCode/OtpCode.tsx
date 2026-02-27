@@ -34,8 +34,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import Logger from '../../../../../../util/Logger';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import useAnalytics from '../../../hooks/useAnalytics';
 import { createBuildQuoteNavDetails } from '../../../Deposit/Views/BuildQuote/BuildQuote';
 import { trace, TraceName } from '../../../../../../util/trace';
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
@@ -76,7 +75,7 @@ const OtpCode = () => {
   const { setAuthToken } = useDepositSDK();
   const { email, stateToken, redirectToRootAfterAuth } =
     useParams<OtpCodeParams>();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const trackEvent = useAnalytics();
   const { selectedRegion } = useDepositSDK();
   const [currentStateToken, setCurrentStateToken] = useState(stateToken);
 
@@ -98,31 +97,9 @@ const OtpCode = () => {
         navigation,
         { title: strings('deposit.otp_code.navbar_title') },
         theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'OTP Code',
-                ramp_type: 'UNIFIED_BUY_2',
-              })
-              .build(),
-          );
-        },
       ),
     );
-  }, [navigation, theme, trackEvent, createEventBuilder]);
-
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
-        .addProperties({
-          location: 'OTP Code',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [navigation, theme]);
 
   const [value, setValue] = useState('');
 
@@ -179,14 +156,10 @@ const OtpCode = () => {
       }
 
       setCurrentStateToken(resendResponse.stateToken);
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_OTP_RESENT)
-          .addProperties({
-            ramp_type: 'DEPOSIT',
-            region: selectedRegion?.isoCode || '',
-          })
-          .build(),
-      );
+      trackEvent('RAMPS_OTP_RESENT', {
+        ramp_type: 'DEPOSIT',
+        region: selectedRegion?.isoCode || '',
+      });
     } catch (e) {
       setResendButtonState('resendError');
       Logger.error(e as Error, 'Error resending OTP code');
@@ -197,7 +170,6 @@ const OtpCode = () => {
     resetAttemptCount,
     selectedRegion?.isoCode,
     trackEvent,
-    createEventBuilder,
     setCurrentStateToken,
   ]);
 
@@ -225,14 +197,10 @@ const OtpCode = () => {
           throw new Error('No response from submitCode');
         }
         await setAuthToken(response);
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.RAMPS_OTP_CONFIRMED)
-            .addProperties({
-              ramp_type: 'DEPOSIT',
-              region: selectedRegion?.isoCode || '',
-            })
-            .build(),
-        );
+        trackEvent('RAMPS_OTP_CONFIRMED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+        });
 
         if (redirectToRootAfterAuth) {
           navigation.navigate(Routes.DEPOSIT.ROOT);
@@ -244,14 +212,10 @@ const OtpCode = () => {
           );
         }
       } catch (e) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.RAMPS_OTP_FAILED)
-            .addProperties({
-              ramp_type: 'DEPOSIT',
-              region: selectedRegion?.isoCode || '',
-            })
-            .build(),
-        );
+        trackEvent('RAMPS_OTP_FAILED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+        });
         setError(
           e instanceof Error && e.message
             ? e.message
@@ -274,7 +238,6 @@ const OtpCode = () => {
     currentStateToken,
     selectedRegion?.isoCode,
     trackEvent,
-    createEventBuilder,
     redirectToRootAfterAuth,
   ]);
 
