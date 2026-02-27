@@ -38,8 +38,8 @@ jest.mock('../../../../../component-library/hooks', () => ({
     const actualStyleSheet = jest.requireActual(
       './TrendingTokenRowItem.styles',
     ).default;
-    const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
-    const mockTheme = { colors: lt.colors };
+    const { mockTheme } = jest.requireActual('../../../../../util/theme');
+    const mockTheme = { colors: mockTheme.colors };
     return { styles: actualStyleSheet({ theme: mockTheme }) };
   }),
 }));

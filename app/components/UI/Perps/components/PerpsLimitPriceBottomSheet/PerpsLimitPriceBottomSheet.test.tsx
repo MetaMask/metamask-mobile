@@ -66,12 +66,10 @@ jest.mock('react-native-safe-area-context', () => {
 // Mock theme
 const mockUseTheme = jest.fn();
 jest.mock('../../../../../util/theme', () => {
-  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
   return {
     useTheme: mockUseTheme,
-    mockTheme: {
-      colors: lt.colors,
-    },
+    mockTheme,
   };
 });
 

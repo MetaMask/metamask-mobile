@@ -12,7 +12,7 @@ import {
   TransactionStatus,
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
-import { lightTheme } from '@metamask/design-tokens';
+import { mockTheme } from '../../../../../util/theme';
 import { fontStyles } from '../../../../../styles/common';
 
 describe('BridgeStepDescription', () => {
@@ -145,7 +145,7 @@ describe('BridgeStepDescription', () => {
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty(
       'color',
-      lightTheme.colors.text.alternative,
+      mockTheme.colors.text.alternative,
     );
   });
 
@@ -161,7 +161,7 @@ describe('BridgeStepDescription', () => {
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty(
       'color',
-      lightTheme.colors.text.default,
+      mockTheme.colors.text.default,
     );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
@@ -182,7 +182,7 @@ describe('BridgeStepDescription', () => {
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty(
       'color',
-      lightTheme.colors.text.default,
+      mockTheme.colors.text.default,
     );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
@@ -204,7 +204,7 @@ describe('BridgeStepDescription', () => {
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty(
       'color',
-      lightTheme.colors.text.default,
+      mockTheme.colors.text.default,
     );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
@@ -228,7 +228,7 @@ describe('BridgeStepDescription', () => {
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty(
       'color',
-      lightTheme.colors.text.default,
+      mockTheme.colors.text.default,
     );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
@@ -252,7 +252,7 @@ describe('BridgeStepDescription', () => {
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty(
       'color',
-      lightTheme.colors.text.default,
+      mockTheme.colors.text.default,
     );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
@@ -304,7 +304,7 @@ describe('BridgeStepDescription', () => {
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty(
       'color',
-      lightTheme.colors.text.alternative,
+      mockTheme.colors.text.alternative,
     );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
@@ -321,7 +321,7 @@ describe('BridgeStepDescription', () => {
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty(
       'color',
-      lightTheme.colors.text.alternative,
+      mockTheme.colors.text.alternative,
     );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',

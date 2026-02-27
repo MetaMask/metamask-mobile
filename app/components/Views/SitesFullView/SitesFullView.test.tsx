@@ -18,9 +18,9 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../util/theme', () => {
-  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  const { mockTheme } = jest.requireActual('../../../util/theme');
   return {
-    useAppThemeFromContext: () => ({ colors: lt.colors }),
+    useAppThemeFromContext: () => mockTheme,
   };
 });
 

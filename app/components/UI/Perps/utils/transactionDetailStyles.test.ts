@@ -1,13 +1,5 @@
 import { createTransactionDetailStyles } from './transactionDetailStyles';
-import { lightTheme, brandColor } from '@metamask/design-tokens';
-import { AppThemeKey } from '../../../../util/theme/models';
-
-// Mock theme object using the actual light theme
-const mockTheme = {
-  ...lightTheme,
-  themeAppearance: AppThemeKey.light as const,
-  brandColors: brandColor,
-};
+import { mockTheme } from '../../../../util/theme';
 
 describe('createTransactionDetailStyles', () => {
   it('should create styles object with all required properties', () => {

@@ -126,9 +126,12 @@ const mockSelectSeasonStartDate = selectSeasonStartDate as jest.MockedFunction<
 
 // Mock theme
 jest.mock('../../../../../../util/theme', () => {
-  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  const { mockTheme } = jest.requireActual('../../../../../../util/theme');
   return {
-    useTheme: () => ({ themeAppearance: 'light', brandColors: lt.brandColors }),
+    useTheme: () => ({
+      themeAppearance: 'light',
+      brandColors: mockTheme.brandColors,
+    }),
   };
 });
 

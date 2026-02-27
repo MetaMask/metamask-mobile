@@ -49,10 +49,10 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 }));
 
 jest.mock('../../../../../util/theme', () => {
-  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
   return {
     ...jest.requireActual('../../../../../util/theme'),
-    useTheme: () => ({ colors: lt.colors }),
+    useTheme: () => mockTheme,
   };
 });
 

@@ -12,9 +12,9 @@ const defaultState = {
 };
 
 jest.mock('../../../../../util/theme', () => {
-  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
   return {
-    useTheme: jest.fn().mockReturnValue({ colors: lt.colors }),
+    useTheme: jest.fn().mockReturnValue(mockTheme),
   };
 });
 

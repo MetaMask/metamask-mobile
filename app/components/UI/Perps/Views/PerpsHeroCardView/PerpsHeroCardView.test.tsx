@@ -25,12 +25,9 @@ const mockShowToast = jest.fn();
 const mockTrack = jest.fn();
 
 jest.mock('../../../../../util/theme', () => {
-  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
   return {
-    useAppThemeFromContext: jest.fn(() => ({
-      colors: lt.colors,
-      themeAppearance: 'light',
-    })),
+    useAppThemeFromContext: jest.fn(() => mockTheme),
   };
 });
 jest.mock('@react-navigation/native');
@@ -106,43 +103,9 @@ jest.mock('@metamask/design-tokens', () => ({
   },
 }));
 jest.mock('../../../../../component-library/hooks', () => {
-  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
   return {
-    useStyles: jest.fn(() => ({
-      styles: {
-        safeAreaContainer: {},
-        header: {},
-        closeButton: {},
-        headerTitle: {},
-        carouselWrapper: {},
-        carousel: {},
-        cardContainer: {},
-        backgroundImage: {},
-        heroCardTopRow: {},
-        metamaskLogo: {},
-        heroCardAssetRow: {},
-        assetIcon: {},
-        assetName: {},
-        directionBadge: {},
-        directionBadgeText: {},
-        pnlText: {},
-        pnlPositive: {},
-        pnlNegative: {},
-        priceRowsContainer: {},
-        priceRow: {},
-        priceLabel: {},
-        priceValue: {},
-        qrCodeContainer: {},
-        carouselDotIndicator: {},
-        progressDot: {},
-        progressDotActive: {},
-        footerButtonContainer: {},
-      },
-      theme: {
-        colors: lt.colors,
-        themeAppearance: 'light',
-      },
-    })),
+    useStyles: jest.fn(() => mockTheme),
   };
 });
 jest.mock('../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');

@@ -13,9 +13,9 @@ let mockIsFlipping = false;
 
 // Mock dependencies
 jest.mock('../../../../../util/theme', () => {
-  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
   return {
-    useTheme: jest.fn(() => ({ colors: lt.colors })),
+    useTheme: jest.fn(() => mockTheme),
   };
 });
 

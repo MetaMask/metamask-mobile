@@ -5,13 +5,13 @@ import { getEmptyNavHeader } from '../../components/UI/navbar/navbar';
 import { useEmptyNavHeaderForConfirmations } from './useEmptyNavHeaderForConfirmations';
 
 jest.mock('../../../../../util/theme', () => {
-  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
   return {
     useTheme: jest.fn().mockReturnValue({
-      colors: lt.colors,
+      colors: mockTheme.colors,
       typography: {},
       shadows: {},
-      brandColors: lt.brandColors,
+      brandColors: mockTheme.brandColors,
       themeAppearance: 'light' as const,
     } as Theme),
   };

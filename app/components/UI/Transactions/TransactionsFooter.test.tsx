@@ -5,17 +5,9 @@ import { strings } from '../../../../locales/i18n';
 import { NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 
 jest.mock('../../../util/theme', () => {
-  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  const { mockTheme } = jest.requireActual('../../../util/theme');
   return {
-    useTheme: () => ({
-      colors: lt.colors,
-      typography: {
-        sBodySM: {
-          fontSize: 14,
-          lineHeight: 20,
-        },
-      },
-    }),
+    useTheme: () => mockTheme,
   };
 });
 

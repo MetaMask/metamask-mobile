@@ -30,9 +30,9 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 jest.mock('../../../util/theme', () => {
-  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  const { mockTheme } = jest.requireActual('../../../util/theme');
   return {
-    useAppThemeFromContext: jest.fn(() => ({ colors: lt.colors })),
+    useAppThemeFromContext: jest.fn(() => mockTheme),
   };
 });
 jest.mock('../../../components/hooks/useMetrics');

@@ -533,7 +533,7 @@ module.exports = {
     'react/no-string-refs': 'error',
     'react/no-unused-prop-types': 'error',
     'react/prefer-es6-class': 'error',
-    '@metamask/design-tokens/color-no-hex': 'warn',
+    '@metamask/design-tokens/color-no-hex': 'error',
     radix: 'off',
   },
 

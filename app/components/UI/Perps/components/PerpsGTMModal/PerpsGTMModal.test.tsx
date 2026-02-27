@@ -10,9 +10,9 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../../../../../util/theme', () => {
-  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
   return {
-    useTheme: jest.fn(() => ({ theme: { colors: lt.colors } })),
+    useTheme: jest.fn(() => mockTheme),
   };
 });
 
