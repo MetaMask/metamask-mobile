@@ -128,11 +128,20 @@ jest.mock('../Deposit/utils', () => ({
 
 jest.mock('../Views/Checkout', () => ({
   createCheckoutNavDetails: jest.fn(
-    ({ url, providerName }: { url: string; providerName: string }) => [
-      'Checkout',
-      { url, providerName },
-    ],
+    ({
+      url,
+      providerName,
+      callbackKey,
+    }: {
+      url: string;
+      providerName: string;
+      callbackKey?: string;
+    }) => ['Checkout', { url, providerName, callbackKey }],
   ),
+}));
+
+jest.mock('../utils/checkoutCallbackRegistry', () => ({
+  registerCheckoutCallback: jest.fn(() => 'mock-callback-key'),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -346,8 +355,10 @@ describe('useTransakRouting', () => {
     });
 
     it('handles 401 error by logging out and navigating to enter email', async () => {
-      const error = new Error('Unauthorized') as Error & { status: number };
-      error.status = 401;
+      const error = new Error('Unauthorized') as Error & {
+        httpStatus: number;
+      };
+      error.httpStatus = 401;
       mockGetUserDetails.mockRejectedValue(error);
       mockLogoutFromProvider.mockResolvedValue(undefined);
 
