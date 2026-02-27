@@ -105,20 +105,8 @@ class RNPlaygroundDapp {
     return this._getByTestId('legacy-evm-btn-send-transaction');
   }
 
-  get legacyEvmBtnSwitchSepolia() {
-    return this._getByTestId('legacy-evm-btn-switch-sepolia');
-  }
-
-  get legacyEvmBtnSwitchMainnet() {
-    return this._getByTestId('legacy-evm-btn-switch-mainnet');
-  }
-
   get legacyEvmBtnSwitchPolygon() {
     return this._getByTestId('legacy-evm-btn-switch-polygon');
-  }
-
-  get legacyEvmBtnBlockNumber() {
-    return this._getByTestId('legacy-evm-btn-block-number');
   }
 
   // ============================================================
