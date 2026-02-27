@@ -269,6 +269,24 @@ describe('TokenDetails', () => {
       expect(queryByTestId('bottomsheetfooter')).toBeNull();
     });
 
+    it('does not show sticky buttons for unsupported custom-network assets', () => {
+      mockRouteParams.mockReturnValueOnce({
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+        chainId: '0x1234',
+        symbol: 'DAI',
+        decimals: 18,
+        name: 'Dai Stablecoin',
+        image: 'https://example.com/dai.png',
+        isETH: false,
+        isNative: false,
+        balance: '10.5',
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(queryByTestId('bottomsheetfooter')).toBeNull();
+    });
+
     it('shows both Buy and Sell buttons when token has balance > 0', () => {
       mockUseTokenBalance.mockReturnValue({
         balance: '10.5',

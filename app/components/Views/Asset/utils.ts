@@ -14,13 +14,7 @@ export const getIsSwapsAssetAllowed = ({
     isFromSearch?: boolean;
   };
 }) => {
-  let isSwapsAssetAllowed;
-  if (asset.isETH || asset.isNative) {
-    const isChainAllowed = isBridgeAllowed(asset.chainId);
-    isSwapsAssetAllowed = isChainAllowed;
-  } else {
-    isSwapsAssetAllowed = true;
-  }
+  let isSwapsAssetAllowed = isBridgeAllowed(asset.chainId);
 
   // Solana Swaps
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

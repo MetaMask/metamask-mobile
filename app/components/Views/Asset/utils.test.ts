@@ -41,7 +41,7 @@ describe('getIsSwapsAssetAllowed', () => {
       expect(result).toBe(true);
     });
 
-    it('should return true for all other EVM tokens', () => {
+    it('should return true for EVM tokens on supported chains', () => {
       const result = getIsSwapsAssetAllowed({
         asset: {
           isETH: false,
@@ -51,6 +51,18 @@ describe('getIsSwapsAssetAllowed', () => {
         },
       });
       expect(result).toBe(true);
+    });
+
+    it('should return false for EVM tokens on unsupported custom chains', () => {
+      const result = getIsSwapsAssetAllowed({
+        asset: {
+          isETH: false,
+          isNative: false,
+          address: '0xtoken2',
+          chainId: '0x1234',
+        },
+      });
+      expect(result).toBe(false);
     });
   });
 
