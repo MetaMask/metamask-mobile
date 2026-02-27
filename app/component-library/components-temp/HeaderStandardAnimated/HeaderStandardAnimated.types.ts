@@ -7,9 +7,10 @@ import { HeaderCompactStandardProps } from '../HeaderCompactStandard/HeaderCompa
 /**
  * HeaderStandardAnimated component props.
  * Extends HeaderCompactStandardProps with scroll-driven animation inputs.
+ * Content is driven by title/subtitle only; children is not supported.
  */
 export interface HeaderStandardAnimatedProps
-  extends HeaderCompactStandardProps {
+  extends Omit<HeaderCompactStandardProps, 'children'> {
   /**
    * Shared value for scroll offset from the ScrollView.
    * Used to drive the center-title animation when scroll passes the title section.

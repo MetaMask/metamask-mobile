@@ -25,7 +25,6 @@ const HeaderStandardAnimated: React.FC<HeaderStandardAnimatedProps> = ({
   titleProps,
   subtitle,
   subtitleProps,
-  children,
   scrollY,
   titleSectionHeight,
   twClassName = '',
@@ -46,38 +45,32 @@ const HeaderStandardAnimated: React.FC<HeaderStandardAnimatedProps> = ({
     };
   });
 
-  const content =
-    children ??
-    (title && (
-      <Box alignItems={BoxAlignItems.Center}>
+  const content = title ? (
+    <Box alignItems={BoxAlignItems.Center}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Bold}
+        {...titleProps}
+      >
+        {title}
+      </Text>
+      {subtitle && (
         <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          {...titleProps}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          {...subtitleProps}
+          twClassName={`-mt-0.5 ${subtitleProps?.twClassName ?? ''}`.trim()}
         >
-          {title}
+          {subtitle}
         </Text>
-        {subtitle && (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            {...subtitleProps}
-            twClassName={`-mt-0.5 ${subtitleProps?.twClassName ?? ''}`.trim()}
-          >
-            {subtitle}
-          </Text>
-        )}
-      </Box>
-    ));
+      )}
+    </Box>
+  ) : null;
 
   return (
     <HeaderCompactStandard
       {...headerStandardProps}
-      title={title}
-      titleProps={titleProps}
-      subtitle={subtitle}
-      subtitleProps={subtitleProps}
-      twClassName={`bg-default px-2 ${twClassName}`.trim()}
+      twClassName={`bg-default ${twClassName}`.trim()}
     >
       <Animated.View style={centerAnimatedStyle}>{content}</Animated.View>
     </HeaderCompactStandard>

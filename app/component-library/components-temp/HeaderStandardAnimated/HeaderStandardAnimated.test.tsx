@@ -91,28 +91,6 @@ describe('HeaderStandardAnimated', () => {
       expect(getByTestId(CONTAINER_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('renders custom children instead of title', () => {
-      const { getByText, queryByText } = render(
-        <HeaderStandardAnimated {...defaultProps} title="Ignored Title">
-          <Text>Custom Content</Text>
-        </HeaderStandardAnimated>,
-      );
-
-      expect(getByText('Custom Content')).toBeOnTheScreen();
-      expect(queryByText('Ignored Title')).not.toBeOnTheScreen();
-    });
-
-    it('renders children when both title and children provided', () => {
-      const { getByText, queryByText } = render(
-        <HeaderStandardAnimated {...defaultProps} title="Title Text">
-          <Text>Children Text</Text>
-        </HeaderStandardAnimated>,
-      );
-
-      expect(getByText('Children Text')).toBeOnTheScreen();
-      expect(queryByText('Title Text')).not.toBeOnTheScreen();
-    });
-
     it('renders subtitle when provided', () => {
       const { getByText } = render(
         <HeaderStandardAnimated
