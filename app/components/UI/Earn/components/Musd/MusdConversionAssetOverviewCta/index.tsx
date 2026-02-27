@@ -28,8 +28,6 @@ import { Hex } from '@metamask/utils';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../../../selectors/featureFlags';
 import { useSelector } from 'react-redux';
-import { selectHasInFlightMusdConversion } from '../../../selectors/musdConversionStatus';
-import useEarnToasts from '../../../hooks/useEarnToasts';
 interface MusdConversionAssetOverviewCtaProps {
   asset: TokenI;
   testId?: string;
@@ -51,10 +49,6 @@ const MusdConversionAssetOverviewCta = ({
     useMusdConversion();
 
   const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
-  const hasInFlightMusdConversion = useSelector(
-    selectHasInFlightMusdConversion,
-  );
-  const { showToast, EarnToastOptions } = useEarnToasts();
 
   const submitCtaPressedEvent = () => {
     const { EVENT_LOCATIONS, MUSD_CTA_TYPES } = MUSD_EVENTS_CONSTANTS;
@@ -92,11 +86,6 @@ const MusdConversionAssetOverviewCta = ({
 
       if (!asset?.address || !asset?.chainId) {
         throw new Error('Asset address or chain ID is not set');
-      }
-
-      if (hasInFlightMusdConversion) {
-        showToast(EarnToastOptions.mUsdConversion.existingConversionInProgress);
-        return;
       }
 
       await initiateCustomConversion({

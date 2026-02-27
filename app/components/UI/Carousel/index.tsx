@@ -45,9 +45,6 @@ import { subscribeToContentPreviewToken } from '../../../actions/notification/he
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import AppConstants from '../../../core/AppConstants';
-import { ACTIONS } from '../../../constants/deeplinks';
-import { selectHasInFlightMusdConversion } from '../Earn/selectors/musdConversionStatus';
-import useEarnToasts from '../Earn/hooks/useEarnToasts';
 
 const MAX_CAROUSEL_SLIDES = 8;
 
@@ -179,10 +176,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const { navigate } = useNavigation();
   const tw = useTailwind();
   const dismissedBanners = useSelector(selectDismissedBanners);
-  const hasInFlightMusdConversion = useSelector(
-    selectHasInFlightMusdConversion,
-  );
-  const { showToast, EarnToastOptions } = useEarnToasts();
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const lastSelectedSolanaAccount = useSelector(
@@ -395,9 +388,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   const handleSlideClick = useCallback(
     (slideId: string, navigation: NavigationAction) => {
-      const isMusdConversionDeeplink =
-        navigation.type === 'url' &&
-        navigation.href.toLowerCase().includes(ACTIONS.EARN_MUSD);
       const extraProperties: Record<string, string> = {};
 
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
@@ -425,11 +415,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       }
       ///: END:ONLY_INCLUDE_IF
 
-      if (isMusdConversionDeeplink && hasInFlightMusdConversion) {
-        showToast(EarnToastOptions.mUsdConversion.existingConversionInProgress);
-        return;
-      }
-
       if (navigation.type === 'url') {
         return openUrl(navigation.href)();
       }
@@ -442,17 +427,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         return navigate(navigation.route);
       }
     },
-    [
-      trackEvent,
-      createEventBuilder,
-      navigate,
-      hasInFlightMusdConversion,
-      showToast,
-      EarnToastOptions,
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      lastSelectedSolanaAccount,
-      ///: END:ONLY_INCLUDE_IF
-    ],
+    [trackEvent, createEventBuilder, navigate, lastSelectedSolanaAccount],
   );
 
   const handleTransitionToNextCard = useCallback(
