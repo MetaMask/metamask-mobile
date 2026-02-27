@@ -12,10 +12,8 @@ import {
   filterMarketsByQuery,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import PredictMarket from '../../UI/Predict/components/PredictMarket';
 import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types';
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
-import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
@@ -24,10 +22,7 @@ import {
   PerpsConnectionContext,
 } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
-import {
-  Box,
-  IconName as DSIconName,
-} from '@metamask/design-system-react-native';
+import { IconName as DSIconName } from '@metamask/design-system-react-native';
 import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon/Icon.types';
 import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
@@ -41,7 +36,6 @@ import {
 import type { TrendingFilterContext } from '../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
-import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
 import { useRwaTokens } from '../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'stocks' | 'sites';
@@ -305,23 +299,15 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       });
     },
     RowItem: ({ item, index: _index }) => (
-      <Box twClassName="py-2">
-        <PredictMarket
-          market={item as PredictMarketType}
-          isCarousel
-          testID={`predict-market-list-trending-card-${
-            (item as PredictMarketType).id
-          }`}
-        />
-      </Box>
+      <PredictMarketRowItem market={item as PredictMarketType} />
     ),
     OverrideRowItemSearch: ({ item }) => (
       <PredictMarketRowItem market={item as PredictMarketType} />
     ),
-    Skeleton: () => <PredictMarketSkeleton isCarousel />,
+    Skeleton: SiteSkeleton,
     // Using sites skeleton cause PredictMarketSkeleton has too much spacing
     OverrideSkeletonSearch: SiteSkeleton,
-    Section: SectionCarrousel,
+    Section: SectionCard,
     useSectionData: (searchQuery) => {
       const { marketData, isFetching, refetch } = usePredictMarketData({
         category: 'trending',
