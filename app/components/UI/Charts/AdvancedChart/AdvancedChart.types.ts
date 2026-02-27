@@ -184,13 +184,13 @@ export interface ErrorPayload {
 }
 
 export type WebViewToRNMessage =
-  | { type: 'CHART_READY'; payload: Record<string, never> }
+  | { type: 'CHART_READY' }
   | { type: 'INDICATOR_ADDED'; payload: IndicatorAddedPayload }
   | { type: 'INDICATOR_REMOVED'; payload: IndicatorRemovedPayload }
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
   | { type: 'NEED_MORE_HISTORY'; payload: NeedMoreHistoryPayload }
   | { type: 'ERROR'; payload: ErrorPayload }
-  | { type: 'DEBUG'; payload: Record<string, never> };
+  | { type: 'DEBUG' };
 
 // ============================================
 // Message parsing / runtime narrowing
@@ -219,7 +219,7 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
   switch (type) {
     case 'CHART_READY':
     case 'DEBUG':
-      return { type, payload: {} };
+      return { type };
 
     case 'NEED_MORE_HISTORY':
       return {
