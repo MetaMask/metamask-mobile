@@ -178,11 +178,17 @@ const QuoteDetailsCard = () => {
               label: (
                 <TagColored
                   color={TagColor.Success}
-                  style={styles.gasFeesSponsoredContainer}
+                  labelProps={{
+                    variant: TextVariant.BodySM,
+                    style: {
+                      textTransform: 'none',
+                      textAlign: 'center',
+                      bottom: 1,
+                      fontWeight: 'normal',
+                    },
+                  }}
                 >
-                  <Text variant={TextVariant.BodySM} color={TextColor.Success}>
-                    {strings('bridge.gas_fees_sponsored')}
-                  </Text>
+                  {strings('bridge.gas_fees_sponsored')}
                 </TagColored>
               ),
             }}
