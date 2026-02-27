@@ -21,7 +21,6 @@ import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
 import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
-import { useQRHardwareContext } from '../../context/qr-hardware-context/qr-hardware-context';
 import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
@@ -52,9 +51,7 @@ const HIDE_FOOTER_BY_DEFAULT_TYPES = [
 export const Footer = () => {
   const { alerts, hasDangerAlerts, hasUnconfirmedDangerAlerts } = useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
-  const { needsCameraPermission } = useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
-  const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
@@ -107,7 +104,6 @@ export const Footer = () => {
   }, [alerts, trackAlertMetrics]);
 
   const { styles } = useStyles(styleSheet, {
-    confirmDisabled,
     isStakingConfirmationBool,
     isFullScreenConfirmation,
   });
@@ -221,7 +217,6 @@ export const Footer = () => {
 export function FooterSkeleton() {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { styles } = useStyles(styleSheet, {
-    confirmDisabled: false,
     isStakingConfirmationBool: false,
     isFullScreenConfirmation,
   });
