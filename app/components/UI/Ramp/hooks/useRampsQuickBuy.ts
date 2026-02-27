@@ -2,6 +2,7 @@ import { useEffect, useMemo, type ReactNode } from 'react';
 import { useRampsController } from './useRampsController';
 import { useRampNavigation } from './useRampNavigation';
 import { registerQuickBuyErrorCallback } from '../utils/quickBuyCallbackRegistry';
+import Logger from '../../../../util/Logger';
 
 export interface UseRampsQuickBuyParams {
   assetId?: string;
@@ -70,12 +71,25 @@ export function useRampsQuickBuy({
   } = useRampsController();
 
   useEffect(() => {
-    if (assetId) {
-      setSelectedToken(assetId);
+    if (!assetId || !selectedProvider || tokensLoading) {
+      return;
     }
-  }, [assetId, setSelectedToken]);
 
-  const isLoading = tokensLoading || providersLoading || paymentMethodsLoading;
+    try {
+      setSelectedToken(assetId);
+    } catch (e) {
+      Logger.log(
+        '[useRampsQuickBuy] setSelectedToken failed:',
+        (e as Error).message,
+      );
+    }
+  }, [assetId, selectedProvider, tokensLoading, setSelectedToken]);
+
+  const isLoading =
+    tokensLoading ||
+    providersLoading ||
+    paymentMethodsLoading ||
+    (!selectedProvider && !providersError);
   const error = tokensError || providersError || paymentMethodsError;
 
   const paymentOptions = useMemo(() => {

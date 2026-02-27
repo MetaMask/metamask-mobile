@@ -2101,8 +2101,11 @@ export function getRampsOrderDetailsNavbarOptions(
     startButtonIconProps = {
       iconName: IconName.ArrowLeft,
       onPress: () => {
-        navigation.pop();
-        onClose?.();
+        if (onClose) {
+          onClose();
+        } else {
+          navigation.pop();
+        }
       },
       testID: 'ramps-order-details-back-navbar-button',
     };

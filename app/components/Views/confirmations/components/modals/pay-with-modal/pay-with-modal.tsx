@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex, toCaipAssetType } from '@metamask/utils';
 import { noop } from 'lodash';
 import Engine from '../../../../../../core/Engine';
@@ -34,6 +34,8 @@ import RampsQuickBuyPaymentMethods from '../../../../../UI/Ramp/components/Ramps
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { Box } from '@metamask/design-system-react-native';
 
+let quickBuyInFlight = false;
+
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
   const hideNetworkFilter = hasTransactionType(
@@ -44,6 +46,9 @@ export function PayWithModal() {
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  useEffect(() => {
+    quickBuyInFlight = false;
+  }, []);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
   const { onPaymentTokenChange: onMusdPaymentTokenChange } =
     useMusdPaymentToken();
@@ -196,17 +201,20 @@ export function PayWithModal() {
   );
 
   const quickBuyAssetId = useMemo(() => {
-    const selectedToken = payToken ?? primaryRequiredToken;
-    if (!selectedToken?.address || !selectedToken?.chainId) {
+    if (!primaryRequiredToken?.address || !primaryRequiredToken?.chainId) {
       return undefined;
     }
 
-    const nativeAddress = getNativeTokenAddress(selectedToken.chainId as Hex);
-    if (selectedToken.address.toLowerCase() === nativeAddress.toLowerCase()) {
+    const nativeAddress = getNativeTokenAddress(
+      primaryRequiredToken.chainId as Hex,
+    );
+    if (
+      primaryRequiredToken.address.toLowerCase() === nativeAddress.toLowerCase()
+    ) {
       return undefined;
     }
 
-    const chainReference = Number(selectedToken.chainId).toString();
+    const chainReference = Number(primaryRequiredToken.chainId).toString();
     if (!chainReference || chainReference === 'NaN') {
       return undefined;
     }
@@ -215,18 +223,20 @@ export function PayWithModal() {
       'eip155',
       chainReference,
       'erc20',
-      selectedToken.address,
+      primaryRequiredToken.address.toLowerCase(),
     );
-  }, [payToken, primaryRequiredToken]);
+  }, [primaryRequiredToken]);
+
+  const DEFAULT_QUICK_BUY_AMOUNT = '50';
 
   const quickBuyAmount = useMemo(() => {
     if (!primaryRequiredToken?.amountUsd) {
-      return undefined;
+      return DEFAULT_QUICK_BUY_AMOUNT;
     }
 
     const amount = Number(primaryRequiredToken.amountUsd);
     if (!Number.isFinite(amount) || amount <= 0) {
-      return undefined;
+      return DEFAULT_QUICK_BUY_AMOUNT;
     }
 
     return amount.toString();
@@ -239,7 +249,7 @@ export function PayWithModal() {
       TransactionType.perpsDepositAndOrder,
       TransactionType.predictDeposit,
     ]) &&
-    Boolean(quickBuyAssetId && quickBuyAmount);
+    Boolean(quickBuyAssetId);
 
   return (
     <BottomSheet
@@ -253,11 +263,16 @@ export function PayWithModal() {
         // isn't forwarded to `onCloseBottomSheet` as the post-close callback.
         onClose={() => close()}
       />
-      {shouldShowQuickBuyPaymentMethods && quickBuyAssetId && quickBuyAmount ? (
+      {shouldShowQuickBuyPaymentMethods && quickBuyAssetId ? (
         <Box twClassName="px-4 pb-2">
           <RampsQuickBuyPaymentMethods
             assetId={quickBuyAssetId}
-            amount={quickBuyAmount}
+            amount={quickBuyAmount ?? '0'}
+            onOptionPress={(option) => {
+              if (quickBuyInFlight) return;
+              quickBuyInFlight = true;
+              close(() => option.onPress());
+            }}
             testID="transaction-add-funds-quick-buy"
           />
         </Box>

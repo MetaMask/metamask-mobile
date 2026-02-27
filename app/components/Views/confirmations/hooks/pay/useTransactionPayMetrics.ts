@@ -110,7 +110,7 @@ export function useTransactionPayMetrics() {
     const sendingAmountUsd = Number(primaryRequiredToken?.amountUsd ?? '0');
     properties.mm_pay_sending_value_usd = sendingAmountUsd;
 
-    properties.mm_pay_receiving_value_usd = totals
+    properties.mm_pay_receiving_value_usd = totals?.targetAmount?.usd
       ? Number(totals.targetAmount.usd)
       : null;
   }
@@ -121,7 +121,7 @@ export function useTransactionPayMetrics() {
     (q) => q.request?.targetTokenAddress !== nativeTokenAddress,
   );
 
-  if (nonGasQuote) {
+  if (nonGasQuote?.dust) {
     properties.mm_pay_dust_usd = nonGasQuote.dust.usd;
   }
 
@@ -135,15 +135,17 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_strategy = 'relay';
   }
 
-  if (totals) {
+  if (totals?.fees) {
     properties.mm_pay_network_fee_usd = new BigNumber(
-      totals.fees.sourceNetwork.estimate.usd,
+      totals.fees.sourceNetwork?.estimate?.usd ?? '0',
     )
-      .plus(totals.fees.targetNetwork.usd)
+      .plus(totals.fees.targetNetwork?.usd ?? '0')
       .toString(10);
 
-    properties.mm_pay_provider_fee_usd = totals.fees.provider.usd;
-    properties.mm_pay_metamask_fee_usd = Number(totals.fees.metaMask.usd);
+    properties.mm_pay_provider_fee_usd = totals.fees.provider?.usd ?? '0';
+    properties.mm_pay_metamask_fee_usd = Number(
+      totals.fees.metaMask?.usd ?? '0',
+    );
   }
 
   const params = useDeepMemo(

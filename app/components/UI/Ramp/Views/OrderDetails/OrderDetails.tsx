@@ -43,6 +43,7 @@ import { processFiatOrder } from '../../index';
 interface RampsOrderDetailsParams {
   orderId: string;
   showCloseButton?: boolean;
+  isQuickBuy?: boolean;
 }
 
 export const createRampsOrderDetailsNavDetails =
@@ -69,15 +70,23 @@ const OrderDetails = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
 
+  const handleNavbarClose = useCallback(() => {
+    if (params.isQuickBuy) {
+      // @ts-expect-error React Navigation v5 uses dangerouslyGetParent
+      navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
+    }
+  }, [navigation, params.isQuickBuy]);
+
   useEffect(() => {
     navigation.setOptions(
       getRampsOrderDetailsNavbarOptions(
         navigation,
         { title: strings('ramps_order_details.title') },
         theme,
+        params.isQuickBuy ? handleNavbarClose : undefined,
       ),
     );
-  }, [theme, navigation]);
+  }, [theme, navigation, params.isQuickBuy, handleNavbarClose]);
 
   const dispatchUpdateFiatOrder = useCallback(
     (updatedOrder: FiatOrder) => dispatch(updateFiatOrder(updatedOrder)),
@@ -209,6 +218,7 @@ const OrderDetails = () => {
             <OrderContent
               order={order}
               showCloseButton={params.showCloseButton}
+              isQuickBuy={params.isQuickBuy}
             />
           </ScreenLayout.Content>
         </ScreenLayout.Body>

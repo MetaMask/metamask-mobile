@@ -100,6 +100,14 @@ export const createBuildQuoteNavDetails = (
 
 const DEFAULT_AMOUNT = 100;
 
+/**
+ * Tracks autoProceed sessions that have already been dispatched.
+ * Keyed by `assetId|paymentMethodId|amount` so the guard survives
+ * component remounts caused by `navigation.reset()` in the Transak
+ * native flow (which recreates AmountInput/BuildQuote as route[0]).
+ */
+const autoProceedDispatched = new Set<string>();
+
 function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
@@ -256,8 +264,9 @@ function BuildQuote() {
     getBuyQuote: transakGetBuyQuote,
   } = useTransakController();
 
-  const { routeAfterAuthentication: transakRouteAfterAuth } =
-    useTransakRouting();
+  const { routeAfterAuthentication: transakRouteAfterAuth } = useTransakRouting(
+    { isQuickBuy: isAutoProceed },
+  );
 
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
@@ -504,6 +513,7 @@ function BuildQuote() {
               network,
               currency,
               cryptocurrency: selectedToken?.symbol || '',
+              isQuickBuy: isAutoProceed,
             }),
           );
           return { success: true };
@@ -545,6 +555,7 @@ function BuildQuote() {
       transakCheckExistingToken,
       transakGetBuyQuote,
       transakRouteAfterAuth,
+      isAutoProceed,
     ],
   );
 
@@ -624,9 +635,19 @@ function BuildQuote() {
   const autoProceedAttemptedRef = useRef(false);
   const autoProceedFailedRef = useRef(false);
 
+  const autoProceedSessionKey = isAutoProceed
+    ? `${params?.assetId ?? ''}|${params?.paymentMethodId ?? ''}|${params?.amount ?? ''}`
+    : '';
+
+  const isAutoProceedAlreadyDispatched =
+    isAutoProceed &&
+    autoProceedSessionKey !== '' &&
+    autoProceedDispatched.has(autoProceedSessionKey);
+
   useEffect(() => {
     if (
       !isAutoProceed ||
+      isAutoProceedAlreadyDispatched ||
       autoProceedAttemptedRef.current ||
       autoProceedFailedRef.current
     ) {
@@ -655,6 +676,7 @@ function BuildQuote() {
     }
   }, [
     isAutoProceed,
+    isAutoProceedAlreadyDispatched,
     quoteFetchEnabled,
     quoteFetchError,
     selectedQuoteLoading,
@@ -666,6 +688,7 @@ function BuildQuote() {
   useEffect(() => {
     if (
       !isAutoProceed ||
+      isAutoProceedAlreadyDispatched ||
       autoProceedAttemptedRef.current ||
       autoProceedFailedRef.current ||
       selectedQuoteLoading ||
@@ -679,6 +702,13 @@ function BuildQuote() {
     }
 
     autoProceedAttemptedRef.current = true;
+    if (autoProceedSessionKey) {
+      autoProceedDispatched.add(autoProceedSessionKey);
+      setTimeout(
+        () => autoProceedDispatched.delete(autoProceedSessionKey),
+        300000,
+      );
+    }
     let isCancelled = false;
 
     const continueFlow = async () => {
@@ -689,6 +719,9 @@ function BuildQuote() {
 
       if (!result.success) {
         autoProceedFailedRef.current = true;
+        if (autoProceedSessionKey) {
+          autoProceedDispatched.delete(autoProceedSessionKey);
+        }
         exitQuickBuyFlow(
           result.errorMessage || strings('deposit.buildQuote.unexpectedError'),
         );
@@ -704,6 +737,8 @@ function BuildQuote() {
     };
   }, [
     isAutoProceed,
+    isAutoProceedAlreadyDispatched,
+    autoProceedSessionKey,
     selectedQuote,
     selectedProvider,
     selectedQuoteLoading,
@@ -714,7 +749,7 @@ function BuildQuote() {
   ]);
 
   useEffect(() => {
-    if (!isAutoProceed) {
+    if (!isAutoProceed || isAutoProceedAlreadyDispatched) {
       return;
     }
 
@@ -728,7 +763,7 @@ function BuildQuote() {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isAutoProceed, exitQuickBuyFlow]);
+  }, [isAutoProceed, isAutoProceedAlreadyDispatched, exitQuickBuyFlow]);
 
   if (isAutoProceed) {
     return (

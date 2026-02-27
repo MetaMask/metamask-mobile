@@ -40,7 +40,10 @@ function RampsQuickBuyPaymentMethods({
 
   const handleOptionPress = useCallback(
     (option: RampsQuickBuyOption) => {
-      onOptionPress?.(option);
+      if (onOptionPress) {
+        onOptionPress(option);
+        return;
+      }
       option.onPress();
     },
     [onOptionPress],

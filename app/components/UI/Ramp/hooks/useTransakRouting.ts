@@ -57,9 +57,11 @@ class LimitExceededError extends Error {
 
 interface UseTransakRoutingConfig {
   screenLocation?: string;
+  isQuickBuy?: boolean;
 }
 
 export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
+  const isQuickBuy = _config?.isQuickBuy ?? false;
   const navigation = useNavigation<StackNavigationProp<RampStackParamList>>();
   const handleNewOrder = useHandleNewOrder();
   const { themeAppearance, colors } = useTheme();
@@ -217,12 +219,12 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
         routes: [
           {
             name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-            params: { orderId, showCloseButton: true },
+            params: { orderId, showCloseButton: true, isQuickBuy },
           },
         ],
       });
     },
-    [navigation],
+    [navigation, isQuickBuy],
   );
 
   const navigateToAdditionalVerificationCallback = useCallback(

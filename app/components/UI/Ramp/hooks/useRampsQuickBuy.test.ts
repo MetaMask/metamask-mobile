@@ -69,7 +69,7 @@ describe('useRampsQuickBuy', () => {
     mockRegisterQuickBuyErrorCallback.mockReturnValue('quick-buy-callback-key');
   });
 
-  it('sets selected token when assetId is provided', () => {
+  it('sets selected token when assetId is provided and provider is selected', () => {
     renderHook(() =>
       useRampsQuickBuy({
         assetId: 'eip155:1/erc20:0x123',
@@ -78,6 +78,39 @@ describe('useRampsQuickBuy', () => {
     );
 
     expect(mockSetSelectedToken).toHaveBeenCalledWith('eip155:1/erc20:0x123');
+  });
+
+  it('does not set selected token when no provider is selected', () => {
+    mockUseRampsController.mockReturnValue({
+      ...mockUseRampsController(),
+      providers: [] as never[],
+      selectedProvider: null,
+    });
+
+    renderHook(() =>
+      useRampsQuickBuy({
+        assetId: 'eip155:1/erc20:0x123',
+        amount: '100',
+      }),
+    );
+
+    expect(mockSetSelectedToken).not.toHaveBeenCalled();
+  });
+
+  it('does not set selected token while tokens are loading', () => {
+    mockUseRampsController.mockReturnValue({
+      ...mockUseRampsController(),
+      tokensLoading: true,
+    });
+
+    renderHook(() =>
+      useRampsQuickBuy({
+        assetId: 'eip155:1/erc20:0x123',
+        amount: '100',
+      }),
+    );
+
+    expect(mockSetSelectedToken).not.toHaveBeenCalled();
   });
 
   it('returns payment options with deeplinks', () => {

@@ -80,6 +80,8 @@ interface CheckoutParams {
   callbackKey?: string;
   /** Optional callback invoked on every navigation state change (e.g. to intercept redirect URLs). */
   onNavigationStateChange?: (navState: { url: string }) => void;
+  /** When true, dismiss the Ramps modal on order completion instead of showing order details. */
+  isQuickBuy?: boolean;
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
@@ -230,6 +232,7 @@ const Checkout = () => {
     providerType,
     onNavigationStateChange,
     callbackKey,
+    isQuickBuy,
   } = params ?? {};
 
   const headerTitle = providerName ?? '';
@@ -293,16 +296,12 @@ const Checkout = () => {
       });
 
       if (providerType === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
-        // Use reset() instead of pop() + navigate() to avoid a race condition:
-        // dangerouslyGetParent()?.pop() removes the ramp modal from the stack
-        // before navigate() can push the order details screen, sending the user
-        // to the home screen instead.
         navigation.reset({
           index: 0,
           routes: [
             {
               name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-              params: { orderId: order.id, showCloseButton: true },
+              params: { orderId: order.id, showCloseButton: true, isQuickBuy },
             },
           ],
         });
@@ -311,7 +310,7 @@ const Checkout = () => {
         navigation.dangerouslyGetParent()?.pop();
       }
     },
-    [dispatch, dispatchThunk, navigation, providerType],
+    [dispatch, dispatchThunk, navigation, providerType, isQuickBuy],
   );
 
   const handleNavigationStateChange = useCallback(
