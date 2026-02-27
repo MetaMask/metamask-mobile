@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useMemo } from 'react';
+import React from 'react';
 
 // External dependencies.
 import {
@@ -9,8 +9,6 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
-  IconName,
-  ButtonIconProps,
 } from '@metamask/design-system-react-native';
 import Animated, {
   useAnimatedStyle,
@@ -19,7 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 // Internal dependencies.
-import HeaderBase from '../../components/HeaderBase';
+import HeaderCompactStandard from '../HeaderCompactStandard';
 import { HeaderStandardAnimatedProps } from './HeaderStandardAnimated.types';
 
 const HeaderStandardAnimated: React.FC<HeaderStandardAnimatedProps> = ({
@@ -28,50 +26,11 @@ const HeaderStandardAnimated: React.FC<HeaderStandardAnimatedProps> = ({
   subtitle,
   subtitleProps,
   children,
-  onBack,
-  backButtonProps,
-  onClose,
-  closeButtonProps,
-  endButtonIconProps,
-  startButtonIconProps,
   scrollY,
   titleSectionHeight,
   twClassName = '',
-  testID,
-  ...headerBaseProps
+  ...headerStandardProps
 }) => {
-  const resolvedStartButtonIconProps = useMemo(() => {
-    if (startButtonIconProps) {
-      return startButtonIconProps;
-    }
-    if (onBack || backButtonProps) {
-      return {
-        iconName: IconName.ArrowLeft,
-        ...(backButtonProps || {}),
-        onPress: backButtonProps?.onPress ?? onBack,
-      } as ButtonIconProps;
-    }
-    return undefined;
-  }, [onBack, backButtonProps, startButtonIconProps]);
-
-  const resolvedEndButtonIconProps = useMemo(() => {
-    const props: ButtonIconProps[] = [];
-
-    if (onClose || closeButtonProps) {
-      const closeProps: ButtonIconProps = {
-        iconName: IconName.Close,
-        ...(closeButtonProps || {}),
-        onPress: closeButtonProps?.onPress ?? onClose,
-      };
-      props.push(closeProps);
-    }
-
-    if (endButtonIconProps) {
-      props.push(...endButtonIconProps);
-    }
-    return props.length > 0 ? props : undefined;
-  }, [endButtonIconProps, onClose, closeButtonProps]);
-
   const compactTitleProgress = useDerivedValue(() => {
     const hasMeasured = titleSectionHeight.value > 0;
     const isFullyHidden =
@@ -87,48 +46,41 @@ const HeaderStandardAnimated: React.FC<HeaderStandardAnimatedProps> = ({
     };
   });
 
-  const renderContent = () => {
-    if (children) {
-      return children;
-    }
-    if (title) {
-      return (
-        <Box alignItems={BoxAlignItems.Center}>
+  const content =
+    children ??
+    (title && (
+      <Box alignItems={BoxAlignItems.Center}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Bold}
+          {...titleProps}
+        >
+          {title}
+        </Text>
+        {subtitle && (
           <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
-            {...titleProps}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            {...subtitleProps}
+            twClassName={`-mt-0.5 ${subtitleProps?.twClassName ?? ''}`.trim()}
           >
-            {title}
+            {subtitle}
           </Text>
-          {subtitle && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              {...subtitleProps}
-              twClassName={`-mt-0.5 ${subtitleProps?.twClassName ?? ''}`.trim()}
-            >
-              {subtitle}
-            </Text>
-          )}
-        </Box>
-      );
-    }
-    return null;
-  };
+        )}
+      </Box>
+    ));
 
   return (
-    <HeaderBase
-      testID={testID}
-      startButtonIconProps={resolvedStartButtonIconProps}
-      endButtonIconProps={resolvedEndButtonIconProps}
-      {...headerBaseProps}
+    <HeaderCompactStandard
+      {...headerStandardProps}
+      title={title}
+      titleProps={titleProps}
+      subtitle={subtitle}
+      subtitleProps={subtitleProps}
       twClassName={`bg-default px-2 ${twClassName}`.trim()}
     >
-      <Animated.View style={centerAnimatedStyle}>
-        {renderContent()}
-      </Animated.View>
-    </HeaderBase>
+      <Animated.View style={centerAnimatedStyle}>{content}</Animated.View>
+    </HeaderCompactStandard>
   );
 };
 

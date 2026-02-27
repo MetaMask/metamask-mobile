@@ -81,17 +81,22 @@ describe('useHeaderStandardAnimated', () => {
   });
 
   describe('onScroll', () => {
-    it('returns onScroll handler that accepts event with contentOffset', () => {
+    it('returns onScroll handler that accepts event with contentOffset and does not throw', () => {
+      // scrollY.value update from contentOffset.y is not asserted here because the hook
+      // receives the real react-native-reanimated in this test environment; the behavior
+      // is implemented in the hook and may be covered by integration tests.
       const { result } = renderHook(() => useHeaderStandardAnimated());
 
       expect(typeof result.current.onScroll).toBe('function');
 
       expect(() => {
-        result.current.onScroll(
-          createScrollEvent(75) as unknown as Parameters<
-            ReturnType<typeof useHeaderStandardAnimated>['onScroll']
-          >[0],
-        );
+        act(() => {
+          result.current.onScroll(
+            createScrollEvent(75) as unknown as Parameters<
+              ReturnType<typeof useHeaderStandardAnimated>['onScroll']
+            >[0],
+          );
+        });
       }).not.toThrow();
     });
   });
