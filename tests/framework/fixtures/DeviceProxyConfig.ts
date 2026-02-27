@@ -78,6 +78,10 @@ export async function installCACertAndroid(
   const remotePath = `/system/etc/security/cacerts/${certHash}.0`;
 
   await execAsync(`adb ${deviceFlag} root`);
+  // adbd restarts when gaining root; wait for the device to be ready before
+  // issuing the next command — otherwise remount may fail with "device offline"
+  // and incorrectly fall into the full reboot path.
+  await execAsync(`adb ${deviceFlag} wait-for-device`);
 
   const pushCert = async () => {
     await execAsync(`adb ${deviceFlag} push "${certPath}" "${remotePath}"`);
@@ -120,6 +124,8 @@ export async function installCACertAndroid(
   };
   await waitForBoot();
   await execAsync(`adb ${deviceFlag} root`);
+  // Same wait after the post-reboot root to ensure adbd is ready before remount.
+  await execAsync(`adb ${deviceFlag} wait-for-device`);
   await execAsync(`adb ${deviceFlag} remount`);
   await pushCert();
 }
@@ -188,23 +194,34 @@ async function getActiveNetworkService(): Promise<string> {
 }
 
 /**
+ * Installs the proxy CA certificate into the iOS simulator's keychain.
+ * Safe to call before the app is launched.
+ *
+ * Uses DER-encoded .cer format because xcrun simctl on newer Xcode versions
+ * can reject PEM files even when the content is valid.
+ */
+export async function installCACertIOS(
+  simulatorId: string,
+  certPem: string,
+): Promise<void> {
+  const pemPath = await writeCertToTempFile(certPem);
+  const cerPath = pemPath.replace(/\.pem$/, '.cer');
+  await execAsync(
+    `openssl x509 -outform DER -in "${pemPath}" -out "${cerPath}"`,
+  );
+  await execAsync(
+    `xcrun simctl keychain ${simulatorId} add-root-cert "${cerPath}"`,
+  );
+}
+
+/**
  * Configures the iOS simulator to route HTTP and HTTPS traffic through the
- * transparent proxy and installs the CA certificate into the simulator keychain.
+ * transparent proxy.
  *
  * NOTE: The proxy is set on the Mac's network interface so the simulator (which
  * shares the host network stack) picks it up automatically.
  */
-export async function configureIOSProxy(
-  simulatorId: string,
-  proxyPort: number,
-  certPem: string,
-): Promise<void> {
-  // Install CA cert into the simulator's keychain
-  const certPath = await writeCertToTempFile(certPem);
-  await execAsync(
-    `xcrun simctl keychain ${simulatorId} add-root-cert "${certPath}"`,
-  );
-
+export async function configureIOSProxy(proxyPort: number): Promise<void> {
   const service = await getActiveNetworkService();
   await execAsync(
     `networksetup -setwebproxy "${service}" localhost ${proxyPort}`,
@@ -221,10 +238,14 @@ export async function removeCACertIOS(
   simulatorId: string,
   certPem: string,
 ): Promise<void> {
-  const certPath = await writeCertToTempFile(certPem);
+  const pemPath = await writeCertToTempFile(certPem);
+  const cerPath = pemPath.replace(/\.pem$/, '.cer');
   try {
     await execAsync(
-      `xcrun simctl keychain ${simulatorId} delete-certificate -f "${certPath}"`,
+      `openssl x509 -outform DER -in "${pemPath}" -out "${cerPath}"`,
+    );
+    await execAsync(
+      `xcrun simctl keychain ${simulatorId} delete-certificate -f "${cerPath}"`,
     );
   } catch {
     logger.debug('CA cert removal from iOS simulator skipped or not needed');

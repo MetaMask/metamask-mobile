@@ -8,6 +8,7 @@ import {
   removeAndroidProxy,
   removeCACertAndroid,
   installCACertAndroid,
+  installCACertIOS,
   configureIOSProxy,
   removeIOSProxy,
   removeCACertIOS,
@@ -155,8 +156,29 @@ export default class TransparentProxy implements Resource {
   }
 
   /**
-   * Configures the device/simulator to route traffic through this proxy,
-   * installs the CA certificate, and disables Detox synchronization.
+   * Installs the CA certificate on the device/simulator.
+   * Safe to call BEFORE the app is launched (no app interaction needed).
+   * On Android, this may trigger an emulator reboot if dm-verity needs disabling.
+   */
+  async installCACert(): Promise<void> {
+    const certPem = this.getCACertPem();
+
+    if (FrameworkDetector.isDetox()) {
+      const isAndroid = device.getPlatform() === 'android';
+      if (isAndroid) {
+        const deviceId = (device as { id?: string }).id || '';
+        await installCACertAndroid(deviceId, certPem);
+      } else {
+        const simulatorId = (device as { id?: string }).id || 'booted';
+        await installCACertIOS(simulatorId, certPem);
+      }
+      logger.info('CA certificate installed on device.');
+    }
+  }
+
+  /**
+   * Configures the device/simulator to route traffic through this proxy
+   * and disables Detox synchronization.
    * Must be called AFTER the app has been launched.
    */
   async configureDevice(): Promise<void> {
@@ -166,17 +188,14 @@ export default class TransparentProxy implements Resource {
     if (!proxyPort) {
       throw new Error('Transparent proxy port not allocated by PortManager');
     }
-    const certPem = this.getCACertPem();
 
     if (FrameworkDetector.isDetox()) {
       const isAndroid = device.getPlatform() === 'android';
       if (isAndroid) {
         const deviceId = (device as { id?: string }).id || '';
-        await installCACertAndroid(deviceId, certPem);
         await configureAndroidProxy(deviceId, proxyPort);
       } else {
-        const simulatorId = (device as { id?: string }).id || 'booted';
-        await configureIOSProxy(simulatorId, proxyPort, certPem);
+        await configureIOSProxy(proxyPort);
       }
 
       await device.setURLBlacklist(['.*']);
@@ -192,7 +211,18 @@ export default class TransparentProxy implements Resource {
    */
   async removeDeviceConfig(): Promise<void> {
     if (FrameworkDetector.isDetox()) {
-      const isAndroid = device.getPlatform() === 'android';
+      // Guard against device being inaccessible (e.g. emulator crashed during the test).
+      // typeof check avoids ReferenceError when the Detox global has been torn down.
+      let isAndroid: boolean;
+      try {
+        // eslint-disable-next-line no-undef
+        isAndroid = device.getPlatform() === 'android';
+      } catch {
+        logger.warn(
+          'device not accessible in removeDeviceConfig — skipping device cleanup',
+        );
+        return;
+      }
       const certPem = TransparentProxy._caCert?.cert;
 
       if (isAndroid) {

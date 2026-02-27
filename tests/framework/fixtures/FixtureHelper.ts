@@ -615,6 +615,17 @@ export async function withFixtures(
         commandQueueServer,
       );
     }
+
+    // Install CA cert BEFORE launching the app. On Android this may reboot the
+    // emulator (dm-verity disable), so it must happen before Detox connects.
+    if (
+      useTransparentProxy &&
+      transparentProxyInstance?.isStarted() &&
+      !isBrowserStack
+    ) {
+      await transparentProxyInstance.installCACert();
+    }
+
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
 
