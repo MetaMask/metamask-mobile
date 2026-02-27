@@ -530,7 +530,9 @@ const BridgeView = () => {
             )}
             {shouldDisplayQuoteDetails && (
               <Box style={styles.quoteContainer}>
-                <QuoteDetailsCard />
+                <QuoteDetailsCard
+                  hasInsufficientBalance={hasInsufficientBalance}
+                />
               </Box>
             )}
           </Box>
