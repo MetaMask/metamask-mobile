@@ -173,7 +173,7 @@ exports[`ProgressStepper renders correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 12,
             "height": 24,
             "justifyContent": "center",
@@ -870,7 +870,7 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 12,
             "height": 24,
             "justifyContent": "center",
@@ -1101,7 +1101,7 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 12,
             "height": 24,
             "justifyContent": "center",
