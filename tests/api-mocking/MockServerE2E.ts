@@ -439,6 +439,26 @@ export default class MockServerE2E implements Resource {
     this._installAbortFilter();
   }
 
+  /**
+   * Puts the server into draining mode — handlers return 503 immediately
+   * without forwarding. Call this before stopping backend services (Anvil/Ganache)
+   * to prevent forwarding requests to dead backends during cleanup.
+   */
+  startDraining(): void {
+    logger.info(
+      'MockServer entering drain mode — new requests will receive 503',
+    );
+    this._shuttingDown = true;
+  }
+
+  /**
+   * Removes the lifecycle-wide abort filter. Call this AFTER all cleanup is
+   * complete to ensure late async "Aborted" rejections are caught.
+   */
+  removeAbortFilter(): void {
+    this._removeAbortFilter();
+  }
+
   async stop(): Promise<void> {
     logger.info('Mock server shutting down');
     if (!this._server) {
@@ -469,7 +489,6 @@ export default class MockServerE2E implements Resource {
     } catch (error) {
       logger.error('Error stopping mock server:', error);
     } finally {
-      this._removeAbortFilter();
       this._shuttingDown = false;
       this._server = null;
       this._serverStatus = ServerStatus.STOPPED;
