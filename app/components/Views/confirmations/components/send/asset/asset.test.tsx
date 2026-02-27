@@ -3,8 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import {
   AssetType,
-  HighlightedActionListItem,
-  HighlightedAssetListItem,
+  HighlightedItem,
   TokenListItem,
   Nft,
 } from '../../../types/token';
@@ -72,8 +71,8 @@ const mockNfts: Nft[] = [
   },
 ];
 
-const mockHighlightedAsset: HighlightedAssetListItem = {
-  type: 'highlighted_asset',
+const mockHighlightedAsset: HighlightedItem = {
+  position: 'in_asset_list',
   icon: 'https://example.com/perps.png',
   name: 'Perps Balance',
   name_description: 'USD',
@@ -130,7 +129,7 @@ jest.mock('../../token-list', () => ({
     highlightedAssets = [],
   }: {
     tokens: AssetType[];
-    highlightedAssets?: HighlightedAssetListItem[];
+    highlightedAssets?: HighlightedItem[];
   }) => {
     const { View, Text } = jest.requireActual('react-native');
 
@@ -145,12 +144,12 @@ jest.mock('../../token-list', () => ({
   },
 }));
 
-jest.mock('../../UI/highlighted-action', () => ({
-  HighlightedAction: ({ item }: { item: HighlightedActionListItem }) => {
+jest.mock('../../UI/highlighted-item', () => ({
+  HighlightedItem: ({ item }: { item: HighlightedItem }) => {
     const { View, Text } = jest.requireActual('react-native');
 
     return (
-      <View testID="highlighted-action-row">
+      <View testID={`highlighted-${item.position}-row`}>
         <Text>{item.name}</Text>
       </View>
     );
