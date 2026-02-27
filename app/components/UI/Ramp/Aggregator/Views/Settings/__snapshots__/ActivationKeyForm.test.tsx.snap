@@ -532,15 +532,18 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
                                   }
-                                  testID="label"
                                 >
                                   Label
                                 </Text>
@@ -643,15 +646,18 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
                                   }
-                                  testID="label"
                                 >
                                   Key
                                 </Text>

@@ -5,16 +5,20 @@ exports[`AssetSelectorButton renders correctly 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#131416",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginVertical": 8,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginVertical": 8,
+        },
+      ]
     }
-    testID="label"
   >
     Want to buy
   </Text>,
@@ -179,16 +183,20 @@ exports[`AssetSelectorButton renders correctly without icon 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#131416",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginVertical": 8,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginVertical": 8,
+        },
+      ]
     }
-    testID="label"
   >
     Want to buy
   </Text>,
@@ -328,16 +336,20 @@ exports[`AssetSelectorButton renders loading state correctly 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#131416",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginVertical": 8,
-      }
+      [
+        {
+          "color": "#121314",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginVertical": 8,
+        },
+      ]
     }
-    testID="label"
   >
     Want to buy
   </Text>,
