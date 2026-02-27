@@ -105,17 +105,23 @@ const OrderContent: React.FC<OrderContentProps> = ({
   const handleProviderLinkPress = useCallback(async () => {
     const url = providerData.providerOrderLink;
     if (!url) return;
+    let urlDomain: string | undefined;
     try {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
-          .addProperties({
-            location: 'Order Details',
-            text: 'View on Provider',
-            url_domain: new URL(url).hostname,
-            ramp_type: 'UNIFIED_BUY_2',
-          })
-          .build(),
-      );
+      urlDomain = new URL(url).hostname;
+    } catch {
+      urlDomain = url;
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
+        .addProperties({
+          location: 'Order Details',
+          text: 'View on Provider',
+          url_domain: urlDomain,
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+    try {
       if (await InAppBrowser.isAvailable()) {
         await InAppBrowser.open(url);
       } else {
