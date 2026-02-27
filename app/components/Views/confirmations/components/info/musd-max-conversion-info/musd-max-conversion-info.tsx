@@ -25,7 +25,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { RateRow } from '../../rows/rate-row';
+import { TokenConversionRateRow } from '../../rows/token-conversion-rate-row';
 
 /**
  * Navigation params for MusdMaxConversionInfo
@@ -80,7 +80,7 @@ export const MusdMaxConversionInfo = () => {
         formatFiat={formatFiat}
       />
       <View style={styles.detailsSection}>
-        <RateRow />
+        <TokenConversionRateRow />
         <BridgeFeeRow />
         <TotalRow />
         <PercentageRow />

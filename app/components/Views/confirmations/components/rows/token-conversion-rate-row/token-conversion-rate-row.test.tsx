@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { RateRow } from './rate-row';
+import { TokenConversionRateRow } from './token-conversion-rate-row';
 import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
@@ -25,7 +25,7 @@ const mockSelectSingleTokenByAddressAndChainId = jest.mocked(
   selectSingleTokenByAddressAndChainId,
 );
 
-describe('RateRow', () => {
+describe('TokenConversionRateRow', () => {
   beforeEach(() => {
     mockUseTransactionMetadataRequest.mockReturnValue({
       id: 'tx-1',
@@ -58,7 +58,7 @@ describe('RateRow', () => {
   it('renders loading skeleton when transaction metadata is unavailable', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
 
-    renderWithProvider(<RateRow />, { state: {} });
+    renderWithProvider(<TokenConversionRateRow />, { state: {} });
 
     expect(screen.getByTestId('rate-row-skeleton')).toBeOnTheScreen();
     expect(screen.queryByTestId('rate-row-container')).not.toBeOnTheScreen();
@@ -67,14 +67,14 @@ describe('RateRow', () => {
   it('renders loading skeleton when quote data is loading', () => {
     mockUseIsTransactionPayLoading.mockReturnValue(true);
 
-    renderWithProvider(<RateRow />, { state: {} });
+    renderWithProvider(<TokenConversionRateRow />, { state: {} });
 
     expect(screen.getByTestId('rate-row-skeleton')).toBeOnTheScreen();
     expect(screen.queryByTestId('rate-row-container')).not.toBeOnTheScreen();
   });
 
   it('renders exchange rate text', () => {
-    renderWithProvider(<RateRow />, { state: {} });
+    renderWithProvider(<TokenConversionRateRow />, { state: {} });
 
     expect(screen.getByTestId('rate-row-container')).toBeOnTheScreen();
     expect(screen.queryByTestId('rate-row-skeleton')).not.toBeOnTheScreen();
@@ -84,7 +84,7 @@ describe('RateRow', () => {
   it('output token symbol falls back to mUSD when output token is not found', () => {
     mockSelectSingleTokenByAddressAndChainId.mockReturnValue(undefined);
 
-    renderWithProvider(<RateRow />, { state: {} });
+    renderWithProvider(<TokenConversionRateRow />, { state: {} });
 
     expect(screen.getByText('1 USDC = 0.9 mUSD')).toBeOnTheScreen();
   });
@@ -101,7 +101,7 @@ describe('RateRow', () => {
       },
     ] as never);
 
-    renderWithProvider(<RateRow />, { state: {} });
+    renderWithProvider(<TokenConversionRateRow />, { state: {} });
 
     expect(screen.getByText('1 USDC = undefined mUSD')).toBeOnTheScreen();
   });

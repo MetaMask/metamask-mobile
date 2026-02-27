@@ -18,12 +18,12 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { RootState } from '../../../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../../selectors/tokensController';
 
-const RateRowTestIds = {
+const TokenConversionRateRowTestIds = {
   CONTAINER: 'rate-row-container',
   SKELETON: 'rate-row-skeleton',
 } as const;
 
-export function RateRow() {
+export function TokenConversionRateRow() {
   const transactionMetadata = useTransactionMetadataRequest();
   const isQuoteLoading = useIsTransactionPayLoading();
 
@@ -67,13 +67,13 @@ export function RateRow() {
   }, [quote?.sourceAmount?.usd, quote?.targetAmount?.usd]);
 
   if (isLoading) {
-    return <InfoRowSkeleton testId={RateRowTestIds.SKELETON} />;
+    return <InfoRowSkeleton testId={TokenConversionRateRowTestIds.SKELETON} />;
   }
 
   return (
     <InfoRow
       label={strings('earn.musd_conversion.rate')}
-      testID={RateRowTestIds.CONTAINER}
+      testID={TokenConversionRateRowTestIds.CONTAINER}
     >
       <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {`1 ${inputTokenSymbol} = ${conversionRate} ${outputTokenSymbol}`}
