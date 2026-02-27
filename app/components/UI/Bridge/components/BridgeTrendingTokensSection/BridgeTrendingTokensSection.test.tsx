@@ -68,6 +68,8 @@ const createTrendingTokens = (count: number): TrendingAsset[] =>
     name: `Token ${index + 1}`,
     decimals: 18,
     price: `${index + 1}`,
+    aggregatedUsdVolume: index + 1,
+    marketCap: index + 1,
     priceChangePct: {
       h24: `${index + 1}`,
       h6: `${index + 1}`,

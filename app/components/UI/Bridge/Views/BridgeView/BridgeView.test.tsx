@@ -896,7 +896,6 @@ describe('BridgeView', () => {
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
           quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
-          recommendedQuote: mockQuoteWithMetadata as unknown as QuoteResponse,
           quotesLastFetched: now,
         },
         bridgeReducerOverrides: {

@@ -15,6 +15,7 @@ import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/B
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import { setSlippage } from '../../../../../core/redux/slices/bridge';
 import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
+import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
 import { RequestStatus } from '@metamask/bridge-controller';

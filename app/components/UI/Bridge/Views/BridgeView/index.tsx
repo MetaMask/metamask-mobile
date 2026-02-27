@@ -30,7 +30,6 @@ import {
   selectSelectedDestChainId,
   setSourceAmount,
   setSourceAmountAsMax,
-  selectIsMaxSourceAmount,
   resetBridgeState,
   selectDestToken,
   selectSourceToken,
@@ -124,7 +123,6 @@ const BridgeView = () => {
   useGasFeeEstimates(selectedNetworkClientId);
 
   const sourceAmount = useSelector(selectSourceAmount);
-  const isMaxSourceAmount = useSelector(selectIsMaxSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
@@ -495,7 +493,6 @@ const BridgeView = () => {
             <TokenInputArea
               ref={inputRef}
               amount={sourceAmount}
-              isMaxAmount={isMaxSourceAmount}
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
               networkImageSource={
