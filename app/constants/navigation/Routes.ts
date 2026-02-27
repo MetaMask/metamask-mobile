@@ -45,6 +45,7 @@ const Routes = {
       BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
       TOKEN_NOT_AVAILABLE: 'RampTokenNotAvailableModal',
       PROVIDER_SELECTION: 'RampProviderSelectionModal',
+      ERROR_DETAILS: 'RampErrorDetailsModal',
       PROCESSING_INFO: 'RampProcessingInfoModal',
     },
   },
@@ -428,6 +429,7 @@ const Routes = {
     CHOOSE_YOUR_CARD: 'ChooseYourCard',
     REVIEW_ORDER: 'ReviewOrder',
     ORDER_COMPLETED: 'OrderCompleted',
+    CASHBACK: 'CardCashback',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',

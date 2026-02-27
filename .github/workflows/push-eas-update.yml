@@ -312,6 +312,9 @@ jobs:
       QUICKNODE_MONAD_URL: ${{ secrets.QUICKNODE_MONAD_URL }}
       QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
       QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
+      QUICKNODE_BSC_URL: ${{ secrets.QUICKNODE_BSC_URL }}
+      QUICKNODE_SEI_URL: ${{ secrets.QUICKNODE_SEI_URL }}
+      QUICKNODE_HYPEREVM_URL: ${{ secrets.QUICKNODE_HYPEREVM_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

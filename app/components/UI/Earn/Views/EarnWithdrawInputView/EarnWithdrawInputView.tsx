@@ -4,7 +4,6 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import React, {
   useCallback,
   useEffect,
@@ -40,7 +39,6 @@ import {
   EVENT_PROVIDERS,
 } from '../../constants/events/earnEvents';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
-import { StakeNavigationParamsList } from '../../../Stake/types';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
@@ -140,8 +138,7 @@ const EarnWithdrawInputView = () => {
     return undefined;
   }, [receiptTokenToUse, earnTokenFromMap]);
 
-  const navigation =
-    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { attemptUnstakeTransaction } = usePoolStakedUnstake();
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
@@ -338,7 +335,6 @@ const EarnWithdrawInputView = () => {
       : `${strings('stake.unstake')} ${tokenLabel}`;
 
     navigation.setOptions(
-      // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
       getStakingNavbar(
         title,
         navigation,
