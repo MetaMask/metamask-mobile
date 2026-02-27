@@ -69,7 +69,6 @@ jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
 }));
 
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
-  selectTokenDetailsV2Enabled: jest.fn(() => true),
   selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
 }));
 

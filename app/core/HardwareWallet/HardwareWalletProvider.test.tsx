@@ -9,21 +9,19 @@ import { getHardwareWalletTypeForAddress } from './helpers';
 import { createAdapter } from './adapters';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
 
-// Mock react-redux
 jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 
-// Mock helpers
 jest.mock('./helpers', () => ({
   ...jest.requireActual('./helpers'),
   getHardwareWalletTypeForAddress: jest.fn(),
 }));
 
-// Mock adapters
 const mockAdapterInstance = {
   walletType: 'Ledger',
-  requiresDeviceDiscovery: false,
+  requiresDeviceDiscovery: true,
   connect: jest.fn().mockResolvedValue(undefined),
   disconnect: jest.fn().mockResolvedValue(undefined),
   getConnectedDeviceId: jest.fn().mockReturnValue('device-123'),
@@ -60,7 +58,6 @@ jest.mock('./adapters', () => ({
   createAdapter: jest.fn(() => mockAdapterInstance),
 }));
 
-// Mock the BLE transport
 jest.mock('@ledgerhq/react-native-hw-transport-ble', () => ({
   __esModule: true,
   default: {
@@ -73,43 +70,8 @@ jest.mock('@ledgerhq/react-native-hw-transport-ble', () => ({
   },
 }));
 
-// Mock errors
-jest.mock('./errors', () => {
-  const { HardwareWalletError, ErrorCode, Severity, Category } =
-    jest.requireActual('@metamask/hw-wallet-sdk');
-  return {
-    createHardwareWalletError: jest.fn((error: unknown) => {
-      if (error instanceof HardwareWalletError) {
-        return error;
-      }
-      return new HardwareWalletError(
-        error instanceof Error ? error.message : String(error),
-        {
-          code: ErrorCode.Unknown,
-          severity: Severity.Err,
-          category: Category.Unknown,
-          userMessage: String(error),
-        },
-      );
-    }),
-    parseErrorByType: jest.fn(
-      (error: unknown) =>
-        new HardwareWalletError(
-          error instanceof Error ? error.message : String(error),
-          {
-            code: ErrorCode.Unknown,
-            severity: Severity.Err,
-            category: Category.Unknown,
-            userMessage: String(error),
-          },
-        ),
-    ),
-    isUserCancellation: jest.fn().mockReturnValue(false),
-  };
-});
-
-// Mock react-native
 jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
   Linking: {
     openURL: jest.fn(),
     openSettings: jest.fn(),
@@ -172,13 +134,13 @@ describe('HardwareWalletProvider', () => {
     );
 
   describe('context provision', () => {
-    it('should provide config context', () => {
+    it('provides config context', () => {
       const { getByTestId } = renderProvider();
 
       expect(getByTestId('walletType').children[0]).toBe('null');
     });
 
-    it('should provide state context', () => {
+    it('provides state context', () => {
       const { getByTestId } = renderProvider();
 
       expect(getByTestId('connectionStatus').children[0]).toBe(
@@ -186,7 +148,7 @@ describe('HardwareWalletProvider', () => {
       );
     });
 
-    it('should provide actions context', () => {
+    it('provides actions context', () => {
       const { getByTestId } = renderProvider();
 
       expect(getByTestId('hasEnsureDeviceReady').children[0]).toBe('true');
@@ -194,7 +156,7 @@ describe('HardwareWalletProvider', () => {
   });
 
   describe('wallet type detection', () => {
-    it('should detect hardware wallet from selected account', async () => {
+    it('detects hardware wallet from selected account', async () => {
       const mockAccount = { address: '0x1234' };
       mockUseSelector.mockReturnValue(mockAccount);
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
@@ -208,7 +170,7 @@ describe('HardwareWalletProvider', () => {
       });
     });
 
-    it('should identify non-hardware accounts', () => {
+    it('identifies non-hardware accounts', () => {
       mockUseSelector.mockReturnValue({ address: '0xsoftware' });
       mockGetHardwareWalletType.mockReturnValue(undefined);
 
@@ -219,7 +181,7 @@ describe('HardwareWalletProvider', () => {
   });
 
   describe('adapter creation', () => {
-    it('should create adapter when wallet type is set', async () => {
+    it('creates adapter when wallet type is set', async () => {
       mockUseSelector.mockReturnValue({ address: '0x1234' });
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
 
@@ -236,7 +198,7 @@ describe('HardwareWalletProvider', () => {
       });
     });
 
-    it('should create non-hardware adapter for non-hardware accounts', () => {
+    it('creates non-hardware adapter for non-hardware accounts', () => {
       mockUseSelector.mockReturnValue({ address: '0xsoftware' });
       mockGetHardwareWalletType.mockReturnValue(undefined);
 
@@ -279,7 +241,7 @@ describe('HardwareWalletProvider', () => {
     };
 
     describe('connect (internal, via bottom sheet props)', () => {
-      it('should connect to device', async () => {
+      it('connects to device', async () => {
         renderWithActions();
 
         const internalConnect = capturedBottomSheetProps.connect as (
@@ -297,7 +259,7 @@ describe('HardwareWalletProvider', () => {
     });
 
     describe('ensureDeviceReady', () => {
-      it('should start the device readiness flow', async () => {
+      it('starts the device readiness flow', async () => {
         const { result } = renderWithActions();
 
         // Start the ensureDeviceReady flow (don't await - it's blocking)
@@ -321,7 +283,7 @@ describe('HardwareWalletProvider', () => {
   });
 
   describe('props', () => {
-    it('should render with default props', async () => {
+    it('renders with default props', async () => {
       mockUseSelector.mockReturnValue({ address: '0x1234' });
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
 
@@ -332,7 +294,7 @@ describe('HardwareWalletProvider', () => {
       );
 
       await waitFor(() => {
-        expect(getByTestId('connectionStatus')).toBeTruthy();
+        expect(getByTestId('connectionStatus')).toBeOnTheScreen();
       });
     });
   });
@@ -361,7 +323,7 @@ describe('HardwareWalletProvider', () => {
     };
 
     describe('closeDeviceSelection', () => {
-      it('should return to disconnected state', async () => {
+      it('returns to disconnected state', async () => {
         const { result } = renderWithActions();
 
         act(() => {
@@ -375,8 +337,7 @@ describe('HardwareWalletProvider', () => {
           ConnectionStatus.Scanning,
         );
 
-        const internalClose =
-          capturedBottomSheetProps.closeDeviceSelection as () => void;
+        const internalClose = capturedBottomSheetProps.onClose as () => void;
         await act(async () => {
           internalClose();
         });
@@ -388,7 +349,7 @@ describe('HardwareWalletProvider', () => {
     });
 
     describe('selectDevice', () => {
-      it('should update selected device in state', async () => {
+      it('updates selected device in state', async () => {
         const { result } = renderWithActions();
 
         const mockDevice = { id: 'device-1', name: 'Nano X' };
@@ -410,7 +371,7 @@ describe('HardwareWalletProvider', () => {
     });
 
     describe('rescan', () => {
-      it('should reset devices and restart scanning', async () => {
+      it('resets devices and restarts scanning', async () => {
         const { result } = renderWithActions();
 
         act(() => {
@@ -466,7 +427,7 @@ describe('HardwareWalletProvider', () => {
     };
 
     describe('showAwaitingConfirmation', () => {
-      it('should transition to awaiting confirmation state', async () => {
+      it('transitions to awaiting confirmation state', async () => {
         const { result } = renderWithActions();
 
         await act(async () => {
@@ -478,7 +439,7 @@ describe('HardwareWalletProvider', () => {
         );
       });
 
-      it('should handle message operation type', async () => {
+      it('sets operationType to message for message operations', async () => {
         const { result } = renderWithActions();
 
         await act(async () => {
@@ -501,7 +462,7 @@ describe('HardwareWalletProvider', () => {
     });
 
     describe('hideAwaitingConfirmation', () => {
-      it('should return to disconnected state', async () => {
+      it('returns to disconnected state', async () => {
         const { result } = renderWithActions();
 
         // Show awaiting confirmation
@@ -545,7 +506,7 @@ describe('HardwareWalletProvider', () => {
     };
 
     describe('showHardwareWalletError', () => {
-      it('should transition to error state', async () => {
+      it('transitions to error state', async () => {
         const { result } = renderWithActions();
 
         await act(async () => {
@@ -561,7 +522,7 @@ describe('HardwareWalletProvider', () => {
     });
 
     describe('retryLastOperation (internal, via bottom sheet props)', () => {
-      it('should transition to connecting state when retrying', async () => {
+      it('transitions to connecting state when retrying', async () => {
         const { result } = renderWithActions();
 
         act(() => {
@@ -594,7 +555,7 @@ describe('HardwareWalletProvider', () => {
   });
 
   describe('transport state monitoring', () => {
-    it('should update bluetooth enabled state from adapter', async () => {
+    it('updates bluetooth enabled state from adapter', async () => {
       mockUseSelector.mockReturnValue({ address: '0x1234' });
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
 
@@ -611,7 +572,7 @@ describe('HardwareWalletProvider', () => {
       const { getByTestId } = renderProvider();
 
       await waitFor(() => {
-        expect(getByTestId('connectionStatus')).toBeTruthy();
+        expect(getByTestId('connectionStatus')).toBeOnTheScreen();
       });
 
       // Simulate transport becoming unavailable
@@ -627,7 +588,7 @@ describe('HardwareWalletProvider', () => {
   });
 
   describe('connect error handling (internal, via bottom sheet props)', () => {
-    it('should handle adapter connect errors', async () => {
+    it('transitions to error state when adapter connect rejects', async () => {
       mockUseSelector.mockReturnValue({ address: '0x1234' });
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
 
@@ -673,7 +634,7 @@ describe('HardwareWalletProvider', () => {
       };
     };
 
-    it('should update wallet type when set', async () => {
+    it('updates wallet type when set', async () => {
       mockUseSelector.mockReturnValue(null);
       mockGetHardwareWalletType.mockReturnValue(undefined);
 

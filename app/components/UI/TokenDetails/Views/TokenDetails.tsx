@@ -2,12 +2,10 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import Asset from '../../../Views/Asset';
 import {
   TokenDetailsSource,
   type TokenDetailsRouteParams,
@@ -16,7 +14,7 @@ import { Theme } from '@metamask/design-tokens';
 import { useStyles } from '../../../hooks/useStyles';
 import { RootState } from '../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { isMainnetByChainId } from '../../../../util/networks';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
@@ -50,17 +48,6 @@ import { strings } from '../../../../../locales/i18n';
 import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
-
-export {
-  TokenDetailsSource,
-  type TokenDetailsRouteParams,
-} from '../constants/constants';
-
-interface TokenDetailsProps {
-  route: {
-    params: TokenDetailsRouteParams;
-  };
-}
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -394,17 +381,14 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
 };
 
 /**
- * Feature flag wrapper that toggles between new TokenDetails (V2) and legacy Asset view.
- * Legacy Asset view does not render Market Insights entry card.
- * Emit TOKEN_DETAILS_OPENED immediately with market_insights_displayed=false.
- * In TokenDetails V2, this event is emitted later via onMarketInsightsDisplayResolved
- * so the property reflects actual entry-card visibility.
+ * TokenDetailsRouteWrapper screen
+ * Reads token from React Navigation route.params and renders TokenDetails.
  */
-const TokenDetailsFeatureFlagWrapper: React.FC<TokenDetailsProps> = (props) => {
-  const isTokenDetailsV2Enabled = useSelector(selectTokenDetailsV2Enabled);
-  const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(
-    props.route.params,
-  );
+export const TokenDetailsRouteWrapper: React.FC = () => {
+  const route = useRoute();
+  const token = route.params as TokenDetailsRouteParams;
+
+  const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
 
   const handleMarketInsightsDisplayResolved = useCallback(
     (isDisplayed: boolean) => {
@@ -415,22 +399,12 @@ const TokenDetailsFeatureFlagWrapper: React.FC<TokenDetailsProps> = (props) => {
     [trackTokenDetailsOpened],
   );
 
-  useEffect(() => {
-    if (!isTokenDetailsV2Enabled) {
-      trackTokenDetailsOpened({
-        isMarketInsightsDisplayed: false,
-      });
-    }
-  }, [isTokenDetailsV2Enabled, trackTokenDetailsOpened]);
-
-  return isTokenDetailsV2Enabled ? (
+  return (
     <TokenDetails
-      token={props.route.params}
+      token={token}
       onMarketInsightsDisplayResolved={handleMarketInsightsDisplayResolved}
     />
-  ) : (
-    <Asset {...props} />
   );
 };
 
-export { TokenDetailsFeatureFlagWrapper as TokenDetails };
+export { TokenDetailsRouteWrapper as TokenDetails };

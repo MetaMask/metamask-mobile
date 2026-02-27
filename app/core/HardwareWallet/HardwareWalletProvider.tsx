@@ -50,7 +50,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   } | null>(null);
 
   const connectionSuccessCallbackRef = useRef<(() => void) | null>(null);
-  const flowCompleteRef = useRef(false);
 
   const pendingReadyResolveRef = useRef<((ready: boolean) => void) | null>(
     null,
@@ -58,8 +57,12 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const awaitingConfirmationRejectRef = useRef<(() => void) | null>(null);
 
+  const discoveryCleanupRef = useRef<(() => void) | null>(null);
+
+  const [connectionTips, setConnectionTips] = useState<string[]>([]);
   const [isTransportAvailable, setIsTransportAvailable] = useState(false);
   const previousTransportAvailableRef = useRef<boolean | null>(null);
+  const transportCleanupRef = useRef<(() => void) | null>(null);
 
   const { handleDeviceEvent, handleError, clearError, updateConnectionState } =
     useDeviceEventHandlers({
@@ -87,6 +90,36 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   );
 
   /**
+   * Store an adapter as the current adapter, sync connection tips, and
+   * register transport state monitoring. Automatically cleans up any
+   * previous transport subscription before registering a new one.
+   */
+  const initializeAdapter = useCallback(
+    (adapter: ReturnType<typeof createAdapter>): void => {
+      transportCleanupRef.current?.();
+      transportCleanupRef.current = null;
+
+      refs.adapterRef.current = adapter;
+      setConnectionTips(adapter.getConnectionTips());
+
+      if (adapter.onTransportStateChange) {
+        transportCleanupRef.current = adapter.onTransportStateChange(
+          (isAvailable) => {
+            DevLogger.log(
+              '[HardwareWalletProvider] Transport state changed:',
+              isAvailable,
+            );
+            setIsTransportAvailable(isAvailable);
+          },
+        );
+      } else {
+        setIsTransportAvailable(true);
+      }
+    },
+    [refs],
+  );
+
+  /**
    * Try to ensure a device is ready, then mark the flow complete and
    * transition to Ready state. Returns true if ready, false otherwise.
    */
@@ -105,6 +138,12 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           status: ConnectionStatus.Ready,
           deviceId: targetDeviceId,
         });
+      } else {
+        // Not an error — the adapter emits device events (AppNotOpen, DeviceLocked, etc.)
+        // before returning false, so the state machine has already transitioned.
+        DevLogger.log(
+          '[HardwareWalletProvider] Device not ready — adapter event already handled state transition',
+        );
       }
       return isReady;
     },
@@ -186,127 +225,112 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           onDeviceEvent: handleDeviceEvent,
         });
 
-    refs.adapterRef.current = adapter;
-
-    let transportCleanup: (() => void) | undefined;
-    if (adapter.onTransportStateChange) {
-      transportCleanup = adapter.onTransportStateChange((isAvailable) => {
-        DevLogger.log(
-          '[HardwareWalletProvider] Transport state changed:',
-          isAvailable,
-        );
-        setIsTransportAvailable(isAvailable);
-      });
-    } else {
-      setIsTransportAvailable(true);
-    }
+    initializeAdapter(adapter);
 
     return () => {
-      transportCleanup?.();
+      transportCleanupRef.current?.();
+      transportCleanupRef.current = null;
       if (refs.adapterRef.current) {
         refs.adapterRef.current.disconnect().catch(() => {
           // Ignore cleanup errors
         });
+        refs.adapterRef.current = null;
       }
     };
   }, [
     effectiveWalletType,
     handleDeviceEvent,
     createAdapterWithCallbacks,
+    initializeAdapter,
     refs,
   ]);
 
-  // Device discovery
-  useEffect(() => {
-    let cleanupFn: (() => void) | undefined;
+  const stopDiscovery = useCallback(() => {
+    discoveryCleanupRef.current?.();
+    discoveryCleanupRef.current = null;
+  }, []);
 
+  const startDiscovery = useCallback(() => {
     const adapter = refs.adapterRef.current;
 
-    if (
-      connectionState.status === ConnectionStatus.Scanning &&
-      adapter?.requiresDeviceDiscovery
-    ) {
-      DevLogger.log('[HardwareWalletProvider] Scanning state entered');
+    stopDiscovery();
 
-      setDeviceSelectionState((prev) => ({
-        ...prev,
-        devices: [],
-        isScanning: true,
-        scanError: null,
-      }));
+    setDeviceSelectionState((prev) => ({
+      ...prev,
+      devices: [],
+      selectedDevice: null,
+      isScanning: !!adapter?.requiresDeviceDiscovery,
+      scanError: null,
+    }));
 
-      DevLogger.log(
-        '[HardwareWalletProvider] Starting adapter device discovery',
-      );
+    if (!adapter?.requiresDeviceDiscovery) return;
 
-      cleanupFn = adapter.startDeviceDiscovery(
-        (device: DiscoveredDevice) => {
-          DevLogger.log(
-            '[HardwareWalletProvider] Device found:',
-            device.name,
-            device.id,
-          );
-          setDeviceSelectionState((prev) => {
-            const exists = prev.devices.some((d) => d.id === device.id);
-            if (exists) return prev;
-            return {
-              ...prev,
-              devices: [...prev.devices, device],
-            };
-          });
-        },
-        (error: Error) => {
-          DevLogger.log(
-            '[HardwareWalletProvider] Device discovery error:',
-            error,
-          );
-          const scanError = parseErrorByType(
-            error,
-            effectiveWalletType ??
-              adapter.walletType ??
-              HardwareWalletType.Ledger,
-          );
-          updateConnectionState({
-            status: ConnectionStatus.ErrorState,
-            error: scanError,
-          });
-        },
-      );
+    DevLogger.log('[HardwareWalletProvider] Starting adapter device discovery');
 
-      return () => {
-        DevLogger.log('[HardwareWalletProvider] Cleaning up device discovery');
-        cleanupFn?.();
-        adapter.stopDeviceDiscovery();
-      };
-    }
+    const cleanupFn = adapter.startDeviceDiscovery(
+      (device: DiscoveredDevice) => {
+        DevLogger.log(
+          '[HardwareWalletProvider] Device found:',
+          device.name,
+          device.id,
+        );
+        setDeviceSelectionState((prev) => {
+          const exists = prev.devices.some((d) => d.id === device.id);
+          if (exists) return prev;
+          return {
+            ...prev,
+            devices: [...prev.devices, device],
+          };
+        });
+      },
+      (error: Error) => {
+        DevLogger.log(
+          '[HardwareWalletProvider] Device discovery error:',
+          error,
+        );
+        const scanError = parseErrorByType(
+          error,
+          effectiveWalletType ??
+            adapter.walletType ??
+            HardwareWalletType.Ledger,
+        );
+        updateConnectionState({
+          status: ConnectionStatus.ErrorState,
+          error: scanError,
+        });
+      },
+    );
 
-    if (connectionState.status !== ConnectionStatus.Scanning) {
-      setDeviceSelectionState({
-        devices: [],
-        selectedDevice: null,
-        isScanning: false,
-        scanError: null,
-      });
-    }
-
-    return () => {
+    discoveryCleanupRef.current = () => {
       cleanupFn?.();
-      if (adapter) {
-        adapter.stopDeviceDiscovery();
-      }
+      adapter.stopDeviceDiscovery();
     };
-  }, [
-    connectionState.status,
-    effectiveWalletType,
-    refs,
-    updateConnectionState,
-  ]);
+  }, [refs, effectiveWalletType, updateConnectionState, stopDiscovery]);
+
+  // Device discovery — start/stop based on connection status
+  useEffect(() => {
+    if (connectionState.status === ConnectionStatus.Scanning) {
+      DevLogger.log('[HardwareWalletProvider] Scanning state entered');
+      startDiscovery();
+      return () => stopDiscovery();
+    }
+
+    stopDiscovery();
+    setDeviceSelectionState({
+      devices: [],
+      selectedDevice: null,
+      isScanning: false,
+      scanError: null,
+    });
+    return undefined;
+  }, [connectionState.status, startDiscovery, stopDiscovery]);
 
   const closeDeviceSelection = useCallback(() => {
     if (pendingReadyResolveRef.current) {
       pendingReadyResolveRef.current(false);
       pendingReadyResolveRef.current = null;
     }
+    lastOperationRef.current = null;
     setters.setTargetWalletType(null);
     updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [setters, updateConnectionState]);
@@ -319,18 +343,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   }, []);
 
   const rescan = useCallback(() => {
-    setDeviceSelectionState({
-      devices: [],
-      selectedDevice: null,
-      isScanning: true,
-      scanError: null,
-    });
-  }, []);
-
-  const closeBottomSheet = useCallback(() => {
-    setters.setTargetWalletType(null);
-    updateConnectionState({ status: ConnectionStatus.Disconnected });
-  }, [setters, updateConnectionState]);
+    startDiscovery();
+  }, [startDiscovery]);
 
   const connect = useCallback(
     async (targetDeviceId: string): Promise<void> => {
@@ -340,7 +354,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
       refs.isConnectingRef.current = true;
       lastOperationRef.current = {
-        type: 'ensureReady',
+        type: 'connect',
         deviceId: targetDeviceId,
       };
 
@@ -353,6 +367,14 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         }
 
         await adapter.connect(targetDeviceId);
+
+        if (!lastOperationRef.current) {
+          DevLogger.log(
+            '[HardwareWalletProvider] Connect completed but flow was cancelled — ignoring',
+          );
+          return;
+        }
+
         setters.setDeviceId(targetDeviceId);
 
         if (pendingReadyResolveRef.current) {
@@ -398,8 +420,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         pendingReadyResolveRef.current = null;
       }
 
-      flowCompleteRef.current = false;
-
       const targetType = effectiveWalletType ?? HardwareWalletType.Ledger;
       const shouldStartFresh = targetDeviceId === undefined;
       const deviceIdToUse = shouldStartFresh ? undefined : targetDeviceId;
@@ -418,8 +438,10 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
               existingAdapter?.walletType,
               ')',
             );
+            // eslint-disable-next-line no-empty-function
+            existingAdapter?.disconnect().catch(() => {});
             const newAdapter = createAdapterWithCallbacks(targetType);
-            refs.adapterRef.current = newAdapter;
+            initializeAdapter(newAdapter);
             return newAdapter;
           })()
         : existingAdapter;
@@ -517,6 +539,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       effectiveWalletType,
       updateConnectionState,
       createAdapterWithCallbacks,
+      initializeAdapter,
       tryEnsureReady,
       createTransportError,
     ],
@@ -540,14 +563,12 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       adapter.resetFlowState();
     }
 
-    clearErrorState();
-
     const lastOp = lastOperationRef.current;
     if (!lastOp) {
+      clearErrorState();
       return;
     }
 
-    // Check transport before retrying
     if (adapter) {
       const isTransportReady = await adapter.isTransportAvailable();
       const retryTransportError = createTransportError();
@@ -634,11 +655,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   }, [hideAwaitingConfirmation]);
 
   const handleConnectionSuccess = useCallback(() => {
-    flowCompleteRef.current = true;
-    if (refs.adapterRef.current) {
-      refs.adapterRef.current.markFlowComplete();
-    }
-
     const callback = connectionSuccessCallbackRef.current;
     if (callback) {
       connectionSuccessCallbackRef.current = null;
@@ -646,15 +662,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     }
 
     updateConnectionState({ status: ConnectionStatus.Disconnected });
-  }, [refs, updateConnectionState]);
-
-  // Get connection tips from the adapter for the bottom sheet
-  const connectionTips = useMemo(
-    () => refs.adapterRef.current?.getConnectionTips() ?? [],
-    // Re-derive when adapter changes (effectiveWalletType drives adapter creation)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [effectiveWalletType],
-  );
+  }, [updateConnectionState]);
 
   const contextValue = useMemo(
     () => ({
@@ -690,12 +698,10 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         walletType={effectiveWalletType}
         connectionTips={connectionTips}
         retryLastOperation={retryLastOperation}
-        closeDeviceSelection={closeDeviceSelection}
         selectDevice={selectDevice}
         rescan={rescan}
         connect={connect}
-        onCancel={closeBottomSheet}
-        onClose={closeBottomSheet}
+        onClose={closeDeviceSelection}
         onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
         onConnectionSuccess={handleConnectionSuccess}
       />

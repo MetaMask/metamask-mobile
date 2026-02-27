@@ -38,8 +38,20 @@ permissions:
   id-token: write
 
 jobs:
+  # Bump version in repo (bitrise.yml, package.json, ios/android) before building
+  update-build-version:
+    uses: ./.github/workflows/update-latest-build-version.yml
+    permissions:
+      contents: write
+      id-token: write
+    with:
+      base-branch: ${{ github.ref_name }}
+    secrets:
+      PR_TOKEN: ${{ secrets.PR_TOKEN }}
+
   # Load config
   prepare:
+    needs: [update-build-version]
     runs-on: ubuntu-latest
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
@@ -73,7 +85,7 @@ jobs:
 
   # Build
   build:
-    needs: [prepare]
+    needs: [prepare, update-build-version]
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
@@ -81,7 +93,17 @@ jobs:
     runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     steps:
+      - name: Validate version-bump commit
+        run: |
+          COMMIT_HASH="${{ needs.update-build-version.outputs.commit-hash }}"
+          if [ -z "$COMMIT_HASH" ]; then
+            echo "::error::update-build-version did not produce commit-hash; refusing to build to avoid using pre-bump version numbers."
+            exit 1
+          fi
+          echo "Building at version-bump commit: $COMMIT_HASH"
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.update-build-version.outputs.commit-hash }}
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -171,26 +193,46 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Rename build artifacts
+      # Rename build artifacts (also zips simulator .app and writes ios_deploy_path / ios_archive_path outputs)
       - name: Rename ${{ matrix.platform }} artifacts
+        id: rename
         run: node scripts/rename-artifacts.js ${{ matrix.platform }}
 
       # Upload build artifacts (only if build succeeded)
-      - name: Upload iOS artifacts
-        if: matrix.platform == 'ios'
+      - name: Upload iOS simulator artifacts
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_deploy_path }}
+          if-no-files-found: error
+
+      - name: Upload iOS device artifacts
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ios-${{ inputs.build_name }}
           path: |
-            ios/build/Build/Products/
-            ios/build/output/
-            ios/build/*.xcarchive
+            ${{ steps.rename.outputs.ios_deploy_path }}
+            ${{ steps.rename.outputs.ios_archive_path }}
           if-no-files-found: error
 
-      - name: Upload Android artifacts
-        if: matrix.platform == 'android' && success()
+      # Dev builds (CONFIGURATION=Debug): APK only — mirrors Bitrise IS_DEV_BUILD behavior
+      - name: Upload Android dev artifacts
+        if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
         uses: actions/upload-artifact@v4
         with:
           name: android-${{ inputs.build_name }}
-          path: android/app/build/outputs/
+          path: ${{ steps.rename.outputs.android_apk_path }}
+          if-no-files-found: error
+
+      # Release builds: APK + AAB — mirrors Bitrise Deploy APK + Deploy AAB
+      - name: Upload Android release artifacts
+        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.build_name }}
+          path: |
+            ${{ steps.rename.outputs.android_apk_path }}
+            ${{ steps.rename.outputs.android_aab_path }}
           if-no-files-found: error

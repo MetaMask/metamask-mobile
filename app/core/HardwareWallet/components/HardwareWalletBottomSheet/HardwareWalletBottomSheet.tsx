@@ -41,15 +41,12 @@ export interface HardwareWalletBottomSheetProps {
   connectionTips: string[];
 
   retryLastOperation: () => Promise<void>;
-  closeDeviceSelection: () => void;
   selectDevice: (device: DiscoveredDevice) => void;
   rescan: () => void;
   connect: (deviceId: string) => Promise<void>;
 
-  /** Optional callback when sheet closes */
+  /** Callback when sheet is dismissed (handles all cleanup) */
   onClose?: () => void;
-  /** Optional callback when user cancels an operation */
-  onCancel?: () => void;
   /** Show success state briefly before hiding (ms, 0 to disable) */
   successAutoDismissMs?: number;
   /** Callback when connection succeeds (e.g., to navigate to account selection) */
@@ -77,12 +74,10 @@ export const HardwareWalletBottomSheet: React.FC<
   walletType,
   connectionTips,
   retryLastOperation,
-  closeDeviceSelection,
   selectDevice,
   rescan,
   connect,
   onClose,
-  onCancel,
   successAutoDismissMs = 1000,
   onConnectionSuccess,
   onAwaitingConfirmationCancel,
@@ -119,16 +114,11 @@ export const HardwareWalletBottomSheet: React.FC<
   }, [shouldShow, connectionState.status]);
 
   const handleClose = useCallback(() => {
-    if (
-      connectionState.status === ConnectionStatus.Scanning ||
-      connectionState.status === ConnectionStatus.Connecting ||
-      connectionState.status === ConnectionStatus.AwaitingApp ||
-      connectionState.status === ConnectionStatus.ErrorState
-    ) {
-      closeDeviceSelection();
+    if (connectionState.status === ConnectionStatus.AwaitingConfirmation) {
+      onAwaitingConfirmationCancel?.();
     }
     onClose?.();
-  }, [connectionState.status, closeDeviceSelection, onClose]);
+  }, [connectionState.status, onAwaitingConfirmationCancel, onClose]);
 
   const handleAwaitingConfirmationCancel = useCallback(() => {
     onAwaitingConfirmationCancel?.();
@@ -139,8 +129,8 @@ export const HardwareWalletBottomSheet: React.FC<
   }, [retryLastOperation]);
 
   const handleErrorDismiss = useCallback(() => {
-    closeDeviceSelection();
-  }, [closeDeviceSelection]);
+    onClose?.();
+  }, [onClose]);
 
   const handleSuccessDismiss = useCallback(() => {
     onConnectionSuccess?.();
@@ -168,9 +158,8 @@ export const HardwareWalletBottomSheet: React.FC<
   }, [rescan]);
 
   const handleCancelDeviceSelection = useCallback(() => {
-    closeDeviceSelection();
-    onCancel?.();
-  }, [closeDeviceSelection, onCancel]);
+    onClose?.();
+  }, [onClose]);
 
   // The effective device type — only used when the sheet is visible,
   // so walletType should always be set by then.
@@ -214,11 +203,7 @@ export const HardwareWalletBottomSheet: React.FC<
         return (
           <AwaitingAppContent
             deviceType={deviceType}
-            requiredApp={
-              connectionState.status === 'awaiting_app'
-                ? connectionState.appName
-                : undefined
-            }
+            requiredApp={connectionState.appName}
             onContinue={handleErrorContinue}
           />
         );
@@ -227,11 +212,7 @@ export const HardwareWalletBottomSheet: React.FC<
         return (
           <AwaitingConfirmationContent
             deviceType={deviceType}
-            operationType={
-              connectionState.status === 'awaiting_confirmation'
-                ? connectionState.operationType
-                : undefined
-            }
+            operationType={connectionState.operationType}
             onCancel={handleAwaitingConfirmationCancel}
           />
         );
@@ -239,9 +220,7 @@ export const HardwareWalletBottomSheet: React.FC<
       case ConnectionStatus.ErrorState:
         return (
           <ErrorContent
-            error={
-              connectionState.status === 'error' ? connectionState.error : null
-            }
+            error={connectionState.error}
             deviceType={deviceType}
             onContinue={handleErrorContinue}
             onDismiss={handleErrorDismiss}

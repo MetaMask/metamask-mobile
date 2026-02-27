@@ -169,7 +169,7 @@ export const DeviceSelectionContent: React.FC<DeviceSelectionContentProps> = ({
           {item.metadata?.rssi !== undefined && (
             <Text variant={TextVariant.BodySM} color={TextColor.Default}>
               {strings('hardware_wallet.device_selection.signal_strength', {
-                rssi: item.metadata.rssi,
+                rssi: String(item.metadata.rssi),
               })}
             </Text>
           )}

@@ -46,20 +46,22 @@ describe('AwaitingAppContent', () => {
       false,
     );
 
-  it('should render with test ID', () => {
+  it('renders with test ID', () => {
     const { getByTestId } = renderComponent();
 
-    expect(getByTestId(AWAITING_APP_CONTENT_TEST_ID)).toBeTruthy();
+    expect(getByTestId(AWAITING_APP_CONTENT_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('should render open app message', () => {
+  it('renders open app message', () => {
     const { getByText } = renderComponent();
 
-    expect(getByText(/hardware_wallet\.awaiting_app\.title/)).toBeTruthy();
-    expect(getByText(/hardware_wallet\.awaiting_app\.message/)).toBeTruthy();
+    expect(getByText(/hardware_wallet\.awaiting_app\.title/)).toBeOnTheScreen();
+    expect(
+      getByText(/hardware_wallet\.awaiting_app\.message/),
+    ).toBeOnTheScreen();
   });
 
-  it('should show current app when different from required', () => {
+  it('shows current app when different from required', () => {
     const { getByText } = renderComponent({
       currentApp: 'Bitcoin',
       requiredApp: 'Ethereum',
@@ -67,10 +69,10 @@ describe('AwaitingAppContent', () => {
 
     expect(
       getByText('hardware_wallet.awaiting_app.current_app {"app":"Bitcoin"}'),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
-  it('should not show current app when same as required', () => {
+  it('does not show current app when same as required', () => {
     const { queryByText } = renderComponent({
       currentApp: 'Ethereum',
       requiredApp: 'Ethereum',
@@ -79,7 +81,7 @@ describe('AwaitingAppContent', () => {
     expect(queryByText(/current_app/)).toBeNull();
   });
 
-  it('should not show current app for BOLOS', () => {
+  it('does not show current app for BOLOS', () => {
     const { queryByText } = renderComponent({
       currentApp: 'BOLOS',
       requiredApp: 'Ethereum',
@@ -88,7 +90,7 @@ describe('AwaitingAppContent', () => {
     expect(queryByText(/current_app/)).toBeNull();
   });
 
-  it('should render continue button when onContinue provided', () => {
+  it('renders continue button when onContinue provided', () => {
     const onContinue = jest.fn();
     const { getByText } = renderComponent({ onContinue });
 
@@ -97,7 +99,7 @@ describe('AwaitingAppContent', () => {
     expect(onContinue).toHaveBeenCalled();
   });
 
-  it('should not render continue button when onContinue not provided', () => {
+  it('does not render continue button when onContinue not provided', () => {
     const { queryByText } = renderComponent();
 
     expect(queryByText('hardware_wallet.common.continue')).toBeNull();
