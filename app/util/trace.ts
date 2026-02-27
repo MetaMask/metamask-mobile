@@ -207,6 +207,9 @@ export enum TraceName {
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
   MusdConversionConfirm = 'mUSD Conversion Confirm',
+  // Market Insights
+  MarketInsightsEntryCardLoad = 'Market Insights Entry Card Load',
+  MarketInsightsViewLoad = 'Market Insights View Load',
 }
 
 export enum TraceOperation {
@@ -255,6 +258,8 @@ export enum TraceOperation {
   // mUSD Conversion
   MusdConversionOperation = 'musd.conversion.operation',
   MusdConversionDataFetch = 'musd.conversion.data_fetch',
+  // Market Insights
+  MarketInsightsLoad = 'market_insights.load',
 }
 
 const ID_DEFAULT = 'default';
