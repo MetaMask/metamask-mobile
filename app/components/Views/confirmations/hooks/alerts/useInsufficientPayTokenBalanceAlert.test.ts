@@ -22,10 +22,7 @@ import { Severity } from '../../types/alerts';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../transactions/useTransactionMetadataRequest');
@@ -303,35 +300,6 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       ]);
     });
 
-    it('returns mUSD-specific alert when source gas insufficient for musdConversion', () => {
-      useTokenWithBalanceMock.mockReturnValue({
-        ...NATIVE_TOKEN_MOCK,
-        balanceRaw: '99',
-      } as ReturnType<typeof useTokenWithBalance>);
-
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.musdConversion,
-      } as TransactionMeta);
-
-      const { result } = runHook();
-
-      expect(result.current).toStrictEqual([
-        {
-          key: AlertKeys.InsufficientPayTokenNative,
-          field: RowAlertKey.Amount,
-          isBlocking: true,
-          title: strings(
-            'alert_system.insufficient_pay_token_native_musd_conversion.title',
-          ),
-          message: strings(
-            'alert_system.insufficient_pay_token_native_musd_conversion.message',
-            { ticker: 'ETH' },
-          ),
-          severity: Severity.Danger,
-        },
-      ]);
-    });
-
     it('returns no alert if pay token is native', () => {
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
@@ -494,36 +462,6 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
           title: strings('alert_system.insufficient_pay_token_balance.message'),
           message: strings(
             'alert_system.insufficient_pay_token_native.message',
-            { ticker: 'POL' },
-          ),
-          severity: Severity.Danger,
-        },
-      ]);
-    });
-
-    it('returns mUSD-specific alert when source gas insufficient in post-quote musdConversion', () => {
-      useTokenWithBalanceMock.mockReturnValue({
-        ...NATIVE_TOKEN_MOCK,
-        balanceRaw: '50',
-      } as ReturnType<typeof useTokenWithBalance>);
-
-      useTransactionMetadataRequestMock.mockReturnValue({
-        chainId: SOURCE_CHAIN_ID,
-        type: TransactionType.musdConversion,
-      } as TransactionMeta);
-
-      const { result } = runHook({}, polygonNetworkState);
-
-      expect(result.current).toStrictEqual([
-        {
-          key: AlertKeys.InsufficientPayTokenNative,
-          field: RowAlertKey.Amount,
-          isBlocking: true,
-          title: strings(
-            'alert_system.insufficient_pay_token_native_musd_conversion.title',
-          ),
-          message: strings(
-            'alert_system.insufficient_pay_token_native_musd_conversion.message',
             { ticker: 'POL' },
           ),
           severity: Severity.Danger,

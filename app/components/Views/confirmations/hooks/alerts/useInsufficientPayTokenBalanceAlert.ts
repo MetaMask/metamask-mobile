@@ -18,8 +18,6 @@ import { RootState } from '../../../../../reducers';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { TransactionType } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../utils/transaction';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -175,24 +173,6 @@ export function useInsufficientPayTokenBalanceAlert({
     }
 
     if (isInsufficientForSourceNetwork) {
-      if (
-        hasTransactionType(transactionMeta, [TransactionType.musdConversion])
-      ) {
-        return [
-          {
-            ...baseAlert,
-            key: AlertKeys.InsufficientPayTokenNative,
-            title: strings(
-              'alert_system.insufficient_pay_token_native_musd_conversion.title',
-            ),
-            message: strings(
-              'alert_system.insufficient_pay_token_native_musd_conversion.message',
-              { ticker },
-            ),
-          },
-        ];
-      }
-
       return [
         {
           ...baseAlert,
@@ -211,7 +191,6 @@ export function useInsufficientPayTokenBalanceAlert({
     isInsufficientForInput,
     isInsufficientForFees,
     isInsufficientForSourceNetwork,
-    transactionMeta,
     ticker,
   ]);
 }
