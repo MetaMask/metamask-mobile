@@ -1,8 +1,9 @@
 import ClearCookiesSection from './ClearCookiesSection';
 import DeleteMetaMetricsData from './DeleteMetaMetricsData';
 import DeleteWalletData from './DeleteWalletData';
+import RememberMeOptionSection from './RememberMeOptionSection';
 import ProtectYourWallet from './ProtectYourWallet/ProtectYourWallet';
-import DeviceSecurityToggle from './DeviceSecurityToggle';
+import LoginOptionsSettings from './LoginOptionsSettings';
 import ChangePassword from './ChangePassword/ChangePassword';
 import AutoLock from './AutoLock/AutoLock';
 import ClearPrivacy from './ClearPrivacy/ClearPrivacy';
@@ -12,8 +13,9 @@ export {
   ClearCookiesSection,
   DeleteMetaMetricsData,
   DeleteWalletData,
+  RememberMeOptionSection,
   ProtectYourWallet,
-  DeviceSecurityToggle,
+  LoginOptionsSettings,
   ChangePassword,
   AutoLock,
   ClearPrivacy,

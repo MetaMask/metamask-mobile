@@ -1,9 +1,10 @@
 import { StackNavigationProp } from '@react-navigation/stack';
 import {
-  AnalyticsEventBuilder,
-  type AnalyticsTrackingEvent,
-} from '../../../../util/analytics/AnalyticsEventBuilder';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+  IMetaMetricsEvent,
+  ITrackingEvent,
+} from '../../../../core/Analytics/MetaMetrics.types';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -12,11 +13,8 @@ interface TokenListNavigationParamList {
 
 interface GoToAddEvmTokenProps {
   navigation: StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>;
-  trackEvent: (
-    event: AnalyticsTrackingEvent,
-    saveDataRecording?: boolean,
-  ) => void;
-  createEventBuilder: typeof AnalyticsEventBuilder.createEventBuilder;
+  trackEvent: (event: ITrackingEvent, saveDataRecording?: boolean) => void;
+  createEventBuilder: (event: IMetaMetricsEvent) => MetricsEventBuilder;
   getDecimalChainId: (chainId: string) => number;
   currentChainId: string;
 }

@@ -23,8 +23,7 @@ import {
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import { CardError } from '../../types';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 import {
@@ -43,7 +42,7 @@ const SetPhoneNumber = () => {
   const dispatch = useDispatch();
   const contactVerificationId = useSelector(selectContactVerificationId);
   const initialSelectedCountry = useSelector(selectSelectedCountry);
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { data: registrationSettings } = useRegistrationSettings();
   const { user } = useCardSDK();
   const userCardLocation = useSelector(selectUserCardLocation);
