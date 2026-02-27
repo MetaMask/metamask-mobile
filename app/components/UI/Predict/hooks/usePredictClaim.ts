@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
@@ -12,6 +13,7 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import Routes from '../../../../constants/navigation/Routes';
+import { predictQueries } from '../queries';
 
 export const usePredictClaim = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
@@ -19,6 +21,7 @@ export const usePredictClaim = () => {
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
   const navigation = useNavigation();
+  const queryClient = useQueryClient();
 
   const claim = useCallback(async () => {
     try {
@@ -29,6 +32,18 @@ export const usePredictClaim = () => {
         stack: Routes.PREDICT.ROOT,
       });
       await claimWinnings({});
+
+      // Invalidate caches after successful claim so balance,
+      // positions, and activity reflect the updated state.
+      queryClient.invalidateQueries({
+        queryKey: predictQueries.balance.keys.all(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: predictQueries.positions.keys.all(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: predictQueries.activity.keys.all(),
+      });
     } catch (err) {
       // Log error with claim context
       Logger.error(ensureError(err), {
@@ -75,6 +90,7 @@ export const usePredictClaim = () => {
     claimWinnings,
     navigateToConfirmation,
     navigation,
+    queryClient,
     theme.colors.accent04.normal,
     theme.colors.error.default,
     toastRef,
