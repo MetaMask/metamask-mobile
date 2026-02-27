@@ -2,11 +2,11 @@ import {
   RampsOrderStatus as Status,
   type RampsOrder,
 } from '@metamask/ramps-controller';
-import { handleOrderStatusChanged } from './notification';
-import NotificationManager from '../../../../NotificationManager';
+import { handleOrderStatusChangedForNotifications } from './notification';
+import { showV2OrderToast } from '../../../../../components/UI/Ramp/utils/v2OrderToast';
 
-jest.mock('../../../../NotificationManager', () => ({
-  showSimpleNotification: jest.fn(),
+jest.mock('../../../../../components/UI/Ramp/utils/v2OrderToast', () => ({
+  showV2OrderToast: jest.fn(),
 }));
 
 const createMockOrder = (overrides: Partial<RampsOrder> = {}): RampsOrder => ({
@@ -31,88 +31,80 @@ const createMockOrder = (overrides: Partial<RampsOrder> = {}): RampsOrder => ({
   ...overrides,
 });
 
-describe('handleOrderStatusChanged', () => {
+describe('handleOrderStatusChangedForNotifications', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('shows notification for Completed status', () => {
-    handleOrderStatusChanged({
+  it('calls showV2OrderToast with correct params for Completed status', () => {
+    handleOrderStatusChangedForNotifications({
       order: createMockOrder({ status: Status.Completed }),
       previousStatus: Status.Pending,
     });
 
-    expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith(
-      expect.objectContaining({ duration: 5000 }),
-    );
-    expect(NotificationManager.showSimpleNotification).toHaveBeenCalledTimes(1);
+    expect(showV2OrderToast).toHaveBeenCalledWith({
+      orderId: 'order-1',
+      cryptocurrency: 'ETH',
+      cryptoAmount: '0.5',
+      status: Status.Completed,
+    });
   });
 
-  it('shows notification for Failed status', () => {
-    handleOrderStatusChanged({
+  it('calls showV2OrderToast for Failed status', () => {
+    handleOrderStatusChangedForNotifications({
       order: createMockOrder({ status: Status.Failed }),
       previousStatus: Status.Pending,
     });
 
-    expect(NotificationManager.showSimpleNotification).toHaveBeenCalledTimes(1);
+    expect(showV2OrderToast).toHaveBeenCalledWith(
+      expect.objectContaining({ status: Status.Failed }),
+    );
   });
 
-  it('shows notification for IdExpired status', () => {
-    handleOrderStatusChanged({
-      order: createMockOrder({ status: Status.IdExpired }),
-      previousStatus: Status.Pending,
-    });
-
-    expect(NotificationManager.showSimpleNotification).toHaveBeenCalledTimes(1);
-  });
-
-  it('shows notification for Cancelled status', () => {
-    handleOrderStatusChanged({
+  it('calls showV2OrderToast for Cancelled status', () => {
+    handleOrderStatusChangedForNotifications({
       order: createMockOrder({ status: Status.Cancelled }),
       previousStatus: Status.Pending,
     });
 
-    expect(NotificationManager.showSimpleNotification).toHaveBeenCalledTimes(1);
+    expect(showV2OrderToast).toHaveBeenCalledWith(
+      expect.objectContaining({ status: Status.Cancelled }),
+    );
   });
 
-  it('does not show notification for non-terminal statuses', () => {
-    const nonTerminalStatuses = [
-      Status.Pending,
+  it('calls showV2OrderToast for Pending status', () => {
+    handleOrderStatusChangedForNotifications({
+      order: createMockOrder({ status: Status.Pending }),
+      previousStatus: Status.Created,
+    });
+
+    expect(showV2OrderToast).toHaveBeenCalledWith(
+      expect.objectContaining({ status: Status.Pending }),
+    );
+  });
+
+  it('delegates to showV2OrderToast for all statuses (toast handles no-op internally)', () => {
+    const statuses = [
       Status.Created,
       Status.Precreated,
       Status.Unknown,
+      Status.IdExpired,
     ];
 
-    for (const status of nonTerminalStatuses) {
+    for (const status of statuses) {
       jest.clearAllMocks();
 
-      handleOrderStatusChanged({
+      handleOrderStatusChangedForNotifications({
         order: createMockOrder({ status }),
         previousStatus: Status.Unknown,
       });
 
-      expect(NotificationManager.showSimpleNotification).not.toHaveBeenCalled();
+      expect(showV2OrderToast).toHaveBeenCalledTimes(1);
     }
   });
 
-  it('includes crypto amount and symbol in completed notification', () => {
-    handleOrderStatusChanged({
-      order: createMockOrder({
-        status: Status.Completed,
-        cryptoAmount: '1.5',
-        cryptoCurrency: { symbol: 'BTC' },
-      }),
-      previousStatus: Status.Pending,
-    });
-
-    const call = (NotificationManager.showSimpleNotification as jest.Mock).mock
-      .calls[0][0];
-    expect(call.title).toContain('1.5');
-    expect(call.title).toContain('BTC');
-  });
-
-  it('uses fallback when cryptoCurrency is undefined', () => {
-    handleOrderStatusChanged({
+  it('uses fallback "crypto" when cryptoCurrency is undefined', () => {
+    handleOrderStatusChangedForNotifications({
       order: createMockOrder({
         status: Status.Completed,
         cryptoCurrency: undefined,
@@ -120,30 +112,19 @@ describe('handleOrderStatusChanged', () => {
       previousStatus: Status.Pending,
     });
 
-    const call = (NotificationManager.showSimpleNotification as jest.Mock).mock
-      .calls[0][0];
-    expect(call.title).toContain('crypto');
+    expect(showV2OrderToast).toHaveBeenCalledWith(
+      expect.objectContaining({ cryptocurrency: 'crypto' }),
+    );
   });
 
-  it('notification payload matches snapshot for each terminal status', () => {
-    const terminalStatuses = [
-      Status.Completed,
-      Status.Failed,
-      Status.Cancelled,
-    ];
+  it('passes providerOrderId as orderId', () => {
+    handleOrderStatusChangedForNotifications({
+      order: createMockOrder({ providerOrderId: 'my-provider-order-123' }),
+      previousStatus: Status.Pending,
+    });
 
-    for (const status of terminalStatuses) {
-      jest.clearAllMocks();
-
-      handleOrderStatusChanged({
-        order: createMockOrder({ status }),
-        previousStatus: Status.Pending,
-      });
-
-      expect(
-        (NotificationManager.showSimpleNotification as jest.Mock).mock
-          .calls[0][0],
-      ).toMatchSnapshot(`notification for ${status}`);
-    }
+    expect(showV2OrderToast).toHaveBeenCalledWith(
+      expect.objectContaining({ orderId: 'my-provider-order-123' }),
+    );
   });
 });

@@ -6,7 +6,7 @@ import {
 } from '@metamask/ramps-controller';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 import { hasMinimumRequiredVersion } from '../../../../components/UI/Ramp/utils/hasMinimumRequiredVersion';
-import { handleOrderStatusChanged } from './event-handlers/notification';
+import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
 
 interface RampsUnifiedBuyV2Config {
@@ -70,7 +70,7 @@ export const rampsControllerInit: ControllerInitFunction<
   if (isV2Enabled) {
     initMessenger.subscribe(
       'RampsController:orderStatusChanged',
-      handleOrderStatusChanged,
+      handleOrderStatusChangedForNotifications,
     );
 
     initMessenger.subscribe(
