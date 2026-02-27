@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write  # Required by build.yml's update-build-version job (validated statically even when skipped)
   id-token: write
 
 jobs:
