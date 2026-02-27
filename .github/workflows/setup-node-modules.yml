@@ -79,7 +79,8 @@ jobs:
       artifact-name: ${{ steps.set-artifact-name.outputs.artifact-name }}
     steps:
       - name: Log workflow usage
-        run: echo "::notice:: Using workflow: Setup Node Modules (setup-node-modules.yml) — platform=${{ inputs.platform }}, use-tarball=${{ inputs.use-tarball }}"
+        run: |
+          echo "::notice:: Using workflow: Setup Node Modules (setup-node-modules.yml) — platform=${{ inputs.platform }}, use-tarball=${{ inputs.use-tarball }}"
 
       - name: Checkout repository
         uses: actions/checkout@v4
