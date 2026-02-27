@@ -146,7 +146,9 @@ class NavigationService {
           if (!target) {
             throw new Error(`No account found for address ${address}`);
           }
-          ctrl.setSelectedAccount(target.id);
+          // Use Engine.setSelectedAddress to sync both AccountsController
+          // and PreferencesController (not AccountsController.setSelectedAccount directly).
+          Engine.setSelectedAddress(target.address);
           return {
             switched: true,
             id: target.id,

@@ -587,10 +587,23 @@ const COMMANDS = {
       throw new Error(`Recipe "${name}" not found in ${team}. Available: ${available}`);
     }
 
+    let raw;
     if (recipe.async) {
-      return await cdpEvalAsync(client, recipe.expression);
+      raw = await cdpEvalAsync(client, recipe.expression);
+    } else {
+      raw = await cdpEval(client, recipe.expression);
     }
-    return await cdpEval(client, recipe.expression);
+    // Recipe expressions typically JSON.stringify their result.
+    // Parse it so main()'s JSON.stringify produces clean output
+    // instead of double-encoded strings.
+    if (typeof raw === 'string') {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // Not valid JSON — return as-is
+      }
+    }
+    return raw;
   },
 };
 
