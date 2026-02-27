@@ -1031,25 +1031,6 @@ const MainNavigator = () => {
           }),
         }}
       />
-      <Stack.Screen
-        name="RWATokensFullView"
-        component={RWATokensFullView}
-        options={{
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
-      />
 
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen
