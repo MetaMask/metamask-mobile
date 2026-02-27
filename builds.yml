@@ -41,6 +41,8 @@ _public_envs: &public_envs # Servers (production)
   MM_PERPS_HIP3_ALLOWLIST_MARKETS: ''
   MM_PERPS_HIP3_BLOCKLIST_MARKETS: ''
   MM_PERPS_HIP3_ENABLED: 'true'
+  # Temporary flag to enable builds with GitHub Actions, remove it when deprecating bitrise
+  BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY: 'true'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
