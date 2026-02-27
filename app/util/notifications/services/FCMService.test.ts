@@ -6,8 +6,7 @@ import { processNotification } from '@metamask/notification-services-controller/
 import { createMockNotificationEthSent } from '@metamask/notification-services-controller/notification-services/mocks';
 
 import FCMService from './FCMService';
-import { EVENT_NAME } from '../../../core/Analytics';
-import { analytics } from '../../analytics/analytics';
+import { EVENT_NAME, MetaMetrics } from '../../../core/Analytics';
 import { NativeModules, Platform } from 'react-native';
 
 // Firebase Mock
@@ -342,7 +341,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
   };
 
   const arrangeMocks = () => {
-    const mockTrackEvent = jest.spyOn(analytics, 'trackEvent');
+    const mockTrackEvent = jest.spyOn(MetaMetrics.getInstance(), 'trackEvent');
     const firebaseMocks = arrangeFirebaseMocks();
     const nativeModuleMocks = arrangeNativeModuleMocks();
     return {
@@ -470,7 +469,7 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
   };
 
   const arrangeMocks = () => {
-    const mockTrackEvent = jest.spyOn(analytics, 'trackEvent');
+    const mockTrackEvent = jest.spyOn(MetaMetrics.getInstance(), 'trackEvent');
     const firebaseMocks = arrangeFirebaseMocks();
     const deeplinkCallback = jest.fn();
     return {

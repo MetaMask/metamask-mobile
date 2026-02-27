@@ -70,23 +70,6 @@ const mockUseMusdConversionEligibility =
     typeof useMusdConversionEligibility
   >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-
-type MusdBalanceHookReturn = ReturnType<typeof useMusdBalance>;
-
-const createMusdBalanceMockReturn = (
-  overrides: Partial<MusdBalanceHookReturn> = {},
-): MusdBalanceHookReturn => ({
-  hasMusdBalanceOnAnyChain: false,
-  hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
-  tokenBalanceByChain: {} as Record<Hex, string>,
-  fiatBalanceByChain: {} as Record<Hex, string>,
-  fiatBalanceFormattedByChain: {} as Record<Hex, string>,
-  tokenBalanceAggregated: '0',
-  fiatBalanceAggregated: undefined,
-  fiatBalanceAggregatedFormatted: '',
-  ...overrides,
-});
-
 describe('useMusdCtaVisibility', () => {
   const defaultNetworkInfo = {
     enabledNetworks: [],
@@ -190,7 +173,11 @@ describe('useMusdCtaVisibility', () => {
       }
       return undefined;
     });
-    mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      balancesByChain: {},
+      hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+    });
     mockUseCurrentNetworkInfo.mockReturnValue(defaultNetworkInfo);
     mockUseNetworksByCustomNamespace.mockReturnValue(
       defaultNetworksByNamespace,
@@ -275,7 +262,11 @@ describe('useMusdCtaVisibility', () => {
             { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
           ],
         });
-        mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
@@ -293,7 +284,11 @@ describe('useMusdCtaVisibility', () => {
           ...defaultNetworkInfo,
           enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
         });
-        mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta, showNetworkIcon, selectedChainId } =
@@ -329,7 +324,11 @@ describe('useMusdCtaVisibility', () => {
           totalBalanceInUserCurrency: 0,
           userCurrency: 'USD',
         };
-        mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta, showNetworkIcon, selectedChainId } =
@@ -341,12 +340,11 @@ describe('useMusdCtaVisibility', () => {
       });
 
       it('returns shouldShowCta false when user has MUSD balance', () => {
-        mockUseMusdBalance.mockReturnValue(
-          createMusdBalanceMockReturn({
-            hasMusdBalanceOnAnyChain: true,
-            hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
-          }),
-        );
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta, showNetworkIcon, selectedChainId } =
@@ -398,7 +396,11 @@ describe('useMusdCtaVisibility', () => {
             totalBalanceInUserCurrency: 0,
             userCurrency: 'USD',
           };
-          mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+          mockUseMusdBalance.mockReturnValue({
+            hasMusdBalanceOnAnyChain: false,
+            balancesByChain: {},
+            hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+          });
 
           const { result } = renderHook(() => useMusdCtaVisibility());
           const { shouldShowCta, showNetworkIcon, selectedChainId } =
@@ -410,16 +412,15 @@ describe('useMusdCtaVisibility', () => {
         });
 
         it('returns shouldShowCta false when user has MUSD on mainnet', () => {
-          mockUseMusdBalance.mockReturnValue(
-            createMusdBalanceMockReturn({
-              hasMusdBalanceOnAnyChain: true,
-              hasMusdBalanceOnChain: jest
-                .fn()
-                .mockImplementation(
-                  (chainId: Hex) => chainId === CHAIN_IDS.MAINNET,
-                ),
-            }),
-          );
+          mockUseMusdBalance.mockReturnValue({
+            hasMusdBalanceOnAnyChain: true,
+            balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+            hasMusdBalanceOnChain: jest
+              .fn()
+              .mockImplementation(
+                (chainId: Hex) => chainId === CHAIN_IDS.MAINNET,
+              ),
+          });
 
           const { result } = renderHook(() => useMusdCtaVisibility());
           const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
@@ -435,16 +436,15 @@ describe('useMusdCtaVisibility', () => {
             totalBalanceInUserCurrency: 0,
             userCurrency: 'USD',
           };
-          mockUseMusdBalance.mockReturnValue(
-            createMusdBalanceMockReturn({
-              hasMusdBalanceOnAnyChain: true,
-              hasMusdBalanceOnChain: jest
-                .fn()
-                .mockImplementation(
-                  (chainId: Hex) => chainId === CHAIN_IDS.LINEA_MAINNET,
-                ),
-            }),
-          );
+          mockUseMusdBalance.mockReturnValue({
+            hasMusdBalanceOnAnyChain: true,
+            balancesByChain: { [CHAIN_IDS.LINEA_MAINNET]: '0x1234' },
+            hasMusdBalanceOnChain: jest
+              .fn()
+              .mockImplementation(
+                (chainId: Hex) => chainId === CHAIN_IDS.LINEA_MAINNET,
+              ),
+          });
 
           const { result } = renderHook(() => useMusdCtaVisibility());
           const { shouldShowCta, showNetworkIcon } =
@@ -510,7 +510,11 @@ describe('useMusdCtaVisibility', () => {
             totalBalanceInUserCurrency: 0,
             userCurrency: 'USD',
           };
-          mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+          mockUseMusdBalance.mockReturnValue({
+            hasMusdBalanceOnAnyChain: false,
+            balancesByChain: {},
+            hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+          });
 
           const { result } = renderHook(() => useMusdCtaVisibility());
           const { shouldShowCta, showNetworkIcon, selectedChainId } =
@@ -553,7 +557,11 @@ describe('useMusdCtaVisibility', () => {
         });
 
         it('returns shouldShowCta false when BSC selected', () => {
-          mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+          mockUseMusdBalance.mockReturnValue({
+            hasMusdBalanceOnAnyChain: false,
+            balancesByChain: {},
+            hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+          });
 
           const { result } = renderHook(() => useMusdCtaVisibility());
           const { shouldShowCta, showNetworkIcon, selectedChainId } =
@@ -565,12 +573,11 @@ describe('useMusdCtaVisibility', () => {
         });
 
         it('returns shouldShowCta false when user has MUSD balance', () => {
-          mockUseMusdBalance.mockReturnValue(
-            createMusdBalanceMockReturn({
-              hasMusdBalanceOnAnyChain: true,
-              hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
-            }),
-          );
+          mockUseMusdBalance.mockReturnValue({
+            hasMusdBalanceOnAnyChain: true,
+            balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+            hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+          });
 
           const { result } = renderHook(() => useMusdCtaVisibility());
           const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
@@ -626,7 +633,11 @@ describe('useMusdCtaVisibility', () => {
           ),
         });
 
-        mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const ctaState = result.current.shouldShowBuyGetMusdCta();
@@ -657,7 +668,11 @@ describe('useMusdCtaVisibility', () => {
           ),
         });
 
-        mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const ctaState = result.current.shouldShowBuyGetMusdCta();
@@ -712,7 +727,11 @@ describe('useMusdCtaVisibility', () => {
           ],
         });
 
-        mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const ctaState = result.current.shouldShowBuyGetMusdCta();
@@ -796,12 +815,11 @@ describe('useMusdCtaVisibility', () => {
           ...defaultNetworkInfo,
           enabledNetworks: [{ chainId: polygonChainId, enabled: true }],
         });
-        mockUseMusdBalance.mockReturnValue(
-          createMusdBalanceMockReturn({
-            hasMusdBalanceOnAnyChain: true,
-            hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
-          }),
-        );
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
@@ -852,12 +870,11 @@ describe('useMusdCtaVisibility', () => {
             { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
           ],
         });
-        mockUseMusdBalance.mockReturnValue(
-          createMusdBalanceMockReturn({
-            hasMusdBalanceOnAnyChain: true,
-            hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
-          }),
-        );
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta } = result.current.shouldShowBuyGetMusdCta();
@@ -929,7 +946,11 @@ describe('useMusdCtaVisibility', () => {
             { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
           ],
         });
-        mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta, showNetworkIcon, selectedChainId } =
@@ -955,7 +976,11 @@ describe('useMusdCtaVisibility', () => {
           ...defaultNetworkInfo,
           enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
         });
-        mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
         const { shouldShowCta, showNetworkIcon, selectedChainId } =
@@ -984,7 +1009,11 @@ describe('useMusdCtaVisibility', () => {
             { chainId: CHAIN_IDS.LINEA_MAINNET, enabled: true },
           ],
         });
-        mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: false,
+          balancesByChain: {},
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+        });
         // Provide tokens with chainId so canConvert is true
         mockUseMusdConversionTokens.mockReturnValue({
           tokens: [
@@ -1225,12 +1254,11 @@ describe('useMusdCtaVisibility', () => {
         ...defaultNetworksByNamespace,
         areAllNetworksSelected: false,
       });
-      mockUseMusdBalance.mockReturnValue(
-        createMusdBalanceMockReturn({
-          hasMusdBalanceOnAnyChain: true,
-          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
-        }),
-      );
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+      });
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
@@ -1253,12 +1281,11 @@ describe('useMusdCtaVisibility', () => {
         ...defaultNetworksByNamespace,
         areAllNetworksSelected: true,
       });
-      mockUseMusdBalance.mockReturnValue(
-        createMusdBalanceMockReturn({
-          hasMusdBalanceOnAnyChain: true,
-          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
-        }),
-      );
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+      });
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
@@ -1272,12 +1299,11 @@ describe('useMusdCtaVisibility', () => {
         ...defaultNetworksByNamespace,
         areAllNetworksSelected: true,
       });
-      mockUseMusdBalance.mockReturnValue(
-        createMusdBalanceMockReturn({
-          hasMusdBalanceOnAnyChain: true,
-          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
-        }),
-      );
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+      });
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
@@ -1292,7 +1318,11 @@ describe('useMusdCtaVisibility', () => {
         ...defaultNetworksByNamespace,
         areAllNetworksSelected: true,
       });
-      mockUseMusdBalance.mockReturnValue(createMusdBalanceMockReturn());
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: false,
+        balancesByChain: {},
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(false),
+      });
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
@@ -1311,16 +1341,13 @@ describe('useMusdCtaVisibility', () => {
         ...defaultNetworkInfo,
         enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
       });
-      mockUseMusdBalance.mockReturnValue(
-        createMusdBalanceMockReturn({
-          hasMusdBalanceOnAnyChain: true,
-          hasMusdBalanceOnChain: jest
-            .fn()
-            .mockImplementation(
-              (chainId: Hex) => chainId === CHAIN_IDS.MAINNET,
-            ),
-        }),
-      );
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest
+          .fn()
+          .mockImplementation((chainId: Hex) => chainId === CHAIN_IDS.MAINNET),
+      });
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
@@ -1336,12 +1363,11 @@ describe('useMusdCtaVisibility', () => {
         ...defaultNetworksByNamespace,
         areAllNetworksSelected: true,
       });
-      mockUseMusdBalance.mockReturnValue(
-        createMusdBalanceMockReturn({
-          hasMusdBalanceOnAnyChain: true,
-          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
-        }),
-      );
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+      });
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
@@ -1359,12 +1385,11 @@ describe('useMusdCtaVisibility', () => {
         ...defaultNetworksByNamespace,
         areAllNetworksSelected: true,
       });
-      mockUseMusdBalance.mockReturnValue(
-        createMusdBalanceMockReturn({
-          hasMusdBalanceOnAnyChain: true,
-          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
-        }),
-      );
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+        hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+      });
 
       const { result } = renderHook(() => useMusdCtaVisibility());
 
@@ -1386,12 +1411,11 @@ describe('useMusdCtaVisibility', () => {
           ...defaultNetworksByNamespace,
           areAllNetworksSelected: true,
         });
-        mockUseMusdBalance.mockReturnValue(
-          createMusdBalanceMockReturn({
-            hasMusdBalanceOnAnyChain: true,
-            hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
-          }),
-        );
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
 
@@ -1416,16 +1440,15 @@ describe('useMusdCtaVisibility', () => {
           ...defaultNetworkInfo,
           enabledNetworks: [{ chainId: CHAIN_IDS.MAINNET, enabled: true }],
         });
-        mockUseMusdBalance.mockReturnValue(
-          createMusdBalanceMockReturn({
-            hasMusdBalanceOnAnyChain: true,
-            hasMusdBalanceOnChain: jest
-              .fn()
-              .mockImplementation(
-                (chainId: Hex) => chainId === CHAIN_IDS.MAINNET,
-              ),
-          }),
-        );
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest
+            .fn()
+            .mockImplementation(
+              (chainId: Hex) => chainId === CHAIN_IDS.MAINNET,
+            ),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
 
@@ -1446,12 +1469,11 @@ describe('useMusdCtaVisibility', () => {
           ...defaultNetworksByNamespace,
           areAllNetworksSelected: true,
         });
-        mockUseMusdBalance.mockReturnValue(
-          createMusdBalanceMockReturn({
-            hasMusdBalanceOnAnyChain: true,
-            hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
-          }),
-        );
+        mockUseMusdBalance.mockReturnValue({
+          hasMusdBalanceOnAnyChain: true,
+          balancesByChain: { [CHAIN_IDS.MAINNET]: '0x1234' },
+          hasMusdBalanceOnChain: jest.fn().mockReturnValue(true),
+        });
 
         const { result } = renderHook(() => useMusdCtaVisibility());
 

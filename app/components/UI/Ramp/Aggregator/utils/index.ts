@@ -11,7 +11,11 @@ import {
   QuoteSortMetadata,
   SellOrder,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { renderNumber } from '../../../../../util/number';
+import {
+  renderFromTokenMinimalUnit,
+  renderNumber,
+  toTokenMinimalUnit,
+} from '../../../../../util/number';
 import { RampType } from '../types';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
@@ -186,7 +190,24 @@ export function isNetworkRampNativeTokenSupported(
   return (network?.active && network.nativeTokenSupported) ?? false;
 }
 
-export { getOrderAmount } from '../../utils/getOrderAmount';
+export function getOrderAmount(order: FiatOrder) {
+  let amount = '...';
+  if (order.cryptoAmount) {
+    const data = order?.data as Order;
+    if (data?.cryptoCurrency?.decimals !== undefined && order.cryptocurrency) {
+      amount = renderFromTokenMinimalUnit(
+        toTokenMinimalUnit(
+          order.cryptoAmount,
+          data.cryptoCurrency.decimals,
+        ).toString(),
+        data.cryptoCurrency.decimals,
+      );
+    } else {
+      amount = renderNumber(String(order.cryptoAmount));
+    }
+  }
+  return amount;
+}
 
 export function isBuyQuotes(
   buyOrSellQuotes:

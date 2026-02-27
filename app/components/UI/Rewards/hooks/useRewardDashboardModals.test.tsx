@@ -158,7 +158,7 @@ describe('useRewardDashboardModals', () => {
           confirmAction: {
             label: 'Add accounts',
             onPress: expect.any(Function),
-            variant: 'primary',
+            variant: 'Primary',
           },
           onCancel: expect.any(Function),
           cancelMode: 'top-right-cross-icon',
@@ -370,7 +370,7 @@ describe('useRewardDashboardModals', () => {
             label: 'Add account',
             loadOnPress: true,
             onPress: expect.any(Function),
-            variant: 'primary',
+            variant: 'Primary',
           },
           cancelMode: 'top-right-cross-icon',
           showCancelButton: true,
@@ -549,7 +549,7 @@ describe('useRewardDashboardModals', () => {
           confirmAction: {
             label: 'OK',
             onPress: expect.any(Function),
-            variant: 'primary',
+            variant: 'Primary',
           },
           showCancelButton: true,
           cancelMode: 'top-right-cross-icon',
@@ -600,7 +600,7 @@ describe('useRewardDashboardModals', () => {
           confirmAction: {
             label: 'OK',
             onPress: expect.any(Function),
-            variant: 'primary',
+            variant: 'Primary',
           },
           showCancelButton: true,
           cancelMode: 'top-right-cross-icon',

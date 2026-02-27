@@ -2,6 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import {
   useNavigation,
   useRoute,
+  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import {
@@ -33,7 +34,7 @@ const PerpsSelectModifyActionView: React.FC<
   onClose: onExternalClose,
   onReversePosition,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsSelectModifyAction'>>();
   const { trackEvent, createEventBuilder } = useAnalytics();

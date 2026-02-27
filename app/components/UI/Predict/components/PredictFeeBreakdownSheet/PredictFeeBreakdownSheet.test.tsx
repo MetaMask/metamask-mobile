@@ -11,6 +11,7 @@ jest.mock('../../utils/format', () => ({
   ),
 }));
 
+// Mock BottomSheet
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
@@ -49,56 +50,21 @@ jest.mock(
   },
 );
 
+// Mock SheetHeader
 jest.mock(
   '../../../../../component-library/components/Sheet/SheetHeader',
   () => {
-    const ReactModule = jest.requireActual('react');
+    const React = jest.requireActual('react');
     const { Text: RNText } = jest.requireActual('react-native');
     return ({ title }: { title: string }) =>
-      ReactModule.createElement(RNText, { testID: 'sheet-header' }, title);
+      React.createElement(RNText, { testID: 'sheet-header' }, title);
   },
 );
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: Record<string, string>) => {
-    if (key === 'predict.fee_summary.price_details') {
-      return 'Price details';
-    }
-    if (key === 'predict.fee_summary.prediction_order') {
-      return 'Prediction order';
-    }
-    if (key === 'predict.fee_summary.prediction_order_description') {
-      return `~${params?.count ?? '0.00'} contracts at ${params?.price ?? '$0.00'} each. Final amount may vary based on order book availability (up to ${params?.slippage ?? '0'}%).`;
-    }
-    if (key === 'predict.fee_summary.metamask_fee') {
-      return 'MetaMask fee';
-    }
-    if (key === 'predict.fee_summary.metamask_fee_description') {
-      return 'Service fee for processing this prediction';
-    }
-    if (key === 'predict.fee_summary.exchange_fee') {
-      return 'Exchange fee';
-    }
-    if (key === 'predict.fee_summary.exchange_fee_description') {
-      return 'Fee paid to the exchange or market';
-    }
-    if (key === 'predict.fee_summary.total') {
-      return 'Total';
-    }
-    if (key === 'predict.fee_summary.close') {
-      return 'Close';
-    }
-    return key;
-  }),
-}));
 
 describe('PredictFeeBreakdownSheet', () => {
   const defaultProps = {
     providerFee: 0.1,
     metamaskFee: 0.05,
-    sharePrice: 0.45,
-    contractCount: 22.22,
-    betAmount: 10,
-    total: 10.15,
   };
 
   beforeEach(() => {
@@ -122,7 +88,7 @@ describe('PredictFeeBreakdownSheet', () => {
       expect(getByTestId('sheet-header')).toBeOnTheScreen();
     });
 
-    it('renders price details title', () => {
+    it('renders Fees title in header', () => {
       const TestComponent = () => {
         const ref = useRef<BottomSheetRef>(null);
         return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
@@ -130,104 +96,39 @@ describe('PredictFeeBreakdownSheet', () => {
 
       const { getByText } = render(<TestComponent />);
 
-      expect(getByText('Price details')).toBeOnTheScreen();
+      expect(getByText('Fees')).toBeOnTheScreen();
     });
   });
 
-  describe('Contracts display', () => {
-    it('displays prediction order title', () => {
+  describe('Fee Display', () => {
+    it('displays Polymarket fee label and amount', () => {
+      const props = { ...defaultProps, providerFee: 0.15 };
       const TestComponent = () => {
         const ref = useRef<BottomSheetRef>(null);
-        return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
+        return <PredictFeeBreakdownSheet ref={ref} {...props} />;
       };
 
       const { getByText } = render(<TestComponent />);
 
-      expect(getByText('Prediction order')).toBeOnTheScreen();
+      expect(getByText('Polymarket fee')).toBeOnTheScreen();
+      expect(getByText('$0.15')).toBeOnTheScreen();
     });
 
-    it('displays bet amount on contracts row', () => {
-      const TestComponent = () => {
-        const ref = useRef<BottomSheetRef>(null);
-        return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
-      };
-
-      const { getByText } = render(<TestComponent />);
-
-      expect(getByText('$10.00')).toBeOnTheScreen();
-    });
-
-    it('displays prediction order description', () => {
-      const TestComponent = () => {
-        const ref = useRef<BottomSheetRef>(null);
-        return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
-      };
-
-      const { getByText } = render(<TestComponent />);
-
-      expect(
-        getByText(
-          '~22.22 contracts at $0.45 each. Final amount may vary based on order book availability (up to 3%).',
-        ),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('Fee display', () => {
     it('displays MetaMask fee label and amount', () => {
+      const props = { ...defaultProps, metamaskFee: 0.08 };
       const TestComponent = () => {
         const ref = useRef<BottomSheetRef>(null);
-        return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
+        return <PredictFeeBreakdownSheet ref={ref} {...props} />;
       };
 
       const { getByText } = render(<TestComponent />);
 
       expect(getByText('MetaMask fee')).toBeOnTheScreen();
-      expect(getByText('$0.05')).toBeOnTheScreen();
-    });
-
-    it('displays MetaMask fee description', () => {
-      const TestComponent = () => {
-        const ref = useRef<BottomSheetRef>(null);
-        return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
-      };
-
-      const { getByText } = render(<TestComponent />);
-
-      expect(
-        getByText('Service fee for processing this prediction'),
-      ).toBeOnTheScreen();
-    });
-
-    it('displays Exchange fee label and amount', () => {
-      const TestComponent = () => {
-        const ref = useRef<BottomSheetRef>(null);
-        return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
-      };
-
-      const { getByText } = render(<TestComponent />);
-
-      expect(getByText('Exchange fee')).toBeOnTheScreen();
-      expect(getByText('$0.10')).toBeOnTheScreen();
-    });
-
-    it('displays Exchange fee description', () => {
-      const TestComponent = () => {
-        const ref = useRef<BottomSheetRef>(null);
-        return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
-      };
-
-      const { getByText } = render(<TestComponent />);
-
-      expect(getByText('Fee paid to the exchange or market')).toBeOnTheScreen();
+      expect(getByText('$0.08')).toBeOnTheScreen();
     });
 
     it('displays zero fees correctly', () => {
-      const props = {
-        ...defaultProps,
-        providerFee: 0,
-        metamaskFee: 0,
-      };
+      const props = { providerFee: 0, metamaskFee: 0 };
       const TestComponent = () => {
         const ref = useRef<BottomSheetRef>(null);
         return <PredictFeeBreakdownSheet ref={ref} {...props} />;
@@ -240,20 +141,18 @@ describe('PredictFeeBreakdownSheet', () => {
     });
   });
 
-  describe('Total display', () => {
-    it('displays total amount', () => {
+  describe('Bottom Sheet Behavior', () => {
+    it('passes shouldNavigateBack as false to BottomSheet', () => {
       const TestComponent = () => {
         const ref = useRef<BottomSheetRef>(null);
         return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
       };
 
-      const { getByText } = render(<TestComponent />);
+      const { getByTestId } = render(<TestComponent />);
 
-      expect(getByText('Total')).toBeOnTheScreen();
-      expect(getByText('$10.15')).toBeOnTheScreen();
+      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
     });
-  });
-  describe('Bottom sheet behavior', () => {
+
     it('calls onClose callback when bottom sheet closes', () => {
       const mockOnClose = jest.fn();
       const TestComponent = () => {
@@ -296,7 +195,7 @@ describe('PredictFeeBreakdownSheet', () => {
     });
   });
 
-  describe('Ref methods', () => {
+  describe('Ref Methods', () => {
     it('exposes onOpenBottomSheet method', () => {
       const TestComponent = () => {
         const ref = useRef<BottomSheetRef>(null);

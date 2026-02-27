@@ -31,7 +31,6 @@ import {
   type SeasonMetadataDto,
   type SeasonStateDto,
   type LineaTokenRewardDto,
-  BASE32_REGEX,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -173,12 +172,6 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: false,
   },
-  rewardsEnvUrl: {
-    includeInStateLogs: false,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
 };
 
 /**
@@ -196,7 +189,6 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   pointsEvents: {},
   snapshots: {},
   pointsEstimateHistory: [],
-  rewardsEnvUrl: null,
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -528,10 +520,6 @@ export class RewardsController extends BaseController<
       this.validateReferralCode.bind(this),
     );
     this.messenger.registerActionHandler(
-      'RewardsController:validateBonusCode',
-      this.validateBonusCode.bind(this),
-    );
-    this.messenger.registerActionHandler(
       'RewardsController:linkAccountToSubscriptionCandidate',
       this.linkAccountToSubscriptionCandidate.bind(this),
     );
@@ -591,26 +579,6 @@ export class RewardsController extends BaseController<
       'RewardsController:applyReferralCode',
       this.applyReferralCode.bind(this),
     );
-    this.messenger.registerActionHandler(
-      'RewardsController:getRewardsEnvUrl',
-      this.getRewardsEnvUrl.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:canChangeRewardsEnvUrl',
-      this.canChangeRewardsEnvUrl.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:setRewardsEnvUrl',
-      this.setRewardsEnvUrl.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getDefaultRewardsEnvUrl',
-      this.getDefaultRewardsEnvUrl.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:applyBonusCode',
-      this.applyBonusCode.bind(this),
-    );
   }
 
   /**
@@ -633,51 +601,7 @@ export class RewardsController extends BaseController<
    * Reset controller state to default
    */
   resetState(): void {
-    const { rewardsEnvUrl } = this.state;
-    this.update(() => ({
-      ...getRewardsControllerDefaultState(),
-      rewardsEnvUrl,
-    }));
-  }
-
-  /**
-   * Returns the rewards API base URL the data service is currently targeting.
-   */
-  getRewardsEnvUrl(): string {
-    return this.messenger.call('RewardsDataService:getRewardsEnvUrl');
-  }
-
-  /**
-   * Returns whether the current MetaMask build allows manually overriding the
-   * rewards API environment (true for non-RC / non-production builds).
-   */
-  canChangeRewardsEnvUrl(): boolean {
-    return this.messenger.call('RewardsDataService:canChangeRewardsEnvUrl');
-  }
-
-  /**
-   * Returns the default rewards API base URL for the current MetaMask
-   * environment, ignoring any manual override.
-   */
-  getDefaultRewardsEnvUrl(): string {
-    return this.messenger.call('RewardsDataService:getDefaultRewardsEnvUrl');
-  }
-
-  /**
-   * Switches the active rewards API URL, persists the choice, and
-   * resets all cached state so the next fetches target the new environment.
-   *
-   * No-ops on production builds where the environment URL cannot be changed.
-   */
-  async setRewardsEnvUrl(url: string): Promise<void> {
-    if (!this.canChangeRewardsEnvUrl()) {
-      return;
-    }
-    this.update((state: RewardsControllerState) => {
-      state.rewardsEnvUrl = url;
-    });
-    this.messenger.call('RewardsDataService:setRewardsEnvUrl', url);
-    await this.resetAll();
+    this.update(() => getRewardsControllerDefaultState());
   }
 
   /**
@@ -844,7 +768,7 @@ export class RewardsController extends BaseController<
       if (!accounts || accounts.length === 0) {
         await this.performSilentAuth(null, true, true);
       } else {
-        const sortedAccounts = sortAccounts(accounts as InternalAccount[]);
+        const sortedAccounts = sortAccounts(accounts);
 
         try {
           // Prefer to get opt in status in bulk for sorted accounts.
@@ -860,12 +784,12 @@ export class RewardsController extends BaseController<
         for (const account of sortedAccounts) {
           try {
             const subscriptionId = await this.performSilentAuth(
-              account as InternalAccount,
+              account,
               false,
               true,
             );
             if (subscriptionId && !successAccount) {
-              successAccount = account as InternalAccount;
+              successAccount = account;
               break;
             }
           } catch {
@@ -875,7 +799,7 @@ export class RewardsController extends BaseController<
 
         // Set the active account to the first successful account or the first account in the sorted accounts array
         const activeAccountCandidate: InternalAccount =
-          successAccount || (sortedAccounts[0] as InternalAccount);
+          successAccount || sortedAccounts[0];
         this.setActiveAccountFromCandidate(activeAccountCandidate);
       }
     } catch (error) {
@@ -2654,10 +2578,6 @@ export class RewardsController extends BaseController<
       return false;
     }
 
-    if (!BASE32_REGEX.test(code)) {
-      return false;
-    }
-
     try {
       const response = await this.messenger.call(
         'RewardsDataService:validateReferralCode',
@@ -2667,49 +2587,6 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to validate referral code:',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Validate a bonus code
-   * @param code - The bonus code to validate
-   * @param subscriptionId - The subscription ID for authentication
-   * @returns Promise<boolean> - True if the code is valid, false otherwise
-   */
-  async validateBonusCode(
-    code: string,
-    subscriptionId: string,
-  ): Promise<boolean> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return false;
-    }
-
-    if (!code.trim()) {
-      return false;
-    }
-
-    if (code.length < 4 || code.length > 16) {
-      return false;
-    }
-
-    if (!/^[A-Za-z0-9]+$/.test(code)) {
-      return false;
-    }
-
-    try {
-      const response = await this.messenger.call(
-        'RewardsDataService:validateBonusCode',
-        code,
-        subscriptionId,
-      );
-      return response.valid;
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to validate bonus code:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;
@@ -3396,45 +3273,6 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to apply referral code:',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Apply a bonus code to a subscription.
-   * @param bonusCode - The bonus code to apply.
-   * @param subscriptionId - The subscription ID to apply the bonus code to.
-   * @returns Promise that resolves when the bonus code is applied successfully.
-   * @throws Error with the error message from the API response.
-   */
-  async applyBonusCode(
-    bonusCode: string,
-    subscriptionId: string,
-  ): Promise<void> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      throw new Error('Rewards are not enabled');
-    }
-
-    try {
-      await this.messenger.call(
-        'RewardsDataService:applyBonusCode',
-        { bonusCode },
-        subscriptionId,
-      );
-
-      // Invalidate caches so hooks refetch fresh data on next render
-      this.invalidateSubscriptionCache(subscriptionId);
-
-      Logger.log(
-        'RewardsController: Successfully applied bonus code',
-        subscriptionId,
-      );
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to apply bonus code:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;

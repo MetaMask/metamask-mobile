@@ -27,8 +27,7 @@ import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
@@ -62,7 +61,7 @@ const AddFundsBottomSheet: React.FC = () => {
   const { openSwaps } = useOpenSwaps({
     priorityToken,
   });
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToDeposit } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();

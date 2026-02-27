@@ -35,7 +35,6 @@ export function getBridgeControllerMessenger(
       'MultichainAssetsRatesController:getState',
       'CurrencyRateController:getState',
       'RemoteFeatureFlagController:getState',
-      'AuthenticationController:getBearerToken',
     ],
     events: [],
     messenger,

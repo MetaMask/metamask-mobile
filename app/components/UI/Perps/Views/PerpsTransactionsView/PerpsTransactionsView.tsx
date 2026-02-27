@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import React, {
   useCallback,
@@ -20,6 +20,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PerpsNavigationParamList } from '../../types/navigation';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
 import {
@@ -54,7 +55,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   // Transaction data is now computed from hooks instead of stored in state
   const [flatListData, setFlatListData] = useState<ListItem[]>([]);

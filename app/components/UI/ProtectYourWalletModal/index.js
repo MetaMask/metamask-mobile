@@ -8,11 +8,11 @@ import { protectWalletModalNotVisible } from '../../../actions/user';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
-import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ProtectWalletModalSelectorsIDs } from './ProtectWalletModal.testIds';
-import { withAnalyticsAwareness } from '../../../components/hooks/useAnalytics/withAnalyticsAwareness';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 const protectWalletImage = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
@@ -91,9 +91,9 @@ class ProtectYourWalletModal extends PureComponent {
      */
     passwordSet: PropTypes.bool,
     /**
-     * Analytics injected by withAnalyticsAwareness HOC
+     * Metrics injected by withMetricsAwareness HOC
      */
-    analytics: PropTypes.object,
+    metrics: PropTypes.object,
     /**
      * A boolean representing if the user is in the seedless onboarding login flow
      */
@@ -106,8 +106,8 @@ class ProtectYourWalletModal extends PureComponent {
       'SetPasswordFlow',
       this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
     );
-    this.props.analytics.trackEvent(
-      this.props.analytics
+    this.props.metrics.trackEvent(
+      this.props.metrics
         .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED)
         .addProperties({
           wallet_protection_required: false,
@@ -130,8 +130,8 @@ class ProtectYourWalletModal extends PureComponent {
 
   onDismiss = () => {
     this.props.protectWalletModalNotVisible();
-    this.props.analytics.trackEvent(
-      this.props.analytics
+    this.props.metrics.trackEvent(
+      this.props.metrics
         .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED)
         .addProperties({
           wallet_protection_required: false,
@@ -222,4 +222,4 @@ ProtectYourWalletModal.contextType = ThemeContext;
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withAnalyticsAwareness(ProtectYourWalletModal));
+)(withMetricsAwareness(ProtectYourWalletModal));

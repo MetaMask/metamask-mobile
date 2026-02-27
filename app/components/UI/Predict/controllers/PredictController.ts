@@ -114,7 +114,6 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
-import { unwrapRemoteFeatureFlag } from '../utils/flags';
 
 /**
  * State shape for PredictController
@@ -471,18 +470,17 @@ export class PredictController extends BaseController<
         'RemoteFeatureFlagController:getState',
       );
       const liveSportsFlag =
-        unwrapRemoteFeatureFlag<PredictLiveSportsFlag>(
-          remoteFeatureFlagState.remoteFeatureFlags.predictLiveSports,
-        ) ?? DEFAULT_LIVE_SPORTS_FLAG;
-
+        (remoteFeatureFlagState.remoteFeatureFlags
+          .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
+        DEFAULT_LIVE_SPORTS_FLAG;
       const liveSportsLeagues = liveSportsFlag.enabled
         ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
         : [];
 
-      const rawMarketHighlightsFlag =
-        unwrapRemoteFeatureFlag<PredictMarketHighlightsFlag>(
-          remoteFeatureFlagState.remoteFeatureFlags.predictMarketHighlights,
-        );
+      const rawMarketHighlightsFlag = remoteFeatureFlagState.remoteFeatureFlags
+        .predictMarketHighlights as unknown as
+        | PredictMarketHighlightsFlag
+        | undefined;
 
       const isHighlightsFlagValid = validatedVersionGatedFeatureFlag(
         rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
@@ -613,9 +611,9 @@ export class PredictController extends BaseController<
         'RemoteFeatureFlagController:getState',
       );
       const liveSportsFlag =
-        unwrapRemoteFeatureFlag<PredictLiveSportsFlag>(
-          remoteFeatureFlagState.remoteFeatureFlags.predictLiveSports,
-        ) ?? DEFAULT_LIVE_SPORTS_FLAG;
+        (remoteFeatureFlagState.remoteFeatureFlags
+          .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
+        DEFAULT_LIVE_SPORTS_FLAG;
       const liveSportsLeagues = liveSportsFlag.enabled
         ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
         : [];
@@ -1374,9 +1372,10 @@ export class PredictController extends BaseController<
         'RemoteFeatureFlagController:getState',
       );
       const feeCollection =
-        unwrapRemoteFeatureFlag<PredictFeeCollection>(
-          remoteFeatureFlagState.remoteFeatureFlags.predictFeeCollection,
-        ) ?? DEFAULT_FEE_COLLECTION_FLAG;
+        (remoteFeatureFlagState.remoteFeatureFlags
+          .predictFeeCollection as unknown as
+          | PredictFeeCollection
+          | undefined) ?? DEFAULT_FEE_COLLECTION_FLAG;
 
       const signer = this.getSigner();
 

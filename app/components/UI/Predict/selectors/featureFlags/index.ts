@@ -6,7 +6,6 @@ import {
 } from '../../../../../util/remoteFeatureFlag';
 import { PredictHotTabFlag } from '../../types/flags';
 import { DEFAULT_HOT_TAB_FLAG } from '../../constants/flags';
-import { unwrapRemoteFeatureFlag } from '../../utils/flags';
 
 /**
  * Selector for Predict trading feature enablement
@@ -21,9 +20,8 @@ import { unwrapRemoteFeatureFlag } from '../../utils/flags';
 export const selectPredictEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const remoteFlag = unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-      remoteFeatureFlags?.predictTradingEnabled,
-    );
+    const remoteFlag =
+      remoteFeatureFlags?.predictTradingEnabled as unknown as VersionGatedFeatureFlag;
 
     // Default to `true` if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
@@ -34,10 +32,10 @@ export const selectPredictGtmOnboardingModalEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const localFlag = process.env.MM_PREDICT_GTM_MODAL_ENABLED === 'true';
-    const remoteFlag = unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-      remoteFeatureFlags?.predictGtmOnboardingModalEnabled,
-    );
+    const remoteFlag =
+      remoteFeatureFlags?.predictGtmOnboardingModalEnabled as unknown as VersionGatedFeatureFlag;
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
@@ -68,9 +66,8 @@ export interface PredictHomeFeaturedVariantFlag
 export const selectPredictHomeFeaturedVariant = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): PredictHomeFeaturedVariant => {
-    const remoteFlag = unwrapRemoteFeatureFlag<PredictHomeFeaturedVariantFlag>(
-      remoteFeatureFlags?.predictHomeFeaturedVariant,
-    );
+    const remoteFlag =
+      remoteFeatureFlags?.predictHomeFeaturedVariant as unknown as PredictHomeFeaturedVariantFlag;
 
     const isEnabled = validatedVersionGatedFeatureFlag(remoteFlag);
 
@@ -89,11 +86,14 @@ export const selectPredictHomeFeaturedVariant = createSelector(
 export const selectPredictHotTabFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): PredictHotTabFlag => {
-    const flag = unwrapRemoteFeatureFlag<PredictHotTabFlag>(
-      remoteFeatureFlags?.predictHotTab,
-    );
+    const flag =
+      remoteFeatureFlags?.predictHotTab as unknown as PredictHotTabFlag;
 
-    if (!flag || !validatedVersionGatedFeatureFlag(flag)) {
+    if (
+      !validatedVersionGatedFeatureFlag(
+        flag as unknown as VersionGatedFeatureFlag,
+      )
+    ) {
       return DEFAULT_HOT_TAB_FLAG;
     }
 

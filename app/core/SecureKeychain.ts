@@ -1,23 +1,25 @@
-import { Platform } from 'react-native';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import { strings } from '../../locales/i18n';
-import { MetaMetricsEvents } from './Analytics/MetaMetrics.events';
-import { analytics } from '../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents, MetaMetrics } from './Analytics';
 import Device from '../util/device';
-import AUTHENTICATION_TYPE from '../constants/userProperties';
-import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+
 const privates = new WeakMap();
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
 });
-// Default options used for storing credentials in the keychain
-// Do not re-use for other scopes unless you know what you are doing
-const defaultCredentialsOptions: Keychain.SetOptions = {
+const defaultOptions = {
   service: 'com.metamask',
+  authenticationPromptTitle: strings('authentication.auth_prompt_title'),
   authenticationPrompt: { title: strings('authentication.auth_prompt_desc') },
+  authenticationPromptDesc: strings('authentication.auth_prompt_desc'),
+  fingerprintPromptTitle: strings('authentication.fingerprint_prompt_title'),
+  fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
+  fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel'),
 };
+import AUTHENTICATION_TYPE from '../constants/userProperties';
+import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 
 enum SecureKeychainTypes {
   BIOMETRICS = 'BIOMETRICS',
@@ -64,8 +66,8 @@ const SecureKeychain = {
     instance = SecureKeychainEncryptor.getInstance(salt);
 
     if (Device.isAndroid() && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE)
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE,
         ).build(),
       );
@@ -137,9 +139,9 @@ const SecureKeychain = {
   },
 
   async resetGenericPassword() {
-    const options = { service: defaultCredentialsOptions.service };
+    const options = { service: defaultOptions.service };
     // This is called to remove other auth types and set the user back to the default password login
-    analytics.identify({
+    await MetaMetrics.getInstance().addTraitsToUser({
       [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSWORD,
     });
     return Keychain.resetGenericPassword(options);
@@ -149,15 +151,8 @@ const SecureKeychain = {
     if (instance) {
       try {
         instance.isAuthenticating = true;
-        const keychainObject = await Keychain.getGenericPassword({
-          ...defaultCredentialsOptions,
-          // Access control is only used by Android when requesting device authentication
-          // For iOS, the access control is derived from the access control when the password was stored
-          accessControl:
-            Platform.OS === 'android'
-              ? Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE
-              : undefined,
-        });
+        const keychainObject =
+          await Keychain.getGenericPassword(defaultOptions);
         if (keychainObject && keychainObject.password) {
           const encryptedPassword = keychainObject.password;
           const decrypted = await instance.decryptPassword(encryptedPassword);
@@ -174,42 +169,45 @@ const SecureKeychain = {
     return null;
   },
 
-  async setGenericPassword(password: string, type?: AUTHENTICATION_TYPE) {
+  async setGenericPassword(password: string, type?: SecureKeychainTypes) {
     const authOptions: Keychain.SetOptions = {
-      // Keychain is accessible only when device is unlocked
-      // Items with this accessible level will not migrate to a new device
       accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
     };
 
-    // TODO: Remove biometric and passcode types once we have removed the legacy authentication types
-    if (
-      type === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION ||
-      type === AUTHENTICATION_TYPE.BIOMETRIC ||
-      type === AUTHENTICATION_TYPE.PASSCODE
-    ) {
-      authOptions.accessControl =
-        Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE;
+    const metrics = MetaMetrics.getInstance();
+    if (type === this.TYPES.BIOMETRICS) {
+      authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET;
+      // Android requires this storage type so that the access control is enforced.
+      authOptions.storage = Keychain.STORAGE_TYPE.AES_GCM;
 
-      analytics.identify({
+      await metrics.addTraitsToUser({
         [UserProfileProperty.AUTHENTICATION_TYPE]:
-          AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+          AUTHENTICATION_TYPE.BIOMETRIC,
       });
+    } else if (type === this.TYPES.PASSCODE) {
+      authOptions.accessControl = Keychain.ACCESS_CONTROL.DEVICE_PASSCODE;
+      // Android requires this storage type so that the access control is enforced.
+      authOptions.storage = Keychain.STORAGE_TYPE.AES_GCM;
 
-      const encryptedPassword = await instance.encryptPassword(password);
-
-      return await Keychain.setGenericPassword(
-        'metamask-user',
-        encryptedPassword,
-        {
-          ...defaultCredentialsOptions,
-          ...authOptions,
-        },
-      );
+      await metrics.addTraitsToUser({
+        [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSCODE,
+      });
+    } else if (type === this.TYPES.REMEMBER_ME) {
+      await metrics.addTraitsToUser({
+        [UserProfileProperty.AUTHENTICATION_TYPE]:
+          AUTHENTICATION_TYPE.REMEMBER_ME,
+      });
+    } else {
+      // Setting a password without a type does not save it
+      return await this.resetGenericPassword();
     }
 
-    // Reset password if no type is provided
-    // Ex. Password auth type does not store anything in the keychain
-    return await this.resetGenericPassword();
+    const encryptedPassword = await instance.encryptPassword(password);
+
+    await Keychain.setGenericPassword('metamask-user', encryptedPassword, {
+      ...defaultOptions,
+      ...authOptions,
+    });
   },
 
   ACCESS_CONTROL: Keychain.ACCESS_CONTROL,

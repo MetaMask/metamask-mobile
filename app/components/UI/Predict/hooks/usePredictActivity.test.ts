@@ -1,114 +1,134 @@
-import React from 'react';
-import { renderHook, waitFor, act } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { usePredictActivity } from './usePredictActivity';
+import Engine from '../../../../core/Engine';
 
-const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
-
-const mockGetActivity = jest.fn();
+// Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      getActivity: (...args: unknown[]) => mockGetActivity(...args),
+      getActivity: jest.fn(),
     },
   },
 }));
 
-jest.mock('../utils/accounts', () => ({
-  getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
-    address: MOCK_ADDRESS,
-  })),
-}));
-
-const mockEnsurePolygonNetworkExists = jest.fn<Promise<void>, []>();
-jest.mock('./usePredictNetworkManagement', () => ({
-  usePredictNetworkManagement: () => ({
-    ensurePolygonNetworkExists: mockEnsurePolygonNetworkExists,
-  }),
-}));
-
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
-  });
-
-  const Wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-
-  return { Wrapper };
-};
+// Mock navigation focus effect without auto-invocation; provide manual trigger
+jest.mock('@react-navigation/native', () => {
+  let focusCb: (() => void) | null = null;
+  return {
+    useFocusEffect: (cb: () => void) => {
+      focusCb = cb;
+    },
+    __esModule: true,
+    __mock: {
+      invokeFocusEffect: () => {
+        focusCb?.();
+      },
+    },
+  };
+});
 
 describe('usePredictActivity', () => {
+  const mockGetActivity = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetActivity.mockResolvedValue([]);
-    mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
+    (Engine.context.PredictController.getActivity as jest.Mock) =
+      mockGetActivity;
   });
 
-  it('fetches activity automatically on mount', async () => {
-    const { Wrapper } = createWrapper();
-    const activity = [{ id: '1' }];
-    mockGetActivity.mockResolvedValueOnce(activity);
-
-    const { result } = renderHook(() => usePredictActivity(), {
-      wrapper: Wrapper,
-    });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.data).toEqual(activity);
-    expect(result.current.error).toBeNull();
-    expect(mockGetActivity).toHaveBeenCalledWith({ address: MOCK_ADDRESS });
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('exposes error when activity fetch fails', async () => {
-    const { Wrapper } = createWrapper();
-    mockGetActivity.mockRejectedValueOnce(new Error('Boom'));
+  it('initializes and auto-loads activity on mount', async () => {
+    const data = [{ id: '1' }];
+    mockGetActivity.mockResolvedValueOnce(data);
 
-    const { result } = renderHook(() => usePredictActivity(), {
-      wrapper: Wrapper,
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePredictActivity(),
+    );
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.activity).toEqual([]);
+    expect(result.current.error).toBe(null);
+
+    await waitForNextUpdate();
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.activity).toEqual(data);
+    expect(result.current.error).toBe(null);
+    expect(mockGetActivity).toHaveBeenCalledWith({
+      providerId: undefined,
     });
-
-    await waitFor(() => {
-      expect(result.current.error).toBeInstanceOf(Error);
-    });
-
-    expect(result.current.error?.message).toBe('Boom');
   });
 
-  it('uses refetch for refresh behavior', async () => {
-    const { Wrapper } = createWrapper();
+  it('loads activity when hook is mounted', async () => {
+    mockGetActivity.mockResolvedValueOnce([]);
+
+    const { waitForNextUpdate } = renderHook(() => usePredictActivity());
+
+    await waitForNextUpdate();
+
+    expect(mockGetActivity).toHaveBeenCalledWith({});
+  });
+
+  it('can refresh with isRefresh=true and sets isRefreshing flag', async () => {
     mockGetActivity.mockResolvedValueOnce([{ id: '1' }]);
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePredictActivity(),
+    );
 
-    const { result } = renderHook(() => usePredictActivity(), {
-      wrapper: Wrapper,
-    });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    await waitForNextUpdate();
 
     mockGetActivity.mockResolvedValueOnce([{ id: '2' }]);
     await act(async () => {
-      await result.current.refetch();
+      await result.current.loadActivity({ isRefresh: true });
+    });
+
+    expect(result.current.isRefreshing).toBe(false);
+    expect(result.current.activity).toEqual([{ id: '2' }]);
+  });
+
+  it('handles errors and sets error message', async () => {
+    mockGetActivity.mockRejectedValueOnce(new Error('Boom'));
+
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePredictActivity(),
+    );
+
+    await waitForNextUpdate();
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe('Boom');
+    expect(result.current.activity).toEqual([]);
+  });
+
+  it('supports disabling auto-load via loadOnMount=false', () => {
+    const { result } = renderHook(() =>
+      usePredictActivity({ loadOnMount: false }),
+    );
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.activity).toEqual([]);
+    expect(mockGetActivity).not.toHaveBeenCalled();
+  });
+
+  it('triggers refresh on focus when refreshOnFocus=true', async () => {
+    mockGetActivity.mockResolvedValueOnce([]);
+
+    const { waitForNextUpdate } = renderHook(() =>
+      usePredictActivity({ refreshOnFocus: true }),
+    );
+
+    await waitForNextUpdate();
+
+    mockGetActivity.mockResolvedValueOnce([]);
+    const { __mock } = jest.requireMock('@react-navigation/native');
+    await act(async () => {
+      __mock.invokeFocusEffect();
+      await Promise.resolve();
     });
 
     expect(mockGetActivity).toHaveBeenCalledTimes(2);
-    expect(result.current.isRefetching).toBe(false);
-  });
-
-  it('ensures polygon network before running query', async () => {
-    const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => usePredictActivity(), {
-      wrapper: Wrapper,
-    });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(mockEnsurePolygonNetworkExists).toHaveBeenCalledTimes(1);
   });
 });

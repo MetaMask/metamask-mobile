@@ -51,7 +51,6 @@ export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
       <Button
         variant={ButtonVariant.Secondary}
         onPress={onAction}
-        twClassName="self-center"
         {...actionButtonProps}
       >
         {actionButtonText}

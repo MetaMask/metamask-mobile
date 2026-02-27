@@ -11,11 +11,10 @@ import {
 import {
   StackActions,
   useNavigation,
-  RouteProp,
+  useRoute,
 } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import styles from './index.styles';
-import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -28,6 +27,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import {
   endTrace,
   trace,
+  TraceContext,
   TraceName,
   TraceOperation,
 } from '../../../util/trace';
@@ -42,33 +42,32 @@ import {
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
 import AccountStatusImg from '../../../images/account_status.png';
-import type { AccountStatusParams } from './types';
-
-interface AccountStatusRouteParams {
-  AccountStatus: AccountStatusParams;
-  AccountAlreadyExists: AccountStatusParams;
-  AccountNotFound: AccountStatusParams;
-  [key: string]: object | undefined;
-}
 
 interface AccountStatusProps {
-  route: RouteProp<
-    AccountStatusRouteParams,
-    'AccountStatus' | 'AccountAlreadyExists' | 'AccountNotFound'
-  >;
+  type?: 'found' | 'not_exist';
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
 
-const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
-  const navigation = useNavigation();
+interface AccountRouteParams {
+  accountName?: string;
+  oauthLoginSuccess?: boolean;
+  onboardingTraceCtx?: TraceContext;
+  provider?: string;
+}
 
-  const {
-    type = 'not_exist',
-    accountName,
-    oauthLoginSuccess,
-    onboardingTraceCtx,
-    provider,
-  } = route?.params ?? {};
+const AccountStatus = ({
+  type = 'not_exist',
+  saveOnboardingEvent,
+}: AccountStatusProps) => {
+  const navigation = useNavigation();
+  const route = useRoute();
+
+  const accountName = (route.params as AccountRouteParams)?.accountName;
+  const oauthLoginSuccess = (route.params as AccountRouteParams)
+    ?.oauthLoginSuccess;
+  const onboardingTraceCtx = (route.params as AccountRouteParams)
+    ?.onboardingTraceCtx;
+  const provider = (route.params as AccountRouteParams)?.provider;
 
   // check for small screen size
   const isSmallScreen = Dimensions.get('window').width < 375;
@@ -156,27 +155,11 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
   }, []);
 
   return (
-    <SafeAreaView
-      style={styles.safeArea}
-      edges={['top', 'bottom']}
-      testID={
-        type === 'found'
-          ? AccountStatusSelectorIDs.ACCOUNT_FOUND_CONTAINER
-          : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CONTAINER
-      }
-    >
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.root}>
         <ScrollView style={styles.scrollView}>
           <View style={styles.content}>
-            <Text
-              variant={TextVariant.DisplayMD}
-              color={TextColor.Default}
-              testID={
-                type === 'found'
-                  ? AccountStatusSelectorIDs.ACCOUNT_FOUND_TITLE
-                  : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_TITLE
-              }
-            >
+            <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
               {type === 'found'
                 ? strings('account_status.account_already_exists')
                 : strings('account_status.account_not_found')}
@@ -218,11 +201,6 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
                 ? strings(buttonLabelForFoundTypeAccountStatus())
                 : strings('account_status.create_new_wallet')
             }
-            testID={
-              type === 'found'
-                ? AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON
-                : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CREATE_BUTTON
-            }
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -232,11 +210,6 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
               navigation.goBack();
             }}
             label={strings('account_status.use_different_login_method')}
-            testID={
-              type === 'found'
-                ? AccountStatusSelectorIDs.ACCOUNT_FOUND_DIFFERENT_METHOD_BUTTON
-                : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_DIFFERENT_METHOD_BUTTON
-            }
           />
         </View>
       </View>

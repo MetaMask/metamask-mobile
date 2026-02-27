@@ -39,8 +39,7 @@ import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import Logger from '../../../../../util/Logger';
 import { Linking } from 'react-native';
@@ -226,7 +225,7 @@ const PhysicalAddress = () => {
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [city, setCity] = useState('');

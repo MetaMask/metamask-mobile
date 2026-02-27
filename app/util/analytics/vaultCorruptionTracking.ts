@@ -1,8 +1,8 @@
-import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
-import { analytics } from './analytics';
-import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
+import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
+import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import Logger from '../Logger';
 import {
+  AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
@@ -41,6 +41,9 @@ export const isVaultRelatedError = (errorMessage: string): boolean => {
     VAULT_CREATION_ERROR.toLowerCase(),
     NO_VAULT_IN_BACKUP_ERROR.toLowerCase(),
 
+    // System authentication failures (from constants/error.ts)
+    AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS.toLowerCase(),
+
     // Actual vault error (from components/Views/Login/constants.ts)
     VAULT_ERROR.toLowerCase(),
   ];
@@ -53,8 +56,9 @@ export const isVaultRelatedError = (errorMessage: string): boolean => {
  *
  * This utility function:
  * 1. Checks if the error is vault-related
- * 2. Provides a consistent interface for vault corruption tracking
- * 3. Handles errors gracefully without throwing
+ * 2. Checks if MetaMetrics is enabled before tracking
+ * 3. Provides a consistent interface for vault corruption tracking
+ * 4. Handles errors gracefully without throwing
  *
  * @param errorMessage - The error message from the caught exception
  * @param properties - Context-specific properties for the tracking event
@@ -69,8 +73,17 @@ export const trackVaultCorruption = (
       return;
     }
 
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
+    const metaMetrics = MetaMetrics.getInstance();
+
+    // Check if MetaMetrics is enabled before tracking
+    if (!metaMetrics.isEnabled()) {
+      // MetaMetrics is disabled, skip tracking silently
+      return;
+    }
+
+    // Track the vault corruption event
+    metaMetrics.trackEvent(
+      MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_DETECTED,
       )
         .addProperties({

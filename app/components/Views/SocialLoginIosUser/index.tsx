@@ -4,8 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
-  StackActions,
+  ParamListBase,
 } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import LottieView, { AnimationObject } from 'lottie-react-native';
 import Text, {
   TextVariant,
@@ -29,7 +30,7 @@ interface SocialLoginIosUserProps {
 }
 
 const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route = useRoute();
 
   const { accountName, oauthLoginSuccess, onboardingTraceCtx, provider } =
@@ -41,25 +42,21 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
     }) || {};
 
   const handleSetMetaMaskPin = () => {
-    navigation.dispatch(
-      StackActions.replace(Routes.ONBOARDING.CHOOSE_PASSWORD, {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess,
-        onboardingTraceCtx,
-        accountName,
-        provider,
-      }),
-    );
+    navigation.replace(Routes.ONBOARDING.CHOOSE_PASSWORD, {
+      [PREVIOUS_SCREEN]: ONBOARDING,
+      oauthLoginSuccess,
+      onboardingTraceCtx,
+      accountName,
+      provider,
+    });
   };
 
   const handleSecureWallet = () => {
-    navigation.dispatch(
-      StackActions.replace('Rehydrate', {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
-        onboardingTraceCtx,
-      }),
-    );
+    navigation.replace('Rehydrate', {
+      [PREVIOUS_SCREEN]: ONBOARDING,
+      oauthLoginSuccess: true,
+      onboardingTraceCtx,
+    });
   };
 
   const isUserTypeNew = type === 'new';

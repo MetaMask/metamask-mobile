@@ -12,8 +12,7 @@ import {
   selectChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import { analytics } from '../../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import withMetricsAwareness from '../../../components/hooks/useMetrics/withMetricsAwareness';
 import Text, {
   TextVariant,
   TextColor,
@@ -59,6 +58,10 @@ class NavbarTitle extends PureComponent {
      */
     navigation: PropTypes.object,
     /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
+    /**
      * Boolean that specifies if the network selected is displayed
      */
     showSelectedNetwork: PropTypes.bool,
@@ -95,10 +98,9 @@ class NavbarTitle extends PureComponent {
           screen: Routes.SHEET.NETWORK_SELECTOR,
         });
 
-        analytics.trackEvent(
-          AnalyticsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
-          )
+        this.props.metrics.trackEvent(
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
             .addProperties({
               chain_id: getDecimalChainId(this.props.chainId),
             })
@@ -178,4 +180,6 @@ const mapStateToProps = (state) => ({
   selectedNetworkName: selectNetworkName(state),
 });
 
-export default withNavigation(connect(mapStateToProps)(NavbarTitle));
+export default withNavigation(
+  connect(mapStateToProps)(withMetricsAwareness(NavbarTitle)),
+);

@@ -14,7 +14,7 @@ export default defineConfig({
       'html',
       { open: 'never', outputFolder: './test-reports/appwright-report' },
     ],
-    ['./reporters/PerformanceReporter.ts'],
+    ['./reporters/custom-reporter.js'],
     ['list'],
   ],
 

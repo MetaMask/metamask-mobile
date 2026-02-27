@@ -67,7 +67,6 @@ jest.mock('../../../util/activity', () => ({
   sortTransactions: jest.fn((txs) => txs || []),
   filterByAddressAndNetwork: jest.fn(() => true),
   isTransactionOnChains: jest.fn(() => false),
-  buildTrustedAddressSet: jest.fn(() => new Set()),
 }));
 
 jest.mock('../../../util/transactions', () => ({
@@ -102,7 +101,6 @@ jest.mock('../../../selectors/tokensController', () => ({
 
 jest.mock('../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(() => null),
-  selectInternalAccounts: jest.fn(() => []),
 }));
 
 jest.mock('../../../selectors/preferencesController', () => ({
@@ -313,9 +311,6 @@ describe('TransactionsView', () => {
                 '30786334-3935-4563-b064-363339643939': createMockAccount(),
               },
             },
-          },
-          AddressBookController: {
-            addressBook: {},
           },
           TokensController: {
             ...initialRootState.engine.backgroundState.TokensController,

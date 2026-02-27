@@ -24,12 +24,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
+jest.mock('../../hooks/useMetrics', () => {
   let capturedTrackEvent: jest.Mock;
 
   return {
-    useAnalytics: () => {
+    useMetrics: () => {
       capturedTrackEvent = jest.fn((event) => {
+        // Store the call so we can retrieve it from the module
         if (mockTrackEvent) {
           mockTrackEvent(event);
         }
@@ -62,7 +63,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
         getDeleteRegulationId: jest.fn(),
         isDataRecorded: jest.fn(),
         isEnabled: jest.fn(),
-        getAnalyticsId: jest.fn(),
+        getMetaMetricsId: jest.fn(),
       };
     },
   };
