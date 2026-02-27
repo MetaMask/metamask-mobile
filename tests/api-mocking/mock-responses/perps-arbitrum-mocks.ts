@@ -7,7 +7,12 @@
  */
 
 import type { Mockttp } from 'mockttp';
-import { createLogger, LogLevel, type TestSpecificMock , RampsRegion } from '../../framework';
+import {
+  createLogger,
+  LogLevel,
+  type TestSpecificMock,
+  RampsRegion,
+} from '../../framework';
 
 const logger = createLogger({
   name: 'PerpsArbitrumMocks',
