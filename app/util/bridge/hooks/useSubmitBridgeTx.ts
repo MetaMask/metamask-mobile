@@ -47,7 +47,9 @@ export default function useSubmitBridgeTx() {
         accountAddress: walletAddress,
         location,
         abTests,
-      });
+      } as unknown as Parameters<
+        typeof Engine.context.BridgeStatusController.submitIntent
+      >[0]);
     }
     return Engine.context.BridgeStatusController.submitTx(
       walletAddress,

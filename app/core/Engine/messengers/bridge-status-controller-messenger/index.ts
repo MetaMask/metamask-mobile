@@ -30,7 +30,8 @@ export function getBridgeStatusControllerMessenger(
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getState',
-      'KeyringController:signTypedMessage',
+      // Added in core PR; cast keeps mobile compatible while package types catch up.
+      'KeyringController:signTypedMessage' as never,
       'BridgeController:stopPollingForQuotes',
       'BridgeController:trackUnifiedSwapBridgeEvent',
       'GasFeeController:getState',
