@@ -89,7 +89,7 @@ describe('TokenConversionRateRow', () => {
     expect(screen.getByText('1 USDC = 0.9 mUSD')).toBeOnTheScreen();
   });
 
-  it('renders undefined conversion rate text when source amount is zero', () => {
+  it('renders 1 conversion rate fallback text when source amount is zero', () => {
     mockUseTransactionPayQuotes.mockReturnValue([
       {
         sourceAmount: { usd: '0' },
@@ -103,6 +103,6 @@ describe('TokenConversionRateRow', () => {
 
     renderWithProvider(<TokenConversionRateRow />, { state: {} });
 
-    expect(screen.getByText('1 USDC = undefined mUSD')).toBeOnTheScreen();
+    expect(screen.getByText('1 USDC = 1 mUSD')).toBeOnTheScreen();
   });
 });
