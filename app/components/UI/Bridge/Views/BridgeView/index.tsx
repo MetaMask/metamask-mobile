@@ -377,6 +377,14 @@ const BridgeView = () => {
       );
     }
 
+    // Prevent bottom section from rendering when no active
+    // quotes exist and none are being fetching.
+    // This resolves edge cases when users are redirected back from
+    // Select Quote page due to quotes expiry.
+    if (!activeQuote) {
+      return null;
+    }
+
     // TODO: remove this once controller types are updated
     // @ts-expect-error: controller types are not up to date yet
     const quoteBpsFee = activeQuote?.quote?.feeData?.metabridge?.quoteBpsFee;
@@ -522,9 +530,7 @@ const BridgeView = () => {
             )}
             {shouldDisplayQuoteDetails && (
               <Box style={styles.quoteContainer}>
-                <QuoteDetailsCard
-                  hasInsufficientBalance={hasInsufficientBalance}
-                />
+                <QuoteDetailsCard />
               </Box>
             )}
           </Box>
