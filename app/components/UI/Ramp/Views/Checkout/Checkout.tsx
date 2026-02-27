@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
@@ -15,6 +15,7 @@ import {
   addFiatCustomIdData,
   removeFiatCustomIdData,
   FiatOrder,
+  getRampRoutingDecision,
 } from '../../../../../reducers/fiatOrders';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -219,6 +220,7 @@ const Checkout = () => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
 
   const {
     url: uri,
@@ -259,8 +261,9 @@ const Checkout = () => {
           trackEvent(
             createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
               .addProperties({
-                location: 'Aggregator Checkout',
+                location: 'Checkout',
                 ramp_type: 'UNIFIED_BUY_2',
+                ramp_routing: rampRoutingDecision ?? undefined,
               })
               .build(),
           );
@@ -274,6 +277,7 @@ const Checkout = () => {
     headerTitle,
     createEventBuilder,
     trackEvent,
+    rampRoutingDecision,
   ]);
 
   useEffect(() => {
@@ -281,13 +285,14 @@ const Checkout = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
           .addProperties({
-            location: 'Aggregator Checkout',
+            location: 'Checkout',
             ramp_type: 'UNIFIED_BUY_2',
+            ramp_routing: rampRoutingDecision ?? undefined,
           })
           .build(),
       );
     }
-  }, [uri, createEventBuilder, trackEvent]);
+  }, [uri, createEventBuilder, trackEvent, rampRoutingDecision]);
 
   useEffect(() => {
     if (!hasCallbackFlow || !customOrderId || !walletAddress || !network) {
@@ -430,12 +435,13 @@ const Checkout = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_CLOSE_BUTTON_CLICKED)
         .addProperties({
-          location: 'Aggregator Checkout',
+          location: 'Checkout',
           ramp_type: 'UNIFIED_BUY_2',
+          ramp_routing: rampRoutingDecision ?? undefined,
         })
         .build(),
     );
-  }, [createEventBuilder, trackEvent]);
+  }, [createEventBuilder, trackEvent, rampRoutingDecision]);
   const handleClosePress = useCallback(() => {
     handleCancelPress();
     sheetRef.current?.onCloseBottomSheet();
