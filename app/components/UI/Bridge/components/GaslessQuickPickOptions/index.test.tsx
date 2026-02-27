@@ -5,7 +5,7 @@ import { Keys } from '../../../../Base/Keypad';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'ethers';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -29,16 +29,13 @@ jest.mock('../../hooks/useShouldRenderMaxOption', () => ({
   useShouldRenderMaxOption: jest.fn(() => true),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => {
-  const actual = jest.requireActual('../../../../hooks/useMetrics');
-  return {
-    ...actual,
-    useMetrics: jest.fn(),
-  };
-});
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
+import type { EventBuilderFunctionType } from '../../../../hooks/useAnalytics';
 
 const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
   typeof useLatestBalance
@@ -47,7 +44,9 @@ const mockUseShouldRenderMaxOption =
   useShouldRenderMaxOption as jest.MockedFunction<
     typeof useShouldRenderMaxOption
   >;
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+  typeof useAnalytics
+>;
 const renderWithRedux = (component: React.ReactElement) =>
   renderWithProvider(component, undefined, false);
 
@@ -72,14 +71,14 @@ describe('GaslessQuickPickOptions', () => {
     mockUseShouldRenderMaxOption.mockReturnValue(true);
     mockUseLatestBalance.mockReset();
     mockUseLatestBalance.mockReturnValue(mockTokenBalance);
-    mockUseMetrics.mockReturnValue({
+    mockUseAnalytics.mockReturnValue({
       trackEvent: jest.fn(),
-      createEventBuilder: () => ({
+      createEventBuilder: (() => ({
         addProperties: () => ({
           build: () => ({ event: 'mock-event' }),
         }),
-      }),
-    } as unknown as ReturnType<typeof useMetrics>);
+      })) as EventBuilderFunctionType,
+    });
   });
 
   afterEach(() => {

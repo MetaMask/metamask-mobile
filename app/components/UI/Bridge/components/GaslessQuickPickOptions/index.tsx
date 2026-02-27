@@ -7,8 +7,6 @@ import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
 import { useABTest } from '../../../../../hooks';
-import { getDecimalChainId } from '../../../../../util/networks';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import Engine from '../../../../../core/Engine';
 import {
   InputAmountPreset,
@@ -35,7 +33,6 @@ export const GaslessQuickPickOptions = ({
   token,
   isQuoteSponsored,
 }: GaslessQuickPickOptionsProps) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
   const tokenBalance = useLatestBalance({
     address: token?.address,
     decimals: token?.decimals,
@@ -48,61 +45,24 @@ export const GaslessQuickPickOptions = ({
 
   const selectedVariant = variantName as NumpadQuickActionsVariant;
 
-  const trackQuickActionClick = useCallback(
-    ({
-      quickActionLabel,
-      quickActionValue,
-      isMax,
-    }: {
-      quickActionLabel: string;
-      quickActionValue: number;
-      isMax: boolean;
-    }) => {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.SWAP_INPUT_QUICK_AMOUNT_CLICKED)
-          .addProperties({
-            location: 'swap_input_view',
-            quick_action_label: quickActionLabel,
-            quick_action_value: quickActionValue,
-            is_max: isMax,
-            chain_id_source: getDecimalChainId(token?.chainId),
-            token_symbol_source: token?.symbol,
-            token_address_source: token?.address,
-            user_token_balance: tokenBalance?.displayBalance,
-            ...(isActive && {
-              active_ab_tests: [
-                {
-                  key: NUMPAD_QUICK_ACTIONS_AB_KEY,
-                  value: variantName,
-                },
-              ],
-            }),
-          })
-          .build(),
+  const trackInputAmountPreset = useCallback(
+    (preset: InputAmountPreset) => {
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+        UnifiedSwapBridgeEventName.InputChanged,
+        {
+          input: 'token_amount_source',
+          input_value: '',
+          input_amount_preset: preset,
+          ...(isActive && {
+            ab_tests: {
+              [NUMPAD_QUICK_ACTIONS_AB_KEY]: variantName,
+            },
+          }),
+        },
       );
     },
-    [
-      createEventBuilder,
-      isActive,
-      token?.address,
-      token?.chainId,
-      token?.symbol,
-      tokenBalance?.displayBalance,
-      trackEvent,
-      variantName,
-    ],
+    [isActive, variantName],
   );
-
-  const trackInputAmountPreset = useCallback((preset: InputAmountPreset) => {
-    Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
-      UnifiedSwapBridgeEventName.InputChanged,
-      {
-        input: 'token_amount_source',
-        input_value: '',
-        input_amount_preset: preset,
-      },
-    );
-  }, []);
 
   const onQuickOptionPress = useCallback(
     (percentage: number) => () => {
@@ -119,36 +79,19 @@ export const GaslessQuickPickOptions = ({
         pressedKey: Keys.Initial,
       });
 
-      trackQuickActionClick({
-        quickActionLabel: `${percentage}%`,
-        quickActionValue: percentage / 100,
-        isMax: false,
-      });
-
       const preset =
         PERCENTAGE_TO_PRESET[percentage as keyof typeof PERCENTAGE_TO_PRESET];
       if (preset) {
         trackInputAmountPreset(preset);
       }
     },
-    [
-      tokenBalance,
-      token?.decimals,
-      onChange,
-      trackQuickActionClick,
-      trackInputAmountPreset,
-    ],
+    [tokenBalance, token?.decimals, onChange, trackInputAmountPreset],
   );
 
   const handleTrackedMaxPress = useCallback(() => {
     onMaxPress();
-    trackQuickActionClick({
-      quickActionLabel: 'MAX',
-      quickActionValue: 1,
-      isMax: true,
-    });
     trackInputAmountPreset(InputAmountPreset.MAX);
-  }, [onMaxPress, trackInputAmountPreset, trackQuickActionClick]);
+  }, [onMaxPress, trackInputAmountPreset]);
 
   const fallbackQuickActions = useMemo(
     (): number[] =>
