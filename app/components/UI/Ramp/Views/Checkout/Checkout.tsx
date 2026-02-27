@@ -5,7 +5,8 @@ import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { orderStatusToFiatOrderState } from '../../orderProcessor/unifiedOrderProcessor';
-import { trackEvent as trackRampsEvent } from '../../hooks/useAnalytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useTheme } from '../../../../../util/theme';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
@@ -217,6 +218,7 @@ const Checkout = () => {
   const params = useParams<CheckoutParams>();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const {
     url: uri,
@@ -254,23 +256,38 @@ const Checkout = () => {
         { title: providerName ?? headerTitle },
         theme,
         () => {
-          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
-            location: 'Aggregator Checkout',
-            ramp_type: 'UNIFIED_BUY_2',
-          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Aggregator Checkout',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
         },
       ),
     );
-  }, [navigation, theme, providerName, headerTitle]);
+  }, [
+    navigation,
+    theme,
+    providerName,
+    headerTitle,
+    createEventBuilder,
+    trackEvent,
+  ]);
 
   useEffect(() => {
     if (uri) {
-      trackRampsEvent('RAMPS_SCREEN_VIEWED', {
-        location: 'Aggregator Checkout',
-        ramp_type: 'UNIFIED_BUY_2',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+          .addProperties({
+            location: 'Aggregator Checkout',
+            ramp_type: 'UNIFIED_BUY_2',
+          })
+          .build(),
+      );
     }
-  }, [uri]);
+  }, [uri, createEventBuilder, trackEvent]);
 
   useEffect(() => {
     if (!hasCallbackFlow || !customOrderId || !walletAddress || !network) {
@@ -410,11 +427,15 @@ const Checkout = () => {
   );
 
   const handleCancelPress = useCallback(() => {
-    trackRampsEvent('RAMPS_CLOSE_BUTTON_CLICKED', {
-      location: 'Aggregator Checkout',
-      ramp_type: 'UNIFIED_BUY_2',
-    });
-  }, []);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_CLOSE_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Aggregator Checkout',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+  }, [createEventBuilder, trackEvent]);
   const handleClosePress = useCallback(() => {
     handleCancelPress();
     sheetRef.current?.onCloseBottomSheet();

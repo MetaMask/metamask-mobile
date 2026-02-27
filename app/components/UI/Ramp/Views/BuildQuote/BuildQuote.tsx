@@ -53,7 +53,8 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import { trackEvent as trackRampsEvent } from '../../hooks/useAnalytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useSelector } from 'react-redux';
 import {
   getRampRoutingDecision,
@@ -134,6 +135,7 @@ function BuildQuote() {
     selectedPaymentMethod,
   } = useRampsController();
 
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
 
   const isTokenUnavailable = useMemo(
@@ -178,13 +180,17 @@ function BuildQuote() {
     if (hasTrackedScreenViewRef.current) return;
     if (rampRoutingDecision != null) {
       hasTrackedScreenViewRef.current = true;
-      trackRampsEvent('RAMPS_SCREEN_VIEWED', {
-        location: 'Amount Input',
-        ramp_type: 'UNIFIED_BUY_2',
-        ramp_routing: rampRoutingDecision,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+          .addProperties({
+            location: 'Amount Input',
+            ramp_type: 'UNIFIED_BUY_2',
+            ramp_routing: rampRoutingDecision,
+          })
+          .build(),
+      );
     }
-  }, [rampRoutingDecision]);
+  }, [rampRoutingDecision, trackEvent, createEventBuilder]);
 
   useEffect(() => {
     if (!userHasEnteredAmount && userRegion?.country?.defaultAmount != null) {
@@ -245,19 +251,23 @@ function BuildQuote() {
 
   useEffect(() => {
     if (quoteFetchError) {
-      trackRampsEvent('RAMPS_QUOTE_ERROR', {
-        error_message: parseUserFacingError(
-          quoteFetchError,
-          strings('deposit.buildQuote.quoteFetchError'),
-        ),
-        amount: amountAsNumber,
-        currency_source: currency,
-        currency_destination: selectedToken?.assetId,
-        payment_method_id: selectedPaymentMethod?.id,
-        chain_id: selectedToken?.chainId,
-        ramp_type: 'UNIFIED_BUY_2',
-        ramp_routing: rampRoutingDecision ?? undefined,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_QUOTE_ERROR)
+          .addProperties({
+            error_message: parseUserFacingError(
+              quoteFetchError,
+              strings('deposit.buildQuote.quoteFetchError'),
+            ),
+            amount: amountAsNumber,
+            currency_source: currency,
+            currency_destination: selectedToken?.assetId,
+            payment_method_id: selectedPaymentMethod?.id,
+            chain_id: selectedToken?.chainId,
+            ramp_type: 'UNIFIED_BUY_2',
+            ramp_routing: rampRoutingDecision ?? undefined,
+          })
+          .build(),
+      );
     }
   }, [
     quoteFetchError,
@@ -267,6 +277,8 @@ function BuildQuote() {
     selectedToken?.chainId,
     selectedPaymentMethod?.id,
     rampRoutingDecision,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const selectedQuote = useMemo(() => {
@@ -303,21 +315,29 @@ function BuildQuote() {
         networkName: networkInfo?.networkName ?? undefined,
         networkImageSource: networkInfo?.networkImageSource,
         onSettingsPress: () => {
-          trackRampsEvent('RAMPS_SETTINGS_CLICKED', {
-            location: 'Amount Input',
-            ramp_type: 'UNIFIED_BUY_2',
-          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_SETTINGS_CLICKED)
+              .addProperties({
+                location: 'Amount Input',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
           navigation.navigate(...createSettingsModalNavDetails());
         },
         onBackPress: () => {
-          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
-            location: 'Amount Input',
-            ramp_type: 'UNIFIED_BUY_2',
-          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Amount Input',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
         },
       }),
     );
-  }, [navigation, selectedToken, networkInfo]);
+  }, [navigation, selectedToken, networkInfo, trackEvent, createEventBuilder]);
 
   const handleKeypadChange = useCallback(
     ({ value, valueAsNumber }: KeypadChangeData) => {
@@ -335,14 +355,18 @@ function BuildQuote() {
       setAmountAsNumber(quickAmount);
       setUserHasEnteredAmount(true);
       setNativeFlowError(null);
-      trackRampsEvent('RAMPS_QUICK_AMOUNT_CLICKED', {
-        amount: quickAmount,
-        currency_source: currency,
-        location: 'Amount Input',
-        ramp_type: 'UNIFIED_BUY_2',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_QUICK_AMOUNT_CLICKED)
+          .addProperties({
+            amount: quickAmount,
+            currency_source: currency,
+            location: 'Amount Input',
+            ramp_type: 'UNIFIED_BUY_2',
+          })
+          .build(),
+      );
     },
-    [currency],
+    [currency, trackEvent, createEventBuilder],
   );
 
   const handlePaymentPillPress = useCallback(() => {
@@ -350,17 +374,29 @@ function BuildQuote() {
       return;
     }
 
-    trackRampsEvent('RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED', {
-      current_payment_method: selectedPaymentMethod?.id,
-      location: 'Amount Input',
-      ramp_type: 'UNIFIED_BUY_2',
-    });
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED,
+      )
+        .addProperties({
+          current_payment_method: selectedPaymentMethod?.id,
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     navigation.navigate(
       ...createPaymentSelectionModalNavigationDetails({
         amount: debouncedPollingAmount,
       }),
     );
-  }, [debouncedPollingAmount, navigation, selectedPaymentMethod?.id]);
+  }, [
+    debouncedPollingAmount,
+    navigation,
+    selectedPaymentMethod?.id,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const handleContinuePress = useCallback(async () => {
     if (!selectedQuote || !selectedProvider) return;
@@ -390,18 +426,23 @@ function BuildQuote() {
       }
     }
 
-    trackRampsEvent('RAMPS_CONTINUE_BUTTON_CLICKED', {
-      ramp_routing: rampRoutingDecision ?? UnifiedRampRoutingType.AGGREGATOR,
-      ramp_type: 'UNIFIED_BUY_2',
-      amount_source: amountAsNumber,
-      payment_method_id: selectedPaymentMethod?.id ?? '',
-      provider_onramp: selectedProvider?.name,
-      region: userRegion?.regionCode ?? '',
-      chain_id: selectedToken?.chainId ?? '',
-      currency_destination: selectedToken?.assetId ?? '',
-      currency_destination_symbol: selectedToken?.symbol,
-      currency_source: currency,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED)
+        .addProperties({
+          ramp_routing:
+            rampRoutingDecision ?? UnifiedRampRoutingType.AGGREGATOR,
+          ramp_type: 'UNIFIED_BUY_2',
+          amount_source: amountAsNumber,
+          payment_method_id: selectedPaymentMethod?.id ?? '',
+          provider_onramp: selectedProvider?.name,
+          region: userRegion?.regionCode ?? '',
+          chain_id: selectedToken?.chainId ?? '',
+          currency_destination: selectedToken?.assetId ?? '',
+          currency_destination_symbol: selectedToken?.symbol,
+          currency_source: currency,
+        })
+        .build(),
+    );
 
     if (isNativeProvider(selectedQuote)) {
       setIsContinueLoading(true);
@@ -502,6 +543,8 @@ function BuildQuote() {
     transakRouteAfterAuth,
     rampRoutingDecision,
     userRegion?.regionCode,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const hasAmount = amountAsNumber > 0;

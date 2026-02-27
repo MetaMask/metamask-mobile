@@ -34,9 +34,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import Logger from '../../../../../../util/Logger';
-import useAnalytics, {
-  trackEvent as trackRampsEvent,
-} from '../../../hooks/useAnalytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { createBuildQuoteNavDetails } from '../../../Deposit/Views/BuildQuote/BuildQuote';
 import { trace, TraceName } from '../../../../../../util/trace';
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
@@ -77,7 +76,7 @@ const OtpCode = () => {
   const { setAuthToken } = useDepositSDK();
   const { email, stateToken, redirectToRootAfterAuth } =
     useParams<OtpCodeParams>();
-  const trackEvent = useAnalytics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { selectedRegion } = useDepositSDK();
   const [currentStateToken, setCurrentStateToken] = useState(stateToken);
 
@@ -100,20 +99,29 @@ const OtpCode = () => {
         { title: strings('deposit.otp_code.navbar_title') },
         theme,
         () => {
-          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
-            location: 'OTP Code',
-            ramp_type: 'UNIFIED_BUY_2',
-          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'OTP Code',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
         },
       ),
     );
-  }, [navigation, theme]);
+  }, [navigation, theme, trackEvent, createEventBuilder]);
 
   useEffect(() => {
-    trackRampsEvent('RAMPS_SCREEN_VIEWED', {
-      location: 'OTP Code',
-      ramp_type: 'UNIFIED_BUY_2',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'OTP Code',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [value, setValue] = useState('');
@@ -171,10 +179,14 @@ const OtpCode = () => {
       }
 
       setCurrentStateToken(resendResponse.stateToken);
-      trackEvent('RAMPS_OTP_RESENT', {
-        ramp_type: 'DEPOSIT',
-        region: selectedRegion?.isoCode || '',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_OTP_RESENT)
+          .addProperties({
+            ramp_type: 'DEPOSIT',
+            region: selectedRegion?.isoCode || '',
+          })
+          .build(),
+      );
     } catch (e) {
       setResendButtonState('resendError');
       Logger.error(e as Error, 'Error resending OTP code');
@@ -185,6 +197,7 @@ const OtpCode = () => {
     resetAttemptCount,
     selectedRegion?.isoCode,
     trackEvent,
+    createEventBuilder,
     setCurrentStateToken,
   ]);
 
@@ -212,10 +225,14 @@ const OtpCode = () => {
           throw new Error('No response from submitCode');
         }
         await setAuthToken(response);
-        trackEvent('RAMPS_OTP_CONFIRMED', {
-          ramp_type: 'DEPOSIT',
-          region: selectedRegion?.isoCode || '',
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_OTP_CONFIRMED)
+            .addProperties({
+              ramp_type: 'DEPOSIT',
+              region: selectedRegion?.isoCode || '',
+            })
+            .build(),
+        );
 
         if (redirectToRootAfterAuth) {
           navigation.navigate(Routes.DEPOSIT.ROOT);
@@ -227,10 +244,14 @@ const OtpCode = () => {
           );
         }
       } catch (e) {
-        trackEvent('RAMPS_OTP_FAILED', {
-          ramp_type: 'DEPOSIT',
-          region: selectedRegion?.isoCode || '',
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_OTP_FAILED)
+            .addProperties({
+              ramp_type: 'DEPOSIT',
+              region: selectedRegion?.isoCode || '',
+            })
+            .build(),
+        );
         setError(
           e instanceof Error && e.message
             ? e.message
@@ -253,6 +274,7 @@ const OtpCode = () => {
     currentStateToken,
     selectedRegion?.isoCode,
     trackEvent,
+    createEventBuilder,
     redirectToRootAfterAuth,
   ]);
 

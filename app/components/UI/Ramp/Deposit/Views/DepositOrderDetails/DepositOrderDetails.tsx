@@ -26,7 +26,8 @@ import useInterval from '../../../../../hooks/useInterval';
 import AppConstants from '../../../../../../core/AppConstants';
 import DepositOrderContent from '../../components/DepositOrderContent/DepositOrderContent';
 import { processFiatOrder } from '../../../index';
-import { trackEvent as trackRampsEvent } from '../../../hooks/useAnalytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 interface DepositOrderDetailsParams {
   orderId: string;
@@ -51,6 +52,7 @@ const DepositOrderDetails = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
@@ -64,25 +66,33 @@ const DepositOrderDetails = () => {
         },
         theme,
         () => {
-          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
-            location: 'Order Details',
-            ramp_type: 'UNIFIED_BUY_2',
-          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Order Details',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
         },
       ),
     );
-  }, [theme, navigation]);
+  }, [theme, navigation, trackEvent, createEventBuilder]);
 
   const hasTrackedScreenView = useRef(false);
   useEffect(() => {
     if (order && !hasTrackedScreenView.current) {
       hasTrackedScreenView.current = true;
-      trackRampsEvent('RAMPS_SCREEN_VIEWED', {
-        location: 'Order Details',
-        ramp_type: 'UNIFIED_BUY_2',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+          .addProperties({
+            location: 'Order Details',
+            ramp_type: 'UNIFIED_BUY_2',
+          })
+          .build(),
+      );
     }
-  }, [order]);
+  }, [order, trackEvent, createEventBuilder]);
 
   const dispatchUpdateFiatOrder = useCallback(
     (updatedOrder: FiatOrder) => dispatch(updateFiatOrder(updatedOrder)),

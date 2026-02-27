@@ -39,7 +39,8 @@ import useInterval from '../../../../hooks/useInterval';
 import AppConstants from '../../../../../core/AppConstants';
 import OrderContent from './OrderContent';
 import { processFiatOrder } from '../../index';
-import { trackEvent as trackRampsEvent } from '../../hooks/useAnalytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface RampsOrderDetailsParams {
   orderId: string;
@@ -64,6 +65,7 @@ const OrderDetails = () => {
   const theme = useTheme();
   const { colors } = theme;
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
 
@@ -77,25 +79,33 @@ const OrderDetails = () => {
         { title: strings('ramps_order_details.title') },
         theme,
         () => {
-          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
-            location: 'Order Details',
-            ramp_type: 'UNIFIED_BUY_2',
-          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Order Details',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
         },
       ),
     );
-  }, [theme, navigation]);
+  }, [theme, navigation, createEventBuilder, trackEvent]);
 
   const hasTrackedScreenView = useRef(false);
   useEffect(() => {
     if (order && !hasTrackedScreenView.current) {
       hasTrackedScreenView.current = true;
-      trackRampsEvent('RAMPS_SCREEN_VIEWED', {
-        location: 'Order Details',
-        ramp_type: 'UNIFIED_BUY_2',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+          .addProperties({
+            location: 'Order Details',
+            ramp_type: 'UNIFIED_BUY_2',
+          })
+          .build(),
+      );
     }
-  }, [order]);
+  }, [order, createEventBuilder, trackEvent]);
 
   const dispatchUpdateFiatOrder = useCallback(
     (updatedOrder: FiatOrder) => dispatch(updateFiatOrder(updatedOrder)),

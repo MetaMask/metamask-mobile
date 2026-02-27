@@ -1000,7 +1000,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={7}
+              handlerTag={6}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2430,7 +2430,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={6}
+              handlerTag={5}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}

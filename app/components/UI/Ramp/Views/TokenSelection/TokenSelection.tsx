@@ -35,9 +35,8 @@ import { getDepositNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
-import useAnalytics, {
-  trackEvent as trackRampsEvent,
-} from '../../hooks/useAnalytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   getRampRoutingDecision,
   getDetectedGeolocation,
@@ -69,7 +68,7 @@ function TokenSelection() {
   } = useRampsController();
   const legacyTokens = useRampTokens();
 
-  const trackEvent = useAnalytics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
 
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
@@ -136,24 +135,37 @@ function TokenSelection() {
     if (hasTrackedScreenViewRef.current) return;
     if (rampRoutingDecision != null) {
       hasTrackedScreenViewRef.current = true;
-      trackRampsEvent('RAMPS_SCREEN_VIEWED', {
-        location: 'Token Selection',
-        ramp_type: 'UNIFIED_BUY_2',
-        ramp_routing: rampRoutingDecision,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+          .addProperties({
+            location: 'Token Selection',
+            ramp_type: 'UNIFIED_BUY_2',
+            ramp_routing: rampRoutingDecision,
+          })
+          .build(),
+      );
     }
-  }, [rampRoutingDecision]);
+  }, [rampRoutingDecision, createEventBuilder, trackEvent]);
 
   useEffect(() => {
     if (debouncedSearchString.trim().length > 0) {
-      trackRampsEvent('RAMPS_TOKEN_SEARCHED', {
-        search_query: debouncedSearchString,
-        results_count: searchTokenResults?.length ?? 0,
-        location: 'Token Selection',
-        ramp_type: 'UNIFIED_BUY_2',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_TOKEN_SEARCHED)
+          .addProperties({
+            search_query: debouncedSearchString,
+            results_count: searchTokenResults?.length ?? 0,
+            location: 'Token Selection',
+            ramp_type: 'UNIFIED_BUY_2',
+          })
+          .build(),
+      );
     }
-  }, [debouncedSearchString, searchTokenResults?.length]);
+  }, [
+    debouncedSearchString,
+    searchTokenResults?.length,
+    createEventBuilder,
+    trackEvent,
+  ]);
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
@@ -161,21 +173,25 @@ function TokenSelection() {
         (token) => token.assetId === assetId,
       );
       if (selectedToken) {
-        trackEvent('RAMPS_TOKEN_SELECTED', {
-          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY',
-          region: detectedGeolocation || '',
-          chain_id: selectedToken.chainId,
-          currency_destination: selectedToken.assetId,
-          currency_destination_symbol: selectedToken.symbol,
-          currency_destination_network: getNetworkName(
-            selectedToken.chainId as string,
-          ),
-          currency_source: '',
-          is_authenticated: false,
-          token_caip19: selectedToken.assetId,
-          token_symbol: selectedToken.symbol,
-          ramp_routing: rampRoutingDecision ?? undefined,
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_TOKEN_SELECTED)
+            .addProperties({
+              ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY',
+              region: detectedGeolocation || '',
+              chain_id: selectedToken.chainId,
+              currency_destination: selectedToken.assetId,
+              currency_destination_symbol: selectedToken.symbol,
+              currency_destination_network: getNetworkName(
+                selectedToken.chainId as string,
+              ),
+              currency_source: '',
+              is_authenticated: false,
+              token_caip19: selectedToken.assetId,
+              token_symbol: selectedToken.symbol,
+              ramp_routing: rampRoutingDecision ?? undefined,
+            })
+            .build(),
+        );
       }
       // V1 flow: close the modal before navigating to Deposit/Aggregator
       // V2 flow: set selected token on controller and navigate within the same stack
@@ -190,6 +206,7 @@ function TokenSelection() {
     [
       supportedTokens,
       trackEvent,
+      createEventBuilder,
       getNetworkName,
       detectedGeolocation,
       rampRoutingDecision,
@@ -225,22 +242,32 @@ function TokenSelection() {
   const handleNetworkFilterChange = useCallback(
     (newFilter: CaipChainId[] | null) => {
       setNetworkFilter(newFilter);
-      trackRampsEvent('RAMPS_NETWORK_FILTER_CLICKED', {
-        network_chain_id: newFilter?.[0] ?? undefined,
-        location: 'Token Selection',
-        ramp_type: 'UNIFIED_BUY_2',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_NETWORK_FILTER_CLICKED)
+          .addProperties({
+            network_chain_id: newFilter?.[0] ?? undefined,
+            location: 'Token Selection',
+            ramp_type: 'UNIFIED_BUY_2',
+          })
+          .build(),
+      );
     },
-    [],
+    [createEventBuilder, trackEvent],
   );
 
   const handleUnsupportedInfoPress = useCallback(() => {
-    trackRampsEvent('RAMPS_UNSUPPORTED_TOKEN_TOOLTIP_CLICKED', {
-      location: 'Token Selection',
-      ramp_type: 'UNIFIED_BUY_2',
-    });
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.RAMPS_UNSUPPORTED_TOKEN_TOOLTIP_CLICKED,
+      )
+        .addProperties({
+          location: 'Token Selection',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     navigation.navigate(...createUnsupportedTokenModalNavigationDetails());
-  }, [navigation]);
+  }, [navigation, createEventBuilder, trackEvent]);
 
   const renderToken = useCallback(
     ({ item: token }: { item: RampsToken }) => (
@@ -289,14 +316,18 @@ function TokenSelection() {
         },
         theme,
         () => {
-          trackRampsEvent('RAMPS_BACK_BUTTON_CLICKED', {
-            location: 'Token Selection',
-            ramp_type: 'UNIFIED_BUY_2',
-          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Token Selection',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
         },
       ),
     );
-  }, [navigation, theme]);
+  }, [navigation, theme, createEventBuilder, trackEvent]);
 
   if (isLoading) {
     return (

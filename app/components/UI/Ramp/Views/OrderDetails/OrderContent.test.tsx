@@ -37,13 +37,6 @@ jest.mock('react-native-inappbrowser-reborn', () => ({
   open: jest.fn(),
 }));
 
-const mockTrackRampsEvent = jest.fn();
-jest.mock('../../hooks/useAnalytics', () => ({
-  __esModule: true,
-  default: () => mockTrackRampsEvent,
-  trackEvent: (...args: unknown[]) => mockTrackRampsEvent(...args),
-}));
-
 const mockRampsOrderData: Partial<RampsOrder> = {
   providerOrderId: 'transak_order_abc123',
   providerOrderLink: 'https://transak.com/order/abc',

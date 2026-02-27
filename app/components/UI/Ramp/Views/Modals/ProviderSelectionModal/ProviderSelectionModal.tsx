@@ -17,7 +17,8 @@ import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
-import { trackEvent as trackRampsEvent } from '../../../hooks/useAnalytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 export interface ProviderSelectionModalParams {
   amount?: number;
@@ -34,6 +35,7 @@ export const createProviderSelectionModalNavigationDetails =
 const DEFAULT_QUOTE_AMOUNT = 100;
 
 function ProviderSelectionModal() {
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, { screenHeight });
@@ -106,16 +108,26 @@ function ProviderSelectionModal() {
 
   const handleProviderSelect = useCallback(
     (provider: Provider) => {
-      trackRampsEvent('RAMPS_PROVIDER_SELECTED', {
-        provider: provider.name,
-        previous_provider: selectedProvider?.name,
-        location: 'Amount Input',
-        ramp_type: 'UNIFIED_BUY_2',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_PROVIDER_SELECTED)
+          .addProperties({
+            provider: provider.name,
+            previous_provider: selectedProvider?.name,
+            location: 'Amount Input',
+            ramp_type: 'UNIFIED_BUY_2',
+          })
+          .build(),
+      );
       setSelectedProvider(provider);
       navigation.goBack();
     },
-    [setSelectedProvider, navigation, selectedProvider?.name],
+    [
+      setSelectedProvider,
+      navigation,
+      selectedProvider?.name,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   return (

@@ -25,7 +25,8 @@ import Logger from '../../../../../../util/Logger';
 import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import MenuItem from '../../../components/MenuItem';
 import { useRampsController } from '../../../hooks/useRampsController';
-import { trackEvent as trackRampsEvent } from '../../../hooks/useAnalytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   getProviderToken,
   resetProviderToken,
@@ -47,6 +48,7 @@ export const createSettingsModalNavDetails = createNavigationDetails(
 );
 
 function SettingsModal() {
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
@@ -93,11 +95,15 @@ function SettingsModal() {
   )?.url;
 
   const navigateToOrderHistory = useCallback(() => {
-    trackRampsEvent('RAMPS_SETTING_OPTION_CLICKED', {
-      option: 'View Order History',
-      location: 'Amount Input',
-      ramp_type: 'UNIFIED_BUY_2',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
+        .addProperties({
+          option: 'View Order History',
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     sheetRef.current?.onCloseBottomSheet();
     navigation.navigate(Routes.TRANSACTIONS_VIEW, {
       screen: Routes.TRANSACTIONS_VIEW,
@@ -105,15 +111,19 @@ function SettingsModal() {
         redirectToOrders: true,
       },
     });
-  }, [navigation]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const handleContactSupport = useCallback(async () => {
     if (!supportUrl) return;
-    trackRampsEvent('RAMPS_SETTING_OPTION_CLICKED', {
-      option: 'Contact Support',
-      location: 'Amount Input',
-      ramp_type: 'UNIFIED_BUY_2',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
+        .addProperties({
+          option: 'Contact Support',
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     try {
       if (await InAppBrowser.isAvailable()) {
         sheetRef.current?.onCloseBottomSheet();
@@ -130,14 +140,18 @@ function SettingsModal() {
     } catch (error) {
       Logger.error(error as Error, 'SettingsModal: Failed to open support URL');
     }
-  }, [supportUrl, navigation]);
+  }, [supportUrl, navigation, trackEvent, createEventBuilder]);
 
   const handleLogOut = useCallback(async () => {
-    trackRampsEvent('RAMPS_SETTING_OPTION_CLICKED', {
-      option: 'Log Out',
-      location: 'Amount Input',
-      ramp_type: 'UNIFIED_BUY_2',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
+        .addProperties({
+          option: 'Log Out',
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     try {
       await resetProviderToken();
       setSelectedProvider(null);
@@ -172,7 +186,7 @@ function SettingsModal() {
         hasNoTimeout: false,
       });
     }
-  }, [setSelectedProvider, toastRef]);
+  }, [setSelectedProvider, toastRef, trackEvent, createEventBuilder]);
 
   const handleClosePress = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
