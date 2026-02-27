@@ -50,6 +50,7 @@ import type {
   MarketInsightsTrend,
 } from '@metamask/ai-controllers';
 import { selectMarketInsightsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
+import { endTrace, TraceName } from '../../../../../util/trace';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
@@ -475,6 +476,8 @@ const MarketInsightsView: React.FC = () => {
     if (!report || hasTrackedViewRef.current) {
       return;
     }
+
+    endTrace({ name: TraceName.MarketInsightsViewLoad });
 
     const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
       .addProperties({

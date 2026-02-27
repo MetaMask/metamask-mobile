@@ -1,0 +1,74 @@
+import { RouteProp } from '@react-navigation/native';
+import { createStyles } from './styles';
+import type { RevealPrivateCredentialParams } from './RevealPrivateCredential.types';
+
+export enum RevealSrpStage {
+  Introduction = 'introduction',
+  Quiz = 'quiz',
+  ActionViewScreen = 'actionViewScreen',
+}
+
+export type RevealPrivateCredentialStyleSheet = ReturnType<typeof createStyles>;
+
+/** Route prop for RevealPrivateCredential screen; params come from canonical RevealPrivateCredentialParams. */
+export type RevealPrivateCredentialRouteProp = RouteProp<
+  { RevealPrivateCredential: RevealPrivateCredentialParams },
+  'RevealPrivateCredential'
+>;
+
+export interface IRevealPrivateCredentialProps {
+  /** When omitted or null, e.g. outside NavigationContainer, "Learn more" nav is a no-op. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  navigation?: any;
+  cancel: () => void;
+  route: RevealPrivateCredentialRouteProp;
+  showCancelButton?: boolean;
+}
+
+export interface SRPQuizIntroductionProps {
+  onGetStarted: () => void;
+  onLearnMore: () => void;
+  styles: RevealPrivateCredentialStyleSheet;
+}
+
+export interface SRPSecurityQuizProps {
+  currentQuestionIndex: number;
+  questionAnswered: boolean;
+  correctAnswer: boolean;
+  onAnswerClick: (buttonIndex: number) => void;
+  onContinueClick: () => void;
+  onLearnMore: () => void;
+  styles: RevealPrivateCredentialStyleSheet;
+}
+
+export interface SeedPhraseDisplayProps {
+  words: string[];
+  showSeedPhrase: boolean;
+  clipboardEnabled: boolean;
+  onCopyToClipboard: () => void;
+  styles: RevealPrivateCredentialStyleSheet;
+}
+
+export interface SeedPhraseConcealerProps {
+  onReveal: () => void;
+  styles: RevealPrivateCredentialStyleSheet;
+}
+
+export interface PasswordEntryProps {
+  onPasswordChange: (password: string) => void;
+  onSubmit: () => void;
+  warningMessage: string;
+  showPassword: boolean;
+  onToggleShowPassword: () => void;
+  styles: RevealPrivateCredentialStyleSheet;
+}
+
+export interface SRPTabViewProps {
+  clipboardPrivateCredential: string;
+  showSeedPhrase: boolean;
+  clipboardEnabled: boolean;
+  onRevealSeedPhrase: () => void;
+  onCopyToClipboard: () => void;
+  onTabChange: (event: { i: number }) => void;
+  styles: RevealPrivateCredentialStyleSheet;
+}
