@@ -134,6 +134,7 @@ import { useNftDetection } from '../../hooks/useNftDetection';
 import { Carousel } from '../../UI/Carousel';
 import { TokenI } from '../../UI/Tokens/types';
 import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
+import ScamCallDetectionBanner from '../../UI/ScamCallDetectionBanner';
 
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
@@ -1295,6 +1296,7 @@ const Wallet = ({
     <>
       <AssetPollingProvider />
       <View style={styles.banner}>
+        <ScamCallDetectionBanner />
         {!basicFunctionalityEnabled ? (
           <BannerAlert
             severity={BannerAlertSeverity.Error}

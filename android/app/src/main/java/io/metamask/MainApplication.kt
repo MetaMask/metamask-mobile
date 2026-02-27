@@ -25,6 +25,7 @@ import expo.modules.ReactNativeHostWrapper
 
 import cl.json.ShareApplication
 import io.branch.rnbranch.RNBranchModule
+import io.metamask.nativeModules.CallDetectionPackage
 import io.metamask.nativeModules.PreventScreenshotPackage
 import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
@@ -40,6 +41,7 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
             override fun getPackages(): List<ReactPackage> {
                 val packages = PackageList(this).packages.toMutableList()
                 // Add all our custom packages
+                packages.add(CallDetectionPackage())
                 packages.add(PreventScreenshotPackage())
                 packages.add(RCTMinimizerPackage())
                 packages.add(RNTarPackage())

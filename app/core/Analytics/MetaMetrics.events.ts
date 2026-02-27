@@ -616,6 +616,10 @@ enum EVENT_NAME {
 
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
+
+  // Scam Call Detection
+  SCAM_CALL_DETECTION_BANNER_SHOWN = 'Scam Call Detection Banner Shown',
+  SCAM_CALL_DETECTION_BANNER_DISMISSED = 'Scam Call Detection Banner Dismissed',
 }
 
 export enum HARDWARE_WALLET_BUTTON_TYPE {
@@ -672,6 +676,8 @@ enum ACTIONS {
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
   SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
   SELECTS_ANNOUCEMENTS_NOTIFICATIONS = 'Selects Annoucements Notifications',
+  // Scam Call Detection
+  SCAM_CALL_DETECTION = 'Scam Call Detection',
 }
 
 export enum PERMISSION_RESULT {
@@ -1655,6 +1661,8 @@ enum DESCRIPTION {
   STAKE = 'Stake',
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
   NOTIFICATIONS = 'Notifications',
+  SCAM_CALL_DETECTION_BANNER_SHOWN = 'Scam call detection banner shown',
+  SCAM_CALL_DETECTION_BANNER_DISMISSED = 'Scam call detection banner dismissed',
 }
 
 const legacyMetaMetricsEvents = {
@@ -2023,6 +2031,16 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.ASSETS_FIRST_INIT_FETCH_COMPLETED,
     ACTIONS.ASSETS,
     DESCRIPTION.ASSETS_FIRST_INIT_FETCH_COMPLETED,
+  ),
+  SCAM_CALL_DETECTION_BANNER_SHOWN: generateOpt(
+    EVENT_NAME.SCAM_CALL_DETECTION_BANNER_SHOWN,
+    ACTIONS.SCAM_CALL_DETECTION,
+    DESCRIPTION.SCAM_CALL_DETECTION_BANNER_SHOWN,
+  ),
+  SCAM_CALL_DETECTION_BANNER_DISMISSED: generateOpt(
+    EVENT_NAME.SCAM_CALL_DETECTION_BANNER_DISMISSED,
+    ACTIONS.SCAM_CALL_DETECTION,
+    DESCRIPTION.SCAM_CALL_DETECTION_BANNER_DISMISSED,
   ),
 };
 

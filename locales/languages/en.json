@@ -1,4 +1,8 @@
 {
+  "scam_call_detection": {
+    "banner_title": "MetaMask is not calling you",
+    "banner_description": "If someone claims to be from MetaMask and asks you to share your screen, send funds, or share your Secret Recovery Phrase, it is a scam. Hang up immediately."
+  },
   "sample_feature": {
     "title": "Sample feature",
     "description": "This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.",

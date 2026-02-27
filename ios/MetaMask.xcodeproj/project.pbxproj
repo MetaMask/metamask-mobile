@@ -97,6 +97,12 @@
 		ED2E8FE6D71BE9319F3B27D3 /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */; };
 		F23972D16903249A8EC120BD /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EB256CB3A1A7A1D942A95F6 /* ExpoModulesProvider.swift */; };
 		F961A37228105CF9007442B5 /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		AABB00042E46000100000004 /* RCTCallDetection.m in Sources */ = {isa = PBXBuildFile; fileRef = AABB00022E46000100000002 /* RCTCallDetection.m */; };
+		AABB00052E46000100000005 /* CallKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AABB00032E46000100000003 /* CallKit.framework */; };
+		AABB00062E46000100000006 /* RCTCallDetection.m in Sources */ = {isa = PBXBuildFile; fileRef = AABB00022E46000100000002 /* RCTCallDetection.m */; };
+		AABB00072E46000100000007 /* CallKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AABB00032E46000100000003 /* CallKit.framework */; };
+		AABB00082E46000100000008 /* RCTCallDetection.m in Sources */ = {isa = PBXBuildFile; fileRef = AABB00022E46000100000002 /* RCTCallDetection.m */; };
+		AABB00092E46000100000009 /* CallKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AABB00032E46000100000003 /* CallKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -235,6 +241,9 @@
 		BF485CDA047B4D52852B87F5 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
 		C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		CF014205BB8964CFE74D4D8E /* Pods-MetaMask-QA.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-QA.release.xcconfig"; path = "Target Support Files/Pods-MetaMask-QA/Pods-MetaMask-QA.release.xcconfig"; sourceTree = "<group>"; };
+		AABB00012E46000100000001 /* RCTCallDetection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTCallDetection.h; path = MetaMask/NativeModules/CallState/RCTCallDetection.h; sourceTree = "<group>"; };
+		AABB00022E46000100000002 /* RCTCallDetection.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTCallDetection.m; path = MetaMask/NativeModules/CallState/RCTCallDetection.m; sourceTree = "<group>"; };
+		AABB00032E46000100000003 /* CallKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CallKit.framework; path = System/Library/Frameworks/CallKit.framework; sourceTree = SDKROOT; };
 		CF9895752A3B48F700B4C9B5 /* RCTMinimizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTMinimizer.h; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.h; sourceTree = "<group>"; };
 		CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTMinimizer.m; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.m; sourceTree = "<group>"; };
 		CF98DA9A28D9FE7800096782 /* RCTScreenshotDetect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTScreenshotDetect.h; sourceTree = "<group>"; };
@@ -262,6 +271,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AABB00052E46000100000005 /* CallKit.framework in Frameworks */,
 				F961A37228105CF9007442B5 /* LinkPresentation.framework in Frameworks */,
 				650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */,
 				153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */,
@@ -274,6 +284,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AABB00072E46000100000007 /* CallKit.framework in Frameworks */,
 				2EF282612B0FF86900D7B4B1 /* LinkPresentation.framework in Frameworks */,
 				2EF282622B0FF86900D7B4B1 /* libRCTAesForked.a in Frameworks */,
 				2EF282632B0FF86900D7B4B1 /* JavaScriptCore.framework in Frameworks */,
@@ -286,6 +297,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AABB00092E46000100000009 /* CallKit.framework in Frameworks */,
 				B339FF07289ABD70001B89FB /* LinkPresentation.framework in Frameworks */,
 				B339FF08289ABD70001B89FB /* libRCTAesForked.a in Frameworks */,
 				B339FF09289ABD70001B89FB /* JavaScriptCore.framework in Frameworks */,
@@ -368,10 +380,20 @@
 		15F7796222A1BC1E00B1DF8C /* NativeModules */ = {
 			isa = PBXGroup;
 			children = (
+				AABB000A2E46000100000010 /* CallState */,
 				CF9895742A3B48DC00B4C9B5 /* RCTMinimizer */,
 				CF98DA9228D9FE5000096782 /* RCTScreenshotDetect */,
 			);
 			name = NativeModules;
+			sourceTree = "<group>";
+		};
+		AABB000A2E46000100000010 /* CallState */ = {
+			isa = PBXGroup;
+			children = (
+				AABB00012E46000100000001 /* RCTCallDetection.h */,
+				AABB00022E46000100000002 /* RCTCallDetection.m */,
+			);
+			name = CallState;
 			sourceTree = "<group>";
 		};
 		299C51B8AA60DA51C494DE7A /* MetaMask */ = {
@@ -385,6 +407,7 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AABB00032E46000100000003 /* CallKit.framework */,
 				F961A36A28105CF9007442B5 /* LinkPresentation.framework */,
 				153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */,
 				2D16E6891FA4F8E400B85C8A /* libReact.a */,
@@ -1199,6 +1222,7 @@
 				2EF2832A2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
 				2EF283372B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
 				CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */,
+				AABB00042E46000100000004 /* RCTCallDetection.m in Sources */,
 				CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				A1987088D4835E5FCCABC418 /* ExpoModulesProvider.swift in Sources */,
@@ -1215,6 +1239,7 @@
 				2EF2832C2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
 				2EF283392B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
 				2EF2825C2B0FF86900D7B4B1 /* RCTScreenshotDetect.m in Sources */,
+				AABB00062E46000100000006 /* RCTCallDetection.m in Sources */,
 				2EF2825E2B0FF86900D7B4B1 /* RCTMinimizer.m in Sources */,
 				2EF2825F2B0FF86900D7B4B1 /* main.m in Sources */,
 				F23972D16903249A8EC120BD /* ExpoModulesProvider.swift in Sources */,
@@ -1231,6 +1256,7 @@
 				2EF2832B2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
 				2EF283382B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
 				B339FF03289ABD70001B89FB /* File.swift in Sources */,
+				AABB00082E46000100000008 /* RCTCallDetection.m in Sources */,
 				CF9895782A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */,
 				B339FF05289ABD70001B89FB /* main.m in Sources */,
 				7696E77F73B5ADD7EE8190E0 /* ExpoModulesProvider.swift in Sources */,
