@@ -20,7 +20,7 @@ import { formatPrice } from '../utils/format';
 import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { usePredictBalance } from './usePredictBalance';
-import { predictQueries } from '../queries';
+import { invalidatePredictCaches } from '../utils/invalidatePredictCaches';
 import { usePredictDeposit } from './usePredictDeposit';
 import { PredictEventValues } from '../constants/eventNames';
 
@@ -182,17 +182,7 @@ export function usePredictPlaceOrder(
 
         setResult(orderResult);
 
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.balance.keys.all(),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.positions.keys.all(),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.activity.keys.all(),
-        });
+        invalidatePredictCaches(queryClient);
 
         if (side === Side.BUY) {
           showOrderPlacedToast();
