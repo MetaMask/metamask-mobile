@@ -512,9 +512,7 @@ export class PredictController extends BaseController<
 
       const isFirstPage = !params.offset || params.offset === 0;
       const shouldFetchHighlights =
-        validatedVersionGatedFeatureFlag(
-          featureFlags.marketHighlightsFlag as unknown as VersionGatedFeatureFlag,
-        ) &&
+        featureFlags.marketHighlightsFlag.highlights.length > 0 &&
         isFirstPage &&
         params.category &&
         !params.q;
