@@ -175,7 +175,7 @@ describe('ErrorDetailsModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('closes the sheet then navigates to provider selection when Change provider is pressed', () => {
+  it('navigates to provider selection when Change provider is pressed', () => {
     mockUseParams.mockReturnValue({
       errorMessage: 'No quotes available.',
       showChangeProvider: true,
@@ -186,7 +186,6 @@ describe('ErrorDetailsModal', () => {
 
     fireEvent.press(getByText('Change provider'));
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockReplace).toHaveBeenCalledWith(
       Routes.RAMP.MODALS.PROVIDER_SELECTION,
       { amount: 250 },

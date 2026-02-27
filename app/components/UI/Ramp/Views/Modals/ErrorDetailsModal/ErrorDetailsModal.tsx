@@ -88,9 +88,7 @@ function ErrorDetailsModal() {
   }, [providerSupportUrl, providerName, handleClose, navigation]);
 
   const handleChangeProvider = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.replace(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });
-    });
+    navigation.replace(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });
   }, [navigation, amount]);
 
   return (
