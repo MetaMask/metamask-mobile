@@ -42,6 +42,7 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { usePredictDepositAndOrderExecution } from '../../hooks/usePredictDepositAndOrderExecution';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictRewards } from '../../hooks/usePredictRewards';
+import { usePredictTransactionErrorDismissal } from '../../hooks/usePredictTransactionErrorDismissal';
 import { Side } from '../../types';
 import { formatCents, formatPrice } from '../../utils/format';
 import { BigNumber } from 'bignumber.js';
@@ -142,6 +143,10 @@ export function PredictDepositAndOrderInfo() {
       : prefilledAmountUsd <= 0,
   );
   const [isUserInputChange, setIsUserInputChange] = useState(false);
+
+  usePredictTransactionErrorDismissal({
+    amount: currentValue,
+  });
 
   useEffect(() => {
     if (hasAppliedPrefillRef.current || prefilledAmountUsd <= 0) {
