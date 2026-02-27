@@ -491,7 +491,7 @@ describe('FundActionMenu', () => {
           MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
-button_text: 'Buy',
+          button_text: 'Buy',
           location: 'FundActionMenu',
           chain_id_destination: 1,
           ramp_type: 'BUY',
@@ -540,7 +540,7 @@ button_text: 'Buy',
 
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith({
-button_text: 'Buy',
+          button_text: 'Buy',
           location: 'FundActionMenu',
           chain_id_destination: 137,
           ramp_type: 'BUY',
