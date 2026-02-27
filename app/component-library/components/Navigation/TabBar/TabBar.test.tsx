@@ -39,7 +39,7 @@ jest.mock(
 );
 
 // Mock the navigation object with proper typing
-const navigation: NavigationHelpers<ParamListBase> = {
+const navigation = {
   navigate: jest.fn(),
   goBack: jest.fn(),
   reset: jest.fn(),
@@ -50,7 +50,8 @@ const navigation: NavigationHelpers<ParamListBase> = {
   getParent: jest.fn(),
   getState: jest.fn(),
   emit: jest.fn(),
-};
+  getId: jest.fn(),
+} as unknown as NavigationHelpers<ParamListBase>;
 
 const mockInitialState = {
   engine: {

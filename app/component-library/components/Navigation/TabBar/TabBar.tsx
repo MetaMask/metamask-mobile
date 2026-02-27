@@ -40,7 +40,9 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
 
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
-      const { options } = descriptors[route.key];
+      const descriptor = descriptors[route.key];
+      if (!descriptor) return null;
+      const { options } = descriptor;
       const tabBarIconKey = options.tabBarIconKey;
       //TODO: use another option on add it to the prop interface
       const callback = options.callback;

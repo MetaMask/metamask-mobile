@@ -1,9 +1,12 @@
 import NavigationService from './NavigationService';
 import Logger from '../../util/Logger';
-import type { NavigationContainerRef } from '@react-navigation/native';
+import type {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 
 describe('NavigationService', () => {
-  let mockNavigation: NavigationContainerRef;
+  let mockNavigation: NavigationContainerRef<ParamListBase>;
   let mockRequestAnimationFrame: jest.SpyInstance;
   let mockLoggerError: jest.SpyInstance;
 
@@ -26,7 +29,7 @@ describe('NavigationService', () => {
       reset: jest.fn(),
       goBack: jest.fn(),
       dispatch: jest.fn(),
-    } as unknown as NavigationContainerRef;
+    } as unknown as NavigationContainerRef<ParamListBase>;
 
     mockLoggerError = jest.spyOn(Logger, 'error');
   });
@@ -59,7 +62,7 @@ describe('NavigationService', () => {
 
   describe('navigation setter', () => {
     it('throws error when navigation is invalid', () => {
-      const invalidNavigation = {} as NavigationContainerRef;
+      const invalidNavigation = {} as NavigationContainerRef<ParamListBase>;
 
       expect(() => {
         NavigationService.navigation = invalidNavigation;
@@ -78,7 +81,7 @@ describe('NavigationService', () => {
     it('throws error when navigation is missing required methods', () => {
       const incompleteNavigation = {
         // missing navigate
-      } as unknown as NavigationContainerRef;
+      } as unknown as NavigationContainerRef<ParamListBase>;
 
       expect(() => {
         NavigationService.navigation = incompleteNavigation;
@@ -121,11 +124,11 @@ describe('NavigationService', () => {
       const navWithProperty = {
         ...mockNavigation,
         key: 'test-nav-key',
-      } as unknown as NavigationContainerRef;
+      } as unknown as NavigationContainerRef<ParamListBase>;
       NavigationService.navigation = navWithProperty;
 
       const navigation =
-        NavigationService.navigation as NavigationContainerRef & {
+        NavigationService.navigation as NavigationContainerRef<ParamListBase> & {
           key: string;
         };
 

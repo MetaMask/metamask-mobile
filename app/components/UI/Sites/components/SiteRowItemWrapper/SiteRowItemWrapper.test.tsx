@@ -49,8 +49,7 @@ describe('SiteRowItemWrapper', () => {
       setOptions: jest.fn(),
       addListener: jest.fn(),
       removeListener: jest.fn(),
-      getParent: jest.fn(),
-      getState: jest.fn(),
+      getId: jest.fn(),
     } as jest.Mocked<NavigationProp<ParamListBase>>;
 
     mockSiteData = {

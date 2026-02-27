@@ -28,7 +28,10 @@ import ReduxService from '../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../core/redux/types';
 import { recreateVaultsWithNewPassword } from '../../../core/Vault';
 import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -902,7 +905,7 @@ describe('ResetPassword', () => {
         .mockResolvedValueOnce(false);
 
       NavigationService.navigation =
-        mockNavigation as unknown as NavigationContainerRef;
+        mockNavigation as unknown as NavigationContainerRef<ParamListBase>;
 
       const component = await renderConfirmPasswordView();
 
@@ -952,7 +955,7 @@ describe('ResetPassword', () => {
         .mockResolvedValueOnce(false);
 
       NavigationService.navigation =
-        mockNavigation as unknown as NavigationContainerRef;
+        mockNavigation as unknown as NavigationContainerRef<ParamListBase>;
 
       const component = await renderConfirmPasswordView();
 
@@ -1008,7 +1011,7 @@ describe('ResetPassword', () => {
         .mockResolvedValueOnce(false);
 
       NavigationService.navigation =
-        mockNavigation as unknown as NavigationContainerRef;
+        mockNavigation as unknown as NavigationContainerRef<ParamListBase>;
 
       const spyLockApp = jest
         .spyOn(Authentication, 'lockApp')
@@ -1096,7 +1099,7 @@ describe('ResetPassword', () => {
         .mockResolvedValueOnce(false);
 
       NavigationService.navigation =
-        mockNavigation as unknown as NavigationContainerRef;
+        mockNavigation as unknown as NavigationContainerRef<ParamListBase>;
 
       const component = await renderConfirmPasswordView();
 

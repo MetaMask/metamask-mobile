@@ -226,6 +226,7 @@ const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   isFocused: jest.fn(),
   getParent: jest.fn(),
   getState: jest.fn(),
+  getId: jest.fn(),
 };
 
 const initialState = {
