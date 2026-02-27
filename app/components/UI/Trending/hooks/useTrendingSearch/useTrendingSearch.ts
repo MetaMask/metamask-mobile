@@ -105,7 +105,7 @@ export const useTrendingSearch = (opts?: {
     );
 
     searchResults
-      .filter((item) => item.rwaData)
+      .filter((item) => !item.rwaData)
       .forEach((asset) => {
         if (!resultMap.has(asset.assetId)) {
           resultMap.set(asset.assetId, {
