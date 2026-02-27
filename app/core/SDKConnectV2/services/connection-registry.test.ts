@@ -15,6 +15,10 @@ jest.mock('./connection');
 jest.mock('react-native');
 jest.mock('@sentry/react-native');
 jest.mock('../../Permissions');
+const MOCK_INTERNAL_ORIGIN_URL = 'https://internal.metamask.io';
+jest.mock('../../../constants/transaction', () => ({
+  INTERNAL_ORIGINS: ['metamask', 'MetaMask Mobile', MOCK_INTERNAL_ORIGIN_URL],
+}));
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),
@@ -662,7 +666,7 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.save).not.toHaveBeenCalled();
     });
 
-    it('blocks connection requests with `metamask` as origin', async () => {
+    it('blocks connection requests with an internal origin as dapp url', async () => {
       registry = new ConnectionRegistry(
         RELAY_URL,
         mockKeyManager,
@@ -676,7 +680,7 @@ describe('ConnectionRegistry', () => {
           ...mockConnectionRequest.metadata,
           dapp: {
             ...mockConnectionRequest.metadata.dapp,
-            url: 'metamask',
+            url: MOCK_INTERNAL_ORIGIN_URL,
           },
         },
       };
@@ -692,7 +696,7 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.save).not.toHaveBeenCalled();
     });
 
-    it('blocks connection requests with `metamask` as dapp name', async () => {
+    it('blocks connection requests with an internal origin as dapp name', async () => {
       registry = new ConnectionRegistry(
         RELAY_URL,
         mockKeyManager,
@@ -716,6 +720,10 @@ describe('ConnectionRegistry', () => {
       )}`;
 
       await registry.handleConnectDeeplink(blockedDeeplink);
+
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
     });
   });
 
