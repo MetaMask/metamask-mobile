@@ -91,7 +91,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
   it('validates the segment events from the onramp unified buy test', async () => {
     const softAssert = new SoftAssert();
     for (const ev of expectedEventNames) {
-      const event = eventsToCheck.find((event) => event.event === ev);
+      const event = eventsToCheck.find((e) => e.event === ev);
       await softAssert.checkAndCollect(
         async () => await Assertions.checkIfValueIsDefined(event),
         `${ev}: Should be defined`,
@@ -149,9 +149,9 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
       async () =>
         await Assertions.checkIfObjectContains(
           rampsButtonClicked?.properties ?? {},
-          { ramp_type: 'UNIFIED_BUY' },
+          { ramp_type: 'UNIFIED_BUY_2' },
         ),
-      `Ramps Button Clicked: ramp_type should be UNIFIED_BUY`,
+      `Ramps Button Clicked: ramp_type should be UNIFIED_BUY_2`,
     );
     const rampsButtonClickedRegion = JSON.parse(
       rampsButtonClicked?.properties?.region as string,

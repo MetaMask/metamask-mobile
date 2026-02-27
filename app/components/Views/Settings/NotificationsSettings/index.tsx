@@ -28,7 +28,6 @@ import { MainNotificationToggle } from './MainNotificationToggle';
 import styleSheet, {
   styles as navigationOptionsStyles,
 } from './NotificationsSettings.styles';
-import { ResetNotificationsButton } from './ResetNotificationsButton';
 import SessionHeader from './sectionHeader';
 import { PushNotificationToggle } from './PushNotificationToggle';
 import { useFirstHDWalletAccounts } from './AccountsList.hooks';
@@ -114,9 +113,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               <AccountsList />
             </>
           )}
-
-          {/* Reset Notifications Button */}
-          <ResetNotificationsButton />
         </>
       )}
       <SwitchLoadingModal

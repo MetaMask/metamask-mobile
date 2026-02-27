@@ -69,7 +69,7 @@ const V2BankDetails = () => {
   const tokensResource = useSelector(selectTokens);
   const selectedCryptoCurrency = tokensResource?.selected;
   const trackEvent = useAnalytics();
-  const { getOrderById, refreshOrder, removeOrder } = useRampsOrders();
+  const { getOrderById, refreshOrder } = useRampsOrders();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
@@ -142,23 +142,17 @@ const V2BankDetails = () => {
 
   useEffect(() => {
     if (!order?.status) return;
-    if (order.status === RampsOrderStatus.Cancelled) {
-      removeOrder(order.providerOrderId);
-      navigation.navigate(Routes.RAMP.AMOUNT_INPUT as never);
-    } else if (TERMINAL_STATUSES.has(order.status)) {
-      // @ts-expect-error navigation prop mismatch
-      navigation.replace(Routes.RAMP.RAMPS_ORDER_DETAILS, {
-        orderId: order.providerOrderId,
-        showCloseButton: true,
-      });
-    } else if (order.status === RampsOrderStatus.Pending) {
+    if (
+      TERMINAL_STATUSES.has(order.status) ||
+      order.status === RampsOrderStatus.Pending
+    ) {
       // @ts-expect-error navigation prop mismatch
       navigation.replace(Routes.RAMP.RAMPS_ORDER_DETAILS, {
         orderId: order.providerOrderId,
         showCloseButton: true,
       });
     }
-  }, [order?.status, navigation, order?.providerOrderId, removeOrder]);
+  }, [order?.status, navigation, order?.providerOrderId]);
 
   const capitalizeWords = useCallback(
     (text: string): string =>
@@ -176,16 +170,15 @@ const V2BankDetails = () => {
 
   const getFieldValue = useCallback(
     (fieldName: string): string | null => {
-      if (!depositOrder?.paymentDetails?.length) return null;
+      const details = depositOrder?.paymentDetails ?? order?.paymentDetails;
+      if (!details?.length) return null;
 
-      const field = depositOrder.paymentDetails[0].fields.find(
-        (f) => f.name === fieldName,
-      );
+      const field = details[0].fields.find((f) => f.name === fieldName);
       if (!field?.value) return null;
 
       return capitalizeWords(field.value);
     },
-    [depositOrder, capitalizeWords],
+    [depositOrder, order, capitalizeWords],
   );
 
   const amount = getFieldValue('Amount');
@@ -204,7 +197,10 @@ const V2BankDetails = () => {
   const iban = getFieldValue('IBAN');
   const bic = getFieldValue('BIC');
 
-  const paymentMethodShortName = depositOrder?.paymentMethod?.shortName ?? '';
+  const paymentMethodShortName =
+    depositOrder?.paymentMethod?.shortName ??
+    order?.paymentMethod?.shortName ??
+    '';
 
   useEffect(() => {
     navigation.setOptions(
@@ -222,11 +218,12 @@ const V2BankDetails = () => {
 
   const handleBankTransferSent = useCallback(async () => {
     setCancelOrderError(null);
-    if (isLoadingConfirmPayment || !order || !depositOrder) return;
+    if (isLoadingConfirmPayment || !order) return;
     try {
       setIsLoadingConfirmPayment(true);
 
-      const paymentMethodId = depositOrder.paymentMethod?.id;
+      const paymentMethodId =
+        depositOrder?.paymentMethod?.id ?? order.paymentMethod?.id;
       if (!paymentMethodId) {
         Logger.error(
           new Error('Payment method not found or empty'),
@@ -313,7 +310,7 @@ const V2BankDetails = () => {
     setShowBankInfo(!showBankInfo);
   }, [showBankInfo]);
 
-  const hasData = order && depositOrder;
+  const hasData = order && (depositOrder || order.paymentDetails?.length);
 
   return (
     <ScreenLayout>

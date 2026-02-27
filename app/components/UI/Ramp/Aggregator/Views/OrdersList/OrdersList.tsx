@@ -105,9 +105,12 @@ function DisplayOrderListItem({ item }: { item: DisplayOrder }) {
           : 'fiat_on_ramp_aggregator.sold_currency',
         { currency: item.cryptoCurrencySymbol },
       )}`
-    : strings('fiat_on_ramp_aggregator.purchased_currency', {
-        currency: item.cryptoCurrencySymbol,
-      });
+    : strings(
+        isBuy
+          ? 'fiat_on_ramp_aggregator.purchased_currency'
+          : 'fiat_on_ramp_aggregator.sold_currency',
+        { currency: item.cryptoCurrencySymbol },
+      );
 
   return (
     <ListItem

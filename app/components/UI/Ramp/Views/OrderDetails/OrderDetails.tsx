@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -29,6 +29,8 @@ import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
 import OrderContent from './OrderContent';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface RampsOrderDetailsParams {
   orderId: string;
@@ -63,6 +65,7 @@ const OrderDetails = () => {
   const theme = useTheme();
   const { colors } = theme;
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -72,9 +75,34 @@ const OrderDetails = () => {
         navigation,
         { title: strings('ramps_order_details.title') },
         theme,
+        () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Order Details',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
+        },
       ),
     );
-  }, [theme, navigation]);
+  }, [theme, navigation, createEventBuilder, trackEvent]);
+
+  const hasTrackedScreenView = useRef(false);
+  useEffect(() => {
+    if (order && !hasTrackedScreenView.current) {
+      hasTrackedScreenView.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+          .addProperties({
+            location: 'Order Details',
+            ramp_type: 'UNIFIED_BUY_2',
+          })
+          .build(),
+      );
+    }
+  }, [order, createEventBuilder, trackEvent]);
 
   const handleOnRefresh = useCallback(async () => {
     if (!order) return;

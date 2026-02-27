@@ -13,7 +13,10 @@ import Button, {
 
 import { strings } from '../../../../../../locales/i18n';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
-import { getHardwareWalletTypeName } from '../../../helpers';
+import {
+  getHardwareWalletTypeName,
+  getConnectionTipsForWalletType,
+} from '../../../helpers';
 import { ContentLayout } from './ContentLayout';
 
 export const CONNECTING_CONTENT_TEST_ID = 'connecting-content';
@@ -36,15 +39,13 @@ const styles = StyleSheet.create({
 export interface ConnectingContentProps {
   /** The device type for context in messages */
   deviceType: HardwareWalletType;
-  /** Connection tips (i18n keys) provided by the adapter. Parameterized tips receive { device: deviceName }. */
-  connectionTips: string[];
 }
 
 export const ConnectingContent: React.FC<ConnectingContentProps> = ({
   deviceType,
-  connectionTips,
 }) => {
   const deviceName = getHardwareWalletTypeName(deviceType);
+  const connectionTips = getConnectionTipsForWalletType(deviceType);
 
   return (
     <ContentLayout
