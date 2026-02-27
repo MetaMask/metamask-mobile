@@ -480,7 +480,7 @@ export const mockPerpsGeolocation = async (
   mockServer: Mockttp,
   region: RampsRegion,
 ): Promise<void> => {
-  const regionCode = region.countryIsoCode;
+  const regionCode = region.id.replace('/regions/', '');
 
   await mockServer
     .forGet('/proxy')
