@@ -953,6 +953,25 @@ const Onboarding = () => {
         ]}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
+        <View
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 16,
+            zIndex: 10,
+          }}
+          testID="ota-test-label-onboarding"
+        >
+          <Text
+            variant={TextVariant.BodySM}
+            style={{
+              fontSize: 12,
+              color: importedColors.gettingStartedTextColor,
+            }}
+          >
+            OTA: Onboarding
+          </Text>
+        </View>
         <ScrollView
           style={baseStyles.flexGrow}
           contentContainerStyle={styles.scroll}
