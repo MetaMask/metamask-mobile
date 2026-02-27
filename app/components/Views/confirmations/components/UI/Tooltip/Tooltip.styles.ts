@@ -36,8 +36,10 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 8,
     },
     modalContent: {
-      width: '100%',
+      alignSelf: 'stretch',
+      backgroundColor: theme.colors.background.muted,
       marginTop: 16,
+      marginHorizontal: 16,
       paddingVertical: 20,
       paddingHorizontal: 16,
       borderRadius: 8,
