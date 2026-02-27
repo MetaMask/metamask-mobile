@@ -27,6 +27,8 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
+import { showV2OrderToast } from '../../utils/v2OrderToast';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -88,6 +90,7 @@ const Checkout = () => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, {});
   const { addOrder, getOrderFromCallback } = useRampsOrders();
+  const isV2Enabled = useRampsUnifiedV2Enabled();
 
   const {
     url: uri,
@@ -186,6 +189,16 @@ const Checkout = () => {
         addOrder(rampsOrder);
         dispatch(protectWalletModalVisible());
 
+        if (isV2Enabled) {
+          showV2OrderToast({
+            orderId: rampsOrder.providerOrderId,
+            cryptocurrency:
+              rampsOrder.cryptoCurrency?.symbol ?? params?.cryptocurrency ?? '',
+            cryptoAmount: rampsOrder.cryptoAmount,
+            status: rampsOrder.status,
+          });
+        }
+
         navigation.reset({
           index: 0,
           routes: [
@@ -214,6 +227,8 @@ const Checkout = () => {
       dispatch,
       addOrder,
       getOrderFromCallback,
+      isV2Enabled,
+      params?.cryptocurrency,
     ],
   );
 

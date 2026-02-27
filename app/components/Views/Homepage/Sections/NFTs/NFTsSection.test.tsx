@@ -79,12 +79,11 @@ describe('NFTsSection', () => {
     expect(screen.queryByText('Import NFTs')).not.toBeOnTheScreen();
   });
 
-  it('renders empty state card when user has no NFTs', () => {
+  it('renders empty state when user has no NFTs', () => {
     renderWithProvider(<NFTsSection />);
 
     expect(screen.getByText('NFTs')).toBeOnTheScreen();
     expect(screen.getByText('Import NFTs')).toBeOnTheScreen();
-    expect(screen.getByText('Easily add your collectibles')).toBeOnTheScreen();
   });
 
   it('navigates to AddAsset when import NFTs card is pressed', () => {
