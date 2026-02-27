@@ -123,6 +123,24 @@ describe('displayOrder', () => {
       expect(result.fiatCurrencyCode).toBe('');
       expect(result.network).toBe('');
     });
+
+    it('converts a string createdAt (ISO date) to epoch milliseconds', () => {
+      const order = createMockRampsOrder({
+        createdAt: '2025-01-01T00:00:00.000Z' as unknown as number,
+      });
+      const result = rampsOrderToDisplayOrder(order);
+      expect(result.createdAt).toBe(
+        new Date('2025-01-01T00:00:00.000Z').getTime(),
+      );
+    });
+
+    it('falls back to 0 when createdAt is null', () => {
+      const order = createMockRampsOrder({
+        createdAt: null as unknown as number,
+      });
+      const result = rampsOrderToDisplayOrder(order);
+      expect(result.createdAt).toBe(0);
+    });
   });
 
   describe('mergeDisplayOrders', () => {
@@ -190,6 +208,20 @@ describe('displayOrder', () => {
       const result = mergeDisplayOrders(orders, v2Orders);
 
       expect(result.map((o) => o.createdAt)).toEqual([4000, 3000, 2000, 1000]);
+    });
+
+    it('sorts V2 orders with string createdAt correctly among legacy orders', () => {
+      const legacyOrder = createMockFiatOrder({
+        createdAt: new Date('2024-06-01T00:00:00.000Z').getTime(),
+      });
+      const v2Order = createMockRampsOrder({
+        createdAt: '2025-01-01T00:00:00.000Z' as unknown as number,
+      });
+
+      const result = mergeDisplayOrders([legacyOrder], [v2Order]);
+
+      expect(result[0].source).toBe('v2');
+      expect(result[1].source).toBe('legacy');
     });
   });
 });

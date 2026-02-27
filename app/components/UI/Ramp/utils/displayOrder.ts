@@ -20,12 +20,21 @@ export interface DisplayOrder {
   account: string;
 }
 
+function toEpochMs(value: unknown): number {
+  if (typeof value === 'number' && value > 0) return value;
+  if (typeof value === 'string') {
+    const ms = new Date(value).getTime();
+    if (!Number.isNaN(ms)) return ms;
+  }
+  return 0;
+}
+
 export function fiatOrderToDisplayOrder(order: FiatOrder): DisplayOrder {
   return {
     id: order.id,
     source: 'legacy',
     providerName: getProviderName(order.provider, order.data),
-    createdAt: order.createdAt,
+    createdAt: toEpochMs(order.createdAt),
     fiatAmount: order.amount,
     fiatCurrencyCode: order.currency,
     cryptoAmount: order.cryptoAmount ?? 0,
@@ -53,7 +62,7 @@ export function rampsOrderToDisplayOrder(order: RampsOrder): DisplayOrder {
     id: order.providerOrderId,
     source: 'v2',
     providerName: order.provider?.name ?? '',
-    createdAt: order.createdAt,
+    createdAt: toEpochMs(order.createdAt),
     fiatAmount: order.fiatAmount,
     fiatCurrencyCode: order.fiatCurrency?.symbol ?? '',
     cryptoAmount: order.cryptoAmount,
