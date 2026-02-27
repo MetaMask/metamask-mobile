@@ -203,6 +203,7 @@ describe('usePerpsBalanceTokenFilter', () => {
       const output = result.current(inputTokens);
 
       expect(output).toHaveLength(1);
+      expect(isHighlightedItemOutsideAssetList(output[0])).toBe(true);
       if (isHighlightedItemOutsideAssetList(output[0])) {
         expect(output[0].name_description).toBe('$0.00');
         expect(output[0].fiat).toBe('$0.00');
@@ -318,6 +319,7 @@ describe('usePerpsBalanceTokenFilter', () => {
 
       expect(output).toHaveLength(2);
       const highlightedAction = output[0];
+      expect(isHighlightedItemOutsideAssetList(highlightedAction)).toBe(true);
       if (isHighlightedItemOutsideAssetList(highlightedAction)) {
         highlightedAction.actions?.[0]?.onPress();
         expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
@@ -338,6 +340,7 @@ describe('usePerpsBalanceTokenFilter', () => {
 
       expect(output).toHaveLength(1);
       const highlightedAction = output[0];
+      expect(isHighlightedItemOutsideAssetList(highlightedAction)).toBe(true);
       if (isHighlightedItemOutsideAssetList(highlightedAction)) {
         highlightedAction.action();
         expect(mockOnPerpsPaymentTokenChange).toHaveBeenCalledWith(null);
