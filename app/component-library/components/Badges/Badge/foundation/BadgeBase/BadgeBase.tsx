@@ -1,7 +1,9 @@
 /* eslint-disable react/prop-types */
 
 /**
- * @deprecated Please update your code to use `BadgeCount`, `BadgeIcon`, `BadgeNetwork` or `BadgeStatus` from `@metamask/design-system-react-native`
+ * @deprecated Please update your code to use `BadgeCount`, `BadgeIcon`, `BadgeNetwork` or `BadgeStatus` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components}
  */
 
 // Third library dependencies.
