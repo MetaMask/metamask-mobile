@@ -2,7 +2,8 @@ import { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 import { Metadata } from './metadata';
 import { isUUID } from '../../SDKConnect/utils/isUUID';
 
-const HANDSHAKE_CHANNEL_REGEX = /^handshake:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const HANDSHAKE_CHANNEL_REGEX =
+  /^handshake:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Represents an incoming connection request parsed from a QR code or deep link.
@@ -136,7 +137,6 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
   ) {
     return false;
   }
-
 
   return true;
 }
