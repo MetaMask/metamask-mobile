@@ -94,7 +94,6 @@ type AllowedActions =
   | RewardsDataServiceSetRewardsEnvUrlAction
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
   | RewardsDataServiceApplyBonusCodeAction
-  | RewardsDataServiceGetSnapshotsAction
   | RewardsDataServiceGetSubscriptionAccountsAction;
 
 // Don't reexport as per guidelines

@@ -264,8 +264,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceSetRewardsEnvUrlAction
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
   | RewardsDataServiceValidateBonusCodeAction
-  | RewardsDataServiceApplyBonusCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceApplyBonusCodeAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -1319,6 +1318,11 @@ export class RewardsDataService {
     );
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new AuthorizationFailedError(
+          'Rewards authorization failed. Please login and try again.',
+        );
+      }
       throw new Error(`Get subscription accounts failed: ${response.status}`);
     }
 
