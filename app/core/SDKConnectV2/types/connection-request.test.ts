@@ -91,16 +91,19 @@ describe('isConnectionRequest', () => {
 
   it('returns false when publicKeyB64 exceeds 200 characters', () => {
     const req = validRequest();
-    (req.sessionRequest as Record<string, unknown>).publicKeyB64 =
-      'A'.repeat(201);
+    (req.sessionRequest as Record<string, unknown>).publicKeyB64 = 'A'.repeat(
+      201,
+    );
     expect(isConnectionRequest(req)).toBe(false);
   });
 
   it('returns false when publicKeyB64 does not decode to 33 bytes', () => {
     const req = validRequest();
     // 16 bytes → not 33
-    (req.sessionRequest as Record<string, unknown>).publicKeyB64 =
-      Buffer.alloc(16, 0x02).toString('base64');
+    (req.sessionRequest as Record<string, unknown>).publicKeyB64 = Buffer.alloc(
+      16,
+      0x02,
+    ).toString('base64');
     expect(isConnectionRequest(req)).toBe(false);
   });
 
@@ -156,14 +159,11 @@ describe('isConnectionRequest', () => {
     },
   );
 
-  it.each(['trusted', 'untrusted'])(
-    'accepts valid mode: %p',
-    (mode) => {
-      const req = validRequest();
-      (req.sessionRequest as Record<string, unknown>).mode = mode;
-      expect(isConnectionRequest(req)).toBe(true);
-    },
-  );
+  it.each(['trusted', 'untrusted'])('accepts valid mode: %p', (mode) => {
+    const req = validRequest();
+    (req.sessionRequest as Record<string, unknown>).mode = mode;
+    expect(isConnectionRequest(req)).toBe(true);
+  });
 
   // ──────────────────────────────────────────
   // sessionRequest.expiresAt
@@ -204,9 +204,9 @@ describe('isConnectionRequest', () => {
   });
 
   it('returns false when metadata is not an object', () => {
-    expect(
-      isConnectionRequest({ ...validRequest(), metadata: 'bad' }),
-    ).toBe(false);
+    expect(isConnectionRequest({ ...validRequest(), metadata: 'bad' })).toBe(
+      false,
+    );
   });
 
   // ──────────────────────────────────────────
