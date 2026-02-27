@@ -1,16 +1,16 @@
 import { act } from '@testing-library/react-hooks';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
-import { useHardwareWalletStateManager } from './HardwareWalletStateManager';
-import { getHardwareWalletTypeForAddress } from './helpers';
+import { useHardwareWalletStateManager } from './useHardwareWalletStateManager';
+import { getHardwareWalletTypeForAddress } from '../helpers';
 import {
   renderHookWithProvider,
   DeepPartial,
-} from '../../util/test/renderWithProvider';
-import { RootState } from '../../reducers';
-import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
+} from '../../../util/test/renderWithProvider';
+import { RootState } from '../../../reducers';
+import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
-jest.mock('./helpers', () => ({
-  ...jest.requireActual('./helpers'),
+jest.mock('../helpers', () => ({
+  ...jest.requireActual('../helpers'),
   getHardwareWalletTypeForAddress: jest.fn(),
 }));
 
