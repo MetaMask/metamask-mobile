@@ -75,7 +75,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
               numberOfLines={1}
               style={
                 {
-                  "color": "#121314",
+                  "color": "#ca3542",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 64,
                   "fontWeight": "400",

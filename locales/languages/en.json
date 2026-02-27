@@ -4940,7 +4940,12 @@
     },
     "provider_picker_modal": {
       "title": "Choose a provider"
-    }
+    },
+    "contact_provider_support": "Contact {{provider}} support",
+    "got_it": "Got it",
+    "encountered_error": "We've encountered an error",
+    "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
+    "change_provider_button": "Change provider"
   },
   "fiat_on_ramp_aggregator": {
     "buy": "buy",
@@ -7961,8 +7966,7 @@
       "nfts": "NFTs",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
-      "more_predictions": "More predictions",
-      "more_perps": "More perps",
+      "view_more": "View more",
       "positions": {
         "no_tp_sl": "No TP/SL"
       }
