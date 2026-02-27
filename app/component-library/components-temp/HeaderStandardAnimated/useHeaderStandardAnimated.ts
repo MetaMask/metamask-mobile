@@ -1,7 +1,9 @@
 // Third party dependencies.
 import { useCallback } from 'react';
-import { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
-import { useSharedValue } from 'react-native-reanimated';
+import {
+  useSharedValue,
+  useAnimatedScrollHandler,
+} from 'react-native-reanimated';
 
 // Internal dependencies.
 import { UseHeaderStandardAnimatedReturn } from './HeaderStandardAnimated.types';
@@ -9,6 +11,7 @@ import { UseHeaderStandardAnimatedReturn } from './HeaderStandardAnimated.types'
 /**
  * Hook for managing HeaderStandardAnimated scroll-linked animations.
  * Use with HeaderStandardAnimated placed outside the ScrollView as a sibling.
+ * Use the returned onScroll with Animated.ScrollView for UI-thread scroll updates (zero lag).
  *
  * @returns Object containing scrollY, titleSectionHeightSv, setTitleSectionHeight, and onScroll.
  *
@@ -24,12 +27,12 @@ import { UseHeaderStandardAnimatedReturn } from './HeaderStandardAnimated.types'
  *     title="Market"
  *     onBack={handleBack}
  *   />
- *   <ScrollView onScroll={onScroll} scrollEventThrottle={16}>
+ *   <Animated.ScrollView onScroll={onScroll} scrollEventThrottle={16}>
  *     <Box onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}>
  *       <TitleStandard topLabel="Perps" title="ETH-PERP" />
  *     </Box>
  *     {/* page body *\/}
- *   </ScrollView>
+ *   </Animated.ScrollView>
  * </Box>
  * ```
  */
@@ -44,12 +47,11 @@ const useHeaderStandardAnimated = (): UseHeaderStandardAnimatedReturn => {
     [titleSectionHeightSv],
   );
 
-  const onScroll = useCallback(
-    (scrollEvent: NativeSyntheticEvent<NativeScrollEvent>) => {
-      scrollYValue.value = scrollEvent.nativeEvent.contentOffset.y;
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (scrollEvent) => {
+      scrollYValue.value = scrollEvent.contentOffset.y;
     },
-    [scrollYValue],
-  );
+  });
 
   return {
     scrollY: scrollYValue,

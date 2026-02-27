@@ -118,19 +118,17 @@ const HeaderStandardAnimated: React.FC<HeaderStandardAnimatedProps> = ({
   };
 
   return (
-    <Box twClassName={`bg-default ${twClassName}`.trim()}>
-      <HeaderBase
-        testID={testID}
-        startButtonIconProps={resolvedStartButtonIconProps}
-        endButtonIconProps={resolvedEndButtonIconProps}
-        {...headerBaseProps}
-        twClassName={`px-2 ${twClassName}`.trim()}
-      >
-        <Animated.View style={centerAnimatedStyle}>
-          {renderContent()}
-        </Animated.View>
-      </HeaderBase>
-    </Box>
+    <HeaderBase
+      testID={testID}
+      startButtonIconProps={resolvedStartButtonIconProps}
+      endButtonIconProps={resolvedEndButtonIconProps}
+      {...headerBaseProps}
+      twClassName={`bg-default px-2 ${twClassName}`.trim()}
+    >
+      <Animated.View style={centerAnimatedStyle}>
+        {renderContent()}
+      </Animated.View>
+    </HeaderBase>
   );
 };
 

@@ -1,8 +1,5 @@
-// Third party dependencies.
-import { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
-
 // External dependencies.
-import { SharedValue } from 'react-native-reanimated';
+import { SharedValue, useAnimatedScrollHandler } from 'react-native-reanimated';
 
 // Internal dependencies.
 import { HeaderCompactStandardProps } from '../HeaderCompactStandard/HeaderCompactStandard.types';
@@ -27,10 +24,11 @@ export interface HeaderStandardAnimatedProps
 
 /**
  * Return type for useHeaderStandardAnimated hook.
+ * onScroll is an animated scroll handler; use with Animated.ScrollView for UI-thread updates.
  */
 export interface UseHeaderStandardAnimatedReturn {
   scrollY: SharedValue<number>;
   titleSectionHeightSv: SharedValue<number>;
   setTitleSectionHeight: (height: number) => void;
-  onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  onScroll: ReturnType<typeof useAnimatedScrollHandler>;
 }

@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import React from 'react';
-import { ScrollView } from 'react-native';
 
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import Animated from 'react-native-reanimated';
 
 import HeaderStandardAnimated from './HeaderStandardAnimated';
 import useHeaderStandardAnimated from './useHeaderStandardAnimated';
@@ -51,7 +51,7 @@ const DefaultStory = () => {
         title="Market"
         onBack={() => console.log('Back pressed')}
       />
-      <ScrollView
+      <Animated.ScrollView
         onScroll={onScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
@@ -66,7 +66,7 @@ const DefaultStory = () => {
           />
         </Box>
         <SampleContent />
-      </ScrollView>
+      </Animated.ScrollView>
     </Box>
   );
 };
@@ -84,7 +84,7 @@ const WithSubtitleStory = () => {
         subtitle="Perpetual futures"
         onBack={() => console.log('Back pressed')}
       />
-      <ScrollView
+      <Animated.ScrollView
         onScroll={onScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
@@ -99,7 +99,7 @@ const WithSubtitleStory = () => {
           />
         </Box>
         <SampleContent />
-      </ScrollView>
+      </Animated.ScrollView>
     </Box>
   );
 };
