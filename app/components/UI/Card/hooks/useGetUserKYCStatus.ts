@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
 import Logger from '../../../../util/Logger';
 import { CardVerificationState, UserResponse } from '../types';
-import { cardKeys } from '../queries';
+import { dashboardKeys } from '../queries';
 
 export interface UserKYCStatus {
   verificationState: CardVerificationState | null;
@@ -31,7 +31,7 @@ const useGetUserKYCStatus = (
   const { sdk } = useCardSDK();
 
   const { data, isLoading, error, refetch } = useQuery<UserKYCStatus | null>({
-    queryKey: cardKeys.kycStatus(),
+    queryKey: dashboardKeys.kycStatus(),
     queryFn: async () => {
       try {
         if (!sdk) throw new Error('SDK not initialized');

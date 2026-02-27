@@ -1,1 +1,21 @@
+import {
+  cashbackKeys,
+  cashbackWalletOptions,
+  cashbackWithdrawEstimationOptions,
+} from './cashback';
+import { dashboardKeys } from './dashboard';
+
 export { cardKeys } from './keys';
+export { dashboardKeys } from './dashboard';
+export { cashbackKeys } from './cashback';
+
+export const cardQueries = {
+  cashback: {
+    keys: cashbackKeys,
+    walletOptions: cashbackWalletOptions,
+    withdrawEstimationOptions: cashbackWithdrawEstimationOptions,
+  },
+  dashboard: {
+    keys: dashboardKeys,
+  },
+};

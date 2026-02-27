@@ -38,7 +38,7 @@ import { getPermittedEvmAddressesByHostname } from '../../../../../core/Permissi
 import { selectPermissionControllerState } from '../../../../../selectors/snaps/permissionController';
 import type { RootState } from '../../../../../reducers';
 import { selectIsDaimoDemo } from '../../../../../core/redux/slices/card';
-import { cardKeys } from '../../queries';
+import { dashboardKeys } from '../../queries';
 import { getDaimoEnvironment } from '../../util/getDaimoEnvironment';
 
 const POLLING_INTERVAL_MS = 5000;
@@ -169,7 +169,7 @@ const DaimoPayModal: React.FC = () => {
         pollingIntervalRef.current = null;
       }
 
-      queryClient.invalidateQueries({ queryKey: cardKeys.cardDetails() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.cardDetails() });
 
       const parentNavigator = navigation.dangerouslyGetParent();
       if (parentNavigator) {

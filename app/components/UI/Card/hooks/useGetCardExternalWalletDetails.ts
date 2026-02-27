@@ -1,5 +1,5 @@
-import { useCallback, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
@@ -12,7 +12,7 @@ import {
 import Logger from '../../../../util/Logger';
 import { isZero } from '../../../../util/lodash';
 import { ARBITRARY_ALLOWANCE } from '../constants';
-import { cardKeys } from '../queries';
+import { dashboardKeys } from '../queries';
 
 const determineAllowanceState = (allowanceFloat: number): AllowanceState => {
   if (allowanceFloat === 0) {
@@ -68,17 +68,16 @@ const useGetCardExternalWalletDetails = (
 ) => {
   const { sdk } = useCardSDK();
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
-
-  // Use a ref to always access the latest delegation settings value.
-  // This avoids stale closure issues when the queryFn runs after
-  // delegationSettings was updated but before the next render.
-  const delegationSettingsRef = useRef(delegationSettings);
-  delegationSettingsRef.current = delegationSettings;
+  const queryClient = useQueryClient();
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: cardKeys.externalWalletDetails(),
+    queryKey: dashboardKeys.externalWalletDetails(),
     queryFn: async () => {
-      const currentDelegationSettings = delegationSettingsRef.current;
+      const currentDelegationSettings =
+        delegationSettings ??
+        queryClient.getQueryData<DelegationSettingsResponse | null>(
+          dashboardKeys.delegationSettings(),
+        );
       if (!currentDelegationSettings) {
         return null;
       }

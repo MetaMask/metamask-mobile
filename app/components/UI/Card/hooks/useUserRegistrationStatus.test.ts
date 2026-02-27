@@ -114,7 +114,12 @@ describe('useUserRegistrationStatus', () => {
 
       expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({
-          queryKey: ['card', 'registrationStatus', 'onboarding-123'],
+          queryKey: [
+            'card',
+            'dashboard',
+            'registrationStatus',
+            'onboarding-123',
+          ],
         }),
       );
     });

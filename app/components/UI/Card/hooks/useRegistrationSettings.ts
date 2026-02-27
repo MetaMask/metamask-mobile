@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
-import { cardKeys } from '../queries';
+import { dashboardKeys } from '../queries';
 
 /**
  * Hook to fetch and cache registration settings from the Card SDK.
@@ -12,7 +12,7 @@ const useRegistrationSettings = () => {
   const { sdk } = useCardSDK();
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: cardKeys.registrationSettings(),
+    queryKey: dashboardKeys.registrationSettings(),
     queryFn: () => {
       if (!sdk) throw new Error('SDK not initialized');
       return sdk.getRegistrationSettings();

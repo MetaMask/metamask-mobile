@@ -11,7 +11,7 @@ import {
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import { AUTHENTICATED_CACHE_DURATION } from '../constants';
-import { cardKeys } from '../queries';
+import { dashboardKeys } from '../queries';
 
 interface CardDetailsResult {
   cardDetails: CardDetailsResponse | null;
@@ -28,7 +28,7 @@ const useCardDetails = () => {
     error,
     refetch,
   } = useQuery<CardDetailsResult | null>({
-    queryKey: cardKeys.cardDetails(),
+    queryKey: dashboardKeys.cardDetails(),
     queryFn: async (): Promise<CardDetailsResult | null> => {
       try {
         if (!sdk) throw new Error('SDK not initialized');

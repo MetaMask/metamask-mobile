@@ -11,7 +11,7 @@ import {
   CardType,
 } from '../types';
 import { CardSDK } from '../sdk/CardSDK';
-import { cardKeys } from '../queries';
+import { dashboardKeys } from '../queries';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -128,7 +128,7 @@ describe('useCardDetails', () => {
       renderHook(() => useCardDetails());
 
       const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
-      expect(queryConfig.queryKey).toEqual(cardKeys.cardDetails());
+      expect(queryConfig.queryKey).toEqual(dashboardKeys.cardDetails());
       expect(queryConfig.staleTime).toBe(60000);
       expect(queryConfig.enabled).toBe(true);
     });

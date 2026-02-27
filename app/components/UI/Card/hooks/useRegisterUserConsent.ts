@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import AppConstants from '../../../../core/AppConstants';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { Consent, ConsentSet } from '../types';
-import { cardKeys } from '../queries/keys';
+import { dashboardKeys } from '../queries';
 
 interface UseRegisterUserConsentState {
   isLoading: boolean;
@@ -77,7 +77,7 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
       }
 
       return queryClient.fetchQuery({
-        queryKey: cardKeys.consentSet(onboardingId),
+        queryKey: dashboardKeys.consentSet(onboardingId),
         queryFn: async () => {
           const consentSetResponse =
             await sdk.getConsentSetByOnboardingId(onboardingId);

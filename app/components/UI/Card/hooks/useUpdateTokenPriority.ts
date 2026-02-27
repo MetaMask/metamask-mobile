@@ -6,7 +6,7 @@ import {
   CardExternalWalletDetailsResponse,
 } from '../types';
 import Logger from '../../../../util/Logger';
-import { cardKeys } from '../queries';
+import { dashboardKeys } from '../queries';
 
 interface UseUpdateTokenPriorityParams {
   onSuccess?: () => void;
@@ -96,7 +96,7 @@ export const useUpdateTokenPriority = (
         // Invalidate external wallet details cache to force refetch with updated priorities.
         // The priority token is derived from this data via React Query.
         await queryClient.invalidateQueries({
-          queryKey: cardKeys.externalWalletDetails(),
+          queryKey: dashboardKeys.externalWalletDetails(),
         });
 
         onSuccess?.();

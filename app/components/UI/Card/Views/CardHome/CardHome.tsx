@@ -152,8 +152,6 @@ const CardHome = () => {
   } = useCardDetailsToken();
   const { reauthenticate } = useAuthentication();
   const hasTrackedCardHomeView = useRef(false);
-  const hasLoadedCardHomeView = useRef(false);
-  const hasCompletedInitialFetchRef = useRef(false);
   const hasHandledAuthErrorRef = useRef(false);
   const isComponentUnmountedRef = useRef(false);
   const hasShownDeeplinkToast = useRef(false);
@@ -1013,24 +1011,8 @@ const CardHome = () => {
     handleAuthenticationError();
   }, [cardError, dispatch, queryClient, isAuthenticated, navigation, toastRef]);
 
-  useEffect(() => {
-    if (isSDKLoading) {
-      return;
-    }
-    if (!hasLoadedCardHomeView.current && isAuthenticated) {
-      hasLoadedCardHomeView.current = true;
-      fetchAllData().then(() => {
-        hasCompletedInitialFetchRef.current = true;
-      });
-    }
-  }, [fetchAllData, isAuthenticated, isSDKLoading]);
-
   useFocusEffect(
     useCallback(() => {
-      if (!hasCompletedInitialFetchRef.current) {
-        return;
-      }
-
       if (isSDKLoading || !isAuthenticated) {
         return;
       }
@@ -1426,6 +1408,26 @@ const CardHome = () => {
                 rightIcon={IconName.ArrowRight}
                 onPress={orderMetalCardAction}
                 testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
+              />
+            )}
+            {isAuthenticated && kycStatus?.verificationState === 'VERIFIED' && (
+              <ManageCardListItem
+                title={strings('card.card_home.manage_card_options.cashback')}
+                description={strings(
+                  'card.card_home.manage_card_options.cashback_description',
+                )}
+                rightIcon={IconName.ArrowRight}
+                onPress={() => {
+                  trackEvent(
+                    createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+                      .addProperties({
+                        action: CardActions.CASHBACK_BUTTON,
+                      })
+                      .build(),
+                  );
+                  navigation.navigate(Routes.CARD.CASHBACK);
+                }}
+                testID={CardHomeSelectors.CASHBACK_ITEM}
               />
             )}
             <ManageCardListItem

@@ -8,7 +8,7 @@ import {
   DelegationSettingsNetwork,
 } from '../types';
 import { CardSDK } from '../sdk/CardSDK';
-import { cardKeys } from '../queries';
+import { dashboardKeys } from '../queries';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -117,7 +117,7 @@ describe('useGetDelegationSettings', () => {
       renderHook(() => useGetDelegationSettings());
 
       const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
-      expect(queryConfig.queryKey).toEqual(cardKeys.delegationSettings());
+      expect(queryConfig.queryKey).toEqual(dashboardKeys.delegationSettings());
     });
 
     it('passes correct staleTime to useQuery', () => {
@@ -365,7 +365,7 @@ describe('useGetDelegationSettings', () => {
       const secondCallKey = (useQuery as jest.Mock).mock.calls[1][0].queryKey;
 
       expect(firstCallKey).toEqual(secondCallKey);
-      expect(firstCallKey).toEqual(cardKeys.delegationSettings());
+      expect(firstCallKey).toEqual(dashboardKeys.delegationSettings());
     });
   });
 
@@ -473,7 +473,7 @@ describe('useGetDelegationSettings', () => {
       const secondKey = (useQuery as jest.Mock).mock.calls[1][0].queryKey;
 
       expect(firstKey).toEqual(secondKey);
-      expect(firstKey).toEqual(cardKeys.delegationSettings());
+      expect(firstKey).toEqual(dashboardKeys.delegationSettings());
     });
 
     it('uses same staleTime across multiple instances', () => {

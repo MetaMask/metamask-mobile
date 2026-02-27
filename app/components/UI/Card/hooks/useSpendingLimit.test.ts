@@ -15,7 +15,7 @@ import { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
-import { cardKeys } from '../queries';
+import { dashboardKeys } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -647,7 +647,7 @@ describe('useSpendingLimit', () => {
       });
 
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
-        queryKey: cardKeys.externalWalletDetails(),
+        queryKey: dashboardKeys.externalWalletDetails(),
       });
     });
 

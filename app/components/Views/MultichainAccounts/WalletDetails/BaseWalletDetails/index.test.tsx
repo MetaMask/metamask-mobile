@@ -567,9 +567,9 @@ describe('BaseWalletDetails', () => {
 
         expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
+          Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
           {
-            screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+            popToTopOnDone: true,
             keyringId: 'keyring:1',
           },
         );
@@ -615,11 +615,10 @@ describe('BaseWalletDetails', () => {
 
         expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
-          {
-            screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-            keyringId: 'keyring:1',
-          },
+          Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+          expect.objectContaining({
+            popToTopOnDone: true,
+          }),
         );
       });
     });
@@ -663,11 +662,10 @@ describe('BaseWalletDetails', () => {
 
         expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
-          {
-            screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-            keyringId: 'keyring:2',
-          },
+          Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+          expect.objectContaining({
+            popToTopOnDone: true,
+          }),
         );
       });
     });

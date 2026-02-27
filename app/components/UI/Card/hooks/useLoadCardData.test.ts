@@ -18,7 +18,7 @@ import {
   DelegationSettingsResponse,
   CardErrorType,
 } from '../types';
-import { cardKeys } from '../queries';
+import { dashboardKeys } from '../queries';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
@@ -363,10 +363,10 @@ describe('useLoadCardData', () => {
       });
 
       expect(mockRefetchQueries).toHaveBeenCalledWith({
-        queryKey: cardKeys.priorityTokenOnChain(mockSelectedAddress),
+        queryKey: dashboardKeys.priorityTokenOnChain(mockSelectedAddress),
       });
       expect(mockRefetchQueries).not.toHaveBeenCalledWith({
-        queryKey: cardKeys.externalWalletDetails(),
+        queryKey: dashboardKeys.externalWalletDetails(),
       });
     });
   });
@@ -456,22 +456,16 @@ describe('useLoadCardData', () => {
         await result.current.fetchAllData();
       });
 
-      expect(mockRefetchQueries).toHaveBeenCalledWith({
-        queryKey: cardKeys.delegationSettings(),
-      });
-      expect(mockRefetchQueries).toHaveBeenCalledWith({
-        queryKey: cardKeys.externalWalletDetails(),
-      });
-      expect(mockRefetchQueries).toHaveBeenCalledWith({
-        queryKey: cardKeys.cardDetails(),
-      });
-      expect(mockRefetchQueries).toHaveBeenCalledWith({
-        queryKey: cardKeys.kycStatus(),
-      });
+      expect(mockFetchDelegationSettings).toHaveBeenCalledTimes(1);
+      expect(mockFetchExternalWalletDetails).toHaveBeenCalledTimes(1);
+      expect(mockFetchCardDetails).toHaveBeenCalledTimes(1);
+      expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
     });
 
     it('handles fetchAllData errors gracefully', async () => {
-      mockRefetchQueries.mockRejectedValue(new Error('Refetch failed'));
+      mockFetchDelegationSettings.mockRejectedValue(
+        new Error('Refetch failed'),
+      );
 
       const { result } = renderHook(() => useLoadCardData());
 
@@ -860,10 +854,11 @@ describe('useLoadCardData', () => {
 
   describe('Fetch Functions', () => {
     beforeEach(() => {
-      // Reset fetch mocks to ensure clean state for each test
       mockFetchPriorityToken.mockReset().mockResolvedValue(undefined);
       mockFetchCardDetails.mockReset().mockResolvedValue(undefined);
       mockFetchExternalWalletDetails.mockReset().mockResolvedValue(undefined);
+      mockFetchDelegationSettings.mockReset().mockResolvedValue(undefined);
+      mockFetchKYCStatus.mockReset().mockResolvedValue(undefined);
     });
 
     it('fetchAllData refetches on-chain priority token for unauthenticated mode', async () => {
@@ -877,7 +872,7 @@ describe('useLoadCardData', () => {
 
       expect(mockRefetchQueries).toHaveBeenCalledTimes(1);
       expect(mockRefetchQueries).toHaveBeenCalledWith({
-        queryKey: cardKeys.priorityTokenOnChain(mockSelectedAddress),
+        queryKey: dashboardKeys.priorityTokenOnChain(mockSelectedAddress),
       });
     });
 
@@ -890,19 +885,10 @@ describe('useLoadCardData', () => {
         await result.current.fetchAllData();
       });
 
-      expect(mockRefetchQueries).toHaveBeenCalledTimes(4);
-      expect(mockRefetchQueries).toHaveBeenCalledWith({
-        queryKey: cardKeys.delegationSettings(),
-      });
-      expect(mockRefetchQueries).toHaveBeenCalledWith({
-        queryKey: cardKeys.externalWalletDetails(),
-      });
-      expect(mockRefetchQueries).toHaveBeenCalledWith({
-        queryKey: cardKeys.cardDetails(),
-      });
-      expect(mockRefetchQueries).toHaveBeenCalledWith({
-        queryKey: cardKeys.kycStatus(),
-      });
+      expect(mockFetchDelegationSettings).toHaveBeenCalledTimes(1);
+      expect(mockFetchExternalWalletDetails).toHaveBeenCalledTimes(1);
+      expect(mockFetchCardDetails).toHaveBeenCalledTimes(1);
+      expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1060,9 +1046,7 @@ describe('useLoadCardData', () => {
           await result.current.fetchAllData();
         });
 
-        expect(mockRefetchQueries).toHaveBeenCalledWith({
-          queryKey: cardKeys.kycStatus(),
-        });
+        expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
       });
 
       it('handles KYC status update when status changes', () => {
@@ -1158,7 +1142,7 @@ describe('useLoadCardData', () => {
         });
 
         expect(mockRefetchQueries).not.toHaveBeenCalledWith({
-          queryKey: cardKeys.kycStatus(),
+          queryKey: dashboardKeys.kycStatus(),
         });
       });
     });

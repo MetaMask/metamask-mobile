@@ -4,7 +4,7 @@ import { useCardSDK } from '../sdk';
 import { useSelector } from 'react-redux';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import { DelegationSettingsResponse } from '../types';
-import { cardKeys } from '../queries';
+import { dashboardKeys } from '../queries';
 
 /**
  * Hook to fetch and cache delegation settings from the Card SDK.
@@ -17,7 +17,7 @@ const useGetDelegationSettings = () => {
 
   const { data, isLoading, error, refetch } =
     useQuery<DelegationSettingsResponse | null>({
-      queryKey: cardKeys.delegationSettings(),
+      queryKey: dashboardKeys.delegationSettings(),
       queryFn: () => {
         if (!sdk) throw new Error('SDK not initialized');
         return sdk.getDelegationSettings();

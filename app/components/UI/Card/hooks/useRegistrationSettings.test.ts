@@ -76,7 +76,7 @@ describe('useRegistrationSettings', () => {
 
       expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({
-          queryKey: ['card', 'registrationSettings'],
+          queryKey: ['card', 'dashboard', 'registrationSettings'],
           staleTime: 5 * 60 * 1000,
         }),
       );

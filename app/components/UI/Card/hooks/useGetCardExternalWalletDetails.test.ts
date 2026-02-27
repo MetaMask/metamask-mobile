@@ -10,7 +10,7 @@ import {
   DelegationSettingsNetwork,
 } from '../types';
 import { CaipChainId } from '@metamask/utils';
-import { cardKeys } from '../queries';
+import { dashboardKeys } from '../queries';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -21,12 +21,16 @@ jest.mock('../sdk', () => ({
 }));
 
 const mockRefetch = jest.fn();
+const mockGetQueryData = jest.fn();
 jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn().mockReturnValue({
     data: undefined,
     isLoading: false,
     error: null,
     refetch: jest.fn(),
+  }),
+  useQueryClient: jest.fn().mockReturnValue({
+    getQueryData: (...args: unknown[]) => mockGetQueryData(...args),
   }),
 }));
 
@@ -113,6 +117,11 @@ describe('useGetCardExternalWalletDetails', () => {
       error: null,
       refetch: mockRefetch,
     });
+
+    const { useQueryClient } = jest.requireMock('@tanstack/react-query');
+    useQueryClient.mockReturnValue({
+      getQueryData: mockGetQueryData,
+    });
   });
 
   afterEach(() => {
@@ -135,7 +144,9 @@ describe('useGetCardExternalWalletDetails', () => {
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
       const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
-      expect(queryConfig.queryKey).toEqual(cardKeys.externalWalletDetails());
+      expect(queryConfig.queryKey).toEqual(
+        dashboardKeys.externalWalletDetails(),
+      );
       expect(queryConfig.staleTime).toBe(60000);
       expect(queryConfig.enabled).toBe(true);
     });
@@ -376,7 +387,9 @@ describe('useGetCardExternalWalletDetails', () => {
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
       const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
-      expect(queryConfig.queryKey).toEqual(cardKeys.externalWalletDetails());
+      expect(queryConfig.queryKey).toEqual(
+        dashboardKeys.externalWalletDetails(),
+      );
     });
   });
 });

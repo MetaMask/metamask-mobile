@@ -8,7 +8,7 @@ import {
   CardExternalWalletDetailsResponse,
 } from '../types';
 import Logger from '../../../../util/Logger';
-import { cardKeys } from '../queries';
+import { dashboardKeys } from '../queries';
 
 const mockInvalidateQueries = jest.fn();
 jest.mock('@tanstack/react-query', () => ({
@@ -138,7 +138,7 @@ describe('useUpdateTokenPriority', () => {
         { id: 1, priority: 1 },
       ]);
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
-        queryKey: cardKeys.externalWalletDetails(),
+        queryKey: dashboardKeys.externalWalletDetails(),
       });
       expect(mockOnSuccess).toHaveBeenCalled();
       expect(mockOnError).not.toHaveBeenCalled();

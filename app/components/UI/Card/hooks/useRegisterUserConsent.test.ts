@@ -133,7 +133,7 @@ describe('useRegisterUserConsent', () => {
 
       expect(mockFetchQuery).toHaveBeenCalledWith(
         expect.objectContaining({
-          queryKey: ['card', 'consentSet', testOnboardingId],
+          queryKey: ['card', 'dashboard', 'consentSet', testOnboardingId],
           staleTime: 30_000,
         }),
       );
@@ -845,7 +845,7 @@ describe('useRegisterUserConsent', () => {
 
       expect(mockFetchQuery).toHaveBeenCalledWith(
         expect.objectContaining({
-          queryKey: ['card', 'consentSet', testOnboardingId],
+          queryKey: ['card', 'dashboard', 'consentSet', testOnboardingId],
         }),
       );
     });

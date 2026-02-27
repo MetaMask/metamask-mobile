@@ -34,7 +34,7 @@ import {
   formatChainIdToCaip,
 } from '@metamask/bridge-controller';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
-import { cardKeys } from '../queries';
+import { dashboardKeys } from '../queries';
 
 /**
  * Fetches token allowances from the Card SDK and maps them to CardTokenAllowance objects.
@@ -165,7 +165,7 @@ export const useGetPriorityCardToken = (
     error: onChainError,
     refetch: refetchOnChain,
   } = useQuery<OnChainPriorityTokenResult>({
-    queryKey: cardKeys.priorityTokenOnChain(selectedAddress ?? ''),
+    queryKey: dashboardKeys.priorityTokenOnChain(selectedAddress ?? ''),
     queryFn: async (): Promise<OnChainPriorityTokenResult> => {
       if (!sdk || !selectedAddress) {
         throw new Error('SDK or selectedAddress not available');
