@@ -249,8 +249,13 @@ function BuildQuote() {
     error: quoteFetchError,
   } = useRampsQuotes(quoteFetchEnabled ? quoteFetchParams : null);
 
+  const lastTrackedQuoteErrorRef = useRef<unknown>(null);
   useEffect(() => {
-    if (quoteFetchError) {
+    if (
+      quoteFetchError &&
+      quoteFetchError !== lastTrackedQuoteErrorRef.current
+    ) {
+      lastTrackedQuoteErrorRef.current = quoteFetchError;
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_QUOTE_ERROR)
           .addProperties({
@@ -268,6 +273,9 @@ function BuildQuote() {
           })
           .build(),
       );
+    }
+    if (!quoteFetchError) {
+      lastTrackedQuoteErrorRef.current = null;
     }
   }, [
     quoteFetchError,

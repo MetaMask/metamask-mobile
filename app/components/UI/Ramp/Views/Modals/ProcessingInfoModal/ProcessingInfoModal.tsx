@@ -48,12 +48,18 @@ function ProcessingInfoModal() {
 
   const handleGoToSupport = useCallback(async () => {
     if (!providerSupportUrl) return;
+    let urlDomain: string | undefined;
+    try {
+      urlDomain = new URL(providerSupportUrl).hostname;
+    } catch {
+      urlDomain = providerSupportUrl;
+    }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
         .addProperties({
           location: 'Order Details',
           text: 'Provider Support',
-          url_domain: new URL(providerSupportUrl).hostname,
+          url_domain: urlDomain,
           ramp_type: 'UNIFIED_BUY_2',
         })
         .build(),
