@@ -36,7 +36,7 @@ import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 import useDetectGeolocation from './hooks/useDetectGeolocation';
 import useHydrateRampsController from './hooks/useHydrateRampsController';
 import useRampsSmartRouting from './hooks/useRampsSmartRouting';
-import { selectRampsUnifiedBuyV2ActiveFlag } from '../../../selectors/featureFlagController/ramps/rampsUnifiedBuyV2';
+import { isRampsUnifiedV2Enabled } from './utils/isRampsUnifiedV2Enabled';
 import { showV2OrderToast } from './utils/v2OrderToast';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
@@ -62,7 +62,7 @@ export async function processFiatOrder(
         trackEvent(event, params);
       }
       InteractionManager.runAfterInteractions(() => {
-        const isV2 = selectRampsUnifiedBuyV2ActiveFlag(state);
+        const isV2 = isRampsUnifiedV2Enabled(state);
         if (isV2) {
           showV2OrderToast({
             orderId: updatedOrder.id,
@@ -108,7 +108,7 @@ async function processCustomOrderId(
       }
       dispatchAddFiatOrder(fiatOrder);
       InteractionManager.runAfterInteractions(() => {
-        const isV2 = selectRampsUnifiedBuyV2ActiveFlag(state);
+        const isV2 = isRampsUnifiedV2Enabled(state);
         if (isV2) {
           showV2OrderToast({
             orderId: fiatOrder.id,

@@ -32,6 +32,8 @@ const newOverrides = [
       'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.test.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV2Enabled.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV2Enabled.test.ts',
+      'app/components/UI/Ramp/utils/isRampsUnifiedV2Enabled.ts',
+      'app/components/UI/Ramp/utils/isRampsUnifiedV2Enabled.test.ts',
       'app/components/UI/Ramp/hooks/useRampsSmartRouting.ts',
       'app/components/UI/Ramp/hooks/useRampsSmartRouting.test.ts',
       'app/components/UI/Ramp/hooks/useRampTokens.ts',
