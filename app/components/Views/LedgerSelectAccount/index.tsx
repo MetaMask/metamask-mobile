@@ -312,7 +312,7 @@ const LedgerSelectAccount = () => {
                 })
                 .build(),
             );
-            navigation.pop(2);
+            navigation.dispatch(StackActions.pop(2));
           } catch (err) {
             trackEvent(
               createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
