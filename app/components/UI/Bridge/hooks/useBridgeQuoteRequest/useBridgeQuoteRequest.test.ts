@@ -571,6 +571,88 @@ describe('useBridgeQuoteRequest', () => {
         address: testState.bridge.sourceToken?.address,
         decimals: testState.bridge.sourceToken?.decimals,
         chainId: testState.bridge.sourceToken?.chainId,
+        balance: testState.bridge.sourceToken?.balance,
+      });
+    });
+
+    it('uses latestSourceAtomicBalance override when provided', async () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '5.5',
+        },
+      });
+      const overriddenAtomicBalance = BigNumber.from('1234500000000000000');
+
+      renderHookWithProvider(
+        () =>
+          useBridgeQuoteRequest({
+            latestSourceAtomicBalance: overriddenAtomicBalance,
+          }),
+        {
+          state: testState,
+        },
+      );
+
+      expect(mockUseLatestBalance).toHaveBeenCalledWith({});
+      expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith({
+        amount: '5.5',
+        token: testState.bridge.sourceToken,
+        latestAtomicBalance: overriddenAtomicBalance,
+        ignoreGasFees: true,
+      });
+    });
+
+    it('uses override path when latestSourceAtomicBalance key is provided as undefined', async () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '5.5',
+        },
+      });
+
+      renderHookWithProvider(
+        () => useBridgeQuoteRequest({ latestSourceAtomicBalance: undefined }),
+        {
+          state: testState,
+        },
+      );
+
+      expect(mockUseLatestBalance).toHaveBeenCalledWith({});
+      expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith({
+        amount: '5.5',
+        token: testState.bridge.sourceToken,
+        latestAtomicBalance: undefined,
+        ignoreGasFees: true,
+      });
+    });
+
+    it('falls back to useLatestBalance when no latestSourceAtomicBalance override is provided', async () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '5.5',
+        },
+      });
+      const latestBalance = BigNumber.from('9000000000000000000');
+
+      mockUseLatestBalance.mockReturnValue({
+        displayBalance: '9',
+        atomicBalance: latestBalance,
+      });
+
+      renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      expect(mockUseLatestBalance).toHaveBeenCalledWith({
+        address: testState.bridge.sourceToken?.address,
+        decimals: testState.bridge.sourceToken?.decimals,
+        chainId: testState.bridge.sourceToken?.chainId,
+        balance: testState.bridge.sourceToken?.balance,
+      });
+      expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith({
+        amount: '5.5',
+        token: testState.bridge.sourceToken,
+        latestAtomicBalance: latestBalance,
+        ignoreGasFees: true,
       });
     });
   });
