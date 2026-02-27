@@ -42,7 +42,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
             {
               "bottom": 0,
               "left": 0,
-              "opacity": NaN,
+              "opacity": 1,
               "position": "absolute",
               "right": 0,
               "top": 0,
@@ -106,7 +106,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
               style={
                 {
                   "marginHorizontal": 16,
-                  "opacity": NaN,
+                  "opacity": 1,
                 }
               }
             >
@@ -172,7 +172,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
           collapsable={false}
           style={
             {
-              "opacity": NaN,
+              "opacity": 1,
             }
           }
         />
@@ -251,7 +251,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                   "flex": 1,
                   "transform": [
                     {
-                      "translateX": NaN,
+                      "translateX": 0,
                     },
                     {
                       "translateX": 0,
@@ -274,7 +274,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                       "height": 1,
                       "width": -1,
                     },
-                    "shadowOpacity": NaN,
+                    "shadowOpacity": 0.3,
                     "shadowRadius": 5,
                     "top": 0,
                     "width": 3,
@@ -902,7 +902,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
             {
               "bottom": 0,
               "left": 0,
-              "opacity": NaN,
+              "opacity": 1,
               "position": "absolute",
               "right": 0,
               "top": 0,
@@ -966,7 +966,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
               style={
                 {
                   "marginHorizontal": 16,
-                  "opacity": NaN,
+                  "opacity": 1,
                 }
               }
             >
@@ -1032,7 +1032,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
           collapsable={false}
           style={
             {
-              "opacity": NaN,
+              "opacity": 1,
             }
           }
         />
@@ -1111,7 +1111,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                   "flex": 1,
                   "transform": [
                     {
-                      "translateX": NaN,
+                      "translateX": 0,
                     },
                     {
                       "translateX": 0,
@@ -1134,7 +1134,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                       "height": 1,
                       "width": -1,
                     },
-                    "shadowOpacity": NaN,
+                    "shadowOpacity": 0.3,
                     "shadowRadius": 5,
                     "top": 0,
                     "width": 3,

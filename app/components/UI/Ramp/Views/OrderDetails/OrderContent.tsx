@@ -4,6 +4,8 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useNavigation } from '@react-navigation/native';
 import type { RampsOrder } from '@metamask/ramps-controller';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { createProcessingInfoModalNavigationDetails } from '../Modals/ProcessingInfoModal/ProcessingInfoModal';
 import {
   Box,
@@ -85,6 +87,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
   showCloseButton = false,
 }) => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const providerData = useMemo(() => getProviderSpecificData(order), [order]);
 
   const shortOrderId = order.id
@@ -102,6 +105,22 @@ const OrderContent: React.FC<OrderContentProps> = ({
   const handleProviderLinkPress = useCallback(async () => {
     const url = providerData.providerOrderLink;
     if (!url) return;
+    let urlDomain: string | undefined;
+    try {
+      urlDomain = new URL(url).hostname;
+    } catch {
+      urlDomain = url;
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
+        .addProperties({
+          location: 'Order Details',
+          external_link_description: 'View on Provider',
+          url_domain: urlDomain,
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     try {
       if (await InAppBrowser.isAvailable()) {
         await InAppBrowser.open(url);
@@ -117,7 +136,12 @@ const OrderContent: React.FC<OrderContentProps> = ({
         link: url,
       });
     }
-  }, [providerData.providerOrderLink, navigation]);
+  }, [
+    providerData.providerOrderLink,
+    navigation,
+    createEventBuilder,
+    trackEvent,
+  ]);
 
   const getStatusText = () => {
     switch (order.state) {
@@ -153,12 +177,28 @@ const OrderContent: React.FC<OrderContentProps> = ({
   const isLoading = !order.amount;
 
   const handleClose = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_CLOSE_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Order Details',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     navigation.goBack();
-  }, [navigation]);
+  }, [navigation, createEventBuilder, trackEvent]);
 
   const providerName = getProviderName(order.provider, order.data);
 
   const handleInfoPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_INFO_TOOLTIP_CLICKED)
+        .addProperties({
+          location: 'Order Details',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     navigation.navigate(
       ...createProcessingInfoModalNavigationDetails({
         providerName,
@@ -171,6 +211,8 @@ const OrderContent: React.FC<OrderContentProps> = ({
     providerName,
     providerData.providerSupportUrl,
     providerData.statusDescription,
+    createEventBuilder,
+    trackEvent,
   ]);
 
   const fiatDecimals = providerData.fiatDecimals ?? 2;
