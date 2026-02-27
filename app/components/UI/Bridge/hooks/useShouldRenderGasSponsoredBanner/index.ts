@@ -20,6 +20,7 @@ export const useShouldRenderGasSponsoredBanner = ({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
+    balance: sourceToken?.balance,
   });
 
   const insufficientBal = useIsInsufficientBalance({
