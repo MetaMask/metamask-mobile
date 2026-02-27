@@ -20,6 +20,7 @@ import { useRampsUserRegion } from './useRampsUserRegion';
 import { useRampsPaymentMethods } from './useRampsPaymentMethods';
 import { selectTokens } from '../../../../selectors/rampsController';
 import useRampAccountAddress from './useRampAccountAddress';
+import { isHttpUnauthorized } from '../utils/isHttpUnauthorized';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
 import { useRampsOrders } from './useRampsOrders';
 
@@ -536,8 +537,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
         }
       } catch (error) {
-        const httpError = error as { status?: number };
-        if (httpError.status === 401) {
+        if (isHttpUnauthorized(error)) {
           await logoutFromProvider(false);
           navigation.navigate(Routes.RAMP.ENTER_EMAIL);
           return;

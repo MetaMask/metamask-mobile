@@ -38,6 +38,7 @@ import { selectTokens } from '../../../../../selectors/rampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useSelector } from 'react-redux';
+import { isHttpUnauthorized } from '../../utils/isHttpUnauthorized';
 
 export interface BankDetailsParams {
   orderId: string;
@@ -122,8 +123,7 @@ const V2BankDetails = () => {
         order.walletAddress,
       );
     } catch (refreshError) {
-      const httpError = refreshError as { status?: number };
-      if (httpError.status === 401) {
+      if (isHttpUnauthorized(refreshError)) {
         await handleLogoutError();
         return;
       }
@@ -254,8 +254,7 @@ const V2BankDetails = () => {
 
       await handleOnRefresh();
     } catch (fetchError) {
-      const httpError = fetchError as { status?: number };
-      if (httpError.status === 401) {
+      if (isHttpUnauthorized(fetchError)) {
         await handleLogoutError();
         return;
       }
@@ -293,8 +292,7 @@ const V2BankDetails = () => {
       await transakCancelOrder(order.providerOrderId);
       await handleOnRefresh();
     } catch (fetchError) {
-      const httpError = fetchError as { status?: number };
-      if (httpError.status === 401) {
+      if (isHttpUnauthorized(fetchError)) {
         await handleLogoutError();
         return;
       }
