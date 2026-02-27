@@ -423,7 +423,7 @@ describe('V2BankDetails', () => {
   });
 
   it('handles 401 error during confirm payment', async () => {
-    const error = { status: 401 };
+    const error = { httpStatus: 401 };
     mockConfirmPayment.mockRejectedValue(error);
     mockLogoutFromProvider.mockResolvedValue(undefined);
 
@@ -458,7 +458,7 @@ describe('V2BankDetails', () => {
   });
 
   it('handles 401 error during cancel order', async () => {
-    const error = { status: 401 };
+    const error = { httpStatus: 401 };
     mockCancelOrder.mockRejectedValue(error);
     mockLogoutFromProvider.mockResolvedValue(undefined);
 
