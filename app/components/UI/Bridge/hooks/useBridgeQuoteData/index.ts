@@ -79,7 +79,10 @@ export const useBridgeQuoteData = ({
   const isExpired = isQuoteExpired(willRefresh, refreshRate, quotesLastFetched);
 
   const bestQuote = quotes?.recommendedQuote;
-  const allQuotes = quotes?.sortedQuotes ?? [];
+  const allQuotes = useMemo(
+    () => quotes?.sortedQuotes ?? [],
+    [quotes?.sortedQuotes],
+  );
 
   const activeQuote =
     isExpired && !willRefresh && !isSubmittingTx ? undefined : bestQuote;
@@ -125,10 +128,19 @@ export const useBridgeQuoteData = ({
   const isQuoteDestTokenMatch = isQuoteDestTokenMatchForQuote(activeQuote);
 
   // Filter all quotes to only include valid ones (not expired and matching dest token)
-  const validQuotes =
-    isExpired && !willRefresh && !isSubmittingTx
-      ? []
-      : allQuotes.filter((quote) => isQuoteDestTokenMatchForQuote(quote));
+  const validQuotes = useMemo(
+    () =>
+      isExpired && !willRefresh && !isSubmittingTx
+        ? []
+        : allQuotes.filter((quote) => isQuoteDestTokenMatchForQuote(quote)),
+    [
+      isExpired,
+      willRefresh,
+      isSubmittingTx,
+      allQuotes,
+      isQuoteDestTokenMatchForQuote,
+    ],
+  );
 
   const destTokenAmount =
     activeQuote && destToken && isQuoteSourceTokenMatch && isQuoteDestTokenMatch
