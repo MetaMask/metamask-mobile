@@ -21,7 +21,8 @@ window.isChartReady = false;
 window.pendingMessages = [];
 window.libraryLoaded = false;
 window.libraryError = null;
-window.realtimeCallback = null;
+window.realtimeCallbacks = {};
+window.pendingGetBarsCallback = null;
 
 // ============================================
 // Communication with React Native
@@ -132,19 +133,15 @@ function handleSetOHLCVData(payload) {
   window.ohlcvData = payload.data;
 
   var newResolution = detectResolution(window.ohlcvData);
-  sendToReactNative('DEBUG', {
-    message:
-      'SET_OHLCV_DATA: bars=' +
-      window.ohlcvData.length +
-      ' newRes=' +
-      newResolution +
-      ' curRes=' +
-      window.currentResolution +
-      ' widgetExists=' +
-      !!window.chartWidget +
-      ' ready=' +
-      window.isChartReady,
-  });
+  var hasPending = !!window.pendingGetBarsCallback;
+
+  if (hasPending) {
+    var pending = window.pendingGetBarsCallback;
+    window.pendingGetBarsCallback = null;
+    window.currentResolution = newResolution;
+    resolvePendingGetBars(pending);
+    return;
+  }
 
   if (window.chartWidget && window.isChartReady) {
     if (window.currentResolution !== newResolution) {
@@ -152,15 +149,8 @@ function handleSetOHLCVData(payload) {
       try {
         window.chartWidget
           .activeChart()
-          .setResolution(newResolution, function () {
-            sendToReactNative('DEBUG', {
-              message: 'Resolution changed to ' + newResolution,
-            });
-          });
+          .setResolution(newResolution, function () {});
       } catch (e) {
-        sendToReactNative('DEBUG', {
-          message: 'setResolution failed, rebuilding widget',
-        });
         window.chartWidget.remove();
         window.chartWidget = null;
         window.isChartReady = false;
@@ -169,12 +159,12 @@ function handleSetOHLCVData(payload) {
     } else {
       try {
         window.chartWidget.activeChart().resetData();
-      } catch (e) {}
+      } catch (e) {
+        // resetData can fail if chart is in a transitional state
+      }
     }
   } else if (window.chartWidget && !window.isChartReady) {
     window.currentResolution = newResolution;
-    // Widget still initializing; data is stored in window.ohlcvData and will be
-    // picked up when getBars fires on the current widget's ready callback.
   } else if (!window.chartWidget) {
     window.currentResolution = newResolution;
     libraryLoadAttempts = 0;
@@ -202,16 +192,18 @@ function handleRealtimeUpdate(payload) {
     window.ohlcvData.push(bar);
   }
 
-  // Forward to TradingView's subscribeBars callback
-  if (window.realtimeCallback) {
-    window.realtimeCallback({
-      time: bar.time,
-      open: bar.open,
-      high: bar.high,
-      low: bar.low,
-      close: bar.close,
-      volume: bar.volume,
-    });
+  // Forward to all active TradingView subscribeBars callbacks
+  var tick = {
+    time: bar.time,
+    open: bar.open,
+    high: bar.high,
+    low: bar.low,
+    close: bar.close,
+    volume: bar.volume,
+  };
+  var guids = Object.keys(window.realtimeCallbacks);
+  for (var i = 0; i < guids.length; i++) {
+    window.realtimeCallbacks[guids[i]](tick);
   }
 }
 
@@ -483,6 +475,77 @@ var VARIABLE_TICK_SIZE = [
   '10000', // prices < $10000    →  2 dp
   '0.1', // prices ≥ $10000    →  1 dp
 ].join(' ');
+
+function filterBarsForRange(fromMs, toMs, countBack) {
+  var barsInRange = [];
+  for (var i = 0; i < window.ohlcvData.length; i++) {
+    var b = window.ohlcvData[i];
+    if (b.time >= fromMs && b.time < toMs) {
+      barsInRange.push({
+        time: b.time,
+        open: b.open,
+        high: b.high,
+        low: b.low,
+        close: b.close,
+        volume: b.volume,
+      });
+    }
+  }
+
+  if (barsInRange.length < countBack) {
+    var allBeforeTo = [];
+    for (var j = 0; j < window.ohlcvData.length; j++) {
+      if (window.ohlcvData[j].time < toMs) {
+        allBeforeTo.push(window.ohlcvData[j]);
+      }
+    }
+    var startIdx = Math.max(0, allBeforeTo.length - countBack);
+    barsInRange = [];
+    for (var k = startIdx; k < allBeforeTo.length; k++) {
+      var bar = allBeforeTo[k];
+      barsInRange.push({
+        time: bar.time,
+        open: bar.open,
+        high: bar.high,
+        low: bar.low,
+        close: bar.close,
+        volume: bar.volume,
+      });
+    }
+  }
+
+  return barsInRange;
+}
+
+function resolvePendingGetBars(pending) {
+  var currentOldest =
+    window.ohlcvData.length > 0 ? window.ohlcvData[0].time : 0;
+
+  if (currentOldest >= pending.oldestAtDefer) {
+    pending.onResult([], { noData: true });
+    return;
+  }
+
+  // Return only the newly fetched bars (older than what we had before deferring).
+  // TradingView already has bars from oldestAtDefer onward.
+  var bars = [];
+  for (var i = 0; i < window.ohlcvData.length; i++) {
+    var b = window.ohlcvData[i];
+    if (b.time < pending.oldestAtDefer) {
+      bars.push({
+        time: b.time,
+        open: b.open,
+        high: b.high,
+        low: b.low,
+        close: b.close,
+        volume: b.volume,
+      });
+    }
+  }
+
+  pending.onResult(bars, { noData: false });
+}
+
 var customDatafeed = {
   onReady: function (callback) {
     setTimeout(function () {
@@ -554,34 +617,42 @@ var customDatafeed = {
 
   getBars: function (symbolInfo, resolution, periodParams, onResult, onError) {
     try {
+      var fromMs = periodParams.from * 1000;
+      var toMs = periodParams.to * 1000;
+      var countBack = periodParams.countBack;
       var firstRequest = periodParams.firstDataRequest;
 
-      if (firstRequest) {
-        var bars = window.ohlcvData.map(function (bar) {
-          return {
-            time: bar.time,
-            open: bar.open,
-            high: bar.high,
-            low: bar.low,
-            close: bar.close,
-            volume: bar.volume,
-          };
-        });
-        onResult(bars, { noData: bars.length === 0 });
-      } else {
-        onResult([], { noData: true });
+      var bars = filterBarsForRange(fromMs, toMs, countBack);
+
+      if (bars.length > 0) {
+        onResult(bars, { noData: false });
+        return;
       }
+
+      if (firstRequest || window.ohlcvData.length === 0) {
+        onResult([], { noData: true });
+        return;
+      }
+
+      var oldestTs = window.ohlcvData[0].time;
+
+      window.pendingGetBarsCallback = {
+        onResult: onResult,
+        oldestAtDefer: oldestTs,
+      };
+
+      sendToReactNative('NEED_MORE_HISTORY', { oldestTimestamp: oldestTs });
     } catch (error) {
       onError(error.message);
     }
   },
 
   subscribeBars: function (symbolInfo, resolution, onTick, listenerGuid) {
-    window.realtimeCallback = onTick;
+    window.realtimeCallbacks[listenerGuid] = onTick;
   },
 
-  unsubscribeBars: function () {
-    window.realtimeCallback = null;
+  unsubscribeBars: function (listenerGuid) {
+    delete window.realtimeCallbacks[listenerGuid];
   },
 };
 

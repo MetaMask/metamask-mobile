@@ -196,8 +196,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             break;
 
           case 'DEBUG':
-            // eslint-disable-next-line no-console
-            console.log('[AdvancedChart]', JSON.stringify(payload));
             break;
 
           default:
