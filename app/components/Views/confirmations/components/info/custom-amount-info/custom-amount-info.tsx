@@ -186,6 +186,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {isKeyboardVisible && hasTokens && (
             <DepositKeyboard
+              hidePercentageButtons={!!selectedFiatPaymentMethod}
               alertMessage={alertTitle}
               value={amountFiat}
               onChange={updatePendingAmount}
