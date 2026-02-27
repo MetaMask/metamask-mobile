@@ -15,9 +15,8 @@ jest.mock('./connection');
 jest.mock('react-native');
 jest.mock('@sentry/react-native');
 jest.mock('../../Permissions');
-const MOCK_INTERNAL_ORIGIN_URL = 'https://internal.metamask.io';
 jest.mock('../../../constants/transaction', () => ({
-  INTERNAL_ORIGINS: ['metamask', 'MetaMask Mobile', MOCK_INTERNAL_ORIGIN_URL],
+  INTERNAL_ORIGINS: ['metamask', 'MetaMask Mobile', 'https://internal.metamask.io'],
 }));
 jest.mock('../../../store', () => ({
   store: {
@@ -680,7 +679,7 @@ describe('ConnectionRegistry', () => {
           ...mockConnectionRequest.metadata,
           dapp: {
             ...mockConnectionRequest.metadata.dapp,
-            url: MOCK_INTERNAL_ORIGIN_URL,
+            url: 'https://internal.metamask.io',
           },
         },
       };
