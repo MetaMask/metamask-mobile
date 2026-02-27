@@ -1,17 +1,16 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   Box,
   Icon,
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import type { NavbarOverrides } from '../../../Views/confirmations/components/UI/navbar/navbar';
 import { PredictBuyPreviewHeaderTitle } from '../components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
 import { PredictOutcomeToken } from '../types';
 
-interface UsePredictMarketHeaderParams {
+export interface PredictMarketHeaderParams {
   marketTitle?: string;
   outcomeImage?: string;
   outcomeGroupTitle?: string;
@@ -19,50 +18,77 @@ interface UsePredictMarketHeaderParams {
   backgroundColor: string;
 }
 
-export const usePredictMarketHeader = ({
+const styles = StyleSheet.create({
+  headerTitleWrapper: {
+    marginTop: 32,
+    marginLeft: -20,
+  },
+  emptyHeaderTitle: {
+    height: 96,
+  },
+  headerLeftButton: {
+    marginTop: 32,
+    marginLeft: 16,
+  },
+});
+
+export const getPredictMarketHeader = ({
   marketTitle,
   outcomeImage,
   outcomeGroupTitle,
   outcomeToken,
   backgroundColor,
-}: UsePredictMarketHeaderParams): NavbarOverrides => {
-  const tw = useTailwind();
-
-  const renderHeaderTitle = useCallback(
-    () =>
-      outcomeToken ? (
-        <Box twClassName="mt-8 -ml-5">
-          <PredictBuyPreviewHeaderTitle
-            title={marketTitle ?? ''}
-            outcomeImage={outcomeImage}
-            outcomeGroupTitle={outcomeGroupTitle ?? ''}
-            outcomeToken={outcomeToken}
-          />
-        </Box>
-      ) : (
-        <Box twClassName="h-24" />
-      ),
-    [marketTitle, outcomeImage, outcomeGroupTitle, outcomeToken],
-  );
-
-  const renderHeaderLeft = useCallback(
-    (onBackPress: () => void) => (
-      <TouchableOpacity onPress={onBackPress} style={tw.style('mt-8 ml-4')}>
-        <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
-      </TouchableOpacity>
+}: PredictMarketHeaderParams): NavbarOverrides => ({
+  headerTitleAlign: 'left',
+  headerTitle: () =>
+    outcomeToken ? (
+      <Box style={styles.headerTitleWrapper}>
+        <PredictBuyPreviewHeaderTitle
+          title={marketTitle ?? ''}
+          outcomeImage={outcomeImage}
+          outcomeGroupTitle={outcomeGroupTitle ?? ''}
+          outcomeToken={outcomeToken}
+        />
+      </Box>
+    ) : (
+      <Box style={styles.emptyHeaderTitle} />
     ),
-    [tw],
-  );
+  headerLeft: (onBackPress: () => void) => (
+    <TouchableOpacity onPress={onBackPress} style={styles.headerLeftButton}>
+      <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
+    </TouchableOpacity>
+  ),
+  headerStyle: {
+    backgroundColor,
+  },
+});
 
-  return useMemo<NavbarOverrides>(
-    () => ({
-      headerTitleAlign: 'left',
-      headerTitle: renderHeaderTitle,
-      headerLeft: renderHeaderLeft,
-      headerStyle: {
+export const usePredictMarketHeader = (
+  params: PredictMarketHeaderParams,
+): NavbarOverrides => {
+  const {
+    backgroundColor,
+    marketTitle,
+    outcomeGroupTitle,
+    outcomeImage,
+    outcomeToken,
+  } = params;
+
+  return useMemo(
+    () =>
+      getPredictMarketHeader({
         backgroundColor,
-      },
-    }),
-    [backgroundColor, renderHeaderLeft, renderHeaderTitle],
+        marketTitle,
+        outcomeGroupTitle,
+        outcomeImage,
+        outcomeToken,
+      }),
+    [
+      backgroundColor,
+      marketTitle,
+      outcomeGroupTitle,
+      outcomeImage,
+      outcomeToken,
+    ],
   );
 };

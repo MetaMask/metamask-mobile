@@ -13,6 +13,67 @@ import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsM
 import PredictFeed from '../views/PredictFeed';
 import PredictGTMModal from '../components/PredictGTMModal';
 import { Dimensions } from 'react-native';
+import { getPredictMarketHeader } from '../hooks';
+import { PredictMarketHeaderParams } from '../hooks/usePredictMarketHeader';
+
+interface PredictConfirmationRouteParams {
+  animationEnabled?: boolean;
+  predictHeader?: PredictMarketHeaderParams;
+}
+
+const getConfirmationTransitionSpec = (disableOpenAnimation: boolean) =>
+  disableOpenAnimation
+    ? {
+        open: { animation: 'timing', config: { duration: 0 } },
+        close: { animation: 'timing', config: { duration: 300 } },
+      }
+    : undefined;
+
+const getPredictConfirmationScreenOptions = ({
+  route,
+  navigation,
+}: {
+  route: {
+    params?: PredictConfirmationRouteParams;
+  };
+  navigation: {
+    goBack: () => void;
+  };
+}) => {
+  const disableOpenAnimation = route.params?.animationEnabled === false;
+  const predictHeader = route.params?.predictHeader;
+
+  if (!predictHeader) {
+    return {
+      headerLeft: () => null,
+      headerShown: true,
+      title: '',
+      transitionSpec: getConfirmationTransitionSpec(disableOpenAnimation),
+    };
+  }
+
+  const overrides = getPredictMarketHeader(predictHeader);
+  const onBackPress = () => navigation.goBack();
+
+  return {
+    title: strings('confirm.title.predict_deposit'),
+    headerTitleAlign: overrides.headerTitleAlign ?? 'left',
+    headerTitle: overrides.headerTitle,
+    headerLeft: overrides.headerLeft
+      ? () => overrides.headerLeft?.(onBackPress)
+      : () => null,
+    headerRight: overrides.headerRight
+      ? () => overrides.headerRight?.(onBackPress)
+      : () => null,
+    headerStyle: {
+      shadowColor: 'transparent',
+      elevation: 0,
+      ...overrides.headerStyle,
+    },
+    headerShown: true,
+    transitionSpec: getConfirmationTransitionSpec(disableOpenAnimation),
+  };
+};
 
 const Stack = createStackNavigator<PredictNavigationParamList>();
 const ModalStack = createStackNavigator<PredictNavigationParamList>();
@@ -70,21 +131,7 @@ const PredictModalStack = () => (
     <ModalStack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={Confirm}
-      options={({ route }) => {
-        const disableOpenAnimation = route.params?.animationEnabled === false;
-
-        return {
-          headerLeft: () => null,
-          headerShown: true,
-          title: '',
-          transitionSpec: disableOpenAnimation
-            ? {
-                open: { animation: 'timing', config: { duration: 0 } },
-                close: { animation: 'timing', config: { duration: 300 } },
-              }
-            : undefined,
-        };
-      }}
+      options={getPredictConfirmationScreenOptions}
     />
     <ModalStack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
@@ -94,12 +141,7 @@ const PredictModalStack = () => (
 
         return {
           headerShown: false,
-          transitionSpec: disableOpenAnimation
-            ? {
-                open: { animation: 'timing', config: { duration: 0 } },
-                close: { animation: 'timing', config: { duration: 300 } },
-              }
-            : undefined,
+          transitionSpec: getConfirmationTransitionSpec(disableOpenAnimation),
         };
       }}
     />
@@ -121,21 +163,7 @@ const PredictScreenStack = () => (
     <Stack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={Confirm}
-      options={({ route }) => {
-        const disableOpenAnimation = route.params?.animationEnabled === false;
-
-        return {
-          headerLeft: () => null,
-          headerShown: true,
-          title: '',
-          transitionSpec: disableOpenAnimation
-            ? {
-                open: { animation: 'timing', config: { duration: 0 } },
-                close: { animation: 'timing', config: { duration: 300 } },
-              }
-            : undefined,
-        };
-      }}
+      options={getPredictConfirmationScreenOptions}
     />
 
     <Stack.Screen
@@ -146,12 +174,7 @@ const PredictScreenStack = () => (
 
         return {
           headerShown: false,
-          transitionSpec: disableOpenAnimation
-            ? {
-                open: { animation: 'timing', config: { duration: 0 } },
-                close: { animation: 'timing', config: { duration: 300 } },
-              }
-            : undefined,
+          transitionSpec: getConfirmationTransitionSpec(disableOpenAnimation),
         };
       }}
     />

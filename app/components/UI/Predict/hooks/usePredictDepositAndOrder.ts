@@ -2,8 +2,6 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { getNavbar } from '../../../Views/confirmations/components/UI/navbar/navbar';
-import { useConfirmActions } from '../../../Views/confirmations/hooks/useConfirmActions';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
@@ -20,7 +18,6 @@ import { PlaceOrderParams } from '../providers/types';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictConfirmNavigation } from './usePredictConfirmNavigation';
-import { usePredictMarketHeader } from './usePredictMarketHeader';
 import { usePredictTokenSelection } from './usePredictTokenSelection';
 import { usePredictTrading } from './usePredictTrading';
 
@@ -43,10 +40,8 @@ export const usePredictDepositAndOrder = ({
   const { navigateToConfirmation } = usePredictConfirmNavigation();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
-  const { onReject } = useConfirmActions();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const headerNavigation = useNavigation();
 
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
@@ -122,7 +117,15 @@ export const usePredictDepositAndOrder = ({
           handleDepositError(err, 'deposit_and_order_initialization');
         });
 
-        navigateToConfirmation();
+        navigateToConfirmation({
+          predictHeader: {
+            marketTitle: params.market?.title,
+            outcomeImage: params.outcome?.image,
+            outcomeGroupTitle: params.outcome?.groupItemTitle,
+            outcomeToken: params.outcomeToken,
+            backgroundColor: theme.colors.background.default,
+          },
+        });
       } catch (err) {
         console.error('Failed to proceed with deposit and order:', err);
         handleDepositError(err, 'deposit_and_order_navigation');
@@ -132,16 +135,9 @@ export const usePredictDepositAndOrder = ({
       depositAndOrderWithConfirmation,
       handleDepositError,
       navigateToConfirmation,
+      theme.colors.background.default,
     ],
   );
-
-  const navbarOverrides = usePredictMarketHeader({
-    marketTitle: tokenSelectionParams?.market?.title,
-    outcomeImage: tokenSelectionParams?.outcome?.image,
-    outcomeGroupTitle: tokenSelectionParams?.outcome?.groupItemTitle,
-    outcomeToken: tokenSelectionParams?.outcomeToken,
-    backgroundColor: theme.colors.background.default,
-  });
 
   const handleTokenSelected = useCallback(
     async (
@@ -156,26 +152,9 @@ export const usePredictDepositAndOrder = ({
         return;
       }
 
-      headerNavigation.setOptions(
-        getNavbar({
-          title: strings('confirm.title.predict_deposit'),
-          onReject,
-          addBackButton: true,
-          theme,
-          overrides: navbarOverrides,
-        }),
-      );
-
       await depositAndOrder(tokenSelectionParams);
     },
-    [
-      depositAndOrder,
-      headerNavigation,
-      navbarOverrides,
-      onReject,
-      theme,
-      tokenSelectionParams,
-    ],
+    [depositAndOrder, tokenSelectionParams],
   );
 
   const { shouldPreserveActiveOrderOnUnmountRef, isDepositAndOrderLoading } =

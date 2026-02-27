@@ -27,4 +27,8 @@ export {
   type UsePredictSearchResult,
 } from './usePredictSearch';
 
-export { usePredictMarketHeader } from './usePredictMarketHeader';
+export {
+  getPredictMarketHeader,
+  usePredictMarketHeader,
+  type PredictMarketHeaderParams,
+} from './usePredictMarketHeader';
