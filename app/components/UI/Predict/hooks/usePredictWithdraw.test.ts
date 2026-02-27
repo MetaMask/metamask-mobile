@@ -1,8 +1,10 @@
 import { renderHook } from '@testing-library/react-native';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
-
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import Logger from '../../../../util/Logger';
+import { invalidatePredictCaches } from '../utils/invalidatePredictCaches';
+
 // Create mock functions
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -13,6 +15,13 @@ const mockPrepareWithdraw = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {},
+  },
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
   },
 }));
 
@@ -58,6 +67,22 @@ jest.mock('react', () => ({
   useContext: jest.fn(() => ({ toastRef: mockToastRef })),
 }));
 
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: jest.fn(() => ({
+    invalidateQueries: jest.fn(),
+  })),
+}));
+
+jest.mock('../utils/invalidatePredictCaches', () => ({
+  invalidatePredictCaches: jest.fn(),
+}));
+
+const mockInvalidatePredictCaches =
+  invalidatePredictCaches as jest.MockedFunction<
+    typeof invalidatePredictCaches
+  >;
+
 // Mock react-redux
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockState: any = {
@@ -89,6 +114,10 @@ jest.mock('../../../../../locales/i18n', () => ({
     return translations[key] || key;
   },
 }));
+
+const mockLoggerError = Logger.error as jest.MockedFunction<
+  typeof Logger.error
+>;
 
 // Helper to create mock withdraw transaction
 function createMockWithdrawTransaction(overrides = {}) {
@@ -216,20 +245,18 @@ describe('usePredictWithdraw', () => {
 
       await result.current.withdraw();
 
-      // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockPrepareWithdraw).toHaveBeenCalledWith({});
     });
 
-    it('calls prepareWithdraw with empty options object', async () => {
+    it('calls prepareWithdraw with explicit empty options object', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
       const { result } = setupUsePredictWithdrawTest({});
 
       await result.current.withdraw();
 
-      // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockPrepareWithdraw).toHaveBeenCalledWith({});
@@ -247,34 +274,33 @@ describe('usePredictWithdraw', () => {
     });
 
     it('handles prepareWithdraw error gracefully', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockPrepareWithdraw.mockRejectedValue(new Error('Withdraw failed'));
 
       const { result } = setupUsePredictWithdrawTest();
 
       await result.current.withdraw();
 
-      // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockGoBack).toHaveBeenCalled();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to proceed with withdraw:',
-        expect.any(Error),
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        new Error('Withdraw failed'),
+        expect.objectContaining({
+          tags: {
+            feature: 'Predict',
+            component: 'usePredictWithdraw',
+          },
+        }),
       );
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('shows error toast when prepareWithdraw fails', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockPrepareWithdraw.mockRejectedValue(new Error('Withdraw failed'));
 
       const { result } = setupUsePredictWithdrawTest();
 
       await result.current.withdraw();
 
-      // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockGoBack).toHaveBeenCalled();
@@ -295,19 +321,15 @@ describe('usePredictWithdraw', () => {
           hasNoTimeout: false,
         }),
       );
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('shows error toast with default message for non-Error exceptions', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockPrepareWithdraw.mockRejectedValue('String error');
 
       const { result } = setupUsePredictWithdrawTest();
 
       await result.current.withdraw();
 
-      // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockGoBack).toHaveBeenCalled();
@@ -328,12 +350,9 @@ describe('usePredictWithdraw', () => {
           hasNoTimeout: false,
         }),
       );
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('shows error toast when prepareWithdraw returns failure result', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockPrepareWithdraw.mockRejectedValue(
         new Error('Provider not available'),
       );
@@ -342,7 +361,6 @@ describe('usePredictWithdraw', () => {
 
       await result.current.withdraw();
 
-      // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockGoBack).toHaveBeenCalled();
@@ -363,12 +381,9 @@ describe('usePredictWithdraw', () => {
           hasNoTimeout: false,
         }),
       );
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('handles navigation error gracefully', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockNavigateToConfirmation.mockImplementationOnce(() => {
         throw new Error('Navigation failed');
       });
@@ -378,29 +393,28 @@ describe('usePredictWithdraw', () => {
       await result.current.withdraw();
 
       expect(mockGoBack).toHaveBeenCalled();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to proceed with withdraw:',
-        expect.any(Error),
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        new Error('Navigation failed'),
+        expect.objectContaining({
+          tags: {
+            feature: 'Predict',
+            component: 'usePredictWithdraw',
+          },
+        }),
       );
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('returns undefined when error occurs', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockPrepareWithdraw.mockRejectedValue(new Error('Withdraw failed'));
 
       const { result } = setupUsePredictWithdrawTest();
 
       const response = await result.current.withdraw();
 
-      // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockGoBack).toHaveBeenCalled();
       expect(response).toBeUndefined();
-
-      consoleErrorSpy.mockRestore();
     });
   });
 
@@ -439,7 +453,6 @@ describe('usePredictWithdraw', () => {
 
       await result.current.withdraw();
 
-      // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockPrepareWithdraw).toHaveBeenCalledWith({});
@@ -484,28 +497,51 @@ describe('usePredictWithdraw', () => {
     });
 
     it('handles mixed success and failure withdraw calls', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const { result } = setupUsePredictWithdrawTest();
+
       mockPrepareWithdraw
         .mockResolvedValueOnce({ success: true })
         .mockRejectedValueOnce(new Error('Withdraw failed'));
 
-      const { result } = setupUsePredictWithdrawTest();
-
       const firstResponse = await result.current.withdraw();
       const secondResponse = await result.current.withdraw();
 
-      // Wait for async operations
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(firstResponse).toEqual({ success: true });
       expect(secondResponse).toBeUndefined();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to proceed with withdraw:',
-        expect.any(Error),
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        new Error('Withdraw failed'),
+        expect.objectContaining({
+          tags: {
+            feature: 'Predict',
+            component: 'usePredictWithdraw',
+          },
+        }),
       );
+    });
+  });
 
-      consoleErrorSpy.mockRestore();
+  describe('cache invalidation', () => {
+    it('invalidates caches after successful withdraw', async () => {
+      mockPrepareWithdraw.mockResolvedValue(undefined);
+
+      const { result } = setupUsePredictWithdrawTest();
+
+      await result.current.withdraw();
+
+      expect(mockInvalidatePredictCaches).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not invalidate caches when withdraw fails', async () => {
+      mockPrepareWithdraw.mockRejectedValue(new Error('Withdraw failed'));
+
+      const { result } = setupUsePredictWithdrawTest();
+
+      await result.current.withdraw();
+
+      expect(mockInvalidatePredictCaches).not.toHaveBeenCalled();
     });
   });
 });

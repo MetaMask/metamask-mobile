@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { usePredictTrading } from './usePredictTrading';
@@ -10,13 +11,18 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
+import Logger from '../../../../util/Logger';
 import { selectPredictWithdrawTransaction } from '../selectors/predictController';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
+import { invalidatePredictCaches } from '../utils/invalidatePredictCaches';
 
 export const usePredictWithdraw = () => {
   const { prepareWithdraw } = usePredictTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
+  const queryClient = useQueryClient();
 
   const withdrawTransaction = useSelector(selectPredictWithdrawTransaction);
 
@@ -28,13 +34,30 @@ export const usePredictWithdraw = () => {
 
       const response = await prepareWithdraw({});
 
+      invalidatePredictCaches(queryClient);
+
       return response;
     } catch (err) {
+      Logger.error(ensureError(err), {
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+          component: 'usePredictWithdraw',
+        },
+        context: {
+          name: 'usePredictWithdraw',
+          data: {
+            method: 'withdraw',
+            action: 'prepare_withdraw',
+            operation: 'position_management',
+          },
+        },
+      });
+
       navigation.goBack();
+
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to prepare withdraw';
 
-      // Show error toast to user
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.Danger,
@@ -48,10 +71,14 @@ export const usePredictWithdraw = () => {
         ],
         hasNoTimeout: false,
       });
-
-      console.error('Failed to proceed with withdraw:', err);
     }
-  }, [navigateToConfirmation, navigation, prepareWithdraw, toastRef]);
+  }, [
+    navigateToConfirmation,
+    navigation,
+    prepareWithdraw,
+    queryClient,
+    toastRef,
+  ]);
 
   return { withdraw, withdrawTransaction };
 };
