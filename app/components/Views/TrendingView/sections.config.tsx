@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useMemo } from 'react';
+import React, { PropsWithChildren, useContext, useMemo } from 'react';
 import Fuse, { type FuseOptions } from 'fuse.js';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -19,7 +19,10 @@ import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkel
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
-import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import {
+  PerpsConnectionProvider,
+  PerpsConnectionContext,
+} from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import {
   Box,
@@ -239,25 +242,27 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
     Skeleton: TrendingTokensSkeleton,
     SectionWrapper: ({ children }) => (
-      <PerpsConnectionProvider>
+      <PerpsConnectionProvider suppressErrorView>
         <PerpsStreamProvider>{children}</PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),
     Section: SectionCard,
     useSectionData: (searchQuery) => {
+      const connectionContext = useContext(PerpsConnectionContext);
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
 
       const filteredMarkets = useMemo(() => {
+        if (connectionContext?.error) return [];
         if (!searchQuery) {
           return markets;
         }
         const filteredByQuery = filterMarketsByQuery(markets, searchQuery);
         return fuseSearch(filteredByQuery, searchQuery, PERPS_FUSE_OPTIONS);
-      }, [markets, searchQuery]);
+      }, [markets, searchQuery, connectionContext?.error]);
 
       return {
         data: filteredMarkets,
-        isLoading: isLoading || isRefreshing,
+        isLoading: connectionContext?.error ? false : isLoading || isRefreshing,
         refetch: refresh,
       };
     },
@@ -353,10 +358,10 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
 
 // Sorted by order on the main screen
 const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
-  SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.stocks,
   SECTIONS_CONFIG.perps,
+  SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.sites,
 ];
 
