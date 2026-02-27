@@ -1,10 +1,14 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 import { useTheme } from '../../../../util/theme';
-import createStyles from './index.styles';
 import { getScreenDimensions } from '../../../../util/onboarding';
 import { isE2E } from '../../../../util/test/utils';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import onboardingLoaderEndAnimation from '../../../../animations/onboarding_loader.riv';
 
@@ -18,26 +22,20 @@ const OnboardingSuccessEndAnimation: React.FC<
   const riveRef = useRef<RiveRef>(null);
   const { themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
+  const tw = useTailwind();
 
-  const screenDimensions = getScreenDimensions();
-
-  const styles = useMemo(
-    () => createStyles(screenDimensions),
-    [screenDimensions],
-  );
+  const { screenWidth, screenHeight, animationHeight } = getScreenDimensions();
 
   useEffect(() => {
     if (isE2E) return;
     const timeoutId = setTimeout(() => {
       if (riveRef.current) {
         try {
-          // Set dark mode input
           riveRef.current.setInputState(
             'OnboardingLoader',
             'Dark mode',
             isDarkMode,
           );
-          // Fire the animation trigger
           riveRef.current.fireState('OnboardingLoader', 'Only_End');
         } catch (error) {
           console.error('Error with Rive animation:', error);
@@ -49,23 +47,32 @@ const OnboardingSuccessEndAnimation: React.FC<
   }, [isDarkMode]);
 
   return (
-    <View
+    <Box
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      style={{ height: screenHeight * 0.5 }}
       testID="onboarding-success-end-animation"
-      style={styles.animationContainer}
     >
-      <View style={styles.animationWrapper}>
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="flex-1"
+      >
         {!isE2E && (
           <Rive
             ref={riveRef}
             source={onboardingLoaderEndAnimation}
-            style={styles.riveAnimation}
+            style={tw.style('self-center', {
+              width: screenWidth,
+              height: animationHeight,
+            })}
             autoplay
             fit={Fit.Contain}
             alignment={Alignment.Center}
           />
         )}
-      </View>
-    </View>
+      </Box>
+    </Box>
   );
 };
 
