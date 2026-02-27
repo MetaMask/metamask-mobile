@@ -1161,6 +1161,7 @@ export class PolymarketProvider implements PredictProvider {
         apiKey: signerApiKey,
       });
 
+      const { fakOrdersEnabled } = this.#getFeatureFlags();
       const shouldUsePermit2 =
         fees?.permit2Enabled === true &&
         Array.isArray(fees.executors) &&
@@ -1171,6 +1172,7 @@ export class PolymarketProvider implements PredictProvider {
         | Permit2FeeAuthorization
         | undefined;
       let executor: string | undefined;
+      let shouldUseFakOrderType = false;
 
       if (fees !== undefined && fees.totalFee > 0) {
         const safeAddress = computeProxyAddress(signer.address);
@@ -1192,6 +1194,7 @@ export class PolymarketProvider implements PredictProvider {
               amount: feeAmountInUsdc,
               spender: executor,
             });
+            shouldUseFakOrderType = fakOrdersEnabled === true;
           } else {
             feeAuthorization = await createSafeFeeAuthorization({
               safeAddress,
@@ -1212,7 +1215,9 @@ export class PolymarketProvider implements PredictProvider {
 
       const { success, response, error } = await submitClobOrder({
         headers,
-        clobOrder,
+        clobOrder: shouldUseFakOrderType
+          ? { ...clobOrder, orderType: OrderType.FAK }
+          : clobOrder,
         feeAuthorization,
         executor,
       });
