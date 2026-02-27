@@ -237,7 +237,7 @@ describe('useRwaTokens', () => {
   });
 
   describe('geo-restriction (production mode)', () => {
-    const originalDev = globalThis.__DEV__;
+    const originalDev = (globalThis as Record<string, unknown>).__DEV__;
 
     beforeEach(() => {
       (globalThis as Record<string, unknown>).__DEV__ = false;
