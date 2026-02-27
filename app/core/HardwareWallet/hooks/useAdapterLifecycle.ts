@@ -84,7 +84,9 @@ export const useAdapterLifecycle = ({
         setIsTransportAvailable(true);
       }
     },
-    [adapterRef],
+    // Stable ref (adapterRef) — not needed as a dep
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 
   useEffect(() => {
@@ -117,12 +119,13 @@ export const useAdapterLifecycle = ({
         adapterRef.current = null;
       }
     };
+    // Stable ref (adapterRef) — not needed as a dep
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     walletType,
     handleDeviceEvent,
     createAdapterWithCallbacks,
     initializeAdapter,
-    adapterRef,
   ]);
 
   return {

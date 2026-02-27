@@ -53,7 +53,9 @@ export const useTransportMonitoring = ({
       const targetType =
         walletType ?? adapter?.walletType ?? HardwareWalletType.Ledger;
       return createHardwareWalletError(errorCode, targetType);
-    }, [walletType, adapterRef]);
+      // Stable ref (adapterRef) — not needed as a dep
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [walletType]);
 
   const checkTransportEnabledOrShowError = useCallback(
     async (adapter: HardwareWalletAdapter): Promise<boolean> => {
@@ -75,7 +77,7 @@ export const useTransportMonitoring = ({
     const wasAvailable = previousTransportAvailableRef.current;
     previousTransportAvailableRef.current = isTransportAvailable;
 
-    if (wasAvailable !== true || isTransportAvailable !== false) {
+    if (!wasAvailable || isTransportAvailable) {
       return;
     }
 
@@ -103,10 +105,11 @@ export const useTransportMonitoring = ({
         error: transportError,
       });
     }
+    // Stable ref (previousTransportAvailableRef) — not needed as a dep
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isTransportAvailable,
     connectionState.status,
-    previousTransportAvailableRef,
     updateConnectionState,
     createTransportDisabledError,
   ]);
