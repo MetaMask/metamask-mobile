@@ -465,6 +465,15 @@ const Routes = {
   SDK: {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
+  TOKEN_APPROVALS: {
+    ROOT: 'TokenApprovalsRoot',
+    VIEW: 'TokenApprovalsView',
+    MODALS: {
+      ROOT: 'TokenApprovalsModals',
+      APPROVAL_DETAIL: 'ApprovalDetailSheet',
+      REVOKE_CONFIRM: 'RevokeConfirmSheet',
+    },
+  },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
 };
 

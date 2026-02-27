@@ -148,6 +148,10 @@ const AccountsMenu = () => {
     navigation.navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER);
   }, [navigation]);
 
+  const onPressTokenApprovals = useCallback(() => {
+    navigation.navigate(Routes.TOKEN_APPROVALS.ROOT);
+  }, [navigation]);
+
   const goToBrowserUrl = useCallback(
     (url: string, title: string) => {
       navigation.navigate('Webview', {
@@ -466,6 +470,17 @@ const AccountsMenu = () => {
             testID={AccountsMenuSelectorsIDs.NETWORKS}
           />
         )}
+
+        {/* Token Approvals Row */}
+        <ActionListItem
+          startAccessory={
+            <Icon name={IconName.SecuritySearch} size={IconSize.Lg} />
+          }
+          label={strings('accounts_menu.token_approvals')}
+          endAccessory={arrowRightIcon}
+          onPress={onPressTokenApprovals}
+          testID={AccountsMenuSelectorsIDs.TOKEN_APPROVALS}
+        />
 
         {separator}
 
