@@ -2,6 +2,7 @@ import {
   sortObjectKeysDeep,
   computeSchemaDiff,
   hasSchemaDifferences,
+  hasStructuralChanges,
   mergeFixtureChanges,
   formatSchemaDiff,
   readFixtureFile,
@@ -135,6 +136,14 @@ describe('fixture-validation', () => {
       expect(diff.valueMismatches).toEqual([]);
     });
 
+    it('wildcard patterns act as prefix matchers for deeper keys', () => {
+      const baseline = { nets: { '0x1': { rpc: { id: { sub: 'a' } } } } };
+      const candidate = { nets: { '0x1': { rpc: { id: { sub: 'b' } } } } };
+      const diff = computeSchemaDiff(baseline, candidate, ['nets.*.rpc.id']);
+      expect(diff.valueMismatches).toEqual([]);
+      expect(diff.newKeys).toEqual([]);
+    });
+
     it('accepts custom ignoredKeys override', () => {
       const baseline = { a: 1 };
       const candidate = { a: 1, b: 2 };
@@ -165,6 +174,42 @@ describe('fixture-validation', () => {
         hasSchemaDifferences({
           ...emptyDiff,
           valueMismatches: [{ key: 'a', expected: 1, received: 2 }],
+        }),
+      ).toBe(true);
+    });
+  });
+
+  describe('hasStructuralChanges', () => {
+    it('returns false for empty diff', () => {
+      expect(hasStructuralChanges(emptyDiff)).toBe(false);
+    });
+
+    it('returns false for value-only mismatches', () => {
+      expect(
+        hasStructuralChanges({
+          ...emptyDiff,
+          valueMismatches: [{ key: 'a', expected: 1, received: 2 }],
+        }),
+      ).toBe(false);
+    });
+
+    it('returns true for new keys', () => {
+      expect(hasStructuralChanges({ ...emptyDiff, newKeys: ['a'] })).toBe(true);
+    });
+
+    it('returns true for missing keys', () => {
+      expect(hasStructuralChanges({ ...emptyDiff, missingKeys: ['a'] })).toBe(
+        true,
+      );
+    });
+
+    it('returns true for type mismatches', () => {
+      expect(
+        hasStructuralChanges({
+          ...emptyDiff,
+          typeMismatches: [
+            { key: 'a', expected: 'number', received: 'string' },
+          ],
         }),
       ).toBe(true);
     });
@@ -386,6 +431,18 @@ describe('fixture-validation', () => {
         .backgroundState as Record<string, unknown>;
       expect(bg.FooController).toEqual({ x: 1 });
       expect(bg.BarController).toEqual({ y: 2 });
+    });
+
+    it('throws when redux key is missing', () => {
+      expect(() =>
+        normalizeExportedState({ engine: {} } as Record<string, unknown>),
+      ).toThrow('missing the "redux" key');
+    });
+
+    it('throws when engine key is missing', () => {
+      expect(() =>
+        normalizeExportedState({ redux: {} } as Record<string, unknown>),
+      ).toThrow('missing the "engine" key');
     });
   });
 

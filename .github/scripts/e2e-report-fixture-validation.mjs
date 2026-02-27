@@ -116,11 +116,20 @@ async function ghApi(endpoint, options = {}) {
 }
 
 async function deletePreviousComments() {
-  const comments = await ghApi(`/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100`);
-  for (const comment of comments) {
-    if (comment.body && comment.body.includes(COMMENT_MARKER)) {
-      await ghApi(`/repos/${GITHUB_REPOSITORY}/issues/comments/${comment.id}`, { method: 'DELETE' });
+  let page = 1;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const comments = await ghApi(
+      `/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100&page=${page}`,
+    );
+    if (!comments || comments.length === 0) break;
+    for (const comment of comments) {
+      if (comment.body && comment.body.includes(COMMENT_MARKER)) {
+        await ghApi(`/repos/${GITHUB_REPOSITORY}/issues/comments/${comment.id}`, { method: 'DELETE' });
+      }
     }
+    if (comments.length < 100) break;
+    page++;
   }
 }
 

@@ -14,6 +14,7 @@ import {
   mergeFixtureChanges,
   sortObjectKeysDeep,
   normalizeExportedState,
+  hasStructuralChanges as hasStructuralChangesCheck,
   getAutoUpdatableKeys,
   FixtureSchemaDiff,
 } from '../../framework/fixtures/fixture-validation';
@@ -53,19 +54,13 @@ describe(FixtureValidation('Fixture Validation — Post-Onboarding'), () => {
         const diff = computeSchemaDiff(fixtureState, liveState);
         const report = formatSchemaDiff(diff);
 
-        const hasStructuralChanges =
-          diff.newKeys.length > 0 ||
-          diff.missingKeys.length > 0 ||
-          diff.typeMismatches.length > 0;
+        const hasStructuralChanges = hasStructuralChangesCheck(diff);
 
         // --- Validation: write reports for CI ---
 
-        const artifactsDir = path.resolve(__dirname, '..', '..', 'artifacts');
         const reportsDir = path.resolve(__dirname, '..', '..', 'reports');
-        for (const dir of [artifactsDir, reportsDir]) {
-          if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-          }
+        if (!fs.existsSync(reportsDir)) {
+          fs.mkdirSync(reportsDir, { recursive: true });
         }
 
         // Human-readable diff report (written to reportsDir so it's always uploaded)
@@ -145,15 +140,23 @@ describe(FixtureValidation('Fixture Validation — Post-Onboarding'), () => {
             state: mergedState,
           }) as Record<string, unknown>;
 
-          const fixturePath = path.resolve(
-            __dirname,
-            '..',
-            '..',
-            'framework',
-            'fixtures',
-            'json',
-            'default-fixture.json',
-          );
+          // Only write to the source fixture file in CI to avoid accidental
+          // local modifications. Locally the diff report is still written to
+          // the reports directory for inspection.
+          const isCI =
+            process.env.CI === 'true' || process.env.GITHUB_CI === 'true';
+          const fixturePath = isCI
+            ? path.resolve(
+                __dirname,
+                '..',
+                '..',
+                'framework',
+                'fixtures',
+                'json',
+                'default-fixture.json',
+              )
+            : path.join(reportsDir, 'updated-default-fixture.json');
+
           fs.writeFileSync(
             fixturePath,
             JSON.stringify(updatedFixture, null, 2) + '\n',

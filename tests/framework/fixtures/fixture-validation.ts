@@ -70,6 +70,14 @@ function createTypeMap(
   return map;
 }
 
+/**
+ * Checks whether a dot-path key should be ignored during diff comparison.
+ *
+ * Both exact and wildcard patterns act as **prefix matchers**: if a pattern
+ * matches a key or any ancestor of that key, the key is ignored.
+ * For example, pattern `nets.*.rpc.id` ignores `nets.0x1.rpc.id` as well as
+ * `nets.0x1.rpc.id.subkey.deep.nested`.
+ */
 function isIgnoredKey(key: string, ignoredKeys: string[]): boolean {
   for (const pattern of ignoredKeys) {
     if (!pattern.includes('*')) {
@@ -200,10 +208,8 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Per-wallet secrets and dynamic IDs (change every onboarding) ──
     'engine.backgroundState.AccountsController.internalAccounts.selectedAccount',
     'engine.backgroundState.AccountsController.internalAccounts.accounts',
-    'engine.backgroundState.AccountsController.internalAccounts.accounts.*.metadata.importTime',
     'engine.backgroundState.PreferencesController.selectedAddress',
     'engine.backgroundState.PreferencesController.identities',
-    'engine.backgroundState.PreferencesController.identities.*.importTime',
     'engine.backgroundState.AccountTrackerController.accountsByChainId',
     'engine.backgroundState.KeyringController.keyrings',
     'engine.backgroundState.KeyringController.vault',
@@ -420,6 +426,22 @@ export function hasSchemaDifferences(diff: FixtureSchemaDiff): boolean {
   );
 }
 
+export function hasStructuralChanges(diff: FixtureSchemaDiff): boolean {
+  return (
+    diff.newKeys.length > 0 ||
+    diff.missingKeys.length > 0 ||
+    diff.typeMismatches.length > 0
+  );
+}
+
+/**
+ * Merges diff changes from `newState` into `existing`.
+ *
+ * **Important:** ALL entries in `diff.valueMismatches` are applied. Callers
+ * should pre-filter the diff to include only the value mismatches they want
+ * merged (e.g. auto-updatable keys). Passing the raw diff from
+ * `computeSchemaDiff` will overwrite every mismatched value.
+ */
 export function mergeFixtureChanges(
   existing: Record<string, unknown>,
   newState: Record<string, unknown>,
@@ -537,6 +559,18 @@ export function readFixtureFile(fixtureName: string): Record<string, unknown> {
 export function normalizeExportedState(
   exported: Record<string, unknown>,
 ): Record<string, unknown> {
+  if (!exported.redux || typeof exported.redux !== 'object') {
+    throw new Error(
+      'normalizeExportedState: exported state is missing the "redux" key. ' +
+        'State export may have failed or returned an unexpected shape.',
+    );
+  }
+  if (!exported.engine || typeof exported.engine !== 'object') {
+    throw new Error(
+      'normalizeExportedState: exported state is missing the "engine" key. ' +
+        'State export may have failed or returned an unexpected shape.',
+    );
+  }
   const redux = exported.redux as Record<string, unknown>;
   const engine = exported.engine as Record<string, unknown>;
   return {
