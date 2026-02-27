@@ -239,7 +239,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     /**
      * True when the Browser screen is focused (no modal or other screen drawn on top).
-     * Used to suppress webview JS dialogs (alert/confirm/prompt) when UI is in front.
+     * When false, webview JS dialogs (alert/confirm/prompt) will be suppressed.
      */
     const isBrowserScreenFocused = useIsFocused();
 
