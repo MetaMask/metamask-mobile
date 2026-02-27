@@ -40,8 +40,10 @@ import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 import { toSentenceCase } from '../../../../../util/string';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
-import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
+import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
+import TagColored, {
+  TagColor,
+} from '../../../../../component-library/components-temp/TagColored';
 
 if (
   Platform.OS === 'android' &&
@@ -50,10 +52,9 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-// Bottom padding for tooltip modals to prevent close button overlapping with Swap button
-const TOOLTIP_BOTTOM_PADDING = 64;
-
-const QuoteDetailsCard: React.FC = () => {
+const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
+  hasInsufficientBalance,
+}) => {
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
@@ -83,18 +84,6 @@ const QuoteDetailsCard: React.FC = () => {
     getGasFeesSponsoredNetworkEnabled,
   );
 
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-  });
-
-  const insufficientBal = useIsInsufficientBalance({
-    amount: sourceAmount,
-    token: sourceToken,
-    latestAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
-
   const nativeTokenName = useMemo(() => {
     const chainId = sourceToken?.chainId;
     if (!chainId) return undefined;
@@ -111,10 +100,12 @@ const QuoteDetailsCard: React.FC = () => {
 
   const shouldShowGasSponsored = useMemo(() => {
     const gasSponsored = activeQuote?.quote?.gasSponsored ?? false;
-    return gasSponsored || (insufficientBal && isCurrentNetworkGasSponsored);
+    return (
+      gasSponsored || (hasInsufficientBalance && isCurrentNetworkGasSponsored)
+    );
   }, [
     activeQuote?.quote?.gasSponsored,
-    insufficientBal,
+    hasInsufficientBalance,
     isCurrentNetworkGasSponsored,
   ]);
 
@@ -173,7 +164,6 @@ const QuoteDetailsCard: React.FC = () => {
               content: strings('bridge.quote_info_content'),
               size: TooltipSizes.Sm,
               iconName: IconName.Info,
-              bottomPadding: TOOLTIP_BOTTOM_PADDING,
             },
           }}
           value={{
@@ -203,15 +193,26 @@ const QuoteDetailsCard: React.FC = () => {
                   nativeToken: nativeTokenName,
                 }),
                 size: TooltipSizes.Sm,
-                bottomPadding: TOOLTIP_BOTTOM_PADDING,
                 iconName: IconName.Info,
               },
             }}
             value={{
-              label: {
-                text: strings('bridge.gas_fees_sponsored'),
-                variant: TextVariant.BodyMD,
-              },
+              label: (
+                <TagColored
+                  color={TagColor.Success}
+                  labelProps={{
+                    variant: TextVariant.BodySM,
+                    style: {
+                      textTransform: 'none',
+                      textAlign: 'center',
+                      bottom: 1,
+                      fontWeight: 'normal',
+                    },
+                  }}
+                >
+                  {strings('bridge.gas_fees_sponsored')}
+                </TagColored>
+              ),
             }}
           />
         ) : isGasless ? (
@@ -253,7 +254,6 @@ const QuoteDetailsCard: React.FC = () => {
                 content: strings('bridge.network_fee_info_content'),
                 size: TooltipSizes.Sm,
                 iconName: IconName.Info,
-                bottomPadding: TOOLTIP_BOTTOM_PADDING,
               },
             }}
             value={{
@@ -278,7 +278,6 @@ const QuoteDetailsCard: React.FC = () => {
               content: strings('bridge.slippage_info_description'),
               size: TooltipSizes.Sm,
               iconName: IconName.Info,
-              bottomPadding: TOOLTIP_BOTTOM_PADDING,
             },
           }}
           value={{
@@ -318,7 +317,6 @@ const QuoteDetailsCard: React.FC = () => {
                 content: strings('bridge.minimum_received_tooltip_content'),
                 size: TooltipSizes.Sm,
                 iconName: IconName.Info,
-                bottomPadding: TOOLTIP_BOTTOM_PADDING,
               },
             }}
             value={{
@@ -346,7 +344,6 @@ const QuoteDetailsCard: React.FC = () => {
                   : strings('bridge.price_impact_info_description'),
                 size: TooltipSizes.Sm,
                 iconName: IconName.Info,
-                bottomPadding: TOOLTIP_BOTTOM_PADDING,
               },
             }}
             value={{
@@ -379,7 +376,6 @@ const QuoteDetailsCard: React.FC = () => {
                   )}\n\n${strings('bridge.points_tooltip_content_2')}`,
                   size: TooltipSizes.Sm,
                   iconName: IconName.Info,
-                  bottomPadding: TOOLTIP_BOTTOM_PADDING,
                 },
               }}
               value={{
@@ -417,7 +413,6 @@ const QuoteDetailsCard: React.FC = () => {
                     content: strings('bridge.points_error_content'),
                     size: TooltipSizes.Sm,
                     iconName: IconName.Info,
-                    bottomPadding: TOOLTIP_BOTTOM_PADDING,
                   },
                 }),
               }}

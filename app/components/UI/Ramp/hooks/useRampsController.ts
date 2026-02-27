@@ -55,13 +55,8 @@ export interface UseRampsControllerResult {
   paymentMethodsError: UseRampsPaymentMethodsResult['error'];
 
   // Quotes
-  quotes: UseRampsQuotesResult['quotes'];
-  selectedQuote: UseRampsQuotesResult['selectedQuote'];
-  startQuotePolling: UseRampsQuotesResult['startQuotePolling'];
-  stopQuotePolling: UseRampsQuotesResult['stopQuotePolling'];
+  getQuotes: UseRampsQuotesResult['getQuotes'];
   getWidgetUrl: UseRampsQuotesResult['getWidgetUrl'];
-  quotesLoading: UseRampsQuotesResult['isLoading'];
-  quotesError: UseRampsQuotesResult['error'];
 }
 
 /**
@@ -104,12 +99,8 @@ export interface UseRampsControllerResult {
  *   paymentMethodsError,
  *
  *   // Quotes
- *   quotes,
- *   selectedQuote,
- *   startQuotePolling,
- *   stopQuotePolling,
- *   quotesLoading,
- *   quotesError,
+ *   getQuotes,
+ *   getWidgetUrl,
  *
  * } = useRampsController();
  * ```
@@ -147,15 +138,7 @@ export function useRampsController(): UseRampsControllerResult {
     error: paymentMethodsError,
   } = useRampsPaymentMethods();
 
-  const {
-    quotes,
-    selectedQuote,
-    startQuotePolling,
-    stopQuotePolling,
-    getWidgetUrl,
-    isLoading: quotesLoading,
-    error: quotesError,
-  } = useRampsQuotes();
+  const { getQuotes, getWidgetUrl } = useRampsQuotes();
 
   return {
     // User region
@@ -190,13 +173,8 @@ export function useRampsController(): UseRampsControllerResult {
     paymentMethodsError,
 
     // Quotes
-    quotes,
-    selectedQuote,
-    startQuotePolling,
-    stopQuotePolling,
+    getQuotes,
     getWidgetUrl,
-    quotesLoading,
-    quotesError,
   };
 }
 

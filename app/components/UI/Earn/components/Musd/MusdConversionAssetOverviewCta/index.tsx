@@ -20,10 +20,14 @@ import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
 import { MUSD_CONVERSION_APY } from '../../../constants/musd';
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import { Hex } from '@metamask/utils';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
+import { selectMusdQuickConvertEnabledFlag } from '../../../selectors/featureFlags';
+import { useSelector } from 'react-redux';
 interface MusdConversionAssetOverviewCtaProps {
   asset: TokenI;
   testId?: string;
@@ -37,22 +41,29 @@ const MusdConversionAssetOverviewCta = ({
 }: MusdConversionAssetOverviewCtaProps) => {
   const { styles } = useStyles(stylesheet, {});
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const networkName = useNetworkName(asset.chainId as Hex);
 
-  const { initiateConversion, hasSeenConversionEducationScreen } =
+  const { initiateCustomConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
+
+  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
 
   const submitCtaPressedEvent = () => {
     const { EVENT_LOCATIONS, MUSD_CTA_TYPES } = MUSD_EVENTS_CONSTANTS;
 
     const ctaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
 
-    const getRedirectLocation = () =>
-      hasSeenConversionEducationScreen
-        ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
-        : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+    const getRedirectLocation = () => {
+      if (!hasSeenConversionEducationScreen) {
+        return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+      }
+
+      return isQuickConvertEnabled
+        ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
+        : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+    };
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
@@ -77,12 +88,13 @@ const MusdConversionAssetOverviewCta = ({
         throw new Error('Asset address or chain ID is not set');
       }
 
-      await initiateConversion({
+      await initiateCustomConversion({
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),
         },
         navigationStack: Routes.EARN.ROOT,
+        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
       });
     } catch (error) {
       Logger.error(

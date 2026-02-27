@@ -3,11 +3,9 @@
  * Loads build configuration from builds.yml and exports non-secret env vars.
  * Runs at workflow runtime (during the "Apply build config" step).
  *
- * Exports: env, code_fencing, remote_feature_flags. Does NOT handle secrets
- * (those are injected by the "Set secrets" step via set-secrets-from-config.js).
- *
- * See scripts/generate-build-workflow-secrets-env.js for the maintenance script
- * that regenerates the "Set secrets" env block in build.yml from builds.yml.
+ * Exports: env, code_fencing. Does NOT handle secrets
+ * (those are injected by the "Set secrets" step via set-secrets-from-config.js,
+ * which reads all secrets via toJSON(secrets) — no explicit per-secret list needed).
  *
  * Usage:
  *   node scripts/apply-build-config.js main-prod
@@ -51,13 +49,6 @@ function applyConfig(buildName) {
     process.env.CODE_FENCING_FEATURES = JSON.stringify(config.code_fencing);
   }
 
-  // Set remote feature flag defaults (seeded into RemoteFeatureFlagController)
-  if (config.remote_feature_flags) {
-    process.env.REMOTE_FEATURE_FLAG_DEFAULTS = JSON.stringify(
-      config.remote_feature_flags,
-    );
-  }
-
   return config;
 }
 
@@ -75,12 +66,6 @@ function exportForShell(buildName) {
   if (config.code_fencing) {
     lines.push(
       `export CODE_FENCING_FEATURES='${JSON.stringify(config.code_fencing)}'`,
-    );
-  }
-
-  if (config.remote_feature_flags) {
-    lines.push(
-      `export REMOTE_FEATURE_FLAG_DEFAULTS='${JSON.stringify(config.remote_feature_flags)}'`,
     );
   }
 
@@ -116,13 +101,6 @@ function exportForGitHubEnv(buildName) {
 
   if (config.code_fencing) {
     appendVar('CODE_FENCING_FEATURES', JSON.stringify(config.code_fencing));
-  }
-
-  if (config.remote_feature_flags) {
-    appendVar(
-      'REMOTE_FEATURE_FLAG_DEFAULTS',
-      JSON.stringify(config.remote_feature_flags),
-    );
   }
 
   return lines.join('\n');

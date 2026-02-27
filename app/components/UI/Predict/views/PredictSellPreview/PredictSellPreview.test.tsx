@@ -16,6 +16,7 @@ import {
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictSellPreview from './PredictSellPreview';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 /**
  * Mock Strategy:
  * - Only mock external dependencies (Engine, Alert, navigation, hooks with API calls)
@@ -145,7 +146,7 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
 
 const mockPosition: PredictPosition = {
   id: 'position-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'market-1',
   outcomeId: 'outcome-456',
   outcome: 'Yes',
@@ -169,7 +170,7 @@ const mockPosition: PredictPosition = {
 
 const mockOutcome: PredictOutcome = {
   id: 'outcome-123',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'market-123',
   title: 'Bitcoin Price Outcome',
   description: 'Outcome description',
@@ -188,7 +189,7 @@ const mockOutcome: PredictOutcome = {
 
 const mockMarket = {
   id: 'market-123',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   slug: 'bitcoin-price',
   title: 'Will Bitcoin reach $150,000?',
   description: 'Market description',
@@ -371,7 +372,7 @@ describe('PredictSellPreview', () => {
   });
 
   describe('user interactions', () => {
-    it('invokes placeOrder with correct parameters when cash out button pressed', async () => {
+    it('invokes placeOrder with correct parameters when cash out button pressed', () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
@@ -384,10 +385,9 @@ describe('PredictSellPreview', () => {
       );
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      await fireEvent.press(cashOutButton);
+      fireEvent.press(cashOutButton);
 
       expect(mockPlaceOrder).toHaveBeenCalledWith({
-        providerId: 'polymarket',
         analyticsProperties: expect.objectContaining({
           marketId: 'market-123',
           marketTitle: 'Will Bitcoin reach $150,000?',
@@ -499,7 +499,7 @@ describe('PredictSellPreview', () => {
   });
 
   describe('navigation after successful order', () => {
-    it('dispatches navigation pop action when placeOrder succeeds', async () => {
+    it('dispatches navigation pop action when placeOrder succeeds', () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
@@ -512,7 +512,7 @@ describe('PredictSellPreview', () => {
       );
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      await fireEvent.press(cashOutButton);
+      fireEvent.press(cashOutButton);
 
       expect(mockPlaceOrder).toHaveBeenCalled();
       rerender(<PredictSellPreview />);

@@ -42,7 +42,7 @@ describe('useCardDetails', () => {
   const mockCardDetailsResponse: CardDetailsResponse = {
     id: 'card-123',
     holderName: 'John Doe',
-    expiryDate: '12/25',
+    isFreezable: true,
     panLast4: '1234',
     status: CardStatus.ACTIVE,
     type: CardType.VIRTUAL,

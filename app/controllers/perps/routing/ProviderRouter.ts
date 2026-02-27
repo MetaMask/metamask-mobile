@@ -14,12 +14,12 @@ import type { PerpsProviderType, RoutingStrategy } from '../types';
 /**
  * Parameters for selecting a provider for an operation
  */
-export interface RouterSelectParams {
+export type RouterSelectParams = {
   /** Asset identifier (e.g., 'BTC', 'ETH', 'xyz:TSLA') */
   symbol?: string;
   /** Explicit provider override - if provided, always used */
   providerId?: PerpsProviderType;
-}
+};
 
 /**
  * ProviderRouter handles routing decisions for write operations
@@ -42,13 +42,13 @@ export interface RouterSelectParams {
  */
 export class ProviderRouter {
   /** Default provider to use when no explicit providerId is specified */
-  private defaultProvider: PerpsProviderType;
+  #defaultProvider: PerpsProviderType;
 
   /** Current routing strategy (Phase 1: only 'default_provider' supported) */
-  private strategy: RoutingStrategy = 'default_provider';
+  readonly #strategy: RoutingStrategy = 'default_provider';
 
   /** Map of provider ID to the markets it supports */
-  private providerMarkets: Map<PerpsProviderType, Set<string>> = new Map();
+  readonly #providerMarkets: Map<PerpsProviderType, Set<string>> = new Map();
 
   constructor(options: {
     /** Default provider for operations without explicit providerId */
@@ -56,9 +56,9 @@ export class ProviderRouter {
     /** Routing strategy (Phase 1: only 'default_provider' supported) */
     strategy?: RoutingStrategy;
   }) {
-    this.defaultProvider = options.defaultProvider;
+    this.#defaultProvider = options.defaultProvider;
     if (options.strategy) {
-      this.strategy = options.strategy;
+      this.#strategy = options.strategy;
     }
   }
 
@@ -78,7 +78,7 @@ export class ProviderRouter {
     }
 
     // Fall back to default provider
-    return this.defaultProvider;
+    return this.#defaultProvider;
   }
 
   /**
@@ -89,7 +89,7 @@ export class ProviderRouter {
    */
   getProvidersForMarket(symbol: string): PerpsProviderType[] {
     const providers: PerpsProviderType[] = [];
-    this.providerMarkets.forEach((markets, providerId) => {
+    this.#providerMarkets.forEach((markets, providerId) => {
       if (markets.has(symbol)) {
         providers.push(providerId);
       }
@@ -108,7 +108,7 @@ export class ProviderRouter {
     providerId: PerpsProviderType,
     markets: string[],
   ): void {
-    this.providerMarkets.set(providerId, new Set(markets));
+    this.#providerMarkets.set(providerId, new Set(markets));
   }
 
   /**
@@ -117,7 +117,7 @@ export class ProviderRouter {
    * @param providerId - Provider to clear
    */
   clearProviderMarkets(providerId: PerpsProviderType): void {
-    this.providerMarkets.delete(providerId);
+    this.#providerMarkets.delete(providerId);
   }
 
   /**
@@ -126,7 +126,7 @@ export class ProviderRouter {
    * @param providerId - New default provider
    */
   setDefaultProvider(providerId: PerpsProviderType): void {
-    this.defaultProvider = providerId;
+    this.#defaultProvider = providerId;
   }
 
   /**
@@ -135,7 +135,7 @@ export class ProviderRouter {
    * @returns Current default provider ID
    */
   getDefaultProvider(): PerpsProviderType {
-    return this.defaultProvider;
+    return this.#defaultProvider;
   }
 
   /**
@@ -144,7 +144,7 @@ export class ProviderRouter {
    * @returns Current routing strategy
    */
   getStrategy(): RoutingStrategy {
-    return this.strategy;
+    return this.#strategy;
   }
 
   /**
@@ -158,7 +158,7 @@ export class ProviderRouter {
     providerId: PerpsProviderType,
     symbol: string,
   ): boolean {
-    const markets = this.providerMarkets.get(providerId);
+    const markets = this.#providerMarkets.get(providerId);
     return markets?.has(symbol) ?? false;
   }
 
@@ -168,6 +168,6 @@ export class ProviderRouter {
    * @returns Array of all provider IDs with registered markets
    */
   getRegisteredProviders(): PerpsProviderType[] {
-    return Array.from(this.providerMarkets.keys());
+    return Array.from(this.#providerMarkets.keys());
   }
 }

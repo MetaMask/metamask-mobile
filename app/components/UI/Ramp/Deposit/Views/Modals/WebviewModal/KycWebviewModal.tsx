@@ -11,7 +11,7 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import { useDepositRouting } from '../../../hooks/useDepositRouting';
 import { endTrace, TraceName } from '../../../../../../../util/trace';
 
-interface KycWebviewModalParams extends WebviewModalParams {
+export interface KycWebviewModalParams extends WebviewModalParams {
   quote: BuyQuote;
   workFlowRunId: string;
 }

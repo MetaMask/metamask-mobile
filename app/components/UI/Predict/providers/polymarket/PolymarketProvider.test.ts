@@ -1,3 +1,4 @@
+import { POLYMARKET_PROVIDER_ID } from './constants';
 // Mock external dependencies
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -54,6 +55,7 @@ import {
   encodeClaim,
   getBalance,
   getContractConfig,
+  getFeeRateBps,
   getL2Headers,
   getMarketDetailsFromGammaApi,
   getOrderTypedData,
@@ -95,6 +97,7 @@ jest.mock('./utils', () => {
     encodeErc1155Approve: jest.fn(),
     getContractConfig: jest.fn(),
     getL2Headers: jest.fn(),
+    getFeeRateBps: jest.fn(),
     getOrderBook: jest.fn(),
     getOrderTypedData: jest.fn(),
     parsePolymarketEvents: jest.fn(),
@@ -195,6 +198,7 @@ const mockGetMarketsFromPolymarketApi =
 const mockGetMarketDetailsFromGammaApi =
   getMarketDetailsFromGammaApi as jest.Mock;
 const mockGetContractConfig = getContractConfig as jest.Mock;
+const mockGetFeeRateBps = getFeeRateBps as jest.Mock;
 const mockGetL2Headers = getL2Headers as jest.Mock;
 const mockGetOrderTypedData = getOrderTypedData as jest.Mock;
 const mockParsePolymarketEvents = parsePolymarketEvents as jest.Mock;
@@ -216,7 +220,7 @@ describe('PolymarketProvider', () => {
 
   it('exposes the correct providerId', () => {
     const provider = createProvider();
-    expect(provider.providerId).toBe('polymarket');
+    expect(provider.providerId).toBe(POLYMARKET_PROVIDER_ID);
   });
 
   it('getMarkets returns an array with some length', async () => {
@@ -373,7 +377,7 @@ describe('PolymarketProvider', () => {
     // Mock the parsed result
     const mockParsedPositions = [
       {
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'c-1',
         outcomeTokenId: 0,
         title: 'Some Market',
@@ -418,7 +422,7 @@ describe('PolymarketProvider', () => {
     });
 
     expect(result).toHaveLength(1);
-    expect(result[0].providerId).toBe('polymarket');
+    expect(result[0].providerId).toBe(POLYMARKET_PROVIDER_ID);
     expect(result[0].marketId).toBe('c-1');
     expect(result[0].outcomeTokenId).toBe(0);
     expect(mockParsePolymarketPositions).toHaveBeenCalledWith({
@@ -463,7 +467,7 @@ describe('PolymarketProvider', () => {
     expect(calledWithUrl).toContain('offset=0');
     expect(calledWithUrl).toContain(`user=${safeAddress}`);
     expect(calledWithUrl).toContain('sortBy=CURRENT');
-    expect(calledWithUrl).toContain('redeemable=false');
+    expect(calledWithUrl).not.toContain('redeemable');
 
     (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
       originalFetch;
@@ -498,7 +502,7 @@ describe('PolymarketProvider', () => {
     expect(calledWithUrl).toContain('offset=15');
     expect(calledWithUrl).toContain(`user=${safeAddress}`);
     expect(calledWithUrl).toContain('sortBy=CURRENT');
-    expect(calledWithUrl).toContain('redeemable=false');
+    expect(calledWithUrl).not.toContain('redeemable');
 
     (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
       originalFetch;
@@ -696,7 +700,7 @@ describe('PolymarketProvider', () => {
     const mockParsedPositions = [
       {
         id: 'pos-2',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'c-2',
         outcomeTokenId: 0,
         title: 'Another Market',
@@ -753,7 +757,7 @@ describe('PolymarketProvider', () => {
   ): PredictPosition {
     return {
       id: 'position-1',
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: 'market-1',
       outcomeId: 'outcome-1',
       outcome: 'Yes',
@@ -793,6 +797,7 @@ describe('PolymarketProvider', () => {
       tickSize: 0.01,
       minOrderSize: 0.01,
       negRisk: false,
+      feeRateBps: '0',
       fees: {
         metamaskFee: 0.02,
         providerFee: 0.02,
@@ -817,7 +822,7 @@ describe('PolymarketProvider', () => {
 
     const mockMarket = {
       id: 'market-1',
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       slug: 'test-market',
       title: 'Test Market',
       description: 'A test market for prediction',
@@ -894,6 +899,8 @@ describe('PolymarketProvider', () => {
       error: undefined,
     });
 
+    mockGetFeeRateBps.mockResolvedValue('0');
+
     return {
       provider,
       mockAddress,
@@ -960,7 +967,7 @@ describe('PolymarketProvider', () => {
     mockParsePolymarketEvents.mockReturnValue([
       {
         id: params.marketId,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         slug: 'test-market',
         title: 'Test Market',
         description: 'A test market',
@@ -970,7 +977,7 @@ describe('PolymarketProvider', () => {
         categories: [],
         outcomes: params.outcomes.map((outcome) => ({
           id: outcome.id,
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
           marketId: params.marketId,
           title: outcome.title,
           description: outcome.title,
@@ -1003,7 +1010,7 @@ describe('PolymarketProvider', () => {
       const preview = createMockOrderPreview({ side: Side.BUY });
       const orderParams = {
         signer: mockSigner,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         preview,
       };
 
@@ -1024,7 +1031,7 @@ describe('PolymarketProvider', () => {
       const preview = createMockOrderPreview({ side: Side.SELL });
       const orderParams = {
         signer: mockSigner,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         preview,
       };
 
@@ -1050,7 +1057,7 @@ describe('PolymarketProvider', () => {
       const preview = createMockOrderPreview({ side: Side.BUY });
       const orderParams = {
         signer: mockSigner,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         preview,
       };
 
@@ -1069,7 +1076,7 @@ describe('PolymarketProvider', () => {
       const preview = createMockOrderPreview({ side: Side.BUY });
       const orderParams = {
         signer: mockSigner,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         preview,
       };
 
@@ -1103,7 +1110,7 @@ describe('PolymarketProvider', () => {
       const preview = createMockOrderPreview({ side: Side.SELL });
       const orderParams = {
         signer: mockSigner,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         preview,
       };
 
@@ -1127,7 +1134,7 @@ describe('PolymarketProvider', () => {
       const preview = createMockOrderPreview({ side: Side.BUY });
       const orderParams = {
         signer: mockSigner,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         preview,
       };
 
@@ -1173,7 +1180,7 @@ describe('PolymarketProvider', () => {
       const preview = createMockOrderPreview({ side: Side.BUY });
       const orderParams = {
         signer: mockSigner,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         preview,
       };
 
@@ -1196,7 +1203,7 @@ describe('PolymarketProvider', () => {
       const preview = createMockOrderPreview({ side: Side.SELL });
       const orderParams = {
         signer: mockSigner,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         preview,
       };
 
@@ -1262,6 +1269,48 @@ describe('PolymarketProvider', () => {
       expect(mockGetOrderTypedData).toHaveBeenCalledWith(
         expect.objectContaining({
           verifyingContract: '0x1234567890123456789012345678901234567890',
+        }),
+      );
+    });
+
+    it('uses preview feeRateBps when creating signed order', async () => {
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        feeRateBps: '30',
+      });
+
+      await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(mockGetOrderTypedData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          order: expect.objectContaining({
+            feeRateBps: '30',
+          }),
+        }),
+      );
+    });
+
+    it('uses zero feeRateBps when preview feeRateBps is missing', async () => {
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        feeRateBps: undefined,
+      });
+
+      await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      expect(mockGetOrderTypedData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          order: expect.objectContaining({
+            feeRateBps: '0',
+          }),
         }),
       );
     });
@@ -1368,7 +1417,7 @@ describe('PolymarketProvider', () => {
       const preview = createMockOrderPreview({ side: Side.BUY });
       const orderParams = {
         signer: mockSigner1,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         preview,
       };
 
@@ -1392,14 +1441,14 @@ describe('PolymarketProvider', () => {
       const preview1 = createMockOrderPreview({ side: Side.BUY });
       const orderParams1 = {
         signer: mockSigner1,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         preview: preview1,
       };
 
       const preview2 = createMockOrderPreview({ side: Side.SELL });
       const orderParams2 = {
         signer: mockSigner2,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         preview: preview2,
       };
 
@@ -1432,7 +1481,6 @@ describe('PolymarketProvider', () => {
         },
       });
       const orderParams: PlaceOrderParams = {
-        providerId: 'polymarket',
         preview,
       };
 
@@ -1454,7 +1502,6 @@ describe('PolymarketProvider', () => {
         },
       });
       const orderParams: PlaceOrderParams = {
-        providerId: 'polymarket',
         preview,
       };
 
@@ -1481,7 +1528,6 @@ describe('PolymarketProvider', () => {
         },
       });
       const orderParams: PlaceOrderParams = {
-        providerId: 'polymarket',
         preview,
       };
 
@@ -1508,7 +1554,6 @@ describe('PolymarketProvider', () => {
         },
       });
       const orderParams: PlaceOrderParams = {
-        providerId: 'polymarket',
         preview,
       };
 
@@ -1545,7 +1590,6 @@ describe('PolymarketProvider', () => {
         },
       });
       const orderParams: PlaceOrderParams = {
-        providerId: 'polymarket',
         preview,
       };
 
@@ -1734,7 +1778,7 @@ describe('PolymarketProvider', () => {
       const { provider, signer } = setupPrepareClaimTest();
       const position = {
         id: 'position-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'market-1',
         outcomeId: 'outcome-456',
         outcomeIndex: 0,
@@ -1786,7 +1830,7 @@ describe('PolymarketProvider', () => {
       const { provider, signer } = setupPrepareClaimTest();
       const position = {
         id: 'position-2',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'market-2',
         outcomeId: 'outcome-789',
         outcomeIndex: 1,
@@ -1838,7 +1882,7 @@ describe('PolymarketProvider', () => {
       const { provider, signer } = setupPrepareClaimTest();
       const position = {
         id: 'position-3',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'market-3',
         outcomeId: 'outcome-123',
         outcomeIndex: 1,
@@ -1881,7 +1925,7 @@ describe('PolymarketProvider', () => {
 
       const position = {
         id: 'position-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'market-1',
         outcomeId: 'outcome-456',
         outcomeIndex: 0,
@@ -1937,7 +1981,7 @@ describe('PolymarketProvider', () => {
 
       const position = {
         id: 'position-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'market-1',
         outcomeId: 'outcome-456',
         outcomeIndex: 0,
@@ -1977,7 +2021,7 @@ describe('PolymarketProvider', () => {
 
       const position = {
         id: 'position-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'market-1',
         outcomeId: 'outcome-456',
         outcomeIndex: 0,
@@ -2026,7 +2070,7 @@ describe('PolymarketProvider', () => {
 
       const position = {
         id: 'position-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'market-1',
         outcomeId: 'outcome-456',
         outcomeIndex: 0,
@@ -2079,7 +2123,7 @@ describe('PolymarketProvider', () => {
 
       const position = {
         id: 'position-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'market-1',
         outcomeId: 'outcome-456',
         outcomeIndex: 0,
@@ -2132,7 +2176,7 @@ describe('PolymarketProvider', () => {
 
       const position = {
         id: 'position-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'market-1',
         outcomeId: 'outcome-456',
         outcomeIndex: 0,
@@ -2185,7 +2229,7 @@ describe('PolymarketProvider', () => {
 
       const position = {
         id: 'position-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'market-1',
         outcomeId: 'outcome-456',
         outcomeIndex: 0,
@@ -2238,7 +2282,7 @@ describe('PolymarketProvider', () => {
 
       const position = {
         id: 'position-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'market-1',
         outcomeId: 'outcome-456',
         outcomeIndex: 0,
@@ -2415,7 +2459,7 @@ describe('PolymarketProvider', () => {
       question: 'Will it rain tomorrow?',
       outcomes: ['YES', 'NO'],
       status: 'open',
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
     };
 
     it('get market details successfully', async () => {
@@ -2501,7 +2545,7 @@ describe('PolymarketProvider', () => {
       question: `Question for ${id}?`,
       outcomes: ['YES', 'NO'],
       status: 'open',
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
     });
 
     beforeEach(() => {
@@ -3154,7 +3198,7 @@ describe('PolymarketProvider', () => {
       });
 
       expect(result).toEqual({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         results: [
           {
             marketId: 'market-1',
@@ -3272,7 +3316,10 @@ describe('PolymarketProvider', () => {
         ],
       });
 
-      expect(result).toEqual({ providerId: 'polymarket', results: [] });
+      expect(result).toEqual({
+        providerId: POLYMARKET_PROVIDER_ID,
+        results: [],
+      });
     });
 
     it('return empty object when fetch fails', async () => {
@@ -3289,7 +3336,10 @@ describe('PolymarketProvider', () => {
         ],
       });
 
-      expect(result).toEqual({ providerId: 'polymarket', results: [] });
+      expect(result).toEqual({
+        providerId: POLYMARKET_PROVIDER_ID,
+        results: [],
+      });
     });
 
     it('return empty object when invalid JSON response', async () => {
@@ -3310,7 +3360,10 @@ describe('PolymarketProvider', () => {
         ],
       });
 
-      expect(result).toEqual({ providerId: 'polymarket', results: [] });
+      expect(result).toEqual({
+        providerId: POLYMARKET_PROVIDER_ID,
+        results: [],
+      });
     });
 
     it('handle non-numeric price values', async () => {
@@ -3405,7 +3458,10 @@ describe('PolymarketProvider', () => {
         ],
       });
 
-      expect(result).toEqual({ providerId: 'polymarket', results: [] });
+      expect(result).toEqual({
+        providerId: POLYMARKET_PROVIDER_ID,
+        results: [],
+      });
     });
 
     it('handle BUY side correctly', async () => {
@@ -3521,7 +3577,6 @@ describe('PolymarketProvider', () => {
 
       // When preparing deposit
       const result = await provider.prepareDeposit({
-        providerId: 'polymarket',
         signer: mockSigner,
       });
 
@@ -3545,7 +3600,6 @@ describe('PolymarketProvider', () => {
 
       // When preparing deposit
       const result = await provider.prepareDeposit({
-        providerId: 'polymarket',
         signer: mockSigner,
       });
 
@@ -3564,7 +3618,6 @@ describe('PolymarketProvider', () => {
 
       // When preparing deposit
       const result = await provider.prepareDeposit({
-        providerId: 'polymarket',
         signer: mockSigner,
       });
 
@@ -3587,7 +3640,6 @@ describe('PolymarketProvider', () => {
       // Then it throws an error
       await expect(
         provider.prepareDeposit({
-          providerId: 'polymarket',
           signer: mockSigner,
         }),
       ).rejects.toThrow('Failed to get deploy proxy wallet transaction params');
@@ -3602,7 +3654,6 @@ describe('PolymarketProvider', () => {
 
       // When preparing deposit
       const result = await provider.prepareDeposit({
-        providerId: 'polymarket',
         signer: mockSigner,
       });
 
@@ -3624,7 +3675,6 @@ describe('PolymarketProvider', () => {
 
       await expect(
         provider.prepareDeposit({
-          providerId: 'polymarket',
           signer: mockSignerWithoutAddress,
         }),
       ).rejects.toThrow('Signer address is required');
@@ -3638,7 +3688,6 @@ describe('PolymarketProvider', () => {
 
       await expect(
         provider.prepareDeposit({
-          providerId: 'polymarket',
           signer: mockSigner,
         }),
       ).rejects.toThrow('Invalid deploy transaction: missing params');
@@ -3652,7 +3701,6 @@ describe('PolymarketProvider', () => {
 
       await expect(
         provider.prepareDeposit({
-          providerId: 'polymarket',
           signer: mockSigner,
         }),
       ).rejects.toThrow('Invalid allowance transaction: missing params');
@@ -3666,7 +3714,6 @@ describe('PolymarketProvider', () => {
 
       await expect(
         provider.prepareDeposit({
-          providerId: 'polymarket',
           signer: mockSigner,
         }),
       ).rejects.toThrow(
@@ -4032,7 +4079,6 @@ describe('PolymarketProvider', () => {
       // When getting balance
       const result = await provider.getBalance({
         address: '0x1234567890123456789012345678901234567890',
-        providerId: 'polymarket',
       });
 
       // Then balance is returned
@@ -4043,9 +4089,9 @@ describe('PolymarketProvider', () => {
     it('throws error when address is missing', async () => {
       const provider = createProvider();
 
-      await expect(
-        provider.getBalance({ address: '', providerId: 'polymarket' }),
-      ).rejects.toThrow('address is required');
+      await expect(provider.getBalance({ address: '' })).rejects.toThrow(
+        'address is required',
+      );
     });
 
     it('uses cached address when available', async () => {
@@ -4062,7 +4108,6 @@ describe('PolymarketProvider', () => {
 
       await provider.getBalance({
         address: userAddress,
-        providerId: 'polymarket',
       });
 
       expect(computeProxyAddress).not.toHaveBeenCalled();
@@ -4089,7 +4134,6 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.prepareWithdraw({
         signer: mockSigner,
-        providerId: 'polymarket',
       });
 
       expect(result).toHaveProperty('chainId');
@@ -4109,7 +4153,6 @@ describe('PolymarketProvider', () => {
       await expect(
         provider.prepareWithdraw({
           signer: mockSigner,
-          providerId: 'polymarket',
         }),
       ).rejects.toThrow('Signer address is required');
     });
@@ -4128,7 +4171,6 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.prepareWithdraw({
         signer: mockSigner,
-        providerId: 'polymarket',
       });
 
       expect(result.predictAddress).toBe('0xSafeAddress');
@@ -4537,19 +4579,19 @@ describe('PolymarketProvider', () => {
             id: 'position-1',
             outcomeTokenId: 'token-1',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
           {
             id: 'position-2',
             outcomeTokenId: 'token-2',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
           {
             id: 'position-3',
             outcomeTokenId: 'token-3',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
         ]);
 
@@ -4656,19 +4698,19 @@ describe('PolymarketProvider', () => {
             id: 'old-position',
             outcomeTokenId: 'token-old',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
           {
             id: 'new-sold-position',
             outcomeTokenId: 'token-new',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
           {
             id: 'visible-position',
             outcomeTokenId: 'token-visible',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
         ]);
 
@@ -4752,25 +4794,25 @@ describe('PolymarketProvider', () => {
             id: 'position-1',
             outcomeTokenId: 'token-1',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
           {
             id: 'position-2',
             outcomeTokenId: 'token-2',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
           {
             id: 'position-3',
             outcomeTokenId: 'token-3',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
           {
             id: 'position-4',
             outcomeTokenId: 'token-4',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
         ]);
 
@@ -4843,13 +4885,13 @@ describe('PolymarketProvider', () => {
             id: 'position-1',
             outcomeTokenId: 'token-1',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
           {
             id: 'position-2',
             outcomeTokenId: 'token-2',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
         ]);
 
@@ -4885,31 +4927,31 @@ describe('PolymarketProvider', () => {
             id: 'position-1',
             outcomeTokenId: 'token-1',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
           {
             id: 'position-2',
             outcomeTokenId: 'token-2',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
           {
             id: 'position-3',
             outcomeTokenId: 'token-3',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
           {
             id: 'position-4',
             outcomeTokenId: 'token-4',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
           {
             id: 'position-5',
             outcomeTokenId: 'token-5',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
         ]);
 
@@ -4940,7 +4982,7 @@ describe('PolymarketProvider', () => {
             id: 'position-1',
             outcomeTokenId: 'token-1',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
         ]);
 
@@ -4964,7 +5006,7 @@ describe('PolymarketProvider', () => {
         });
         const orderParams = {
           signer: mockSigner,
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
           preview,
         };
 
@@ -4987,7 +5029,7 @@ describe('PolymarketProvider', () => {
             id: 'position-123',
             outcomeTokenId: 'token-123',
             marketId: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
           },
         ]);
 
@@ -5008,7 +5050,7 @@ describe('PolymarketProvider', () => {
         });
         const orderParams = {
           signer: mockSigner,
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
           preview,
         };
 
@@ -6591,7 +6633,7 @@ describe('PolymarketProvider', () => {
     it('exposes providerId property with value polymarket', () => {
       const provider = new PolymarketProvider();
 
-      expect(provider.providerId).toBe('polymarket');
+      expect(provider.providerId).toBe(POLYMARKET_PROVIDER_ID);
     });
   });
 
@@ -6664,7 +6706,7 @@ describe('PolymarketProvider', () => {
         const parsedMarket = {
           id: 'market-1',
           title: 'Test Market',
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
         };
         mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
         mockParsePolymarketEvents.mockReturnValue([parsedMarket]);

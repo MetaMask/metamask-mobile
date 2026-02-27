@@ -3,13 +3,17 @@
  */
 
 import type { BboWsEvent, L2BookResponse } from '@nktkas/hyperliquid';
+
 import type { PriceUpdate } from '../types';
+
 import {
   processBboData,
   processL2BookData,
-  type OrderBookCacheEntry,
-  type ProcessBboDataParams,
-  type ProcessL2BookDataParams,
+} from './hyperLiquidOrderBookProcessor';
+import type {
+  OrderBookCacheEntry,
+  ProcessBboDataParams,
+  ProcessL2BookDataParams,
 } from './hyperLiquidOrderBookProcessor';
 
 describe('hyperLiquidOrderBookProcessor', () => {

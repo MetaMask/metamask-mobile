@@ -172,16 +172,8 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
-// Mock MetaMetrics for data deletion methods still used by useMetrics
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-    getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
-    updateDataRecordingFlag: jest.fn(),
-  }),
+  getInstance: () => ({}),
   MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')
     .MetaMetricsEvents,
 }));
@@ -266,6 +258,11 @@ const mockNav = {
   replace: mockReplace,
   reset: jest.fn(),
   setOptions: jest.fn(),
+  dispatch: jest.fn((action) => {
+    if (action.type === 'REPLACE') {
+      mockReplace(action.payload.name, action.payload.params);
+    }
+  }),
 };
 jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: () => ({
@@ -670,7 +667,10 @@ describe('Onboarding', () => {
       });
 
       expect(Authentication.resetVault).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      expect(mockReplace).toHaveBeenCalledWith(
+        Routes.ONBOARDING.HOME_NAV,
+        undefined,
+      );
     });
 
     it('navigates to LOGIN when unlock is pressed and password is set', async () => {

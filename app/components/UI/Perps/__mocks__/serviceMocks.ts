@@ -128,6 +128,13 @@ export const createMockPerpsControllerState = (
   lastUpdateTimestamp: Date.now(),
   hip3ConfigVersion: 0,
   selectedPaymentToken: null,
+  cachedMarketData: null,
+  cachedMarketDataTimestamp: 0,
+  cachedPositions: null,
+  cachedOrders: null,
+  cachedAccountState: null,
+  cachedUserDataTimestamp: 0,
+  cachedUserDataAddress: null,
   ...overrides,
 });
 
@@ -217,6 +224,7 @@ export const createMockMessenger = (
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
     registerActionHandler: jest.fn(),
+    registerMethodActionHandlers: jest.fn(),
     unregisterActionHandler: jest.fn(),
     // Additional methods used by PerpsController
     registerEventHandler: jest.fn(),

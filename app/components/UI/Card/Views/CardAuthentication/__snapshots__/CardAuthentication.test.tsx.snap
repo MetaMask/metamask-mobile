@@ -719,7 +719,6 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "height": 46,
                                           "letterSpacing": 0,
                                           "opacity": 1,
-                                          "textAlignVertical": "center",
                                         }
                                       }
                                       testID="email-field"
@@ -833,7 +832,6 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "height": 46,
                                           "letterSpacing": 0,
                                           "opacity": 1,
-                                          "textAlignVertical": "center",
                                         }
                                       }
                                       testID="password-field"

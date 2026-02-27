@@ -12,13 +12,17 @@ import {
   getTransparentOnboardingNavbarOptions,
   getWalletNavbarOptions,
   getStakingNavbar,
+  getSwapsQuotesNavbar,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { View } from 'react-native';
 import { BridgeViewMode } from '../Bridge/types';
 import { strings } from '../../../../locales/i18n';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  chainableBuilder,
+} from '../../../util/analytics/AnalyticsEventBuilder';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
@@ -73,34 +77,52 @@ jest.mock('../../../util/networks', () => ({
   getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
 }));
 
-const mockBuildEvent = jest.fn(() => ({ builtEvent: true }));
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn(() => ({
-    build: mockBuildEvent,
-  })),
-  build: mockBuildEvent,
-}));
-
-jest.mock('../../../core/Analytics/MetricsEventBuilder');
-
-jest.mock('../../../core/Analytics', () => {
-  const actualMockTrackEvent = jest.fn();
-
+jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => {
+  const chainableBuilder = {
+    addProperties: jest.fn(function () {
+      return this;
+    }),
+    addSensitiveProperties: jest.fn(function () {
+      return this;
+    }),
+    removeProperties: jest.fn(function () {
+      return this;
+    }),
+    removeSensitiveProperties: jest.fn(function () {
+      return this;
+    }),
+    setSaveDataRecording: jest.fn(function () {
+      return this;
+    }),
+    build: jest.fn(() => ({ builtEvent: true })),
+  };
+  const createEventBuilder = jest.fn(() => chainableBuilder);
   return {
-    __mockTrackEvent: actualMockTrackEvent,
-    MetaMetrics: {
-      getInstance: jest.fn(() => ({
-        trackEvent: actualMockTrackEvent,
-        updateDataRecordingFlag: jest.fn(),
-      })),
-      trackEvent: jest.fn(),
-    },
-    MetaMetricsEvents: {
-      SEND_FLOW_CANCEL: 'SEND_FLOW_CANCEL',
-    },
-    trackEvent: jest.fn(),
+    __esModule: true,
+    default: { createEventBuilder },
+    AnalyticsEventBuilder: { createEventBuilder },
+    chainableBuilder,
   };
 });
+
+const mockAnalyticsTrackEvent = jest.fn();
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: (...args) => mockAnalyticsTrackEvent(...args),
+  },
+}));
+
+jest.mock('../../../core/Analytics', () => ({
+  MetaMetricsEvents: {
+    SEND_FLOW_CANCEL: 'SEND_FLOW_CANCEL',
+    WALLET_QR_SCANNER: 'WALLET_QR_SCANNER',
+    NOTIFICATIONS_MENU_OPENED: 'NOTIFICATIONS_MENU_OPENED',
+    NOTIFICATIONS_ACTIVATED: 'NOTIFICATIONS_ACTIVATED',
+    NAVIGATION_TAPS_SETTINGS: 'NAVIGATION_TAPS_SETTINGS',
+    CARD_HOME_CLICKED: 'CARD_HOME_CLICKED',
+    QUOTES_REQUEST_CANCELLED: 'QUOTES_REQUEST_CANCELLED',
+  },
+}));
 
 jest.mock('../../../util/blockaid', () => ({
   getBlockaidTransactionMetricsParams: jest.fn(() => ({})),
@@ -110,8 +132,13 @@ jest.mock('../Stake/utils/metaMetrics/withMetaMetrics', () => ({
   withMetaMetrics: jest.fn((fn) => () => fn()),
 }));
 
-// Set up MetricsEventBuilder mock after jest.mock declaration
-MetricsEventBuilder.createEventBuilder = mockCreateEventBuilder;
+jest.mock('../AddressCopy', () => {
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: (props) => <View testID="address-copy-mock" />,
+  };
+});
 
 describe('getNetworkNavbarOptions', () => {
   const Stack = createStackNavigator();
@@ -282,6 +309,8 @@ describe('getWalletNavbarOptions', () => {
     isBackupAndSyncEnabled: null,
     unreadNotificationCount: 0,
     readNotificationCount: 0,
+    shouldDisplayCardButton: false,
+    isAccountMenuEnabled: false,
   };
 
   beforeEach(() => {
@@ -505,6 +534,8 @@ describe('getWalletNavbarOptions', () => {
         null,
         0,
         0,
+        false,
+        false,
       ];
 
       expect(() => {
@@ -517,7 +548,7 @@ describe('getWalletNavbarOptions', () => {
     it('maintains function signature consistency', () => {
       // Test that the function accepts the expected number of parameters
       const allParams = Object.values(defaultProps);
-      expect(allParams.length).toBe(12); // Verify expected parameter count
+      expect(allParams.length).toBe(14); // Verify expected parameter count
 
       const options = getWalletNavbarOptions(...allParams);
       expect(options).toBeDefined();
@@ -542,6 +573,315 @@ describe('getWalletNavbarOptions', () => {
         const headerComponent = options.header({});
         expect(headerComponent).toBeDefined();
       }).not.toThrow();
+    });
+  });
+
+  describe('Notification Badge Logic', () => {
+    const {
+      isNotificationsFeatureEnabled,
+    } = require('../../../util/notifications');
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      isNotificationsFeatureEnabled.mockReturnValue(false);
+    });
+
+    it('handles notification badge props when all conditions are met', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notificationProps = {
+        ...defaultProps,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 5,
+        readNotificationCount: 3,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(notificationProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles notification badge props when feature is disabled', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(false);
+
+      const notificationProps = {
+        ...defaultProps,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 5,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(notificationProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles notification badge props when isNotificationEnabled is false', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notificationProps = {
+        ...defaultProps,
+        isNotificationEnabled: false,
+        unreadNotificationCount: 5,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(notificationProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles notification badge props when unreadNotificationCount is 0', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notificationProps = {
+        ...defaultProps,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 0,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(notificationProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles notification badge props with minimal unread count', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notificationProps = {
+        ...defaultProps,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 1,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(notificationProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles notification badge props with large unread counts', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notificationProps = {
+        ...defaultProps,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 999,
+        readNotificationCount: 500,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(notificationProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles all notification badge conditions combined', () => {
+      const testCases = [
+        {
+          feature: true,
+          enabled: true,
+          count: 5,
+          description: 'all enabled with count',
+        },
+        {
+          feature: true,
+          enabled: true,
+          count: 0,
+          description: 'enabled but no count',
+        },
+        {
+          feature: true,
+          enabled: false,
+          count: 5,
+          description: 'feature enabled but notification disabled',
+        },
+        {
+          feature: false,
+          enabled: true,
+          count: 5,
+          description: 'notification enabled but feature disabled',
+        },
+        {
+          feature: false,
+          enabled: false,
+          count: 0,
+          description: 'all disabled',
+        },
+      ];
+
+      testCases.forEach(({ feature, enabled, count, description }) => {
+        isNotificationsFeatureEnabled.mockReturnValue(feature);
+
+        const props = {
+          ...defaultProps,
+          isNotificationEnabled: enabled,
+          unreadNotificationCount: count,
+        };
+
+        expect(() => {
+          const options = getWalletNavbarOptions(...Object.values(props));
+          expect(options).toBeDefined();
+          expect(options.header).toBeInstanceOf(Function);
+          options.header();
+        }).not.toThrow();
+      });
+    });
+
+    it('handles notification badge when account menu is enabled (hamburger badge path)', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const accountMenuEnabledProps = {
+        ...defaultProps,
+        isAccountMenuEnabled: true,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 3,
+        readNotificationCount: 2,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(accountMenuEnabledProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles hamburger without badge when account menu enabled and no unread', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const props = {
+        ...defaultProps,
+        isAccountMenuEnabled: true,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 0,
+      };
+
+      const options = getWalletNavbarOptions(...Object.values(props));
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+  });
+
+  describe('Analytics Events', () => {
+    const {
+      isNotificationsFeatureEnabled,
+    } = require('../../../util/notifications');
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      isNotificationsFeatureEnabled.mockReturnValue(false);
+    });
+
+    it('tracks WALLET_QR_SCANNER when QR button is pressed', () => {
+      const options = getWalletNavbarOptions(...Object.values(defaultProps));
+      const { getByTestId } = renderWithProvider(options.header(), {
+        state: { engine: { backgroundState } },
+      });
+
+      fireEvent.press(getByTestId('wallet-scan-button'));
+
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'WALLET_QR_SCANNER',
+      );
+      expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks NAVIGATION_TAPS_SETTINGS when hamburger button is pressed', () => {
+      const options = getWalletNavbarOptions(...Object.values(defaultProps));
+      const { getByTestId } = renderWithProvider(options.header(), {
+        state: { engine: { backgroundState } },
+      });
+
+      fireEvent.press(getByTestId('navbar-hamburger-menu-button'));
+
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'NAVIGATION_TAPS_SETTINGS',
+      );
+      expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks CARD_HOME_CLICKED when card button is pressed', () => {
+      const cardProps = {
+        ...defaultProps,
+        shouldDisplayCardButton: true,
+      };
+      const options = getWalletNavbarOptions(...Object.values(cardProps));
+      const { getByTestId } = renderWithProvider(options.header(), {
+        state: { engine: { backgroundState } },
+      });
+
+      fireEvent.press(getByTestId('card-button'));
+
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'CARD_HOME_CLICKED',
+      );
+      expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks NOTIFICATIONS_MENU_OPENED when notification button is pressed and enabled', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notifProps = {
+        ...defaultProps,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 3,
+        readNotificationCount: 1,
+      };
+      const options = getWalletNavbarOptions(...Object.values(notifProps));
+      const { getByTestId } = renderWithProvider(options.header(), {
+        state: { engine: { backgroundState } },
+      });
+
+      fireEvent.press(getByTestId('wallet-notifications-button'));
+
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'NOTIFICATIONS_MENU_OPENED',
+      );
+      expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks NOTIFICATIONS_ACTIVATED when notification button is pressed and disabled', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notifProps = {
+        ...defaultProps,
+        isNotificationEnabled: false,
+      };
+      const options = getWalletNavbarOptions(...Object.values(notifProps));
+      const { getByTestId } = renderWithProvider(options.header(), {
+        state: { engine: { backgroundState } },
+      });
+
+      fireEvent.press(getByTestId('wallet-notifications-button'));
+
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'NOTIFICATIONS_ACTIVATED',
+      );
+      expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
     });
   });
 });
@@ -676,7 +1016,6 @@ describe('getStakingNavbar', () => {
 
 describe('getNavigationOptionsTitle', () => {
   const Stack = createStackNavigator();
-  const analyticsMocks = jest.requireMock('../../../core/Analytics');
 
   const mockNavigation = {
     goBack: jest.fn(),
@@ -714,9 +1053,11 @@ describe('getNavigationOptionsTitle', () => {
     fireEvent.press(getByTestId('close-network-icon'));
 
     expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(mockEvent);
-    expect(mockBuildEvent).toHaveBeenCalled();
-    expect(analyticsMocks.__mockTrackEvent).toHaveBeenCalled();
+    expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+      mockEvent,
+    );
+    expect(chainableBuilder.build).toHaveBeenCalled();
+    expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
   });
 
   it('does not call trackEvent when navigationPopEvent is null', () => {
@@ -732,8 +1073,55 @@ describe('getNavigationOptionsTitle', () => {
 
     fireEvent.press(getByTestId('back-arrow-button'));
 
-    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
-    expect(analyticsMocks.__mockTrackEvent).not.toHaveBeenCalled();
+    expect(AnalyticsEventBuilder.createEventBuilder).not.toHaveBeenCalled();
+    expect(mockAnalyticsTrackEvent).not.toHaveBeenCalled();
     expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getSwapsQuotesNavbar', () => {
+  const mockNavigation = {
+    pop: jest.fn(),
+    dangerouslyGetParent: jest.fn(() => ({
+      pop: jest.fn(),
+    })),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('tracks QUOTES_REQUEST_CANCELLED on left action when no quote is selected', () => {
+    const route = {
+      params: {
+        title: 'Swap',
+        requestedTrade: {
+          token_from: 'ETH',
+          token_to: 'DAI',
+          request_type: 'Order',
+          custom_slippage: false,
+          chain_id: '0x1',
+          token_from_amount: '1',
+        },
+        selectedQuote: null,
+        quoteBegin: Date.now() - 1000,
+      },
+    };
+
+    const options = getSwapsQuotesNavbar(
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    Device.isAndroid.mockReturnValue(false);
+    const headerLeft = options.headerLeft();
+    headerLeft.props.onPress();
+
+    expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+      'QUOTES_REQUEST_CANCELLED',
+    );
+    expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
+    expect(mockNavigation.pop).toHaveBeenCalled();
   });
 });

@@ -43,6 +43,7 @@ import {
   ROUNDING_CONFIG,
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
+  POLYMARKET_PROVIDER_ID,
 } from './constants';
 import { SafeFeeAuthorization } from './safe/types';
 import {
@@ -235,6 +236,68 @@ export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
   }
   const responseData = (await response.json()) as OrderBook;
   return responseData;
+};
+
+interface FeeRateResponse {
+  base_fee?: number;
+}
+
+const DEFAULT_FEE_RATE_BPS = '0';
+
+export const getFeeRateBps = async ({
+  tokenId,
+}: {
+  tokenId: string;
+}): Promise<string> => {
+  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+
+  try {
+    const response = await fetch(
+      `${CLOB_ENDPOINT}/fee-rate?token_id=${tokenId}`,
+      {
+        method: 'GET',
+      },
+    );
+
+    if (!response.ok) {
+      let errorMessage = `Request failed with status ${response.status}`;
+      const responseData = (await response.json().catch(() => undefined)) as
+        | { error?: string }
+        | undefined;
+      if (responseData?.error) {
+        errorMessage = responseData.error;
+      }
+
+      DevLogger.log('Polymarket fee-rate request failed, using zero fee', {
+        tokenId,
+        status: response.status,
+        errorMessage,
+      });
+      return DEFAULT_FEE_RATE_BPS;
+    }
+
+    const responseData = (await response.json()) as FeeRateResponse;
+    const baseFee = responseData.base_fee;
+    if (
+      typeof baseFee !== 'number' ||
+      !Number.isFinite(baseFee) ||
+      baseFee < 0
+    ) {
+      DevLogger.log('Polymarket fee-rate response invalid, using zero fee', {
+        tokenId,
+        baseFee,
+      });
+      return DEFAULT_FEE_RATE_BPS;
+    }
+
+    return Math.round(baseFee).toString();
+  } catch (error) {
+    DevLogger.log('Polymarket fee-rate request threw, using zero fee', {
+      tokenId,
+      error,
+    });
+    return DEFAULT_FEE_RATE_BPS;
+  }
 };
 
 export const generateSalt = (): Hex =>
@@ -595,7 +658,7 @@ export const parsePolymarketMarket = (
   event: PolymarketApiEvent,
 ): PredictOutcome => ({
   id: market.conditionId,
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: event.id,
   title: market.question,
   description: market.description,
@@ -658,9 +721,12 @@ export const parsePolymarketEvents = (
       return {
         id: event.id,
         slug: event.slug,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         title: event.title,
-        description: event.description,
+        // As per Polymarket's team, we should use the first market's description
+        // rather than the event's description. The event's description is not
+        // guaranteed to be accurate. They also do this on their webbsite.
+        description: event.markets?.[0]?.description ?? event.description,
         image: event.icon,
         status: event.closed
           ? PredictMarketStatus.CLOSED
@@ -720,7 +786,7 @@ export const parsePolymarketActivity = (
 
     const parsedActivity: PredictActivity = {
       id,
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       entry:
         entryType === 'claimWinnings'
           ? { type: 'claimWinnings', timestamp, amount }
@@ -904,7 +970,7 @@ export const parsePolymarketPositions = async ({
   const parsedPositions: PredictPosition[] = positions.map(
     (position: PolymarketPosition) => ({
       id: position.asset,
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: position.eventId,
       outcomeId: position.conditionId,
       outcome: position.outcome,
@@ -1400,7 +1466,10 @@ export const previewOrder = async (
 ): Promise<OrderPreview> => {
   const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
     params;
-  const book = await getOrderBook({ tokenId: outcomeTokenId });
+  const [book, feeRateBps] = await Promise.all([
+    getOrderBook({ tokenId: outcomeTokenId }),
+    getFeeRateBps({ tokenId: outcomeTokenId }),
+  ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
   }
@@ -1433,6 +1502,7 @@ export const previewOrder = async (
       tickSize: parseFloat(book.tick_size),
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
+      feeRateBps,
       fees: await calculateFees({
         feeCollection,
         marketId,
@@ -1467,6 +1537,7 @@ export const previewOrder = async (
     tickSize: parseFloat(book.tick_size),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
+    feeRateBps,
     // no fees for sell orders
   };
 };

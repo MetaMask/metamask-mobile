@@ -34,8 +34,47 @@ exports[`BrowserTab render Browser 1`] = `
       }
     >
       <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderRadius": 8,
+              "height": 40,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 40,
+            },
+            undefined,
             {
               "transform": [
                 {
@@ -43,74 +82,24 @@ exports[`BrowserTab render Browser 1`] = `
                 },
               ],
             },
-            {
-              "alignItems": "center",
-              "justifyContent": "center",
-            },
           ]
         }
+        testID="browser-tab-close-button"
       >
-        <View
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+        <SvgMock
+          fill="currentColor"
+          name="ArrowLeft"
           style={
             [
               {
-                "alignItems": "center",
-                "backgroundColor": "transparent",
-                "borderRadius": 8,
-                "height": 40,
-                "justifyContent": "center",
-                "opacity": 1,
-                "width": 40,
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
           }
-          testID="browser-tab-close-button"
-        >
-          <SvgMock
-            fill="currentColor"
-            name="ArrowLeft"
-            style={
-              [
-                {
-                  "color": "#121314",
-                  "height": 32,
-                  "width": 32,
-                },
-                undefined,
-              ]
-            }
-          />
-        </View>
+        />
       </View>
       <View
         style={
@@ -568,6 +557,7 @@ exports[`BrowserTab render Browser 1`] = `
             onLoadStart={[Function]}
             onMessage={[Function]}
             onNavigationStateChange={[Function]}
+            onOpenWindow={[Function]}
             onShouldStartLoadWithRequest={[Function]}
             originWhitelist={
               [
@@ -668,8 +658,47 @@ exports[`BrowserTab render Browser 1`] = `
         }
       >
         <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": true,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             [
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 8,
+                "height": 40,
+                "justifyContent": "center",
+                "opacity": 0.5,
+                "width": 40,
+              },
+              undefined,
               {
                 "transform": [
                   {
@@ -677,78 +706,67 @@ exports[`BrowserTab render Browser 1`] = `
                   },
                 ],
               },
-              {
-                "alignItems": "center",
-                "justifyContent": "center",
-              },
             ]
           }
+          testID="back-arrow-button"
         >
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": true,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+          <SvgMock
+            fill="currentColor"
+            name="ArrowLeft"
             style={
               [
                 {
-                  "alignItems": "center",
-                  "backgroundColor": "transparent",
-                  "borderRadius": 8,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "opacity": 0.5,
-                  "width": 40,
+                  "color": "#121314",
+                  "height": 32,
+                  "width": 32,
                 },
                 undefined,
               ]
             }
-            testID="back-arrow-button"
-          >
-            <SvgMock
-              fill="currentColor"
-              name="ArrowLeft"
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "height": 32,
-                    "width": 32,
-                  },
-                  undefined,
-                ]
-              }
-            />
-          </View>
+          />
         </View>
         <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": true,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             [
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 8,
+                "height": 40,
+                "justifyContent": "center",
+                "opacity": 0.5,
+                "width": 40,
+              },
+              undefined,
               {
                 "transform": [
                   {
@@ -756,78 +774,67 @@ exports[`BrowserTab render Browser 1`] = `
                   },
                 ],
               },
-              {
-                "alignItems": "center",
-                "justifyContent": "center",
-              },
             ]
           }
+          testID="go-forward-button"
         >
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": true,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+          <SvgMock
+            fill="currentColor"
+            name="ArrowRight"
             style={
               [
                 {
-                  "alignItems": "center",
-                  "backgroundColor": "transparent",
-                  "borderRadius": 8,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "opacity": 0.5,
-                  "width": 40,
+                  "color": "#121314",
+                  "height": 32,
+                  "width": 32,
                 },
                 undefined,
               ]
             }
-            testID="go-forward-button"
-          >
-            <SvgMock
-              fill="currentColor"
-              name="ArrowRight"
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "height": 32,
-                    "width": 32,
-                  },
-                  undefined,
-                ]
-              }
-            />
-          </View>
+          />
         </View>
         <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             [
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 8,
+                "height": 40,
+                "justifyContent": "center",
+                "opacity": 1,
+                "width": 40,
+              },
+              undefined,
               {
                 "transform": [
                   {
@@ -835,74 +842,24 @@ exports[`BrowserTab render Browser 1`] = `
                   },
                 ],
               },
-              {
-                "alignItems": "center",
-                "justifyContent": "center",
-              },
             ]
           }
+          testID="browser-reload-button"
         >
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+          <SvgMock
+            fill="currentColor"
+            name="Refresh"
             style={
               [
                 {
-                  "alignItems": "center",
-                  "backgroundColor": "transparent",
-                  "borderRadius": 8,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "width": 40,
+                  "color": "#121314",
+                  "height": 32,
+                  "width": 32,
                 },
                 undefined,
               ]
             }
-            testID="browser-reload-button"
-          >
-            <SvgMock
-              fill="currentColor"
-              name="Refresh"
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "height": 32,
-                    "width": 32,
-                  },
-                  undefined,
-                ]
-              }
-            />
-          </View>
+          />
         </View>
       </View>
       <View
@@ -919,8 +876,47 @@ exports[`BrowserTab render Browser 1`] = `
         }
       >
         <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": true,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             [
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 8,
+                "height": 40,
+                "justifyContent": "center",
+                "opacity": 0.5,
+                "width": 40,
+              },
+              undefined,
               {
                 "transform": [
                   {
@@ -928,78 +924,67 @@ exports[`BrowserTab render Browser 1`] = `
                   },
                 ],
               },
-              {
-                "alignItems": "center",
-                "justifyContent": "center",
-              },
             ]
           }
+          testID="browser-bookmark-button"
         >
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": true,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+          <SvgMock
+            fill="currentColor"
+            name="Star"
             style={
               [
                 {
-                  "alignItems": "center",
-                  "backgroundColor": "transparent",
-                  "borderRadius": 8,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "opacity": 0.5,
-                  "width": 40,
+                  "color": "#121314",
+                  "height": 32,
+                  "width": 32,
                 },
                 undefined,
               ]
             }
-            testID="browser-bookmark-button"
-          >
-            <SvgMock
-              fill="currentColor"
-              name="Star"
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "height": 32,
-                    "width": 32,
-                  },
-                  undefined,
-                ]
-              }
-            />
-          </View>
+          />
         </View>
         <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": false,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
           style={
             [
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderRadius": 8,
+                "height": 40,
+                "justifyContent": "center",
+                "opacity": 1,
+                "width": 40,
+              },
+              undefined,
               {
                 "transform": [
                   {
@@ -1007,74 +992,24 @@ exports[`BrowserTab render Browser 1`] = `
                   },
                 ],
               },
-              {
-                "alignItems": "center",
-                "justifyContent": "center",
-              },
             ]
           }
+          testID="browser-new-tab-button"
         >
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
+          <SvgMock
+            fill="currentColor"
+            name="Add"
             style={
               [
                 {
-                  "alignItems": "center",
-                  "backgroundColor": "transparent",
-                  "borderRadius": 8,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "width": 40,
+                  "color": "#121314",
+                  "height": 32,
+                  "width": 32,
                 },
                 undefined,
               ]
             }
-            testID="browser-new-tab-button"
-          >
-            <SvgMock
-              fill="currentColor"
-              name="Add"
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "height": 32,
-                    "width": 32,
-                  },
-                  undefined,
-                ]
-              }
-            />
-          </View>
+          />
         </View>
       </View>
     </View>

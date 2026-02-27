@@ -5,8 +5,9 @@
  * Based on MYX SDK patterns but simplified for read-only operations.
  */
 
-import BigNumber from 'bignumber.js';
 import type { CaipChainId } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
+
 import type {
   MYXNetwork,
   MYXEndpoints,
@@ -29,6 +30,9 @@ export const BNB_TESTNET_CAIP_CHAIN_ID =
 
 /**
  * Get numeric chain ID for MYX network
+ *
+ * @param network - The MYX network environment (mainnet or testnet).
+ * @returns The numeric chain ID for the specified network.
  */
 export function getMYXChainId(network: MYXNetwork): number {
   return network === 'testnet'
@@ -56,6 +60,9 @@ export const MYX_ENDPOINTS: MYXEndpoints = {
 
 /**
  * Get HTTP endpoint for network
+ *
+ * @param network - The MYX network environment (mainnet or testnet).
+ * @returns The HTTP API endpoint URL for the specified network.
  */
 export function getMYXHttpEndpoint(network: MYXNetwork): string {
   return MYX_ENDPOINTS[network].http;
@@ -119,15 +126,20 @@ export const MYX_ASSET_CONFIGS: MYXAssetConfigs = {
 
 /**
  * Convert MYX SDK price (30 decimals) to standard number
+ *
  * @param myxPrice - Price string in 30-decimal format from SDK
  * @returns Standard decimal number
  */
 export function fromMYXPrice(myxPrice: string): number {
-  if (!myxPrice || myxPrice === '0') return 0;
+  if (!myxPrice || myxPrice === '0') {
+    return 0;
+  }
 
   try {
     const bn = new BigNumber(myxPrice);
-    if (bn.isNaN()) return 0;
+    if (bn.isNaN()) {
+      return 0;
+    }
     const divisor = new BigNumber(10).pow(MYX_PRICE_DECIMALS);
     return bn.dividedBy(divisor).toNumber();
   } catch {
@@ -137,13 +149,16 @@ export function fromMYXPrice(myxPrice: string): number {
 
 /**
  * Convert standard number to MYX SDK price format (30 decimals)
+ *
  * @param price - Standard decimal number
  * @returns Price string in 30-decimal format for SDK
  */
 export function toMYXPrice(price: number | string): string {
   try {
     const bn = new BigNumber(price);
-    if (bn.isNaN()) return '0';
+    if (bn.isNaN()) {
+      return '0';
+    }
     const multiplier = new BigNumber(10).pow(MYX_PRICE_DECIMALS);
     return bn.multipliedBy(multiplier).toFixed(0);
   } catch {
@@ -153,15 +168,20 @@ export function toMYXPrice(price: number | string): string {
 
 /**
  * Convert MYX SDK size (18 decimals) to standard number
+ *
  * @param myxSize - Size string in 18-decimal format from SDK
  * @returns Standard decimal number
  */
 export function fromMYXSize(myxSize: string): number {
-  if (!myxSize || myxSize === '0') return 0;
+  if (!myxSize || myxSize === '0') {
+    return 0;
+  }
 
   try {
     const bn = new BigNumber(myxSize);
-    if (bn.isNaN()) return 0;
+    if (bn.isNaN()) {
+      return 0;
+    }
     const divisor = new BigNumber(10).pow(MYX_SIZE_DECIMALS);
     return bn.dividedBy(divisor).toNumber();
   } catch {
@@ -171,13 +191,16 @@ export function fromMYXSize(myxSize: string): number {
 
 /**
  * Convert standard number to MYX SDK size format (18 decimals)
+ *
  * @param size - Standard decimal number
  * @returns Size string in 18-decimal format for SDK
  */
 export function toMYXSize(size: number | string): string {
   try {
     const bn = new BigNumber(size);
-    if (bn.isNaN()) return '0';
+    if (bn.isNaN()) {
+      return '0';
+    }
     const multiplier = new BigNumber(10).pow(MYX_SIZE_DECIMALS);
     return bn.multipliedBy(multiplier).toFixed(0);
   } catch {
@@ -187,15 +210,20 @@ export function toMYXSize(size: number | string): string {
 
 /**
  * Convert MYX SDK collateral (18 decimals) to standard number
+ *
  * @param myxCollateral - Collateral string in 18-decimal format from SDK
  * @returns Standard decimal number
  */
 export function fromMYXCollateral(myxCollateral: string): number {
-  if (!myxCollateral || myxCollateral === '0') return 0;
+  if (!myxCollateral || myxCollateral === '0') {
+    return 0;
+  }
 
   try {
     const bn = new BigNumber(myxCollateral);
-    if (bn.isNaN()) return 0;
+    if (bn.isNaN()) {
+      return 0;
+    }
     const divisor = new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS);
     return bn.dividedBy(divisor).toNumber();
   } catch {

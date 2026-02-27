@@ -16,6 +16,9 @@ import {
   CreateOnboardingConsentRequest,
   UserResponse,
   DelegationSettingsNetwork,
+  CashbackWalletResponse,
+  CashbackWithdrawEstimationResponse,
+  CashbackWithdrawResponse,
 } from '../types';
 import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
@@ -5021,6 +5024,292 @@ describe('CardSDK', () => {
       ).rejects.toMatchObject({
         type: CardErrorType.NETWORK_ERROR,
       });
+    });
+  });
+
+  describe('freezeCard', () => {
+    it('freezes card successfully', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ success: true }),
+      });
+
+      const result = await cardSDK.freezeCard();
+
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/card/freeze'),
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
+    });
+
+    it('throws error on server failure', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: jest.fn().mockResolvedValue({ message: 'Server error' }),
+      });
+
+      await expect(cardSDK.freezeCard()).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+
+      expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('throws INVALID_CREDENTIALS on 401', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: jest.fn().mockResolvedValue({ message: 'Unauthorized' }),
+      });
+
+      await expect(cardSDK.freezeCard()).rejects.toMatchObject({
+        type: CardErrorType.INVALID_CREDENTIALS,
+      });
+    });
+
+    it('handles network errors', async () => {
+      (global.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network failure'),
+      );
+
+      await expect(cardSDK.freezeCard()).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+      });
+    });
+  });
+
+  describe('unfreezeCard', () => {
+    it('unfreezes card successfully', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ success: true }),
+      });
+
+      const result = await cardSDK.unfreezeCard();
+
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/card/unfreeze'),
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
+    });
+
+    it('throws error on server failure', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: jest.fn().mockResolvedValue({ message: 'Server error' }),
+      });
+
+      await expect(cardSDK.unfreezeCard()).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+
+      expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('throws INVALID_CREDENTIALS on 403', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+        json: jest.fn().mockResolvedValue({ message: 'Forbidden' }),
+      });
+
+      await expect(cardSDK.unfreezeCard()).rejects.toMatchObject({
+        type: CardErrorType.INVALID_CREDENTIALS,
+      });
+    });
+
+    it('handles network errors', async () => {
+      (global.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network failure'),
+      );
+
+      await expect(cardSDK.unfreezeCard()).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+      });
+    });
+  });
+
+  describe('getCashbackWallet', () => {
+    it('returns cashback wallet data on success', async () => {
+      const mockWallet: CashbackWalletResponse = {
+        id: 'w1',
+        balance: '10.50',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockWallet),
+      });
+
+      const result = await cardSDK.getCashbackWallet();
+
+      expect(result).toEqual(mockWallet);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/wallet/reward'),
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('throws SERVER_ERROR on non-ok response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ error: 'Internal Server Error' }),
+      });
+
+      await expect(cardSDK.getCashbackWallet()).rejects.toThrow(CardError);
+      await expect(cardSDK.getCashbackWallet()).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+    });
+
+    it('throws NETWORK_ERROR on fetch failure', async () => {
+      (global.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network failure'),
+      );
+
+      await expect(cardSDK.getCashbackWallet()).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+      });
+    });
+  });
+
+  describe('getCashbackWithdrawEstimation', () => {
+    it('returns estimation data on success', async () => {
+      const mockEstimation: CashbackWithdrawEstimationResponse = {
+        wei: '4648201084656',
+        eth: '0.000004648201084656',
+        price: '0.00892136699188968037536',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockEstimation),
+      });
+
+      const result = await cardSDK.getCashbackWithdrawEstimation();
+
+      expect(result).toEqual(mockEstimation);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/wallet/reward/withdraw-estimation'),
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('throws SERVER_ERROR on non-ok response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      await expect(
+        cardSDK.getCashbackWithdrawEstimation(),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+    });
+
+    it('throws NETWORK_ERROR on fetch failure', async () => {
+      (global.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network failure'),
+      );
+
+      await expect(
+        cardSDK.getCashbackWithdrawEstimation(),
+      ).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+      });
+    });
+  });
+
+  describe('withdrawCashback', () => {
+    it('returns transaction hash on success', async () => {
+      const mockResponse: CashbackWithdrawResponse = {
+        txHash: '0xabc123def456',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const result = await cardSDK.withdrawCashback({ amount: '10.50' });
+
+      expect(result).toEqual(mockResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/wallet/reward/withdraw'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ amount: '10.50' }),
+        }),
+      );
+    });
+
+    it('throws SERVER_ERROR on non-ok response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      await expect(
+        cardSDK.withdrawCashback({ amount: '10.50' }),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+    });
+
+    it('throws NETWORK_ERROR on fetch failure', async () => {
+      (global.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network failure'),
+      );
+
+      await expect(
+        cardSDK.withdrawCashback({ amount: '10.50' }),
+      ).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+      });
+    });
+  });
+
+  describe('getTransactionReceipt', () => {
+    it('returns receipt from ethers provider', async () => {
+      const mockReceipt = {
+        status: 1,
+        transactionHash: '0xabc',
+        blockNumber: 12345,
+      };
+      mockProvider.getTransactionReceipt = jest
+        .fn()
+        .mockResolvedValue(mockReceipt);
+
+      const result = await cardSDK.getTransactionReceipt('0xabc');
+
+      expect(result).toEqual(mockReceipt);
+    });
+
+    it('returns null when receipt is not yet available', async () => {
+      mockProvider.getTransactionReceipt = jest.fn().mockResolvedValue(null);
+
+      const result = await cardSDK.getTransactionReceipt('0xabc');
+
+      expect(result).toBeNull();
     });
   });
 });

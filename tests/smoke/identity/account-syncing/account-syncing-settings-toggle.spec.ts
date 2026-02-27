@@ -19,7 +19,6 @@ import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
 } from '@metamask/account-tree-controller';
-import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
 
 describe(SmokeIdentity('Account syncing - Setting'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
@@ -124,17 +123,8 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
         await Assertions.expectElementToBeVisible(
           SettingsView.backupAndSyncSectionButton,
         );
-
-        // needs settings back button
-        await SettingsView.tapBackButton();
-
-        await Assertions.expectElementToBeVisible(AccountMenu.backButton);
-        await Assertions.expectElementToBeVisible(AccountMenu.container);
-
-        await AccountMenu.tapBack();
-
-        // tapBack
         // Close settings drawer (opened from hamburger menu) to return to wallet view
+        await SettingsView.tapBackButton();
         await Assertions.expectElementToBeVisible(WalletView.container);
         // Wait for settings drawer to fully close and tab bar to be visible
         await Assertions.expectElementToBeVisible(

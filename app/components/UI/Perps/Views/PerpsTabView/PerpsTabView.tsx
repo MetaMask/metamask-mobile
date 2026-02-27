@@ -1,4 +1,4 @@
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import React, { useCallback, useState } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
@@ -20,7 +20,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TraceName } from '../../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
@@ -32,7 +32,6 @@ import {
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
@@ -54,7 +53,7 @@ const PerpsTabView = () => {
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
 
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const { account } = usePerpsLiveAccount();
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
@@ -78,6 +77,7 @@ const PerpsTabView = () => {
 
   const { orders } = usePerpsLiveOrders({
     hideTpSl: true, // Filter out TP/SL orders
+    hideReduceOnly: true, // Filter out all reduce-only orders
     throttleMs: 1000, // Update orders every second
   });
 

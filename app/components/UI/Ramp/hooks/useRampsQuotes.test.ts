@@ -1,52 +1,26 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
-import { useRampsQuotes } from './useRampsQuotes';
-import type { QuotesResponse } from '@metamask/ramps-controller';
+import { useRampsQuotes, type GetQuotesOptions } from './useRampsQuotes';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      startQuotePolling: jest.fn(),
-      stopQuotePolling: jest.fn(),
+      getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
     },
   },
 }));
 
-const mockQuote: Quote = {
-  provider: 'test-provider',
-  quote: {
-    amountIn: 100,
-    amountOut: 95,
-    paymentMethod: 'debit-card',
-  },
-} as Quote;
-
-const mockQuotesResponse: QuotesResponse = {
-  success: [mockQuote],
-  sorted: [],
-  error: [],
-  customActions: [],
-};
-
-const createMockStore = (rampsControllerState = {}) =>
+const createMockStore = () =>
   configureStore({
     reducer: {
       engine: () => ({
         backgroundState: {
-          RampsController: {
-            quotes: {
-              data: null,
-              selected: null,
-              isLoading: false,
-              error: null,
-            },
-            ...rampsControllerState,
-          },
+          RampsController: {},
         },
       }),
     },
@@ -57,195 +31,65 @@ const wrapper = (store: ReturnType<typeof createMockStore>) =>
     return React.createElement(Provider, { store } as never, children);
   };
 
+const mockQuotesResponse = {
+  success: [{ provider: 'test', quote: { amountIn: 100 } }],
+  sorted: [],
+  error: [],
+  customActions: [],
+};
+
 describe('useRampsQuotes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('return value structure', () => {
-    it('returns quotes, selectedQuote, startQuotePolling, stopQuotePolling, getWidgetUrl, isLoading, and error', () => {
+    it('returns getQuotes and getWidgetUrl functions', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsQuotes(), {
         wrapper: wrapper(store),
       });
 
-      expect(result.current).toMatchObject({
-        quotes: null,
-        selectedQuote: null,
-        isLoading: false,
-        error: null,
-      });
-      expect(typeof result.current.startQuotePolling).toBe('function');
-      expect(typeof result.current.stopQuotePolling).toBe('function');
+      expect(typeof result.current.getQuotes).toBe('function');
       expect(typeof result.current.getWidgetUrl).toBe('function');
     });
-  });
 
-  describe('quotes state', () => {
-    it('returns quotes from state', () => {
-      const store = createMockStore({
-        quotes: {
-          data: mockQuotesResponse,
-          selected: null,
-          isLoading: false,
-          error: null,
-        },
-      });
-      const { result } = renderHook(() => useRampsQuotes(), {
-        wrapper: wrapper(store),
-      });
-
-      expect(result.current.quotes).toEqual(mockQuotesResponse);
-    });
-
-    it('returns null when quotes are not available', () => {
+    it('returns data, loading, error with default values when no options', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsQuotes(), {
         wrapper: wrapper(store),
       });
 
-      expect(result.current.quotes).toBeNull();
-    });
-  });
-
-  describe('selectedQuote state', () => {
-    it('returns selectedQuote from state', () => {
-      const store = createMockStore({
-        quotes: {
-          data: mockQuotesResponse,
-          selected: mockQuote,
-          isLoading: false,
-          error: null,
-        },
-      });
-      const { result } = renderHook(() => useRampsQuotes(), {
-        wrapper: wrapper(store),
-      });
-
-      expect(result.current.selectedQuote).toEqual(mockQuote);
-    });
-
-    it('returns null when no quote is selected', () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsQuotes(), {
-        wrapper: wrapper(store),
-      });
-
-      expect(result.current.selectedQuote).toBeNull();
-    });
-  });
-
-  describe('loading state', () => {
-    it('returns isLoading true when quotes are being fetched', () => {
-      const store = createMockStore({
-        quotes: {
-          data: null,
-          selected: null,
-          isLoading: true,
-          error: null,
-        },
-      });
-      const { result } = renderHook(() => useRampsQuotes(), {
-        wrapper: wrapper(store),
-      });
-
-      expect(result.current.isLoading).toBe(true);
-    });
-
-    it('returns isLoading false when quotes are not being fetched', () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsQuotes(), {
-        wrapper: wrapper(store),
-      });
-
-      expect(result.current.isLoading).toBe(false);
-    });
-  });
-
-  describe('error state', () => {
-    it('returns error when quote fetch fails', () => {
-      const store = createMockStore({
-        quotes: {
-          data: null,
-          selected: null,
-          isLoading: false,
-          error: 'Failed to fetch quotes',
-        },
-      });
-      const { result } = renderHook(() => useRampsQuotes(), {
-        wrapper: wrapper(store),
-      });
-
-      expect(result.current.error).toBe('Failed to fetch quotes');
-    });
-
-    it('returns null when there is no error', () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsQuotes(), {
-        wrapper: wrapper(store),
-      });
-
+      expect(result.current.data).toBeNull();
+      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
     });
   });
 
-  describe('startQuotePolling', () => {
-    it('calls Engine.context.RampsController.startQuotePolling with options', () => {
+  describe('getQuotes', () => {
+    it('calls Engine.context.RampsController.getQuotes with options', async () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsQuotes(), {
         wrapper: wrapper(store),
       });
+
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
+        { success: [], sorted: [], error: [], customActions: [] },
+      );
 
       const options = {
-        walletAddress: '0x123',
         amount: 100,
-        redirectUrl: 'https://example.com',
+        walletAddress: '0x123',
+        assetId: 'eip155:1/slip44:60',
       };
 
-      act(() => {
-        result.current.startQuotePolling(options);
+      await act(async () => {
+        await result.current.getQuotes(options);
       });
 
-      expect(
-        Engine.context.RampsController.startQuotePolling,
-      ).toHaveBeenCalledWith(options);
-    });
-
-    it('calls startQuotePolling without redirectUrl when not provided', () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsQuotes(), {
-        wrapper: wrapper(store),
-      });
-
-      const options = {
-        walletAddress: '0x123',
-        amount: 100,
-      };
-
-      act(() => {
-        result.current.startQuotePolling(options);
-      });
-
-      expect(
-        Engine.context.RampsController.startQuotePolling,
-      ).toHaveBeenCalledWith(options);
-    });
-  });
-
-  describe('stopQuotePolling', () => {
-    it('calls Engine.context.RampsController.stopQuotePolling', () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsQuotes(), {
-        wrapper: wrapper(store),
-      });
-
-      act(() => {
-        result.current.stopQuotePolling();
-      });
-
-      expect(
-        Engine.context.RampsController.stopQuotePolling,
-      ).toHaveBeenCalled();
+      expect(Engine.context.RampsController.getQuotes).toHaveBeenCalledWith(
+        options,
+      );
     });
   });
 
@@ -277,6 +121,160 @@ describe('useRampsQuotes', () => {
       expect(Engine.context.RampsController.getWidgetUrl).toHaveBeenCalledWith(
         testQuote,
       );
+    });
+  });
+
+  describe('fetch mode', () => {
+    const options = {
+      amount: 100,
+      walletAddress: '0x123',
+      assetId: 'eip155:1/slip44:60',
+    };
+
+    it('fetches and updates data/loading when options is provided', async () => {
+      const store = createMockStore();
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
+        mockQuotesResponse,
+      );
+
+      const { result } = renderHook(() => useRampsQuotes(options), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.loading).toBe(true);
+      expect(result.current.data).toBeNull();
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual(mockQuotesResponse);
+      expect(Engine.context.RampsController.getQuotes).toHaveBeenCalledWith(
+        options,
+      );
+    });
+
+    it('skips fetch when options is null', () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsQuotes(null), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.data).toBeNull();
+      expect(result.current.loading).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(Engine.context.RampsController.getQuotes).not.toHaveBeenCalled();
+    });
+
+    it('always sets loading to false in finally when effect cleanup runs', async () => {
+      const store = createMockStore();
+      let resolve: ((value: typeof mockQuotesResponse) => void) | undefined;
+      const fetchPromise = new Promise<typeof mockQuotesResponse>((r) => {
+        resolve = r;
+      });
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockReturnValue(
+        fetchPromise,
+      );
+
+      const { result, rerender } = renderHook(
+        ({ params }: { params: GetQuotesOptions | null }) =>
+          useRampsQuotes(params),
+        {
+          wrapper: wrapper(store),
+          initialProps: { params: options } as {
+            params: GetQuotesOptions | null;
+          },
+        },
+      );
+
+      expect(result.current.loading).toBe(true);
+
+      rerender({ params: null });
+
+      await act(async () => {
+        if (resolve) resolve(mockQuotesResponse);
+      });
+
+      expect(result.current.loading).toBe(false);
+      expect(result.current.data).toBeNull();
+    });
+
+    it('does not apply stale data when cancelled', async () => {
+      const store = createMockStore();
+      let resolveFirst:
+        | ((value: typeof mockQuotesResponse) => void)
+        | undefined;
+      const firstPromise = new Promise<typeof mockQuotesResponse>((r) => {
+        resolveFirst = r;
+      });
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockReturnValue(
+        firstPromise,
+      );
+
+      const { result, rerender } = renderHook(
+        ({ params }: { params: GetQuotesOptions | null }) =>
+          useRampsQuotes(params),
+        {
+          wrapper: wrapper(store),
+          initialProps: { params: options } as {
+            params: GetQuotesOptions | null;
+          },
+        },
+      );
+
+      rerender({ params: null });
+
+      await act(async () => {
+        if (resolveFirst) resolveFirst(mockQuotesResponse);
+      });
+
+      expect(result.current.data).toBeNull();
+    });
+
+    it('populates error when fetch rejects', async () => {
+      const store = createMockStore();
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockRejectedValue(
+        new Error('Network error'),
+      );
+
+      const { result } = renderHook(() => useRampsQuotes(options), {
+        wrapper: wrapper(store),
+      });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.error).toBe('Network error');
+      expect(result.current.data).toBeNull();
+    });
+
+    it('clears data when options becomes null', async () => {
+      const store = createMockStore();
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue(
+        mockQuotesResponse,
+      );
+
+      const { result, rerender } = renderHook(
+        ({ params }: { params: GetQuotesOptions | null }) =>
+          useRampsQuotes(params),
+        {
+          wrapper: wrapper(store),
+          initialProps: { params: options } as {
+            params: GetQuotesOptions | null;
+          },
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockQuotesResponse);
+      });
+
+      rerender({ params: null });
+
+      expect(result.current.data).toBeNull();
+      expect(result.current.loading).toBe(false);
+      expect(result.current.error).toBeNull();
     });
   });
 });

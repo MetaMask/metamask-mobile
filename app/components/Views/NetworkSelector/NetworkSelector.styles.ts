@@ -200,6 +200,9 @@ const createStyles = (colors: Colors) =>
       bottom: 10,
       right: 10,
     },
+    noNetworkFeeContainer: {
+      alignSelf: 'center',
+    },
   });
 
 export default createStyles;

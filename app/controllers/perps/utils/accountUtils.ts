@@ -4,16 +4,19 @@
  */
 import { isEvmAccountType } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import type { AccountState } from '../types';
+
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PerpsControllerMessenger } from '../PerpsController';
+import type { AccountState } from '../types';
 
 export function findEvmAccount(
   accounts: InternalAccount[],
 ): InternalAccount | null {
   const evmAccount = accounts.find(
-    (account) => account && isEvmAccountType(account.type),
+    (account) =>
+      account && isEvmAccountType(account.type as InternalAccount['type']),
   );
-  return evmAccount || null;
+  return evmAccount ?? null;
 }
 
 export function getEvmAccountFromAccountGroup(
@@ -23,25 +26,19 @@ export function getEvmAccountFromAccountGroup(
   return evmAccount ? { address: evmAccount.address } : undefined;
 }
 
-interface AccountTreeMessenger {
-  call: (
-    action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
-  ) => InternalAccount[];
-}
-
 export function getSelectedEvmAccount(
-  messenger: AccountTreeMessenger,
+  messenger: PerpsControllerMessenger,
 ): { address: string } | undefined {
   const accounts = messenger.call(
     'AccountTreeController:getAccountsFromSelectedAccountGroup',
   );
-  return getEvmAccountFromAccountGroup(accounts);
+  return getEvmAccountFromAccountGroup(accounts as InternalAccount[]);
 }
 
-export interface ReturnOnEquityInput {
+export type ReturnOnEquityInput = {
   unrealizedPnl: string | number;
   returnOnEquity: string | number;
-}
+};
 
 export function calculateWeightedReturnOnEquity(
   accounts: ReturnOnEquityInput[],
@@ -94,6 +91,9 @@ export function calculateWeightedReturnOnEquity(
 /**
  * Aggregate multiple per-DEX AccountState objects into one by summing numeric fields.
  * ROE is recalculated as (totalUnrealizedPnl / totalMarginUsed) * 100.
+ *
+ * @param states - The array of per-DEX account states to aggregate.
+ * @returns The combined account state with summed balances and recalculated ROE.
  */
 export function aggregateAccountStates(states: AccountState[]): AccountState {
   const fallback: AccountState = {

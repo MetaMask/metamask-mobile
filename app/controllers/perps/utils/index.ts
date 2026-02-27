@@ -37,6 +37,6 @@ export * from './wait';
 
 // Inline from former utils.ts (getEnvironment was previously at perps/utils.ts root)
 export const getEnvironment = (): 'DEV' | 'PROD' => {
-  const env = process.env.NODE_ENV ?? 'production';
+  const env = globalThis.process?.env?.NODE_ENV ?? 'production';
   return env === 'production' ? 'PROD' : 'DEV';
 };

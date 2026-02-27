@@ -36,7 +36,7 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
-import HeaderWithTitleLeft from '../../../component-library/components-temp/HeaderWithTitleLeft';
+import HeaderStackedStandard from '../../../component-library/components-temp/HeaderStackedStandard';
 import {
   ToastContext,
   ToastVariants,
@@ -242,7 +242,7 @@ const ImportNewSecretRecoveryPhrase = () => {
 
   const content = (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
-      <HeaderWithTitleLeft
+      <HeaderStackedStandard
         includesTopInset
         backButtonProps={{
           onPress: dismiss,
@@ -255,7 +255,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             testID: 'qr-code-button',
           },
         ]}
-        titleLeftProps={{
+        titleStandardProps={{
           testID: ImportSRPIDs.SCREEN_TITLE_ID,
           title: strings(
             'import_new_secret_recovery_phrase.import_wallet_title',

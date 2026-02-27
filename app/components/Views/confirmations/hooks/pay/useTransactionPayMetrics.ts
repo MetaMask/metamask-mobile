@@ -34,7 +34,7 @@ export function useTransactionPayMetrics() {
   const hasLoadedQuoteRef = useRef(false);
   const quotes = useTransactionPayQuotes();
   const totals = useTransactionPayTotals();
-  const tokens = useTransactionPayAvailableTokens();
+  const { availableTokens: tokens } = useTransactionPayAvailableTokens();
 
   const transactionId = transactionMeta?.id ?? '';
   const storedMetrics = useSelector((state: RootState) =>
@@ -99,6 +99,22 @@ export function useTransactionPayMetrics() {
     properties.simulation_sending_assets_total_value = sendingValue;
   }
 
+  if (
+    payToken &&
+    hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
+  ) {
+    properties.mm_pay_use_case = 'predict_withdraw';
+  }
+
+  if (payToken) {
+    const sendingAmountUsd = Number(primaryRequiredToken?.amountUsd ?? '0');
+    properties.mm_pay_sending_value_usd = sendingAmountUsd;
+
+    properties.mm_pay_receiving_value_usd = totals
+      ? Number(totals.targetAmount.usd)
+      : null;
+  }
+
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
 
   const nonGasQuote = quotes?.find(
@@ -127,6 +143,7 @@ export function useTransactionPayMetrics() {
       .toString(10);
 
     properties.mm_pay_provider_fee_usd = totals.fees.provider.usd;
+    properties.mm_pay_metamask_fee_usd = Number(totals.fees.metaMask.usd);
   }
 
   const params = useDeepMemo(

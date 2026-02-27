@@ -87,13 +87,7 @@ import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import createStyles from './ChoosePassword.styles';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
-import {
-  useNavigation,
-  useRoute,
-  RouteProp,
-  ParamListBase,
-} from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 
 interface KeyringState {
   type: string;
@@ -119,7 +113,7 @@ const ChoosePassword = () => {
   const { colors, themeAppearance } = useContext(ThemeContext);
   const styles = createStyles(colors);
 
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
@@ -282,9 +276,14 @@ const ChoosePassword = () => {
 
   const handleWalletCreation = useCallback(
     async (authType: AuthData, previous_screen: string | undefined) => {
+      // Ask user to allow biometrics access control
+      authType.currentAuthType =
+        await Authentication.requestBiometricsAccessControlForIOS(
+          authType.currentAuthType,
+        );
+
       if (previous_screen?.toLowerCase() === ONBOARDING.toLowerCase()) {
         await Authentication.newWalletAndKeychain(password, authType);
-
         keyringControllerPasswordSet.current = true;
         dispatch(seedphraseNotBackedUp());
       } else {
@@ -476,7 +475,7 @@ const ChoosePassword = () => {
       url: learnMoreUrl,
     });
 
-    navigation.push('Webview', {
+    navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: learnMoreUrl,

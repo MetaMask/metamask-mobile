@@ -310,6 +310,9 @@
           "useSafeChainsListValidation": false,
           "useTokenDetection": true
         },
+        "RampsController": {
+          "userRegion": null
+        },
         "RemoteFeatureFlagController": {
           "remoteFeatureFlags": {
             "bitcoinAccounts": {

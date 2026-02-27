@@ -2,11 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import {
-  useNavigation,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Icon,
   IconName,
@@ -18,8 +14,10 @@ import {
   Box,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import MainActionButton from '../../../component-library/components-temp/MainActionButton';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
+import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
@@ -29,13 +27,98 @@ import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
+import useRampsUnifiedV1Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
+import AppConstants from '../../../core/AppConstants';
+import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
+import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
+import { useRampsButtonClickData } from '../../UI/Ramp/hooks/useRampsButtonClickData';
+import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
+import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import {
+  getMetamaskNotificationsReadCount,
+  getMetamaskNotificationsUnreadCount,
+  selectIsMetamaskNotificationsEnabled,
+} from '../../../selectors/notifications';
+import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
+import { useNetworkManagementEnabled } from '../../../selectors/featureFlagController/networkManagement/useNetworkManagementEnabled';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
+  const { goToBuy } = useRampNavigation();
+  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const rampsButtonClickData = useRampsButtonClickData();
+  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+  const unreadNotificationCount = useSelector(
+    getMetamaskNotificationsUnreadCount,
+  );
+  const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
+
+  const onPressDeposit = useCallback(() => {
+    trackEvent(
+      createEventBuilder(EVENT_NAME.RAMPS_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy',
+          location: 'AccountsMenu',
+          ramp_type: 'UNIFIED_BUY',
+          chain_id_destination: null,
+          region: rampGeodetectedRegion ?? null,
+          ramp_routing: rampsButtonClickData.ramp_routing ?? null,
+          is_authenticated: rampsButtonClickData.is_authenticated ?? null,
+          preferred_provider: rampsButtonClickData.preferred_provider ?? null,
+          order_count: rampsButtonClickData.order_count,
+        })
+        .build(),
+    );
+    goToBuy();
+  }, [
+    goToBuy,
+    createEventBuilder,
+    trackEvent,
+    rampGeodetectedRegion,
+    rampsButtonClickData,
+  ]);
+
+  const onPressNotifications = useCallback(() => {
+    if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
+      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
+      trackEvent(
+        createEventBuilder(EVENT_NAME.NOTIFICATIONS_MENU_OPENED)
+          .addProperties({
+            unread_count: unreadNotificationCount,
+            read_count: readNotificationCount,
+          })
+          .build(),
+      );
+    } else {
+      navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
+      trackEvent(
+        createEventBuilder(EVENT_NAME.NOTIFICATIONS_ACTIVATED)
+          .addProperties({
+            action_type: 'started',
+            is_profile_syncing_enabled: isBackupAndSyncEnabled,
+          })
+          .build(),
+      );
+    }
+  }, [
+    isNotificationEnabled,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    unreadNotificationCount,
+    readNotificationCount,
+    isBackupAndSyncEnabled,
+  ]);
+  const isNetworkManagementEnabled = useNetworkManagementEnabled();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -55,6 +138,10 @@ const AccountsMenu = () => {
     trackEvent(createEventBuilder(EVENT_NAME.CARD_HOME_CLICKED).build());
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation, trackEvent, createEventBuilder]);
+
+  const onPressNetworks = useCallback(() => {
+    navigation.navigate(Routes.SETTINGS.NETWORKS_MANAGEMENT);
+  }, [navigation]);
 
   const onPressPermissions = useCallback(() => {
     // TODO: Will add events in follow up PR
@@ -166,6 +253,105 @@ const AccountsMenu = () => {
     return title;
   }, []);
 
+  const onScanSuccess = useCallback(
+    (data: { private_key?: string; seed?: string }, content: string) => {
+      if (data.private_key) {
+        const privateKey = data.private_key;
+        Alert.alert(
+          strings('wallet.private_key_detected'),
+          strings('wallet.do_you_want_to_import_this_account'),
+          [
+            {
+              text: strings('wallet.cancel'),
+              onPress: () => false,
+              style: 'cancel',
+            },
+            {
+              text: strings('wallet.yes'),
+              onPress: async () => {
+                try {
+                  await Authentication.importAccountFromPrivateKey(privateKey);
+                  navigation.navigate('ImportPrivateKeyView', {
+                    screen: 'ImportPrivateKeySuccess',
+                  });
+                } catch {
+                  Alert.alert(
+                    strings('import_private_key.error_title'),
+                    strings('import_private_key.error_message'),
+                  );
+                }
+              },
+            },
+          ],
+          { cancelable: false },
+        );
+      } else if (data.seed) {
+        Alert.alert(
+          strings('wallet.error'),
+          strings('wallet.logout_to_import_seed'),
+        );
+      } else {
+        setTimeout(() => {
+          DeeplinkManager.parse(content, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+          });
+        }, 500);
+      }
+    },
+    [navigation],
+  );
+
+  const openQRScanner = useCallback(() => {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      onScanSuccess,
+    });
+    trackEvent(createEventBuilder(EVENT_NAME.QR_SCANNER_OPENED).build());
+  }, [navigation, onScanSuccess, trackEvent, createEventBuilder]);
+
+  const isNotificationsEnabled = useMemo(
+    () => isNotificationsFeatureEnabled() && isNotificationEnabled,
+    [isNotificationEnabled],
+  );
+
+  const notificationBadgeCount = useMemo(() => {
+    if (unreadNotificationCount > 99) return '99+';
+    return unreadNotificationCount.toString();
+  }, [unreadNotificationCount]);
+
+  const renderNotificationsEndAccessory = useMemo(() => {
+    if (isNotificationsEnabled && unreadNotificationCount > 0) {
+      return (
+        <Box style={tw.style('flex-row items-center gap-2')}>
+          <Box
+            style={tw.style(
+              'rounded-lg px-2 py-0.5 min-w-6 items-center justify-center',
+              {
+                backgroundColor: colors.error.default,
+              },
+            )}
+          >
+            <Text
+              style={tw.style('font-medium')}
+              variant={TextVariant.BodyXs}
+              color={TextColor.PrimaryInverse}
+            >
+              {notificationBadgeCount}
+            </Text>
+          </Box>
+          {arrowRightIcon}
+        </Box>
+      );
+    }
+    return arrowRightIcon;
+  }, [
+    isNotificationsEnabled,
+    unreadNotificationCount,
+    notificationBadgeCount,
+    arrowRightIcon,
+    colors.error.default,
+    tw,
+  ]);
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
@@ -182,6 +368,54 @@ const AccountsMenu = () => {
         })}
         testID={AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID}
       >
+        {/* Quick Actions Section */}
+        <Box style={tw.style('px-4 py-3 flex-row gap-4 justify-between')}>
+          {rampUnifiedV1Enabled && (
+            <Box style={tw.style('mb-2 flex-1')}>
+              <MainActionButton
+                iconName={LocalIconName.AttachMoney}
+                label={strings('accounts_menu.buy')}
+                onPress={onPressDeposit}
+                testID={AccountsMenuSelectorsIDs.BUY_BUTTON}
+              />
+            </Box>
+          )}
+          <Box style={tw.style('mb-2 flex-1')}>
+            <MainActionButton
+              iconName={LocalIconName.QrCode}
+              label={strings('accounts_menu.scan')}
+              onPress={openQRScanner}
+              testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+            />
+          </Box>
+        </Box>
+
+        {/* Notifications Row */}
+        {isNotificationsFeatureEnabled() && (
+          <ActionListItem
+            startAccessory={
+              <Icon name={IconName.Notification} size={IconSize.Lg} />
+            }
+            label={strings('accounts_menu.notifications')}
+            endAccessory={renderNotificationsEndAccessory}
+            onPress={onPressNotifications}
+            testID={AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON}
+          />
+        )}
+
+        {/* MetaMask Card Row */}
+        {shouldDisplayCardButton && (
+          <ActionListItem
+            startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
+            label={strings('accounts_menu.card_title')}
+            onPress={onPressManageWallet}
+            endAccessory={arrowRightIcon}
+            testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
+          />
+        )}
+
+        {separator}
+
         {/* Manage Section */}
         <Box style={tw.style('px-4 py-3')}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
@@ -207,17 +441,6 @@ const AccountsMenu = () => {
           testID={AccountsMenuSelectorsIDs.CONTACTS}
         />
 
-        {/* MetaMask Card Row */}
-        {shouldDisplayCardButton && (
-          <ActionListItem
-            startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
-            label={strings('accounts_menu.card_title')}
-            onPress={onPressManageWallet}
-            endAccessory={arrowRightIcon}
-            testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
-          />
-        )}
-
         {/* Permissions Row */}
         {isPermissionsSettingsV1Enabled && (
           <ActionListItem
@@ -228,6 +451,19 @@ const AccountsMenu = () => {
             endAccessory={arrowRightIcon}
             onPress={onPressPermissions}
             testID={AccountsMenuSelectorsIDs.PERMISSIONS}
+          />
+        )}
+
+        {/* Networks Row */}
+        {isNetworkManagementEnabled && (
+          <ActionListItem
+            startAccessory={
+              <Icon name={IconName.Hierarchy} size={IconSize.Lg} />
+            }
+            label={strings('accounts_menu.networks')}
+            endAccessory={arrowRightIcon}
+            onPress={onPressNetworks}
+            testID={AccountsMenuSelectorsIDs.NETWORKS}
           />
         )}
 

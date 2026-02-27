@@ -28,4 +28,6 @@ export const CardHomeSelectors = {
   PASSWORD_CANCEL_BUTTON: 'password-cancel-button',
   PASSWORD_CONFIRM_BUTTON: 'password-confirm-button',
   ORDER_METAL_CARD_ITEM: 'order-metal-card-item',
+  CASHBACK_ITEM: 'cashback-item',
+  FREEZE_CARD_TOGGLE: 'freeze-card-toggle',
 };

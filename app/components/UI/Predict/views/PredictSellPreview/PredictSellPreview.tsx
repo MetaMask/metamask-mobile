@@ -7,7 +7,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  NavigationProp,
   RouteProp,
   StackActions,
   useNavigation,
@@ -51,8 +50,7 @@ import styleSheet from './PredictSellPreview.styles';
 const PredictSellPreview = () => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
-  const { goBack, dispatch } =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { goBack, dispatch } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
   const { market, position, outcome, entryPoint } = route.params;
@@ -108,7 +106,6 @@ const PredictSellPreview = () => {
     error: previewError,
     isLoading: isPreviewLoading,
   } = usePredictOrderPreview({
-    providerId: position.providerId,
     marketId: position.marketId,
     outcomeId: position.outcomeId,
     outcomeTokenId: position.outcomeTokenId,
@@ -126,7 +123,6 @@ const PredictSellPreview = () => {
   } = usePredictOrderRetry({
     preview,
     placeOrder,
-    providerId: position.providerId,
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
@@ -154,7 +150,6 @@ const PredictSellPreview = () => {
     controller.trackPredictOrderEvent({
       status: PredictTradeStatus.INITIATED,
       analyticsProperties,
-      providerId: position.providerId,
       sharePrice: position?.price,
       amountUsd: position?.amount,
       pnl: position?.percentPnl, // PnL as percentage for sell orders
@@ -198,11 +193,10 @@ const PredictSellPreview = () => {
     if (!preview) return;
 
     await placeOrder({
-      providerId: position.providerId,
       analyticsProperties,
       preview,
     });
-  }, [preview, placeOrder, analyticsProperties, position.providerId]);
+  }, [preview, placeOrder, analyticsProperties]);
 
   const renderCashOutButton = () => {
     if (isLoading) {

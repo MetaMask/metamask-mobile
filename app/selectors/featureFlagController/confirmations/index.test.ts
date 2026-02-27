@@ -9,10 +9,12 @@ import {
   selectNonZeroUnusedApprovalsAllowList,
   selectGasFeeTokenFlags,
   GasFeeTokenFlags,
+  selectPayQuoteConfig,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
 import { Hex } from '@metamask/utils';
+import { RootState } from '../../../reducers';
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
@@ -54,7 +56,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           bufferStep: 1.234,
         },
       };
@@ -67,7 +69,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           bufferInitial: 2.345,
         },
       };
@@ -80,7 +82,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           bufferSubsequent: 5.678,
         },
       };
@@ -93,7 +95,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           attemptsMax: 3,
         },
       };
@@ -106,7 +108,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           slippage: 0.123,
         },
       };
@@ -253,5 +255,84 @@ describe('Gas Fee Token Flags', () => {
     const result = selectGasFeeTokenFlags(stateWithUndefinedGasFeeTokens);
 
     expect(result).toEqual({ gasFeeTokens: {} });
+  });
+});
+
+describe('selectPayQuoteConfig', () => {
+  function stateWithFlags(flags: Record<string, unknown>) {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      { confirmations_pay_post_quote: flags };
+    return state;
+  }
+
+  const baseFlags = {
+    default: { enabled: true, tokens: { '0x1': ['0xaaa'] } },
+    overrides: {
+      predictWithdraw: {
+        enabled: true,
+        tokens: { '0x89': ['0xbbb'] },
+      },
+      perpsWithdraw: { enabled: false },
+    },
+  };
+
+  it('returns default config when no transaction type is provided', () => {
+    const state = stateWithFlags(baseFlags);
+    const result = selectPayQuoteConfig(state as unknown as RootState);
+    expect(result.enabled).toBe(true);
+    expect(result.tokens).toEqual({ '0x1': ['0xaaa'] });
+  });
+
+  it('returns default config when transaction type does not exist in overrides', () => {
+    const state = stateWithFlags(baseFlags);
+    const result = selectPayQuoteConfig(
+      state as unknown as RootState,
+      'unknownType',
+    );
+    expect(result.enabled).toBe(true);
+    expect(result.tokens).toEqual({ '0x1': ['0xaaa'] });
+  });
+
+  it('uses override value when transaction type matches', () => {
+    const state = stateWithFlags(baseFlags);
+    const result = selectPayQuoteConfig(
+      state as unknown as RootState,
+      'predictWithdraw',
+    );
+    expect(result.tokens).toEqual({ '0x89': ['0xbbb'] });
+    expect(result.enabled).toBe(true);
+  });
+
+  it('falls back to default for properties not defined in override', () => {
+    const state = stateWithFlags(baseFlags);
+    const result = selectPayQuoteConfig(
+      state as unknown as RootState,
+      'perpsWithdraw',
+    );
+    expect(result.enabled).toBe(false);
+    expect(result.tokens).toEqual({ '0x1': ['0xaaa'] });
+  });
+
+  it('inherits enabled from default when override omits enabled', () => {
+    const state = stateWithFlags({
+      default: { enabled: true, tokens: { '0x1': ['0xaaa'] } },
+      overrides: {
+        predictWithdraw: { tokens: { '0x89': ['0xbbb'] } },
+      },
+    });
+    const result = selectPayQuoteConfig(
+      state as unknown as RootState,
+      'predictWithdraw',
+    );
+    expect(result.enabled).toBe(true);
+    expect(result.tokens).toEqual({ '0x89': ['0xbbb'] });
+  });
+
+  it('returns disabled default when flag is missing', () => {
+    const result = selectPayQuoteConfig(
+      mockedEmptyFlagsState as unknown as RootState,
+    );
+    expect(result).toEqual({ enabled: false, tokens: undefined });
   });
 });

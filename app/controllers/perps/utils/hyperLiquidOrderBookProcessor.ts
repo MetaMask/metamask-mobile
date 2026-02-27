@@ -1,4 +1,5 @@
 import type { BboWsEvent, L2BookResponse } from '@nktkas/hyperliquid';
+
 import type { PriceUpdate } from '../types';
 
 /**
@@ -11,33 +12,33 @@ import type { PriceUpdate } from '../types';
 /**
  * Order book cache entry structure
  */
-export interface OrderBookCacheEntry {
+export type OrderBookCacheEntry = {
   bestBid?: string;
   bestAsk?: string;
   spread?: string;
   lastUpdated: number;
-}
+};
 
 /**
  * Parameters for processing L2 book data
  */
-export interface ProcessL2BookDataParams {
+export type ProcessL2BookDataParams = {
   symbol: string;
   data: L2BookResponse;
   orderBookCache: Map<string, OrderBookCacheEntry>;
   cachedPriceData: Map<string, PriceUpdate> | null;
   createPriceUpdate: (symbol: string, price: string) => PriceUpdate;
   notifySubscribers: () => void;
-}
+};
 
-export interface ProcessBboDataParams {
+export type ProcessBboDataParams = {
   symbol: string;
   data: BboWsEvent;
   orderBookCache: Map<string, OrderBookCacheEntry>;
   cachedPriceData: Map<string, PriceUpdate> | null;
   createPriceUpdate: (symbol: string, price: string) => PriceUpdate;
   notifySubscribers: () => void;
-}
+};
 
 /**
  * Process Level 2 order book data and update caches
@@ -102,6 +103,8 @@ export function processL2BookData(params: ProcessL2BookDataParams): void {
  *
  * BBO is lightweight and independent from L2Book aggregation parameters,
  * making it ideal for spread / top-of-book display.
+ *
+ * @param params - The BBO processing parameters including symbol, data, and caches.
  */
 export function processBboData(params: ProcessBboDataParams): void {
   const {

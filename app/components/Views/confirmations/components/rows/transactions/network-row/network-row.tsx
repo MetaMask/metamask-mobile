@@ -10,6 +10,7 @@ import AvatarNetwork from '../../../../../../../component-library/components/Ava
 import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
+import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import InfoRow from '../../../UI/info-row';
 
 const styles = StyleSheet.create({
@@ -23,11 +24,13 @@ const styles = StyleSheet.create({
 });
 
 interface NetworkRowProps {
-  chainId: Hex;
+  chainId?: Hex;
   style?: Record<string, unknown>;
 }
 
-const NetworkRow = ({ chainId, style }: NetworkRowProps) => {
+const NetworkRow = ({ chainId: chainIdProp, style }: NetworkRowProps) => {
+  const transactionMetadata = useTransactionMetadataRequest();
+  const chainId = chainIdProp ?? (transactionMetadata?.chainId as Hex);
   const { networkName } = useNetworkInfo(chainId);
   const networkImage = getNetworkImageSource({ chainId });
 

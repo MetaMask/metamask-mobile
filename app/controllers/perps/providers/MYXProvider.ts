@@ -12,8 +12,69 @@
  */
 
 import type { CaipAccountId } from '@metamask/utils';
-import { ensureError } from '../utils/errorUtils';
+
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { MYXClientService } from '../services/MYXClientService';
+import { WebSocketConnectionState } from '../types';
+import type {
+  AccountState,
+  AssetRoute,
+  BatchCancelOrdersParams,
+  CancelOrderParams,
+  CancelOrderResult,
+  CancelOrdersResult,
+  ClosePositionParams,
+  ClosePositionsParams,
+  ClosePositionsResult,
+  DepositParams,
+  DisconnectResult,
+  EditOrderParams,
+  FeeCalculationParams,
+  FeeCalculationResult,
+  Funding,
+  GetAccountStateParams,
+  GetFundingParams,
+  GetHistoricalPortfolioParams,
+  GetMarketsParams,
+  GetOrderFillsParams,
+  GetOrdersParams,
+  GetOrFetchFillsParams,
+  GetPositionsParams,
+  GetSupportedPathsParams,
+  HistoricalPortfolioResult,
+  InitializeResult,
+  LiquidationPriceParams,
+  LiveDataConfig,
+  MaintenanceMarginParams,
+  MarginResult,
+  MarketInfo,
+  Order,
+  OrderFill,
+  OrderParams,
+  OrderResult,
+  PerpsPlatformDependencies,
+  PerpsMarketData,
+  PerpsProvider,
+  Position,
+  PriceUpdate,
+  ReadyToTradeResult,
+  SubscribeAccountParams,
+  SubscribeCandlesParams,
+  SubscribeOICapsParams,
+  SubscribeOrderBookParams,
+  SubscribeOrderFillsParams,
+  SubscribeOrdersParams,
+  SubscribePositionsParams,
+  SubscribePricesParams,
+  ToggleTestnetResult,
+  UpdatePositionTPSLParams,
+  UserHistoryItem,
+  WithdrawParams,
+  WithdrawResult,
+  RawLedgerUpdate,
+} from '../types';
+import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
+import { ensureError } from '../utils/errorUtils';
 import {
   adaptMarketFromMYX,
   adaptMarketDataFromMYX,
@@ -21,66 +82,6 @@ import {
   filterMYXExclusiveMarkets,
   buildPoolSymbolMap,
 } from '../utils/myxAdapter';
-import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import {
-  WebSocketConnectionState,
-  type AccountState,
-  type AssetRoute,
-  type BatchCancelOrdersParams,
-  type CancelOrderParams,
-  type CancelOrderResult,
-  type CancelOrdersResult,
-  type ClosePositionParams,
-  type ClosePositionsParams,
-  type ClosePositionsResult,
-  type DepositParams,
-  type DisconnectResult,
-  type EditOrderParams,
-  type FeeCalculationParams,
-  type FeeCalculationResult,
-  type Funding,
-  type GetAccountStateParams,
-  type GetFundingParams,
-  type GetHistoricalPortfolioParams,
-  type GetMarketsParams,
-  type GetOrderFillsParams,
-  type GetOrdersParams,
-  type GetOrFetchFillsParams,
-  type GetPositionsParams,
-  type GetSupportedPathsParams,
-  type HistoricalPortfolioResult,
-  type InitializeResult,
-  type LiquidationPriceParams,
-  type LiveDataConfig,
-  type MaintenanceMarginParams,
-  type MarginResult,
-  type MarketInfo,
-  type Order,
-  type OrderFill,
-  type OrderParams,
-  type OrderResult,
-  type PerpsPlatformDependencies,
-  type PerpsMarketData,
-  type PerpsProvider,
-  type Position,
-  type PriceUpdate,
-  type ReadyToTradeResult,
-  type SubscribeAccountParams,
-  type SubscribeCandlesParams,
-  type SubscribeOICapsParams,
-  type SubscribeOrderBookParams,
-  type SubscribeOrderFillsParams,
-  type SubscribeOrdersParams,
-  type SubscribePositionsParams,
-  type SubscribePricesParams,
-  type ToggleTestnetResult,
-  type UpdatePositionTPSLParams,
-  type UserHistoryItem,
-  type WithdrawParams,
-  type WithdrawResult,
-  type RawLedgerUpdate,
-} from '../types';
 
 // ============================================================================
 // Constants
@@ -104,42 +105,37 @@ export class MYXProvider implements PerpsProvider {
   readonly protocolId = 'myx';
 
   // Platform dependencies
-  private readonly deps: PerpsPlatformDependencies;
+  readonly #deps: PerpsPlatformDependencies;
 
   // Client service
-  private clientService: MYXClientService;
+  readonly #clientService: MYXClientService;
 
   // Configuration
-  private isTestnet: boolean;
+  readonly #isTestnet: boolean;
 
   // Cache for pools (freshness delegated to MYXClientService)
-  private poolsCache: MYXPoolSymbol[] = [];
-  private poolSymbolMap: Map<string, string> = new Map();
+  #poolsCache: MYXPoolSymbol[] = [];
+
+  #poolSymbolMap: Map<string, string> = new Map();
 
   // Ticker cache for price data
-  private tickersCache: Map<string, MYXTicker> = new Map();
-
-  // Price subscription callback
-  private priceCallback?: (updates: PriceUpdate[]) => void;
-
-  // Track initialization state
-  private isInitialized = false;
+  readonly #tickersCache: Map<string, MYXTicker> = new Map();
 
   constructor(options: {
     isTestnet?: boolean;
     platformDependencies: PerpsPlatformDependencies;
   }) {
-    this.deps = options.platformDependencies;
-    this.isTestnet = options.isTestnet ?? true; // Force testnet in Stage 1
+    this.#deps = options.platformDependencies;
+    this.#isTestnet = options.isTestnet ?? true; // Force testnet in Stage 1
 
     // Initialize client service
-    this.clientService = new MYXClientService(this.deps, {
-      isTestnet: this.isTestnet,
+    this.#clientService = new MYXClientService(this.#deps, {
+      isTestnet: this.#isTestnet,
     });
 
-    this.deps.debugLogger.log('[MYXProvider] Constructor complete', {
+    this.#deps.debugLogger.log('[MYXProvider] Constructor complete', {
       protocolId: this.protocolId,
-      isTestnet: this.isTestnet,
+      isTestnet: this.#isTestnet,
     });
   }
 
@@ -147,7 +143,7 @@ export class MYXProvider implements PerpsProvider {
   // Error Context Helper
   // ============================================================================
 
-  private getErrorContext(
+  #getErrorContext(
     method: string,
     extra?: Record<string, unknown>,
   ): {
@@ -158,12 +154,12 @@ export class MYXProvider implements PerpsProvider {
       tags: {
         feature: PERPS_CONSTANTS.FeatureName,
         provider: 'MYXProvider',
-        network: this.isTestnet ? 'testnet' : 'mainnet',
+        network: this.#isTestnet ? 'testnet' : 'mainnet',
       },
       context: {
         name: `MYXProvider.${method}`,
         data: {
-          isTestnet: this.isTestnet,
+          isTestnet: this.#isTestnet,
           ...extra,
         },
       },
@@ -176,58 +172,60 @@ export class MYXProvider implements PerpsProvider {
 
   async initialize(): Promise<InitializeResult> {
     try {
-      this.deps.debugLogger.log('[MYXProvider] Initializing...');
+      this.#deps.debugLogger.log('[MYXProvider] Initializing...');
 
       // Fetch initial markets
-      const pools = await this.clientService.getMarkets();
+      const pools = await this.#clientService.getMarkets();
 
       // Filter to MYX-exclusive markets
-      this.poolsCache = filterMYXExclusiveMarkets(pools);
-      this.poolSymbolMap = buildPoolSymbolMap(this.poolsCache);
+      this.#poolsCache = filterMYXExclusiveMarkets(pools);
+      this.#poolSymbolMap = buildPoolSymbolMap(this.#poolsCache);
 
-      this.isInitialized = true;
-
-      this.deps.debugLogger.log('[MYXProvider] Initialized successfully', {
+      this.#deps.debugLogger.log('[MYXProvider] Initialized successfully', {
         totalPools: pools.length,
-        exclusivePools: this.poolsCache.length,
+        exclusivePools: this.#poolsCache.length,
       });
 
       return { success: true };
-    } catch (error) {
-      const err = ensureError(error, 'MYXProvider.initialize');
-      this.deps.logger.error(err, this.getErrorContext('initialize'));
-      return { success: false, error: err.message };
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.initialize');
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('initialize'),
+      );
+      return { success: false, error: wrappedError.message };
     }
   }
 
   async disconnect(): Promise<DisconnectResult> {
     try {
-      this.deps.debugLogger.log('[MYXProvider] Disconnecting...');
+      this.#deps.debugLogger.log('[MYXProvider] Disconnecting...');
 
-      this.clientService.disconnect();
-      this.isInitialized = false;
-      this.poolsCache = [];
-      this.poolSymbolMap.clear();
-      this.tickersCache.clear();
-      this.priceCallback = undefined;
+      this.#clientService.disconnect();
+      this.#poolsCache = [];
+      this.#poolSymbolMap.clear();
+      this.#tickersCache.clear();
 
       return { success: true };
-    } catch (error) {
-      const err = ensureError(error, 'MYXProvider.disconnect');
-      this.deps.logger.error(err, this.getErrorContext('disconnect'));
-      return { success: false, error: err.message };
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.disconnect');
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('disconnect'),
+      );
+      return { success: false, error: wrappedError.message };
     }
   }
 
   async ping(timeoutMs?: number): Promise<void> {
-    await this.clientService.ping(timeoutMs);
+    await this.#clientService.ping(timeoutMs);
   }
 
   async toggleTestnet(): Promise<ToggleTestnetResult> {
     // Stage 1: Testnet only
     return {
       success: false,
-      isTestnet: this.isTestnet,
+      isTestnet: this.#isTestnet,
       error: 'MYX mainnet not yet available',
     };
   }
@@ -238,7 +236,7 @@ export class MYXProvider implements PerpsProvider {
       ready: false,
       error: 'MYX trading not yet supported',
       walletConnected: false,
-      networkSupported: this.isTestnet,
+      networkSupported: this.#isTestnet,
     };
   }
 
@@ -251,52 +249,58 @@ export class MYXProvider implements PerpsProvider {
   async getMarkets(_params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
       // Delegate cache freshness to MYXClientService
-      const pools = await this.clientService.getMarkets();
-      this.poolsCache = filterMYXExclusiveMarkets(pools);
-      this.poolSymbolMap = buildPoolSymbolMap(this.poolsCache);
+      const pools = await this.#clientService.getMarkets();
+      this.#poolsCache = filterMYXExclusiveMarkets(pools);
+      this.#poolSymbolMap = buildPoolSymbolMap(this.#poolsCache);
 
-      return this.poolsCache.map((pool) => adaptMarketFromMYX(pool));
-    } catch (error) {
-      const err = ensureError(error, 'MYXProvider.getMarkets');
-      this.deps.logger.error(err, this.getErrorContext('getMarkets'));
-      throw err;
+      return this.#poolsCache.map((pool) => adaptMarketFromMYX(pool));
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.getMarkets');
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getMarkets'),
+      );
+      throw wrappedError;
     }
   }
 
   async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
     try {
       // Ensure we have markets
-      if (this.poolsCache.length === 0) {
+      if (this.#poolsCache.length === 0) {
         await this.getMarkets();
       }
 
       // Fetch tickers for all pools
-      const poolIds = this.poolsCache.map((pool) => pool.poolId);
-      const tickers = await this.clientService.getTickers(poolIds);
+      const poolIds = this.#poolsCache.map((pool) => pool.poolId);
+      const tickers = await this.#clientService.getTickers(poolIds);
 
       // Build ticker map
       const tickerMap = new Map<string, MYXTicker>();
       for (const ticker of tickers) {
         tickerMap.set(ticker.poolId, ticker);
-        this.tickersCache.set(ticker.poolId, ticker);
+        this.#tickersCache.set(ticker.poolId, ticker);
       }
 
       // Transform to PerpsMarketData
-      return this.poolsCache.map((pool) => {
+      return this.#poolsCache.map((pool) => {
         const ticker = tickerMap.get(pool.poolId);
         return adaptMarketDataFromMYX(
           pool,
           ticker,
-          this.deps.marketDataFormatters,
+          this.#deps.marketDataFormatters,
         );
       });
-    } catch (error) {
-      const err = ensureError(error, 'MYXProvider.getMarketDataWithPrices');
-      this.deps.logger.error(
-        err,
-        this.getErrorContext('getMarketDataWithPrices'),
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXProvider.getMarketDataWithPrices',
       );
-      throw err;
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getMarketDataWithPrices'),
+      );
+      throw wrappedError;
     }
   }
 
@@ -307,14 +311,14 @@ export class MYXProvider implements PerpsProvider {
   subscribeToPrices(params: SubscribePricesParams): () => void {
     const { symbols, callback, includeOrderBook } = params;
 
-    this.deps.debugLogger.log('[MYXProvider] Setting up price subscription', {
+    this.#deps.debugLogger.log('[MYXProvider] Setting up price subscription', {
       symbols: symbols.length,
       includeOrderBook,
     });
 
     // Map symbols to pool IDs
     const poolIds: string[] = [];
-    for (const pool of this.poolsCache) {
+    for (const pool of this.#poolsCache) {
       const symbol = pool.baseSymbol || pool.poolId;
       if (symbols.includes(symbol)) {
         poolIds.push(pool.poolId);
@@ -322,7 +326,7 @@ export class MYXProvider implements PerpsProvider {
     }
 
     if (poolIds.length === 0) {
-      this.deps.debugLogger.log(
+      this.#deps.debugLogger.log(
         '[MYXProvider] subscribeToPrices: No pool IDs found. Ensure initialize() has been called.',
         { symbols },
       );
@@ -332,15 +336,12 @@ export class MYXProvider implements PerpsProvider {
       };
     }
 
-    // Store callback for internal use
-    this.priceCallback = callback;
-
     // Start price polling
-    this.clientService.startPricePolling(poolIds, (tickers) => {
+    this.#clientService.startPricePolling(poolIds, (tickers) => {
       // Convert tickers to PriceUpdate format
       const updates: PriceUpdate[] = tickers.map((ticker) => {
-        const symbol = this.poolSymbolMap.get(ticker.poolId) || ticker.poolId;
-        const { price, change24h } = this.getAdaptedPrice(ticker);
+        const symbol = this.#poolSymbolMap.get(ticker.poolId) ?? ticker.poolId;
+        const { price, change24h } = this.#getAdaptedPrice(ticker);
 
         return {
           symbol,
@@ -356,13 +357,12 @@ export class MYXProvider implements PerpsProvider {
 
     // Return unsubscribe function
     return () => {
-      this.deps.debugLogger.log('[MYXProvider] Unsubscribing from prices');
-      this.clientService.stopPricePolling();
-      this.priceCallback = undefined;
+      this.#deps.debugLogger.log('[MYXProvider] Unsubscribing from prices');
+      this.#clientService.stopPricePolling();
     };
   }
 
-  private getAdaptedPrice(ticker: MYXTicker): {
+  #getAdaptedPrice(ticker: MYXTicker): {
     price: string;
     change24h: number;
   } {
@@ -714,7 +714,7 @@ export class MYXProvider implements PerpsProvider {
 
   async reconnect(): Promise<void> {
     // Stage 1: No WebSocket to reconnect
-    this.deps.debugLogger.log('[MYXProvider] reconnect() is no-op in Stage 1');
+    this.#deps.debugLogger.log('[MYXProvider] reconnect() is no-op in Stage 1');
   }
 
   // ============================================================================
@@ -722,7 +722,7 @@ export class MYXProvider implements PerpsProvider {
   // ============================================================================
 
   getBlockExplorerUrl(address?: string): string {
-    const baseUrl = this.isTestnet
+    const baseUrl = this.#isTestnet
       ? MYX_TESTNET_EXPLORER_URL
       : MYX_BLOCK_EXPLORER_URL;
 

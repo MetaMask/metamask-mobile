@@ -12,7 +12,7 @@ import { hexWEIToDecGWEI } from '../../../../../../util/conversions';
 import { limitToMaximumDecimalPlaces } from '../../../../../../util/number';
 import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { convertGasInputToHexWEI } from '../../../utils/gas';
+import { convertGasInputToHexWEI, normalizeGasInput } from '../../../utils/gas';
 import { validateMaxBaseFee } from '../../../utils/validations/gas';
 import { TextFieldWithLabel } from '../../UI/text-field-with-label';
 import styleSheet from './max-base-fee-input.styles';
@@ -64,9 +64,10 @@ export const MaxBaseFeeInput = ({
 
   const handleChange = useCallback(
     (text: string) => {
-      validateMaxBaseFeeCallback(text);
-      setValue(text);
-      const updatedMaxBaseFee = convertGasInputToHexWEI(text);
+      const normalisedInput = normalizeGasInput(text);
+      validateMaxBaseFeeCallback(normalisedInput);
+      setValue(normalisedInput);
+      const updatedMaxBaseFee = convertGasInputToHexWEI(normalisedInput);
       onChange(updatedMaxBaseFee);
     },
     [onChange, validateMaxBaseFeeCallback],

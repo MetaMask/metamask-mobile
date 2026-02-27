@@ -18,6 +18,7 @@ import {
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
+  POLYMARKET_PROVIDER_ID,
 } from './constants';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import {
@@ -51,6 +52,7 @@ import {
   getMarketsFromPolymarketApi,
   getParsedMarketsFromPolymarketApi,
   getOrderBook,
+  getFeeRateBps,
   getOrderTypedData,
   getPolymarketEndpoints,
   getPredictPositionStatus,
@@ -552,6 +554,45 @@ describe('polymarket utils', () => {
     });
   });
 
+  describe('getFeeRateBps', () => {
+    it('returns fee rate from CLOB fee-rate endpoint', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ base_fee: 30 }),
+      });
+
+      const result = await getFeeRateBps({ tokenId: 'test-token' });
+
+      expect(result).toBe('30');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/fee-rate?token_id=test-token',
+        { method: 'GET' },
+      );
+    });
+
+    it('returns zero fee rate when fee-rate endpoint responds with error', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: jest
+          .fn()
+          .mockResolvedValue({ error: 'fee rate not found for market' }),
+      });
+
+      const result = await getFeeRateBps({ tokenId: 'test-token' });
+
+      expect(result).toBe('0');
+    });
+
+    it('returns zero fee rate when fee-rate endpoint throws', async () => {
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      const result = await getFeeRateBps({ tokenId: 'test-token' });
+
+      expect(result).toBe('0');
+    });
+  });
+
   describe('generateSalt', () => {
     it('generate a valid hex salt', () => {
       const salt = generateSalt();
@@ -953,7 +994,8 @@ describe('polymarket utils', () => {
         {
           conditionId: 'market-1',
           question: 'Will it rain?',
-          description: 'Weather prediction',
+          // Event description matches markets' descriptions (as per Polymarket's team)
+          description: 'A test event',
           icon: 'https://example.com/market-icon.png',
           image: 'https://example.com/market-image.png',
           groupItemTitle: 'Weather',
@@ -982,7 +1024,7 @@ describe('polymarket utils', () => {
       expect(result[0]).toEqual({
         id: 'event-1',
         slug: 'test-event',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         title: 'Test Event',
         description: 'A test event',
         image: 'https://example.com/icon.png',
@@ -994,10 +1036,10 @@ describe('polymarket utils', () => {
         outcomes: [
           {
             id: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'event-1',
             title: 'Will it rain?',
-            description: 'Weather prediction',
+            description: 'A test event',
             image: 'https://example.com/market-icon.png',
             groupItemTitle: 'Weather',
             status: 'open',
@@ -1916,7 +1958,7 @@ describe('polymarket utils', () => {
 
       expect(result).toEqual({
         id: 'market-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'event-1',
         title: 'Will it rain?',
         description: 'Weather prediction',
@@ -2118,7 +2160,7 @@ describe('polymarket utils', () => {
 
       expect(result[0]).toEqual({
         id: 'position-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'event-1',
         outcomeId: 'condition-1',
         outcome: 'Yes',
@@ -2143,7 +2185,7 @@ describe('polymarket utils', () => {
 
       expect(result[1]).toEqual({
         id: 'position-2',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'event-1',
         outcomeId: 'condition-1',
         outcome: 'No',
@@ -2168,7 +2210,7 @@ describe('polymarket utils', () => {
 
       expect(result[2]).toEqual({
         id: 'position-3',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'event-1',
         outcomeId: 'condition-1',
         outcome: 'Maybe',
@@ -2281,7 +2323,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         q: 'weather',
         limit: 10,
         offset: 5,
@@ -2312,7 +2353,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         q: 'nhl',
         limit: 10,
         offset: 0,
@@ -2339,7 +2379,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         q: 'nhl',
         limit: 10,
         offset: 0,
@@ -2362,7 +2401,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         category: 'crypto',
         limit: 5,
       };
@@ -3256,7 +3294,7 @@ describe('polymarket utils', () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ tags: [] }),
+        json: async () => ({ base_fee: 30 }),
       });
 
       const result = await previewOrder({
@@ -3272,6 +3310,7 @@ describe('polymarket utils', () => {
       expect(result.sharePrice).toBeGreaterThan(0);
       expect(result.maxAmountSpent).toBeGreaterThan(0);
       expect(result.slippage).toBeDefined();
+      expect(result.feeRateBps).toBe('30');
     });
 
     it('previews SELL order successfully', async () => {
@@ -3294,7 +3333,7 @@ describe('polymarket utils', () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ tags: [] }),
+        json: async () => ({ base_fee: 15 }),
       });
 
       const result = await previewOrder({
@@ -3309,6 +3348,7 @@ describe('polymarket utils', () => {
       expect(result.marketId).toBe('market-1');
       expect(result.sharePrice).toBeGreaterThan(0);
       expect(result.fees).toBeUndefined();
+      expect(result.feeRateBps).toBe('15');
     });
 
     it('throws error when orderbook is not available', async () => {
