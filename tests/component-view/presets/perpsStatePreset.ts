@@ -19,6 +19,7 @@ const defaultPerpsControllerState = {
   selectedPaymentToken: null,
   activeProvider: 'hyperliquid' as const,
   isTestnet: false,
+  withdrawalRequests: [] as unknown[],
 };
 
 /**
@@ -66,6 +67,10 @@ export const initialStatePerps = () =>
           },
           // usePerpsPaymentTokens -> useTokensWithBalance reads TokenBalancesController
           TokenBalancesController: { tokenBalances: {} },
+          // HeroCardView -> useReferralDetails/useSeasonStatus -> selectRewardsSubscriptionId reads RewardsController
+          RewardsController: {
+            activeAccount: null,
+          } as Record<string, unknown>,
         },
       },
     } as unknown as DeepPartial<RootState>);

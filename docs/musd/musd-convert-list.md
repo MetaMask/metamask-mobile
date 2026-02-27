@@ -324,7 +324,11 @@ Creates max-amount transaction and sets payment token. Leverages existing infras
 ```typescript
 export const useMusdMaxConversion = () => {
   const createMaxConversion = async (token: ConvertibleToken) => {
-    const { NetworkController, TransactionController, TransactionPayController } = Engine.context;
+    const {
+      NetworkController,
+      TransactionController,
+      TransactionPayController,
+    } = Engine.context;
 
     // 1. Calculate max amount from token balance
     const maxAmount = toHex(token.balance);
@@ -333,7 +337,8 @@ export const useMusdMaxConversion = () => {
     const outputChainId = getOutputChainId(token.chainId);
 
     // 3. Get network client for the output chain
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(outputChainId);
+    const networkClientId =
+      NetworkController.findNetworkClientIdByChainId(outputChainId);
 
     // 4. Generate transfer data with max amount
     const transferData = generateTransferData('transfer', {
@@ -745,9 +750,12 @@ export const selectMusdConversionStatuses = createSelector(
           statusMap[key] = {
             txId: tx.id,
             status: tx.status as TransactionStatus,
-            isPending: ['unapproved', 'approved', 'signed', 'submitted'].includes(
-              tx.status,
-            ),
+            isPending: [
+              'unapproved',
+              'approved',
+              'signed',
+              'submitted',
+            ].includes(tx.status),
             isConfirmed: tx.status === TransactionStatus.confirmed,
           };
         }
