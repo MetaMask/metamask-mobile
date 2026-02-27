@@ -18,6 +18,7 @@ import {
 } from './AdvancedChartTemplate';
 import {
   ChartType,
+  DEFAULT_DISABLED_FEATURES,
   type AdvancedChartProps,
   type AdvancedChartRef,
   type CrosshairData,
@@ -49,6 +50,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       chartType,
       showVolume = false,
       enableDrawingTools = false,
+      disabledFeatures = DEFAULT_DISABLED_FEATURES,
       onChartReady,
       onError,
       onCrosshairMove,
@@ -74,8 +76,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         createAdvancedChartTemplate(theme, {
           enableDrawingTools,
           showVolume,
+          disabledFeatures,
         }),
-      [theme, enableDrawingTools, showVolume],
+      [theme, enableDrawingTools, showVolume, disabledFeatures],
     );
 
     // Reset all chart state when the WebView reloads due to htmlContent changes

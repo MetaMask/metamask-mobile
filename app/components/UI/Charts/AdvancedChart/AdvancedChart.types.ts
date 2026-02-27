@@ -21,9 +21,47 @@ export interface OHLCVBar {
 }
 
 /**
- * Supported technical indicators
+ * Supported technical indicators.
+ *
+ * This is a curated subset for the Token Details mobile UX. Consumers that
+ * need TradingView's full native study picker can re-enable `header_widget`
+ * via the `disabledFeatures` prop override on AdvancedChart.
  */
 export type IndicatorType = 'MACD' | 'RSI' | 'MA200';
+
+/**
+ * TradingView widget features disabled by default.
+ *
+ * These defaults are optimized for the Token Details mobile UX: a clean,
+ * minimal chart with no header chrome, search, or toolbars. Consumers
+ * needing TradingView's native UI (e.g. Perps with full indicator picker,
+ * timeframes toolbar, or symbol search) can pass a custom list via the
+ * `disabledFeatures` prop to opt back in selectively.
+ */
+export const DEFAULT_DISABLED_FEATURES: string[] = [
+  'use_localstorage_for_settings',
+  'header_widget',
+  'timeframes_toolbar',
+  'edit_buttons_in_legend',
+  'control_bar',
+  'border_around_the_chart',
+  'header_symbol_search',
+  'header_settings',
+  'header_compare',
+  'header_undo_redo',
+  'header_screenshot',
+  'header_fullscreen_button',
+  'legend_context_menu',
+  'symbol_search_hot_key',
+  'symbol_info',
+  'legend_widget',
+  'display_market_status',
+  'scales_context_menu',
+  'pane_context_menu',
+  'create_volume_indicator_by_default',
+  'main_series_scale_menu',
+  'go_to_date',
+];
 
 /**
  * Position side for long/short position shapes
@@ -192,6 +230,12 @@ export interface AdvancedChartProps {
   showVolume?: boolean;
   /** Enable left-side drawing toolbar */
   enableDrawingTools?: boolean;
+  /**
+   * TradingView widget features to disable. Defaults to DEFAULT_DISABLED_FEATURES
+   * (a curated mobile-friendly set). Pass a custom array to re-enable native
+   * TradingView capabilities like header_widget, timeframes_toolbar, etc.
+   */
+  disabledFeatures?: string[];
 
   /** Callback when chart is ready */
   onChartReady?: () => void;

@@ -1,5 +1,13 @@
-// Auto-generated from chartLogic.js — do not edit manually.
-const chartLogicString = `/**
+/**
+ * AUTO-GENERATED - DO NOT EDIT DIRECTLY
+ *
+ * This file is generated from chartLogic.js by syncChartLogic.js
+ * Edit chartLogic.js instead, then run:
+ *   node app/components/UI/Charts/AdvancedChart/webview/syncChartLogic.js
+ */
+
+// eslint-disable-next-line import/no-default-export
+export default `/**
  * TradingView Chart WebView Logic
  *
  * Generic charting logic for TradingView Advanced Charts.
@@ -210,6 +218,10 @@ function handleRealtimeUpdate(payload) {
 
 // ============================================
 // Indicator Handlers
+//
+// Curated subset for Token Details mobile UX. Consumers needing the full
+// TradingView study picker can re-enable header_widget via disabledFeatures
+// prop, which exposes TradingView's native indicator UI.
 // ============================================
 function handleAddIndicator(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
@@ -461,20 +473,20 @@ function handleToggleVolume(payload) {
  * the last tickSize applies to all prices above the last threshold.
  *
  * This replaces a manual pricescale computation and adapts automatically
- * as prices change (e.g. meme token pumps from \$0.0001 to \$1).
+ * as prices change (e.g. meme token pumps from $0.0001 to $1).
  */
 var VARIABLE_TICK_SIZE = [
   '0.0000000001',
-  '0.000001', // prices < \$0.000001 → 10 dp
+  '0.000001', // prices < $0.000001 → 10 dp
   '0.00000001',
-  '0.0001', // prices < \$0.0001   →  8 dp
+  '0.0001', // prices < $0.0001   →  8 dp
   '0.000001',
-  '0.01', // prices < \$0.01     →  6 dp
+  '0.01', // prices < $0.01     →  6 dp
   '0.0001',
-  '1', // prices < \$1        →  4 dp
+  '1', // prices < $1        →  4 dp
   '0.01',
-  '10000', // prices < \$10000    →  2 dp
-  '0.1', // prices ≥ \$10000    →  1 dp
+  '10000', // prices < $10000    →  2 dp
+  '0.1', // prices ≥ $10000    →  1 dp
 ].join(' ');
 
 function filterBarsForRange(fromMs, toMs, countBack) {
@@ -519,7 +531,8 @@ function filterBarsForRange(fromMs, toMs, countBack) {
 }
 
 function resolvePendingGetBars(pending) {
-  var currentOldest = window.ohlcvData.length > 0 ? window.ohlcvData[0].time : 0;
+  var currentOldest =
+    window.ohlcvData.length > 0 ? window.ohlcvData[0].time : 0;
 
   if (currentOldest >= pending.oldestAtDefer) {
     pending.onResult([], { noData: true });
@@ -533,8 +546,12 @@ function resolvePendingGetBars(pending) {
     var b = window.ohlcvData[i];
     if (b.time < pending.oldestAtDefer) {
       bars.push({
-        time: b.time, open: b.open, high: b.high,
-        low: b.low, close: b.close, volume: b.volume,
+        time: b.time,
+        open: b.open,
+        high: b.high,
+        low: b.low,
+        close: b.close,
+        volume: b.volume,
       });
     }
   }
@@ -715,30 +732,11 @@ function initChart() {
     var theme = window.CONFIG.theme;
     var features = window.CONFIG.features || {};
 
-    var disabledFeatures = [
-      'use_localstorage_for_settings',
-      'header_widget',
-      'timeframes_toolbar',
-      'edit_buttons_in_legend',
-      'control_bar',
-      'border_around_the_chart',
-      'header_symbol_search',
-      'header_settings',
-      'header_compare',
-      'header_undo_redo',
-      'header_screenshot',
-      'header_fullscreen_button',
-      'legend_context_menu',
-      'symbol_search_hot_key',
-      'symbol_info',
-      'legend_widget',
-      'display_market_status',
-      'scales_context_menu',
-      'pane_context_menu',
-      'create_volume_indicator_by_default',
-      'main_series_scale_menu',
-      'go_to_date',
-    ];
+    // Disabled features are passed from React Native via CONFIG.features.disabledFeatures.
+    // Defaults are set in DEFAULT_DISABLED_FEATURES (AdvancedChart.types.ts) and are
+    // optimized for the Token Details mobile UX. Consumers needing TradingView's
+    // native UI (e.g. Perps) can override via the disabledFeatures prop.
+    var disabledFeatures = (features.disabledFeatures || []).slice();
 
     if (!features.enableDrawingTools) {
       disabledFeatures.push('left_toolbar');
@@ -870,4 +868,3 @@ if (document.readyState === 'loading') {
   loadLibrary();
 }
 `;
-export default chartLogicString;

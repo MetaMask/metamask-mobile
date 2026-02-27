@@ -209,6 +209,10 @@ function handleRealtimeUpdate(payload) {
 
 // ============================================
 // Indicator Handlers
+//
+// Curated subset for Token Details mobile UX. Consumers needing the full
+// TradingView study picker can re-enable header_widget via disabledFeatures
+// prop, which exposes TradingView's native indicator UI.
 // ============================================
 function handleAddIndicator(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
@@ -719,30 +723,11 @@ function initChart() {
     var theme = window.CONFIG.theme;
     var features = window.CONFIG.features || {};
 
-    var disabledFeatures = [
-      'use_localstorage_for_settings',
-      'header_widget',
-      'timeframes_toolbar',
-      'edit_buttons_in_legend',
-      'control_bar',
-      'border_around_the_chart',
-      'header_symbol_search',
-      'header_settings',
-      'header_compare',
-      'header_undo_redo',
-      'header_screenshot',
-      'header_fullscreen_button',
-      'legend_context_menu',
-      'symbol_search_hot_key',
-      'symbol_info',
-      'legend_widget',
-      'display_market_status',
-      'scales_context_menu',
-      'pane_context_menu',
-      'create_volume_indicator_by_default',
-      'main_series_scale_menu',
-      'go_to_date',
-    ];
+    // Disabled features are passed from React Native via CONFIG.features.disabledFeatures.
+    // Defaults are set in DEFAULT_DISABLED_FEATURES (AdvancedChart.types.ts) and are
+    // optimized for the Token Details mobile UX. Consumers needing TradingView's
+    // native UI (e.g. Perps) can override via the disabledFeatures prop.
+    var disabledFeatures = (features.disabledFeatures || []).slice();
 
     if (!features.enableDrawingTools) {
       disabledFeatures.push('left_toolbar');
