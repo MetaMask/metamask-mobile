@@ -1,4 +1,8 @@
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import Logger from '../../../../util/Logger';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
 import { predictQueries } from '../queries';
 import { PriceQuery, GetPriceResponse, Side } from '../types';
 
@@ -43,6 +47,25 @@ export const usePredictPrices = (
     enabled: isEnabled,
     refetchInterval: pollingInterval ?? false,
   });
+
+  useEffect(() => {
+    if (!error) return;
+
+    Logger.error(ensureError(error), {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        component: 'usePredictPrices',
+      },
+      context: {
+        name: 'usePredictPrices',
+        data: {
+          method: 'loadPrices',
+          action: 'prices_load',
+          operation: 'data_fetching',
+        },
+      },
+    });
+  }, [error]);
 
   const hasData = isEnabled && !error && data;
 
