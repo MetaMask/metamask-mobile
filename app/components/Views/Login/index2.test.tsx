@@ -106,6 +106,11 @@ jest.mock('@react-navigation/native', () => {
       replace: mockReplace,
       reset: mockReset,
       goBack: mockGoBack,
+      dispatch: jest.fn((action) => {
+        if (action.type === 'REPLACE') {
+          mockReplace(action.payload.name, action.payload.params);
+        }
+      }),
     }),
     useRoute: () => mockRoute(),
   };
@@ -151,13 +156,6 @@ jest.mock('@react-native-community/netinfo', () => ({
       isConnectionExpensive: false,
     },
   })),
-}));
-
-const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
-
-jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
-  isMultichainAccountsState2Enabled: () =>
-    mockIsMultichainAccountsState2Enabled(),
 }));
 
 jest.mock('../../UI/ScreenshotDeterrent', () => ({
