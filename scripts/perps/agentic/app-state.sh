@@ -10,6 +10,11 @@
 #   scripts/perps/agentic/app-state.sh nav                      # Full navigation state
 #   scripts/perps/agentic/app-state.sh can-go-back              # Can navigate back?
 #   scripts/perps/agentic/app-state.sh go-back                  # Navigate back
+#   scripts/perps/agentic/app-state.sh accounts                 # List all accounts
+#   scripts/perps/agentic/app-state.sh account                  # Get selected account
+#   scripts/perps/agentic/app-state.sh switch-account <addr>    # Switch account
+#   scripts/perps/agentic/app-state.sh recipe perps/positions   # Run a recipe
+#   scripts/perps/agentic/app-state.sh recipe --list            # List recipes
 
 set -euo pipefail
 
@@ -40,6 +45,18 @@ case "$COMMAND" in
   go-back)
     node scripts/perps/agentic/cdp-bridge.js go-back
     ;;
+  accounts)
+    node scripts/perps/agentic/cdp-bridge.js list-accounts
+    ;;
+  account)
+    node scripts/perps/agentic/cdp-bridge.js get-selected-account
+    ;;
+  switch-account)
+    node scripts/perps/agentic/cdp-bridge.js switch-account "$@"
+    ;;
+  recipe)
+    node scripts/perps/agentic/cdp-bridge.js recipe "$@"
+    ;;
   *)
     echo "Usage: app-state.sh <command> [args...]"
     echo ""
@@ -51,6 +68,11 @@ case "$COMMAND" in
     echo "  eval-async <expr>      Evaluate async/Promise expression"
     echo "  can-go-back            Check if navigation can go back"
     echo "  go-back                Navigate back"
+    echo "  accounts               List all accounts"
+    echo "  account                Get the currently selected account"
+    echo "  switch-account <addr>  Switch to account by address"
+    echo "  recipe <team/name>     Run a recipe (e.g. perps/positions)"
+    echo "  recipe --list          List all available recipes"
     exit 1
     ;;
 esac

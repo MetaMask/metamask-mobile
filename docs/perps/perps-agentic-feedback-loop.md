@@ -110,6 +110,11 @@ scripts/perps/agentic/app-state.sh eval-async "<js-expression>" # run JS returni
 scripts/perps/agentic/app-state.sh nav                          # full navigation tree
 scripts/perps/agentic/app-state.sh can-go-back                  # check if can go back
 scripts/perps/agentic/app-state.sh go-back                      # navigate back
+scripts/perps/agentic/app-state.sh accounts                     # list all accounts
+scripts/perps/agentic/app-state.sh account                      # get selected account
+scripts/perps/agentic/app-state.sh switch-account <addr>        # switch to account by address
+scripts/perps/agentic/app-state.sh recipe <team/name>           # run a recipe (e.g. perps/positions)
+scripts/perps/agentic/app-state.sh recipe --list                # list all available recipes
 scripts/perps/agentic/screenshot.sh [label]                     # take screenshot, returns path
 scripts/perps/agentic/start-metro.sh                            # ensure Metro is running
 scripts/perps/agentic/stop-metro.sh                             # stop Metro background process
@@ -123,17 +128,20 @@ scripts/perps/agentic/test-trade-flow.sh                         # end-to-end tr
 
 ```
 scripts/perps/agentic/
-├── cdp-bridge.js       # CDP engine: WebSocket client, target discovery, eval, navigate
-├── app-navigate.sh     # Navigate wrapper (calls cdp-bridge + auto-screenshot)
-├── app-state.sh        # State/route/eval wrapper (calls cdp-bridge)
-├── screenshot.sh       # Cross-platform screenshot (iOS simctl / Android adb)
-├── start-metro.sh      # Start Metro (or attach to existing)
-├── stop-metro.sh       # Stop Metro background process
-├── reload-metro.sh     # Trigger hot-reload on all connected apps
-└── test-trade-flow.sh  # End-to-end trade validation (place → verify → close)
+├── cdp-bridge.js          # CDP engine: WebSocket client, target discovery, eval, navigate
+├── app-navigate.sh        # Navigate wrapper (calls cdp-bridge + auto-screenshot)
+├── app-state.sh           # State/route/eval/accounts/recipe wrapper (calls cdp-bridge)
+├── screenshot.sh          # Cross-platform screenshot (iOS simctl / Android adb)
+├── start-metro.sh         # Start Metro (or attach to existing)
+├── stop-metro.sh          # Stop Metro background process
+├── reload-metro.sh        # Trigger hot-reload on all connected apps
+├── test-trade-flow.sh     # End-to-end trade validation (place → verify → close)
+└── recipes/               # Per-team recipe files (see recipes/README.md)
+    ├── perps.json          # Perps team recipes (positions, auth, balances, markets, etc.)
+    └── README.md           # How to add recipes for your team
 ```
 
-The `__AGENTIC__` bridge on `globalThis` exposes: `navigate()`, `getRoute()`, `getState()`, `canGoBack()`, `goBack()`. These work identically on both platforms via Metro's Hermes CDP.
+The `__AGENTIC__` bridge on `globalThis` exposes: `navigate()`, `getRoute()`, `getState()`, `canGoBack()`, `goBack()`, `listAccounts()`, `getSelectedAccount()`, `switchAccount()`. These work identically on both platforms via Metro's Hermes CDP.
 
 > **Platform targeting**: CDP-based commands (navigate, state, eval, go-back) are platform-agnostic — they go through Metro's WebSocket and reach whichever app is connected. Screenshots require direct device access (`xcrun simctl` or `adb`), so `screenshot.sh` auto-detects the platform. When both iOS and Android devices are connected, set `PLATFORM=android` or `PLATFORM=ios` to disambiguate. Since `app-navigate.sh` takes a verification screenshot, pass `PLATFORM` when needed:
 >
@@ -314,6 +322,39 @@ grep 'PERPS_DEBUG.*cache' .agent/metro.log | tail -20
 ```
 
 > When debugging WS issues, the key signal is whether `PositionStreamChannel: WS callback` appears after placing an order. If it doesn't, the WebSocket subscription may be stale — check `ensureReady` logs for connection state.
+
+### Account Management
+
+The `__AGENTIC__` bridge exposes account methods at the root level. These are available via `cdp-bridge.js` commands or `app-state.sh` wrappers.
+
+```bash
+# List all accounts (id, address, name)
+scripts/perps/agentic/app-state.sh accounts
+
+# Get the currently selected account
+scripts/perps/agentic/app-state.sh account
+
+# Switch to a different account by address
+scripts/perps/agentic/app-state.sh switch-account 0x1234...abcd
+```
+
+Useful for auth scoping validation — switch accounts and verify that controller state (e.g. perps auth) updates correctly. Combine with `recipe perps/auth` to check auth state after switching.
+
+### Recipes
+
+Recipes are per-team JSON files in `scripts/perps/agentic/recipes/` that define reusable CDP expressions. This keeps domain-specific helpers in the scripts layer rather than the app source — any controller method accessible via `Engine.context` can be a recipe.
+
+```bash
+# Run a recipe
+scripts/perps/agentic/app-state.sh recipe perps/positions
+scripts/perps/agentic/app-state.sh recipe perps/auth
+scripts/perps/agentic/app-state.sh recipe perps/markets
+
+# List all available recipes
+scripts/perps/agentic/app-state.sh recipe --list
+```
+
+**Adding recipes for your team:** Create `recipes/<team>.json` — see `recipes/README.md` for the format. Each recipe has a description, a JS expression, and an `async` flag.
 
 ---
 

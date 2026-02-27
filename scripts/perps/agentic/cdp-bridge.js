@@ -528,6 +528,70 @@ const COMMANDS = {
     );
     return { currentRoute: route, deviceName, platform };
   },
+
+  async 'list-accounts'(client) {
+    return await cdpEval(client, 'globalThis.__AGENTIC__?.listAccounts()');
+  },
+
+  async 'get-selected-account'(client) {
+    return await cdpEval(client, 'globalThis.__AGENTIC__?.getSelectedAccount()');
+  },
+
+  async 'switch-account'(client, args) {
+    const address = args[0];
+    if (!address) {
+      throw new Error('Usage: switch-account <address>');
+    }
+    return await cdpEval(client, `globalThis.__AGENTIC__?.switchAccount(${JSON.stringify(address)})`);
+  },
+
+  async recipe(client, args) {
+    const arg = args[0];
+    if (!arg || arg === '--help') {
+      console.error('Usage: recipe <team/name> | recipe --list');
+      process.exit(1);
+    }
+
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const recipesDir = path.resolve(__dirname, 'recipes');
+
+    if (arg === '--list') {
+      // List all available recipes from recipes/*.json
+      const files = fs.readdirSync(recipesDir).filter((f) => f.endsWith('.json'));
+      const all = {};
+      for (const file of files) {
+        const team = path.basename(file, '.json');
+        const data = JSON.parse(fs.readFileSync(path.join(recipesDir, file), 'utf8'));
+        all[team] = Object.fromEntries(
+          Object.entries(data).map(([name, r]) => [name, r.description || ''])
+        );
+      }
+      return all;
+    }
+
+    // Parse "team/name"
+    const parts = arg.split('/');
+    if (parts.length !== 2) {
+      throw new Error('Recipe must be in "team/name" format (e.g. perps/positions)');
+    }
+    const [team, name] = parts;
+    const recipeFile = path.join(recipesDir, `${team}.json`);
+    if (!fs.existsSync(recipeFile)) {
+      throw new Error(`No recipe file found: recipes/${team}.json`);
+    }
+    const recipes = JSON.parse(fs.readFileSync(recipeFile, 'utf8'));
+    const recipe = recipes[name];
+    if (!recipe) {
+      const available = Object.keys(recipes).join(', ');
+      throw new Error(`Recipe "${name}" not found in ${team}. Available: ${available}`);
+    }
+
+    if (recipe.async) {
+      return await cdpEvalAsync(client, recipe.expression);
+    }
+    return await cdpEval(client, recipe.expression);
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -549,8 +613,14 @@ Commands:
   get-route                            Get current route name and params
   get-state [dot.path]                 Get Redux state (or nav state if no path)
   eval <expression>                    Evaluate arbitrary JS in app context
+  eval-async <expression>              Evaluate async/Promise expression
   can-go-back                          Check if navigation can go back
   go-back                              Navigate back
+  list-accounts                        List all accounts
+  get-selected-account                 Get the currently selected account
+  switch-account <address>             Switch to account by address
+  recipe <team/name>                   Run a recipe (e.g. perps/positions)
+  recipe --list                        List all available recipes
 
 Environment:
   WATCHER_PORT    Metro port (default: 8081)

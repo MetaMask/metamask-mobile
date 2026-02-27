@@ -115,6 +115,44 @@ class NavigationService {
         getState: () => navRef.dangerouslyGetState(),
         canGoBack: () => navRef.canGoBack(),
         goBack: () => deferredNav.goBack(),
+        listAccounts: () => {
+          const ctrl = Engine.context.AccountsController;
+          return ctrl
+            .listAccounts()
+            .map(
+              (a: {
+                id: string;
+                address: string;
+                metadata: { name: string };
+              }) => ({
+                id: a.id,
+                address: a.address,
+                name: a.metadata.name,
+              }),
+            );
+        },
+        getSelectedAccount: () => {
+          const ctrl = Engine.context.AccountsController;
+          const a = ctrl.getSelectedAccount();
+          return { id: a.id, address: a.address, name: a.metadata.name };
+        },
+        switchAccount: (address: string) => {
+          const ctrl = Engine.context.AccountsController;
+          const accounts = ctrl.listAccounts();
+          const target = accounts.find(
+            (a: { address: string }) =>
+              a.address.toLowerCase() === address.toLowerCase(),
+          );
+          if (!target) {
+            throw new Error(`No account found for address ${address}`);
+          }
+          ctrl.setSelectedAccount(target.id);
+          return {
+            switched: true,
+            id: target.id,
+            address: target.address,
+          };
+        },
       };
       try {
         (globalThis as Record<string, unknown>).store = ReduxService.store;
