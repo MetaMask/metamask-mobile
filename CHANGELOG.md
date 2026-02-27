@@ -139,6 +139,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed flow for "Cash buy X" button on the new token details layout (#25719)
 - Pass assetID to the on ramp buy screen. (#25709)
 
+## [7.66.1]
+
+### Fixed
+
+- remove process.env spread (#26528)
+
 ## [7.66.0]
 
 ### Added
@@ -10748,7 +10754,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.67.0...HEAD
-[7.67.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.66.0...v7.67.0
+[7.67.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.66.1...v7.67.0
+[7.66.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.66.0...v7.66.1
 [7.66.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.65.0...v7.66.0
 [7.65.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.1...v7.65.0
 [7.64.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.0...v7.64.1
