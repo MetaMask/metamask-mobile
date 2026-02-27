@@ -75,6 +75,7 @@ export type PositionSide = 'long' | 'short';
 export interface PositionLines {
   side: PositionSide;
   entryPrice: number;
+  currentPrice?: number;
   takeProfitPrice?: number;
   stopLossPrice?: number;
   liquidationPrice?: number;
