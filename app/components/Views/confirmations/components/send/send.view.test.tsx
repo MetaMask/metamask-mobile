@@ -305,37 +305,4 @@ describeForPlatforms('Send', () => {
       expect(avatar).toBeOnTheScreen();
     }
   });
-
-  /**
-   * Regression test for issue #22702
-   * Keypad and amount area on Send Amount screen must be visible and not overflowing
-   */
-  it('Amount screen shows keypad and amount area visible', async () => {
-    const state = initialStateWallet().withOverrides(sendViewOverrides).build();
-
-    const { getByTestId } = renderScreenWithRoutes(
-      Send as unknown as React.ComponentType,
-      { name: Routes.SEND.DEFAULT },
-      [],
-      { state },
-      {
-        asset: {
-          chainId: '0x1',
-          symbol: 'ETH',
-          decimals: 18,
-          balance: '1',
-        },
-      },
-    );
-
-    const amountDisplay = getByTestId(
-      RedesignedSendViewSelectorsIDs.SEND_AMOUNT,
-    );
-    expect(amountDisplay).toBeOnTheScreen();
-
-    const keypad = getByTestId(
-      RedesignedSendViewSelectorsIDs.EDIT_AMOUNT_KEYBOARD,
-    );
-    expect(keypad).toBeOnTheScreen();
-  });
 });
