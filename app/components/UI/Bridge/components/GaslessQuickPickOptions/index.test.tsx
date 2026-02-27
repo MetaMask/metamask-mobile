@@ -35,7 +35,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
-import type { EventBuilderFunctionType } from '../../../../hooks/useAnalytics';
 
 const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
   typeof useLatestBalance
@@ -47,6 +46,9 @@ const mockUseShouldRenderMaxOption =
 const mockUseAnalytics = useAnalytics as jest.MockedFunction<
   typeof useAnalytics
 >;
+const actualUseAnalytics: typeof useAnalytics = jest.requireActual(
+  '../../../../hooks/useAnalytics/useAnalytics',
+).useAnalytics;
 const renderWithRedux = (component: React.ReactElement) =>
   renderWithProvider(component, undefined, false);
 
@@ -71,14 +73,10 @@ describe('GaslessQuickPickOptions', () => {
     mockUseShouldRenderMaxOption.mockReturnValue(true);
     mockUseLatestBalance.mockReset();
     mockUseLatestBalance.mockReturnValue(mockTokenBalance);
-    mockUseAnalytics.mockReturnValue({
+    mockUseAnalytics.mockImplementation(() => ({
+      ...actualUseAnalytics(),
       trackEvent: jest.fn(),
-      createEventBuilder: (() => ({
-        addProperties: () => ({
-          build: () => ({ event: 'mock-event' }),
-        }),
-      })) as EventBuilderFunctionType,
-    });
+    }));
   });
 
   afterEach(() => {
