@@ -13,7 +13,7 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import Routes from '../../../../constants/navigation/Routes';
-import { predictQueries } from '../queries';
+import { invalidatePredictCaches } from '../utils/invalidatePredictCaches';
 
 export const usePredictClaim = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
@@ -33,17 +33,7 @@ export const usePredictClaim = () => {
       });
       await claimWinnings({});
 
-      // Invalidate caches after successful claim so balance,
-      // positions, and activity reflect the updated state.
-      queryClient.invalidateQueries({
-        queryKey: predictQueries.balance.keys.all(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: predictQueries.positions.keys.all(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: predictQueries.activity.keys.all(),
-      });
+      invalidatePredictCaches(queryClient);
     } catch (err) {
       // Log error with claim context
       Logger.error(ensureError(err), {
