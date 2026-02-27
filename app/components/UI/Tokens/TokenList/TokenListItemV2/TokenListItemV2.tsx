@@ -26,6 +26,7 @@ import { ScamWarningIcon } from '../TokenListItem/ScamWarningIcon/ScamWarningIco
 import { FlashListAssetKey } from '../TokenList';
 import {
   selectMerklCampaignClaimingEnabledFlag,
+  selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
@@ -92,6 +93,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -195,12 +197,17 @@ export const TokenListItemV2 = React.memo(
       selectStablecoinLendingEnabledFlag,
     );
 
+    const isQuickConvertEnabled = useSelector(
+      selectMusdQuickConvertEnabledFlag,
+    );
+
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
 
     const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
-    const { initiateConversion, hasSeenConversionEducationScreen } =
+
+    const { initiateCustomConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
     const shouldShowConvertToMusdCta = useMemo(
@@ -314,10 +321,15 @@ export const TokenListItemV2 = React.memo(
       const submitCtaPressedEvent = () => {
         const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
-        const getRedirectLocation = () =>
-          hasSeenConversionEducationScreen
-            ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
-            : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+        const getRedirectLocation = () => {
+          if (!hasSeenConversionEducationScreen) {
+            return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+          }
+
+          return isQuickConvertEnabled
+            ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
+            : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+        };
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
@@ -348,12 +360,13 @@ export const TokenListItemV2 = React.memo(
 
         const assetChainId = toHex(asset.chainId);
 
-        await initiateConversion({
+        await initiateCustomConversion({
           preferredPaymentToken: {
             address: toHex(asset.address),
             chainId: assetChainId,
           },
           navigationStack: Routes.EARN.ROOT,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       } catch (error) {
         Logger.error(
@@ -368,7 +381,8 @@ export const TokenListItemV2 = React.memo(
       chainId,
       createEventBuilder,
       hasSeenConversionEducationScreen,
-      initiateConversion,
+      initiateCustomConversion,
+      isQuickConvertEnabled,
       networkName,
       trackEvent,
     ]);

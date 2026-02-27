@@ -1,165 +1,91 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import NftFullView from './NftFullView';
-import { useNavigation } from '@react-navigation/native';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
-// Mock external dependencies that are not under test
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const tw = () => ({});
-    tw.style = () => ({});
-    return tw;
-  },
-}));
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: jest.fn(),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+  }),
 }));
 
-// Mock child components to avoid complex Redux state setup
-jest.mock('../../UI/NftGrid/NftGrid', () => {
-  const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-
-  return function MockNftGrid({ isFullView }: { isFullView?: boolean }) {
-    return React.createElement(
-      View,
-      { testID: 'nft-grid' },
-      React.createElement(
-        Text,
-        null,
-        `NftGrid ${isFullView ? 'Full View' : 'Tab View'}`,
-      ),
-    );
-  };
-});
+jest.mock('../../UI/NftGrid/NftGrid', () => 'NftGrid');
 
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheetHeader',
   () => {
-    const React = jest.requireActual('react');
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-
-    return function MockBottomSheetHeader({
-      onBack,
+    const { TouchableOpacity, View, Text } = jest.requireActual('react-native');
+    return ({
       children,
+      onBack,
     }: {
+      children: React.ReactNode;
       onBack: () => void;
-      children: string;
-    }) {
-      return React.createElement(
-        View,
-        { testID: 'bottom-sheet-header' },
-        React.createElement(
-          TouchableOpacity,
-          { testID: 'back-button', onPress: onBack },
-          React.createElement(Text, null, 'Back'),
-        ),
-        React.createElement(Text, { testID: 'header-title' }, children),
-      );
-    };
+    }) => (
+      <View testID="bottom-sheet-header">
+        <TouchableOpacity testID="header-back-button" onPress={onBack}>
+          <Text>Back</Text>
+        </TouchableOpacity>
+        <Text testID="header-title">{children}</Text>
+      </View>
+    );
   },
 );
 
-// Mock Box component
-jest.mock('@metamask/design-system-react-native', () => ({
-  Box: ({
-    children,
-    testID,
-  }: {
-    children: React.ReactNode;
-    testID?: string;
-  }) => {
-    const React = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return React.createElement(View, { testID }, children);
-  },
-}));
-
-// Type the mocked functions
-const mockUseNavigation = useNavigation as jest.MockedFunction<
-  typeof useNavigation
->;
-
 describe('NftFullView', () => {
-  const mockGoBack = jest.fn();
+  const initialState = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+      },
+    },
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    // Setup default mocks
-    mockUseNavigation.mockReturnValue({
-      goBack: mockGoBack,
-    } as unknown as ReturnType<typeof useNavigation>);
   });
 
-  it('renders header with title and back button', () => {
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('renders NftGrid with isFullView prop', () => {
+    // Arrange & Act
+    const { UNSAFE_getByType } = renderWithProvider(<NftFullView />, {
+      state: initialState,
+    });
+
+    // Assert
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nftGrid = UNSAFE_getByType('NftGrid' as any);
+    expect(nftGrid.props.isFullView).toBe(true);
+  });
+
+  it('navigates back when back button is pressed', () => {
     // Arrange
-    const { getByTestId } = renderScreen(NftFullView, {
-      name: 'NftFullView',
+    const { getByTestId } = renderWithProvider(<NftFullView />, {
+      state: initialState,
     });
 
     // Act
-    const header = getByTestId('bottom-sheet-header');
-    const backButton = getByTestId('back-button');
-    const headerTitle = getByTestId('header-title');
+    const backButton = getByTestId('header-back-button');
+    fireEvent.press(backButton);
 
     // Assert
-    expect(header).toBeOnTheScreen();
-    expect(backButton).toBeOnTheScreen();
-    expect(headerTitle).toBeOnTheScreen();
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('renders NFT grid with isFullView prop', () => {
-    // Arrange
-    const { getByTestId } = renderScreen(NftFullView, {
-      name: 'NftFullView',
+  it('displays NFTs header title', () => {
+    // Arrange & Act
+    const { getByTestId } = renderWithProvider(<NftFullView />, {
+      state: initialState,
     });
 
-    // Act
-    const nftGrid = getByTestId('nft-grid');
-
     // Assert
-    expect(nftGrid).toBeOnTheScreen();
-  });
-
-  it('calls goBack when back button is pressed', () => {
-    // Arrange
-    const { getByTestId } = renderScreen(NftFullView, {
-      name: 'NftFullView',
-    });
-
-    // Act
-    const backButton = getByTestId('back-button');
-    backButton.props.onPress();
-
-    // Assert
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('displays correct header title', () => {
-    // Arrange
-    const { getByTestId } = renderScreen(NftFullView, {
-      name: 'NftFullView',
-    });
-
-    // Act
-    const headerTitle = getByTestId('header-title');
-
-    // Assert
-    expect(headerTitle).toBeOnTheScreen();
-  });
-
-  it('renders with safe area view', () => {
-    // Arrange
-    const { getByTestId } = renderScreen(NftFullView, {
-      name: 'NftFullView',
-    });
-
-    // Act
-    const header = getByTestId('bottom-sheet-header');
-
-    // Assert
-    expect(header).toBeOnTheScreen();
+    expect(getByTestId('header-title')).toBeOnTheScreen();
   });
 });
