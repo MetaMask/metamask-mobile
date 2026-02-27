@@ -452,7 +452,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           hasPositivePnl={hasPositivePnl}
           marketStatus={market?.status as PredictMarketStatus | undefined}
           singleOutcomeMarket={singleOutcomeMarket}
-          isMarketFetching={isMarketFetching}
+          isMarketLoading={isMarketLoading}
           market={market}
           openOutcomes={openOutcomes}
           yesPercentage={yesPercentage}
