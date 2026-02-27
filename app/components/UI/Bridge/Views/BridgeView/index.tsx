@@ -153,8 +153,6 @@ const BridgeView = () => {
   // The ref is typed to only expose the blur method we need
   const inputRef = useRef<TokenInputAreaRef>(null);
 
-  const updateQuoteParams = useBridgeQuoteRequest();
-
   // Fetch STX liveness for the source chain
   useRefreshSmartTransactionsLiveness(sourceToken?.chainId);
 
@@ -195,6 +193,11 @@ const BridgeView = () => {
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
+    balance: sourceToken?.balance,
+  });
+
+  const updateQuoteParams = useBridgeQuoteRequest({
+    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
   const {
@@ -559,7 +562,9 @@ const BridgeView = () => {
             ) : null}
             {contentMode === 'quote' ? (
               <Box style={styles.quoteContainer}>
-                <QuoteDetailsCard />
+                <QuoteDetailsCard
+                  hasInsufficientBalance={hasInsufficientBalance}
+                />
               </Box>
             ) : null}
             {contentMode === 'zero' ? (

@@ -14,6 +14,7 @@ import { ButtonVariants } from '../../../../component-library/components/Buttons
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
+  ButtonIconVariant,
   ToastOptions,
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
@@ -78,6 +79,7 @@ export interface PerpsToastOptionsConfig {
       creationFailed: (error?: string) => PerpsToastOptions;
     };
     shared: {
+      submitting: () => PerpsToastOptions;
       cancellationInProgress: (
         direction: OrderDirection,
         amount: string,
@@ -585,6 +587,18 @@ const usePerpsToasts = (): {
         },
         // Used for both market and limit orders.
         shared: {
+          submitting: () => ({
+            ...perpsBaseToastOptions.inProgress,
+            hasNoTimeout: true,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.submitting_your_trade'),
+            ),
+            closeButtonOptions: {
+              variant: ButtonIconVariant.Icon,
+              iconName: IconName.Close,
+              onPress: () => toastRef?.current?.closeToast(),
+            },
+          }),
           cancellationInProgress: (
             direction: OrderDirection,
             amount: string,
@@ -983,6 +997,7 @@ const usePerpsToasts = (): {
       theme.colors.error.default,
       theme.colors.error.muted,
       theme.colors.success.default,
+      toastRef,
     ],
   );
 

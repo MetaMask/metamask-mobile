@@ -17,6 +17,7 @@ import {
 import type { MarketInsightsSource } from '@metamask/ai-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
+import { endTrace, TraceName } from '../../../../../util/trace';
 import { getFaviconUrl } from '../../utils/marketInsightsFormatting';
 
 const MAX_VISIBLE_SOURCE_LOGOS = 3;
@@ -104,9 +105,19 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   report,
   timeAgo,
   onPress,
+  caip19Id,
   testID,
 }) => {
   const tw = useTailwind();
+
+  useEffect(() => {
+    // End the trace started by the parent (AssetOverviewContent) to measure
+    // how long it takes for the entry card to mount after navigation.
+    endTrace({
+      name: TraceName.MarketInsightsEntryCardLoad,
+      id: caip19Id,
+    });
+  }, [caip19Id]);
 
   return (
     <Pressable
