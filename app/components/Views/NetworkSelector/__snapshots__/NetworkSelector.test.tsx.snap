@@ -4030,10 +4030,10 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             style={
                                               {
                                                 "alignItems": "center",
-                                                "alignSelf": "center",
+                                                "alignSelf": "flex-end",
                                                 "backgroundColor": "#457a391a",
                                                 "borderRadius": 4,
-                                                "height": 22,
+                                                "height": 20,
                                                 "justifyContent": "center",
                                                 "paddingHorizontal": 8,
                                               }
@@ -4044,13 +4044,18 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               accessibilityRole="text"
                                               style={
                                                 {
+                                                  "bottom": 1,
                                                   "color": "#457a39",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 14,
+                                                  "fontWeight": "normal",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 22,
+                                                  "textAlign": "center",
+                                                  "textTransform": "none",
                                                 }
                                               }
+                                              testID="tagcolored-text"
                                             >
                                               No network fee
                                             </Text>
