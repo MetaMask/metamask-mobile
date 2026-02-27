@@ -41,6 +41,8 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
+import { showV2OrderToast } from '../../utils/v2OrderToast';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -221,6 +223,7 @@ const Checkout = () => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const isV2Enabled = useRampsUnifiedV2Enabled();
 
   const {
     url: uri,
@@ -321,9 +324,18 @@ const Checkout = () => {
           return;
         }
         _dispatch(addFiatOrder(order));
-        const notificationDetails = getNotificationDetails(order);
-        if (notificationDetails) {
-          NotificationManager.showSimpleNotification(notificationDetails);
+        if (isV2Enabled) {
+          showV2OrderToast({
+            orderId: order.id,
+            cryptocurrency: order.cryptocurrency,
+            cryptoAmount: order.cryptoAmount,
+            state: order.state,
+          });
+        } else {
+          const notificationDetails = getNotificationDetails(order);
+          if (notificationDetails) {
+            NotificationManager.showSimpleNotification(notificationDetails);
+          }
         }
       });
 
@@ -346,7 +358,7 @@ const Checkout = () => {
         navigation.dangerouslyGetParent()?.pop();
       }
     },
-    [dispatch, dispatchThunk, navigation, providerType],
+    [dispatch, dispatchThunk, navigation, providerType, isV2Enabled],
   );
 
   const handleNavigationStateChange = useCallback(
