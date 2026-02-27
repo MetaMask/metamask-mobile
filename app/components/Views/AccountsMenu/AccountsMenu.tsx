@@ -68,7 +68,7 @@ const AccountsMenu = () => {
     trackEvent(
       createEventBuilder(EVENT_NAME.RAMPS_BUTTON_CLICKED)
         .addProperties({
-          text: 'Buy',
+          button_text: 'Buy',
           location: 'AccountsMenu',
           ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY',
           chain_id_destination: null,

@@ -115,7 +115,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
       createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
         .addProperties({
           location: 'Order Details',
-          text: 'View on Provider',
+          external_link_description: 'View on Provider',
           url_domain: urlDomain,
           ramp_type: 'UNIFIED_BUY_2',
         })

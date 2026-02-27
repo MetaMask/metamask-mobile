@@ -71,7 +71,10 @@ const V2EnterEmail = () => {
     );
   }, [navigation, theme, trackEvent, createEventBuilder]);
 
+  const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
+    if (hasTrackedScreenViewRef.current) return;
+    hasTrackedScreenViewRef.current = true;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
         .addProperties({

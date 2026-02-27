@@ -58,7 +58,7 @@ function ProcessingInfoModal() {
       createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
         .addProperties({
           location: 'Order Details',
-          text: 'Provider Support',
+          external_link_description: 'Provider Support',
           url_domain: urlDomain,
           ramp_type: 'UNIFIED_BUY_2',
         })

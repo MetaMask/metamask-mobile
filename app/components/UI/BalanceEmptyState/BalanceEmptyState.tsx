@@ -51,7 +51,7 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
-          text: 'Add funds',
+          button_text: 'Add funds',
           location: 'BalanceEmptyState',
           chain_id_destination: getDecimalChainId(chainId),
           ramp_type: isV2UnifiedEnabled

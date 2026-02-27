@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Image, Linking, ScrollView } from 'react-native';
 import Text, {
   TextVariant,
@@ -60,7 +60,10 @@ const V2VerifyIdentity = () => {
     );
   }, [navigation, theme, trackEvent, createEventBuilder]);
 
+  const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
+    if (hasTrackedScreenViewRef.current) return;
+    hasTrackedScreenViewRef.current = true;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
         .addProperties({
@@ -84,12 +87,18 @@ const V2VerifyIdentity = () => {
   }, [navigateToEnterEmail, trackEvent, createEventBuilder]);
 
   const handleTransakLink = useCallback(() => {
+    let urlDomain: string = TRANSAK_URL;
+    try {
+      urlDomain = new URL(TRANSAK_URL).hostname;
+    } catch {
+      // use TRANSAK_URL as fallback for analytics if parse fails
+    }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
         .addProperties({
           location: 'Verify Identity',
-          text: 'Transak',
-          url_domain: new URL(TRANSAK_URL).hostname,
+          external_link_description: 'Transak',
+          url_domain: urlDomain,
           ramp_type: 'UNIFIED_BUY_2',
         })
         .build(),
@@ -98,12 +107,18 @@ const V2VerifyIdentity = () => {
   }, [trackEvent, createEventBuilder]);
 
   const handlePrivacyPolicyLink = useCallback(() => {
+    let urlDomain: string = CONSENSYS_PRIVACY_POLICY_URL;
+    try {
+      urlDomain = new URL(CONSENSYS_PRIVACY_POLICY_URL).hostname;
+    } catch {
+      // use raw URL as fallback for analytics if parse fails
+    }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
         .addProperties({
           location: 'Verify Identity',
-          text: 'Privacy Policy',
-          url_domain: new URL(CONSENSYS_PRIVACY_POLICY_URL).hostname,
+          external_link_description: 'Privacy Policy',
+          url_domain: urlDomain,
           ramp_type: 'UNIFIED_BUY_2',
         })
         .build(),
@@ -114,12 +129,18 @@ const V2VerifyIdentity = () => {
   const handleTransakTermsLink = useCallback(() => {
     const termsUrl =
       regionIsoCode === 'US' ? TRANSAK_TERMS_URL_US : TRANSAK_TERMS_URL_WORLD;
+    let urlDomain: string = termsUrl;
+    try {
+      urlDomain = new URL(termsUrl).hostname;
+    } catch {
+      // use termsUrl as fallback for analytics if parse fails
+    }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
         .addProperties({
           location: 'Verify Identity',
-          text: 'Transak Terms',
-          url_domain: new URL(termsUrl).hostname,
+          external_link_description: 'Transak Terms',
+          url_domain: urlDomain,
           ramp_type: 'UNIFIED_BUY_2',
         })
         .build(),

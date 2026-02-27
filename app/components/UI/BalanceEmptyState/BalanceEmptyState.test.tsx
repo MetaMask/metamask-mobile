@@ -106,7 +106,7 @@ describe('BalanceEmptyState', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalledWith('ramps_button_clicked');
     expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: 'Add funds',
+        button_text: 'Add funds',
         location: 'BalanceEmptyState',
         chain_id_destination: 1,
         ramp_type: 'BUY',
@@ -129,7 +129,7 @@ describe('BalanceEmptyState', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalledWith('ramps_button_clicked');
     expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: 'Add funds',
+        button_text: 'Add funds',
         location: 'BalanceEmptyState',
         chain_id_destination: 1,
         ramp_type: 'UNIFIED_BUY',

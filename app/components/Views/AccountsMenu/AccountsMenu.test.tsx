@@ -320,7 +320,7 @@ describe('AccountsMenu', () => {
 
       // Verify properties were added
       expect(mockAddProperties).toHaveBeenCalledWith({
-        text: 'Buy',
+        button_text: 'Buy',
         location: 'AccountsMenu',
         ramp_type: 'UNIFIED_BUY',
         chain_id_destination: null,

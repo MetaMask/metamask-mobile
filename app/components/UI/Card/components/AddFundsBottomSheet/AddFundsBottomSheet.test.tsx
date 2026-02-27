@@ -243,7 +243,7 @@ describe('AddFundsBottomSheet', () => {
     );
     expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: 'Deposit',
+        button_text: 'Fund with cash',
         location: 'CardHome',
         chain_id_destination: '59144',
         ramp_type: 'DEPOSIT',
