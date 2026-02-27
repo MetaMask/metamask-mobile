@@ -412,7 +412,7 @@ export const useSectionsData = (
 
   return {
     tokens: {
-      data: trendingTokens.filter((item) => !(item as TrendingAsset).rwaData),
+      data: trendingTokens,
       isLoading: isTokensLoading,
     },
     perps: {
