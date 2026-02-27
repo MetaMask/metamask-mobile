@@ -114,6 +114,8 @@ jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
   default: jest.fn(() => false),
 }));
 
+jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV2Enabled');
+
 const mockGoToBuy = jest.fn();
 jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({

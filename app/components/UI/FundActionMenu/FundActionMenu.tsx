@@ -31,6 +31,7 @@ import type {
 } from './FundActionMenu.types';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
+import useRampsUnifiedV2Enabled from '../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
 const FundActionMenu = () => {
@@ -48,6 +49,7 @@ const FundActionMenu = () => {
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
+  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
   const { goToBuy, goToAggregator, goToSell, goToDeposit } =
     useRampNavigation();
   const rampsButtonClickData = useRampsButtonClickData();
@@ -118,7 +120,7 @@ const FundActionMenu = () => {
             text: 'Buy',
             location: 'FundActionMenu',
             chain_id_destination: getChainIdForAsset(),
-            ramp_type: 'UNIFIED_BUY',
+            ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY',
             region: rampGeodetectedRegion,
             ramp_routing: rampsButtonClickData.ramp_routing,
             is_authenticated: rampsButtonClickData.is_authenticated,
@@ -212,6 +214,7 @@ const FundActionMenu = () => {
     [
       isDepositEnabled,
       rampUnifiedV1Enabled,
+      isV2UnifiedEnabled,
       chainId,
       rampGeodetectedRegion,
       getChainIdForAsset,

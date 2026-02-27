@@ -64,6 +64,7 @@ jest.mock('../../hooks/useMetrics');
 jest.mock('../Ramp/Aggregator/hooks/useRampNetwork');
 jest.mock('../Ramp/Deposit/hooks/useDepositEnabled');
 jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled');
+jest.mock('../Ramp/hooks/useRampsUnifiedV2Enabled');
 jest.mock('../Ramp/hooks/useRampNavigation');
 jest.mock('../../../util/trace');
 jest.mock('../../../util/networks', () => ({

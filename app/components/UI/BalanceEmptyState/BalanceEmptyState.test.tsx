@@ -30,6 +30,8 @@ jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
   default: () => mockUseRampsUnifiedV1Enabled(),
 }));
 
+jest.mock('../Ramp/hooks/useRampsUnifiedV2Enabled');
+
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockEventBuilder = {

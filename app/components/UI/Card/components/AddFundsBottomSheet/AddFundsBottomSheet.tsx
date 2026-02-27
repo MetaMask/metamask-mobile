@@ -35,6 +35,7 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
+import useRampsUnifiedV2Enabled from '../../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import {
   createNavigationDetails,
   useParams,
@@ -66,6 +67,7 @@ const AddFundsBottomSheet: React.FC = () => {
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToDeposit } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
+  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -97,7 +99,7 @@ const AddFundsBottomSheet: React.FC = () => {
           text: 'Deposit',
           location: 'CardHome',
           chain_id_destination: getDecimalChainId(priorityToken?.caipChainId),
-          ramp_type: 'DEPOSIT',
+          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'DEPOSIT',
           region: rampGeodetectedRegion,
           ramp_routing: buttonClickData.ramp_routing,
           is_authenticated: buttonClickData.is_authenticated,
@@ -118,6 +120,7 @@ const AddFundsBottomSheet: React.FC = () => {
     createEventBuilder,
     priorityToken,
     buttonClickData,
+    isV2UnifiedEnabled,
   ]);
 
   const options = [
