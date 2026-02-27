@@ -24,7 +24,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
-      dangerouslyGetState: mockDangerouslyGetState,
+      getState: mockDangerouslyGetState,
     }),
   };
 });

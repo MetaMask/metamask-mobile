@@ -172,7 +172,7 @@ const DaimoPayModal: React.FC = () => {
 
       dispatch(clearCacheData('card-details'));
 
-      const parentNavigator = navigation.dangerouslyGetParent();
+      const parentNavigator = navigation.getParent();
       if (parentNavigator) {
         parentNavigator.dispatch(
           CommonActions.reset({

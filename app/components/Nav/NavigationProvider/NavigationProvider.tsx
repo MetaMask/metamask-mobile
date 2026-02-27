@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import {
   NavigationContainer,
   NavigationContainerRef,
+  ParamListBase,
   Theme,
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -53,7 +54,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   /**
    * Sets the navigation ref on the NavigationService
    */
-  const setNavigationRef = (ref: NavigationContainerRef) => {
+  const setNavigationRef = (ref: NavigationContainerRef<ParamListBase>) => {
     // This condition only happens on unmount. But that should never happen since this is meant to always be mounted.
     if (!ref) {
       return;

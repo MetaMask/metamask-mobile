@@ -25,7 +25,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
-    dangerouslyGetParent: mockDangerouslyGetParent,
+    getParent: mockDangerouslyGetParent,
   }),
   CommonActions: {
     reset: jest.fn((config) => ({ type: 'RESET', ...config })),

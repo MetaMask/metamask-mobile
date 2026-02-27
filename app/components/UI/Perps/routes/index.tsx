@@ -96,9 +96,9 @@ const PerpsModalStack = () => {
     <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
-          mode="modal"
           screenOptions={{
             headerShown: false,
+            presentation: 'modal',
             cardStyle: {
               backgroundColor: 'transparent',
             },
@@ -194,9 +194,9 @@ const PerpsClosePositionBottomSheetStack = () => {
     <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
-          mode="modal"
           screenOptions={{
             headerShown: false,
+            presentation: 'modal',
             cardStyle: {
               backgroundColor: 'transparent',
             },

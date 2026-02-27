@@ -23,7 +23,6 @@ const clearStackNavigatorOptions = {
 const Stack = createStackNavigator();
 export const BridgeScreenStack = () => (
   <Stack.Navigator
-    headerMode="screen"
     screenOptions={{
       headerShown: true,
     }}
@@ -44,8 +43,7 @@ export const BridgeScreenStack = () => (
 const ModalStack = createStackNavigator();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
   >
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL}

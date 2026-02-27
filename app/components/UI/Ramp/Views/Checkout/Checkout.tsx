@@ -306,7 +306,7 @@ const Checkout = () => {
 
       if (providerType === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
         // Use reset() instead of pop() + navigate() to avoid a race condition:
-        // dangerouslyGetParent()?.pop() removes the ramp modal from the stack
+        // getParent()?.pop() removes the ramp modal from the stack
         // before navigate() can push the order details screen, sending the user
         // to the home screen instead.
         navigation.reset({
@@ -320,7 +320,7 @@ const Checkout = () => {
         });
       } else {
         // @ts-expect-error navigation prop mismatch
-        navigation.dangerouslyGetParent()?.pop();
+        navigation.getParent()?.pop();
       }
     },
     [dispatch, dispatchThunk, navigation, providerType, isV2Enabled],
@@ -342,7 +342,7 @@ const Checkout = () => {
         const parsedUrl = parseUrl(navState.url);
         if (Object.keys(parsedUrl.query).length === 0) {
           // @ts-expect-error navigation prop mismatch
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           return;
         }
 
