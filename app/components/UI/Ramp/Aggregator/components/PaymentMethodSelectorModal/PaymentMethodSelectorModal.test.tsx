@@ -110,6 +110,29 @@ describe('PaymentMethodSelectorModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('tracks OFFRAMP_PAYMENT_METHOD_SELECTED event when payment method is selected in sell flow', () => {
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      rampType: RampType.SELL,
+      isBuy: false,
+    };
+
+    const { getByText } = render(PaymentMethodSelectorModal);
+
+    const paymentMethodElement = getByText('Bank Transfer');
+    fireEvent.press(paymentMethodElement);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'OFFRAMP_PAYMENT_METHOD_SELECTED',
+      {
+        payment_method_id: 'payment-method-2',
+        available_payment_method_ids: ['payment-method-1', 'payment-method-2'],
+        region: 'US',
+        location: 'Amount to Buy Screen',
+      },
+    );
+  });
+
   it('tracks RAMPS_PAYMENT_METHOD_SELECTED event when payment method is selected', () => {
     const { getByText } = render(PaymentMethodSelectorModal);
 
