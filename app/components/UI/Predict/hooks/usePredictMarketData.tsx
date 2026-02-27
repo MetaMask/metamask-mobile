@@ -29,6 +29,7 @@ export const usePredictMarketData = ({
     queryKey: predictQueries.markets.keys.list({
       category,
       q,
+      pageSize,
       customQueryParams,
     }),
     queryFn: async ({ pageParam = 0 }) => {

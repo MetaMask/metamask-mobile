@@ -11,12 +11,14 @@ export const predictMarketsKeys = {
   list: (params: {
     category: PredictCategory;
     q?: string;
+    pageSize?: number;
     customQueryParams?: string;
   }) =>
     [
       ...predictMarketsKeys.all(),
       params.category,
       params.q ?? '',
+      params.pageSize ?? 20,
       params.customQueryParams ?? '',
     ] as const,
 };
