@@ -159,20 +159,24 @@ describe('displayOrder', () => {
       const legacyOrder = createMockFiatOrder({
         provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
       });
+      const v2RampsOrder = createMockRampsOrder({ providerOrderId: 'v2-1' });
       const v2LegacyOrder = createMockFiatOrder({
-        id: 'v2-1',
+        id: '/providers/transak/orders/v2-1',
         provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+        data: v2RampsOrder as unknown as FiatOrder['data'],
       });
-      const v2Order = createMockRampsOrder({ providerOrderId: 'v2-1' });
 
       const result = mergeDisplayOrders(
         [legacyOrder, v2LegacyOrder],
-        [v2Order],
+        [v2RampsOrder],
       );
 
       expect(result).toHaveLength(2);
       expect(
-        result.find((o) => o.source === 'legacy' && o.id === 'v2-1'),
+        result.find(
+          (o) =>
+            o.source === 'legacy' && o.id === '/providers/transak/orders/v2-1',
+        ),
       ).toBeUndefined();
       expect(
         result.find((o) => o.source === 'v2' && o.id === 'v2-1'),
@@ -180,16 +184,20 @@ describe('displayOrder', () => {
     });
 
     it('keeps legacy RAMPS_V2 orders not yet migrated to controller', () => {
+      const unmigratedRampsOrder = createMockRampsOrder({
+        providerOrderId: 'unmigrated-order',
+      });
       const v2LegacyOrder = createMockFiatOrder({
-        id: 'unmigrated-order',
+        id: '/providers/transak/orders/unmigrated-order',
         provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
         createdAt: 3000,
+        data: unmigratedRampsOrder as unknown as FiatOrder['data'],
       });
 
       const result = mergeDisplayOrders([v2LegacyOrder], []);
 
       expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('unmigrated-order');
+      expect(result[0].id).toBe('/providers/transak/orders/unmigrated-order');
       expect(result[0].source).toBe('legacy');
     });
 

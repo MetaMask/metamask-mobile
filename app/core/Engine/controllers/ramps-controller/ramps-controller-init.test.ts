@@ -82,6 +82,7 @@ const createMockInitMessenger = (
         },
       },
     }),
+    subscribe: jest.fn(),
   } as unknown as RampsControllerInitMessenger;
 };
 

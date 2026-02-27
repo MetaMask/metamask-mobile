@@ -81,9 +81,11 @@ export function mergeDisplayOrders(
   const v2Ids = new Set(v2Orders.map((o) => o.providerOrderId));
 
   const legacy = legacyOrders
-    .filter(
-      (o) => o.provider !== FIAT_ORDER_PROVIDERS.RAMPS_V2 || !v2Ids.has(o.id),
-    )
+    .filter((o) => {
+      if (o.provider !== FIAT_ORDER_PROVIDERS.RAMPS_V2) return true;
+      const providerOrderId = (o.data as RampsOrder)?.providerOrderId ?? o.id;
+      return !v2Ids.has(providerOrderId);
+    })
     .map(fiatOrderToDisplayOrder);
 
   const v2 = v2Orders.map(rampsOrderToDisplayOrder);
