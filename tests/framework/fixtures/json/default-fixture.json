@@ -320,6 +320,7 @@
           },
           "selectedNetworkClientId": "mainnet"
         },
+        "NetworkEnablementController": {},
         "NftController": {
           "allNftContracts": {},
           "allNfts": {},
