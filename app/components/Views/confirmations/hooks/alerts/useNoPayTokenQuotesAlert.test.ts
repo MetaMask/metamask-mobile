@@ -19,12 +19,9 @@ import {
   TransactionPayQuote,
   TransactionPaySourceAmount,
 } from '@metamask/transaction-pay-controller';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { TransactionType } from '@metamask/transaction-controller';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayData');
-jest.mock('../transactions/useTransactionMetadataRequest');
 
 const STATE_MOCK = merge(
   {},
@@ -52,9 +49,6 @@ describe('useNoPayTokenQuotesAlert', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
-  const useTransactionMetadataRequestMock = jest.mocked(
-    useTransactionMetadataRequest,
-  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -71,12 +65,9 @@ describe('useNoPayTokenQuotesAlert', () => {
     useTransactionPaySourceAmountsMock.mockReturnValue([
       {} as TransactionPaySourceAmount,
     ]);
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.simpleSend,
-    } as ReturnType<typeof useTransactionMetadataRequest>);
   });
 
-  it('returns generic alert when pay token selected and no quotes available', () => {
+  it('returns alert if pay token selected and no quotes available', () => {
     const { result } = runHook();
 
     expect(result.current).toEqual([
@@ -91,36 +82,12 @@ describe('useNoPayTokenQuotesAlert', () => {
     ]);
   });
 
-  it('returns mUSD-specific alert when musdConversion type and no quotes available', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.musdConversion,
-    } as ReturnType<typeof useTransactionMetadataRequest>);
-
-    const { result } = runHook();
-
-    expect(result.current).toEqual([
-      {
-        key: AlertKeys.NoPayTokenQuotes,
-        field: RowAlertKey.PayWith,
-        message: strings(
-          'alert_system.no_pay_token_quotes_musd_conversion.message',
-        ),
-        title: strings(
-          'alert_system.no_pay_token_quotes_musd_conversion.title',
-        ),
-        severity: Severity.Danger,
-        isBlocking: true,
-      },
-    ]);
-  });
-
   it('returns no alerts if quotes available', () => {
     useTransactionPayQuotesMock.mockReturnValue([
       {} as TransactionPayQuote<Json>,
     ]);
 
     const { result } = runHook();
-
     expect(result.current).toStrictEqual([]);
   });
 
