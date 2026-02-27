@@ -1,5 +1,5 @@
-import type { DeepPartial } from '../../renderWithProvider';
-import type { RootState } from '../../../../reducers';
+import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
+import type { RootState } from '../../../app/reducers';
 
 /**
  * Base state overrides for Send view component tests.
