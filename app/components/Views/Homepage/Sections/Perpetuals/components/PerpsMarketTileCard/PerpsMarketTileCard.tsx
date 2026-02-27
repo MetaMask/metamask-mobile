@@ -20,8 +20,8 @@ import styleSheet from './PerpsMarketTileCard.styles';
 import type { PerpsMarketTileCardProps } from './PerpsMarketTileCard.types';
 
 const DEFAULT_CARD_WIDTH = 180;
-const DEFAULT_CARD_HEIGHT = 140;
-const SPARKLINE_HEIGHT = 48;
+const DEFAULT_CARD_HEIGHT = 180;
+const SPARKLINE_HEIGHT = 80;
 const TOKEN_LOGO_SIZE = 40;
 const SHIMMER_PULSE_DURATION = 900;
 const LIVE_PRICES_THROTTLE_MS = 3000;
@@ -152,6 +152,7 @@ const TileCardInner: React.FC<
             color={sparklineColor}
             gradientId={`sparkline-${market.symbol}`}
             revealColor={theme.colors.background.section}
+            showGradient={false}
           />
         )}
       </View>

@@ -4,4 +4,3 @@ export {
   PredictPositionRow,
   PredictPositionRowSkeleton,
 } from './PredictPositionRow';
-export { default as ViewMoreCard } from './ViewMoreCard';
