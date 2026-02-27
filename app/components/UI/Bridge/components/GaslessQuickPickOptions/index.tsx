@@ -50,9 +50,12 @@ export const GaslessQuickPickOptions = ({
           input_value: inputValue,
           ...(preset && { input_amount_preset: preset }),
           ...(isActive && {
-            ab_tests: {
-              [NUMPAD_QUICK_ACTIONS_AB_KEY]: variantName,
-            },
+            active_ab_tests: [
+              {
+                key: NUMPAD_QUICK_ACTIONS_AB_KEY,
+                value: variantName,
+              },
+            ],
           }),
         },
       );
