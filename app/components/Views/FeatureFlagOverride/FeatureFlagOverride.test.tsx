@@ -838,6 +838,51 @@ describe('FeatureFlagOverride', () => {
     });
   });
 
+  describe('Active-shaped version-gated flags', () => {
+    it('renders switch for flags using active instead of enabled', () => {
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(true);
+
+      renderWithProviders(
+        { rampFlag: { active: true, minimumVersion: '1.0.0' } },
+        {},
+      );
+
+      expect(screen.getByText('rampFlag')).toBeTruthy();
+      expect(screen.getByText('Minimum Version: 1.0.0')).toBeTruthy();
+      const switches = screen.getAllByRole('switch');
+      expect(switches[0].props.value).toBe(true);
+    });
+
+    it('toggles active-shaped flag preserving the active property', () => {
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(true);
+
+      renderWithProviders(
+        { rampFlag: { active: true, minimumVersion: '1.0.0' } },
+        {},
+      );
+
+      const switches = screen.getAllByRole('switch');
+      fireEvent(switches[0], 'valueChange', false);
+
+      expect(mockSetFlagOverride).toHaveBeenCalledWith('rampFlag', {
+        active: false,
+        minimumVersion: '1.0.0',
+      });
+    });
+
+    it('disables switch for active-shaped flag when version is not supported', () => {
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(false);
+
+      renderWithProviders(
+        { rampFlag: { active: false, minimumVersion: '99.0.0' } },
+        {},
+      );
+
+      const switches = screen.getAllByRole('switch');
+      expect(switches[0].props.disabled).toBe(true);
+    });
+  });
+
   describe('Flag Value Rendering', () => {
     it('renders correctly when object flag has nested properties', () => {
       renderWithProviders(

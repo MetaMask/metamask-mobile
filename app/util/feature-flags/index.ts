@@ -38,7 +38,9 @@ export const getFeatureFlagType = (value: unknown): FeatureFlagType => {
   } else if (
     value &&
     typeof value === 'object' &&
-    Object.hasOwnProperty.call(value, 'enabled') &&
+    // TODO: Remove `active` check once rampsUnifiedBuyV1/V2 flags migrate to `enabled`.
+    (Object.hasOwnProperty.call(value, 'enabled') ||
+      Object.hasOwnProperty.call(value, 'active')) &&
     Object.hasOwnProperty.call(value, 'minimumVersion')
   ) {
     return FeatureFlagType.FeatureFlagBooleanWithMinimumVersion;
