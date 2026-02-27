@@ -104,33 +104,34 @@ describe('usePredictClaim', () => {
     jest.clearAllMocks();
   });
 
-  let queryClient: QueryClient;
-
-  const wrapper = ({ children }: { children: React.ReactNode }) => {
-    queryClient = new QueryClient({
+  const createWrapper = () => {
+    const qc = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
-    return React.createElement(
-      QueryClientProvider,
-      { client: queryClient },
+    const Wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(
-        ToastContext.Provider,
-        {
-          value: {
-            toastRef: mockToastRef as React.RefObject<{
-              showToast: jest.Mock;
-              closeToast: jest.Mock;
-            }>,
+        QueryClientProvider,
+        { client: qc },
+        React.createElement(
+          ToastContext.Provider,
+          {
+            value: {
+              toastRef: mockToastRef as React.RefObject<{
+                showToast: jest.Mock;
+                closeToast: jest.Mock;
+              }>,
+            },
           },
-        },
-        children,
-      ),
-    );
+          children,
+        ),
+      );
+    return { wrapper: Wrapper, queryClient: qc };
   };
 
   describe('initialization', () => {
     it('returns claim function', () => {
       // Arrange & Act
+      const { wrapper } = createWrapper();
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Assert
@@ -142,7 +143,7 @@ describe('usePredictClaim', () => {
     it('navigates to confirmation and claims winnings', async () => {
       // Arrange
       mockClaimWinnings.mockResolvedValue(undefined);
-
+      const { wrapper } = createWrapper();
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
@@ -161,7 +162,7 @@ describe('usePredictClaim', () => {
     it('calls claim without provider argument', async () => {
       // Arrange
       mockClaimWinnings.mockResolvedValue(undefined);
-
+      const { wrapper } = createWrapper();
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
@@ -177,7 +178,7 @@ describe('usePredictClaim', () => {
       // Arrange
       const mockError = new Error('Claim failed');
       mockClaimWinnings.mockRejectedValue(mockError);
-
+      const { wrapper } = createWrapper();
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
@@ -229,7 +230,7 @@ describe('usePredictClaim', () => {
       mockClaimWinnings
         .mockRejectedValueOnce(mockError)
         .mockResolvedValueOnce(undefined);
-
+      const { wrapper } = createWrapper();
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act - first claim attempt fails
@@ -285,7 +286,7 @@ describe('usePredictClaim', () => {
       // Arrange
       const mockError = new Error('Network error');
       mockClaimWinnings.mockRejectedValue(mockError);
-
+      const { wrapper } = createWrapper();
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
@@ -316,7 +317,7 @@ describe('usePredictClaim', () => {
       // Arrange
       const mockErrorString = 'String error message';
       mockClaimWinnings.mockRejectedValue(mockErrorString);
-
+      const { wrapper } = createWrapper();
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
@@ -348,7 +349,7 @@ describe('usePredictClaim', () => {
       // Arrange
       const mockErrorObject = { code: 'NETWORK_ERROR', message: 'Failed' };
       mockClaimWinnings.mockRejectedValue(mockErrorObject);
-
+      const { wrapper } = createWrapper();
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
@@ -434,10 +435,8 @@ describe('usePredictClaim', () => {
     it('invalidates balance, positions, and activity caches after successful claim', async () => {
       // Arrange
       mockClaimWinnings.mockResolvedValue(undefined);
-
+      const { wrapper, queryClient } = createWrapper();
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
-
-      // Spy on the queryClient instance
       const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
 
       // Act
@@ -458,9 +457,8 @@ describe('usePredictClaim', () => {
     it('does not invalidate caches when claim fails', async () => {
       // Arrange
       mockClaimWinnings.mockRejectedValue(new Error('Claim failed'));
-
+      const { wrapper, queryClient } = createWrapper();
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
-
       const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
 
       // Act
