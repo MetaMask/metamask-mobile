@@ -1,7 +1,10 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 
-import { useUnifiedTxActions } from './useUnifiedTxActions';
+import {
+  useUnifiedTxActions,
+  type SpeedUpCancelParams,
+} from './useUnifiedTxActions';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import Engine from '../../../core/Engine';
@@ -323,7 +326,9 @@ describe('useUnifiedTxActions', () => {
 
       act(() => result.current.onSpeedUpAction(true, tx));
       await act(async () => {
-        await result.current.speedUpTransaction({ error: 'failed' });
+        await result.current.speedUpTransaction({
+          error: 'failed',
+        } as SpeedUpCancelParams);
       });
 
       expect(result.current.retryIsOpen).toBe(true);
@@ -413,7 +418,9 @@ describe('useUnifiedTxActions', () => {
 
       act(() => result.current.onCancelAction(true, tx));
       await act(async () => {
-        await result.current.cancelTransaction({ error: 'nope' });
+        await result.current.cancelTransaction({
+          error: 'nope',
+        } as SpeedUpCancelParams);
       });
 
       expect(result.current.retryIsOpen).toBe(true);
@@ -592,7 +599,7 @@ describe('useUnifiedTxActions', () => {
 
           act(() => result.current.onSpeedUpAction(true, tx));
           await act(async () => {
-            await result.current.speedUpTransaction({});
+            await result.current.speedUpTransaction({} as SpeedUpCancelParams);
           });
 
           expect(createLedgerTransactionModalNavDetails).toHaveBeenCalledWith({
@@ -617,7 +624,7 @@ describe('useUnifiedTxActions', () => {
 
           act(() => result.current.onSpeedUpAction(true, tx));
           await act(async () => {
-            await result.current.speedUpTransaction({});
+            await result.current.speedUpTransaction({} as SpeedUpCancelParams);
           });
 
           expect(createLedgerTransactionModalNavDetails).toHaveBeenCalledWith({
@@ -637,7 +644,9 @@ describe('useUnifiedTxActions', () => {
 
           act(() => result.current.onSpeedUpAction(true, tx));
           await act(async () => {
-            await result.current.speedUpTransaction({ error: 'gas error' });
+            await result.current.speedUpTransaction({
+              error: 'gas error',
+            } as SpeedUpCancelParams);
           });
 
           expect(getDeviceId).not.toHaveBeenCalled();
@@ -760,7 +769,7 @@ describe('useUnifiedTxActions', () => {
 
           act(() => result.current.onCancelAction(true, tx));
           await act(async () => {
-            await result.current.cancelTransaction({});
+            await result.current.cancelTransaction({} as SpeedUpCancelParams);
           });
 
           expect(createLedgerTransactionModalNavDetails).toHaveBeenCalledWith({
@@ -785,7 +794,7 @@ describe('useUnifiedTxActions', () => {
 
           act(() => result.current.onCancelAction(true, tx));
           await act(async () => {
-            await result.current.cancelTransaction({});
+            await result.current.cancelTransaction({} as SpeedUpCancelParams);
           });
 
           // legacyGasFee is undefined because getCancelOrSpeedupValues returns
@@ -808,7 +817,9 @@ describe('useUnifiedTxActions', () => {
 
           act(() => result.current.onCancelAction(true, tx));
           await act(async () => {
-            await result.current.cancelTransaction({ error: 'cancel error' });
+            await result.current.cancelTransaction({
+              error: 'cancel error',
+            } as SpeedUpCancelParams);
           });
 
           expect(getDeviceId).not.toHaveBeenCalled();

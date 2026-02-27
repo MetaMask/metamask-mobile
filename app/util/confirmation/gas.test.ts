@@ -89,7 +89,7 @@ describe('getMediumGasPriceHex', () => {
   it('uses default 0 for unknown type', () => {
     const estimates = {
       type: 'Unknown',
-    };
+    } as Parameters<typeof getMediumGasPriceHex>[0];
 
     const result = getMediumGasPriceHex(estimates);
 

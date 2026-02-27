@@ -14,10 +14,7 @@ import { RootState } from '../../../../../../reducers';
 import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { getMediumGasPriceHex } from '../../../../../../util/confirmation/gas';
-import {
-  decGWEIToHexWEI,
-  multiplyHexes,
-} from '../../../../../../util/conversions';
+import { decGWEIToHexWEI } from '../../../../../../util/conversions';
 import { addHexPrefix } from '../../../../../../util/number';
 import { useFeeCalculations } from '../useFeeCalculations';
 import type {
@@ -29,7 +26,7 @@ const HEX_ZERO = '0x0';
 
 /** Stub passed to useFeeCalculations when tx is null so the hook is always called unconditionally. */
 const STUB_TX = {
-  txParams: { gas: '0x0' as const },
+  txParams: { gas: HEX_ZERO },
   networkClientId: '',
 } as TransactionMeta;
 
@@ -48,22 +45,19 @@ export function useCancelSpeedupGas({
   const bumpResult = useMemo(() => {
     const txParams = tx?.txParams;
     if (!tx || !txParams) {
-      return { paramsForController: undefined, finalFeeHex: HEX_ZERO };
+      return { paramsForController: undefined };
     }
 
-    const gasLimitHex = txParams.gas ?? HEX_ZERO;
-    const gasLimit = addHexPrefix(String(gasLimitHex));
     const rate = isCancel ? CANCEL_RATE : SPEED_UP_RATE;
 
     let paramsForController: GasPriceValue | FeeMarketEIP1559Values | undefined;
-    let finalFeeHex: string;
 
     if (isEIP1559Transaction(txParams)) {
       const existingMaxFeeGwei = weiHexToGweiDec(
-        txParams.maxFeePerGas ?? '0x0',
+        txParams.maxFeePerGas ?? HEX_ZERO,
       );
       const existingPriorityGwei = weiHexToGweiDec(
-        txParams.maxPriorityFeePerGas ?? '0x0',
+        txParams.maxPriorityFeePerGas ?? HEX_ZERO,
       );
       const existingMaxFee = new BigNumber(String(existingMaxFeeGwei ?? 0), 10);
       const existingPriority = new BigNumber(
@@ -85,12 +79,12 @@ export function useCancelSpeedupGas({
         maxFeePerGas: maxFeePerGasHex,
         maxPriorityFeePerGas: maxPriorityFeePerGasHex,
       };
-
-      finalFeeHex = addHexPrefix(multiplyHexes(gasLimit, maxFeePerGasHex));
     } else {
-      const existingGasPriceHex = txParams.gasPrice ?? '0x0';
+      const existingGasPriceHex = txParams.gasPrice ?? HEX_ZERO;
       const existingGasPriceDecimal = parseInt(
-        existingGasPriceHex === undefined ? '0x0' : String(existingGasPriceHex),
+        existingGasPriceHex === undefined
+          ? HEX_ZERO
+          : String(existingGasPriceHex),
         16,
       );
       const existingGasPrice = new BigNumber(existingGasPriceDecimal, 10);
@@ -103,10 +97,9 @@ export function useCancelSpeedupGas({
       }
 
       paramsForController = { gasPrice: gasPriceHex };
-      finalFeeHex = addHexPrefix(multiplyHexes(gasLimit, gasPriceHex));
     }
 
-    return { paramsForController, finalFeeHex };
+    return { paramsForController };
   }, [tx, isCancel, gasFeeEstimates]);
 
   const displayTx = useMemo((): TransactionMeta | null => {

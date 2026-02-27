@@ -423,6 +423,12 @@ class Transactions extends PureComponent {
   keyExtractor = (item) => item.id.toString();
 
   onSpeedUpAction = (speedUpAction, tx) => {
+    if (!speedUpAction) {
+      this.setState({ speedUp1559IsOpen: false, speedUpIsOpen: false });
+      this.speedUpTxId = null;
+      this.existingTx = null;
+      return;
+    }
     if (!tx) return;
     this.speedUpTxId = tx.id;
     this.existingTx = tx;
@@ -441,6 +447,12 @@ class Transactions extends PureComponent {
   };
 
   onCancelAction = (cancelAction, tx) => {
+    if (!cancelAction) {
+      this.setState({ cancel1559IsOpen: false, cancelIsOpen: false });
+      this.cancelTxId = null;
+      this.existingTx = null;
+      return;
+    }
     if (!tx) return;
     this.cancelTxId = tx.id;
     this.existingTx = tx;
