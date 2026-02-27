@@ -12,13 +12,15 @@ import {
   selectSelectedDestChainId,
   selectSlippage,
   selectDestAddress,
-  selectGasIncludedQuoteParams,
 } from '../../../../../core/redux/slices/bridge';
+import {
+  selectGasIncludedQuoteParams,
+  selectSourceWalletAddress,
+} from '../../../../../selectors/bridge';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
 import { debounce } from 'lodash';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
-import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
 

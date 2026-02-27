@@ -56,6 +56,7 @@ jest.mock('../useUnifiedSwapBridgeContext', () => ({
 
 // Mock the bridge selector
 jest.mock('../../../../../selectors/bridge', () => ({
+  ...jest.requireActual('../../../../../selectors/bridge'),
   selectSourceWalletAddress: jest.fn(),
 }));
 
