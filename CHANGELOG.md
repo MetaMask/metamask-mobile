@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.66.1]
 
-### OTA fixes
+### Fixed
 
-- remove process.env spread
+- remove process.env spread (#26528)
 
 ## [7.65.0]
 
