@@ -27,10 +27,10 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-
   ButtonIcon,
   IconName,
-  IconColor} from '@metamask/design-system-react-native';
+  IconColor,
+} from '@metamask/design-system-react-native';
 import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import Text, {
