@@ -153,10 +153,10 @@ export function getAvailableTokens({
 
       const disabled = noGasDisabled || blocked;
 
-      const disabledMessage = noGasDisabled
-        ? strings('pay_with_modal.no_gas')
-        : blocked
-          ? strings('pay_with_modal.not_supported')
+      const disabledMessage = blocked
+        ? strings('pay_with_modal.not_supported')
+        : noGasDisabled
+          ? strings('pay_with_modal.no_gas')
           : undefined;
 
       const isSelected =
