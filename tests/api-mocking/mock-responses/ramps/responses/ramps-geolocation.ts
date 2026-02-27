@@ -24,6 +24,6 @@ export const createGeolocationResponse = (
   return envConfigs.map(({ url }) => ({
     urlEndpoint: url,
     responseCode: 200,
-    response: region.id.replace('/regions/', ''),
+    response: region.countryIsoCode,
   }));
 };
