@@ -532,8 +532,18 @@ describe('useShouldRenderGasSponsoredBanner', () => {
       });
     });
 
-    it('calls useIsNetworkGasSponsored without chainId parameter', () => {
+    it('calls useIsNetworkGasSponsored with sourceToken chainId', () => {
       // Arrange
+      const sourceToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        decimals: 18,
+        chainId: '0x1',
+      };
+
+      mockUseSelector
+        .mockReturnValueOnce('1.5')
+        .mockReturnValueOnce(sourceToken);
       mockUseIsInsufficientBalance.mockReturnValue(false);
       mockUseIsNetworkGasSponsored.mockReturnValue(false);
 
@@ -551,7 +561,7 @@ describe('useShouldRenderGasSponsoredBanner', () => {
       );
 
       // Assert
-      expect(mockUseIsNetworkGasSponsored).toHaveBeenCalledWith();
+      expect(mockUseIsNetworkGasSponsored).toHaveBeenCalledWith('0x1');
     });
   });
 
