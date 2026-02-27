@@ -9,12 +9,12 @@ import {
   DeviceEvent,
   HardwareWalletConnectionState,
 } from '@metamask/hw-wallet-sdk';
-import { useDeviceEventHandlers } from './HardwareWalletEventHandlers';
-import { HardwareWalletAdapter } from './types';
+import { useDeviceEventHandlers } from './useDeviceEventHandlers';
+import { HardwareWalletAdapter } from '../types';
 import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
-} from './HardwareWalletStateManager';
+} from './useHardwareWalletStateManager';
 
 describe('useDeviceEventHandlers', () => {
   let mockRefs: HardwareWalletRefs;
@@ -45,7 +45,6 @@ describe('useDeviceEventHandlers', () => {
       getTransportDisabledErrorCode: jest
         .fn()
         .mockReturnValue(ErrorCode.BluetoothDisabled),
-      getConnectionTips: jest.fn().mockReturnValue([]),
     };
 
     // Create mock refs
