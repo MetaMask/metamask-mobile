@@ -98,8 +98,8 @@ const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn(() => ({ build: jest.fn() })),
 }));
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -130,6 +130,9 @@ const mockGetBlockExplorerName = jest.fn(() => 'Etherscan');
 const mockGetBlockExplorerUrl = jest.fn(
   () => 'https://etherscan.io/token/0x123',
 );
+const mockGetBlockExplorerTokenUrl = jest.fn(
+  () => 'https://etherscan.io/token/0x123',
+);
 const mockGetBlockExplorerBaseUrl = jest.fn(() => 'https://etherscan.io');
 
 jest.mock('../../../hooks/useBlockExplorer', () => ({
@@ -137,6 +140,7 @@ jest.mock('../../../hooks/useBlockExplorer', () => ({
   default: () => ({
     getBlockExplorerName: mockGetBlockExplorerName,
     getBlockExplorerUrl: mockGetBlockExplorerUrl,
+    getBlockExplorerTokenUrl: mockGetBlockExplorerTokenUrl,
     getBlockExplorerBaseUrl: mockGetBlockExplorerBaseUrl,
   }),
 }));

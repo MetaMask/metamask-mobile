@@ -5,8 +5,8 @@ import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
   getAmount,
-  getNativeTokenDetailsByChainId,
   getNotificationBadge,
+  getNetworkImageByChainId,
 } from '../../methods/common';
 import { ModalField } from '../types/NotificationModalDetails';
 import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
@@ -75,7 +75,10 @@ const modalTitle = (n: StakeNotification) => {
 };
 
 const state: NotificationState<StakeNotification> = {
-  guardFn: isStakeNotification,
+  guardFn: [
+    isStakeNotification,
+    (notification) => !!notification.payload.chain_id,
+  ],
   createMenuItem: (notification) => ({
     title: strings(`notifications.menu_item_title.${notification.type}`),
 
@@ -93,9 +96,7 @@ const state: NotificationState<StakeNotification> = {
     createdAt: notification.createdAt.toString(),
   }),
   createModalDetails: (notification) => {
-    const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.payload.chain_id,
-    );
+    const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
 
     const stakedAssetFields: ModalField[] = [
       {
@@ -105,7 +106,7 @@ const state: NotificationState<StakeNotification> = {
         amount: getTokenAmount(notification.payload.data.stake_in),
         usdAmount: getTokenUSDAmount(notification.payload.data.stake_in),
         tokenIconUrl: notification.payload.data.stake_in.image,
-        tokenNetworkUrl: nativeTokenDetails?.image,
+        tokenNetworkUrl: networkLogo,
       },
       {
         type: ModalFieldType.ASSET,
@@ -114,7 +115,7 @@ const state: NotificationState<StakeNotification> = {
         amount: getTokenAmount(notification.payload.data.stake_out),
         usdAmount: getTokenUSDAmount(notification.payload.data.stake_out),
         tokenIconUrl: notification.payload.data.stake_out.image,
-        tokenNetworkUrl: nativeTokenDetails?.image,
+        tokenNetworkUrl: networkLogo,
       },
     ];
 
@@ -126,7 +127,7 @@ const state: NotificationState<StakeNotification> = {
         amount: getTokenAmount(notification.payload.data.stake_in),
         usdAmount: getTokenUSDAmount(notification.payload.data.stake_in),
         tokenIconUrl: notification.payload.data.stake_in.image,
-        tokenNetworkUrl: nativeTokenDetails?.image,
+        tokenNetworkUrl: networkLogo,
       },
       {
         type: ModalFieldType.ASSET,
@@ -135,7 +136,7 @@ const state: NotificationState<StakeNotification> = {
         amount: getTokenAmount(notification.payload.data.stake_out),
         usdAmount: getTokenUSDAmount(notification.payload.data.stake_out),
         tokenIconUrl: notification.payload.data.stake_out.image,
-        tokenNetworkUrl: nativeTokenDetails?.image,
+        tokenNetworkUrl: networkLogo,
       },
     ];
 

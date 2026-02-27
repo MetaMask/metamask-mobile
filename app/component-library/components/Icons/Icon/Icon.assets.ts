@@ -10,6 +10,7 @@ import addcardSVG from './assets/add-card.svg';
 import addcircleSVG from './assets/add-circle.svg';
 import addsquareSVG from './assets/add-square.svg';
 import addSVG from './assets/add.svg';
+import afterhoursSVG from './assets/after-hours.svg';
 import aiSVG from './assets/ai.svg';
 import alternateemailSVG from './assets/alternate-email.svg';
 import appleSVG from './assets/apple.svg';
@@ -68,6 +69,7 @@ import confirmationSVG from './assets/confirmation.svg';
 import connectSVG from './assets/connect.svg';
 import copysuccessSVG from './assets/copy-success.svg';
 import copySVG from './assets/copy.svg';
+import corporatefareSVG from './assets/corporate-fare.svg';
 import creditcheckSVG from './assets/credit-check.svg';
 import currencyfrancSVG from './assets/currency-franc.svg';
 import currencyliraSVG from './assets/currency-lira.svg';
@@ -288,6 +290,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.AddCircle]: addcircleSVG,
   [IconName.AddSquare]: addsquareSVG,
   [IconName.Add]: addSVG,
+  [IconName.AfterHours]: afterhoursSVG,
   [IconName.Ai]: aiSVG,
   [IconName.AlternateEmail]: alternateemailSVG,
   [IconName.Apple]: appleSVG,
@@ -346,6 +349,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Connect]: connectSVG,
   [IconName.CopySuccess]: copysuccessSVG,
   [IconName.Copy]: copySVG,
+  [IconName.CorporateFare]: corporatefareSVG,
   [IconName.CreditCheck]: creditcheckSVG,
   [IconName.CurrencyFranc]: currencyfrancSVG,
   [IconName.CurrencyLira]: currencyliraSVG,

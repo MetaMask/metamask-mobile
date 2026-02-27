@@ -42,11 +42,26 @@ import { IconColor } from '../../../../../../../component-library/components/Ico
 import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
 import type { RootState } from '../../../../../../../reducers';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
+import TagColored, {
+  TagColor,
+} from '../../../../../../../component-library/components-temp/TagColored';
 
 const PaidByMetaMask = () => (
-  <Text variant={TextVariant.BodyMD} testID="paid-by-metamask">
+  <TagColored
+    color={TagColor.Success}
+    labelProps={{
+      variant: TextVariant.BodySM,
+      style: {
+        textTransform: 'none',
+        textAlign: 'center',
+        bottom: 1,
+        fontWeight: 'normal',
+      },
+      testID: 'paid-by-metamask',
+    }}
+  >
     {strings('transactions.paid_by_metamask')}
-  </Text>
+  </TagColored>
 );
 
 const SkeletonEstimationInfo = () => {

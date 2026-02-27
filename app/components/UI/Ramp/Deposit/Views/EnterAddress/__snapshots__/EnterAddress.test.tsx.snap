@@ -59,8 +59,47 @@ exports[`EnterAddress Component displays form validation errors when continue is
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -68,74 +107,24 @@ exports[`EnterAddress Component displays form validation errors when continue is
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#121314",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -688,9 +677,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 0,
                                             "opacity": 1,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -820,9 +807,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 0,
                                             "opacity": 1,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -947,9 +932,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 0,
                                               "opacity": 1,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -1202,9 +1185,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 0,
                                               "opacity": 1,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -1355,9 +1336,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 0,
                                               "opacity": 1,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
@@ -1601,8 +1580,47 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -1610,74 +1628,24 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#121314",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -2230,9 +2198,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 0,
                                             "opacity": 1,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -2347,9 +2313,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 0,
                                             "opacity": 1,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -2474,9 +2438,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 0,
                                               "opacity": 1,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -2691,9 +2653,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 0,
                                               "opacity": 1,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -2829,9 +2789,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 0,
                                               "opacity": 1,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
@@ -3075,8 +3033,47 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -3084,74 +3081,24 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#121314",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -3704,9 +3651,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 0,
                                             "opacity": 1,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -3821,9 +3766,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 0,
                                             "opacity": 1,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -3948,9 +3891,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 0,
                                               "opacity": 1,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -4173,9 +4114,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 0,
                                               "opacity": 1,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -4311,9 +4250,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 0,
                                               "opacity": 1,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
@@ -4557,8 +4494,47 @@ exports[`EnterAddress Component shows text input for state when region is not US
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -4566,74 +4542,24 @@ exports[`EnterAddress Component shows text input for state when region is not US
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#121314",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -5186,9 +5112,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 0,
                                             "opacity": 1,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -5303,9 +5227,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 0,
                                             "opacity": 1,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -5430,9 +5352,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 0,
                                               "opacity": 1,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -5548,9 +5468,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 0,
                                               "opacity": 1,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="state-input"
@@ -5677,9 +5595,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 0,
                                               "opacity": 1,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -5815,9 +5731,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 0,
                                               "opacity": 1,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"

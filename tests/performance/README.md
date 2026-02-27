@@ -33,7 +33,9 @@ tests/
 ├── teams-config.js                  # Team/Slack mapping for notifications
 ├── framework/
 │   ├── fixtures/
-│   │   └── performance-test.js      # Custom test fixture with performance tracking
+│   │   └── performance/             # Performance test fixtures
+│   │       ├── index.ts             # Barrel exports (test, expect)
+│   │       └── performance-fixture.ts # Custom test fixture with performance tracking
 │   ├── quality-gates/
 │   │   ├── types.ts                 # Shared type definitions for quality gates
 │   │   ├── QualityGateError.ts      # Custom error class for threshold failures
@@ -45,7 +47,6 @@ tests/
 │   └── utils/
 │       ├── Flows.js                 # Shared user flows
 │       ├── TestConstants.js         # Test constants and credentials
-│       ├── BrowserStackCredentials.js # BrowserStack auth helper
 │       ├── MobileBrowser.js         # Mobile browser helpers
 │       └── Utils.js                 # General utilities
 ├── reporters/
@@ -274,6 +275,14 @@ Integration tests for MetaMask Connect:
 - `connection-evm.spec.js` - EVM connection performance
 - `connection-multichain.spec.js` - Multichain connection performance
 - `connection-wagmi.spec.js` - Wagmi integration performance
+- `multichain-rn-connect.spec.js` - Multichain + Solana via the React Native Playground APK
+- `legacy-evm-rn-connect.spec.js` - Legacy EVM connection via the React Native Playground APK
+
+> The RN playground tests require a separate APK built from the
+> [`playground/react-native-playground`](https://github.com/MetaMask/connect-monorepo/tree/main/playground/react-native-playground)
+> directory of the [connect-monorepo](https://github.com/MetaMask/connect-monorepo).
+> The APK must be installed on the emulator before running.
+> See [`tests/performance/mm-connect/README.md`](mm-connect/README.md) for full setup instructions.
 
 ## Performance Tracking System
 
@@ -348,7 +357,7 @@ The `PerformanceTracker` is provided as a fixture and handles:
 - BrowserStack video URL resolution
 
 ```javascript
-import { test } from '../../framework/fixtures/performance-test.js';
+import { test } from '../../framework/fixtures/performance';
 
 test('My test', async ({ device, performanceTracker }, testInfo) => {
   const timer = new TimerHelper(
@@ -622,7 +631,7 @@ The aggregated HTML report (`performance-report.html`) includes:
 1. **Use the performance-test fixture**:
 
    ```javascript
-   import { test } from '../../framework/fixtures/performance-test.js';
+   import { test } from '../../framework/fixtures/performance';
    ```
 
 2. **Start timers AFTER the triggering action**:
@@ -668,7 +677,7 @@ The aggregated HTML report (`performance-report.html`) includes:
 ### Test Structure Example
 
 ```javascript
-import { test } from '../../framework/fixtures/performance-test.js';
+import { test } from '../../framework/fixtures/performance';
 import TimerHelper from '../../framework/TimerHelper';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import { login, dissmissAllModals } from '../../framework/utils/Flows.js';

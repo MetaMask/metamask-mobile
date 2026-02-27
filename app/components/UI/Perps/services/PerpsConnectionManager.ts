@@ -1,4 +1,4 @@
-import { captureException, setMeasurement } from '@sentry/react-native';
+import { setMeasurement } from '@sentry/react-native';
 import BackgroundTimer from 'react-native-background-timer';
 import performance from 'react-native-performance';
 import { v4 as uuidv4 } from 'uuid';
@@ -597,25 +597,6 @@ class PerpsConnectionManagerClass {
         // Clear connection timeout on error
         this.clearConnectionTimeout();
 
-        // Capture exception with connection context
-        captureException(ensureError(error, 'PerpsConnectionManager.connect'), {
-          tags: {
-            component: 'PerpsConnectionManager',
-            action: 'connection_connection',
-            operation: 'connection_management',
-            provider: 'hyperliquid',
-          },
-          extra: {
-            connectionContext: {
-              provider: 'hyperliquid',
-              timestamp: new Date().toISOString(),
-              isTestnet:
-                Engine.context.PerpsController?.getCurrentNetwork?.() ===
-                'testnet',
-            },
-          },
-        });
-
         traceData = {
           success: false,
           error: ensureError(error, 'PerpsConnectionManager.connect').message,
@@ -1007,6 +988,28 @@ class PerpsConnectionManagerClass {
   }
 
   /**
+   * Returns a promise that resolves when the current connection attempt completes.
+   * If no connection is in progress, resolves immediately.
+   * Used by StreamChannel.ensureReady() to await connection instead of blind polling.
+   */
+  async waitForConnection(): Promise<void> {
+    if (this.initPromise) {
+      try {
+        await this.initPromise;
+      } catch {
+        // Connection failed — caller will check getConnectionState()
+      }
+    }
+    if (this.pendingReconnectPromise) {
+      try {
+        await this.pendingReconnectPromise;
+      } catch {
+        // Reconnection failed — caller will check getConnectionState()
+      }
+    }
+  }
+
+  /**
    * Check if the manager is fully disconnected and ready to connect
    */
   isFullyDisconnected(): boolean {
@@ -1017,6 +1020,18 @@ class PerpsConnectionManagerClass {
       !this.isDisconnecting &&
       this.connectionRefCount === 0
     );
+  }
+
+  /**
+   * Returns the active provider name from the PerpsController state.
+   * Used for consistent error/breadcrumb tagging without coupling callers to Engine.
+   */
+  getActiveProviderName(): string | undefined {
+    try {
+      return Engine.context.PerpsController.state.activeProvider;
+    } catch {
+      return undefined;
+    }
   }
 
   /**

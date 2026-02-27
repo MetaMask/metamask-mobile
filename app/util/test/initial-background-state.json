@@ -464,7 +464,7 @@
   "AssetsController": {
     "assetPreferences": {},
     "assetsBalance": {},
-    "assetsMetadata": {},
+    "assetsInfo": {},
     "assetsPrice": {},
     "customAssets": {}
   },
@@ -755,7 +755,8 @@
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionReferralDetails": {},
-    "subscriptions": {}
+    "subscriptions": {},
+    "rewardsEnvUrl": null
   },
   "PredictController": {
     "eligibility": { "eligible": false },
@@ -766,6 +767,9 @@
     "pendingDeposits": {},
     "withdrawTransaction": null,
     "accountMeta": {}
+  },
+  "AiDigestController": {
+    "marketInsights": {}
   },
   "RampsController": {
     "userRegion": null,
@@ -793,12 +797,6 @@
       "isLoading": false,
       "error": null
     },
-    "quotes": {
-      "data": null,
-      "selected": null,
-      "isLoading": false,
-      "error": null
-    },
     "nativeProviders": {
       "transak": {
         "buyQuote": {
@@ -821,12 +819,6 @@
           "error": null
         }
       }
-    },
-    "widgetUrl": {
-      "data": null,
-      "selected": null,
-      "isLoading": false,
-      "error": null
     },
     "requests": {}
   }

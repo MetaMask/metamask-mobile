@@ -19,9 +19,15 @@ import type { PredictTransactionStatusChangedPayload } from '../controllers/Pred
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
 import { predictQueries } from '../queries';
+import type { Hex } from '@metamask/utils';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
+import { store } from '../../../../store';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
+import { selectTickerByChainId } from '../../../../selectors/networkController';
+import type { RootState } from '../../../../reducers';
 
 const showPendingToast = ({
   showToast,
@@ -147,6 +153,10 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         queryClient.invalidateQueries({
           queryKey: predictQueries.balance.keys.all(),
         });
+
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.activity.keys.all(),
+        });
       }
 
       if (type === 'deposit') {
@@ -232,6 +242,10 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
+          queryClient.invalidateQueries({
+            queryKey: predictQueries.positions.keys.all(),
+          });
+
           showSuccessToast({
             showToast,
             title: strings('predict.deposit.account_ready'),
@@ -275,19 +289,17 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
-          const formattedWithdrawAmount = formatPrice(
-            amount ?? withdrawTransaction?.amount ?? 0,
+          const fallbackAmount = amount ?? withdrawTransaction?.amount ?? 0;
+          const { title, description } = getWithdrawConfirmedMessage(
+            store.getState(), // TODO: Refactor the hook to react to status changes instead of using it as a callback.
+            transactionId,
+            fallbackAmount,
           );
 
           showSuccessToast({
             showToast,
-            title: strings('predict.withdraw.withdraw_completed'),
-            description: strings(
-              'predict.withdraw.withdraw_completed_subtitle',
-              {
-                amount: formattedWithdrawAmount,
-              },
-            ),
+            title,
+            description,
             iconColor: theme.colors.success.default,
           });
           return;
@@ -337,3 +349,62 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
     [handleTransactionStatusChanged],
   );
 };
+
+/**
+ * Derives the withdraw-confirmed toast message from transaction metadata.
+ *
+ * For post-quote withdrawals with valid metamaskPay data, displays the
+ * resolved token symbol and targetFiat amount. Otherwise falls back to the
+ * original USDC-only message.
+ */
+function getWithdrawConfirmedMessage(
+  state: RootState,
+  transactionId: string | undefined,
+  fallbackAmount: number,
+): { title: string; description: string } {
+  const title = strings('predict.withdraw.withdraw_completed');
+
+  const txMeta = transactionId
+    ? selectTransactionMetadataById(state, transactionId)
+    : undefined;
+  const { metamaskPay } = txMeta ?? {};
+
+  if (!metamaskPay?.isPostQuote) {
+    return {
+      title,
+      description: strings('predict.withdraw.withdraw_completed_subtitle', {
+        amount: formatPrice(fallbackAmount),
+      }),
+    };
+  }
+
+  const targetFiat = Number(metamaskPay.targetFiat);
+  const withdrawAmount =
+    Number.isFinite(targetFiat) && targetFiat > 0 ? targetFiat : fallbackAmount;
+
+  const chainId = metamaskPay.chainId as Hex | undefined;
+  const tokenAddress = metamaskPay.tokenAddress as Hex | undefined;
+
+  let tokenSymbol: string | undefined;
+  if (tokenAddress && chainId) {
+    tokenSymbol = selectSingleTokenByAddressAndChainId(
+      state,
+      tokenAddress,
+      chainId,
+    )?.symbol;
+  }
+  if (!tokenSymbol && chainId) {
+    tokenSymbol = selectTickerByChainId(state, chainId);
+  }
+  if (!tokenSymbol) {
+    tokenSymbol = 'USDC';
+  }
+
+  return {
+    title,
+    description: strings(
+      'predict.withdraw.withdraw_any_token_completed_subtitle',
+      { amount: formatPrice(withdrawAmount), token: tokenSymbol },
+    ),
+  };
+}

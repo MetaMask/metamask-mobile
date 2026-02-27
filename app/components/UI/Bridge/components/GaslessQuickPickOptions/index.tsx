@@ -9,6 +9,12 @@ import { BigNumber } from 'bignumber.js';
 import { useABTest } from '../../../../../hooks';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import Engine from '../../../../../core/Engine';
+import {
+  InputAmountPreset,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
+import { PERCENTAGE_TO_PRESET } from './constants';
 import {
   NUMPAD_QUICK_ACTIONS_AB_KEY,
   NUMPAD_QUICK_ACTIONS_VARIANTS,
@@ -87,12 +93,25 @@ export const GaslessQuickPickOptions = ({
     ],
   );
 
+  const trackInputAmountPreset = useCallback((preset: InputAmountPreset) => {
+    Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+      UnifiedSwapBridgeEventName.InputChanged,
+      {
+        input: 'token_amount_source',
+        input_value: '',
+        input_amount_preset: preset,
+      },
+    );
+  }, []);
+
   const onQuickOptionPress = useCallback(
     (percentage: number) => () => {
       if (!tokenBalance?.displayBalance) return '0';
 
       const balance = new BigNumber(tokenBalance.displayBalance);
-      const amount = balance.multipliedBy(percentage / 100);
+      const amount = balance
+        .multipliedBy(percentage / 100)
+        .decimalPlaces(token?.decimals ?? 18, BigNumber.ROUND_DOWN);
 
       onChange({
         value: amount.toString(),
@@ -105,8 +124,20 @@ export const GaslessQuickPickOptions = ({
         quickActionValue: percentage / 100,
         isMax: false,
       });
+
+      const preset =
+        PERCENTAGE_TO_PRESET[percentage as keyof typeof PERCENTAGE_TO_PRESET];
+      if (preset) {
+        trackInputAmountPreset(preset);
+      }
     },
-    [tokenBalance, onChange, trackQuickActionClick],
+    [
+      tokenBalance,
+      token?.decimals,
+      onChange,
+      trackQuickActionClick,
+      trackInputAmountPreset,
+    ],
   );
 
   const handleTrackedMaxPress = useCallback(() => {
@@ -116,7 +147,8 @@ export const GaslessQuickPickOptions = ({
       quickActionValue: 1,
       isMax: true,
     });
-  }, [onMaxPress, trackQuickActionClick]);
+    trackInputAmountPreset(InputAmountPreset.MAX);
+  }, [onMaxPress, trackInputAmountPreset, trackQuickActionClick]);
 
   const fallbackQuickActions = useMemo(
     (): number[] =>

@@ -67,6 +67,9 @@ export interface BridgeState {
    * When undefined, tokens from all chains are shown ("All" filter).
    */
   tokenSelectorNetworkFilter: CaipChainId | undefined;
+  abTestContext?: {
+    assetsASSETS2493AbtestTokenDetailsLayout?: string;
+  };
   /**
    * Ordered list of chain IDs shown as pills in the token selector.
    * Shared across source and dest pickers so pill order persists within a session.
@@ -92,6 +95,7 @@ export const initialState: BridgeState = {
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
   isDestTokenManuallySet: false,
+  abTestContext: undefined,
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
 };
@@ -142,7 +146,9 @@ const slice = createSlice({
     ) => {
       state.selectedDestChainId = action.payload;
     },
-    resetBridgeState: () => initialState,
+    resetBridgeState: () => ({
+      ...initialState,
+    }),
     setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
       state.sourceToken = action.payload;
     },
@@ -181,6 +187,12 @@ const slice = createSlice({
     },
     setIsGasIncluded7702Supported: (state, action: PayloadAction<boolean>) => {
       state.isGasIncluded7702Supported = action.payload;
+    },
+    setAbTestContext: (
+      state,
+      action: PayloadAction<BridgeState['abTestContext']>,
+    ) => {
+      state.abTestContext = action.payload;
     },
     setTokenSelectorNetworkFilter: (
       state,
@@ -517,34 +529,6 @@ export const selectIsSwap = createSelector(
     sourceToken.chainId === destToken.chainId,
 );
 
-/**
- * Selector that returns the gas included quote params for bridge and swap transactions.
- * Combines isSwap, STX/SendBundle support, and 7702 support to determine the correct
- * gas included parameters.
- */
-export const selectGasIncludedQuoteParams = createSelector(
-  [
-    selectIsSwap,
-    selectIsGasIncludedSTXSendBundleSupported,
-    selectIsGasIncluded7702Supported,
-  ],
-  (isSwap, gasIncludedSTXSendBundleSupport, gasIncluded7702Support) => {
-    // If STX send bundle support is true, we favor it over 7702.
-    if (gasIncludedSTXSendBundleSupport) {
-      return { gasIncluded: true, gasIncluded7702: false };
-    }
-
-    // If 7702 support is true, we use it for swap transactions.
-    const gasIncludedWith7702Enabled =
-      Boolean(isSwap) && gasIncluded7702Support;
-
-    return {
-      gasIncluded: gasIncludedWith7702Enabled,
-      gasIncluded7702: gasIncludedWith7702Enabled,
-    };
-  },
-);
-
 export const selectIsEvmSwap = createSelector(
   selectIsSwap,
   selectIsSolanaSwap,
@@ -579,6 +563,11 @@ export const selectVisiblePillChainIds = createSelector(
 export const selectIsDestTokenManuallySet = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isDestTokenManuallySet,
+);
+
+export const selectAbTestContext = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.abTestContext,
 );
 
 export const selectIsGaslessSwapEnabled = createSelector(
@@ -658,6 +647,7 @@ export const {
   setIsSelectingToken,
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
+  setAbTestContext,
   setTokenSelectorNetworkFilter,
   setVisiblePillChainIds,
 } = actions;

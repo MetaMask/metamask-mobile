@@ -8,6 +8,17 @@ import { BigNumber } from 'ethers';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      BridgeController: {
+        trackUnifiedSwapBridgeEvent: jest.fn(),
+      },
+    },
+  },
+}));
+
 // Mock useLatestBalance to control tokenBalance in tests
 jest.mock('../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),

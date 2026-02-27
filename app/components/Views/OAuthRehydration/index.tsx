@@ -35,7 +35,7 @@ import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import Routes from '../../../constants/navigation/Routes';
 import ErrorBoundary from '../ErrorBoundary';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { downloadStateLogs } from '../../../util/logs';
 import {
@@ -67,24 +67,18 @@ import {
 import { useNetInfo } from '@react-native-community/netinfo';
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
-import { StackNavigationProp } from '@react-navigation/stack';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
   IMetaMetricsEvent,
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { useMetrics } from '../../hooks/useMetrics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import Label from '../../../component-library/components/Form/Label';
@@ -94,6 +88,7 @@ import HelpText, {
 } from '../../../component-library/components/Form/HelpText';
 import { useAuthentication } from '../../../core/Authentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 const EmptyRecordConstant = {};
 
@@ -111,7 +106,7 @@ interface OAuthRehydrationProps {
 const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   saveOnboardingEvent,
 }) => {
-  const { isEnabled: isMetricsEnabled } = useMetrics();
+  const { isEnabled: isMetricsEnabled } = useAnalytics();
 
   const fieldRef = useRef<TextInput>(null);
 
@@ -141,7 +136,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     [loading, isDeletingInProgress],
   );
 
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const {
     styles,
     theme: { themeAppearance },
@@ -149,7 +144,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
-  const { componentAuthenticationType, unlockWallet } = useAuthentication();
+  const { componentAuthenticationType, unlockWallet, getAuthType } =
+    useAuthentication();
 
   const track = useCallback(
     (
@@ -157,7 +153,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       properties: Record<string, string | boolean | number>,
     ) => {
       trackOnboarding(
-        MetricsEventBuilder.createEventBuilder(event)
+        AnalyticsEventBuilder.createEventBuilder(event)
           .addProperties(properties)
           .build(),
         saveOnboardingEvent,
@@ -167,6 +163,24 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   );
 
   const [biometryChoice, setBiometryChoice] = useState(true);
+
+  const promptBiometricFailedAlert = useCallback(async () => {
+    const authData = await getAuthType();
+    if (
+      authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD &&
+      authData.availableBiometryType
+    ) {
+      Alert.alert(
+        strings('login.biometric_authentication_cancelled_title'),
+        strings('login.biometric_authentication_cancelled_description'),
+        [
+          {
+            text: strings('login.biometric_authentication_cancelled_button'),
+          },
+        ],
+      );
+    }
+  }, [getAuthType]);
 
   // default biometric choice to true
   useEffect(() => {
@@ -467,6 +481,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
         async () => {
           await unlockWallet({ password, authPreference: authType });
+          // prompt biometric failed alert if biometric failed
+          await promptBiometricFailedAlert();
         },
       );
 
@@ -496,6 +512,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     handleLoginError,
     passwordLoginAttemptTraceCtxRef,
     track,
+    promptBiometricFailedAlert,
     componentAuthenticationType,
     unlockWallet,
   ]);
@@ -519,6 +536,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
         async () => {
           await unlockWallet({ password, authPreference: authType });
+          // prompt biometric failed alert if biometric failed
+          await promptBiometricFailedAlert();
         },
       );
 
@@ -532,6 +551,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     biometryChoice,
     finalLoading,
     handleLoginError,
+    promptBiometricFailedAlert,
     componentAuthenticationType,
     unlockWallet,
   ]);
