@@ -511,17 +511,13 @@ export class PredictController extends BaseController<
       );
 
       const isFirstPage = !params.offset || params.offset === 0;
+      const highlights = featureFlags.marketHighlightsFlag.highlights ?? [];
       const shouldFetchHighlights =
-        featureFlags.marketHighlightsFlag.highlights.length > 0 &&
-        isFirstPage &&
-        params.category &&
-        !params.q;
+        highlights.length > 0 && isFirstPage && params.category && !params.q;
 
       if (shouldFetchHighlights) {
         const highlightedMarketIds =
-          (featureFlags.marketHighlightsFlag.highlights ?? []).find(
-            (h) => h.category === params.category,
-          )?.markets ?? [];
+          highlights.find((h) => h.category === params.category)?.markets ?? [];
 
         if (highlightedMarketIds.length > 0) {
           const provider = this.provider;
