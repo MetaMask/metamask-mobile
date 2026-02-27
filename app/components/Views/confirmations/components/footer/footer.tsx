@@ -38,7 +38,7 @@ import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { useConfirmationPrimaryAction } from '../../hooks/alerts/useConfirmationPrimaryAction';
+import { useQRHardwareContext } from '../../context/qr-hardware-context';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
@@ -49,8 +49,15 @@ const HIDE_FOOTER_BY_DEFAULT_TYPES = [
 ];
 
 export const Footer = () => {
-  const { alerts, hasDangerAlerts, hasUnconfirmedDangerAlerts } = useAlerts();
+  const {
+    alerts,
+    fieldAlerts,
+    hasBlockingAlerts,
+    hasDangerAlerts,
+    hasUnconfirmedDangerAlerts,
+  } = useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
+  const { isSigningQRObject, needsCameraPermission } = useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
@@ -62,7 +69,8 @@ export const Footer = () => {
     transactionMetadata?.origin === MMM_ORIGIN;
   const isPayLoading = useIsTransactionPayLoading();
 
-  const { isFooterVisible: isFooterVisibleFlag } = useConfirmationContext();
+  const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
+    useConfirmationContext();
 
   const navigation = useNavigation();
 
@@ -107,8 +115,28 @@ export const Footer = () => {
     isStakingConfirmationBool,
     isFullScreenConfirmation,
   });
-  const { label: confirmButtonLabel, isDisabled: isConfirmDisabled } =
-    useConfirmationPrimaryAction();
+
+  const confirmButtonLabel = () => {
+    if (isSigningQRObject) {
+      return strings('confirm.qr_get_sign');
+    }
+
+    if (isPayLoading) {
+      return strings('confirm.confirm');
+    }
+
+    if (hasUnconfirmedDangerAlerts) {
+      return fieldAlerts.length > 1
+        ? strings('alert_system.review_alerts')
+        : strings('alert_system.review_alert');
+    }
+
+    if (hasBlockingAlerts) {
+      return strings('alert_system.review_alerts');
+    }
+
+    return strings('confirm.confirm');
+  };
 
   const getStartIcon = () => {
     if (isPayLoading) {
@@ -122,6 +150,12 @@ export const Footer = () => {
       return IconName.Danger;
     }
   };
+
+  const isConfirmDisabled =
+    needsCameraPermission ||
+    hasBlockingAlerts ||
+    isTransactionValueUpdating ||
+    isPayLoading;
 
   const buttons = [
     {
@@ -139,7 +173,7 @@ export const Footer = () => {
         (securityAlertResponse?.result_type === ResultType.Malicious ||
           hasDangerAlerts),
       isDisabled: isConfirmDisabled,
-      label: confirmButtonLabel,
+      label: confirmButtonLabel(),
       size: ButtonSize.Lg,
       onPress: onSignConfirm,
       testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,

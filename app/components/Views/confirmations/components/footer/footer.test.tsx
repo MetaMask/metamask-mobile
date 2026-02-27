@@ -196,10 +196,7 @@ describe('Footer', () => {
 
   it('disables confirm button if there is a blocker alert', () => {
     (useAlerts as jest.Mock).mockReturnValue({
-      fieldAlerts: [],
       hasBlockingAlerts: true,
-      hasUnconfirmedDangerAlerts: false,
-      hasDangerAlerts: false,
     });
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
