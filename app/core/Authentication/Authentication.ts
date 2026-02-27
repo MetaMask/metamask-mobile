@@ -67,7 +67,8 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
-import MetaMetrics from '../Analytics/MetaMetrics';
+import { analytics } from '../../util/analytics/analytics';
+import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import { setAllowLoginWithRememberMe } from '../../actions/security';
 import { Alert, Platform } from 'react-native';
@@ -774,14 +775,14 @@ class AuthenticationService {
           // Perform post login operations.
           await this.dispatchLogin();
           this.dispatchPasswordSet();
-          void this.postLoginAsyncOperations();
+          this.postLoginAsyncOperations().catch(() => undefined);
 
           // Mark user as existing after successful unlock
           ReduxService.store.dispatch(setExistingUser(true));
 
           // TODO: Refactor this orchestration to sagas.
           // Navigate to optin metrics or home screen based on metrics consent and UI seen.
-          const isMetricsEnabled = MetaMetrics.getInstance().isEnabled();
+          const isMetricsEnabled = analytics.isEnabled();
           const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
             OPTIN_META_METRICS_UI_SEEN,
           );
@@ -1503,7 +1504,7 @@ class AuthenticationService {
   protected async deleteUser(): Promise<void> {
     try {
       ReduxService.store.dispatch(setExistingUser(false));
-      await MetaMetrics.getInstance().createDataDeletionTask();
+      await createDataDeletionTaskUtil();
     } catch (error) {
       const errorMsg = `Failed to reset existingUser state in Redux`;
       Logger.log(error, errorMsg);

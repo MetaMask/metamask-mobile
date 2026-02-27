@@ -7,7 +7,9 @@ import { VAULT_ERROR } from './constants';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { parseVaultValue } from '../../../util/validators';
 
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
 import Logger from '../../../util/Logger';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
@@ -51,21 +53,6 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
     updateAuthPreference: mockUpdateAuthPreference,
   }),
 }));
-
-// Mock useMetrics with a dynamic isEnabled function
-const mockIsEnabled = jest.fn().mockReturnValue(true);
-const mockEnable = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../hooks/useMetrics', () => {
-  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
-  return {
-    ...actualUseMetrics,
-    useMetrics: jest.fn().mockReturnValue({
-      ...actualUseMetrics.useMetrics,
-      isEnabled: () => mockIsEnabled(),
-      enable: mockEnable,
-    }),
-  };
-});
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -377,7 +364,7 @@ describe('Login test suite 2', () => {
           oauthLoginSuccess: false,
         },
       });
-      const mockState: RecursivePartial<RootState> = {
+      const mockState: DeepPartial<RootState> = {
         engine: {
           backgroundState: {
             SeedlessOnboardingController: {
@@ -411,7 +398,6 @@ describe('Login test suite 2', () => {
       }));
 
       renderWithProvider(<Login />, {
-        // @ts-expect-error - mock state
         state: mockState,
       });
 

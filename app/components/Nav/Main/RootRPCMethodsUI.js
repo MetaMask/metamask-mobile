@@ -2,12 +2,10 @@ import React, { useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
 import PropTypes from 'prop-types';
 
-import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import { getIsSwapApproveOrSwapTransaction } from '../../../util/transactions';
+import { onUnapprovedTransaction } from './onUnapprovedTransaction';
 import Logger from '../../../util/Logger';
-import TransactionTypes from '../../../core/TransactionTypes';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { isHardwareAccount } from '../../../util/address';
@@ -25,7 +23,6 @@ import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { ConfirmRoot } from '../../../components/Views/confirmations/components/confirm';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
-import { cloneDeep } from 'lodash';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
@@ -33,7 +30,6 @@ import SnapDialogApproval from '../../Snaps/SnapDialogApproval/SnapDialogApprova
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomNameApproval';
-import { getIsBridgeTransaction } from '../../UI/Bridge/utils/transaction';
 ///: END:ONLY_INCLUDE_IF
 
 const RootRPCMethodsUI = (props) => {
@@ -41,28 +37,7 @@ const RootRPCMethodsUI = (props) => {
 
   const autoSign = useCallback(
     async (transactionMeta) => {
-      const { id: transactionId } = transactionMeta;
-
       try {
-        Engine.controllerMessenger.subscribeOnceIf(
-          'TransactionController:transactionFinished',
-          (transactionMeta) => {
-            try {
-              if (transactionMeta.status === 'submitted') {
-                NotificationManager.watchSubmittedTransaction({
-                  ...transactionMeta,
-                  assetType: transactionMeta.txParams.assetType,
-                });
-              } else {
-                throw transactionMeta.error;
-              }
-            } catch (error) {
-              console.error(error, 'error while trying to send transaction');
-            }
-          },
-          (transactionMeta) => transactionMeta.id === transactionId,
-        );
-
         const isLedgerAccount = isHardwareAccount(
           transactionMeta.txParams.from,
           [ExtendedKeyringTypes.ledger],
@@ -127,26 +102,11 @@ const RootRPCMethodsUI = (props) => {
     [props.navigation, trackEvent, createEventBuilder],
   );
 
-  const onUnapprovedTransaction = useCallback(
-    async (transactionMetaOriginal) => {
-      const transactionMeta = cloneDeep(transactionMetaOriginal);
-
-      if (transactionMeta.origin === TransactionTypes.MMM) return;
-
-      const to = transactionMeta.txParams.to?.toLowerCase();
-      const { data } = transactionMeta.txParams;
-
-      if (
-        getIsSwapApproveOrSwapTransaction(
-          data,
-          transactionMeta.origin,
-          to,
-          transactionMeta.chainId,
-        ) ||
-        getIsBridgeTransaction(transactionMeta)
-      ) {
-        autoSign(transactionMeta);
-      }
+  const handleUnapprovedTransaction = useCallback(
+    (transactionMeta) => {
+      onUnapprovedTransaction(transactionMeta, {
+        autoSign,
+      });
     },
     [autoSign],
   );
@@ -155,15 +115,15 @@ const RootRPCMethodsUI = (props) => {
   useEffect(() => {
     Engine.controllerMessenger.subscribe(
       'TransactionController:unapprovedTransactionAdded',
-      onUnapprovedTransaction,
+      handleUnapprovedTransaction,
     );
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'TransactionController:unapprovedTransactionAdded',
-        onUnapprovedTransaction,
+        handleUnapprovedTransaction,
       );
     };
-  }, [onUnapprovedTransaction]);
+  }, [handleUnapprovedTransaction]);
 
   useEffect(
     () =>

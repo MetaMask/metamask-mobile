@@ -35,6 +35,10 @@ import WebsiteIcon from '../WebsiteIcon';
 import styleSheet from './PermissionsSummary.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { PermissionsSummaryProps } from './PermissionsSummary.types';
+import {
+  MaliciousDappUrlIcon,
+  getConnectButtonContent,
+} from './MaliciousDappIndicators';
 import { USER_INTENT } from '../../../constants/permissions';
 import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
@@ -101,6 +105,7 @@ const PermissionsSummary = ({
   showAccountsOnly = false,
   showPermissionsOnly = false,
   promptToCreateSolanaAccount = false,
+  isMaliciousDapp = false,
 }: PermissionsSummaryProps) => {
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const fullNonTabView = showAccountsOnly && showPermissionsOnly;
@@ -631,6 +636,11 @@ const PermissionsSummary = ({
             <TextComponent
               style={styles.connectionTitle}
               variant={TextVariant.HeadingMD}
+              color={
+                isMaliciousDapp && !isAlreadyConnected
+                  ? TextColor.Error
+                  : undefined
+              }
             >
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
@@ -640,6 +650,7 @@ const PermissionsSummary = ({
                       dappUrl: hostname,
                     })}
             </TextComponent>
+            {isMaliciousDapp && !isAlreadyConnected && <MaliciousDappUrlIcon />}
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('account_dapp_connections.account_summary_header')}
             </TextComponent>
@@ -691,7 +702,7 @@ const PermissionsSummary = ({
                 {strings('permissions.cancel')}
               </StyledButton>
               <StyledButton
-                type={'confirm'}
+                type={isMaliciousDapp ? 'danger' : 'confirm'}
                 onPress={confirm}
                 disabled={
                   !isNetworkSwitch &&
@@ -703,9 +714,7 @@ const PermissionsSummary = ({
                 ]}
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
-                {isNetworkSwitch
-                  ? strings('confirmation_modal.confirm_cta')
-                  : strings('accounts.connect')}
+                {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}
               </StyledButton>
             </View>
           )}

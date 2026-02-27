@@ -38,7 +38,7 @@ permissions:
   id-token: write
 
 jobs:
-  # Load config 
+  # Load config
   prepare:
     runs-on: ubuntu-latest
     outputs:
@@ -80,9 +80,6 @@ jobs:
     # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: GitHub-hosted macOS
     runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
-    env:
-      # So bundle exec (in yarn pod:install) finds ios/Gemfile when running from repo root
-      BUNDLE_GEMFILE: ios/Gemfile
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -174,6 +171,17 @@ jobs:
           aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
           android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
 
+      # iOS: install Ruby, Bundler, and CocoaPods so setup:github-ci has a working Ruby (fixes self-hosted runners)
+      - name: Installing iOS Environment Setup
+        if: matrix.platform == 'ios'
+        timeout-minutes: 15
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        with:
+          platform: ios
+          configure-keystores: false
+          setup-simulator: false
+          ruby-version: '3.1.6'
+
       - name: Setup project dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -187,11 +195,6 @@ jobs:
             else
               yarn setup:github-ci --no-build-ios
             fi
-
-      # Android: use CI Gradle settings (8GB heap, OOM handling) to avoid daemon OOM
-      - name: Use CI Gradle properties (Android)
-        if: matrix.platform == 'android'
-        run: cp android/gradle.properties.github android/gradle.properties
 
       - name: Build ${{ matrix.platform }}
         timeout-minutes: 115
@@ -207,10 +210,26 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Expo development builds: upload iOS .app for simulator (Runway-style artifact)
-      - name: Upload iOS Expo development build
-        if: matrix.platform == 'ios' && (inputs.build_name == 'main-dev' || inputs.build_name == 'flask-dev' || inputs.build_name == 'qa-dev')
+      # Rename build artifacts
+      - name: Rename ${{ matrix.platform }} artifacts
+        run: node scripts/rename-artifacts.js ${{ matrix.platform }}
+
+      # Upload build artifacts (only if build succeeded)
+      - name: Upload iOS artifacts
+        if: matrix.platform == 'ios'
         uses: actions/upload-artifact@v4
         with:
-          name: expo-dev-ios-${{ inputs.build_name }}
-          path: ios/build/Build/Products/Debug-iphonesimulator/
+          name: ios-${{ inputs.build_name }}
+          path: |
+            ios/build/Build/Products/
+            ios/build/output/
+            ios/build/*.xcarchive
+          if-no-files-found: error
+
+      - name: Upload Android artifacts
+        if: matrix.platform == 'android' && success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.build_name }}
+          path: android/app/build/outputs/
+          if-no-files-found: error

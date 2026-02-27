@@ -2,7 +2,6 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import compareVersions from 'compare-versions';
 import packageJson from '../../../../package.json';
-import { isE2E } from '../../../util/test/utils';
 
 const APP_VERSION = packageJson.version;
 
@@ -83,7 +82,7 @@ export const isAssetsTrendingTokensFeatureEnabled = (
 };
 
 // We are enabling this feature flag to be enabled by default for non-E2E builds
-const forcedTrueOverride = () => (!isE2E ? 'true' : undefined);
+const forcedTrueOverride = () => 'true';
 
 /**
  * Selector to check if the assets trending tokens feature flag is enabled.

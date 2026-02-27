@@ -6,6 +6,22 @@ import {
 } from './usePerpsLivePositions';
 import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 
+// Mock Engine for lazy isInitialLoading check
+const mockEngineState = {
+  cachedPositions: null as Position[] | null,
+  cachedUserDataTimestamp: 0,
+};
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      get state() {
+        return mockEngineState;
+      },
+    },
+  },
+}));
+
 // Mock the stream provider
 const mockPositionsSubscribe = jest.fn();
 const mockPricesSubscribe = jest.fn();
@@ -617,6 +633,66 @@ describe('usePerpsLivePositions', () => {
         expect(updatedPosition.unrealizedPnl).toBe('1000');
         expect(updatedPosition.returnOnEquity).toBe('0.2');
       });
+    });
+  });
+
+  describe('initial state from cache', () => {
+    it('seeds positions from cache when fresh cached data exists', () => {
+      const cachedPositions: Position[] = [
+        { ...mockPosition, symbol: 'BTC-PERP', size: '2.0' },
+        { ...mockPosition, symbol: 'ETH-PERP', size: '10.0' },
+      ];
+
+      mockEngineState.cachedPositions = cachedPositions;
+      mockEngineState.cachedUserDataTimestamp = Date.now();
+
+      mockPositionsSubscribe.mockReturnValue(jest.fn());
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      expect(result.current.positions).toEqual(cachedPositions);
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+
+    it('returns empty positions for stale cache (older than 60s)', () => {
+      mockEngineState.cachedPositions = [mockPosition];
+      mockEngineState.cachedUserDataTimestamp = Date.now() - 61_000;
+
+      mockPositionsSubscribe.mockReturnValue(jest.fn());
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      // getPreloadedData enforces 60s TTL — stale cache is not used
+      expect(result.current.positions).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(true);
+    });
+
+    it('returns empty positions when no cache exists', () => {
+      mockEngineState.cachedPositions = null;
+      mockEngineState.cachedUserDataTimestamp = 0;
+
+      mockPositionsSubscribe.mockReturnValue(jest.fn());
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      expect(result.current.positions).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(true);
+    });
+
+    it('handles empty cached positions array (valid cache, no positions)', () => {
+      mockEngineState.cachedPositions = [];
+      mockEngineState.cachedUserDataTimestamp = Date.now();
+
+      mockPositionsSubscribe.mockReturnValue(jest.fn());
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      expect(result.current.positions).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(false);
     });
   });
 

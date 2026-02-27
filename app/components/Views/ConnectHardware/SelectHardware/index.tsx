@@ -3,19 +3,14 @@
 
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import {
-  Image,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import HeaderWithTitleLeft from '../../../../component-library/components-temp/HeaderWithTitleLeft';
+import HeaderStackedStandard from '../../../../component-library/components-temp/HeaderStackedStandard';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
@@ -160,10 +155,11 @@ const SelectHardwareWallet = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <HeaderWithTitleLeft
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
+      <HeaderStackedStandard
+        includesTopInset
         onBack={navigation.goBack}
-        titleLeftProps={{
+        titleStandardProps={{
           title: strings('connect_hardware.title_select_hardware'),
           bottomAccessory: (
             <Text

@@ -245,6 +245,7 @@ export function getNavigationOptionsTitle(
   return {
     title,
     headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>,
+    headerTitleAlign: 'center',
     headerRight: () =>
       isFullScreenModal ? (
         <ButtonIcon
@@ -837,6 +838,7 @@ export function getWalletNavbarOptions(
   unreadNotificationCount,
   readNotificationCount,
   shouldDisplayCardButton,
+  isAccountMenuEnabled,
 ) {
   const innerStyles = StyleSheet.create({
     headerContainer: {
@@ -1004,15 +1006,17 @@ export function getWalletNavbarOptions(
                     touchAreaSlop={innerStyles.touchAreaSlop}
                   />
                 )}
-                <ButtonIcon
-                  iconProps={{ color: MMDSIconColor.Default }}
-                  onPress={openQRScanner}
-                  iconName={IconName.QrCode}
-                  size={ButtonIconSize.Md}
-                  testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-                  hitSlop={innerStyles.touchAreaSlop}
-                />
-                {isNotificationsFeatureEnabled() && (
+                {!isAccountMenuEnabled && (
+                  <ButtonIcon
+                    iconProps={{ color: MMDSIconColor.Default }}
+                    onPress={openQRScanner}
+                    iconName={IconName.QrCode}
+                    size={ButtonIconSize.Md}
+                    testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
+                )}
+                {isNotificationsFeatureEnabled() && !isAccountMenuEnabled && (
                   <BadgeWrapper
                     position={BadgeWrapperPosition.TopRight}
                     positionAnchorShape={
@@ -1036,14 +1040,39 @@ export function getWalletNavbarOptions(
                     />
                   </BadgeWrapper>
                 )}
-                <ButtonIcon
-                  iconProps={{ color: MMDSIconColor.Default }}
-                  onPress={handleHamburgerPress}
-                  iconName={IconName.Menu}
-                  size={ButtonIconSize.Md}
-                  testID="navbar-hamburger-menu-button"
-                  hitSlop={innerStyles.touchAreaSlop}
-                />
+                {isNotificationsFeatureEnabled() && isAccountMenuEnabled ? (
+                  <BadgeWrapper
+                    position={BadgeWrapperPosition.TopRight}
+                    positionAnchorShape={
+                      BadgeWrapperPositionAnchorShape.Circular
+                    }
+                    badge={
+                      isNotificationsFeatureEnabled() &&
+                      isNotificationEnabled &&
+                      unreadNotificationCount > 0 ? (
+                        <BadgeStatus status={BadgeStatusStatus.Attention} />
+                      ) : null
+                    }
+                  >
+                    <ButtonIcon
+                      iconProps={{ color: MMDSIconColor.Default }}
+                      onPress={handleHamburgerPress}
+                      iconName={IconName.Menu}
+                      size={ButtonIconSize.Md}
+                      testID="navbar-hamburger-menu-button"
+                      hitSlop={innerStyles.touchAreaSlop}
+                    />
+                  </BadgeWrapper>
+                ) : (
+                  <ButtonIcon
+                    iconProps={{ color: MMDSIconColor.Default }}
+                    onPress={handleHamburgerPress}
+                    iconName={IconName.Menu}
+                    size={ButtonIconSize.Md}
+                    testID="navbar-hamburger-menu-button"
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
+                )}
               </View>
             }
           </View>
