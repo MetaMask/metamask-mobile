@@ -20,11 +20,9 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import { isTestNet, getDecimalChainId } from '../../../util/networks';
-import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
   TransactionType,
   WalletDevice,
-  isEIP1559Transaction,
 } from '@metamask/transaction-controller';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectTickerByChainId } from '../../../selectors/networkController';
@@ -602,32 +600,6 @@ class TransactionElement extends PureComponent {
         {strings('transaction.cancel')}
       </StyledButton>
     );
-  };
-
-  parseGas = () => {
-    const { tx } = this.props;
-
-    let existingGas = {};
-    const transaction = tx?.txParams;
-    if (transaction) {
-      if (isEIP1559Transaction(transaction)) {
-        existingGas = {
-          isEIP1559Transaction: true,
-          maxFeePerGas: weiHexToGweiDec(transaction.maxFeePerGas),
-          maxPriorityFeePerGas: weiHexToGweiDec(
-            transaction.maxPriorityFeePerGas,
-          ),
-        };
-      } else {
-        const existingGasPrice = tx.txParams ? tx.txParams.gasPrice : '0x0';
-        const existingGasPriceDecimal = parseInt(
-          existingGasPrice === undefined ? '0x0' : existingGasPrice,
-          16,
-        );
-        existingGas = { gasPrice: existingGasPriceDecimal };
-      }
-    }
-    return existingGas;
   };
 
   showCancelModal = () => {
