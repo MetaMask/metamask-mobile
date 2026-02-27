@@ -157,6 +157,7 @@ describe('ErrorDetailsModal', () => {
         },
       });
     });
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 
   it('does not render contact support button when provider info is missing', () => {

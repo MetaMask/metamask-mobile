@@ -71,6 +71,7 @@ function ErrorDetailsModal() {
         handleClose();
         await InAppBrowser.open(providerSupportUrl);
       } else {
+        handleClose();
         navigation.navigate('Webview', {
           screen: 'SimpleWebview',
           params: {
