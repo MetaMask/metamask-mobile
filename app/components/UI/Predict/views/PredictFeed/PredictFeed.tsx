@@ -236,7 +236,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
 
   const {
     marketData,
-    isFetching,
+    isLoading,
     error,
     hasMore,
     refetch,
@@ -315,7 +315,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     [tw, contentInsetTop, headerHidden, tabBarHeight],
   );
 
-  if (!hasEverBeenActive || (isFetching && !isRefreshing && !isFetchingMore)) {
+  if (!hasEverBeenActive || (isLoading && !isRefreshing && !isFetchingMore)) {
     return (
       <Box twClassName="flex-1 px-4" style={{ paddingTop: currentPaddingTop }}>
         <PredictMarketSkeleton testID={`skeleton-loading-${category}-1`} />
@@ -470,13 +470,18 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   );
   const isDebouncing = searchQuery !== debouncedSearchQuery;
 
-  const { marketData, isFetching, error, refetch } = usePredictMarketData({
+  const {
+    marketData,
+    isLoading: isSearchFetching,
+    error,
+    refetch,
+  } = usePredictMarketData({
     category: 'trending',
     q: debouncedSearchQuery,
     pageSize: 20,
   });
 
-  const isSearchLoading = isDebouncing || isFetching;
+  const isSearchLoading = isDebouncing || isSearchFetching;
 
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (

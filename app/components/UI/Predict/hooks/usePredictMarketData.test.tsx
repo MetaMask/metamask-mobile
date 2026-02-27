@@ -150,7 +150,7 @@ describe('usePredictMarketData', () => {
     jest.restoreAllMocks();
   });
 
-  it('should fetch market data successfully', async () => {
+  it('fetches market data successfully', async () => {
     const { Wrapper } = createWrapper();
     mockGetMarkets.mockResolvedValue(mockMarketData);
 
@@ -179,7 +179,7 @@ describe('usePredictMarketData', () => {
     );
   });
 
-  it('should handle null market data', async () => {
+  it('handles null market data', async () => {
     const { Wrapper } = createWrapper();
     mockGetMarkets.mockResolvedValue(null);
 
@@ -195,7 +195,7 @@ describe('usePredictMarketData', () => {
     expect(result.current.error).toBe(null);
   });
 
-  it('should handle empty market data array', async () => {
+  it('handles empty market data array', async () => {
     const { Wrapper } = createWrapper();
     mockGetMarkets.mockResolvedValue([]);
 
@@ -211,7 +211,7 @@ describe('usePredictMarketData', () => {
     expect(result.current.error).toBe(null);
   });
 
-  it('should refetch data when calling refetch', async () => {
+  it('refetches data when calling refetch', async () => {
     const { Wrapper } = createWrapper();
     mockGetMarkets.mockResolvedValue(mockMarketData);
 
@@ -295,7 +295,7 @@ describe('usePredictMarketData', () => {
   });
 
   describe('pagination', () => {
-    it('should load next page via fetchMore and indicate when no more pages', async () => {
+    it('loads next page via fetchMore and indicates when no more pages', async () => {
       const { Wrapper } = createWrapper();
       const PAGE_SIZE = 20;
 
