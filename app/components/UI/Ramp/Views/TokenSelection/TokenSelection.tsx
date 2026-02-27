@@ -126,9 +126,10 @@ function TokenSelection() {
   });
 
   const { goToBuy } = useRampNavigation();
-  const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
 
   const debouncedSearchString = useDebouncedValue(searchString, 500);
+
+  const rampType = isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY';
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -139,23 +140,28 @@ function TokenSelection() {
         createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
           .addProperties({
             location: 'Token Selection',
-            ramp_type: 'UNIFIED_BUY_2',
+            ramp_type: rampType,
             ramp_routing: rampRoutingDecision,
           })
           .build(),
       );
     }
-  }, [rampRoutingDecision, createEventBuilder, trackEvent]);
+  }, [rampRoutingDecision, rampType, createEventBuilder, trackEvent]);
 
+  const prevSearchStringRef = useRef('');
   useEffect(() => {
-    if (debouncedSearchString.trim().length > 0) {
+    if (
+      debouncedSearchString.trim().length > 0 &&
+      debouncedSearchString !== prevSearchStringRef.current
+    ) {
+      prevSearchStringRef.current = debouncedSearchString;
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_TOKEN_SEARCHED)
           .addProperties({
             search_query: debouncedSearchString,
             results_count: searchTokenResults?.length ?? 0,
             location: 'Token Selection',
-            ramp_type: 'UNIFIED_BUY_2',
+            ramp_type: rampType,
           })
           .build(),
       );
@@ -163,6 +169,7 @@ function TokenSelection() {
   }, [
     debouncedSearchString,
     searchTokenResults?.length,
+    rampType,
     createEventBuilder,
     trackEvent,
   ]);
@@ -195,7 +202,7 @@ function TokenSelection() {
       }
       // V1 flow: close the modal before navigating to Deposit/Aggregator
       // V2 flow: set selected token on controller and navigate within the same stack
-      if (isRampsUnifiedV2Enabled) {
+      if (isV2UnifiedEnabled) {
         setSelectedToken(assetId);
         navigation.navigate(Routes.RAMP.AMOUNT_INPUT, { assetId });
       } else {
@@ -210,7 +217,6 @@ function TokenSelection() {
       getNetworkName,
       detectedGeolocation,
       rampRoutingDecision,
-      isRampsUnifiedV2Enabled,
       isV2UnifiedEnabled,
       navigation,
       goToBuy,
@@ -247,12 +253,12 @@ function TokenSelection() {
           .addProperties({
             network_chain_id: newFilter?.[0] ?? undefined,
             location: 'Token Selection',
-            ramp_type: 'UNIFIED_BUY_2',
+            ramp_type: rampType,
           })
           .build(),
       );
     },
-    [createEventBuilder, trackEvent],
+    [createEventBuilder, trackEvent, rampType],
   );
 
   const handleUnsupportedInfoPress = useCallback(() => {
@@ -262,12 +268,12 @@ function TokenSelection() {
       )
         .addProperties({
           location: 'Token Selection',
-          ramp_type: 'UNIFIED_BUY_2',
+          ramp_type: rampType,
         })
         .build(),
     );
     navigation.navigate(...createUnsupportedTokenModalNavigationDetails());
-  }, [navigation, createEventBuilder, trackEvent]);
+  }, [navigation, createEventBuilder, trackEvent, rampType]);
 
   const renderToken = useCallback(
     ({ item: token }: { item: RampsToken }) => (
@@ -320,14 +326,14 @@ function TokenSelection() {
             createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
               .addProperties({
                 location: 'Token Selection',
-                ramp_type: 'UNIFIED_BUY_2',
+                ramp_type: rampType,
               })
               .build(),
           );
         },
       ),
     );
-  }, [navigation, theme, createEventBuilder, trackEvent]);
+  }, [navigation, theme, createEventBuilder, trackEvent, rampType]);
 
   if (isLoading) {
     return (

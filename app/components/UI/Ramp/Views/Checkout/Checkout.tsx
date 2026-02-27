@@ -283,8 +283,10 @@ const Checkout = () => {
     rampRoutingDecision,
   ]);
 
+  const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
-    if (uri) {
+    if (uri && !hasTrackedScreenViewRef.current) {
+      hasTrackedScreenViewRef.current = true;
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
           .addProperties({
