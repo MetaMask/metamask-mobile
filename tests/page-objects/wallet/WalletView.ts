@@ -22,6 +22,11 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
   }
 
+  /** Homepage content container (inside ScrollView); use for scroll gestures when on homepage. */
+  get homepageContainer(): DetoxElement {
+    return Matchers.getElementByID('homepage-container');
+  }
+
   get earnButton(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
   }
@@ -492,6 +497,58 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.AVAILABLE_BALANCE);
   }
 
+  get defiPositionsNew(): DetoxElement {
+    return Matchers.getElementByText('DeFi');
+  }
+
+  /** Perpetuals section header on the homepage (assumes English locale). */
+  get perpsSectionHeader(): DetoxElement {
+    return Matchers.getElementByText('Perpetuals');
+  }
+
+  /** Predictions section header on the homepage (assumes English locale). */
+  get predictionsSectionHeader(): DetoxElement {
+    return Matchers.getElementByText('Predictions');
+  }
+
+  /** Tokens section header on the homepage (assumes English locale). */
+  get tokensSectionHeader(): DetoxElement {
+    return Matchers.getElementByText('Tokens');
+  }
+
+  /** NFTs section header on the homepage (assumes English locale). */
+  get nftsSectionHeader(): DetoxElement {
+    return Matchers.getElementByText('NFTs');
+  }
+
+  async tapOnDeFiPositionsNew(): Promise<void> {
+    await Gestures.waitAndTap(this.defiPositionsNew, {
+      checkStability: true,
+      elemDescription: 'DeFi Positions New',
+    });
+  }
+
+  async tapOnNewPredictionsSection(): Promise<void> {
+    await Gestures.waitAndTap(this.predictionsSectionHeader, {
+      checkStability: true,
+      elemDescription: 'New Predictions Section',
+    });
+  }
+
+  async tapOnNewTokensSection(): Promise<void> {
+    await Gestures.waitAndTap(this.tokensSectionHeader, {
+      checkStability: true,
+      elemDescription: 'New Tokens Section',
+    });
+  }
+
+  async tapOnNewNftsSection(): Promise<void> {
+    await Gestures.waitAndTap(this.nftsSectionHeader, {
+      checkStability: true,
+      elemDescription: 'New NFTs Section',
+    });
+  }
+
   async tapOnDeFiTab(): Promise<void> {
     await Gestures.waitAndTap(this.defiTab, {
       elemDescription: 'DeFi Tab',
@@ -550,6 +607,169 @@ class WalletView {
       this.predictScrollViewIdentifier,
       { direction },
     );
+  }
+
+  /**
+   * Scrolls the homepage until the DeFi section is visible and fully in view (not clipped).
+   * Swipes on the homepage container (content inside ScrollView) so the scroll actually moves.
+   */
+  async scrollDownToDefiSection(): Promise<void> {
+    const maxSwipes = 8;
+    for (let i = 0; i < maxSwipes; i++) {
+      try {
+        await Assertions.expectElementToBeVisible(this.defiPositionsNew, {
+          timeout: 2000,
+          description: 'DeFi section visible',
+        });
+        // One more swipe so the section is fully in view (avoids "clipped" tap failure)
+        await Gestures.swipe(
+          this.homepageContainer as unknown as DetoxElement,
+          'up',
+          {
+            speed: 'slow',
+            percentage: 0.3,
+            elemDescription: 'center DeFi section in view',
+          },
+        );
+        return;
+      } catch {
+        await Gestures.swipe(
+          this.homepageContainer as unknown as DetoxElement,
+          'up',
+          {
+            speed: 'slow',
+            percentage: 0.6,
+            elemDescription: 'homepage scroll to reveal DeFi section',
+          },
+        );
+      }
+    }
+    await Assertions.expectElementToBeVisible(this.defiPositionsNew, {
+      description: 'DeFi section visible after scroll',
+    });
+  }
+
+  /**
+   * Scrolls the homepage until the Perpetuals section is visible and fully in view (not clipped).
+   * Swipes on the homepage container (content inside ScrollView) so the scroll actually moves.
+   */
+  async scrollDownToPerpsSection(): Promise<void> {
+    const maxSwipes = 8;
+    for (let i = 0; i < maxSwipes; i++) {
+      try {
+        await Assertions.expectElementToBeVisible(this.perpsSectionHeader, {
+          timeout: 2000,
+          description: 'Perpetuals section visible',
+        });
+        // One more swipe so the section is fully in view (avoids "clipped" tap failure)
+        await Gestures.swipe(
+          this.homepageContainer as unknown as DetoxElement,
+          'up',
+          {
+            speed: 'slow',
+            percentage: 0.3,
+            elemDescription: 'center Perpetuals section in view',
+          },
+        );
+        return;
+      } catch {
+        await Gestures.swipe(
+          this.homepageContainer as unknown as DetoxElement,
+          'up',
+          {
+            speed: 'slow',
+            percentage: 0.6,
+            elemDescription: 'homepage scroll to reveal Perpetuals section',
+          },
+        );
+      }
+    }
+    await Assertions.expectElementToBeVisible(this.perpsSectionHeader, {
+      description: 'Perpetuals section visible after scroll',
+    });
+  }
+
+  /**
+   * Scrolls the homepage until the Predictions section is visible and fully in view (not clipped).
+   * Swipes on the homepage container (content inside ScrollView) so the scroll actually moves.
+   */
+  async scrollDownToPredictionsSection(): Promise<void> {
+    const maxSwipes = 8;
+    for (let i = 0; i < maxSwipes; i++) {
+      try {
+        await Assertions.expectElementToBeVisible(
+          this.predictionsSectionHeader,
+          {
+            timeout: 2000,
+            description: 'Predictions section visible',
+          },
+        );
+        // One more swipe so the section is fully in view (avoids "clipped" tap failure)
+        await Gestures.swipe(
+          this.homepageContainer as unknown as DetoxElement,
+          'up',
+          {
+            speed: 'slow',
+            percentage: 0.3,
+            elemDescription: 'center Predictions section in view',
+          },
+        );
+        return;
+      } catch {
+        await Gestures.swipe(
+          this.homepageContainer as unknown as DetoxElement,
+          'up',
+          {
+            speed: 'slow',
+            percentage: 0.6,
+            elemDescription: 'homepage scroll to reveal Predictions section',
+          },
+        );
+      }
+    }
+    await Assertions.expectElementToBeVisible(this.predictionsSectionHeader, {
+      description: 'Predictions section visible after scroll',
+    });
+  }
+
+  /**
+   * Scrolls the homepage until the NFTs section is visible and fully in view (not clipped).
+   * Swipes on the homepage container (content inside ScrollView) so the scroll actually moves.
+   */
+  async scrollDownToNftsSection(): Promise<void> {
+    const maxSwipes = 8;
+    for (let i = 0; i < maxSwipes; i++) {
+      try {
+        await Assertions.expectElementToBeVisible(this.nftsSectionHeader, {
+          timeout: 2000,
+          description: 'NFTs section visible',
+        });
+        // One more swipe so the section is fully in view (avoids "clipped" tap failure)
+        await Gestures.swipe(
+          this.homepageContainer as unknown as DetoxElement,
+          'up',
+          {
+            speed: 'slow',
+            percentage: 0.3,
+            elemDescription: 'center NFTs section in view',
+          },
+        );
+        return;
+      } catch {
+        await Gestures.swipe(
+          this.homepageContainer as unknown as DetoxElement,
+          'up',
+          {
+            speed: 'slow',
+            percentage: 0.6,
+            elemDescription: 'homepage scroll to reveal NFTs section',
+          },
+        );
+      }
+    }
+    await Assertions.expectElementToBeVisible(this.nftsSectionHeader, {
+      description: 'NFTs section visible after scroll',
+    });
   }
 
   async tapOnAvailableBalance(): Promise<void> {
@@ -767,9 +987,20 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
   }
 
+  get newPerpsSection(): DetoxElement {
+    return Matchers.getElementByText('Perpetuals');
+  }
+
   async tapOnPerpsTab(): Promise<void> {
     await Gestures.waitAndTap(this.perpsTab, {
       elemDescription: 'Perps Tab Button',
+    });
+  }
+
+  async tapOnNewPerpsSection(): Promise<void> {
+    await Gestures.waitAndTap(this.newPerpsSection, {
+      checkStability: true,
+      elemDescription: 'New Perps Section',
     });
   }
 

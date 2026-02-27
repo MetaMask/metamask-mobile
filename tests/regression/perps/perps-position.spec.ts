@@ -1,10 +1,8 @@
 import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { RegressionTrade } from '../../tags';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { PerpsHelpers } from '../../helpers/perps/perps-helpers';
-import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
+import WalletView from '../../page-objects/wallet/WalletView';
 import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
@@ -32,15 +30,9 @@ describe(RegressionTrade('Perps Position'), () => {
         logger.info('🎯 Mock account: $10,000 total, $8,000 available');
         await loginToApp();
 
-        // Navigate to Perps tab using manual sync management
-        await PerpsHelpers.navigateToPerpsTab();
-
-        // Navigate to actions
-        await TabBarComponent.tapActions();
-
-        // This is needed due to disable animations on the next modal
-        await device.disableSynchronization();
-        await WalletActionsBottomSheet.tapPerpsButton();
+        // Navigate to Perps via homepage section (same click path as smoke perps tests)
+        await WalletView.scrollDownToPerpsSection();
+        await WalletView.tapOnNewPerpsSection();
 
         await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.tapLongButton();

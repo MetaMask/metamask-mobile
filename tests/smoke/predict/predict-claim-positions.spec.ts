@@ -113,11 +113,8 @@ describe(SmokePredictions('Claim winnings:'), () => {
         // Claim button is animated - disabling sync on iOS to prevent test hang
         await device.disableSynchronization();
 
-        await WalletView.tapOnPredictionsTab();
-
-        await Assertions.expectElementToBeVisible(
-          WalletView.PredictionsTabContainer,
-        );
+        await WalletView.scrollDownToPredictionsSection();
+        await WalletView.tapOnNewPredictionsSection();
 
         // Claim button is rendered only after positions API returns and Redux has won positions
         await Assertions.expectElementToBeVisible(WalletView.claimButton, {

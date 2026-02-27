@@ -67,11 +67,9 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
         );
 
         await loginToApp();
+        await WalletView.tapOnNewTokensSection();
         await WalletView.tapImportTokensButton();
         await ImportTokensView.switchToCustomTab();
-        await ImportTokensView.tapOnNetworkInput();
-        await ImportTokensView.swipeNetworkList();
-        await ImportTokensView.tapNetworkOption('Localhost');
         await ImportTokensView.typeTokenAddress(hstAddress);
         await Assertions.expectElementToHaveText(
           ImportTokensView.symbolInput,
@@ -81,12 +79,13 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
             description: 'Symbol field should auto-populate with TST',
           },
         );
-        await ImportTokensView.tapOnNextButton('Import Token');
+
+        await ImportTokensView.tapOnNextButton('Search Token');
         // Tap confirm by id to avoid relying on shared page object
-        await Gestures.waitAndTap(
-          Matchers.getElementByID('bottomsheetfooter-button-subsequent'),
-          { elemDescription: 'Confirm Add Asset Button', timeout: 15000 },
-        );
+        await Gestures.waitAndTap(Matchers.getElementByText('Import'), {
+          elemDescription: 'Confirm Add Asset Button',
+          timeout: 15000,
+        });
         await Assertions.expectElementToBeVisible(
           WalletView.tokenInWallet('100 TST'),
         );
@@ -94,7 +93,6 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
         await Assertions.expectElementToBeVisible(TokenOverview.tokenPrice);
         await TokenOverview.tapSendButton();
         await RedesignedSendView.inputRecipientAddress(SEND_ADDRESS);
-        await RedesignedSendView.typeInTransactionAmount('0.000001');
         await RedesignedSendView.pressReviewButton();
         await TransactionConfirmationView.tapConfirmButton();
         await Assertions.expectTextDisplayed('Confirmed', {

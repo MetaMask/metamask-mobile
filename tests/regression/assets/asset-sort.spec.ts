@@ -80,6 +80,7 @@ describe(RegressionAssets('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
+        await WalletView.tapOnNewTokensSection();
         await WalletView.tapImportTokensButton();
         await ImportTokensView.searchToken('AAVE');
         await ImportTokensView.tapOnToken(); // taps the first token in the returned list
@@ -115,6 +116,7 @@ describe(RegressionAssets('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
+        await WalletView.tapOnNewTokensSection();
         await WalletView.tapSortBy();
         await SortModal.tapSortAlphabetically();
 
@@ -153,6 +155,7 @@ describe(RegressionAssets('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
+        await WalletView.tapOnNewTokensSection();
         await WalletView.tapSortBy();
         await SortModal.tapSortFiatAmount();
 

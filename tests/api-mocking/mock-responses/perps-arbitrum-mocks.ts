@@ -26,8 +26,8 @@ const MOCK_RESPONSES: Record<string, unknown> = {
   // eth_gasPrice - gas price
   eth_gasPrice: '0x9c7652400', // 42 gwei
 
-  // eth_getTransactionCount - nonce
-  eth_getTransactionCount: '0x0',
+  // eth_getTransactionCount - nonce (use even-length hex)
+  eth_getTransactionCount: '0x00',
 
   // eth_blockNumber - latest block
   eth_blockNumber: '0x1234567',

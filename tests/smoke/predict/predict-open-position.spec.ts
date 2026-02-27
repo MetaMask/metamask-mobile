@@ -7,7 +7,6 @@ import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBot
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import Assertions from '../../framework/Assertions';
-import WalletView from '../../page-objects/wallet/WalletView';
 import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -63,7 +62,6 @@ describe(SmokePredictions('Predictions'), () => {
       async ({ mockServer }) => {
         await loginToApp();
 
-        await WalletView.tapOnPredictionsTab();
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPredictButton();
         await device.disableSynchronization();

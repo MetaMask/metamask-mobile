@@ -309,7 +309,7 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
   },
   {
     homepageSectionsV1: {
-      enabled: false,
+      enabled: true,
       minimumVersion: '7.65.0',
     },
   },

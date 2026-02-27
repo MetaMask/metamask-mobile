@@ -13,6 +13,7 @@ import {
   defiPositionsWithNoData,
 } from '../../../api-mocking/mock-responses/defi-api-mocks';
 import NetworkManager from '../../../page-objects/wallet/NetworkManager';
+import DefiView from '../../../page-objects/wallet/DefiView';
 
 describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
   it('open the DeFi tab with an address that has no positions', async () => {
@@ -34,17 +35,8 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         await loginToApp();
 
         await Assertions.expectElementToBeVisible(WalletView.container);
-        await Assertions.expectElementToBeVisible(WalletView.defiTab);
-
-        await WalletView.tapOnDeFiTab();
-
-        await Assertions.expectElementToBeVisible(WalletView.defiTabContainer);
-        await Assertions.expectElementToBeVisible(WalletView.defiNetworkFilter);
-        await Assertions.expectTextDisplayed(
-          WalletViewSelectorsText.DEFI_EMPTY_STATE_DESCRIPTION,
-        );
-        await Assertions.expectTextDisplayed(
-          WalletViewSelectorsText.DEFI_EMPTY_STATE_EXPLORE_BUTTON,
+        await Assertions.expectElementToNotBeVisible(
+          WalletView.defiPositionsNew,
         );
       },
     );
@@ -69,8 +61,8 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         await loginToApp();
 
         await Assertions.expectElementToBeVisible(WalletView.container);
-        await Assertions.expectElementToBeVisible(WalletView.defiTab);
-
+        await Assertions.expectElementToBeVisible(WalletView.defiPositionsNew);
+        // IT should show retry
         await WalletView.tapOnDeFiTab();
 
         await Assertions.expectElementToNotBeVisible(
@@ -112,11 +104,12 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         await loginToApp();
 
         await Assertions.expectElementToBeVisible(WalletView.container);
-        await Assertions.expectElementToBeVisible(WalletView.defiTab);
+        await Assertions.expectElementToBeVisible(WalletView.defiPositionsNew);
 
-        await WalletView.tapOnDeFiTab();
+        await WalletView.scrollDownToDefiSection();
+        await WalletView.tapOnDeFiPositionsNew();
 
-        await WalletView.tapOnDeFiNetworksFilter();
+        await DefiView.tapNetworkFilter();
         await NetworkManager.tapNetwork('eip155:1');
         await NetworkManager.closeNetworkManager();
 

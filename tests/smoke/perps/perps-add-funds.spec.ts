@@ -7,7 +7,6 @@ import { loginToApp } from '../../flows/wallet.flow';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import Assertions from '../../framework/Assertions';
 import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
-import { PerpsHelpers } from '../../helpers/perps/perps-helpers';
 import WalletView from '../../page-objects/wallet/WalletView';
 import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
@@ -88,13 +87,14 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
         );
 
         // Go to Perps tab
-        await PerpsHelpers.navigateToPerpsTab();
+        await WalletView.scrollDownToPerpsSection();
+        await WalletView.tapOnNewPerpsSection();
 
         // Read initial balance text for later comparison
         const initialBalance = await PerpsTabView.getBalance();
 
         // Open Add Funds from balance menu
-        await PerpsTabView.tapBalanceButton();
+        //await PerpsTabView.tapBalanceButton();
         await PerpsTabView.tapAddFundsButton();
 
         // If a network-added toast appears, wait for it to disappear before interacting

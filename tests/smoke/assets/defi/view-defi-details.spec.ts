@@ -7,6 +7,8 @@ import { loginToApp } from '../../../flows/wallet.flow';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { defiPositionsWithData } from '../../../api-mocking/mock-responses/defi-api-mocks';
+import DefiView from '../../../page-objects/wallet/DefiView';
+import DefiPositionView from '../../../page-objects/wallet/DefiPositionView';
 
 describe(SmokeNetworkAbstractions('View DeFi details'), () => {
   it('open the Aave V3 position details', async () => {
@@ -30,26 +32,42 @@ describe(SmokeNetworkAbstractions('View DeFi details'), () => {
       },
       async () => {
         await loginToApp();
+        // await Assertions.expectElementToBeVisible(WalletView.defiPositionsNew);
 
-        await Assertions.expectElementToBeVisible(WalletView.container);
-        await Assertions.expectElementToBeVisible(WalletView.defiTab);
-
-        await WalletView.tapOnDeFiTab();
-
-        await Assertions.expectElementToBeVisible(WalletView.defiTabContainer);
-        await WalletView.tapOnDeFiPosition('Aave V3');
-
-        await Assertions.expectElementToBeVisible(
-          WalletView.defiPositionDetailsContainer,
-        );
+        await WalletView.scrollDownToDefiSection();
         await Assertions.expectTextDisplayed('Aave V3');
         await Assertions.expectTextDisplayed('$14.74');
+        await Assertions.expectTextDisplayed('WETH +1 other');
+        await Assertions.expectTextDisplayed('Uniswap V3');
+        await Assertions.expectTextDisplayed('$8.48');
+        await Assertions.expectTextDisplayed('WETH +1 other');
+        await Assertions.expectTextDisplayed('Uniswap V2');
+        await Assertions.expectTextDisplayed('$4.24');
+        await Assertions.expectTextDisplayed('USDC +1 other');
+        await Assertions.expectTextDisplayed('Aave V2');
+        await Assertions.expectTextDisplayed('$0.33');
+        await Assertions.expectTextDisplayed('USDC +1 other');
+        await WalletView.tapOnDeFiPositionsNew();
+        await DefiView.checkContainerIsDisplayed();
+        await Assertions.expectTextDisplayed('Aave V3');
+        await Assertions.expectTextDisplayed('$14.74');
+        await Assertions.expectTextDisplayed('WETH +1 other');
+        await Assertions.expectTextDisplayed('Uniswap V3');
+        await Assertions.expectTextDisplayed('$8.48');
+        await Assertions.expectTextDisplayed('WETH +1 other');
+        await Assertions.expectTextDisplayed('Uniswap V2');
+        await Assertions.expectTextDisplayed('$4.24');
+        await Assertions.expectTextDisplayed('USDC +1 other');
+        await Assertions.expectTextDisplayed('Aave V2');
+        await Assertions.expectTextDisplayed('$0.33');
+        await Assertions.expectTextDisplayed('USDC +1 other');
+        await WalletView.tapOnDeFiPosition('Aave V3');
+        await DefiPositionView.checkContainersIsDisplayed();
+        await Assertions.expectTextDisplayed('Supplied');
         await Assertions.expectTextDisplayed('USDT');
-        await Assertions.expectTextDisplayed('$0.30');
-        await Assertions.expectTextDisplayed('0.30011 USDT');
         await Assertions.expectTextDisplayed('WETH');
-        await Assertions.expectTextDisplayed('$14.44');
-        await Assertions.expectTextDisplayed('0.00903 WETH');
+        await Assertions.expectTextDisplayed('$14.74');
+        await Assertions.expectTextDisplayed('$0.30');
       },
     );
   });

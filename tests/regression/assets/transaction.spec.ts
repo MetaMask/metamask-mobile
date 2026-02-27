@@ -64,10 +64,8 @@ describe(RegressionAssets('Transaction'), () => {
       async () => {
         await loginToApp();
         // Scroll to top first to ensure consistent starting position
-        await WalletView.scrollToTopOfTokensList();
+        await WalletView.tapOnNewTokensSection();
 
-        // Then scroll to Ethereum with extra stability
-        await WalletView.scrollToToken(ETHEREUM_NAME);
         await WalletView.tapOnToken(ETHEREUM_NAME);
         await TokenOverview.tapSendButton();
 

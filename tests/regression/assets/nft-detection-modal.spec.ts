@@ -36,7 +36,8 @@ describe.skip(RegressionAssets('NFT Detection Modal'), () => {
         await Assertions.expectElementToBeVisible(WalletView.container);
 
         // Go to NFTs tab and check that the banner is visible
-        await WalletView.tapNftTab();
+        await WalletView.scrollDownToNftsSection();
+        await WalletView.tapOnNewNftsSection();
         await Assertions.expectTextDisplayed(
           NftDetectionModalSelectorsText.NFT_AUTO_DETECTION_BANNER,
         );
@@ -65,7 +66,8 @@ describe.skip(RegressionAssets('NFT Detection Modal'), () => {
         await device.disableSynchronization();
 
         // Go to NFTs tab and check that the banner is NOT visible
-        await WalletView.tapNftTab();
+        await WalletView.scrollDownToNftsSection();
+        await WalletView.tapOnNewNftsSection();
         await Assertions.expectTextNotDisplayed(
           NftDetectionModalSelectorsText.NFT_AUTO_DETECTION_BANNER,
         );
