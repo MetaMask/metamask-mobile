@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
+- chore: merge stable into release 7.67.0 branch (#26496)
 - chore: make OTA Version Display more robust (#26295)
 - Bump new assets controller to v2.0.0 (#26166)
 - Updated assets controllers to 99.4.0 (#26261)
