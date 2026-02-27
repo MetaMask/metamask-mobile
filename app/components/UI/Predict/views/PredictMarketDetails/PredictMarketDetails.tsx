@@ -74,7 +74,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   });
 
   const {
-    data: market,
+    data: marketData,
     isLoading: isMarketLoading,
     isFetching: isMarketFetching,
     refetch: refetchMarket,
@@ -82,6 +82,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     id: resolvedMarketId ?? '',
     enabled: Boolean(resolvedMarketId),
   });
+  const market = marketData ?? null;
 
   // Track screen load performance (market details + chart)
   usePredictMeasurement({
@@ -166,7 +167,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
     market,
-    isMarketFetching: isMarketLoading,
+    isMarketFetching,
   });
 
   const handleBackPress = () => {
