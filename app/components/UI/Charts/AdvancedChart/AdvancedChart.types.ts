@@ -95,12 +95,16 @@ export interface CrosshairData {
 }
 
 /**
- * Chart type enum matching TradingView SeriesType
+ * Chart type constants matching TradingView SeriesType.
+ * Uses as-const object instead of enum to avoid numeric enum pitfalls
+ * (reverse lookups, runtime code, opaque values in bridge messages).
  */
-export enum ChartType {
-  Candles = 1,
-  Line = 2,
-}
+export const ChartType = {
+  Candles: 1,
+  Line: 2,
+} as const;
+
+export type ChartType = (typeof ChartType)[keyof typeof ChartType];
 
 // ============================================
 // Message protocol: React Native <-> WebView
