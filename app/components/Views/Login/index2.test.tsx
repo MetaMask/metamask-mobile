@@ -14,12 +14,14 @@ import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/const
 
 // Mock dependencies
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { IconName } from '@metamask/design-system-react-native';
 
 import { EndTraceRequest } from '../../../util/trace';
 import ReduxService from '../../../core/redux/ReduxService';
 import { RecursivePartial } from '../../../core/Authentication/Authentication.test';
 import { RootState } from '../../../reducers';
 import { ReduxStore } from '../../../core/redux/types';
+import { AuthCapabilities } from '../../../core/Authentication/types';
 
 jest.mock('../../../util/Logger');
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
@@ -49,11 +51,14 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   }),
 }));
 
-const defaultCapabilities = {
+const defaultCapabilities: AuthCapabilities = {
   authType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
   isBiometricsAvailable: true,
   passcodeAvailable: true,
   authLabel: 'Face ID',
+  authDescription:
+    'Use your device’s biometrics or passcode to unlock MetaMask.',
+  authIcon: IconName.FaceId,
   osAuthEnabled: false,
   allowLoginWithRememberMe: false,
   deviceAuthRequiresSettings: false,
@@ -101,6 +106,11 @@ jest.mock('@react-navigation/native', () => {
       replace: mockReplace,
       reset: mockReset,
       goBack: mockGoBack,
+      dispatch: jest.fn((action) => {
+        if (action.type === 'REPLACE') {
+          mockReplace(action.payload.name, action.payload.params);
+        }
+      }),
     }),
     useRoute: () => mockRoute(),
   };
@@ -146,13 +156,6 @@ jest.mock('@react-native-community/netinfo', () => ({
       isConnectionExpensive: false,
     },
   })),
-}));
-
-const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
-
-jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
-  isMultichainAccountsState2Enabled: () =>
-    mockIsMultichainAccountsState2Enabled(),
 }));
 
 jest.mock('../../UI/ScreenshotDeterrent', () => ({
@@ -400,7 +403,7 @@ describe('Login test suite 2', () => {
 
       await waitFor(() => {
         expect(
-          getByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
+          getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
         ).toBeOnTheScreen();
       });
     });

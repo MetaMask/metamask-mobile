@@ -34,9 +34,12 @@ import ConditionalScrollView from '../../../component-library/components-temp/Co
 
 export interface DeFiPositionsListProps {
   tabLabel: string;
+  isFullView?: boolean;
 }
 
-const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
+const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
+  isFullView = false,
+}) => {
   const { styles } = useStyles(styleSheet, undefined);
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const defiPositions = useSelector(selectDeFiPositionsByAddress);
@@ -132,13 +135,15 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
 
   return (
     <View
-      style={!isHomepageRedesignV1Enabled ? styles.wrapper : undefined}
+      style={
+        isFullView || !isHomepageRedesignV1Enabled ? styles.wrapper : undefined
+      }
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
     >
       <DeFiPositionsControlBar />
       {formattedDeFiPositions.length > 0 ? (
         <ConditionalScrollView
-          isScrollEnabled={!isHomepageRedesignV1Enabled}
+          isScrollEnabled={isFullView || !isHomepageRedesignV1Enabled}
           scrollViewProps={{
             testID: WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
           }}

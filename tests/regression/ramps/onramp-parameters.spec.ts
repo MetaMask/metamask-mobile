@@ -20,7 +20,7 @@ import SoftAssert from '../../framework/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import Matchers from '../../framework/Matchers';
 import { Mockttp } from 'mockttp';
-import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 
 const eventsToCheck: EventPayload[] = [];
 

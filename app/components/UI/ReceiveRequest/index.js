@@ -10,14 +10,11 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
 import { connect } from 'react-redux';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
-import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
 
@@ -108,31 +105,6 @@ class ReceiveRequest extends PureComponent {
   state = {
     qrModalVisible: false,
     buyModalVisible: false,
-  };
-
-  /**
-   * Share current account public address
-   */
-  onShare = () => {
-    const { selectedAddress } = this.props;
-    Share.open({
-      message: generateUniversalLinkAddress(selectedAddress),
-    })
-      .then(() => {
-        this.props.hideModal();
-        setTimeout(() => this.props.protectWalletModalVisible(), 1000);
-      })
-      .catch((err) => {
-        Logger.log('Error while trying to share address', err);
-      });
-
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS,
-      )
-        .addProperties({ action: 'Receive Options', name: 'Share address' })
-        .build(),
-    );
   };
 
   /**
