@@ -854,6 +854,45 @@ describe('BridgeView', () => {
       expect(queryByText('Fetching quote')).toBeNull();
     });
 
+    it('keeps quote mode content visible while refreshing an existing quote', async () => {
+      const now = Date.now();
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.LOADING,
+          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotesLastFetched: now,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: true,
+          activeQuote: mockQuoteWithMetadata as unknown as QuoteResponse,
+        }));
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(queryByTestId('edit-slippage-button')).toBeTruthy();
+      });
+
+      expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeTruthy();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.QUOTE_DETAILS_SKELETON),
+      ).toBeNull();
+    });
+
     it('shows error mode with banner and without quote or zero state', async () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {

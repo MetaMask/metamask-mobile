@@ -383,7 +383,7 @@ const BridgeView = () => {
     : strings('bridge.error_banner_description');
 
   const getContentMode = () => {
-    if (isLoading) return 'loading';
+    if (isLoading && !activeQuote) return 'loading';
     if (isError && isErrorBannerVisible) return 'error';
     if (shouldDisplayQuoteDetails) return 'quote';
     if (isZeroState) return 'zero';
@@ -404,7 +404,7 @@ const BridgeView = () => {
   );
 
   const renderBottomContent = () => {
-    if (isLoading) {
+    if (isLoading && !activeQuote) {
       return null;
     }
 
