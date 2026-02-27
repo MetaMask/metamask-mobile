@@ -354,7 +354,7 @@ interface RampsTermsConsentClicked {
 
 interface RampsExternalLinkClicked {
   location: string;
-  text: string;
+  external_link_description: string;
   url_domain?: string;
   ramp_type: 'UNIFIED_BUY_2';
 }
