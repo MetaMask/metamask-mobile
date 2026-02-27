@@ -193,6 +193,84 @@ export type WebViewToRNMessage =
   | { type: 'DEBUG'; payload: Record<string, never> };
 
 // ============================================
+// Message parsing / runtime narrowing
+// ============================================
+
+const VALID_INDICATOR_NAMES = new Set<string>(['MACD', 'RSI', 'MA200']);
+
+function isIndicatorType(value: unknown): value is IndicatorType {
+  return typeof value === 'string' && VALID_INDICATOR_NAMES.has(value);
+}
+
+/**
+ * Runtime narrower for messages arriving from the WebView over postMessage.
+ * Returns a typed WebViewToRNMessage if valid, or null for malformed data.
+ */
+export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+
+  const { type, payload } = raw as { type: unknown; payload: unknown };
+  if (typeof type !== 'string') return null;
+
+  const obj = (
+    typeof payload === 'object' && payload !== null ? payload : {}
+  ) as Record<string, unknown>;
+
+  switch (type) {
+    case 'CHART_READY':
+    case 'DEBUG':
+      return { type, payload: {} };
+
+    case 'NEED_MORE_HISTORY':
+      return {
+        type,
+        payload: {
+          oldestTimestamp:
+            typeof obj.oldestTimestamp === 'number' ? obj.oldestTimestamp : 0,
+        },
+      };
+
+    case 'INDICATOR_ADDED':
+      if (isIndicatorType(obj.name) && typeof obj.id === 'string') {
+        return { type, payload: { name: obj.name, id: obj.id } };
+      }
+      return null;
+
+    case 'INDICATOR_REMOVED':
+      if (isIndicatorType(obj.name)) {
+        return { type, payload: { name: obj.name } };
+      }
+      return null;
+
+    case 'CROSSHAIR_MOVE':
+      return {
+        type,
+        payload: {
+          data:
+            typeof obj.data === 'object' && obj.data !== null
+              ? (obj.data as CrosshairData)
+              : null,
+        },
+      };
+
+    case 'ERROR':
+      if (typeof obj.message === 'string') {
+        return {
+          type,
+          payload: {
+            message: obj.message,
+            ...(typeof obj.code === 'string' ? { code: obj.code } : {}),
+          },
+        };
+      }
+      return null;
+
+    default:
+      return null;
+  }
+}
+
+// ============================================
 // Component props and ref
 // ============================================
 

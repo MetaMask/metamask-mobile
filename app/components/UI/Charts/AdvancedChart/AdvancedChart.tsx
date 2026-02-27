@@ -19,9 +19,9 @@ import {
 import {
   ChartType,
   DEFAULT_DISABLED_FEATURES,
+  parseWebViewMessage,
   type AdvancedChartProps,
   type AdvancedChartRef,
-  type CrosshairData,
   type IndicatorType,
   type OHLCVBar,
   type RNToWebViewMessage,
@@ -147,20 +147,17 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     const handleMessage = useCallback(
       (event: WebViewMessageEvent) => {
-        let message;
+        let raw;
         try {
-          message = JSON.parse(event.nativeEvent.data);
+          raw = JSON.parse(event.nativeEvent.data);
         } catch {
           return;
         }
 
-        const { type, payload } = message;
-        const hasPayload =
-          payload !== null &&
-          payload !== undefined &&
-          typeof payload === 'object';
+        const message = parseWebViewMessage(raw);
+        if (!message) return;
 
-        switch (type) {
+        switch (message.type) {
           case 'CHART_READY':
             activeIndicatorsRef.current.clear();
             prevPositionLinesRef.current = undefined;
@@ -172,21 +169,15 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             break;
 
           case 'INDICATOR_ADDED':
-            if (hasPayload && 'name' in payload) {
-              activeIndicatorsRef.current.add(payload.name as IndicatorType);
-            }
+            activeIndicatorsRef.current.add(message.payload.name);
             break;
 
           case 'INDICATOR_REMOVED':
-            if (hasPayload && 'name' in payload) {
-              activeIndicatorsRef.current.delete(payload.name as IndicatorType);
-            }
+            activeIndicatorsRef.current.delete(message.payload.name);
             break;
 
           case 'CROSSHAIR_MOVE':
-            onCrosshairMove?.(
-              (hasPayload ? (payload.data as CrosshairData) : null) ?? null,
-            );
+            onCrosshairMove?.(message.payload.data);
             break;
 
           case 'NEED_MORE_HISTORY':
@@ -194,13 +185,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             break;
 
           case 'ERROR':
-            if (hasPayload && 'message' in payload) {
-              const errorMessage = payload.message as string;
-              if (!isChartReady) {
-                setWebViewError(errorMessage);
-              }
-              onError?.(errorMessage);
+            if (!isChartReady) {
+              setWebViewError(message.payload.message);
             }
+            onError?.(message.payload.message);
             break;
 
           case 'DEBUG':
