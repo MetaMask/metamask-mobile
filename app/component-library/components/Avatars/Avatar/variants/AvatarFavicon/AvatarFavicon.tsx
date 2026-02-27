@@ -1,11 +1,5 @@
 /* eslint-disable react/prop-types */
 
-/**
- * @deprecated Please update your code to use `AvatarFavicon` from `@metamask/design-system-react-native`.
- * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarFavicon/README.md}
- */
-
 // Third party dependencies.
 import React, { useCallback, useEffect, useState } from 'react';
 import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
@@ -28,6 +22,11 @@ import {
 import stylesheet from './AvatarFavicon.styles';
 import { AvatarFaviconProps } from './AvatarFavicon.types';
 
+/**
+ * @deprecated Please update your code to use `AvatarFavicon` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarFavicon/README.md}
+ */
 const AvatarFavicon = ({
   imageSource,
   size = DEFAULT_AVATARFAVICON_SIZE,
