@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Badge, {
@@ -18,7 +18,10 @@ import BigNumber from 'bignumber.js';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import { AssetType } from '../../../types/token';
 import styleSheet from './musd-max-conversion-asset-header.styles';
-import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayTotals,
+} from '../../../hooks/pay/useTransactionPayData';
 import {
   Icon,
   IconColor,
@@ -80,107 +83,114 @@ export const MusdMaxConversionAssetHeaderSkeleton = () => {
   );
 };
 
-export const MusdMaxConversionAssetHeader = memo(
-  ({
-    token,
-    networkName,
-    formatFiat,
-  }: {
-    token: AssetType;
-    networkName: string;
-    formatFiat: (value: BigNumber) => string;
-  }) => {
-    const { styles } = useStyles(styleSheet, {});
-    const isLoading = useIsTransactionPayLoading();
+export const MusdMaxConversionAssetHeader = ({
+  token,
+  networkName,
+  formatFiat,
+}: {
+  token: AssetType;
+  networkName: string;
+  formatFiat: (value: BigNumber) => string;
+}) => {
+  const { styles } = useStyles(styleSheet, {});
 
-    const fiatBalanceText = useMemo(() => {
-      if (!token?.fiat?.balance) {
-        return '';
-      }
+  const isLoading = useIsTransactionPayLoading();
+  const totals = useTransactionPayTotals();
 
-      return formatFiat(new BigNumber(token.fiat.balance));
-    }, [formatFiat, token?.fiat?.balance]);
+  const inputTokenAmount = totals?.sourceAmount?.usd;
+  const outputTokenAmount = totals?.targetAmount?.usd;
 
-    if (isLoading) {
-      return <MusdMaxConversionAssetHeaderSkeleton />;
+  const formatAmount = (amount?: string) => {
+    if (!amount) {
+      return '';
     }
 
-    return (
-      <View style={styles.assetHeaderContainer}>
-        {/* Input Asset (Top) */}
-        <View
-          style={styles.assetContainer}
-          testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_INPUT}
-        >
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                name={networkName}
-                imageSource={getNetworkImageSource({
-                  chainId: token?.chainId ?? '',
-                })}
-              />
-            }
-          >
-            <AvatarToken
-              name={token.symbol}
-              imageSource={{ uri: token.image }}
-              size={AvatarSize.Lg}
-              testID={`earn-token-avatar-${token.symbol}`}
+    return formatFiat(new BigNumber(amount));
+  };
+
+  if (isLoading) {
+    return <MusdMaxConversionAssetHeaderSkeleton />;
+  }
+
+  return (
+    <View style={styles.assetHeaderContainer}>
+      {/* Input Asset (Top) */}
+      <View
+        style={styles.assetContainer}
+        testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_INPUT}
+      >
+        <BadgeWrapper
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              name={networkName}
+              imageSource={getNetworkImageSource({
+                chainId: token?.chainId ?? '',
+              })}
             />
-          </BadgeWrapper>
-          <View style={styles.assetInfo}>
-            <Text
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Alternative}
-            >
-              {token?.symbol}
-            </Text>
-            <Text style={styles.assetAmount}>{fiatBalanceText}</Text>
-          </View>
-        </View>
-        <Icon
-          name={IconName.Arrow2Down}
-          color={IconColor.IconAlternative}
-          size={IconSize.Lg}
-        />
-        {/* Output Asset (Bottom) */}
-        <View
-          style={styles.assetContainer}
-          testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT}
+          }
         >
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                name={networkName}
-                imageSource={getNetworkImageSource({
-                  chainId: token?.chainId ?? '',
-                })}
-              />
-            }
+          <AvatarToken
+            name={token.symbol}
+            imageSource={{ uri: token.image }}
+            size={AvatarSize.Lg}
+            testID={`earn-token-avatar-${token.symbol}`}
+          />
+        </BadgeWrapper>
+        <View style={styles.assetInfo}>
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
           >
-            <AvatarToken
-              name={MUSD_TOKEN.symbol}
-              imageSource={MUSD_TOKEN.imageSource}
-              size={AvatarSize.Lg}
-              testID={`earn-token-avatar-${MUSD_TOKEN.symbol}`}
-            />
-          </BadgeWrapper>
-          <View style={styles.assetInfo}>
-            <Text
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Alternative}
-            >
-              {MUSD_TOKEN.symbol}
-            </Text>
-            <Text style={styles.assetAmount}>{fiatBalanceText}</Text>
-          </View>
+            {token?.symbol}
+          </Text>
+          <Text style={styles.assetAmount}>
+            {formatAmount(inputTokenAmount)}
+          </Text>
         </View>
       </View>
-    );
-  },
-);
+      <Icon
+        name={IconName.Arrow2Down}
+        color={IconColor.IconAlternative}
+        size={IconSize.Lg}
+      />
+      {/* Output Asset (Bottom) */}
+      <View
+        style={styles.assetContainer}
+        testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT}
+      >
+        <BadgeWrapper
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              name={networkName}
+              imageSource={getNetworkImageSource({
+                chainId: token?.chainId ?? '',
+              })}
+            />
+          }
+        >
+          <AvatarToken
+            name={MUSD_TOKEN.symbol}
+            imageSource={MUSD_TOKEN.imageSource}
+            size={AvatarSize.Lg}
+            testID={`earn-token-avatar-${MUSD_TOKEN.symbol}`}
+          />
+        </BadgeWrapper>
+        <View style={styles.assetInfo}>
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+          >
+            {MUSD_TOKEN.symbol}
+          </Text>
+          <Text style={styles.assetAmount}>
+            {formatAmount(outputTokenAmount)}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+};

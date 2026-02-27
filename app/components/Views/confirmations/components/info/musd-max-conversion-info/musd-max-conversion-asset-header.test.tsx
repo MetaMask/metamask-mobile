@@ -9,7 +9,10 @@ import {
   MusdMaxConversionAssetHeaderTestIds,
 } from './musd-max-conversion-asset-header';
 import { AssetType } from '../../../types/token';
-import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayTotals,
+} from '../../../hooks/pay/useTransactionPayData';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { useStyles } from '../../../../../hooks/useStyles';
 
@@ -19,6 +22,7 @@ jest.mock('../../../../../hooks/useStyles', () => ({
 
 jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
   useIsTransactionPayLoading: jest.fn(),
+  useTransactionPayTotals: jest.fn(),
 }));
 
 jest.mock('../../../../../../util/networks', () => ({
@@ -27,6 +31,7 @@ jest.mock('../../../../../../util/networks', () => ({
 
 const mockUseStyles = jest.mocked(useStyles);
 const mockUseIsTransactionPayLoading = jest.mocked(useIsTransactionPayLoading);
+const mockUseTransactionPayTotals = jest.mocked(useTransactionPayTotals);
 
 const mockStyles = {
   container: {},
@@ -86,6 +91,10 @@ describe('MusdMaxConversionAssetHeader', () => {
       theme: {},
     } as ReturnType<typeof useStyles>);
     mockUseIsTransactionPayLoading.mockReturnValue(false);
+    mockUseTransactionPayTotals.mockReturnValue({
+      sourceAmount: { usd: '1234.56', fiat: '1234.56' },
+      targetAmount: { usd: '1230.01', fiat: '1230.01' },
+    } as ReturnType<typeof useTransactionPayTotals>);
   });
 
   afterEach(() => {
@@ -118,10 +127,12 @@ describe('MusdMaxConversionAssetHeader', () => {
     ).toBeNull();
   });
 
-  it('renders asset header with token symbol and formatted fiat when not loading', () => {
-    const token = createMockToken({ fiat: { balance: 1234.56 } });
+  it('renders asset header with quote source and target totals when not loading', () => {
+    const token = createMockToken();
     const formatFiat = createMockFormatFiat();
-    formatFiat.mockReturnValue('$1,234.56');
+    formatFiat
+      .mockReturnValueOnce('$1,234.56')
+      .mockReturnValueOnce('$1,230.01');
 
     const { getByTestId, getByText, getAllByText } = renderWithProvider(
       <MusdMaxConversionAssetHeader
@@ -139,12 +150,16 @@ describe('MusdMaxConversionAssetHeader', () => {
       getByTestId(MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT),
     ).toBeOnTheScreen();
     expect(getByText('MUSD')).toBeOnTheScreen();
-    expect(getAllByText('$1,234.56')).toHaveLength(2);
-    expect(formatFiat).toHaveBeenCalledWith(new BigNumber(1234.56));
+    expect(getAllByText('$1,234.56')).toHaveLength(1);
+    expect(getAllByText('$1,230.01')).toHaveLength(1);
+    expect(formatFiat).toHaveBeenNthCalledWith(1, new BigNumber('1234.56'));
+    expect(formatFiat).toHaveBeenNthCalledWith(2, new BigNumber('1230.01'));
   });
 
-  it('renders empty fiat text when token has no fiat balance', () => {
-    const token = createMockToken({ fiat: undefined });
+  it('renders empty fiat text when quote totals are missing', () => {
+    mockUseTransactionPayTotals.mockReturnValue(undefined);
+
+    const token = createMockToken();
     const formatFiat = createMockFormatFiat();
 
     const { getByTestId, getByText } = renderWithProvider(
@@ -166,9 +181,15 @@ describe('MusdMaxConversionAssetHeader', () => {
     expect(formatFiat).not.toHaveBeenCalled();
   });
 
-  it('renders empty fiat text when token fiat balance is zero', () => {
-    const token = createMockToken({ fiat: { balance: 0 } });
+  it('formats zero quote totals when source and target usd are zero', () => {
+    mockUseTransactionPayTotals.mockReturnValue({
+      sourceAmount: { usd: '0', fiat: '0' },
+      targetAmount: { usd: '0', fiat: '0' },
+    } as ReturnType<typeof useTransactionPayTotals>);
+
+    const token = createMockToken();
     const formatFiat = createMockFormatFiat();
+    formatFiat.mockReturnValue('$0.00');
 
     const { getByTestId } = renderWithProvider(
       <MusdMaxConversionAssetHeader
@@ -185,7 +206,8 @@ describe('MusdMaxConversionAssetHeader', () => {
     expect(
       getByTestId(MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT),
     ).toBeOnTheScreen();
-    expect(formatFiat).not.toHaveBeenCalled();
+    expect(formatFiat).toHaveBeenNthCalledWith(1, new BigNumber('0'));
+    expect(formatFiat).toHaveBeenNthCalledWith(2, new BigNumber('0'));
   });
 
   it('renders token avatar with symbol-based testID', () => {
