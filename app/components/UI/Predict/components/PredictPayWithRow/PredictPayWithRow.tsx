@@ -22,7 +22,9 @@ import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pa
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { TokenIcon } from '../../../../Views/confirmations/components/token-icon';
 import { isHardwareAccount } from '../../../../../util/address';
+import { POLYGON_USDCE } from '../../../../Views/confirmations/constants/predict';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
+import { PREDICT_BALANCE_CHAIN_ID } from '../../constants/transactions';
 
 export function PredictPayWithRow() {
   const navigation = useNavigation();
@@ -42,6 +44,12 @@ export function PredictPayWithRow() {
   const displaySymbol = isPredictBalanceSelected
     ? 'Predict balance'
     : (selectedPaymentToken?.symbol ?? payToken?.symbol ?? '');
+  const tokenIconAddress = isPredictBalanceSelected
+    ? POLYGON_USDCE.address
+    : (payToken?.address as Hex | undefined);
+  const tokenIconChainId = isPredictBalanceSelected
+    ? PREDICT_BALANCE_CHAIN_ID
+    : (payToken?.chainId as Hex | undefined);
 
   return (
     <TouchableOpacity onPress={handlePress} disabled={!canEdit}>
@@ -49,31 +57,22 @@ export function PredictPayWithRow() {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
+        twClassName="rounded-full bg-default p-4"
+        gap={3}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="rounded-full bg-default p-4"
-          gap={3}
-        >
-          {!isPredictBalanceSelected && payToken && (
-            <TokenIcon
-              address={payToken.address as Hex}
-              chainId={payToken.chainId as Hex}
-            />
-          )}
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {`${label} ${displaySymbol}`}
-          </Text>
-          {canEdit && (
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={IconColor.Alternative}
-            />
-          )}
-        </Box>
+        {tokenIconAddress && tokenIconChainId && (
+          <TokenIcon address={tokenIconAddress} chainId={tokenIconChainId} />
+        )}
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+          {`${label} ${displaySymbol}`}
+        </Text>
+        {canEdit && (
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Sm}
+            color={IconColor.Alternative}
+          />
+        )}
       </Box>
     </TouchableOpacity>
   );

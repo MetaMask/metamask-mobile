@@ -34,7 +34,6 @@ import PredictFeeSummary from '../../components/PredictFeeSummary';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
-import { PayWithRowSkeleton } from '../../../../Views/confirmations/components/rows/pay-with-row/pay-with-row';
 import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
@@ -370,8 +369,8 @@ export function PredictDepositAndOrderInfo() {
             </Text>
           )}
         </Box>
-        <Box twClassName="mt-4 w-full">
-          {isBalanceLoading ? <PayWithRowSkeleton /> : <PredictPayWithRow />}
+        <Box twClassName="mt-4 w-full shrink-0">
+          <PredictPayWithRow />
         </Box>
       </Box>
     </ScrollView>

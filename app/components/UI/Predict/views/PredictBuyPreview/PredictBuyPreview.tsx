@@ -396,11 +396,7 @@ const PredictBuyPreview = () => {
           )}
         </Box>
         <Box twClassName="mt-4 w-full">
-          {isBalanceLoading ? (
-            <Skeleton width={220} height={40} />
-          ) : (
-            <PredictPayWithRow />
-          )}
+          <PredictPayWithRow />
         </Box>
       </Box>
     </ScrollView>

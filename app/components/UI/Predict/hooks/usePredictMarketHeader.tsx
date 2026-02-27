@@ -20,14 +20,14 @@ export interface PredictMarketHeaderParams {
 
 const styles = StyleSheet.create({
   headerTitleWrapper: {
-    marginTop: 32,
+    marginTop: 34,
     marginLeft: -20,
   },
   emptyHeaderTitle: {
     height: 96,
   },
   headerLeftButton: {
-    marginTop: 32,
+    marginTop: 34,
     marginLeft: 16,
   },
 });
