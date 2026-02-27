@@ -55,6 +55,7 @@ import Button, {
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
+import Engine from '../../../../../../core/Engine';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
@@ -106,6 +107,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { hasTokens } = useTransactionPayAvailableTokens();
     const selectedFiatPaymentMethod =
       useTransactionPaySelectedFiatPaymentMethod();
+    const transactionMeta = useTransactionMetadataRequest();
+    const transactionId = transactionMeta?.id;
     const isResultReady = useIsResultReady({ isKeyboardVisible });
 
     const {
@@ -126,11 +129,25 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
 
     const handleDone = useCallback(() => {
-      updateTokenAmount();
+      if (selectedFiatPaymentMethod && transactionId) {
+        Engine.context.TransactionPayController.updateFiatPayment({
+          transactionId,
+          amount: amountFiat,
+        });
+      } else {
+        updateTokenAmount();
+      }
+
       EngineService.flushState();
       setIsKeyboardVisible(false);
       onAmountSubmit?.();
-    }, [onAmountSubmit, updateTokenAmount]);
+    }, [
+      amountFiat,
+      onAmountSubmit,
+      selectedFiatPaymentMethod,
+      transactionId,
+      updateTokenAmount,
+    ]);
 
     const handleAmountPress = useCallback(() => {
       setIsKeyboardVisible(true);

@@ -4,6 +4,7 @@ import {
   TransactionPayController,
   TransactionPayControllerMessenger,
   TransactionPayStrategy,
+  TransactionFiatPayment,
 } from '@metamask/transaction-pay-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
@@ -35,6 +36,15 @@ export const TransactionPayControllerInit: ControllerInitFunction<
   }
 };
 
-function getStrategy(_transaction: TransactionMeta): TransactionPayStrategy {
+function getStrategy(
+  _transaction: TransactionMeta,
+  transactionData?: {
+    fiatPayment?: TransactionFiatPayment;
+  },
+): TransactionPayStrategy {
+  if (transactionData?.fiatPayment?.selectedPaymentMethodId) {
+    return TransactionPayStrategy.Fiat;
+  }
+
   return TransactionPayStrategy.Relay;
 }
