@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -6,17 +6,12 @@ import {
   Text,
   TextVariant,
   TextColor,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import type { MarketInsightsTweetCardProps } from './MarketInsightsTweetCard.types';
-import { formatRelativeTime } from '../../utils/marketInsightsFormatting';
+import { getNormalizedHandle } from '../../utils/marketInsightsFormatting';
 
 // MarketInsightsTweetCard renders a social media post card.
 const MarketInsightsTweetCard: React.FC<MarketInsightsTweetCardProps> = ({
@@ -25,10 +20,6 @@ const MarketInsightsTweetCard: React.FC<MarketInsightsTweetCardProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
-  const relativeTime = useMemo(
-    () => formatRelativeTime(tweet.date, { nowLabel: 'now' }),
-    [tweet.date],
-  );
 
   return (
     <Pressable
@@ -48,25 +39,14 @@ const MarketInsightsTweetCard: React.FC<MarketInsightsTweetCardProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
         >
-          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-            {tweet.author}
-          </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {relativeTime}
-          </Text>
-        </Box>
-        <Icon
-          name={IconName.X}
-          size={IconSize.Sm}
-          color={IconColor.IconAlternative}
-        />
+          {getNormalizedHandle(tweet.author)}
+        </Text>
       </Box>
     </Pressable>
   );

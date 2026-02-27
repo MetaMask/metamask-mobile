@@ -5,11 +5,14 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsView from './MarketInsightsView';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockTrendSourcesBottomSheet = jest.fn();
+const mockSourcesBottomSheet = jest.fn();
 const mockFeedbackBottomSheet = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(
@@ -41,7 +44,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       goBack: mockGoBack,
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     }),
     useRoute: () => ({
       params: mockRouteParams,
@@ -150,6 +153,7 @@ jest.mock('../../components/MarketInsightsSourcesFooter', () => {
   const SourcesBottomSheet = (
     props: { onSourcePress?: (url: string) => void } | unknown,
   ) => {
+    mockSourcesBottomSheet(props);
     const typedProps = props as { onSourcePress?: (url: string) => void };
     return (
       <MockView testID="market-insights-sources-bottom-sheet">
@@ -308,6 +312,38 @@ describe('MarketInsightsView', () => {
     expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER)).toBeNull();
   });
 
+  it('does not render loading skeleton during error transition', () => {
+    jest.useFakeTimers();
+
+    mockUseMarketInsights.mockReturnValue({
+      report: null,
+      isLoading: true,
+      error: null,
+      timeAgo: '',
+    });
+
+    const { queryByTestId, rerender } = renderWithProvider(<MarketInsightsView />);
+
+    act(() => {
+      jest.advanceTimersByTime(160);
+    });
+
+    expect(
+      queryByTestId(MarketInsightsSelectorsIDs.VIEW_SKELETON),
+    ).toBeOnTheScreen();
+
+    mockUseMarketInsights.mockReturnValue({
+      report: null,
+      isLoading: false,
+      error: 'request failed',
+      timeAgo: '',
+    });
+
+    rerender(<MarketInsightsView />);
+
+    expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_SKELETON)).toBeNull();
+  });
+
   it('returns null when market insights report is unavailable', () => {
     mockUseMarketInsights.mockReturnValue({
       report: null,
@@ -362,7 +398,13 @@ describe('MarketInsightsView', () => {
             ],
           },
         ],
-        sources: [],
+        sources: [
+          {
+            name: 'coindesk.com',
+            type: 'article',
+            url: 'https://www.coindesk.com',
+          },
+        ],
       },
       isLoading: false,
       error: null,
@@ -385,7 +427,10 @@ describe('MarketInsightsView', () => {
     expect(
       getByTestId(MarketInsightsSelectorsIDs.SOURCES_FOOTER),
     ).toBeOnTheScreen();
-    expect(getByText('AI summary • Not financial advice')).toBeOnTheScreen();
+    expect(
+      getByText('Was this helpful?'),
+    ).toBeOnTheScreen();
+    expect(getByText('AI summary for information only')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TWEET_CARD}-0`));
     expect(Linking.openURL).toHaveBeenCalledWith(
@@ -481,6 +526,20 @@ describe('MarketInsightsView', () => {
         }),
       }),
     );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: expect.objectContaining({
+        newTabUrl: 'https://coindesk.com/article-1',
+        fromTrending: true,
+      }),
+    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: expect.objectContaining({
+        newTabUrl: 'https://www.coindesk.com/article',
+        fromTrending: true,
+      }),
+    });
   });
 
   it('opens trend sources sheet for tweet-only trend and passes tweet sources', () => {
@@ -593,6 +652,90 @@ describe('MarketInsightsView', () => {
         properties: expect.objectContaining({
           caip19: 'eip155:1/erc20:0x456',
         }),
+      }),
+    );
+  });
+
+  it('uses the same trend/article source list for pill count and global sources sheet', () => {
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH extends gains',
+        summary: 'Momentum improves on macro risk-on signals',
+        trends: [
+          {
+            title: 'ETF inflows',
+            description: 'Spot ETF inflows remain elevated',
+            articles: [
+              {
+                title: 'A1',
+                source: 'coindesk.com',
+                date: '2026-02-17T08:00:00.000Z',
+                url: 'https://www.coindesk.com/article-1',
+              },
+              {
+                title: 'A2',
+                source: 'theblock.co',
+                date: '2026-02-17T08:30:00.000Z',
+                url: 'https://www.theblock.co/article-2',
+              },
+              {
+                title: 'A3',
+                source: 'decrypt.co',
+                date: '2026-02-17T09:00:00.000Z',
+                url: 'https://decrypt.co/article-3',
+              },
+              {
+                title: 'A4',
+                source: 'cointelegraph.com',
+                date: '2026-02-17T09:30:00.000Z',
+                url: 'https://cointelegraph.com/article-4',
+              },
+              {
+                title: 'A5',
+                source: 'coindesk.com',
+                date: '2026-02-17T10:00:00.000Z',
+                url: 'https://www.coindesk.com/article-5',
+              },
+            ],
+            tweets: [],
+          },
+        ],
+        // Keep this intentionally larger to verify it does NOT drive the pill count.
+        sources: [
+          { name: 's1', type: 'article', url: 'https://a.com' },
+          { name: 's2', type: 'article', url: 'https://b.com' },
+          { name: 's3', type: 'article', url: 'https://c.com' },
+          { name: 's4', type: 'article', url: 'https://d.com' },
+          { name: 's5', type: 'article', url: 'https://e.com' },
+          { name: 's6', type: 'article', url: 'https://f.com' },
+          { name: 's7', type: 'article', url: 'https://g.com' },
+          { name: 's8', type: 'article', url: 'https://h.com' },
+          { name: 's9', type: 'article', url: 'https://i.com' },
+          { name: 's10', type: 'article', url: 'https://j.com' },
+        ],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '5m ago',
+    });
+
+    const { getByText, getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(getByText('+1 sources')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('market-insights-open-sources-button'));
+
+    expect(mockSourcesBottomSheet).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sources: expect.arrayContaining([
+          expect.objectContaining({ url: 'https://www.coindesk.com/article-1' }),
+          expect.objectContaining({ url: 'https://www.theblock.co/article-2' }),
+          expect.objectContaining({ url: 'https://decrypt.co/article-3' }),
+          expect.objectContaining({ url: 'https://cointelegraph.com/article-4' }),
+          expect.objectContaining({ url: 'https://www.coindesk.com/article-5' }),
+        ]),
       }),
     );
   });

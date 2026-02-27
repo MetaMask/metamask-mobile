@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image, Linking, Pressable, ScrollView } from 'react-native';
+import { Image, Pressable, ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -22,10 +22,14 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import { strings } from '../../../../../../locales/i18n';
 import type {
   MarketInsightsSourcesFooterProps,
+  MarketInsightsSourceListItem,
   MarketInsightsSourcesBottomSheetProps,
 } from './MarketInsightsSourcesFooter.types';
 import type { MarketInsightsSource } from '@metamask/ai-controllers';
-import { getFaviconUrl } from '../../utils/marketInsightsFormatting';
+import {
+  formatRelativeTime,
+  getFaviconUrl,
+} from '../../utils/marketInsightsFormatting';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 
 // Maximum number of source icons to show in the pill before "+N"
@@ -71,19 +75,8 @@ export const MarketInsightsSourcesBottomSheet: React.FC<
   const handleSourcePress = useCallback(
     (url: string) => {
       onSourcePress?.(url);
-      Linking.openURL(url);
     },
     [onSourcePress],
-  );
-
-  const uniqueSources = sources.reduce<MarketInsightsSource[]>(
-    (acc, source) => {
-      if (!acc.find((s) => s.name === source.name)) {
-        acc.push(source);
-      }
-      return acc;
-    },
-    [],
   );
 
   return (
@@ -102,39 +95,92 @@ export const MarketInsightsSourcesBottomSheet: React.FC<
         style={tw.style('px-4')}
         contentContainerStyle={tw.style('pb-24')}
       >
-        {uniqueSources.map((source) => (
+        {sources.map((source, index) => (
           <Pressable
-            key={source.name}
+            key={`${source.url}-${index}`}
             onPress={() => handleSourcePress(source.url)}
             style={({ pressed }) =>
               tw.style(
-                'flex-row items-center py-3 border-b border-muted',
+                'flex-row items-start py-3 border-b border-muted',
                 pressed && 'opacity-70',
               )
             }
           >
-            <Box twClassName="w-8 h-8 rounded-full overflow-hidden mr-3">
-              <Image
-                source={{ uri: getFaviconUrl(source.url) }}
-                style={tw.style('w-8 h-8 rounded-full')}
-              />
-            </Box>
             <Box twClassName="flex-1">
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {source.name}
-              </Text>
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.End}
+                twClassName="pr-1"
               >
-                {source.type}
-              </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  twClassName="flex-1 pr-2"
+                >
+                  {source.headline ?? source.name}
+                </Text>
+                <Box twClassName="pb-1">
+                  <Icon
+                    name={IconName.Export}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                </Box>
+              </Box>
+              {source.headline ? (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="pt-1"
+                >
+                  <Box twClassName="w-4 h-4 rounded-full overflow-hidden mr-2">
+                    <Image
+                      source={{ uri: getFaviconUrl(source.url) }}
+                      style={tw.style('w-4 h-4 rounded-full')}
+                    />
+                  </Box>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
+                  >
+                    {source.name}
+                  </Text>
+                  {source.date ? (
+                    <>
+                      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+                        {' • '}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {formatRelativeTime(source.date, { nowLabel: 'now' })}
+                      </Text>
+                    </>
+                  ) : null}
+                </Box>
+              ) : (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="pt-1"
+                >
+                  <Box twClassName="w-4 h-4 rounded-full overflow-hidden mr-2">
+                    <Image
+                      source={{ uri: getFaviconUrl(source.url) }}
+                      style={tw.style('w-4 h-4 rounded-full')}
+                    />
+                  </Box>
+                  <Text
+                    variant={TextVariant.BodyXs}
+                    color={TextColor.TextAlternative}
+                  >
+                    {source.type}
+                  </Text>
+                </Box>
+              )}
             </Box>
-            <Icon
-              name={IconName.Export}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
           </Pressable>
         ))}
       </ScrollView>

@@ -3,40 +3,26 @@ import { Image, Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  FontWeight,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import type { MarketInsightsSource } from '@metamask/ai-controllers';
 import type { MarketInsightsTrendItemProps } from './MarketInsightsTrendItem.types';
-import { getFaviconUrl } from '../../utils/marketInsightsFormatting';
+import {
+  getFaviconUrl,
+  getUniqueSourcesByFavicon,
+  isXSourceUrl,
+} from '../../utils/marketInsightsFormatting';
 
-const SOURCE_ICON_IMAGE_STYLE = { width: 16, height: 16, borderRadius: 8 };
-
-// StackedSourceIcons renders overlapping circular favicons for article sources.
-const StackedSourceIcons: React.FC<{ sources: string[] }> = ({ sources }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="mt-2"
-  >
-    {sources.map((source, index) => (
-      <Box
-        key={source}
-        twClassName={`w-5 h-5 rounded-full bg-default border border-muted overflow-hidden ${
-          index > 0 ? '-ml-1.5' : ''
-        }`}
-      >
-        <Image
-          source={{ uri: getFaviconUrl(source) }}
-          style={SOURCE_ICON_IMAGE_STYLE}
-        />
-      </Box>
-    ))}
-  </Box>
-);
+const MAX_VISIBLE_SOURCE_LOGOS = 3;
 
 const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
   trend,
@@ -45,24 +31,25 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
 }) => {
   const tw = useTailwind();
   const uniqueSources = useMemo(() => {
-    const seenFaviconUrls = new Set<string>();
-    const fromArticles = trend.articles.reduce<string[]>((acc, article) => {
-      const sourceSeed = article.url || article.source;
-      const faviconUrl = getFaviconUrl(sourceSeed);
-      if (seenFaviconUrls.has(faviconUrl)) {
-        return acc;
-      }
-      seenFaviconUrls.add(faviconUrl);
-      acc.push(sourceSeed);
-      return acc;
-    }, []);
+    const articleSources: MarketInsightsSource[] = trend.articles.map(
+      (article) => ({
+        name: article.source,
+        type: 'article',
+        url: article.url || article.source,
+      }),
+    );
+    const tweetSources: MarketInsightsSource[] = (trend.tweets ?? []).map(
+      (tweet) => ({
+        name: 'X',
+        type: 'tweet',
+        url: tweet.url || 'https://x.com',
+      }),
+    );
 
-    const hasTweets = (trend.tweets?.length ?? 0) > 0;
-    if (hasTweets && !seenFaviconUrls.has(getFaviconUrl('x.com'))) {
-      return [...fromArticles, 'x.com'];
-    }
-
-    return fromArticles;
+    return getUniqueSourcesByFavicon([...articleSources, ...tweetSources]).slice(
+      0,
+      MAX_VISIBLE_SOURCE_LOGOS,
+    );
   }, [trend.articles, trend.tweets]);
 
   return (
@@ -83,10 +70,38 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
       </Text>
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {trend.description}
-      </Text>
-      {uniqueSources.length > 0 ? (
-        <StackedSourceIcons sources={uniqueSources} />
+        {uniqueSources.length > 0 ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="pt-2"
+        >
+          {/* {uniqueSources.map((source, index) => (
+            <Box
+              key={`${source.name}-${source.url}`}
+              twClassName={`h-4 w-4 rounded-full border border-muted bg-default overflow-hidden ${
+                index > 0 ? '-ml-1' : ''
+              }`}
+            >
+              {isXSourceUrl(source.url) ? (
+                <Box twClassName="h-4 w-4 items-center justify-center rounded-full">
+                  <Icon
+                    name={IconName.X}
+                    size={IconSize.Sm}
+                    color={IconColor.IconDefault}
+                  />
+                </Box>
+              ) : (
+                <Image
+                  source={{ uri: getFaviconUrl(source.url) }}
+                  style={tw.style('h-4 w-4 rounded-full')}
+                />
+              )}
+            </Box>
+          ))} */}
+        </Box>
       ) : null}
+      </Text>
     </Pressable>
   );
 };

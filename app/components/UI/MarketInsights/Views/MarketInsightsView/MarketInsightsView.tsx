@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, Linking, Pressable, Animated } from 'react-native';
+import { ScrollView, Linking, Pressable, Animated, Image } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -28,15 +28,13 @@ import {
   BoxAlignItems,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useMarketInsights } from '../../hooks/useMarketInsights';
 import MarketInsightsTrendItem from '../../components/MarketInsightsTrendItem';
 import MarketInsightsTweetCard from '../../components/MarketInsightsTweetCard';
-import MarketInsightsSourcesFooter, {
-  MarketInsightsSourcesBottomSheet,
-} from '../../components/MarketInsightsSourcesFooter';
+import { MarketInsightsSourcesBottomSheet } from '../../components/MarketInsightsSourcesFooter';
+import type { MarketInsightsSourceListItem } from '../../components/MarketInsightsSourcesFooter/MarketInsightsSourcesFooter.types';
 import MarketInsightsTrendSourcesBottomSheet from '../../components/MarketInsightsTrendSourcesBottomSheet';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -46,6 +44,7 @@ import {
 } from '../../../Bridge/hooks/useSwapBridgeNavigation';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import type {
+  MarketInsightsSource,
   MarketInsightsTweet,
   MarketInsightsTrend,
 } from '@metamask/ai-controllers';
@@ -61,6 +60,11 @@ import { useAppThemeFromContext } from '../../../../../util/theme';
 import MarketInsightsFeedbackBottomSheet, {
   MarketInsightsFeedbackReason,
 } from '../../components/MarketInsightsFeedbackBottomSheet';
+import {
+  getFaviconUrl,
+  getUniqueSourcesByFavicon,
+  isXSourceUrl,
+} from '../../utils/marketInsightsFormatting';
 
 const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
@@ -70,11 +74,34 @@ const SECTION_ANIMATION_DELAYS_MS = {
   closerLook: 80,
   whatsBeingSaid: 160,
 };
+const MAX_VISIBLE_SOURCES = 3;
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
   delay?: number;
 }
+
+const TrendSourceIcon: React.FC<{
+  source: MarketInsightsSource;
+  index: number;
+}> = ({ source, index }) => (
+  <Box
+    twClassName={`w-5 h-5 rounded-full bg-default border border-muted overflow-hidden ${
+      index > 0 ? '-ml-2' : ''
+    }`}
+  >
+    {isXSourceUrl(source.url) ? (
+      <Box twClassName="w-5 h-5 items-center justify-center rounded-full">
+        <Icon name={IconName.X} size={IconSize.Sm} color={IconColor.IconDefault} />
+      </Box>
+    ) : (
+      <Image
+        source={{ uri: getFaviconUrl(source.url) }}
+        style={{ width: 16, height: 16, borderRadius: 8 }}
+      />
+    )}
+  </Box>
+);
 
 const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   children,
@@ -226,7 +253,6 @@ interface MarketInsightsRouteParams {
   assetSymbol: string;
   caip19Id: string;
   tokenImageUrl?: string;
-  pricePercentChange?: number;
   /** Token address for swap navigation */
   tokenAddress?: string;
   /** Token decimals for swap navigation */
@@ -240,11 +266,11 @@ interface MarketInsightsRouteParams {
 /**
  * MarketInsightsView is the full-page Market Insights screen.
  * It displays the AI-generated market report including:
- * - Price change indicator with token logo
  * - Headline and summary
  * - "A closer look" trends section
+ * - Consolidated trends sources pill
  * - "What's being said" social section
- * - Sources footer with feedback buttons
+ * - Feedback row with thumbs actions
  * - Trade CTA button (navigates to Swaps with asset pre-filled)
  */
 const MarketInsightsView: React.FC = () => {
@@ -258,7 +284,6 @@ const MarketInsightsView: React.FC = () => {
     assetSymbol,
     caip19Id,
     tokenImageUrl,
-    pricePercentChange,
     tokenAddress,
     tokenDecimals,
     tokenName,
@@ -308,18 +333,55 @@ const MarketInsightsView: React.FC = () => {
     sourceToken,
   });
 
-  // Determine if price change is positive or negative
-  const isPricePositive = (pricePercentChange ?? 0) >= 0;
-  const formattedPercentChange =
-    pricePercentChange != null
-      ? `${isPricePositive ? '+' : ''}${pricePercentChange.toFixed(2)}%`
-      : null;
-
   // Collect all tweets from all trends for the "What people are saying" section
   const allTweets: MarketInsightsTweet[] = useMemo(() => {
     if (!report) return [];
     return report.trends.flatMap((trend) => trend.tweets).slice(0, 4);
   }, [report]);
+  const trendArticleSources: MarketInsightsSourceListItem[] = useMemo(() => {
+    if (!report) {
+      return [];
+    }
+
+    return report.trends.flatMap((trend) =>
+      trend.articles.map((article) => {
+        const sourceSeed = article.url || article.source;
+        const normalizedUrl = sourceSeed.includes('://')
+          ? sourceSeed
+          : `https://${sourceSeed}`;
+
+        return {
+          name: article.source || sourceSeed,
+          type: 'article',
+          url: normalizedUrl,
+          headline: article.title,
+          date: article.date,
+        };
+      }),
+    );
+  }, [report]);
+  const sourcesSheetItems: MarketInsightsSourceListItem[] = useMemo(() => {
+    if (trendArticleSources.length > 0) {
+      return trendArticleSources;
+    }
+
+    return (report?.sources ?? []).map((source) => ({
+      name: source.name,
+      type: source.type,
+      url: source.url,
+    }));
+  }, [report?.sources, trendArticleSources]);
+  const trendSourcesPillSources: MarketInsightsSource[] = useMemo(() => {
+    return getUniqueSourcesByFavicon(sourcesSheetItems);
+  }, [sourcesSheetItems]);
+  const visibleTrendSourceCount = Math.min(
+    trendSourcesPillSources.length,
+    MAX_VISIBLE_SOURCES,
+  );
+  const remainingTrendSourceCount = Math.max(
+    trendSourcesPillSources.length - MAX_VISIBLE_SOURCES,
+    0,
+  );
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -370,7 +432,7 @@ const MarketInsightsView: React.FC = () => {
     }
 
     setShowLoadingSkeleton(false);
-  }, [isLoading, report]);
+  }, [isLoading, report, error]);
 
   useEffect(
     () => () => {
@@ -467,8 +529,19 @@ const MarketInsightsView: React.FC = () => {
   const handleSourcePress = useCallback(
     (url: string) => {
       trackMarketInsightsInteraction('source_click', { source: url });
+      navigation.navigate(
+        Routes.BROWSER.HOME as never,
+        {
+          screen: Routes.BROWSER.VIEW,
+          params: {
+            newTabUrl: url,
+            timestamp: Date.now(),
+            fromTrending: true,
+          },
+        } as never,
+      );
     },
-    [trackMarketInsightsInteraction],
+    [trackMarketInsightsInteraction, navigation],
   );
 
   useEffect(() => {
@@ -485,7 +558,7 @@ const MarketInsightsView: React.FC = () => {
     hasTrackedViewRef.current = true;
   }, [report, caip19Id, trackEvent, createEventBuilder]);
 
-  if (showLoadingSkeleton && !report) {
+  if (showLoadingSkeleton && !report && !error) {
     return (
       <MarketInsightsViewSkeleton
         insets={insets}
@@ -534,47 +607,6 @@ const MarketInsightsView: React.FC = () => {
       >
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
           <Box twClassName="px-4 pt-4 pb-3">
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName={`self-start rounded-full px-2 py-1 ${
-                isPricePositive ? 'bg-success-muted' : 'bg-error-muted'
-              }`}
-              gap={1}
-            >
-              {tokenImageUrl ? (
-                <AvatarToken
-                  name={report.asset.toUpperCase()}
-                  imageSource={{ uri: tokenImageUrl }}
-                  size={AvatarSize.Xs}
-                />
-              ) : null}
-              {formattedPercentChange ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={
-                    isPricePositive
-                      ? TextColor.SuccessDefault
-                      : TextColor.ErrorDefault
-                  }
-                >
-                  {formattedPercentChange}
-                </Text>
-              ) : null}
-              <Icon
-                name={isPricePositive ? IconName.Arrow2Up : IconName.Arrow2Down}
-                size={IconSize.Sm}
-                color={
-                  isPricePositive
-                    ? IconColor.SuccessDefault
-                    : IconColor.ErrorDefault
-                }
-              />
-            </Box>
-          </Box>
-
-          <Box twClassName="px-4 pb-3">
             <Text variant={TextVariant.HeadingLg}>{report.headline}</Text>
           </Box>
 
@@ -591,7 +623,7 @@ const MarketInsightsView: React.FC = () => {
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.closerLook}>
           {/* "A closer look" section */}
           <Box twClassName="pb-6">
-            <Box
+            {/* <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               gap={2}
@@ -609,7 +641,7 @@ const MarketInsightsView: React.FC = () => {
               >
                 {strings('market_insights.a_closer_look')}
               </Text>
-            </Box>
+            </Box> */}
 
             {report.trends.map((trend, index) => (
               <MarketInsightsTrendItem
@@ -619,12 +651,50 @@ const MarketInsightsView: React.FC = () => {
                 testID={`${MarketInsightsSelectorsIDs.TREND_ITEM}-${index}`}
               />
             ))}
+            {trendSourcesPillSources.length > 0 ? (
+              <Box twClassName="px-4 pt-2">
+                <Pressable
+                  onPress={handleOpenSources}
+                  style={({ pressed }) =>
+                    tw.style(
+                      'self-start flex-row items-center bg-muted rounded-full px-3 py-2',
+                      pressed && 'opacity-70',
+                    )
+                  }
+                  testID="market-insights-open-sources-button"
+                >
+                  <Box flexDirection={BoxFlexDirection.Row} twClassName="pr-2">
+                    {trendSourcesPillSources
+                      .slice(0, visibleTrendSourceCount)
+                      .map((source, index) => (
+                        <TrendSourceIcon
+                          key={`${source.name}-${source.url}`}
+                          source={source}
+                          index={index}
+                        />
+                      ))}
+                  </Box>
+                  {remainingTrendSourceCount > 0 ? (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('market_insights.sources_count', {
+                        count: String(remainingTrendSourceCount),
+                      })}
+                    </Text>
+                  ) : null}
+                </Pressable>
+              </Box>
+            ) : null}
           </Box>
         </AnimatedSection>
 
         {/* "What's being said" section */}
         {allTweets.length > 0 && (
           <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.whatsBeingSaid}>
+            <Box twClassName="h-4 border-t-4 border-muted" />
             <Box twClassName="pb-6">
               <Box
                 flexDirection={BoxFlexDirection.Row}
@@ -633,14 +703,13 @@ const MarketInsightsView: React.FC = () => {
                 twClassName="px-4 py-4"
               >
                 <Icon
-                  name={IconName.Messages}
-                  size={IconSize.Md}
-                  color={IconColor.IconAlternative}
+                  name={IconName.X}
+                  size={IconSize.Sm}
+                  color={IconColor.IconDefault}
                 />
                 <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextAlternative}
+                  variant={TextVariant.HeadingMd}
+                  fontWeight={FontWeight.Bold}
                 >
                   {strings('market_insights.whats_being_said')}
                 </Text>
@@ -661,14 +730,58 @@ const MarketInsightsView: React.FC = () => {
         )}
       </ScrollView>
 
-      <Box twClassName={`bg-default pt-2 pb-[${insets.bottom}px]`}>
-        <MarketInsightsSourcesFooter
-          sources={report.sources}
-          onSourcesPress={handleOpenSources}
-          onThumbsUp={handleThumbsUpPress}
-          onThumbsDown={handleThumbsDownPress}
+      <Box twClassName={`bg-default pb-[${insets.bottom}px]`}>
+        <Box
+          alignItems={BoxAlignItems.Center}
+          twClassName="border-t border-muted px-4 pt-4 pb-5"
           testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
-        />
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={3}
+          >
+            <Pressable
+              onPress={handleThumbsUpPress}
+              style={({ pressed }) =>
+                tw.style(
+                  'h-12 w-12 items-center justify-center rounded-full bg-muted',
+                  pressed && 'opacity-70',
+                )
+              }
+              testID={MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON}
+            >
+              <Icon
+                name={IconName.ThumbUp}
+                size={IconSize.Md}
+                color={IconColor.IconAlternative}
+              />
+            </Pressable>
+            <Pressable
+              onPress={handleThumbsDownPress}
+              style={({ pressed }) =>
+                tw.style(
+                  'h-12 w-12 items-center justify-center rounded-full bg-muted',
+                  pressed && 'opacity-70',
+                )
+              }
+              testID={MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON}
+            >
+              <Icon
+                name={IconName.ThumbDown}
+                size={IconSize.Md}
+                color={IconColor.IconAlternative}
+              />
+            </Pressable>
+          </Box>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="pt-3"
+          >
+            {strings('market_insights.helpful_prompt')}
+          </Text>
+        </Box>
         <Box twClassName="px-4">
           <Button
             variant={ButtonVariant.Primary}
@@ -705,7 +818,7 @@ const MarketInsightsView: React.FC = () => {
         <MarketInsightsSourcesBottomSheet
           isVisible
           onClose={handleCloseSources}
-          sources={report.sources}
+          sources={sourcesSheetItems}
           onSourcePress={handleSourcePress}
         />
       ) : null}

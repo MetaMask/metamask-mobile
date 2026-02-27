@@ -1,5 +1,12 @@
 import type { MarketInsightsSource } from '@metamask/ai-controllers';
 
+export interface MarketInsightsSourceListItem extends MarketInsightsSource {
+  /** Optional source article headline for contextual list rows */
+  headline?: string;
+  /** Optional ISO timestamp for relative time display */
+  date?: string;
+}
+
 export interface MarketInsightsSourcesFooterProps {
   /** List of sources used for the report */
   sources: MarketInsightsSource[];
@@ -19,7 +26,7 @@ export interface MarketInsightsSourcesBottomSheetProps {
   /** Callback when the bottom sheet is closed */
   onClose: () => void;
   /** List of sources to display */
-  sources: MarketInsightsSource[];
+  sources: MarketInsightsSourceListItem[];
   /** Callback when a source URL is pressed */
   onSourcePress?: (url: string) => void;
 }

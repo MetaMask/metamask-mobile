@@ -17,7 +17,11 @@ import {
 import type { MarketInsightsSource } from '@metamask/ai-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
-import { getFaviconUrl } from '../../utils/marketInsightsFormatting';
+import {
+  getFaviconUrl,
+  getUniqueSourcesByFavicon,
+  isXSourceUrl,
+} from '../../utils/marketInsightsFormatting';
 
 const MAX_VISIBLE_SOURCE_LOGOS = 3;
 
@@ -61,17 +65,10 @@ const SourceLogoGroup: React.FC<{ sources?: MarketInsightsSource[] }> = ({
 }) => {
   const tw = useTailwind();
 
-  const uniqueSources = useMemo(() => {
-    const seenFaviconUrls = new Set<string>();
-    return (sources ?? []).filter((source) => {
-      const faviconUrl = getFaviconUrl(source.url);
-      if (seenFaviconUrls.has(faviconUrl)) {
-        return false;
-      }
-      seenFaviconUrls.add(faviconUrl);
-      return true;
-    });
-  }, [sources]);
+  const uniqueSources = useMemo(
+    () => getUniqueSourcesByFavicon(sources ?? []),
+    [sources],
+  );
 
   if (uniqueSources.length === 0) {
     return null;
@@ -86,10 +83,20 @@ const SourceLogoGroup: React.FC<{ sources?: MarketInsightsSource[] }> = ({
             index > 0 ? '-ml-1' : ''
           }`}
         >
-          <Image
-            source={{ uri: getFaviconUrl(source.url) }}
-            style={tw.style('h-4 w-4 rounded-full')}
-          />
+          {isXSourceUrl(source.url) ? (
+            <Box twClassName="h-4 w-4 items-center justify-center rounded-full">
+              <Icon
+                name={IconName.X}
+                size={IconSize.Sm}
+                color={IconColor.IconDefault}
+              />
+            </Box>
+          ) : (
+            <Image
+              source={{ uri: getFaviconUrl(source.url) }}
+              style={tw.style('h-4 w-4 rounded-full')}
+            />
+          )}
         </Box>
       ))}
     </Box>
