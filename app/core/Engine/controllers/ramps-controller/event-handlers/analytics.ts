@@ -4,6 +4,7 @@ import {
   RampsOrderStatus as Status,
 } from '@metamask/ramps-controller';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../Analytics';
+import { MetricsEventBuilder } from '../../../../Analytics/MetricsEventBuilder';
 import Logger from '../../../../../util/Logger';
 
 function buildV2AnalyticsPayload(
@@ -92,8 +93,9 @@ export function handleOrderStatusChangedForMetrics({
   if (analyticsPayload) {
     try {
       MetaMetrics.getInstance().trackEvent(
-        analyticsPayload.event,
-        analyticsPayload.params,
+        MetricsEventBuilder.createEventBuilder(analyticsPayload.event)
+          .addProperties(analyticsPayload.params)
+          .build(),
       );
     } catch (error) {
       Logger.error(error as Error, {

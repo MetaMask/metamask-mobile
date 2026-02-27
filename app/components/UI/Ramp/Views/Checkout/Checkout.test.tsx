@@ -1,7 +1,6 @@
 import { act, fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Checkout from '.';
-import { createInitialFiatOrder } from './Checkout';
 import Routes from '../../../../../constants/navigation/Routes';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import Logger from '../../../../../util/Logger';
@@ -526,80 +525,6 @@ describe('Checkout', () => {
       expect(mockLoggerError).toHaveBeenCalledWith(testError, {
         message: 'UnifiedCheckout: error handling callback',
       });
-    });
-  });
-
-  describe('createInitialFiatOrder', () => {
-    const baseParams = {
-      providerCode: 'transak',
-      providerName: 'Transak',
-      orderId: 'order-123',
-      walletAddress: '0xabc',
-      network: '1',
-      currency: 'USD',
-      cryptocurrency: 'ETH',
-    };
-
-    it('builds order with nav params only (no rampsOrder)', () => {
-      const order = createInitialFiatOrder(baseParams);
-      expect(order.id).toBe('/providers/transak/orders/order-123');
-      expect(order.provider).toBe(FIAT_ORDER_PROVIDERS.RAMPS_V2);
-      expect(order.currency).toBe('USD');
-      expect(order.cryptocurrency).toBe('ETH');
-      expect(order.network).toBe('1');
-      expect(order.account).toBe('0xabc');
-    });
-
-    it('uses rampsOrder data when provided', () => {
-      const rampsOrder = {
-        id: 'ramp-order-456',
-        providerOrderId: 'provider-456',
-        status: 'COMPLETED',
-        fiatAmount: 100,
-        cryptoAmount: 0.05,
-        totalFeesFiat: 5,
-        provider: { id: 'transak', name: 'Transak', links: [] },
-        fiatCurrency: { symbol: 'EUR', decimals: 2, denomSymbol: '\u20ac' },
-        cryptoCurrency: { symbol: 'ETH', decimals: 18 },
-        createdAt: 1000,
-        walletAddress: '0xabc',
-        network: '1',
-        excludeFromPurchases: false,
-        orderType: 'BUY',
-        txHash: '0xtxhash',
-      };
-
-      const order = createInitialFiatOrder({
-        ...baseParams,
-        rampsOrder: rampsOrder as never,
-      });
-      expect(order.currency).toBe('EUR');
-      expect(order.currencySymbol).toBe('\u20ac');
-      expect(order.amount).toBe(100);
-      expect(order.txHash).toBe('0xtxhash');
-    });
-
-    it('sets forceUpdate to false for terminal states', () => {
-      const order = createInitialFiatOrder({
-        ...baseParams,
-        rampsOrder: {
-          status: 'COMPLETED',
-          fiatAmount: 100,
-          cryptoAmount: 0.05,
-          totalFeesFiat: 5,
-          createdAt: 1000,
-          walletAddress: '0xabc',
-          network: '1',
-          excludeFromPurchases: false,
-          orderType: 'BUY',
-        } as never,
-      });
-      expect(order.forceUpdate).toBe(false);
-    });
-
-    it('defaults providerType to RAMPS_V2', () => {
-      const order = createInitialFiatOrder(baseParams);
-      expect(order.provider).toBe(FIAT_ORDER_PROVIDERS.RAMPS_V2);
     });
   });
 });
