@@ -108,6 +108,7 @@ const SCROLL_NEAR_BOTTOM_PX = 160;
 
 const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
+  const [isNearBottom, setIsNearBottom] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
   const { styles } = useStyles(createStyles);
@@ -388,8 +389,6 @@ const BridgeView = () => {
     return 'none';
   };
   const contentMode = getContentMode();
-
-  const [isNearBottom, setIsNearBottom] = useState(false);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
