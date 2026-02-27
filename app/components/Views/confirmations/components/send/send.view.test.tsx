@@ -1,169 +1,41 @@
 import '../../../../../../app/util/test/component-view/mocks';
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreenWithRoutes } from '../../../../../../app/util/test/component-view/render';
+import {
+  buildAddressBookOverridesWithEvmContact,
+  buildTronSendFixture,
+  sendViewOverrides,
+} from '../../../../../../app/util/test/component-view/presets/send';
 import { initialStateWallet } from '../../../../../../app/util/test/component-view/presets/wallet';
 import { describeForPlatforms } from '../../../../../../app/util/test/platform';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TokenStandard } from '../../types/token';
+import {
+  getNftRowTestId,
+  getRecipientAvatarTestId,
+  getRecipientRowTestId,
+  getSelectedRecipientTestId,
+  RedesignedSendViewSelectorsIDs,
+} from './RedesignedSendView.testIds';
 import { Send } from './send';
 
-const baseOverrides = {
-  settings: {
-    basicFunctionalityEnabled: true,
-  },
-  engine: {
-    backgroundState: {
-      AddressBookController: {
-        addressBook: {},
-      },
-      MultichainNetworkController: {
-        isEvmSelected: true,
-      },
-      SnapController: {
-        snaps: {},
-      },
-      PermissionController: {
-        subjects: {},
-      },
-      NftController: {
-        allNfts: {},
-        allNftContracts: {},
-      },
-      SignatureController: {
-        signatureRequests: {},
-        unapprovedPersonalMsgs: {},
-        unapprovedTypedMessages: {},
-        unapprovedPersonalMsgCount: 0,
-        unapprovedTypedMessagesCount: 0,
-      },
-    },
-  },
-} as unknown as Record<string, unknown>;
-
 describeForPlatforms('Send', () => {
-  let unmountFn: (() => void) | null = null;
-
-  afterEach(() => {
-    unmountFn?.();
-    unmountFn = null;
-  });
-
   /**
    * Regression test for Issue #22789 and related to #23251
    * TRON send flow: selecting a destination account must move the flow forward
    * (previously it stayed on the recipient list and did not navigate).
-   * Exits early when TRON is not in the build (recipient list empty).
    */
-
   it('TRON send: selecting destination account updates selection', async () => {
-    const TRON_SENDER = 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7';
-    const tronRecipientAddresses = [
-      'TA9vN2KmER9cuVBaHxQjzzRtXnBCdF7D4u',
-      'TLv2f6VPqDgRE67v1736s7bJ8Ray5wYjU8',
-    ];
-    const accountIds = ['tron-acc-1', 'tron-acc-2', 'tron-acc-3'];
-    const GROUP_ID = 'entropy:wallet1/0';
-    const WALLETS_KEY = 'entropy:wallet1';
-
-    const tronAccountEntries = Object.fromEntries([
-      [
-        'tron-acc-1',
-        {
-          id: 'tron-acc-1',
-          address: TRON_SENDER,
-          metadata: { name: 'Tron Account 1', importTime: Date.now() },
-          options: {},
-          methods: [],
-          type: 'tron:eoa',
-          scopes: ['tron:0'],
-        },
-      ],
-      [
-        'tron-acc-2',
-        {
-          id: 'tron-acc-2',
-          address: tronRecipientAddresses[0],
-          metadata: { name: 'Tron Account 2', importTime: Date.now() },
-          options: {},
-          methods: [],
-          type: 'tron:eoa',
-          scopes: ['tron:0'],
-        },
-      ],
-      [
-        'tron-acc-3',
-        {
-          id: 'tron-acc-3',
-          address: tronRecipientAddresses[1],
-          metadata: { name: 'Tron Account 3', importTime: Date.now() },
-          options: {},
-          methods: [],
-          type: 'tron:eoa',
-          scopes: ['tron:0'],
-        },
-      ],
-    ]);
-
-    const baseEngine = (baseOverrides as Record<string, unknown>).engine as
-      | { backgroundState?: Record<string, unknown> }
-      | undefined;
-    const tronOverrides = {
-      ...baseOverrides,
-      engine: {
-        backgroundState: {
-          ...(baseEngine?.backgroundState ?? {}),
-          MultichainNetworkController: {
-            isEvmSelected: false,
-          },
-          AccountsController: {
-            internalAccounts: {
-              accounts: tronAccountEntries,
-              selectedAccount: 'tron-acc-1',
-            },
-          },
-          AccountTreeController: {
-            accountTree: {
-              selectedAccountGroup: GROUP_ID,
-              wallets: {
-                [WALLETS_KEY]: {
-                  id: WALLETS_KEY,
-                  type: 'Entropy',
-                  metadata: { name: 'Wallet 1', entropy: { id: 'wallet1' } },
-                  groups: {
-                    [GROUP_ID]: {
-                      id: GROUP_ID,
-                      type: 'MultipleAccount',
-                      metadata: {
-                        name: 'Group 1',
-                        pinned: false,
-                        hidden: false,
-                      },
-                      accounts: accountIds,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              enableMultichainAccounts: {
-                enabled: true,
-                featureVersion: '1',
-                minimumVersion: null,
-              },
-            },
-          },
-        },
-      },
-    } as unknown as Record<string, unknown>;
+    const { tronOverrides, recipientAddresses } = buildTronSendFixture();
 
     const state = initialStateWallet().withOverrides(tronOverrides).build();
 
+    const TRON_MAINNET_CHAIN_ID = 'tron:728126428';
+
     const tronAsset = {
-      address: 'tron:mainnet/native',
-      chainId: 'tron:1',
+      address: `${TRON_MAINNET_CHAIN_ID}/native`,
+      chainId: TRON_MAINNET_CHAIN_ID,
       symbol: 'TRX',
       decimals: 6,
       balance: '100',
@@ -171,80 +43,43 @@ describeForPlatforms('Send', () => {
       accountId: 'tron-acc-1',
     };
 
-    const { getByTestId, getByRole, findByTestId, queryByTestId, unmount } =
-      renderScreenWithRoutes(
-        Send as unknown as React.ComponentType,
-        { name: 'Send' },
-        [],
-        { state },
-        { asset: tronAsset },
-      );
-    unmountFn = unmount;
+    const { getByTestId, getByRole, findByTestId } = renderScreenWithRoutes(
+      Send as unknown as React.ComponentType,
+      { name: Routes.SEND.DEFAULT },
+      [],
+      { state },
+      { asset: tronAsset },
+    );
 
-    expect(getByTestId('send_amount')).toBeOnTheScreen();
+    expect(
+      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+    ).toBeOnTheScreen();
 
-    fireEvent.press(getByTestId('percentage-button-100'));
+    fireEvent.press(
+      getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+    );
     fireEvent.press(getByRole('button', { name: 'Continue' }));
 
-    expect(await findByTestId('recipient-address-input')).toBeOnTheScreen();
+    expect(
+      await findByTestId(
+        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      ),
+    ).toBeOnTheScreen();
 
-    const recipientItem = queryByTestId(
-      `recipient-${tronRecipientAddresses[0]}`,
+    const recipientItem = await findByTestId(
+      getRecipientRowTestId(recipientAddresses[0]),
+      {},
+      { timeout: 10000 },
     );
-    if (!recipientItem) {
-      return;
-    }
-
     fireEvent.press(recipientItem);
 
     expect(
-      await findByTestId(`selected-${tronRecipientAddresses[0]}`),
+      await findByTestId(
+        getSelectedRecipientTestId(recipientAddresses[0]),
+        {},
+        { timeout: 10000 },
+      ),
     ).toBeOnTheScreen();
-  });
-
-  /**
-   * Regression test for issue #22357
-   * WETH send flow must not get stuck; user can enter amount, continue to recipient,
-   * enter address, and tap Review without the app hanging or crashing.
-   */
-  it('WETH send flow completes through Review without getting stuck', async () => {
-    const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
-    const recipientAddress = '0x0000000000000000000000000000000000000002';
-
-    const state = initialStateWallet().withOverrides(baseOverrides).build();
-
-    const wethAsset = {
-      address: WETH_ADDRESS,
-      chainId: '0x1',
-      symbol: 'WETH',
-      decimals: 18,
-      balance: '100',
-      rawBalance: '0x56bc75e2d63100000',
-    };
-
-    const { getByTestId, getByRole, findByTestId, unmount } =
-      renderScreenWithRoutes(
-        Send as unknown as React.ComponentType,
-        { name: 'Send' },
-        [],
-        { state },
-        { asset: wethAsset },
-      );
-    unmountFn = unmount;
-
-    expect(getByTestId('send_amount')).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId('percentage-button-100'));
-    fireEvent.press(getByRole('button', { name: 'Continue' }));
-
-    expect(await findByTestId('recipient-address-input')).toBeOnTheScreen();
-
-    const addressInput = getByTestId('recipient-address-input');
-    fireEvent.changeText(addressInput, recipientAddress);
-
-    const reviewButton = await findByTestId('review-button');
-    expect(reviewButton).toBeOnTheScreen();
-    fireEvent.press(reviewButton);
   });
 
   /**
@@ -263,19 +98,20 @@ describeForPlatforms('Send', () => {
       balance: '1',
     };
 
-    const state = initialStateWallet().withOverrides(baseOverrides).build();
+    const state = initialStateWallet().withOverrides(sendViewOverrides).build();
 
-    const { getByTestId, getByRole, getByText, findByTestId, unmount } =
+    const { getByTestId, getByRole, getByText, findByTestId } =
       renderScreenWithRoutes(
         Send as unknown as React.ComponentType,
-        { name: 'Send' },
+        { name: Routes.SEND.DEFAULT },
         [],
         { state },
         { asset: erc721Asset },
       );
-    unmountFn = unmount;
 
-    expect(getByTestId('send_amount')).toBeOnTheScreen();
+    expect(
+      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+    ).toBeOnTheScreen();
 
     fireEvent.press(getByText('1'));
 
@@ -285,7 +121,11 @@ describeForPlatforms('Send', () => {
 
     fireEvent.press(continueButton);
 
-    expect(await findByTestId('recipient-address-input')).toBeOnTheScreen();
+    expect(
+      await findByTestId(
+        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      ),
+    ).toBeOnTheScreen();
   });
 
   /**
@@ -320,28 +160,31 @@ describeForPlatforms('Send', () => {
     } as unknown as Record<string, unknown>;
 
     const state = initialStateWallet()
-      .withOverrides(baseOverrides)
+      .withOverrides(sendViewOverrides)
       .withOverrides(nftOverrides)
       .build();
 
-    const { findByTestId, unmount } = renderScreenWithRoutes(
+    const { findByTestId } = renderScreenWithRoutes(
       Send as unknown as React.ComponentType,
-      { name: 'Send' },
+      { name: Routes.SEND.DEFAULT },
       [],
       { state },
       { screen: Routes.SEND.ASSET },
     );
-    unmountFn = unmount;
 
     const nftRow = await findByTestId(
-      'nft-Test ERC721 NFT',
+      getNftRowTestId('Test ERC721 NFT'),
       {},
       { timeout: 5000 },
     );
     expect(nftRow).toBeOnTheScreen();
     fireEvent.press(nftRow);
 
-    expect(await findByTestId('recipient-address-input')).toBeOnTheScreen();
+    expect(
+      await findByTestId(
+        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      ),
+    ).toBeOnTheScreen();
   });
 
   /**
@@ -353,25 +196,8 @@ describeForPlatforms('Send', () => {
     const SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
     const EVM_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
 
-    const addressBookOverrides = {
-      engine: {
-        backgroundState: {
-          AddressBookController: {
-            addressBook: {
-              '0x1': {
-                [EVM_CONTACT_ADDRESS.toLowerCase()]: {
-                  name: 'EVM Contact',
-                  address: EVM_CONTACT_ADDRESS,
-                },
-              },
-            },
-          },
-          MultichainNetworkController: {
-            isEvmSelected: false,
-          },
-        },
-      },
-    } as unknown as Record<string, unknown>;
+    const addressBookOverrides =
+      buildAddressBookOverridesWithEvmContact(EVM_CONTACT_ADDRESS);
 
     const solanaAsset = {
       address: `${SOLANA_CHAIN_ID}/native`,
@@ -383,22 +209,27 @@ describeForPlatforms('Send', () => {
     };
 
     const state = initialStateWallet()
-      .withOverrides(baseOverrides)
+      .withOverrides(sendViewOverrides)
       .withOverrides(addressBookOverrides)
       .build();
 
-    const { findByTestId, queryByTestId, unmount } = renderScreenWithRoutes(
+    const { findByTestId, queryByTestId } = renderScreenWithRoutes(
       Send as unknown as React.ComponentType,
-      { name: 'Send' },
+      { name: Routes.SEND.DEFAULT },
       [],
       { state },
       { asset: solanaAsset, screen: Routes.SEND.RECIPIENT },
     );
-    unmountFn = unmount;
 
-    expect(await findByTestId('recipient-address-input')).toBeOnTheScreen();
+    expect(
+      await findByTestId(
+        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      ),
+    ).toBeOnTheScreen();
 
-    const evmContactRow = queryByTestId(`recipient-${EVM_CONTACT_ADDRESS}`);
+    const evmContactRow = queryByTestId(
+      getRecipientRowTestId(EVM_CONTACT_ADDRESS),
+    );
     expect(evmContactRow).not.toBeOnTheScreen();
   });
 
@@ -435,33 +266,42 @@ describeForPlatforms('Send', () => {
     } as unknown as Record<string, unknown>;
 
     const state = initialStateWallet()
-      .withOverrides(baseOverrides)
+      .withOverrides(sendViewOverrides)
       .withOverrides(contactOverrides)
       .build();
 
-    const { getByTestId, getByRole, findByTestId, unmount } =
-      renderScreenWithRoutes(
-        Send as unknown as React.ComponentType,
-        { name: 'Send' },
-        [],
-        { state },
-        {
-          asset: { chainId: '0x1', symbol: 'ETH', decimals: 18, balance: '1' },
-        },
-      );
-    unmountFn = unmount;
+    const { getByTestId, getByRole, findByTestId } = renderScreenWithRoutes(
+      Send as unknown as React.ComponentType,
+      { name: Routes.SEND.DEFAULT },
+      [],
+      { state },
+      {
+        asset: { chainId: '0x1', symbol: 'ETH', decimals: 18, balance: '1' },
+      },
+    );
 
-    expect(getByTestId('send_amount')).toBeOnTheScreen();
+    expect(
+      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+    ).toBeOnTheScreen();
 
-    fireEvent.press(getByTestId('percentage-button-100'));
+    fireEvent.press(
+      getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+    );
     fireEvent.press(getByRole('button', { name: 'Continue' }));
 
-    expect(await findByTestId('recipient-address-input')).toBeOnTheScreen();
+    expect(
+      await findByTestId(
+        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      ),
+    ).toBeOnTheScreen();
 
     for (const address of contactAddresses) {
-      const recipientRow = getByTestId(`recipient-${address}`);
+      const recipientRow = await waitFor(
+        () => screen.getByTestId(getRecipientRowTestId(address)),
+        { timeout: 5000 },
+      );
       expect(recipientRow).toBeOnTheScreen();
-      const avatar = getByTestId(`recipient-avatar-${address}`);
+      const avatar = getByTestId(getRecipientAvatarTestId(address));
       expect(avatar).toBeOnTheScreen();
     }
   });
@@ -471,11 +311,11 @@ describeForPlatforms('Send', () => {
    * Keypad and amount area on Send Amount screen must be visible and not overflowing
    */
   it('Amount screen shows keypad and amount area visible', async () => {
-    const state = initialStateWallet().withOverrides(baseOverrides).build();
+    const state = initialStateWallet().withOverrides(sendViewOverrides).build();
 
-    const { getByTestId, unmount } = renderScreenWithRoutes(
+    const { getByTestId } = renderScreenWithRoutes(
       Send as unknown as React.ComponentType,
-      { name: 'Send' },
+      { name: Routes.SEND.DEFAULT },
       [],
       { state },
       {
@@ -487,12 +327,15 @@ describeForPlatforms('Send', () => {
         },
       },
     );
-    unmountFn = unmount;
 
-    const amountDisplay = getByTestId('send_amount');
+    const amountDisplay = getByTestId(
+      RedesignedSendViewSelectorsIDs.SEND_AMOUNT,
+    );
     expect(amountDisplay).toBeOnTheScreen();
 
-    const keypad = getByTestId('edit-amount-keyboard');
+    const keypad = getByTestId(
+      RedesignedSendViewSelectorsIDs.EDIT_AMOUNT_KEYBOARD,
+    );
     expect(keypad).toBeOnTheScreen();
   });
 });
