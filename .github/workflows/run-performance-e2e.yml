@@ -296,6 +296,44 @@ jobs:
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
     secrets: inherit
 
+  fetch-rn-playground-apk:
+    name: Fetch RN Playground APK and Upload to BrowserStack
+    runs-on: ubuntu-latest
+    needs: [wait-for-onboarding-completion]
+    if: always() && !cancelled()
+    outputs:
+      browserstack-playground-url: ${{ steps.upload-playground.outputs.browserstack-url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Fetch playground APK from GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RN_PLAYGROUND_APK_VERSION: ${{ vars.RN_PLAYGROUND_APK_VERSION || '' }}
+        run: |
+          chmod +x ./scripts/fetch-rn-playground-apk.sh
+          ./scripts/fetch-rn-playground-apk.sh --output ./tmp/rn-playground.apk
+
+      - name: Upload playground APK to BrowserStack
+        id: upload-playground
+        run: |
+          echo "Uploading RN Playground APK to BrowserStack..."
+          RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+            -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+            -F "file=@./tmp/rn-playground.apk" \
+            -F "custom_id=RN-Playground-${{ github.run_id }}")
+
+          APP_URL=$(echo "$RESPONSE" | jq -r '.app_url')
+          if [ -z "$APP_URL" ] || [ "$APP_URL" = "null" ]; then
+            echo "Error: Failed to upload playground APK to BrowserStack"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+
+          echo "browserstack-url=$APP_URL" >> "$GITHUB_OUTPUT"
+          echo "Playground APK uploaded: $APP_URL"
+
   run-android-mm-connect-tests:
     name: Run Android MM-Connect Tests
     uses: ./.github/workflows/performance-test-runner.yml
@@ -303,11 +341,11 @@ jobs:
       [
         read-device-matrix,
         trigger-android-dual-versions,
-        wait-for-onboarding-completion,
+        fetch-rn-playground-apk,
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
+    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '') && needs.fetch-rn-playground-apk.result == 'success'
     with:
       platform: android
       build_type: mm-connect
@@ -316,6 +354,7 @@ jobs:
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
+      browserstack_playground_url: ${{ needs.fetch-rn-playground-apk.outputs.browserstack-playground-url }}
     secrets: inherit
 
   aggregate-results:
