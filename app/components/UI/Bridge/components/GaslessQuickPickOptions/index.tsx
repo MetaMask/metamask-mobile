@@ -8,11 +8,7 @@ import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
 import { useABTest } from '../../../../../hooks';
 import Engine from '../../../../../core/Engine';
-import {
-  InputAmountPreset,
-  UnifiedSwapBridgeEventName,
-} from '@metamask/bridge-controller';
-import { PERCENTAGE_TO_PRESET } from './constants';
+import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import {
   NUMPAD_QUICK_ACTIONS_AB_KEY,
   NUMPAD_QUICK_ACTIONS_VARIANTS,
@@ -45,14 +41,14 @@ export const GaslessQuickPickOptions = ({
 
   const selectedVariant = variantName as NumpadQuickActionsVariant;
 
-  const trackInputAmountPreset = useCallback(
-    (preset: InputAmountPreset) => {
+  const trackInputAmountChange = useCallback(
+    ({ inputValue, preset }: { inputValue: string; preset?: string }) => {
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.InputChanged,
         {
           input: 'token_amount_source',
-          input_value: '',
-          input_amount_preset: preset,
+          input_value: inputValue,
+          ...(preset && { input_amount_preset: preset }),
           ...(isActive && {
             ab_tests: {
               [NUMPAD_QUICK_ACTIONS_AB_KEY]: variantName,
@@ -79,19 +75,16 @@ export const GaslessQuickPickOptions = ({
         pressedKey: Keys.Initial,
       });
 
-      const preset =
-        PERCENTAGE_TO_PRESET[percentage as keyof typeof PERCENTAGE_TO_PRESET];
-      if (preset) {
-        trackInputAmountPreset(preset);
-      }
+      const preset = `${percentage}%`;
+      trackInputAmountChange({ inputValue: amount.toString(), preset });
     },
-    [tokenBalance, token?.decimals, onChange, trackInputAmountPreset],
+    [tokenBalance, token?.decimals, onChange, trackInputAmountChange],
   );
 
   const handleTrackedMaxPress = useCallback(() => {
     onMaxPress();
-    trackInputAmountPreset(InputAmountPreset.MAX);
-  }, [onMaxPress, trackInputAmountPreset]);
+    trackInputAmountChange({ inputValue: '', preset: 'MAX' });
+  }, [onMaxPress, trackInputAmountChange]);
 
   const fallbackQuickActions = useMemo(
     (): number[] =>
