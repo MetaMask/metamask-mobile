@@ -33,6 +33,8 @@ const newOverrides = [
       'app/components/UI/Ramp/hooks/useRampsSmartRouting.test.ts',
       'app/components/UI/Ramp/hooks/useRampTokens.ts',
       'app/components/UI/Ramp/hooks/useRampTokens.test.ts',
+      'app/util/environment.ts',
+      'app/util/environment.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
     ],
