@@ -62,7 +62,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       height,
     } as { height: number });
     const webViewRef = useRef<WebView>(null);
-    const [isChartReady, setIsChartReady] = useState(false);
+    const [chartReadyCount, setChartReadyCount] = useState(0);
+    const isChartReady = chartReadyCount > 0;
     const [webViewError, setWebViewError] = useState<string | null>(null);
 
     const activeIndicatorsRef = useRef<Set<IndicatorType>>(new Set());
@@ -83,7 +84,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     // Reset all chart state when the WebView reloads due to htmlContent changes
     useEffect(() => {
-      setIsChartReady(false);
+      setChartReadyCount(0);
       setWebViewLoaded(false);
       activeIndicatorsRef.current.clear();
       prevPositionLinesRef.current = undefined;
@@ -161,7 +162,11 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
         switch (type) {
           case 'CHART_READY':
-            setIsChartReady(true);
+            activeIndicatorsRef.current.clear();
+            prevPositionLinesRef.current = undefined;
+            prevChartTypeRef.current = undefined;
+            prevShowVolumeRef.current = showVolume;
+            setChartReadyCount((c) => c + 1);
             setWebViewError(null);
             onChartReady?.();
             break;
@@ -207,6 +212,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       },
       [
         isChartReady,
+        showVolume,
         onChartReady,
         onError,
         onCrosshairMove,
@@ -236,7 +242,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         removeIndicator,
         setChartType: setChartTypeInternal,
         reset: () => {
-          setIsChartReady(false);
+          setChartReadyCount(0);
           setWebViewLoaded(false);
           setWebViewError(null);
           activeIndicatorsRef.current.clear();
@@ -266,9 +272,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       });
     }, [realtimeBar, isChartReady, postMessage]);
 
-    // Sync indicators prop
+    // Sync indicators prop (depends on chartReadyCount to re-fire on chart recreation)
     useEffect(() => {
-      if (!isChartReady) return;
+      if (chartReadyCount === 0) return;
 
       const currentIndicators = new Set(indicators);
       const active = activeIndicatorsRef.current;
@@ -284,11 +290,11 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           removeIndicator(indicator);
         }
       });
-    }, [indicators, isChartReady, addIndicator, removeIndicator]);
+    }, [indicators, chartReadyCount, addIndicator, removeIndicator]);
 
     // Sync positionLines prop
     useEffect(() => {
-      if (!isChartReady) return;
+      if (chartReadyCount === 0) return;
       if (positionLines === prevPositionLinesRef.current) return;
       prevPositionLinesRef.current = positionLines;
 
@@ -296,19 +302,19 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         type: 'SET_POSITION_LINES',
         payload: { position: positionLines ?? null },
       });
-    }, [positionLines, isChartReady, postMessage]);
+    }, [positionLines, chartReadyCount, postMessage]);
 
     // Sync chartType prop
     useEffect(() => {
-      if (!isChartReady || chartType === undefined) return;
+      if (chartReadyCount === 0 || chartType === undefined) return;
       if (chartType === prevChartTypeRef.current) return;
       prevChartTypeRef.current = chartType;
       setChartTypeInternal(chartType);
-    }, [chartType, isChartReady, setChartTypeInternal]);
+    }, [chartType, chartReadyCount, setChartTypeInternal]);
 
     // Sync showVolume prop
     useEffect(() => {
-      if (!isChartReady) return;
+      if (chartReadyCount === 0) return;
       if (showVolume === prevShowVolumeRef.current) return;
       prevShowVolumeRef.current = showVolume;
 
@@ -316,7 +322,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         type: 'TOGGLE_VOLUME',
         payload: { visible: showVolume },
       });
-    }, [showVolume, isChartReady, postMessage]);
+    }, [showVolume, chartReadyCount, postMessage]);
 
     // ---- Render ----
 

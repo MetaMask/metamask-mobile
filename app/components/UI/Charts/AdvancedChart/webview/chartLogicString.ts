@@ -163,6 +163,11 @@ function handleSetOHLCVData(payload) {
         window.chartWidget.remove();
         window.chartWidget = null;
         window.isChartReady = false;
+        window.activeStudies = {};
+        window.volumeStudyId = null;
+        window.positionShapeIds = [];
+        window.realtimeCallbacks = {};
+        window.pendingGetBarsCallback = null;
         initChart();
       }
     } else {
