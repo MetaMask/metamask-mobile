@@ -17,7 +17,10 @@ import {
   isHighlightedItemOutsideAssetList,
   TokenListItem,
 } from '../../../types/token';
-import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import {
+  useTransactionPayOnRampPayment,
+  useTransactionPayRequiredTokens,
+} from '../../../hooks/pay/useTransactionPayData';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -50,6 +53,7 @@ export function PayWithModal() {
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
   const mmPayOnRampHighlightedAction = useMMPayOnRampHighlightedAction();
+  const onRampPayment = useTransactionPayOnRampPayment();
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -155,6 +159,7 @@ export function PayWithModal() {
         payToken,
         requiredTokens,
         tokens,
+        onRampPayment,
       });
 
       let filteredTokens: TokenListItem[] = availableTokens;
@@ -187,6 +192,7 @@ export function PayWithModal() {
       perpsBalanceTokenFilter,
       wrapHighlightedItemCallbacks,
       mmPayOnRampHighlightedAction,
+      onRampPayment,
     ],
   );
 

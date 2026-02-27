@@ -10,6 +10,7 @@ import { AssetType, TokenStandard } from '../types/token';
 import {
   TransactionPayRequiredToken,
   TransactionPaymentToken,
+  TransactionOnRampPayment,
 } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { isTestNet } from '../../../../util/networks';
@@ -87,10 +88,12 @@ export function getAvailableTokens({
   payToken,
   requiredTokens,
   tokens,
+  onRampPayment,
 }: {
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
+  onRampPayment?: TransactionOnRampPayment;
 }): AssetType[] {
   const supportedGasFeeTokens = getSupportedGasFeeTokens();
 
@@ -150,11 +153,13 @@ export function getAvailableTokens({
         payToken?.address.toLowerCase() === token.address.toLowerCase() &&
         payToken?.chainId === token.chainId;
 
+      const isOnRampSelected = onRampPayment?.selectedPaymentMethodId;
+
       return {
         ...token,
         disabled,
         disabledMessage,
-        isSelected,
+        isSelected: isOnRampSelected ? false : isSelected,
       };
     });
 }

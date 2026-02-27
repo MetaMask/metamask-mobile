@@ -1,10 +1,8 @@
 import { useMemo } from 'react';
 import { PaymentMethod } from '@metamask/ramps-controller';
-import { useSelector } from 'react-redux';
 
 import Engine from '../../../../../core/Engine';
-import { RootState } from '../../../../../reducers';
-import { selectTransactionPayOnRampPaymentByTransactionId } from '../../../../../selectors/transactionPayController';
+import { useTransactionPayOnRampPayment } from './useTransactionPayData';
 import { HighlightedItem } from '../../types/token';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useRampsController } from '../../../../UI/Ramp/hooks/useRampsController';
@@ -14,10 +12,7 @@ export function useMMPayOnRampHighlightedAction(): HighlightedItem[] {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const { paymentMethods } = useRampsController();
-
-  const onRampPayment = useSelector((state: RootState) =>
-    selectTransactionPayOnRampPaymentByTransactionId(state, transactionId),
-  );
+  const onRampPayment = useTransactionPayOnRampPayment();
   const selectedPaymentMethodId = onRampPayment?.selectedPaymentMethodId;
 
   return useMemo(() => {
