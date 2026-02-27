@@ -24,8 +24,6 @@ import AppConstants from '../../../../../core/AppConstants';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
-import { selectHasInFlightMusdConversion } from '../../selectors/musdConversionStatus';
-import useEarnToasts from '../../hooks/useEarnToasts';
 
 const FIXED_NOW_MS = 1730000000000;
 const mockTrackEvent = jest.fn();
@@ -64,13 +62,6 @@ jest.mock('../../../../../actions/user', () => ({
 
 jest.mock('../../hooks/useMusdConversion', () => ({
   useMusdConversion: jest.fn(),
-}));
-jest.mock('../../selectors/musdConversionStatus', () => ({
-  selectHasInFlightMusdConversion: jest.fn(),
-}));
-jest.mock('../../hooks/useEarnToasts', () => ({
-  __esModule: true,
-  default: jest.fn(),
 }));
 
 jest.mock('../../hooks/useMusdConversionFlowData', () => ({
@@ -133,22 +124,9 @@ const mockUseRampNavigation = useRampNavigation as jest.MockedFunction<
   typeof useRampNavigation
 >;
 const mockSelectMusdQuickConvertEnabledFlag =
-selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
-typeof selectMusdQuickConvertEnabledFlag
->;
-const mockSelectHasInFlightMusdConversion =
-  selectHasInFlightMusdConversion as jest.MockedFunction<
-    typeof selectHasInFlightMusdConversion
+  selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
+    typeof selectMusdQuickConvertEnabledFlag
   >;
-const mockUseEarnToasts = useEarnToasts as jest.MockedFunction<
-  typeof useEarnToasts
->;
-const mockShowToast = jest.fn();
-const existingConversionInProgressToast = {
-  variant: 'icon',
-  iconName: 'warning',
-  labelOptions: [{ label: 'mUSD Conversion already in progress.' }],
-};
 
 const mockConversionToken = {
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -240,16 +218,7 @@ describe('EarnMusdConversionEducationView', () => {
       goToSell: jest.fn(),
       goToDeposit: jest.fn(),
     });
-             mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(false);
-    mockSelectHasInFlightMusdConversion.mockReturnValue(false);
-    mockUseEarnToasts.mockReturnValue({
-      showToast: mockShowToast,
-      EarnToastOptions: {
-        mUsdConversion: {
-          existingConversionInProgress: existingConversionInProgressToast,
-        },
-      },
-    } as unknown as ReturnType<typeof useEarnToasts>);
+    mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(false);
 
     mockBuild.mockReturnValue({ name: 'mock-built-event' });
     mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
@@ -575,34 +544,6 @@ describe('EarnMusdConversionEducationView', () => {
           button_text: strings('earn.musd_conversion.continue'),
           redirects_to: 'home',
         });
-      });
-    });
-
-    it('shows existing conversion toast and skips conversion when deeplink convert has in-flight conversion', async () => {
-      mockSelectHasInFlightMusdConversion.mockReturnValue(true);
-      mockShowToast.mockClear();
-      mockInitiateConversion.mockClear();
-
-      const { getByTestId } = renderWithProvider(
-        <EarnMusdConversionEducationView />,
-        { state: {} },
-      );
-
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(
-            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
-          ),
-        );
-      });
-
-      expect(mockShowToast).toHaveBeenCalledWith(
-        existingConversionInProgressToast,
-      );
-      expect(mockInitiateConversion).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
-        payload: { seen: true },
       });
     });
   });

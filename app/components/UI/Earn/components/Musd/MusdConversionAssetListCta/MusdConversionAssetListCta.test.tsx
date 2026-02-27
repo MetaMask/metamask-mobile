@@ -6,8 +6,6 @@ jest.mock('../../../hooks/useMusdConversion');
 jest.mock('../../../hooks/useMusdCtaVisibility');
 jest.mock('../../../../Ramp/hooks/useRampNavigation');
 jest.mock('../../../selectors/featureFlags');
-jest.mock('../../../selectors/musdConversionStatus');
-jest.mock('../../../hooks/useEarnToasts');
 jest.mock('../../../../../../util/Logger');
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../../../../../Views/confirmations/hooks/useNetworkName');
@@ -39,8 +37,6 @@ import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { Hex } from '@metamask/utils';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../../../selectors/featureFlags';
-import { selectHasInFlightMusdConversion } from '../../../selectors/musdConversionStatus';
-import useEarnToasts from '../../../hooks/useEarnToasts';
 
 const mockConversionToken = {
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -71,25 +67,14 @@ describe('MusdConversionAssetListCta', () => {
   const mockGetPreferredPaymentToken = jest.fn();
   const mockGetChainIdForBuyFlow = jest.fn();
   const mockGetMusdOutputChainId = jest.fn();
-  const mockShowToast = jest.fn();
-  const existingConversionInProgressToast = {
-    variant: 'icon',
-    iconName: 'warning',
-    labelOptions: [{ label: 'mUSD Conversion already in progress.' }],
-  };
   const mockSelectMusdQuickConvertEnabledFlag =
     selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
       typeof selectMusdQuickConvertEnabledFlag
-    >;
-  const mockSelectHasInFlightMusdConversion =
-    selectHasInFlightMusdConversion as jest.MockedFunction<
-      typeof selectHasInFlightMusdConversion
     >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(false);
-    mockSelectHasInFlightMusdConversion.mockReturnValue(false);
 
     jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
 
@@ -103,16 +88,6 @@ describe('MusdConversionAssetListCta', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     } as unknown as ReturnType<typeof useAnalytics>);
-    (
-      useEarnToasts as jest.MockedFunction<typeof useEarnToasts>
-    ).mockReturnValue({
-      showToast: mockShowToast,
-      EarnToastOptions: {
-        mUsdConversion: {
-          existingConversionInProgress: existingConversionInProgressToast,
-        },
-      },
-    } as unknown as ReturnType<typeof useEarnToasts>);
 
     (
       useNetworkName as jest.MockedFunction<typeof useNetworkName>
@@ -377,21 +352,6 @@ describe('MusdConversionAssetListCta', () => {
 
       expect(mockInitiateConversion).not.toHaveBeenCalled();
     });
-
-    it('calls goToBuy when conversion is in-flight', () => {
-      mockSelectHasInFlightMusdConversion.mockReturnValue(true);
-
-      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
-        state: initialRootState,
-      });
-
-      fireEvent.press(getByText('Buy mUSD'));
-
-      expect(mockGoToBuy).toHaveBeenCalledWith({
-        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
-      });
-      expect(mockShowToast).not.toHaveBeenCalled();
-    });
   });
 
   describe('button press - with tokens', () => {
@@ -563,45 +523,6 @@ describe('MusdConversionAssetListCta', () => {
       await waitFor(() => {
         expect(mockGoToBuy).not.toHaveBeenCalled();
       });
-    });
-
-    it('shows existing conversion toast and skips conversion when in-flight conversion exists', async () => {
-      mockSelectHasInFlightMusdConversion.mockReturnValue(true);
-
-      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByText('Get mUSD'));
-      });
-
-      expect(mockShowToast).toHaveBeenCalledWith(
-        existingConversionInProgressToast,
-      );
-      expect(mockInitiateConversion).not.toHaveBeenCalled();
-    });
-
-    it('shows existing conversion toast when earn bonus text is pressed during in-flight conversion', async () => {
-      mockSelectHasInFlightMusdConversion.mockReturnValue(true);
-
-      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
-        state: initialRootState,
-      });
-
-      const bonusText = strings('earn.earn_a_percentage_bonus', {
-        percentage: MUSD_CONVERSION_APY,
-      });
-
-      await act(async () => {
-        const bonusTextElement = getByText(bonusText);
-        fireEvent.press(bonusTextElement.parent as never);
-      });
-
-      expect(mockShowToast).toHaveBeenCalledWith(
-        existingConversionInProgressToast,
-      );
-      expect(mockInitiateConversion).not.toHaveBeenCalled();
     });
   });
 

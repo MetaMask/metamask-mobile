@@ -43,8 +43,6 @@ import Badge, {
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../../../selectors/featureFlags';
 import { useSelector } from 'react-redux';
-import { selectHasInFlightMusdConversion } from '../../../selectors/musdConversionStatus';
-import useEarnToasts from '../../../hooks/useEarnToasts';
 
 enum CTA_CLICK_TARGET {
   CTA_BUTTON = 'cta_button',
@@ -55,12 +53,8 @@ const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
-  const hasInFlightMusdConversion = useSelector(
-    selectHasInFlightMusdConversion,
-  );
 
   const { goToBuy } = useRampNavigation();
-  const { showToast, EarnToastOptions } = useEarnToasts();
 
   const { getPaymentTokenForSelectedNetwork, getChainIdForBuyFlow } =
     useMusdConversionFlowData();
@@ -130,11 +124,6 @@ const MusdConversionAssetListCta = () => {
         assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
       };
       goToBuy(rampIntent);
-      return;
-    }
-
-    if (hasInFlightMusdConversion) {
-      showToast(EarnToastOptions.mUsdConversion.existingConversionInProgress);
       return;
     }
 

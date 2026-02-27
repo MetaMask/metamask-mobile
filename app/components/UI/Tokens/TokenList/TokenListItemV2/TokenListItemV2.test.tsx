@@ -31,12 +31,10 @@ import {
   selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { selectHasInFlightMusdConversion } from '../../../Earn/selectors/musdConversionStatus';
 import { isEligibleForMerklRewards } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
-import useEarnToasts from '../../../Earn/hooks/useEarnToasts';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
@@ -146,31 +144,10 @@ jest.mock('../../../Earn/hooks/useMusdConversionEligibility', () => ({
     blockedCountries: [],
   })),
 }));
-const mockShowToast = jest.fn();
-const existingConversionInProgressToast = {
-  variant: 'icon',
-  iconName: 'warning',
-  labelOptions: [{ label: 'mUSD Conversion already in progress.' }],
-};
-jest.mock('../../../Earn/hooks/useEarnToasts', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    showToast: mockShowToast,
-    EarnToastOptions: {
-      mUsdConversion: {
-        existingConversionInProgress: existingConversionInProgressToast,
-      },
-    },
-  })),
-}));
-
 const mockUseMusdConversionEligibility =
   useMusdConversionEligibility as jest.MockedFunction<
     typeof useMusdConversionEligibility
   >;
-const mockUseEarnToasts = useEarnToasts as jest.MockedFunction<
-  typeof useEarnToasts
->;
 
 jest.mock('../../../../Views/confirmations/hooks/useNetworkName', () => ({
   useNetworkName: () => 'Ethereum Mainnet',
@@ -385,7 +362,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     currentCurrency?: string;
     multichainRates?: Record<string, { rate: number }>;
     isTestNetwork?: boolean;
-    hasInFlightMusdConversion?: boolean;
   }
 
   function prepareMocks({
@@ -407,17 +383,8 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     currentCurrency,
     multichainRates,
     isTestNetwork = false,
-    hasInFlightMusdConversion = false,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
-    mockUseEarnToasts.mockReturnValue({
-      showToast: mockShowToast,
-      EarnToastOptions: {
-        mUsdConversion: {
-          existingConversionInProgress: existingConversionInProgressToast,
-        },
-      },
-    } as unknown as ReturnType<typeof useEarnToasts>);
 
     mockGetEarnToken.mockReturnValue(earnToken ?? null);
     mockSelectStablecoinLendingEnabledFlag.mockReturnValue(
@@ -488,10 +455,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
 
         if (selector === selectMerklCampaignClaimingEnabledFlag) {
           return isMerklClaimingEnabled;
-        }
-
-        if (selector === selectHasInFlightMusdConversion) {
-          return hasInFlightMusdConversion;
         }
 
         if (selector === selectTokenMarketData) {
@@ -863,40 +826,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
-    }, 10000);
-
-    it('shows existing conversion toast and skips initiation when in-flight conversion exists', async () => {
-      prepareMocks({
-        asset: usdcAsset,
-        isMusdConversionEnabled: true,
-        isTokenWithCta: true,
-        hasInFlightMusdConversion: true,
-      });
-
-      mockShowToast.mockClear();
-      mockInitiateCustomConversion.mockClear();
-
-      const { getByTestId } = renderWithProvider(
-        <TokenListItemV2
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      await waitFor(() => {
-        expect(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID)).toBeOnTheScreen();
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
-      });
-
-      expect(mockShowToast).toHaveBeenCalledWith(
-        existingConversionInProgressToast,
-      );
-      expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
     }, 10000);
 
     it('tracks mUSD conversion CTA clicked event when pressed and education screen has not been seen', async () => {

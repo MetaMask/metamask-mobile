@@ -35,8 +35,6 @@ export interface MusdConversionInProgressParams {
 export interface EarnToastOptionsConfig {
   mUsdConversion: {
     inProgress: (params: MusdConversionInProgressParams) => EarnToastOptions;
-    // TODO: Consider renaming
-    existingConversionInProgress: EarnToastOptions;
     success: EarnToastOptions;
     failed: EarnToastOptions;
   };
@@ -199,14 +197,6 @@ const useEarnToasts = (): {
           }),
           closeButtonOptions,
         }),
-        existingConversionInProgress: {
-          ...earnBaseToastOptions.alert,
-          hasNoTimeout: true,
-          labelOptions: getEarnToastLabels({
-            primary: strings('earn.musd_conversion.toasts.already_in_progress'),
-          }),
-          closeButtonOptions,
-        },
         success: {
           ...earnBaseToastOptions.success,
           labelOptions: getEarnToastLabels({
@@ -249,7 +239,6 @@ const useEarnToasts = (): {
     }),
     [
       closeButtonOptions,
-      earnBaseToastOptions.alert,
       earnBaseToastOptions.error,
       earnBaseToastOptions.inProgress,
       earnBaseToastOptions.success,
