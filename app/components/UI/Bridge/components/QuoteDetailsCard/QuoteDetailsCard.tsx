@@ -44,6 +44,7 @@ import TagColored, {
 } from '../../../../../component-library/components-temp/TagColored';
 import { useShouldRenderGasSponsoredBanner } from '../../hooks/useShouldRenderGasSponsoredBanner';
 import { isGaslessQuote } from '../../utils/isGaslessQuote';
+import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
 
 if (
   Platform.OS === 'android' &&
@@ -52,7 +53,9 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const QuoteDetailsCard = () => {
+const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
+  hasInsufficientBalance,
+}) => {
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
@@ -87,6 +90,7 @@ const QuoteDetailsCard = () => {
 
   const shouldShowGasSponsored = useShouldRenderGasSponsoredBanner({
     quoteGasSponsored: activeQuote?.quote?.gasSponsored ?? false,
+    hasInsufficientBalance,
   });
 
   const handleSlippagePress = () => {

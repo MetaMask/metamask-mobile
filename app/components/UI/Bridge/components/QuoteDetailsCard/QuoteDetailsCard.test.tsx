@@ -262,7 +262,9 @@ const testState = createBridgeTestState({
   },
 });
 
-const QuoteDetailsCardTestScreen = () => <QuoteDetailsCard />;
+const QuoteDetailsCardTestScreen = () => (
+  <QuoteDetailsCard hasInsufficientBalance={false} />
+);
 
 describe('QuoteDetailsCard', () => {
   beforeEach(() => {
