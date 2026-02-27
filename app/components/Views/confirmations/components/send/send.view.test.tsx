@@ -1,13 +1,13 @@
-import '../../../../../../app/util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { renderScreenWithRoutes } from '../../../../../../app/util/test/component-view/render';
+import { renderScreenWithRoutes } from '../../../../../../tests/component-view/render';
 import {
   buildAddressBookOverridesWithEvmContact,
   buildTronSendFixture,
   sendViewOverrides,
-} from '../../../../../../app/util/test/component-view/presets/send';
-import { initialStateWallet } from '../../../../../../app/util/test/component-view/presets/wallet';
+} from '../../../../../../tests/component-view/presets/send';
+import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
 import { describeForPlatforms } from '../../../../../../app/util/test/platform';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TokenStandard } from '../../types/token';
