@@ -11,7 +11,7 @@ import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
-import Keypad, { type KeypadChangeData } from '../../../../Base/Keypad';
+import Keypad, { Keys, type KeypadChangeData } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
 import Text, {
@@ -107,6 +107,7 @@ function BuildQuote() {
   const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
+  const [hasEditedAmount, setHasEditedAmount] = useState(false);
   const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
     useState<boolean>(true);
   const [isContinueLoading, setIsContinueLoading] = useState(false);
@@ -358,13 +359,23 @@ function BuildQuote() {
   }, [navigation, selectedToken, networkInfo, trackEvent, createEventBuilder]);
 
   const handleKeypadChange = useCallback(
-    ({ value, valueAsNumber }: KeypadChangeData) => {
+    ({ value, valueAsNumber, pressedKey }: KeypadChangeData) => {
+      if (!hasEditedAmount && pressedKey === Keys.Back && amountAsNumber > 0) {
+        setAmount('0');
+        setAmountAsNumber(0);
+        setUserHasEnteredAmount(true);
+        setNativeFlowError(null);
+        setHasEditedAmount(true);
+        return;
+      }
+
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
       setUserHasEnteredAmount(true);
       setNativeFlowError(null);
+      setHasEditedAmount(true);
     },
-    [],
+    [amountAsNumber, hasEditedAmount],
   );
 
   const handleQuickAmountPress = useCallback(
@@ -373,6 +384,7 @@ function BuildQuote() {
       setAmountAsNumber(quickAmount);
       setUserHasEnteredAmount(true);
       setNativeFlowError(null);
+      setHasEditedAmount(true);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_QUICK_AMOUNT_CLICKED)
           .addProperties({

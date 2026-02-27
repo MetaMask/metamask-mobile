@@ -330,6 +330,14 @@ describe('BuildQuote', () => {
     expect(getByText('$100123')).toBeOnTheScreen();
   });
 
+  it('clears the prefilled amount when delete button is pressed first', () => {
+    const { getByTestId, getByText } = renderWithTheme(<BuildQuote />);
+
+    fireEvent.press(getByTestId('keypad-delete-button'));
+
+    expect(getByText('$0')).toBeOnTheScreen();
+  });
+
   it('deletes last digit when delete button is pressed', () => {
     const { getByText, getByTestId } = renderWithTheme(<BuildQuote />);
 
