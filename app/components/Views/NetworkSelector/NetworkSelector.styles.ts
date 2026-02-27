@@ -202,7 +202,6 @@ const createStyles = (colors: Colors) =>
     },
     noNetworkFeeContainer: {
       alignSelf: 'center',
-      height: 22,
     },
   });
 
