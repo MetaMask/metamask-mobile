@@ -169,10 +169,6 @@ export function CancelSpeedupModal({
     },
   ];
 
-  if (!isVisible) {
-    return null;
-  }
-
   return (
     <Modal
       isVisible={isVisible}
