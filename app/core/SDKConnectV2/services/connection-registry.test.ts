@@ -29,9 +29,9 @@ const mockConnectionRequest: ConnectionRequest = {
   sessionRequest: {
     id: '11111111-2222-3333-4444-555555555555',
     publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
-    channel: 'websocket-channel-id',
+    channel: 'handshake:aabbccdd-1122-3344-5566-778899aabbcc',
     mode: 'trusted',
-    expiresAt: 1757410033264,
+    expiresAt: Date.now() + 60_000,
   },
   metadata: {
     dapp: {
@@ -58,7 +58,7 @@ const mockConnectionInfo: ConnectionInfo = {
       platform: 'JavaScript',
     },
   },
-  expiresAt: 1757410033264,
+  expiresAt: Date.now() + 60_000,
 };
 
 // A valid deeplink URL containing the encoded connection request
