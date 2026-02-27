@@ -45,6 +45,18 @@ const arrangeMocks = (options?: {
   mockSortTrendingTokens.mockImplementation((tokens) => tokens);
 };
 
+const NON_RESTRICTED_GEO_STATE = {
+  state: { fiatOrders: { detectedGeolocation: 'AR' } },
+};
+
+const renderHookWithGeo = (
+  geolocation: string | undefined,
+  hookOpts?: Parameters<typeof useRwaTokens>[0],
+) =>
+  renderHookWithProvider(() => useRwaTokens(hookOpts), {
+    state: { fiatOrders: { detectedGeolocation: geolocation } },
+  });
+
 describe('useRwaTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -52,7 +64,7 @@ describe('useRwaTokens', () => {
   });
 
   it('calls useSearchRequest with correct defaults', () => {
-    renderHookWithProvider(() => useRwaTokens());
+    renderHookWithProvider(() => useRwaTokens(), NON_RESTRICTED_GEO_STATE);
 
     expect(mockUseSearchRequest).toHaveBeenCalledWith({
       query: '(Ondo Tokenized)',
@@ -65,7 +77,10 @@ describe('useRwaTokens', () => {
   it('uses provided chainIds instead of defaults', () => {
     const customChainIds: CaipChainId[] = ['eip155:137' as CaipChainId];
 
-    renderHookWithProvider(() => useRwaTokens({ chainIds: customChainIds }));
+    renderHookWithProvider(
+      () => useRwaTokens({ chainIds: customChainIds }),
+      NON_RESTRICTED_GEO_STATE,
+    );
 
     expect(mockUseSearchRequest).toHaveBeenCalledWith(
       expect.objectContaining({ chainIds: customChainIds }),
@@ -73,7 +88,10 @@ describe('useRwaTokens', () => {
   });
 
   it('defaults to RWA_CHAIN_IDS when chainIds is null', () => {
-    renderHookWithProvider(() => useRwaTokens({ chainIds: null }));
+    renderHookWithProvider(
+      () => useRwaTokens({ chainIds: null }),
+      NON_RESTRICTED_GEO_STATE,
+    );
 
     expect(mockUseSearchRequest).toHaveBeenCalledWith(
       expect.objectContaining({ chainIds: RWA_CHAIN_IDS }),
@@ -90,7 +108,10 @@ describe('useRwaTokens', () => {
     });
     arrangeMocks({ results: [rwaAsset, nonRwaAsset] });
 
-    const { result } = renderHookWithProvider(() => useRwaTokens());
+    const { result } = renderHookWithProvider(
+      () => useRwaTokens(),
+      NON_RESTRICTED_GEO_STATE,
+    );
 
     expect(result.current.data).toHaveLength(1);
     expect(result.current.data[0].symbol).toBe('OUSG');
@@ -101,7 +122,10 @@ describe('useRwaTokens', () => {
       results: [createSearchResult({ pricePercentChange1d: '3.14' })],
     });
 
-    const { result } = renderHookWithProvider(() => useRwaTokens());
+    const { result } = renderHookWithProvider(
+      () => useRwaTokens(),
+      NON_RESTRICTED_GEO_STATE,
+    );
 
     expect(result.current.data[0].priceChangePct).toEqual({ h24: '3.14' });
   });
@@ -113,7 +137,7 @@ describe('useRwaTokens', () => {
     ];
     arrangeMocks({ results });
 
-    renderHookWithProvider(() => useRwaTokens());
+    renderHookWithProvider(() => useRwaTokens(), NON_RESTRICTED_GEO_STATE);
 
     expect(mockSortTrendingTokens).toHaveBeenCalledWith(
       expect.any(Array),
@@ -125,13 +149,15 @@ describe('useRwaTokens', () => {
   it('sorts results with custom sort options', () => {
     arrangeMocks({ results: [createSearchResult()] });
 
-    renderHookWithProvider(() =>
-      useRwaTokens({
-        sortTrendingTokensOptions: {
-          option: PriceChangeOption.Volume,
-          direction: SortDirection.Ascending,
-        },
-      }),
+    renderHookWithProvider(
+      () =>
+        useRwaTokens({
+          sortTrendingTokensOptions: {
+            option: PriceChangeOption.Volume,
+            direction: SortDirection.Ascending,
+          },
+        }),
+      NON_RESTRICTED_GEO_STATE,
     );
 
     expect(mockSortTrendingTokens).toHaveBeenCalledWith(
@@ -156,8 +182,9 @@ describe('useRwaTokens', () => {
     ];
     arrangeMocks({ results });
 
-    const { result } = renderHookWithProvider(() =>
-      useRwaTokens({ searchQuery: 'OUSG' }),
+    const { result } = renderHookWithProvider(
+      () => useRwaTokens({ searchQuery: 'OUSG' }),
+      NON_RESTRICTED_GEO_STATE,
     );
 
     expect(mockSortTrendingTokens).not.toHaveBeenCalled();
@@ -168,8 +195,9 @@ describe('useRwaTokens', () => {
   it('returns empty array when no results match search query', () => {
     arrangeMocks({ results: [createSearchResult()] });
 
-    const { result } = renderHookWithProvider(() =>
-      useRwaTokens({ searchQuery: 'nonexistent' }),
+    const { result } = renderHookWithProvider(
+      () => useRwaTokens({ searchQuery: 'nonexistent' }),
+      NON_RESTRICTED_GEO_STATE,
     );
 
     expect(result.current.data).toHaveLength(0);
@@ -178,13 +206,19 @@ describe('useRwaTokens', () => {
   it('passes through isLoading from useSearchRequest', () => {
     arrangeMocks({ isLoading: true });
 
-    const { result } = renderHookWithProvider(() => useRwaTokens());
+    const { result } = renderHookWithProvider(
+      () => useRwaTokens(),
+      NON_RESTRICTED_GEO_STATE,
+    );
 
     expect(result.current.isLoading).toBe(true);
   });
 
   it('exposes refetch from useSearchRequest', () => {
-    const { result } = renderHookWithProvider(() => useRwaTokens());
+    const { result } = renderHookWithProvider(
+      () => useRwaTokens(),
+      NON_RESTRICTED_GEO_STATE,
+    );
 
     result.current.refetch();
 
@@ -194,8 +228,64 @@ describe('useRwaTokens', () => {
   it('returns empty data when useSearchRequest returns no results', () => {
     arrangeMocks({ results: [] });
 
-    const { result } = renderHookWithProvider(() => useRwaTokens());
+    const { result } = renderHookWithProvider(
+      () => useRwaTokens(),
+      NON_RESTRICTED_GEO_STATE,
+    );
 
     expect(result.current.data).toEqual([]);
+  });
+
+  describe('geo-restriction (production mode)', () => {
+    const originalDev = globalThis.__DEV__;
+
+    beforeEach(() => {
+      (globalThis as Record<string, unknown>).__DEV__ = false;
+    });
+
+    afterEach(() => {
+      (globalThis as Record<string, unknown>).__DEV__ = originalDev;
+    });
+
+    it('returns empty data for a restricted country', () => {
+      arrangeMocks({ results: [createSearchResult()] });
+
+      const { result } = renderHookWithGeo('US');
+
+      expect(result.current.data).toEqual([]);
+    });
+
+    it('returns empty data when geolocation is unknown', () => {
+      arrangeMocks({ results: [createSearchResult()] });
+
+      const { result } = renderHookWithGeo(undefined);
+
+      expect(result.current.data).toEqual([]);
+    });
+
+    it('returns data for a non-restricted country', () => {
+      arrangeMocks({ results: [createSearchResult()] });
+
+      const { result } = renderHookWithGeo('AR');
+
+      expect(result.current.data).toHaveLength(1);
+      expect(result.current.data[0].symbol).toBe('OUSG');
+    });
+
+    it('handles region suffixes correctly', () => {
+      arrangeMocks({ results: [createSearchResult()] });
+
+      const { result } = renderHookWithGeo('GB-ENG');
+
+      expect(result.current.data).toEqual([]);
+    });
+
+    it('sends empty query to search API when restricted', () => {
+      renderHookWithGeo('US');
+
+      expect(mockUseSearchRequest).toHaveBeenCalledWith(
+        expect.objectContaining({ query: '' }),
+      );
+    });
   });
 });

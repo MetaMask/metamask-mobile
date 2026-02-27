@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import Fuse, { type FuseOptions } from 'fuse.js';
 import type { CaipChainId } from '@metamask/utils';
 import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
+import { useSelector } from 'react-redux';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
 import {
@@ -10,6 +11,20 @@ import {
 } from '../../components/TrendingTokensBottomSheet';
 import { RWA_CHAIN_IDS } from '../../utils/trendingNetworksList';
 import { isEqual } from 'lodash';
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
+
+// prettier-ignore
+const ONDO_RESTRICTED_COUNTRIES = new Set([
+  'AF', 'DZ', 'BY', 'CA', 'CN', 'CU', 'KP',
+  'ER', 'IR', 'LY', 'MM', 'MA', 'NP', 'RU',
+  'SO', 'SS', 'SD', 'SY', 'US', 'VE',
+  'BR', 'HK', 'MY', 'SG', 'CH', 'GB',
+  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK',
+  'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE',
+  'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL',
+  'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS',
+  'LI', 'NO', 'UA',
+]);
 
 const useStableReference = <T>(value: T) => {
   const [stableValue, setStableValue] = useState(value);
@@ -66,6 +81,13 @@ export const useRwaTokens = (opts?: {
     direction: SortDirection;
   };
 }) => {
+  const geolocation = useSelector(getDetectedGeolocation);
+  const isGeoRestricted = useMemo(() => {
+    if (__DEV__) return false;
+    const country = geolocation?.toUpperCase().split('-')[0];
+    return !country || ONDO_RESTRICTED_COUNTRIES.has(country);
+  }, [geolocation]);
+
   const {
     searchQuery,
     chainIds,
@@ -83,13 +105,15 @@ export const useRwaTokens = (opts?: {
     isLoading: isSearchLoading,
     search: refetch,
   } = useSearchRequest({
-    query: '(Ondo Tokenized)',
+    query: isGeoRestricted ? '' : '(Ondo Tokenized)',
     limit: 500,
     chainIds: effectiveChainIds,
     includeMarketData,
   });
 
   const data = useMemo(() => {
+    if (isGeoRestricted) return [];
+
     const normalizedResults: TrendingAsset[] = searchResults
       .filter((asset) => asset.rwaData)
       .map((asset) => ({
@@ -117,7 +141,7 @@ export const useRwaTokens = (opts?: {
       sortTrendingTokensOptions.option,
       sortTrendingTokensOptions.direction,
     );
-  }, [searchResults, searchQuery, sortTrendingTokensOptions]);
+  }, [isGeoRestricted, searchResults, searchQuery, sortTrendingTokensOptions]);
 
   return { data, isLoading: isSearchLoading, refetch };
 };
