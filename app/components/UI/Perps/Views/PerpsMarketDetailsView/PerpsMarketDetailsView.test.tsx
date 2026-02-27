@@ -8,6 +8,7 @@ import {
   PerpsOrderViewSelectorsIDs,
 } from '../../Perps.testIds';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
+import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { Linking } from 'react-native';
 
 // Mock Linking
@@ -109,13 +110,10 @@ jest.mock('../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance', () => ({
   useDefaultPayWithTokenWhenNoPerpsBalance: jest.fn(() => null),
 }));
 
-/* eslint-disable import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- need module reference for mock overrides */
 const mockUseDefaultPayWithTokenWhenNoPerpsBalance =
-  require('../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance')
-    .useDefaultPayWithTokenWhenNoPerpsBalance as jest.MockedFunction<
-    () => { address: string; chainId: string; description: string } | null
+  useDefaultPayWithTokenWhenNoPerpsBalance as jest.MockedFunction<
+    typeof useDefaultPayWithTokenWhenNoPerpsBalance
   >;
-/* eslint-enable import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 
 jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: () => ({
