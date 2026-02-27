@@ -106,6 +106,7 @@ module.exports = {
     },
     {
       files: ['**/*.test.{js,ts,tsx}'],
+      excludedFiles: ['tests/**'],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'error',
       },
