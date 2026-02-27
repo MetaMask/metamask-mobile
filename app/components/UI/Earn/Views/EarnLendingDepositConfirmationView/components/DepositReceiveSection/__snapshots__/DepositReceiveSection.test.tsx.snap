@@ -4,7 +4,7 @@ exports[`DepositReceiveSection renders correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#3c4d9d0f",
       "borderRadius": 8,
       "marginBottom": 8,
       "paddingBottom": 8,
