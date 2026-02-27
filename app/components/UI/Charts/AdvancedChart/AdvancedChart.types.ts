@@ -152,18 +152,14 @@ export interface ToggleVolumePayload {
   visible: boolean;
 }
 
-export interface RNToWebViewMessage {
-  type: RNToWebViewMessageType;
-  payload:
-    | SetOHLCVDataPayload
-    | AddIndicatorPayload
-    | RemoveIndicatorPayload
-    | SetChartTypePayload
-    | SetPositionLinesPayload
-    | RealtimeUpdatePayload
-    | ToggleVolumePayload
-    | Record<string, never>;
-}
+export type RNToWebViewMessage =
+  | { type: 'SET_OHLCV_DATA'; payload: SetOHLCVDataPayload }
+  | { type: 'ADD_INDICATOR'; payload: AddIndicatorPayload }
+  | { type: 'REMOVE_INDICATOR'; payload: RemoveIndicatorPayload }
+  | { type: 'SET_CHART_TYPE'; payload: SetChartTypePayload }
+  | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
+  | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
+  | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload };
 
 export interface IndicatorAddedPayload {
   name: IndicatorType;
@@ -187,16 +183,14 @@ export interface ErrorPayload {
   code?: string;
 }
 
-export interface WebViewToRNMessage {
-  type: WebViewToRNMessageType;
-  payload:
-    | IndicatorAddedPayload
-    | IndicatorRemovedPayload
-    | CrosshairMovePayload
-    | NeedMoreHistoryPayload
-    | ErrorPayload
-    | Record<string, never>;
-}
+export type WebViewToRNMessage =
+  | { type: 'CHART_READY'; payload: Record<string, never> }
+  | { type: 'INDICATOR_ADDED'; payload: IndicatorAddedPayload }
+  | { type: 'INDICATOR_REMOVED'; payload: IndicatorRemovedPayload }
+  | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
+  | { type: 'NEED_MORE_HISTORY'; payload: NeedMoreHistoryPayload }
+  | { type: 'ERROR'; payload: ErrorPayload }
+  | { type: 'DEBUG'; payload: Record<string, never> };
 
 // ============================================
 // Component props and ref
