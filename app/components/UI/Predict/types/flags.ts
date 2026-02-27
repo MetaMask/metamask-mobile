@@ -7,6 +7,8 @@ export interface PredictFeeCollection {
   metamaskFee: number;
   providerFee: number;
   waiveList: string[];
+  executors?: string[];
+  permit2Enabled?: boolean;
 }
 
 export interface PredictLiveSportsFlag {
