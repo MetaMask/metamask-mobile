@@ -2,18 +2,18 @@ import { useMemo } from 'react';
 import { PaymentMethod } from '@metamask/ramps-controller';
 
 import Engine from '../../../../../core/Engine';
-import { useTransactionPayOnRampPayment } from './useTransactionPayData';
+import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { HighlightedItem } from '../../types/token';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useRampsController } from '../../../../UI/Ramp/hooks/useRampsController';
 import { formatDelayFromArray } from '../../../../UI/Ramp/Aggregator/utils';
 
-export function useMMPayOnRampHighlightedAction(): HighlightedItem[] {
+export function useFiatPaymentHighlightedActions(): HighlightedItem[] {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const { paymentMethods } = useRampsController();
-  const onRampPayment = useTransactionPayOnRampPayment();
-  const selectedPaymentMethodId = onRampPayment?.selectedPaymentMethodId;
+  const fiatPayment = useTransactionPayFiatPayment();
+  const selectedPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
 
   return useMemo(() => {
     if (paymentMethods.length === 0) {
@@ -29,7 +29,7 @@ export function useMMPayOnRampHighlightedAction(): HighlightedItem[] {
       name: paymentMethod.name,
       name_description: deriveDelayDescription(paymentMethod),
       action: () => {
-        Engine.context.TransactionPayController.setOnRampSelectedPaymentMethod({
+        Engine.context.TransactionPayController.updateFiatPayment({
           transactionId,
           selectedPaymentMethodId: paymentMethod.id,
         });

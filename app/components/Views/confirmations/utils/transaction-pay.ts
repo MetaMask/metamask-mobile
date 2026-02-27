@@ -8,9 +8,9 @@ import { Hex } from '@metamask/utils';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { AssetType, TokenStandard } from '../types/token';
 import {
+  TransactionFiatPayment,
   TransactionPayRequiredToken,
   TransactionPaymentToken,
-  TransactionOnRampPayment,
 } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { isTestNet } from '../../../../util/networks';
@@ -88,12 +88,12 @@ export function getAvailableTokens({
   payToken,
   requiredTokens,
   tokens,
-  onRampPayment,
+  fiatPayment,
 }: {
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
-  onRampPayment?: TransactionOnRampPayment;
+  fiatPayment?: TransactionFiatPayment;
 }): AssetType[] {
   const supportedGasFeeTokens = getSupportedGasFeeTokens();
 
@@ -153,13 +153,13 @@ export function getAvailableTokens({
         payToken?.address.toLowerCase() === token.address.toLowerCase() &&
         payToken?.chainId === token.chainId;
 
-      const isOnRampSelected = onRampPayment?.selectedPaymentMethodId;
+      const isFiatSelected = fiatPayment?.selectedPaymentMethodId;
 
       return {
         ...token,
         disabled,
         disabledMessage,
-        isSelected: isOnRampSelected ? false : isSelected,
+        isSelected: isFiatSelected ? false : isSelected,
       };
     });
 }

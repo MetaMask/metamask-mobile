@@ -58,6 +58,7 @@ import EngineService from '../../../../../../core/EngineService';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -103,7 +104,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const { hasTokens } = useTransactionPayAvailableTokens();
-
+    const selectedFiatPaymentMethod =
+      useTransactionPaySelectedFiatPaymentMethod();
     const isResultReady = useIsResultReady({ isKeyboardVisible });
 
     const {
@@ -148,7 +150,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             overrideContent(amountHuman)
           ) : (
             <>
-              {disablePay !== true && (
+              {disablePay !== true && !selectedFiatPaymentMethod && (
                 <PayTokenAmount
                   amountHuman={amountHuman}
                   disabled={!hasTokens}

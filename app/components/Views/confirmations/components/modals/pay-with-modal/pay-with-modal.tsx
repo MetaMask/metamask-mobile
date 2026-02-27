@@ -18,7 +18,7 @@ import {
   TokenListItem,
 } from '../../../types/token';
 import {
-  useTransactionPayOnRampPayment,
+  useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
@@ -33,7 +33,7 @@ import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
-import { useMMPayOnRampHighlightedAction } from '../../../hooks/pay/useMMPayOnRampHighlightedAction';
+import { useFiatPaymentHighlightedActions } from '../../../hooks/pay/useFiatPaymentHighlightedActions';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -52,8 +52,8 @@ export function PayWithModal() {
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
-  const mmPayOnRampHighlightedAction = useMMPayOnRampHighlightedAction();
-  const onRampPayment = useTransactionPayOnRampPayment();
+  const mmPayFiatHighlightedAction = useFiatPaymentHighlightedActions();
+  const fiatPayment = useTransactionPayFiatPayment();
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -159,7 +159,7 @@ export function PayWithModal() {
         payToken,
         requiredTokens,
         tokens,
-        onRampPayment,
+        fiatPayment,
       });
 
       let filteredTokens: TokenListItem[] = availableTokens;
@@ -176,12 +176,12 @@ export function PayWithModal() {
         filteredTokens = perpsBalanceTokenFilter(availableTokens);
       }
 
-      const availableTokensWithOnRampActions = [
-        ...mmPayOnRampHighlightedAction,
+      const availableTokensWithFiatActions = [
+        ...mmPayFiatHighlightedAction,
         ...filteredTokens,
       ];
 
-      return wrapHighlightedItemCallbacks(availableTokensWithOnRampActions);
+      return wrapHighlightedItemCallbacks(availableTokensWithFiatActions);
     },
     [
       withdrawTokenFilter,
@@ -191,8 +191,8 @@ export function PayWithModal() {
       transactionMeta,
       perpsBalanceTokenFilter,
       wrapHighlightedItemCallbacks,
-      mmPayOnRampHighlightedAction,
-      onRampPayment,
+      mmPayFiatHighlightedAction,
+      fiatPayment,
     ],
   );
 

@@ -2,9 +2,9 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import {
   selectIsTransactionPayLoadingByTransactionId,
+  selectTransactionPayFiatPaymentByTransactionId,
   selectTransactionPayIsMaxAmountByTransactionId,
   selectTransactionPayIsPostQuoteByTransactionId,
-  selectTransactionPayOnRampPaymentByTransactionId,
   selectTransactionPayQuotesByTransactionId,
   selectTransactionPaySourceAmountsByTransactionId,
   selectTransactionPayTokensByTransactionId,
@@ -49,9 +49,9 @@ export function useTransactionPayIsPostQuote() {
   return useTransactionPayData(selectTransactionPayIsPostQuoteByTransactionId);
 }
 
-export function useTransactionPayOnRampPayment() {
+export function useTransactionPayFiatPayment() {
   return useTransactionPayData(
-    selectTransactionPayOnRampPaymentByTransactionId,
+    selectTransactionPayFiatPaymentByTransactionId,
   );
 }
 
