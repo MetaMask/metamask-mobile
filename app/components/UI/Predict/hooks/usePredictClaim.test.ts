@@ -1,6 +1,7 @@
 import { NavigationProp } from '@react-navigation/native';
 import { renderHook } from '@testing-library/react-hooks';
 import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
@@ -10,6 +11,7 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { predictQueries } from '../queries';
 
 // Create mock functions
 const mockNavigate = jest.fn();
@@ -102,19 +104,29 @@ describe('usePredictClaim', () => {
     jest.clearAllMocks();
   });
 
-  const wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(
-      ToastContext.Provider,
-      {
-        value: {
-          toastRef: mockToastRef as React.RefObject<{
-            showToast: jest.Mock;
-            closeToast: jest.Mock;
-          }>,
+  let queryClient: QueryClient;
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => {
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    return React.createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      React.createElement(
+        ToastContext.Provider,
+        {
+          value: {
+            toastRef: mockToastRef as React.RefObject<{
+              showToast: jest.Mock;
+              closeToast: jest.Mock;
+            }>,
+          },
         },
-      },
-      children,
+        children,
+      ),
     );
+  };
 
   describe('initialization', () => {
     it('returns claim function', () => {
@@ -370,15 +382,22 @@ describe('usePredictClaim', () => {
       const mockError = new Error('Claim failed');
       mockClaimWinnings.mockRejectedValue(mockError);
 
+      const noToastQueryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+      });
       const noToastWrapper = ({ children }: { children: React.ReactNode }) =>
         React.createElement(
-          ToastContext.Provider,
-          {
-            value: {
-              toastRef: undefined,
+          QueryClientProvider,
+          { client: noToastQueryClient },
+          React.createElement(
+            ToastContext.Provider,
+            {
+              value: {
+                toastRef: undefined,
+              },
             },
-          },
-          children,
+            children,
+          ),
         );
 
       const { result } = renderHook(() => usePredictClaim(), {
@@ -408,6 +427,47 @@ describe('usePredictClaim', () => {
         }),
       );
       expect(mockShowToast).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('cache invalidation', () => {
+    it('invalidates balance, positions, and activity caches after successful claim', async () => {
+      // Arrange
+      mockClaimWinnings.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Spy on the queryClient instance
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+
+      // Act
+      await result.current.claim();
+
+      // Assert
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: predictQueries.balance.keys.all(),
+      });
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: predictQueries.positions.keys.all(),
+      });
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: predictQueries.activity.keys.all(),
+      });
+    });
+
+    it('does not invalidate caches when claim fails', async () => {
+      // Arrange
+      mockClaimWinnings.mockRejectedValue(new Error('Claim failed'));
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+
+      // Act
+      await result.current.claim();
+
+      // Assert
+      expect(invalidateSpy).not.toHaveBeenCalled();
     });
   });
 });
