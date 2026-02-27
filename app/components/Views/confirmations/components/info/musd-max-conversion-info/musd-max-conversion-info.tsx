@@ -19,10 +19,7 @@ import stylesheet from './musd-max-conversion-info.styles';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { PercentageRow } from '../../rows/percentage-row';
 import { TokenConversionAssetHeader } from '../../token-conversion-asset-header';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import { BlockingAlertMessage } from '../../alerts/blocking-alert-message';
 import { TokenConversionRateRow } from '../../rows/token-conversion-rate-row';
 import {
   MUSD_TOKEN,
@@ -103,13 +100,7 @@ export const MusdMaxConversionInfo = () => {
         <TotalRow />
         <PercentageRow />
       </View>
-      {blockingAlert?.message && (
-        <View style={styles.errorTextContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
-            {blockingAlert?.message}
-          </Text>
-        </View>
-      )}
+      <BlockingAlertMessage />
       <View style={styles.buttonContainer}>
         <Button
           onPress={onConfirm}
