@@ -44,8 +44,10 @@ export const usePredictPrices = (
     refetchInterval: pollingInterval ?? false,
   });
 
+  const hasData = isEnabled && !error && data;
+
   return {
-    prices: isEnabled ? (data ?? EMPTY_PRICES) : EMPTY_PRICES,
+    prices: hasData ? data : EMPTY_PRICES,
     isFetching,
     error: isEnabled ? (error?.message ?? null) : null,
     refetch: async () => {
