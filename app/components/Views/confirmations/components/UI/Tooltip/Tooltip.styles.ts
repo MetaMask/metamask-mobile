@@ -40,6 +40,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 16,
       paddingVertical: 20,
       paddingHorizontal: 16,
+      borderRadius: 8,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
