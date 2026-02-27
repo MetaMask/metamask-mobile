@@ -80,7 +80,7 @@ export const MusdMaxConversionInfo = () => {
         formatFiat={formatFiat}
       />
       <View style={styles.detailsSection}>
-        <RateRow tokenSymbol={token.symbol} isLoading={isLoading} />
+        <RateRow />
         <BridgeFeeRow />
         <TotalRow />
         <PercentageRow />
