@@ -13,9 +13,12 @@ import { Theme } from '../../../../util/theme/models';
 
 export type TimeRange = '1H' | '1D' | '1W' | '1M' | 'YTD' | 'ALL';
 
+/** Valid Hyperliquid candle interval values */
+export type CandleInterval = '1m' | '15m' | '1h' | '4h' | '1d';
+
 export interface TimeRangeConfig {
   /** Hyperliquid candle interval */
-  hlInterval: string;
+  hlInterval: CandleInterval;
   /** Number of candles to fetch */
   count: number;
 }
