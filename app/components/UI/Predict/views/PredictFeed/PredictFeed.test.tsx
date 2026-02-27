@@ -252,6 +252,7 @@ describe('PredictFeed', () => {
         { id: '1', title: 'Test Market 1' },
         { id: '2', title: 'Test Market 2' },
       ],
+      isLoading: false,
       isFetching: false,
       isFetchingMore: false,
       error: null,
@@ -384,6 +385,7 @@ describe('PredictFeed', () => {
     it('renders skeleton loaders when fetching initial data', () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
+        isLoading: true,
         isFetching: true,
         isFetchingMore: false,
         error: null,
@@ -403,6 +405,7 @@ describe('PredictFeed', () => {
     it('renders offline component when fetch error occurs', () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
+        isLoading: false,
         isFetching: false,
         isFetchingMore: false,
         error: new Error('Network error'),
@@ -421,6 +424,7 @@ describe('PredictFeed', () => {
     it('renders empty state message when no markets available', () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
+        isLoading: false,
         isFetching: false,
         isFetchingMore: false,
         error: null,
@@ -450,6 +454,7 @@ describe('PredictFeed', () => {
     it('displays skeleton loaders while search is fetching', () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
+        isLoading: true,
         isFetching: true,
         isFetchingMore: false,
         error: null,
@@ -549,6 +554,7 @@ describe('PredictFeed', () => {
     it('displays no results message when search returns empty', () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
+        isLoading: false,
         isFetching: false,
         isFetchingMore: false,
         error: null,
@@ -571,6 +577,7 @@ describe('PredictFeed', () => {
     it('displays error state in search when fetch fails', () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
+        isLoading: false,
         isFetching: false,
         isFetchingMore: false,
         error: new Error('Search error'),
@@ -599,6 +606,7 @@ describe('PredictFeed', () => {
           { id: '1', title: 'Test Market 1' },
           { id: '2', title: 'Test Market 2' },
         ],
+        isLoading: false,
         isFetching: false,
         isFetchingMore: true,
         error: null,
@@ -663,6 +671,7 @@ describe('PredictFeed', () => {
       mockUseDebouncedValue.mockReturnValue('');
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
+        isLoading: false,
         isFetching: false,
         isFetchingMore: false,
         error: null,
@@ -686,6 +695,7 @@ describe('PredictFeed', () => {
           { id: '1', title: 'Bitcoin Market 1' },
           { id: '2', title: 'Bitcoin Market 2' },
         ],
+        isLoading: false,
         isFetching: false,
         isFetchingMore: false,
         error: null,

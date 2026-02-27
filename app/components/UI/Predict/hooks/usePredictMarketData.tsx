@@ -118,7 +118,7 @@ export const usePredictMarketData = ({
     marketData,
     isLoading: queryResult.isLoading,
     isFetching: queryResult.isFetching,
-    isFetchingMore,
+    isFetchingMore: isFetchingNextPage,
     error: queryResult.error,
     hasMore: hasNextPage ?? false,
     refetch: queryResult.refetch,

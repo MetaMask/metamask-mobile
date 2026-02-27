@@ -309,7 +309,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     OverrideSkeletonSearch: SiteSkeleton,
     Section: SectionCard,
     useSectionData: (searchQuery) => {
-      const { marketData, isFetching, refetch } = usePredictMarketData({
+      const { marketData, isLoading, refetch } = usePredictMarketData({
         category: 'trending',
         pageSize: searchQuery ? 20 : 6,
         q: searchQuery || undefined,
@@ -320,7 +320,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         [marketData, searchQuery],
       );
 
-      return { data: filteredData, isLoading: isFetching, refetch };
+      return { data: filteredData, isLoading, refetch };
     },
   },
   sites: {
