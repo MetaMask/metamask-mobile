@@ -74,7 +74,7 @@ function ProviderSelectionModal() {
 
   const quoteFetchParams = useMemo(
     () =>
-      !skipQuotes && walletAddress && assetId
+      !skipQuotes && amount > 0 && walletAddress && assetId
         ? {
             amount,
             walletAddress,
@@ -138,7 +138,7 @@ function ProviderSelectionModal() {
           quotes={quotes}
           quotesLoading={quotesLoading}
           quotesError={quotesError}
-          showQuotes={!skipQuotes}
+          showQuotes={!skipQuotes && amount > 0}
           onBack={handleBack}
           onProviderSelect={handleProviderSelect}
         />

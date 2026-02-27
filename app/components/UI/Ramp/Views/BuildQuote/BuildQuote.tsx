@@ -388,10 +388,6 @@ function BuildQuote() {
   );
 
   const handlePaymentPillPress = useCallback(() => {
-    if (debouncedPollingAmount <= 0) {
-      return;
-    }
-
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED,

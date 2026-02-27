@@ -82,6 +82,7 @@ function PaymentSelectionModal() {
 
   const quoteFetchParams = useMemo(
     () =>
+      amount > 0 &&
       walletAddress &&
       assetId &&
       !paymentMethodsLoading &&
