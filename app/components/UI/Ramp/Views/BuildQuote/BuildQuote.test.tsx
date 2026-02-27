@@ -466,6 +466,30 @@ describe('BuildQuote', () => {
     expect(getByTestId('build-quote-continue-button')).toBeOnTheScreen();
   });
 
+  it('displays powered by provider text when selected provider is set', () => {
+    mockSelectedProvider = {
+      id: '/providers/transak',
+      name: 'Transak',
+      environmentType: 'PRODUCTION',
+      description: 'Test Provider',
+      hqAddress: '123 Test St',
+      links: [],
+      logos: { light: '', dark: '', height: 24, width: 79 },
+    };
+
+    const { getByText } = renderWithTheme(<BuildQuote />);
+
+    expect(getByText('fiat_on_ramp.powered_by_provider')).toBeOnTheScreen();
+  });
+
+  it('does not display powered by text when no selected provider is set', () => {
+    mockSelectedProvider = null;
+
+    const { queryByText } = renderWithTheme(<BuildQuote />);
+
+    expect(queryByText('fiat_on_ramp.powered_by_provider')).toBeNull();
+  });
+
   it('matches snapshot', () => {
     const { toJSON } = renderWithTheme(<BuildQuote />);
 

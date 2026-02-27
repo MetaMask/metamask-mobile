@@ -29,7 +29,7 @@ import PerpsPositionCard from '../../../../UI/Perps/components/PerpsPositionCard
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import PerpsMarketTileCard from './components/PerpsMarketTileCard';
-import PerpsViewMoreCard from './components/PerpsViewMoreCard';
+import ViewMoreCard from '../../components/ViewMoreCard';
 import { useHomepageSparklines } from './hooks/useHomepageSparklines';
 import { strings } from '../../../../../../locales/i18n';
 import type { SectionRefreshHandle } from '../../types';
@@ -237,7 +237,12 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
                   onPress={handleTilePress}
                 />
               ))}
-              <PerpsViewMoreCard onPress={handleViewAllPerps} />
+              <ViewMoreCard
+                onPress={handleViewAllPerps}
+                twClassName="w-[180px] h-[140px]"
+                activeOpacity={0.7}
+                testID="perps-view-more-card"
+              />
             </ScrollView>
           )}
         </FadingScrollContainer>

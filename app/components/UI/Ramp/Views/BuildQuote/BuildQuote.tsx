@@ -16,6 +16,7 @@ import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import {
   Button,
@@ -60,6 +61,8 @@ import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
 } from '../../../../../reducers/fiatOrders';
+import TruncatedError from '../../components/TruncatedError';
+import { PROVIDER_LINKS } from '../../Aggregator/types';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -137,6 +140,13 @@ function BuildQuote() {
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const prevSelectedProviderRef = useRef(selectedProvider);
+  useEffect(() => {
+    if (prevSelectedProviderRef.current !== selectedProvider) {
+      prevSelectedProviderRef.current = selectedProvider;
+      setNativeFlowError(null);
+    }
+  }, [selectedProvider]);
 
   const isTokenUnavailable = useMemo(
     () =>
@@ -408,6 +418,7 @@ function BuildQuote() {
 
   const handleContinuePress = useCallback(async () => {
     if (!selectedQuote || !selectedProvider) return;
+    setNativeFlowError(null);
 
     const quoteAmount =
       selectedQuote.quote?.amountIn ??
@@ -494,7 +505,6 @@ function BuildQuote() {
       return;
     }
 
-    // V2 aggregator: get widget URL via controller and navigate to checkout
     setIsContinueLoading(true);
     try {
       const fetchedWidgetUrl = await getWidgetUrl(selectedQuote);
@@ -527,12 +537,19 @@ function BuildQuote() {
           new Error('No widget URL available for aggregator provider'),
           { provider: selectedQuote.provider },
         );
+        setNativeFlowError(strings('deposit.buildQuote.unexpectedError'));
       }
     } catch (error) {
       Logger.error(error as Error, {
         provider: selectedQuote.provider,
         message: 'Failed to fetch widget URL',
       });
+      setNativeFlowError(
+        parseUserFacingError(
+          error,
+          strings('deposit.buildQuote.unexpectedError'),
+        ),
+      );
     } finally {
       setIsContinueLoading(false);
     }
@@ -597,6 +614,19 @@ function BuildQuote() {
     quoteMatchesAmount &&
     quoteMatchesCurrentContext;
 
+  const hasNoQuotes =
+    hasAmount &&
+    !selectedQuoteLoading &&
+    !quoteFetchError &&
+    quotesResponse !== null &&
+    selectedQuote === null;
+
+  const noQuotesErrorMessage = selectedProvider
+    ? strings('fiat_on_ramp.no_quotes_error', {
+        provider: selectedProvider.name,
+      })
+    : strings('fiat_on_ramp.no_quotes_available');
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -606,6 +636,11 @@ function BuildQuote() {
               <Text
                 testID={BuildQuoteSelectors.AMOUNT_INPUT}
                 variant={TextVariant.HeadingLG}
+                color={
+                  nativeFlowError || hasNoQuotes || quoteFetchError
+                    ? TextColor.Error
+                    : undefined
+                }
                 style={styles.mainAmount}
                 numberOfLines={1}
                 adjustsFontSizeToFit
@@ -625,13 +660,6 @@ function BuildQuote() {
             </View>
           </View>
 
-          {nativeFlowError && (
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              description={nativeFlowError}
-            />
-          )}
-
           {quoteFetchError && (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
@@ -645,15 +673,34 @@ function BuildQuote() {
           <View style={styles.actionSection}>
             {hasAmount ? (
               <>
-                {selectedProvider && (
-                  <Text
-                    variant={TextVariant.BodySM}
-                    style={styles.poweredByText}
-                  >
-                    {strings('fiat_on_ramp.powered_by_provider', {
-                      provider: selectedProvider.name,
-                    })}
-                  </Text>
+                {nativeFlowError ? (
+                  <TruncatedError
+                    error={nativeFlowError}
+                    providerName={selectedProvider?.name}
+                    providerSupportUrl={
+                      selectedProvider?.links?.find(
+                        (link) => link.name === PROVIDER_LINKS.SUPPORT,
+                      )?.url
+                    }
+                  />
+                ) : hasNoQuotes ? (
+                  <TruncatedError
+                    error={strings('fiat_on_ramp.encountered_error')}
+                    errorDetails={noQuotesErrorMessage}
+                    showChangeProvider
+                    amount={amountAsNumber}
+                  />
+                ) : (
+                  selectedProvider && (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      style={styles.poweredByText}
+                    >
+                      {strings('fiat_on_ramp.powered_by_provider', {
+                        provider: selectedProvider.name,
+                      })}
+                    </Text>
+                  )
                 )}
                 <Button
                   variant={ButtonVariant.Primary}
