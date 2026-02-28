@@ -1478,7 +1478,7 @@ describe('BuildQuote', () => {
       expect(getByTestId('build-quote-continue-button')).toBeDisabled();
     });
 
-    it('does not navigate to payment selection when amount is zero', () => {
+    it('navigates to payment selection when amount is zero', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       fireEvent.press(getByTestId('keypad-delete-button'));
@@ -1489,7 +1489,13 @@ describe('BuildQuote', () => {
 
       fireEvent.press(getByTestId('payment-method-pill'));
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampPaymentSelectionModal',
+          params: { amount: 0 },
+        }),
+      );
     });
   });
 
