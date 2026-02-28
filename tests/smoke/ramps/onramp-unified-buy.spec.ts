@@ -24,7 +24,7 @@ import {
   EventPayload,
 } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
-import { RampsRegion } from '../../framework/types';
+
 import { UnifiedRampRoutingType } from '../../../app/reducers/fiatOrders/types';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
@@ -248,7 +248,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
   it('validates the segment events from the onramp unified buy test', async () => {
     const softAssert = new SoftAssert();
     for (const ev of expectedEventNames) {
-      const event = eventsToCheck.find((event) => event.event === ev);
+      const event = eventsToCheck.find((e) => e.event === ev);
       await softAssert.checkAndCollect(
         async () => await Assertions.checkIfValueIsDefined(event),
         `${ev}: Should be defined`,
@@ -306,23 +306,22 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
       async () =>
         await Assertions.checkIfObjectContains(
           rampsButtonClicked?.properties ?? {},
-          { ramp_type: 'UNIFIED_BUY' },
+          { ramp_type: 'UNIFIED_BUY_2' },
         ),
-      `Ramps Button Clicked: ramp_type should be UNIFIED_BUY`,
+      `Ramps Button Clicked: ramp_type should be UNIFIED_BUY_2`,
     );
-    const rampsButtonClickedRegionStr = rampsButtonClicked?.properties
-      ?.region as string | undefined;
-    const rampsButtonClickedRegion = rampsButtonClickedRegionStr
-      ? (JSON.parse(rampsButtonClickedRegionStr) as RampsRegion)
-      : undefined;
+    const rampsButtonClickedRegion = rampsButtonClicked?.properties
+      ?.region as string;
+    // The region property is a plain string (e.g. "us-ca") matching the
+    // geolocation endpoint response, not a JSON-serialized object.
+    const expectedRegionId = selectedRegion.id.replace('/regions/', '');
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfObjectContains(
-          (rampsButtonClickedRegion as unknown as Record<string, unknown>) ??
-            {},
-          { id: selectedRegion.id, name: selectedRegion.name },
+        await Assertions.checkIfTextMatches(
+          rampsButtonClickedRegion,
+          expectedRegionId,
         ),
-      `Ramps Button Clicked: region should be ${selectedRegion.name} and ${selectedRegion.id}`,
+      `Ramps Button Clicked: region should be ${expectedRegionId}`,
     );
 
     // Ramps Token Selected - Property checks
@@ -350,19 +349,15 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
       `Ramps Token Selected: Should have the correct properties`,
     );
 
-    const rampsTokenSelectedRegionStr = rampsTokenSelected?.properties
-      ?.region as string | undefined;
-    const rampsTokenSelectedRegion = rampsTokenSelectedRegionStr
-      ? (JSON.parse(rampsTokenSelectedRegionStr) as RampsRegion)
-      : undefined;
+    const rampsTokenSelectedRegion = rampsTokenSelected?.properties
+      ?.region as string;
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfObjectContains(
-          (rampsTokenSelectedRegion as unknown as Record<string, unknown>) ??
-            {},
-          { id: selectedRegion.id, name: selectedRegion.name },
+        await Assertions.checkIfTextMatches(
+          rampsTokenSelectedRegion,
+          expectedRegionId,
         ),
-      `Ramps Token Selected: region should be ${selectedRegion.name} and ${selectedRegion.id}`,
+      `Ramps Token Selected: region should be ${expectedRegionId}`,
     );
 
     await softAssert.checkAndCollect(

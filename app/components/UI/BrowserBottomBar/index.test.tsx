@@ -391,6 +391,7 @@ describe('BrowserBottomBar', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'AddBookmarkView',
         expect.objectContaining({
+          screen: 'AddBookmark',
           params: expect.objectContaining({
             title: '',
           }),
@@ -740,6 +741,7 @@ describe('BrowserBottomBar', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'AddBookmarkView',
         expect.objectContaining({
+          screen: 'AddBookmark',
           params: expect.objectContaining({
             title: '',
           }),
@@ -760,6 +762,7 @@ describe('BrowserBottomBar', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'AddBookmarkView',
         expect.objectContaining({
+          screen: 'AddBookmark',
           params: expect.objectContaining({
             url: 'custom-masked-url',
           }),

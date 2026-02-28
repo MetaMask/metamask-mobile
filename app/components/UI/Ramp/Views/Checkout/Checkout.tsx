@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { orderStatusToFiatOrderState } from '../../orderProcessor/unifiedOrderProcessor';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useTheme } from '../../../../../util/theme';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
@@ -13,6 +15,7 @@ import {
   addFiatCustomIdData,
   removeFiatCustomIdData,
   FiatOrder,
+  getRampRoutingDecision,
 } from '../../../../../reducers/fiatOrders';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -38,6 +41,8 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
+import { showV2OrderToast } from '../../utils/v2OrderToast';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -216,6 +221,9 @@ const Checkout = () => {
   const params = useParams<CheckoutParams>();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const isV2Enabled = useRampsUnifiedV2Enabled();
 
   const {
     url: uri,
@@ -253,11 +261,43 @@ const Checkout = () => {
         { title: providerName ?? headerTitle },
         theme,
         () => {
-          // Cancel analytics could go here
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Checkout',
+                ramp_type: 'UNIFIED_BUY_2',
+                ramp_routing: rampRoutingDecision ?? undefined,
+              })
+              .build(),
+          );
         },
       ),
     );
-  }, [navigation, theme, providerName, headerTitle]);
+  }, [
+    navigation,
+    theme,
+    providerName,
+    headerTitle,
+    createEventBuilder,
+    trackEvent,
+    rampRoutingDecision,
+  ]);
+
+  const hasTrackedScreenViewRef = useRef(false);
+  useEffect(() => {
+    if (uri && !hasTrackedScreenViewRef.current) {
+      hasTrackedScreenViewRef.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+          .addProperties({
+            location: 'Checkout',
+            ramp_type: 'UNIFIED_BUY_2',
+            ramp_routing: rampRoutingDecision ?? undefined,
+          })
+          .build(),
+      );
+    }
+  }, [uri, createEventBuilder, trackEvent, rampRoutingDecision]);
 
   useEffect(() => {
     if (!hasCallbackFlow || !customOrderId || !walletAddress || !network) {
@@ -286,9 +326,18 @@ const Checkout = () => {
           return;
         }
         _dispatch(addFiatOrder(order));
-        const notificationDetails = getNotificationDetails(order);
-        if (notificationDetails) {
-          NotificationManager.showSimpleNotification(notificationDetails);
+        if (isV2Enabled) {
+          showV2OrderToast({
+            orderId: order.id,
+            cryptocurrency: order.cryptocurrency,
+            cryptoAmount: order.cryptoAmount,
+            state: order.state,
+          });
+        } else {
+          const notificationDetails = getNotificationDetails(order);
+          if (notificationDetails) {
+            NotificationManager.showSimpleNotification(notificationDetails);
+          }
         }
       });
 
@@ -311,7 +360,7 @@ const Checkout = () => {
         navigation.dangerouslyGetParent()?.pop();
       }
     },
-    [dispatch, dispatchThunk, navigation, providerType],
+    [dispatch, dispatchThunk, navigation, providerType, isV2Enabled],
   );
 
   const handleNavigationStateChange = useCallback(
@@ -397,8 +446,16 @@ const Checkout = () => {
   );
 
   const handleCancelPress = useCallback(() => {
-    // TODO: Add analytics tracking when analytics events are defined for unified flow
-  }, []);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_CLOSE_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Checkout',
+          ramp_type: 'UNIFIED_BUY_2',
+          ramp_routing: rampRoutingDecision ?? undefined,
+        })
+        .build(),
+    );
+  }, [createEventBuilder, trackEvent, rampRoutingDecision]);
   const handleClosePress = useCallback(() => {
     handleCancelPress();
     sheetRef.current?.onCloseBottomSheet();

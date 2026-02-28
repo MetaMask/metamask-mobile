@@ -498,7 +498,6 @@ describe('PredictController', () => {
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
         expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
           marketId: 'market-1',
-          liveSportsLeagues: [],
         });
       });
     });
@@ -522,7 +521,6 @@ describe('PredictController', () => {
         expect(result).toEqual(mockMarket);
         expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
           marketId: 'market-2',
-          liveSportsLeagues: [],
         });
       });
     });
@@ -580,7 +578,6 @@ describe('PredictController', () => {
         expect(result).toEqual(mockMarket);
         expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
           marketId: '123',
-          liveSportsLeagues: [],
         });
       });
     });
@@ -1403,10 +1400,10 @@ describe('PredictController', () => {
           expect(result[1].id).toBe('highlight-2');
           expect(result[2].id).toBe('regular-1');
           expect(result[3].id).toBe('regular-2');
-          expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalledWith(
-            ['highlight-1', 'highlight-2'],
-            [],
-          );
+          expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalledWith([
+            'highlight-1',
+            'highlight-2',
+          ]);
         },
         {
           mocks: {
@@ -4200,12 +4197,6 @@ describe('PredictController', () => {
               address: '0x1234567890123456789012345678901234567890',
               signTypedMessage: expect.any(Function),
               signPersonalMessage: expect.any(Function),
-            }),
-            feeCollection: expect.objectContaining({
-              enabled: true,
-              collector: expect.any(String),
-              metamaskFee: expect.any(Number),
-              providerFee: expect.any(Number),
             }),
           }),
         );

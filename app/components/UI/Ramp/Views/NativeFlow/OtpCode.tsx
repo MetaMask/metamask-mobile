@@ -32,7 +32,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Logger from '../../../../../util/Logger';
-import useAnalytics from '../../hooks/useAnalytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { trace, TraceName } from '../../../../../util/trace';
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
 import { useTransakController } from '../../hooks/useTransakController';
@@ -77,7 +78,7 @@ const V2OtpCode = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { email, stateToken, amount, currency, assetId } =
     useParams<V2OtpCodeParams>();
-  const trackEvent = useAnalytics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const {
     setAuthToken,
@@ -110,9 +111,33 @@ const V2OtpCode = () => {
         navigation,
         { title: strings('deposit.otp_code.navbar_title') },
         theme,
+        () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'OTP Code',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
+        },
       ),
     );
-  }, [navigation, theme]);
+  }, [navigation, theme, trackEvent, createEventBuilder]);
+
+  const hasTrackedScreenViewRef = useRef(false);
+  useEffect(() => {
+    if (hasTrackedScreenViewRef.current) return;
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'OTP Code',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const [value, setValue] = useState('');
 
@@ -157,10 +182,14 @@ const V2OtpCode = () => {
       }
 
       setCurrentStateToken(resendResponse.stateToken);
-      trackEvent('RAMPS_OTP_RESENT', {
-        ramp_type: 'DEPOSIT',
-        region: userRegion?.regionCode || '',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_OTP_RESENT)
+          .addProperties({
+            ramp_type: 'DEPOSIT',
+            region: userRegion?.regionCode || '',
+          })
+          .build(),
+      );
     } catch (e) {
       setResendButtonState('resendError');
       Logger.error(e as Error, 'Error resending OTP code');
@@ -172,6 +201,7 @@ const V2OtpCode = () => {
     resetAttemptCount,
     userRegion?.regionCode,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const handleContactSupport = useCallback(() => {
@@ -200,10 +230,14 @@ const V2OtpCode = () => {
 
         await setAuthToken(token);
 
-        trackEvent('RAMPS_OTP_CONFIRMED', {
-          ramp_type: 'DEPOSIT',
-          region: userRegion?.regionCode || '',
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_OTP_CONFIRMED)
+            .addProperties({
+              ramp_type: 'DEPOSIT',
+              region: userRegion?.regionCode || '',
+            })
+            .build(),
+        );
 
         if (amount && currency && assetId) {
           try {
@@ -230,10 +264,14 @@ const V2OtpCode = () => {
           navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
         }
       } catch (e) {
-        trackEvent('RAMPS_OTP_FAILED', {
-          ramp_type: 'DEPOSIT',
-          region: userRegion?.regionCode || '',
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_OTP_FAILED)
+            .addProperties({
+              ramp_type: 'DEPOSIT',
+              region: userRegion?.regionCode || '',
+            })
+            .build(),
+        );
         setError(parseUserFacingError(e, strings('deposit.otp_code.error')));
         Logger.error(e as Error, 'Error submitting OTP code or verifying');
       } finally {
@@ -250,6 +288,7 @@ const V2OtpCode = () => {
     currentStateToken,
     userRegion?.regionCode,
     trackEvent,
+    createEventBuilder,
     amount,
     currency,
     assetId,
