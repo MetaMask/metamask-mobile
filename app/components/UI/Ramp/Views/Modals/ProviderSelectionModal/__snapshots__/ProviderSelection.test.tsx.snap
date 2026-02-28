@@ -486,6 +486,20 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                               },
                               "name": "Transak",
                             },
+                            {
+                              "description": "Test provider",
+                              "environmentType": "PRODUCTION",
+                              "hqAddress": "Test Address",
+                              "id": "/providers/stripe",
+                              "links": [],
+                              "logos": {
+                                "dark": "https://example.com/logo-dark.png",
+                                "height": 24,
+                                "light": "https://example.com/logo-light.png",
+                                "width": 90,
+                              },
+                              "name": "Stripe",
+                            },
                           ]
                         }
                         getItem={[Function]}
@@ -639,6 +653,114 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                                   }
                                 }
                               />
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              disabled={false}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "borderRadius": 4,
+                                  "opacity": 1,
+                                  "position": "relative",
+                                }
+                              }
+                            >
+                              <View
+                                accessibilityRole="none"
+                                accessible={true}
+                                style={
+                                  {
+                                    "padding": 16,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 18,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Stripe
+                                    </Text>
+                                  </View>
+                                  <View
+                                    accessible={false}
+                                    style={
+                                      {
+                                        "width": 16,
+                                      }
+                                    }
+                                    testID="listitem-gap"
+                                  />
+                                  <View
+                                    style={
+                                      {
+                                        "flex": -1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "flex-end",
+                                            "display": "flex",
+                                            "justifyContent": "center",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#686e7d",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 14,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        Quote unavailable.
+                                      </Text>
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -1142,6 +1264,20 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                               },
                               "name": "Transak",
                             },
+                            {
+                              "description": "Test provider",
+                              "environmentType": "PRODUCTION",
+                              "hqAddress": "Test Address",
+                              "id": "/providers/stripe",
+                              "links": [],
+                              "logos": {
+                                "dark": "https://example.com/logo-dark.png",
+                                "height": 24,
+                                "light": "https://example.com/logo-light.png",
+                                "width": 90,
+                              },
+                              "name": "Stripe",
+                            },
                           ]
                         }
                         getItem={[Function]}
@@ -1341,6 +1477,160 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                   }
                                 }
                               />
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              disabled={false}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "borderRadius": 4,
+                                  "opacity": 1,
+                                  "position": "relative",
+                                }
+                              }
+                            >
+                              <View
+                                accessibilityRole="none"
+                                accessible={true}
+                                style={
+                                  {
+                                    "padding": 16,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 18,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Stripe
+                                    </Text>
+                                  </View>
+                                  <View
+                                    accessible={false}
+                                    style={
+                                      {
+                                        "width": 16,
+                                      }
+                                    }
+                                    testID="listitem-gap"
+                                  />
+                                  <View
+                                    style={
+                                      {
+                                        "flex": -1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "flex-end",
+                                            "display": "flex",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "borderRadius": 4,
+                                            "height": 16,
+                                            "overflow": "hidden",
+                                            "width": 80,
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          collapsable={false}
+                                          pointerEvents="none"
+                                          style={
+                                            {
+                                              "backgroundColor": "#686e7d",
+                                              "borderRadius": 4,
+                                              "bottom": 0,
+                                              "left": 0,
+                                              "opacity": 0.2,
+                                              "position": "absolute",
+                                              "right": 0,
+                                              "top": 0,
+                                            }
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        style={
+                                          {
+                                            "height": 6,
+                                          }
+                                        }
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "borderRadius": 4,
+                                            "height": 16,
+                                            "overflow": "hidden",
+                                            "width": 60,
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          collapsable={false}
+                                          pointerEvents="none"
+                                          style={
+                                            {
+                                              "backgroundColor": "#686e7d",
+                                              "borderRadius": 4,
+                                              "bottom": 0,
+                                              "left": 0,
+                                              "opacity": 0.2,
+                                              "position": "absolute",
+                                              "right": 0,
+                                              "top": 0,
+                                            }
+                                          }
+                                        />
+                                      </View>
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -1915,6 +2205,20 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                               },
                               "name": "Transak",
                             },
+                            {
+                              "description": "Test provider",
+                              "environmentType": "PRODUCTION",
+                              "hqAddress": "Test Address",
+                              "id": "/providers/stripe",
+                              "links": [],
+                              "logos": {
+                                "dark": "https://example.com/logo-dark.png",
+                                "height": 24,
+                                "light": "https://example.com/logo-light.png",
+                                "width": 90,
+                              },
+                              "name": "Stripe",
+                            },
                           ]
                         }
                         getItem={[Function]}
@@ -2068,6 +2372,114 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                                   }
                                 }
                               />
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              disabled={false}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "borderRadius": 4,
+                                  "opacity": 1,
+                                  "position": "relative",
+                                }
+                              }
+                            >
+                              <View
+                                accessibilityRole="none"
+                                accessible={true}
+                                style={
+                                  {
+                                    "padding": 16,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 18,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Stripe
+                                    </Text>
+                                  </View>
+                                  <View
+                                    accessible={false}
+                                    style={
+                                      {
+                                        "width": 16,
+                                      }
+                                    }
+                                    testID="listitem-gap"
+                                  />
+                                  <View
+                                    style={
+                                      {
+                                        "flex": -1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "flex-end",
+                                            "display": "flex",
+                                            "justifyContent": "center",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#686e7d",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 14,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        Quote unavailable.
+                                      </Text>
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
                             </TouchableOpacity>
                           </View>
                         </View>

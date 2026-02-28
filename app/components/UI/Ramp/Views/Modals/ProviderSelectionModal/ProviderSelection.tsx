@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
+import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
@@ -22,6 +23,8 @@ import { useFormatters } from '../../../../../hooks/useFormatters';
 import QuoteDisplay from '../PaymentSelectionModal/QuoteDisplay';
 import PaymentSelectionAlert from '../PaymentSelectionModal/PaymentSelectionAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import TagColored from '../../../../../../component-library/components-temp/TagColored';
+import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 
 const styles = StyleSheet.create({
   list: { flex: 1, minHeight: 0 },
@@ -56,6 +59,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
 
   const providers = providersOverride ?? controllerProviders;
   const { formatToken, formatCurrency } = useFormatters();
+  const ordersProviders = useSelector(getOrdersProviders);
 
   const currency = userRegion?.country?.currency ?? 'USD';
   const symbol = selectedToken?.symbol ?? '';
@@ -91,6 +95,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           ? formatCurrency(Number(matchedQuote.quote.amountOutInFiat), currency)
           : null;
       const isSelected = selectedProvider?.id === provider.id;
+      const isPreviouslyUsed = ordersProviders.includes(provider.id);
 
       return (
         <ListItemSelect
@@ -101,6 +106,13 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
         >
           <ListItemColumn widthType={WidthType.Fill}>
             <Text variant={TextVariant.BodyLGMedium}>{provider.name}</Text>
+            {isPreviouslyUsed && (
+              <Box twClassName="mt-1">
+                <TagColored>
+                  {strings('fiat_on_ramp_aggregator.previously_used')}
+                </TagColored>
+              </Box>
+            )}
           </ListItemColumn>
           {showQuotes ? (
             <ListItemColumn widthType={WidthType.Auto}>
@@ -134,6 +146,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
       handleProviderSelect,
       formatToken,
       formatCurrency,
+      ordersProviders,
     ],
   );
 

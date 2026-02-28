@@ -80,7 +80,22 @@ const transakProvider: Provider = {
   },
 };
 
-const mockProviders: Provider[] = [transakProvider];
+const stripeProvider: Provider = {
+  id: '/providers/stripe',
+  name: 'Stripe',
+  environmentType: 'PRODUCTION',
+  description: 'Test provider',
+  hqAddress: 'Test Address',
+  links: [],
+  logos: {
+    light: 'https://example.com/logo-light.png',
+    dark: 'https://example.com/logo-dark.png',
+    height: 24,
+    width: 90,
+  },
+};
+
+const mockProviders: Provider[] = [transakProvider, stripeProvider];
 
 function createMockQuote(
   providerId: string,
@@ -106,6 +121,7 @@ interface RenderOptions {
   quotes?: QuotesResponse | null;
   quotesLoading?: boolean;
   quotesError?: string | null;
+  ordersProviders?: string[];
 }
 
 function renderWithProvider(
@@ -113,7 +129,12 @@ function renderWithProvider(
   selectedProvider: Provider | null = mockProviders[0],
   options: RenderOptions = {},
 ) {
-  const { quotes = null, quotesLoading = false, quotesError = null } = options;
+  const {
+    quotes = null,
+    quotesLoading = false,
+    quotesError = null,
+    ordersProviders = [],
+  } = options;
 
   jest.mocked(useRampsController).mockReturnValue({
     ...defaultMockController,
@@ -137,6 +158,16 @@ function renderWithProvider(
       state: {
         engine: {
           backgroundState,
+        },
+        fiatOrders: {
+          orders: ordersProviders.map((providerId) => ({
+            id: `order-${providerId}`,
+            provider: 'RAMPS_V2',
+            state: 'COMPLETED',
+            data: {
+              provider: { id: providerId },
+            },
+          })),
         },
       },
     },
@@ -239,5 +270,62 @@ describe('ProviderSelection', () => {
       expect(getByText('Transak')).toBeTruthy();
     });
     expect(queryByText('Stripe')).toBeNull();
+  });
+
+  describe('Previously used tag', () => {
+    it('displays "Previously used" tag for providers in order history', async () => {
+      jest.mocked(useRampsController).mockReturnValue({
+        ...defaultMockController,
+        userRegion: mockUserRegion,
+        selectedToken: mockSelectedToken,
+        providers: mockProviders,
+        selectedProvider: null,
+      });
+
+      const { getByText } = renderWithProvider(mockProviders, null, {
+        ordersProviders: ['/providers/transak'],
+      });
+
+      await waitFor(() => {
+        expect(getByText('Previously used')).toBeOnTheScreen();
+      });
+    });
+
+    it('does not display tag for providers not in order history', async () => {
+      jest.mocked(useRampsController).mockReturnValue({
+        ...defaultMockController,
+        userRegion: mockUserRegion,
+        selectedToken: mockSelectedToken,
+        providers: mockProviders,
+        selectedProvider: null,
+      });
+
+      const { queryByText } = renderWithProvider(mockProviders, null, {
+        ordersProviders: [],
+      });
+
+      await waitFor(() => {
+        expect(queryByText('Previously used')).toBeNull();
+      });
+    });
+
+    it('displays tag for multiple previously used providers', async () => {
+      jest.mocked(useRampsController).mockReturnValue({
+        ...defaultMockController,
+        userRegion: mockUserRegion,
+        selectedToken: mockSelectedToken,
+        providers: mockProviders,
+        selectedProvider: null,
+      });
+
+      const { getAllByText } = renderWithProvider(mockProviders, null, {
+        ordersProviders: ['/providers/transak', '/providers/stripe'],
+      });
+
+      await waitFor(() => {
+        const tags = getAllByText('Previously used');
+        expect(tags).toHaveLength(2);
+      });
+    });
   });
 });
