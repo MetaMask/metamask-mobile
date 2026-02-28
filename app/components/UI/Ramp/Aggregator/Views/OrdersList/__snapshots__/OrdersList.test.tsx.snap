@@ -85,6 +85,20 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "createdAt": 1697242033399,
+        "cryptoAmount": "0.5",
+        "cryptoCurrencySymbol": "ETH",
+        "fiatAmount": "1000",
+        "fiatCurrencyCode": "USD",
+        "id": "test-ramps-v2-order-1",
+        "network": "1",
+        "orderType": "BUY",
+        "providerName": "...",
+        "source": "legacy",
+        "status": "COMPLETED",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "createdAt": 1697242033399,
         "cryptoAmount": "100",
         "cryptoCurrencySymbol": "USDC",
         "fiatAmount": "100",
@@ -817,6 +831,153 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   }
                 }
               >
+                ...: Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#457a39",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Completed
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                0.5
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                $1000 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 14,
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
                 Transak: Purchased USDC
               </Text>
               <Text
@@ -1280,6 +1441,20 @@ exports[`OrdersList renders correctly 1`] = `
         "providerName": "Test Provider",
         "source": "legacy",
         "status": "PENDING",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "0.5",
+        "cryptoCurrencySymbol": "ETH",
+        "fiatAmount": "1000",
+        "fiatCurrencyCode": "USD",
+        "id": "test-ramps-v2-order-1",
+        "network": "1",
+        "orderType": "BUY",
+        "providerName": "...",
+        "source": "legacy",
+        "status": "COMPLETED",
       },
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
@@ -2080,6 +2255,153 @@ exports[`OrdersList renders correctly 1`] = `
                 }
               >
                 $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 14,
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                ...: Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#457a39",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Completed
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                0.5
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                $1000 
               </Text>
             </View>
           </View>
@@ -4570,6 +4892,20 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "createdAt": 1697242033399,
+        "cryptoAmount": "0.5",
+        "cryptoCurrencySymbol": "ETH",
+        "fiatAmount": "1000",
+        "fiatCurrencyCode": "USD",
+        "id": "test-ramps-v2-order-1",
+        "network": "1",
+        "orderType": "BUY",
+        "providerName": "...",
+        "source": "legacy",
+        "status": "COMPLETED",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "createdAt": 1697242033399,
         "cryptoAmount": "100",
         "cryptoCurrencySymbol": "USDC",
         "fiatAmount": "100",
@@ -5366,6 +5702,153 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 }
               >
                 $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 14,
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                ...: Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#457a39",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Completed
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                0.5
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                $1000 
               </Text>
             </View>
           </View>

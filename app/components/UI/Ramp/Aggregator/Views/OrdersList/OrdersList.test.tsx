@@ -112,6 +112,26 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     },
   },
   {
+    id: 'test-ramps-v2-order-1',
+    account: MOCK_ADDRESS,
+    network: '1',
+    cryptoAmount: '0.5',
+    orderType: 'BUY',
+    state: FIAT_ORDER_STATES.COMPLETED,
+    createdAt: 1697242033399,
+    provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+    cryptocurrency: 'ETH',
+    amount: '1000',
+    currency: 'USD',
+    data: {
+      cryptoCurrency: {
+        decimals: 18,
+        name: 'Ethereum',
+        symbol: 'ETH',
+      },
+    },
+  },
+  {
     id: 'test-deposit-order-1',
     account: MOCK_ADDRESS,
     network: '1',
@@ -282,6 +302,15 @@ describe('OrdersList', () => {
         ],
       ]
     `);
+  });
+
+  it('navigates to ramps order details when pressing RAMPS_V2 order item', () => {
+    render(<OrdersList />, [testOrders[4]]);
+
+    fireEvent.press(screen.getByRole('button', { name: /Purchased ETH/ }));
+    expect(mockNavigate).toHaveBeenCalledWith('RampsOrderDetails', {
+      orderId: 'test-ramps-v2-order-1',
+    });
   });
 
   it('navigates to deposit order details when pressing deposit order item', () => {

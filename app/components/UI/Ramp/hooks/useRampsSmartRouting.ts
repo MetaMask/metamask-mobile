@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Order } from '@consensys/on-ramp-sdk';
-import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
 import {
   setRampRoutingDecision,
   UnifiedRampRoutingType,
@@ -9,7 +8,6 @@ import {
 } from '../../../../reducers/fiatOrders';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import type { RootState } from '../../../../reducers';
-import { selectRampsOrders } from '../../../../selectors/rampsController';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -62,71 +60,10 @@ export interface RampEligibilityAPIResponse {
   global: boolean;
 }
 
-const isTransakControllerOrder = (order: RampsOrder): boolean => {
-  const providerId = order.provider?.id;
-  return (
-    typeof providerId === 'string' &&
-    providerId.toLowerCase().includes('transak')
-  );
-};
-
-/**
- * Returns the routing decision based on the most recent completed order from
- * both legacy Redux orders and controller V2 orders.
- */
-function getRoutingFromOrders(
-  legacyOrders: FiatOrder[],
-  controllerOrders: RampsOrder[],
-): UnifiedRampRoutingType {
-  const completedLegacy = legacyOrders.filter(
-    (order) => order.state === FIAT_ORDER_STATES.COMPLETED,
-  );
-  const completedV2 = controllerOrders.filter(
-    (order) => order.status === RampsOrderStatus.Completed,
-  );
-
-  if (completedLegacy.length === 0 && completedV2.length === 0) {
-    return UnifiedRampRoutingType.DEPOSIT;
-  }
-
-  let latestLegacyOrder: FiatOrder | undefined;
-  if (completedLegacy.length > 0) {
-    [latestLegacyOrder] = [...completedLegacy].sort(
-      (a, b) => b.createdAt - a.createdAt,
-    );
-  }
-
-  let latestV2Order: RampsOrder | undefined;
-  if (completedV2.length > 0) {
-    [latestV2Order] = [...completedV2].sort(
-      (a, b) => b.createdAt - a.createdAt,
-    );
-  }
-
-  const legacyTimestamp = latestLegacyOrder?.createdAt ?? 0;
-  const v2Timestamp = latestV2Order?.createdAt ?? 0;
-
-  if (latestV2Order && v2Timestamp >= legacyTimestamp) {
-    return isTransakControllerOrder(latestV2Order)
-      ? UnifiedRampRoutingType.DEPOSIT
-      : UnifiedRampRoutingType.AGGREGATOR;
-  }
-
-  if (latestLegacyOrder) {
-    return latestLegacyOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT ||
-      isTransakAggregatorOrder(latestLegacyOrder)
-      ? UnifiedRampRoutingType.DEPOSIT
-      : UnifiedRampRoutingType.AGGREGATOR;
-  }
-
-  return UnifiedRampRoutingType.DEPOSIT;
-}
-
 export default function useRampsSmartRouting() {
   const unifiedV1Enabled = useRampsUnifiedV1Enabled();
   const dispatch = useDispatch();
   const orders = useSelector((state: RootState) => state.fiatOrders.orders);
-  const controllerOrders = useSelector(selectRampsOrders);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
 
   useEffect(() => {
@@ -166,22 +103,32 @@ export default function useRampsSmartRouting() {
           return;
         }
 
-        dispatch(
-          setRampRoutingDecision(
-            getRoutingFromOrders(orders, controllerOrders),
-          ),
+        const completedOrders = orders.filter(
+          (order) => order.state === FIAT_ORDER_STATES.COMPLETED,
         );
+
+        if (completedOrders.length === 0) {
+          dispatch(setRampRoutingDecision(UnifiedRampRoutingType.DEPOSIT));
+          return;
+        }
+
+        const [lastCompletedOrder] = [...completedOrders].sort(
+          (a, b) => b.createdAt - a.createdAt,
+        );
+
+        if (
+          lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT ||
+          isTransakAggregatorOrder(lastCompletedOrder)
+        ) {
+          dispatch(setRampRoutingDecision(UnifiedRampRoutingType.DEPOSIT));
+        } else {
+          dispatch(setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR));
+        }
       } catch (error) {
         dispatch(setRampRoutingDecision(UnifiedRampRoutingType.ERROR));
       }
     };
 
     initializeRampRoutingDecision();
-  }, [
-    rampGeodetectedRegion,
-    orders,
-    controllerOrders,
-    unifiedV1Enabled,
-    dispatch,
-  ]);
+  }, [rampGeodetectedRegion, orders, unifiedV1Enabled, dispatch]);
 }

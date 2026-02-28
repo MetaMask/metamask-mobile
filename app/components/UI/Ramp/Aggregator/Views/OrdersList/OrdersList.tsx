@@ -230,6 +230,8 @@ function OrdersList() {
 
       if (legacyOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
         handleNavigateToDepositTxDetails(item.id);
+      } else if (legacyOrder.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
+        handleNavigateToRampsTxDetails(item.id);
       } else {
         handleNavigateToAggregatorTxDetails(item.id);
       }

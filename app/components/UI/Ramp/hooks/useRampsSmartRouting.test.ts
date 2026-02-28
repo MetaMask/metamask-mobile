@@ -34,7 +34,6 @@ jest.mock('./useRampsUnifiedV1Enabled', () => ({
 }));
 
 let mockOrders: FiatOrder[] = [];
-let mockControllerOrders: unknown[] = [];
 let mockDetectedGeolocation: string | undefined;
 
 interface CreateMockOrderOptions {
@@ -96,7 +95,6 @@ describe('useRampsSmartRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockOrders = [];
-    mockControllerOrders = [];
     mockDetectedGeolocation = 'us-ca';
     process.env.METAMASK_ENVIRONMENT = 'dev';
     mockApiResponse({
@@ -111,13 +109,6 @@ describe('useRampsSmartRouting', () => {
         fiatOrders: {
           orders: mockOrders,
           detectedGeolocation: mockDetectedGeolocation,
-        },
-        engine: {
-          backgroundState: {
-            RampsController: {
-              orders: mockControllerOrders,
-            },
-          },
         },
       };
       return selector(state);
