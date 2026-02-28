@@ -219,6 +219,11 @@ jest.mock('../../../hooks/useRampNavigation', () => ({
 }));
 
 describe('OrdersList', () => {
+  beforeEach(() => {
+    mockNavigate.mockClear();
+    mockGoToDeposit.mockClear();
+  });
+
   it('renders correctly', () => {
     render(<OrdersList />);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -283,25 +288,8 @@ describe('OrdersList', () => {
     render(<OrdersList />);
 
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    fireEvent.press(screen.getByRole('button', { name: /USDC Deposit/ }));
-    expect(mockNavigate).toHaveBeenCalled();
-    expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          "OrderDetails",
-          {
-            "orderId": "test-order-2",
-          },
-        ],
-        [
-          "RampsOrderDetails",
-          {
-            "orderId": "test-deposit-order-1",
-          },
-        ],
-      ]
-    `);
-    expect(mockNavigate).toHaveBeenCalledWith('RampsOrderDetails', {
+    fireEvent.press(screen.getByRole('button', { name: /Purchased USDC/ }));
+    expect(mockNavigate).toHaveBeenCalledWith('OrderDetails', {
       orderId: 'test-deposit-order-1',
     });
   });
@@ -310,7 +298,7 @@ describe('OrdersList', () => {
     render(<OrdersList />);
 
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    fireEvent.press(screen.getByRole('button', { name: /USDT Deposit/ }));
+    fireEvent.press(screen.getByRole('button', { name: /Purchased USDT/ }));
 
     expect(mockGoToDeposit).toHaveBeenCalledWith();
   });
