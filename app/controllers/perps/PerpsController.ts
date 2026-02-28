@@ -10,6 +10,7 @@ import {
 } from '@metamask/base-controller';
 import type { StateChangeListener } from '@metamask/base-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import type { GeolocationControllerGetGeolocationAction } from '@metamask/geolocation-controller';
 import type {
   KeyringControllerGetStateAction,
   KeyringControllerSignTypedMessageAction,
@@ -748,6 +749,7 @@ export type PerpsControllerActions =
  * External actions the PerpsController can call via messenger
  */
 export type AllowedActions =
+  | GeolocationControllerGetGeolocationAction
   | NetworkControllerGetStateAction
   | AuthenticationController.AuthenticationControllerGetBearerToken
   | RemoteFeatureFlagControllerGetStateAction
@@ -3740,9 +3742,12 @@ export class PerpsController extends BaseController<
     const versionAtStart = this.#blockedRegionListVersion;
 
     try {
-      // TODO: It would be good to have this location before we call this async function to avoid the race condition
+      const geoLocation = await this.messenger.call(
+        'GeolocationController:getGeolocation',
+      );
       const isEligible = await this.#eligibilityService.checkEligibility({
         blockedRegions: this.blockedRegionList.list,
+        geoLocation,
       });
 
       // Only update state if the blocked region list hasn't changed while we were awaiting.

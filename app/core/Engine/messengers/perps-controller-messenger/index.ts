@@ -26,6 +26,7 @@ export function getPerpsControllerMessenger(
   });
   rootExtendedMessenger.delegate({
     actions: [
+      'GeolocationController:getGeolocation',
       'NetworkController:getState',
       'AuthenticationController:getBearerToken',
       'RemoteFeatureFlagController:getState',

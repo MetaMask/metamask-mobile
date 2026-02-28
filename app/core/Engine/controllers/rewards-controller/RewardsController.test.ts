@@ -9772,7 +9772,7 @@ describe('RewardsController', () => {
         optinAllowedForGeo: false,
       });
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
       expect(mockLogger.log).not.toHaveBeenCalledWith(
         'RewardsController: Fetching geo location for rewards metadata',
@@ -9802,7 +9802,7 @@ describe('RewardsController', () => {
 
       // Assert - Verify no additional API calls were made
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
 
       // Assert - Verify fetching log message was not called on cached access
@@ -9821,7 +9821,7 @@ describe('RewardsController', () => {
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching geo location for rewards metadata',
@@ -9849,7 +9849,7 @@ describe('RewardsController', () => {
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
       expect(result).toEqual({
         geoLocation: mockGeoLocation,
@@ -9867,7 +9867,7 @@ describe('RewardsController', () => {
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching geo location for rewards metadata',
@@ -9892,7 +9892,7 @@ describe('RewardsController', () => {
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to get geo rewards metadata:',

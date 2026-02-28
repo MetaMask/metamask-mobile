@@ -32,6 +32,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',
+  'GeolocationController:stateChange',
   'KeyringController:stateChange',
   'LoggingController:stateChange',
   'NetworkController:stateChange',

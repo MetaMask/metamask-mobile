@@ -3,6 +3,7 @@ import { CardSDK } from '../sdk/CardSDK';
 import Logger from '../../../../util/Logger';
 import { isValidHexAddress } from '../../../../util/address';
 import { isCaipAccountId, parseCaipAccountId } from '@metamask/utils';
+import Engine from '../../../../core/Engine';
 
 export const getCardholder = async ({
   caipAccountIds,
@@ -27,7 +28,8 @@ export const getCardholder = async ({
     });
 
     const cardCaipAccountIds = await cardSDK.isCardHolder(caipAccountIds);
-    const geoLocation = await cardSDK.getGeoLocation();
+    const geoLocation =
+      Engine.context.GeolocationController?.state?.location ?? 'UNKNOWN';
 
     const cardholderAddresses = cardCaipAccountIds.map((cardCaipAccountId) => {
       if (!isCaipAccountId(cardCaipAccountId)) return null;

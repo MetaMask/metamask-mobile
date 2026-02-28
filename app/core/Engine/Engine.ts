@@ -161,6 +161,8 @@ import { smartTransactionsControllerInit } from './controllers/smart-transaction
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
+import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
+import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
@@ -311,6 +313,8 @@ export class Engine {
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         EarnController: earnControllerInit,
+        GeolocationApiService: geolocationApiServiceInit,
+        GeolocationController: geolocationControllerInit,
         TokensController: tokensControllerInit,
         TokenBalancesController: tokenBalancesControllerInit,
         // MultichainNetworkController and NetworkEnablementController must be initialized before TokenRatesController

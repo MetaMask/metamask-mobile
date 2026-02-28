@@ -3,11 +3,18 @@ import { CardSDK } from '../sdk/CardSDK';
 import Logger from '../../../../util/Logger';
 import { CardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import { isValidHexAddress } from '../../../../util/address';
+import Engine from '../../../../core/Engine';
 
-// Mock dependencies
 jest.mock('../sdk/CardSDK');
 jest.mock('../../../../util/Logger');
 jest.mock('../../../../util/address');
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    GeolocationController: {
+      state: { location: 'US' },
+    },
+  },
+}));
 
 const MockedCardSDK = CardSDK as jest.MockedClass<typeof CardSDK>;
 const mockedLogger = Logger as jest.Mocked<typeof Logger>;
@@ -54,16 +61,20 @@ describe('getCardholder', () => {
 
     mockCardSDKInstance = {
       isCardHolder: jest.fn(),
-      getGeoLocation: jest.fn(),
     } as unknown as jest.Mocked<CardSDK>;
 
     MockedCardSDK.mockImplementation(() => mockCardSDKInstance);
 
-    // Mock address utilities
     mockedIsValidHexAddress.mockReturnValue(true);
 
-    // Default mock for geolocation
-    mockCardSDKInstance.getGeoLocation.mockResolvedValue('US');
+    // Reset geolocation state
+    (
+      Engine.context as {
+        GeolocationController: { state: { location: string } };
+      }
+    ).GeolocationController = {
+      state: { location: 'US' },
+    };
   });
 
   describe('successful scenarios', () => {
@@ -74,7 +85,6 @@ describe('getCardholder', () => {
       ] as `${string}:${string}:${string}`[];
 
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
-      mockCardSDKInstance.getGeoLocation.mockResolvedValue('US');
 
       const result = await getCardholder({
         caipAccountIds: mockFormattedAccounts,
@@ -94,7 +104,6 @@ describe('getCardholder', () => {
       expect(mockCardSDKInstance.isCardHolder).toHaveBeenCalledWith(
         mockFormattedAccounts,
       );
-      expect(mockCardSDKInstance.getGeoLocation).toHaveBeenCalled();
     });
 
     it('should return only cardholder addresses from mixed results', async () => {
@@ -102,8 +111,14 @@ describe('getCardholder', () => {
         'eip155:59144:0x1234567890abcdef1234567890abcdef12345678',
       ] as `${string}:${string}:${string}`[];
 
+      (
+        Engine.context as {
+          GeolocationController: { state: { location: string } };
+        }
+      ).GeolocationController = {
+        state: { location: 'GB' },
+      };
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
-      mockCardSDKInstance.getGeoLocation.mockResolvedValue('GB');
 
       const result = await getCardholder({
         caipAccountIds: mockFormattedAccounts,
@@ -117,8 +132,14 @@ describe('getCardholder', () => {
     });
 
     it('should return empty array and geolocation when no accounts are cardholders', async () => {
+      (
+        Engine.context as {
+          GeolocationController: { state: { location: string } };
+        }
+      ).GeolocationController = {
+        state: { location: 'CA' },
+      };
       mockCardSDKInstance.isCardHolder.mockResolvedValue([]);
-      mockCardSDKInstance.getGeoLocation.mockResolvedValue('CA');
 
       const result = await getCardholder({
         caipAccountIds: mockFormattedAccounts,
@@ -310,8 +331,14 @@ describe('getCardholder', () => {
         'eip155:59144:0x3333333333333333333333333333333333333333',
       ] as `${string}:${string}:${string}`[];
 
+      (
+        Engine.context as {
+          GeolocationController: { state: { location: string } };
+        }
+      ).GeolocationController = {
+        state: { location: 'DE' },
+      };
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
-      mockCardSDKInstance.getGeoLocation.mockResolvedValue('DE');
 
       const result = await getCardholder({
         caipAccountIds: mockFormattedAccounts,
@@ -335,8 +362,14 @@ describe('getCardholder', () => {
         'also:invalid',
       ] as `${string}:${string}:${string}`[];
 
+      (
+        Engine.context as {
+          GeolocationController: { state: { location: string } };
+        }
+      ).GeolocationController = {
+        state: { location: 'FR' },
+      };
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
-      mockCardSDKInstance.getGeoLocation.mockResolvedValue('FR');
 
       const result = await getCardholder({
         caipAccountIds: mockFormattedAccounts,
@@ -356,8 +389,14 @@ describe('getCardholder', () => {
         'eip155:59144:0x2222222222222222222222222222222222222222',
       ] as `${string}:${string}:${string}`[];
 
+      (
+        Engine.context as {
+          GeolocationController: { state: { location: string } };
+        }
+      ).GeolocationController = {
+        state: { location: 'ES' },
+      };
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
-      mockCardSDKInstance.getGeoLocation.mockResolvedValue('ES');
       mockedIsValidHexAddress
         .mockReturnValueOnce(true)
         .mockReturnValueOnce(false)
@@ -379,35 +418,37 @@ describe('getCardholder', () => {
     });
   });
 
-  describe('geolocation handling', () => {
-    it('should handle different geolocation values', async () => {
-      const geoLocations = ['US', 'GB', 'CA', 'DE', 'UNKNOWN'];
+  describe('geolocation from controller state', () => {
+    it('should read geolocation from GeolocationController state', async () => {
+      (
+        Engine.context as {
+          GeolocationController: { state: { location: string } };
+        }
+      ).GeolocationController = {
+        state: { location: 'JP' },
+      };
+      mockCardSDKInstance.isCardHolder.mockResolvedValue([
+        'eip155:59144:0x1234567890abcdef1234567890abcdef12345678',
+      ] as `${string}:${string}:${string}`[]);
 
-      for (const geoLocation of geoLocations) {
-        mockCardSDKInstance.isCardHolder.mockResolvedValue([
-          'eip155:59144:0x1234567890abcdef1234567890abcdef12345678',
-        ] as `${string}:${string}:${string}`[]);
-        mockCardSDKInstance.getGeoLocation.mockResolvedValue(geoLocation);
-
-        const result = await getCardholder({
-          caipAccountIds: mockFormattedAccounts,
-          cardFeatureFlag: mockCardFeatureFlag,
-        });
-
-        expect(result.geoLocation).toBe(geoLocation);
-      }
-    });
-
-    it('should call getGeoLocation for each request', async () => {
-      mockCardSDKInstance.isCardHolder.mockResolvedValue([]);
-      mockCardSDKInstance.getGeoLocation.mockResolvedValue('US');
-
-      await getCardholder({
+      const result = await getCardholder({
         caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
-      expect(mockCardSDKInstance.getGeoLocation).toHaveBeenCalledTimes(1);
+      expect(result.geoLocation).toBe('JP');
+    });
+
+    it('should return UNKNOWN when GeolocationController is not available', async () => {
+      (Engine as { context: Record<string, unknown> }).context = {};
+      mockCardSDKInstance.isCardHolder.mockResolvedValue([]);
+
+      const result = await getCardholder({
+        caipAccountIds: mockFormattedAccounts,
+        cardFeatureFlag: mockCardFeatureFlag,
+      });
+
+      expect(result.geoLocation).toBe('UNKNOWN');
     });
   });
 });

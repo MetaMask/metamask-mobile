@@ -637,6 +637,7 @@ export type OrderFill = {
 // Parameter interfaces - all fully optional for better UX
 export type CheckEligibilityParams = {
   blockedRegions: string[]; // List of blocked region codes (e.g., ['US', 'CN'])
+  geoLocation: string; // User's geolocation from GeolocationController
 };
 
 export type GetPositionsParams = {

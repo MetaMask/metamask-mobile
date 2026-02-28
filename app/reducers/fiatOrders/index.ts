@@ -325,8 +325,11 @@ export const networkShortNameSelector = createSelector(
 
 export const getDetectedGeolocation: (
   state: RootState,
-) => string | undefined = (state: RootState) =>
-  state.fiatOrders.detectedGeolocation;
+) => string | undefined = (state: RootState) => {
+  const location =
+    state.engine?.backgroundState?.GeolocationController?.location;
+  return location === 'UNKNOWN' || !location ? undefined : location;
+};
 
 export const getRampRoutingDecision: (
   state: RootState,

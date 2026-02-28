@@ -2587,18 +2587,33 @@ describe('selectors', () => {
   });
 
   describe('getDetectedGeolocation', () => {
-    it('should return the detected geolocation', () => {
+    it('should return the detected geolocation from GeolocationController state', () => {
       const state = merge({}, initialRootState, {
-        fiatOrders: {
-          detectedGeolocation: 'US',
+        engine: {
+          backgroundState: {
+            GeolocationController: { location: 'US' },
+          },
         },
       });
       expect(getDetectedGeolocation(state)).toBe('US');
     });
 
-    it('should return undefined if detected geolocation is not set', () => {
+    it('should return undefined if GeolocationController location is UNKNOWN', () => {
       const state = merge({}, initialRootState, {
-        fiatOrders: {},
+        engine: {
+          backgroundState: {
+            GeolocationController: { location: 'UNKNOWN' },
+          },
+        },
+      });
+      expect(getDetectedGeolocation(state)).toBeUndefined();
+    });
+
+    it('should return undefined if GeolocationController is not available', () => {
+      const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {},
+        },
       });
       expect(getDetectedGeolocation(state)).toBeUndefined();
     });

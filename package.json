@@ -234,6 +234,7 @@
     "@metamask/ethjs-query": "^0.7.1",
     "@metamask/ethjs-unit": "^0.3.0",
     "@metamask/gas-fee-controller": "^25.0.0",
+    "@metamask/geolocation-controller": "^0.1.0",
     "@metamask/gator-permissions-controller": "^0.3.0",
     "@metamask/hw-wallet-sdk": "^0.4.0",
     "@metamask/json-rpc-engine": "^10.2.1",

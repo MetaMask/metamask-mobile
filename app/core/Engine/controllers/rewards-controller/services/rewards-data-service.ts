@@ -29,7 +29,6 @@ import type {
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
-import { successfulFetch } from '@metamask/controller-utils';
 import {
   canChangeRewardsEnvUrl,
   getDefaultRewardsApiBaseUrlForMetaMaskEnv,
@@ -83,12 +82,6 @@ const SERVICE_NAME = 'RewardsDataService';
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 
-// Geolocation URLs for different environments
-const GEOLOCATION_URLS = {
-  DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
-  PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
-};
-
 // Auth endpoint action types
 
 export interface RewardsDataServiceLoginAction {
@@ -133,11 +126,6 @@ export interface RewardsDataServiceGetSeasonStatusAction {
 export interface RewardsDataServiceGetReferralDetailsAction {
   type: `${typeof SERVICE_NAME}:getReferralDetails`;
   handler: RewardsDataService['getReferralDetails'];
-}
-
-export interface RewardsDataServiceFetchGeoLocationAction {
-  type: `${typeof SERVICE_NAME}:fetchGeoLocation`;
-  handler: RewardsDataService['fetchGeoLocation'];
 }
 
 export interface RewardsDataServiceValidateReferralCodeAction {
@@ -240,7 +228,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
-  | RewardsDataServiceFetchGeoLocationAction
   | RewardsDataServiceValidateReferralCodeAction
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
@@ -337,10 +324,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getReferralDetails`,
       this.getReferralDetails.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:fetchGeoLocation`,
-      this.fetchGeoLocation.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:validateReferralCode`,
@@ -835,28 +818,6 @@ export class RewardsDataService {
     }
     const data = await response.json();
     return data as SubscriptionSeasonReferralDetailsDto;
-  }
-
-  /**
-   * Fetch geolocation information from MetaMask's geolocation service.
-   * Returns location in Country or Country-Region format (e.g., 'US', 'CA-ON', 'FR').
-   * @returns Promise<string> - The geolocation string or 'UNKNOWN' on failure.
-   */
-  async fetchGeoLocation(): Promise<string> {
-    let location = 'UNKNOWN';
-
-    try {
-      const response = await successfulFetch(GEOLOCATION_URLS.PROD);
-
-      if (!response.ok) {
-        return location;
-      }
-      location = await response?.text();
-      return location;
-    } catch (e) {
-      Logger.log('RewardsDataService: Failed to fetch geoloaction', e);
-      return location;
-    }
   }
 
   /**
