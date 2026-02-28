@@ -40,6 +40,7 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useRampsController } from '../../hooks/useRampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
 
 export interface V2OtpCodeParams {
   email: string;
@@ -324,7 +325,7 @@ const V2OtpCode = () => {
   });
 
   return (
-    <ScreenLayout>
+    <ScreenLayout testID={OtpCodeSelectorsIDs.OTP_CODE_SCREEN}>
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={1} />
@@ -340,14 +341,14 @@ const V2OtpCode = () => {
               variant={TextVariant.BodyMD}
               color={TextColor.Primary}
               onPress={handlePaste}
-              testID="otp-code-paste-button"
+              testID={OtpCodeSelectorsIDs.OTP_CODE_PASTE_BUTTON}
             >
               {strings('deposit.otp_code.paste')}
             </Text>
           </Box>
 
           <CodeField
-            testID="otp-code-input"
+            testID={OtpCodeSelectorsIDs.OTP_CODE_INPUT}
             ref={inputRef as React.RefObject<TextInput>}
             {...props}
             value={value}
@@ -416,7 +417,7 @@ const V2OtpCode = () => {
             width={ButtonWidthTypes.Full}
             loading={isLoading}
             isDisabled={isLoading || value.length !== CELL_COUNT}
-            testID="otp-code-submit-button"
+            testID={OtpCodeSelectorsIDs.OTP_CODE_SUBMIT_BUTTON}
           />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>

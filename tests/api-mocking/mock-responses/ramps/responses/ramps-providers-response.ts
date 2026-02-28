@@ -56,7 +56,7 @@ export const RAMPS_PROVIDERS_RESPONSE = {
         },
         recurringBuy: {},
       },
-      type: 'aggregator',
+      type: 'native',
       supportedCryptoCurrencies: {
         'eip155:1/slip44:60': true,
       },
@@ -124,7 +124,7 @@ export const RAMPS_PROVIDERS_RESPONSE = {
           enabled: false,
         },
       },
-      type: 'aggregator',
+      type: 'native',
       supportedCryptoCurrencies: {
         'eip155:1/slip44:60': true,
       },

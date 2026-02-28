@@ -27,6 +27,15 @@ class ToastModal {
     );
   }
 
+  depositCompletedToast(amount: string, currency: string): DetoxElement {
+    return Matchers.getElementByText(
+      ToastSelectorsText.DEPOSIT_COMPLETED_TITLE.replace(
+        '{{amount}}',
+        amount,
+      ).replace('{{currency}}', currency),
+    );
+  }
+
   async tapToastCloseButton(): Promise<void> {
     await Gestures.waitAndTap(this.toastCloseButton, {
       elemDescription: 'Toast Modal Close Button',

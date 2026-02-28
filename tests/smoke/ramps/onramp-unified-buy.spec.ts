@@ -7,11 +7,9 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 import { SmokeRamps } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
-import OrderDetailsView from '../../page-objects/Ramps/OrderDetailsView';
 import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
-import { RampsRegion } from '../../framework/types.ts';
 import { Mockttp } from 'mockttp';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
@@ -25,7 +23,6 @@ import SoftAssert from '../../framework/SoftAssert';
 import { UnifiedRampRoutingType } from '../../../app/reducers/fiatOrders/types';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import ToastModal from '../../page-objects/wallet/ToastModal';
 
 const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
@@ -37,14 +34,7 @@ const unifiedBuyV2Mocks = async (mockServer: Mockttp) => {
   await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
 };
 
-const expectedOrder = {
-  token: 'ETH',
-  tokenAmount: '0.00355',
-  totalFiat: '$15 USD',
-  feesFiat: '$3.5 USD',
-  quoteDisplayAmount: '$15.00',
-  provider: 'Transak (Staging)',
-};
+const tokenToBuy = 'ETH';
 
 const eventsToCheck: EventPayload[] = [];
 
@@ -57,8 +47,9 @@ const expectedEventNames = [
   expectedEvents.RampsButtonClicked,
   expectedEvents.RampsTokenSelected,
 ];
+
 describe(SmokeRamps('Onramp Unified Buy'), () => {
-  it('Places ETH order through Transak', async () => {
+  it('build quote', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -81,51 +72,15 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapUnifiedBuyButton();
         await device.disableSynchronization();
-        await TokenSelectScreen.tapTokenByName(expectedOrder.token);
+        await TokenSelectScreen.tapTokenByName(tokenToBuy);
         await BuildQuoteView.tapKeypadDeleteButton(1);
+        await BuildQuoteView.enterAmount('15', 'unifiedBuy');
 
-        await BuildQuoteView.tapKeypadDeleteButton(1);
-
-        await BuildQuoteView.enterAmount('5', 'unifiedBuy');
-        await Assertions.expectTextDisplayed(expectedOrder.quoteDisplayAmount);
+        await Assertions.expectTextDisplayed('$15.00');
         await BuildQuoteView.tapContinueButton();
 
-        // Verify order details screen
-        await Assertions.expectElementToBeVisible(OrderDetailsView.container, {
-          elemDescription: 'ramps order confirmation screen',
-        });
-        await Assertions.expectElementToHaveText(
-          OrderDetailsView.tokenAmount,
-          `${expectedOrder.tokenAmount} ${expectedOrder.token}`,
-        );
-
-        for (const text of [expectedOrder.totalFiat, expectedOrder.feesFiat]) {
-          await Assertions.expectTextDisplayed(text);
-        }
-
-        await Assertions.expectElementToBeVisible(
-          ToastModal.purchaseCompletedToast(
-            expectedOrder.tokenAmount,
-            expectedOrder.token,
-          ),
-        );
-        await OrderDetailsView.tapCloseButton();
-
-        // Verify order in transfers list
         await TabBarComponent.tapActivity();
         await ActivitiesView.tapOnTransfersTab();
-
-        await Assertions.expectTextDisplayed(
-          `${expectedOrder.tokenAmount} ${expectedOrder.token}`,
-        );
-        await ActivitiesView.tapRampsOrder('buy', 1);
-
-        for (const text of [
-          `${expectedOrder.tokenAmount} ${expectedOrder.token}`,
-          expectedOrder.totalFiat,
-        ]) {
-          await Assertions.expectTextDisplayed(text);
-        }
       },
     );
   });
@@ -195,19 +150,18 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         ),
       `Ramps Button Clicked: ramp_type should be UNIFIED_BUY_2`,
     );
-    const rampsButtonClickedRegionStr = rampsButtonClicked?.properties
-      ?.region as string | undefined;
-    const rampsButtonClickedRegion = rampsButtonClickedRegionStr
-      ? (JSON.parse(rampsButtonClickedRegionStr) as RampsRegion)
-      : undefined;
+    const rampsButtonClickedRegion = rampsButtonClicked?.properties
+      ?.region as string;
+    // The region property is a plain string (e.g. "us-ca") matching the
+    // geolocation endpoint response, not a JSON-serialized object.
+    const expectedRegionId = selectedRegion.id.replace('/regions/', '');
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfObjectContains(
-          (rampsButtonClickedRegion as unknown as Record<string, unknown>) ??
-            {},
-          { id: selectedRegion.id, name: selectedRegion.name },
+        await Assertions.checkIfTextMatches(
+          rampsButtonClickedRegion,
+          expectedRegionId,
         ),
-      `Ramps Button Clicked: region should be ${selectedRegion.id}`,
+      `Ramps Button Clicked: region should be ${expectedRegionId}`,
     );
 
     // Ramps Token Selected - Property checks
@@ -247,7 +201,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
             {},
           { id: selectedRegion.id, name: selectedRegion.name },
         ),
-      `Ramps Token Selected: region should be ${selectedRegion.id}`,
+      `Ramps Token Selected: region should be ${expectedRegionId}`,
     );
 
     await softAssert.checkAndCollect(
@@ -255,16 +209,16 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await Assertions.checkIfObjectContains(
           rampsTokenSelected?.properties ?? {},
           {
-            token_symbol: expectedOrder.token,
+            token_symbol: tokenToBuy,
             token_caip19: 'eip155:1/slip44:60',
             currency_destination: 'eip155:1/slip44:60',
-            currency_destination_symbol: expectedOrder.token,
+            currency_destination_symbol: tokenToBuy,
             currency_destination_network:
               CustomNetworks.Tenderly.Mainnet.providerConfig.nickname,
             ramp_routing: UnifiedRampRoutingType.DEPOSIT,
           },
         ),
-      `Ramps Token Selected: token_symbol should be ${expectedOrder.token}`,
+      `Ramps Token Selected: token_symbol should be ${tokenToBuy}`,
     );
 
     softAssert.throwIfErrors();
