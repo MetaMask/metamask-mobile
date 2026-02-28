@@ -13,12 +13,12 @@ jest.mock('../../../../Analytics', () => ({
     }),
   },
   MetaMetricsEvents: {
-    ONRAMP_PURCHASE_COMPLETED: 'ONRAMP_PURCHASE_COMPLETED',
-    ONRAMP_PURCHASE_FAILED: 'ONRAMP_PURCHASE_FAILED',
-    ONRAMP_PURCHASE_CANCELLED: 'ONRAMP_PURCHASE_CANCELLED',
-    OFFRAMP_PURCHASE_COMPLETED: 'OFFRAMP_PURCHASE_COMPLETED',
-    OFFRAMP_PURCHASE_FAILED: 'OFFRAMP_PURCHASE_FAILED',
-    OFFRAMP_PURCHASE_CANCELLED: 'OFFRAMP_PURCHASE_CANCELLED',
+    ONRAMP_PURCHASE_COMPLETED: { category: 'On-ramp Purchase Completed' },
+    ONRAMP_PURCHASE_FAILED: { category: 'On-ramp Purchase Failed' },
+    ONRAMP_PURCHASE_CANCELLED: { category: 'On-ramp Purchase Cancelled' },
+    OFFRAMP_PURCHASE_COMPLETED: { category: 'Off-ramp Purchase Completed' },
+    OFFRAMP_PURCHASE_FAILED: { category: 'Off-ramp Purchase Failed' },
+    OFFRAMP_PURCHASE_CANCELLED: { category: 'Off-ramp Purchase Cancelled' },
   },
 }));
 
@@ -78,9 +78,9 @@ describe('handleOrderStatusChangedForMetrics', () => {
       });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-      const [event, params] = mockTrackEvent.mock.calls[0];
-      expect(event).toBe('ONRAMP_PURCHASE_COMPLETED');
-      expect(params).toMatchSnapshot();
+      const trackedEvent = mockTrackEvent.mock.calls[0][0];
+      expect(trackedEvent.name).toBe('On-ramp Purchase Completed');
+      expect(trackedEvent.properties).toMatchSnapshot();
     });
 
     it('tracks ONRAMP_PURCHASE_FAILED for Failed status', () => {
@@ -92,8 +92,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
-        'ONRAMP_PURCHASE_FAILED',
-        expect.objectContaining({ order_type: 'BUY' }),
+        expect.objectContaining({
+          name: 'On-ramp Purchase Failed',
+          properties: expect.objectContaining({ order_type: 'BUY' }),
+        }),
       );
     });
 
@@ -106,8 +108,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
-        'ONRAMP_PURCHASE_FAILED',
-        expect.objectContaining({ order_type: 'BUY' }),
+        expect.objectContaining({
+          name: 'On-ramp Purchase Failed',
+          properties: expect.objectContaining({ order_type: 'BUY' }),
+        }),
       );
     });
 
@@ -120,8 +124,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
-        'ONRAMP_PURCHASE_CANCELLED',
-        expect.objectContaining({ order_type: 'BUY' }),
+        expect.objectContaining({
+          name: 'On-ramp Purchase Cancelled',
+          properties: expect.objectContaining({ order_type: 'BUY' }),
+        }),
       );
     });
   });
@@ -139,11 +145,13 @@ describe('handleOrderStatusChangedForMetrics', () => {
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
-        'OFFRAMP_PURCHASE_COMPLETED',
         expect.objectContaining({
-          order_type: 'SELL',
-          chain_id_source: 'eip155:1',
-          provider_offramp: 'Transak',
+          name: 'Off-ramp Purchase Completed',
+          properties: expect.objectContaining({
+            order_type: 'SELL',
+            chain_id_source: 'eip155:1',
+            provider_offramp: 'Transak',
+          }),
         }),
       );
     });
@@ -160,8 +168,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
-        'OFFRAMP_PURCHASE_FAILED',
-        expect.objectContaining({ order_type: 'SELL' }),
+        expect.objectContaining({
+          name: 'Off-ramp Purchase Failed',
+          properties: expect.objectContaining({ order_type: 'SELL' }),
+        }),
       );
     });
 
@@ -177,8 +187,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
-        'OFFRAMP_PURCHASE_CANCELLED',
-        expect.objectContaining({ order_type: 'SELL' }),
+        expect.objectContaining({
+          name: 'Off-ramp Purchase Cancelled',
+          properties: expect.objectContaining({ order_type: 'SELL' }),
+        }),
       );
     });
   });
@@ -215,8 +227,8 @@ describe('handleOrderStatusChangedForMetrics', () => {
       previousStatus: Status.Pending,
     });
 
-    const params = mockTrackEvent.mock.calls[0][1];
-    expect(params.exchange_rate).toBe(0);
+    const { properties } = mockTrackEvent.mock.calls[0][0];
+    expect(properties.exchange_rate).toBe(0);
   });
 
   it('handles missing optional fields gracefully', () => {
@@ -234,10 +246,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
     });
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    const params = mockTrackEvent.mock.calls[0][1];
-    expect(params.currency_source).toBe('');
-    expect(params.provider_onramp).toBe('');
-    expect(params.payment_method_id).toBe('');
+    const { properties } = mockTrackEvent.mock.calls[0][0];
+    expect(properties.currency_source).toBe('');
+    expect(properties.provider_onramp).toBe('');
+    expect(properties.payment_method_id).toBe('');
   });
 
   it('logs error when trackEvent throws', () => {
