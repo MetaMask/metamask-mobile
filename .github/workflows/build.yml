@@ -198,9 +198,9 @@ jobs:
       # iOS only: Ruby + CocoaPods + Xcode (no yarn install; node_modules from tarball). Signing is in Configure signing certificates below.
       - name: Setup Ruby (iOS)
         if: matrix.platform == 'ios'
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
         with:
-          ruby-version: '3.1.6'
+          ruby-version: '3.2.9'
           working-directory: ios
           bundler-cache: true
 
