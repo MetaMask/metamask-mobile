@@ -150,7 +150,9 @@ function ProviderSelectionModal() {
           quotesError={quotesError}
           showQuotes={!skipQuotes}
           showBackButton={hasPaymentModalInStack}
-          ordersProviders={ordersProviders}
+          ordersProviders={ordersProviders.filter(
+            (id): id is string => id != null,
+          )}
           onBack={handleBack}
           onProviderSelect={handleProviderSelect}
         />

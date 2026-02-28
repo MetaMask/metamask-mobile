@@ -281,16 +281,12 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
               </Text>
             ) : null}
           </ListItemColumn>
-          {displayQuotes && (quotesLoading || matchedQuote) ? (
+          {displayQuotes && matchedQuote ? (
             <ListItemColumn widthType={WidthType.Auto}>
-              {quotesLoading ? (
-                <QuoteDisplay cryptoAmount="" fiatAmount={null} isLoading />
-              ) : (
-                <QuoteDisplay
-                  cryptoAmount={cryptoAmount}
-                  fiatAmount={fiatAmount}
-                />
-              )}
+              <QuoteDisplay
+                cryptoAmount={cryptoAmount}
+                fiatAmount={fiatAmount}
+              />
             </ListItemColumn>
           ) : null}
         </ListItemSelect>
@@ -302,7 +298,6 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
       currency,
       selectedProvider,
       selectedPaymentMethod,
-      quotesLoading,
       displayQuotes,
       ordersProviders,
       handleProviderSelect,
