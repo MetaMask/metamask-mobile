@@ -98,7 +98,7 @@ const V2OtpCode = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [resendButtonState, setResendButtonState] = useState<
-    'resend' | 'cooldown' | 'contactSupport' | 'resendError'
+    'resend' | 'cooldown' | 'contactSupport'
   >('resend');
   const [cooldownSeconds, setCooldownSeconds] = useState(COOLDOWN_TIME);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -395,13 +395,6 @@ const V2OtpCode = () => {
               <ResendButton
                 onPress={handleContactSupport}
                 text="deposit.otp_code.need_help"
-                button="deposit.otp_code.contact_support"
-              />
-            ) : null}
-            {resendButtonState === 'resendError' ? (
-              <ResendButton
-                onPress={handleContactSupport}
-                text="deposit.otp_code.resend_code_error"
                 button="deposit.otp_code.contact_support"
               />
             ) : null}
