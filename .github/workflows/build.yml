@@ -143,23 +143,11 @@ jobs:
         with:
           submodules: recursive
 
-      # iOS: Use MetaMask's setup action (handles Node, Ruby, CocoaPods, Xcode). Signing is handled by Configure signing certificates below.
-      - name: Setup iOS environment
-        if: matrix.platform == 'ios'
-        timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
-        with:
-          platform: ios
-          setup-simulator: false
-          configure-keystores: false  # Skip OIDC/AWS here; signing is done in Configure signing certificates step
-
-      # Android: Setup Node (also when skip_version_bump so both platforms have Node)
+      # Node first so we can download/extract/verify; no yarn install here (we use the tarball to avoid running install in this job).
       - name: Setup Node
-        if: ${{ matrix.platform == 'android' || inputs.skip_version_bump }}
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
 
       - name: Download node_modules tarball
         uses: actions/download-artifact@v4
@@ -207,6 +195,21 @@ jobs:
 
           echo "✅ All artifacts verified with working symlinks!"
 
+      # iOS only: Ruby + CocoaPods + Xcode (no yarn install; node_modules from tarball). Signing is in Configure signing certificates below.
+      - name: Setup Ruby (iOS)
+        if: matrix.platform == 'ios'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1.6'
+          working-directory: ios
+          bundler-cache: true
+
+      - name: Select Xcode (iOS)
+        if: matrix.platform == 'ios'
+        env:
+          XCODE_VERSION: '16.3'
+        run: sudo xcode-select -s "/Applications/Xcode_$XCODE_VERSION.app"
+
       - name: Apply build config
         run: |
           # Load env vars from builds.yml (this step only)
@@ -220,7 +223,7 @@ jobs:
           SECRETS_JSON: ${{ toJSON(secrets) }}
         run: node scripts/validate-secrets-from-config.js
 
-      # iOS: Regenerate Pods and xcconfig on this runner so paths are correct (not from artifact).
+      # iOS: Install Pods here so generated paths match this runner (setup-node-modules skips pod install with --no-install-pods).
       - name: Install CocoaPods dependencies (iOS)
         if: matrix.platform == 'ios'
         env:
@@ -264,16 +267,6 @@ jobs:
             security delete-keychain "$KEYCHAIN_PATH" || true
           fi
 
-      # iOS: Cache DerivedData (includes ModuleCache.noindex) to speed up Xcode builds
-      - name: Cache iOS DerivedData
-        if: matrix.platform == 'ios'
-        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        with:
-          path: |
-            ~/Library/Developer/Xcode/DerivedData
-            ios/build
-          key: ${{ runner.os }}-ios-derived-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}') }}
-
       # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
       - name: Configure signing certificates
         if: needs.prepare.outputs.signing_aws_role != ''
@@ -297,7 +290,6 @@ jobs:
           node --version
 
       # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
-      # First iOS build (cold cache): ~45-60min. Subsequent builds (warm cache): ~10-20min
       - name: Build ${{ matrix.platform }}
         timeout-minutes: 115
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
