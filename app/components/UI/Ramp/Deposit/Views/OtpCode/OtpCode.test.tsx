@@ -185,7 +185,7 @@ describe('OtpCode Screen', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Error resending code.')).toBeOnTheScreen();
+      expect(screen.getByText('Failed to resend')).toBeOnTheScreen();
     });
 
     expect(screen.toJSON()).toMatchSnapshot();
@@ -287,9 +287,15 @@ describe('OtpCode Screen', () => {
     });
     render(OtpCode);
     const resendButton = screen.getByText('Resend it');
-    fireEvent.press(resendButton);
+
+    await act(async () => {
+      fireEvent.press(resendButton);
+    });
+
     await waitFor(() => {
-      expect(screen.getByText('Contact support')).toBeOnTheScreen();
+      expect(
+        screen.getByText('State token is required for OTP verification'),
+      ).toBeOnTheScreen();
     });
   });
 

@@ -190,7 +190,10 @@ const V2OtpCode = () => {
           .build(),
       );
     } catch (e) {
-      setResendButtonState('resendError');
+      setError(
+        parseUserFacingError(e, strings('deposit.otp_code.resend_code_error')),
+      );
+      setResendButtonState('resend');
       Logger.error(e as Error, 'Error resending OTP code');
     }
   }, [

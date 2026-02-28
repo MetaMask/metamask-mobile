@@ -38,6 +38,7 @@ import useAnalytics from '../../../hooks/useAnalytics';
 import { createBuildQuoteNavDetails } from '../../../Deposit/Views/BuildQuote/BuildQuote';
 import { trace, TraceName } from '../../../../../../util/trace';
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
+import { parseUserFacingError } from '../../../utils/parseUserFacingError';
 
 export interface OtpCodeParams {
   email: string;
@@ -161,7 +162,10 @@ const OtpCode = () => {
         region: selectedRegion?.isoCode || '',
       });
     } catch (e) {
-      setResendButtonState('resendError');
+      setError(
+        parseUserFacingError(e, strings('deposit.otp_code.resend_code_error')),
+      );
+      setResendButtonState('resend');
       Logger.error(e as Error, 'Error resending OTP code');
     }
   }, [

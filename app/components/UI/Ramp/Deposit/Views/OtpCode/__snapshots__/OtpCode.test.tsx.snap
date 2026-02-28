@@ -4301,6 +4301,20 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                 value=""
                               />
                             </View>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#ca3542",
+                                  "fontFamily": "Geist-Regular",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              Failed to resend
+                            </Text>
                             <View
                               style={
                                 [
@@ -4329,7 +4343,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   }
                                 }
                               >
-                                Error resending code.
+                                Didn't receive the code?
                               </Text>
                               <TouchableOpacity
                                 onPress={[Function]}
@@ -4348,7 +4362,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                     }
                                   }
                                 >
-                                  Contact support
+                                  Resend it
                                 </Text>
                               </TouchableOpacity>
                             </View>
