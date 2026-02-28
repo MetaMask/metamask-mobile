@@ -94,7 +94,10 @@ describe('MusdConversionInfo', () => {
       outputAmount: null,
       outputSymbol: null,
     });
-    mockUseTransactionPayAvailableTokens.mockReturnValue([]);
+    mockUseTransactionPayAvailableTokens.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
   });
 
   afterEach(() => {
@@ -151,8 +154,8 @@ describe('MusdConversionInfo', () => {
       expect(mockUseAddToken).toHaveBeenCalledWith({
         chainId: '0x1',
         decimals: 6,
-        name: 'MUSD',
-        symbol: 'MUSD',
+        name: 'MetaMask USD',
+        symbol: 'mUSD',
         tokenAddress: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
       });
     });
@@ -204,9 +207,10 @@ describe('MusdConversionInfo', () => {
   describe('MusdOverrideContent', () => {
     it('calls useTransactionPayAvailableTokens when rendered', () => {
       mockUseRoute.mockReturnValue(mockRoute);
-      mockUseTransactionPayAvailableTokens.mockReturnValue([
-        { address: '0x123' },
-      ] as never);
+      mockUseTransactionPayAvailableTokens.mockReturnValue({
+        availableTokens: [{ address: '0x123' }],
+        hasTokens: true,
+      } as never);
 
       renderWithProvider(<MusdConversionInfo />, {
         state: {},

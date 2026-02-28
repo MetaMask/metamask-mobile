@@ -10,6 +10,8 @@ import { useApproveTransactionData } from '../../../hooks/useApproveTransactionD
 import { useApproveTransactionActions } from '../../../hooks/useApproveTransactionActions';
 import { TokenStandard } from '../../../types/token';
 import InfoRow from '../../UI/info-row/info-row';
+import AlertRow from '../../UI/info-row/alert-row';
+import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import Address from '../../UI/info-row/info-value/address';
 import { Pill } from '../../UI/pill';
 import { ApproveMethod } from '../../../types/approve';
@@ -107,12 +109,15 @@ export const ApproveAndPermit2 = () => {
           )}
         </View>
       </InfoRow>
-      <InfoRow label={strings('confirm.spender')}>
+      <AlertRow
+        alertField={RowAlertKey.Spender}
+        label={strings('confirm.spender')}
+      >
         <Address
           address={spender ?? ''}
           chainId={transactionMetadata.chainId}
         />
-      </InfoRow>
+      </AlertRow>
     </>
   );
 };

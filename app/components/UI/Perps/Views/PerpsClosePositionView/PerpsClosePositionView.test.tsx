@@ -60,7 +60,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useMetrics');
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 // Only mock components that would cause issues in tests
 // Following best practice: "Use mocks only when necessary"

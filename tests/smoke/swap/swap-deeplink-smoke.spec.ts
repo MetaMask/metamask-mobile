@@ -142,9 +142,7 @@ describe(
           await DeeplinkModal.tapContinue();
 
           // Check that we are on the quote view with default state
-          await Assertions.expectElementToBeVisible(
-            QuoteView.selectAmountLabel,
-          );
+          await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea);
 
           // Verify we can navigate back
           await Assertions.expectElementToBeVisible(QuoteView.backButton);
@@ -206,9 +204,7 @@ describe(
           await DeeplinkModal.tapContinue();
 
           // Wait for bridge view to load after modal is dismissed
-          await Assertions.expectElementToBeVisible(
-            QuoteView.selectAmountLabel,
-          );
+          await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea);
 
           // Verify we can navigate back
           await Assertions.expectElementToBeVisible(QuoteView.backButton);

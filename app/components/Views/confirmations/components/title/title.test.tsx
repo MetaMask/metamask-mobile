@@ -28,6 +28,12 @@ import Title from './title';
 
 jest.mock('../../hooks/useGetTokenStandardAndDetails');
 
+jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
+  useFullScreenConfirmation: jest.fn(() => ({
+    isFullScreenConfirmation: false,
+  })),
+}));
+
 describe('Confirm Title', () => {
   const typedSignRequestId = 'fb2029e1-b0ab-11ef-9227-05a11087c334';
   const daiPermitAllowedStringFalseData = JSON.stringify({
@@ -320,9 +326,7 @@ describe('Confirm Title', () => {
       state: musdClaimState,
     });
     expect(getByText('Claim bonus')).toBeTruthy();
-    expect(
-      getByText('Bonus payout will be on Linea Mainnet Network.'),
-    ).toBeTruthy();
+    expect(getByText('Bonus will be paid out on Linea Mainnet.')).toBeTruthy();
   });
 
   it.each([TransactionType.lendingDeposit, TransactionType.lendingWithdraw])(

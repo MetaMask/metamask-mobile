@@ -1,4 +1,4 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -12,7 +12,6 @@ import { ConfirmationLoader } from '../../../Views/confirmations/components/conf
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { selectPredictPendingDepositByAddress } from '../selectors/predictController';
-import { PredictNavigationParamList } from '../types/navigation';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
@@ -20,25 +19,18 @@ import {
   PredictEventValues,
   PredictTradeStatus,
 } from '../constants/eventNames';
-import { PlaceOrderParams } from '../providers/types';
-
-interface UsePredictDepositParams {
-  providerId?: string;
-}
+import { PlaceOrderParams } from '../types';
 
 interface PredictDepositAnalyticsParams {
   amountUsd?: number;
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
 }
 
-export const usePredictDeposit = ({
-  providerId = 'polymarket',
-}: UsePredictDepositParams = {}) => {
+export const usePredictDeposit = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
 
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
@@ -47,7 +39,6 @@ export const usePredictDeposit = ({
 
   const depositBatchId = useSelector(
     selectPredictPendingDepositByAddress({
-      providerId,
       address: selectedInternalAccountAddress,
     }),
   );
@@ -64,7 +55,6 @@ export const usePredictDeposit = ({
         if (analyticsProperties) {
           Engine.context.PredictController.trackPredictOrderEvent({
             status: PredictTradeStatus.INITIATED,
-            providerId,
             amountUsd,
             analyticsProperties: {
               ...analyticsProperties,
@@ -74,9 +64,7 @@ export const usePredictDeposit = ({
           });
         }
 
-        depositWithConfirmation({
-          providerId,
-        }).catch((err) => {
+        depositWithConfirmation({}).catch((err) => {
           console.error('Failed to initialize deposit:', err);
 
           // Log error with deposit initialization context
@@ -91,7 +79,6 @@ export const usePredictDeposit = ({
                 method: 'deposit',
                 action: 'deposit_initialization',
                 operation: 'financial_operations',
-                providerId,
               },
             },
           });
@@ -152,7 +139,6 @@ export const usePredictDeposit = ({
               method: 'deposit',
               action: 'deposit_navigation',
               operation: 'financial_operations',
-              providerId,
             },
           },
         });
@@ -162,7 +148,6 @@ export const usePredictDeposit = ({
       depositWithConfirmation,
       navigateToConfirmation,
       navigation,
-      providerId,
       theme.colors.accent04.normal,
       theme.colors.error.default,
       toastRef,

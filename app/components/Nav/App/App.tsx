@@ -70,7 +70,6 @@ import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
-import ClaimOnLineaBottomSheet from '../../UI/Earn/components/MerklRewards/ClaimOnLineaBottomSheet';
 import MoreTokenActionsMenu from '../../UI/TokenDetails/components/MoreTokenActionsMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
@@ -95,7 +94,6 @@ import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAs
 import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
-import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 import WhatsNewModal from '../../UI/WhatsNewModal';
 import NftOptions from '../../../components/Views/NftOptions';
@@ -136,6 +134,7 @@ import { ShareAddressQR } from '../../Views/MultichainAccounts/sheets/ShareAddre
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
+import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import MultichainAccountsIntroModal from '../../Views/MultichainAccounts/IntroModal';
 import LearnMoreBottomSheet from '../../Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
@@ -147,7 +146,6 @@ import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/Mult
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
@@ -173,10 +171,6 @@ const clearStackNavigatorOptions = {
 };
 
 const Stack = createStackNavigator();
-
-const AccountAlreadyExists = () => <AccountStatus type="found" />;
-
-const AccountNotFound = () => <AccountStatus type="not_exist" />;
 
 const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
 
@@ -269,12 +263,14 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name="AccountAlreadyExists"
-      component={AccountAlreadyExists}
+      component={AccountStatus}
+      initialParams={{ type: 'found' }}
       options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AccountNotFound"
-      component={AccountNotFound}
+      component={AccountStatus}
+      initialParams={{ type: 'not_exist' }}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -378,10 +374,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.FUND_ACTION_MENU}
       component={FundActionMenu}
-    />
-    <Stack.Screen
-      name={Routes.MODAL.CLAIM_ON_LINEA}
-      component={ClaimOnLineaBottomSheet}
     />
     <Stack.Screen
       name={Routes.MODAL.MORE_TOKEN_ACTIONS_MENU}
@@ -505,10 +497,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC}
       component={ConfirmTurnOnBackupAndSyncModal}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.RESET_NOTIFICATIONS}
-      component={ResetNotificationsModal}
     />
     <Stack.Screen
       name={Routes.SHEET.AMBIGUOUS_ADDRESS}
@@ -889,21 +877,6 @@ const ModalSwitchAccountType = () => (
   </Stack.Navigator>
 );
 
-const ModalSmartAccountOptIn = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
-    }}
-    mode={'modal'}
-  >
-    <Stack.Screen
-      name={Routes.SMART_ACCOUNT_OPT_IN}
-      component={SmartAccountUpdateModal}
-    />
-  </Stack.Navigator>
-);
-
 const AppFlow = () => (
   <Stack.Navigator
     initialRouteName={Routes.FOX_LOADER}
@@ -985,6 +958,26 @@ const AppFlow = () => (
       name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
       component={MultichainAccountGroupDetails}
       options={{
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
+      component={RevealPrivateCredential}
+      options={{
+        headerShown: false,
         animationEnabled: true,
         cardStyleInterpolator: ({ current, layouts }) => ({
           cardStyle: {
@@ -1087,10 +1080,6 @@ const AppFlow = () => (
     <Stack.Screen
       name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
       component={ModalSwitchAccountType}
-    />
-    <Stack.Screen
-      name={Routes.SMART_ACCOUNT_OPT_IN}
-      component={ModalSmartAccountOptIn}
     />
     <Stack.Screen
       name={Routes.CONFIRMATION_PAY_WITH_MODAL}

@@ -12,10 +12,7 @@ import { PaymentType } from '@consensys/on-ramp-sdk';
 import PaymentMethodIcon from '../../../Aggregator/components/PaymentMethodIcon';
 import QuoteDisplay from './QuoteDisplay';
 import { formatDelayFromArray } from '../../../Aggregator/utils';
-import {
-  formatCurrency,
-  formatTokenAmount,
-} from '../../../utils/formatCurrency';
+import { useFormatters } from '../../../../../hooks/useFormatters';
 import { useTheme } from '../../../../../../util/theme';
 import type { Colors } from '../../../../../../util/theme/models';
 import type { PaymentMethod, Quote } from '@metamask/ramps-controller';
@@ -60,6 +57,7 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { formatToken, formatCurrency } = useFormatters();
 
   const delayText =
     Array.isArray(paymentMethod.delay) && paymentMethod.delay.length >= 2
@@ -68,11 +66,14 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
 
   const cryptoAmount =
     quote?.quote?.amountOut != null && tokenSymbol
-      ? formatTokenAmount(quote.quote.amountOut, tokenSymbol)
+      ? formatToken(Number(quote.quote.amountOut), tokenSymbol, {
+          maximumFractionDigits: 6,
+          minimumFractionDigits: 0,
+        })
       : '';
   const fiatAmount =
     quote?.quote?.amountOutInFiat != null
-      ? formatCurrency(quote.quote.amountOutInFiat, currency)
+      ? formatCurrency(Number(quote.quote.amountOutInFiat), currency)
       : null;
 
   return (

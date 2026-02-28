@@ -147,12 +147,12 @@ export enum CardType {
 
 export interface CardDetailsResponse {
   id: string;
-  holderName: string;
-  expiryDate: string;
+  isFreezable: boolean;
+  orderedAt: string;
   panLast4: string;
   status: CardStatus;
   type: CardType;
-  orderedAt: string;
+  holderName: string;
 }
 
 export interface CardWalletExternalResponse {
@@ -529,4 +529,26 @@ export interface GetOrderStatusResponse {
   paidAt?: string;
   status: OrderStatus;
   metadata?: OrderStatusMetadata;
+}
+
+export interface CashbackWalletResponse {
+  id: string;
+  balance: string;
+  currency: string;
+  isWithdrawable: boolean;
+  type: string;
+}
+
+export interface CashbackWithdrawRequest {
+  amount: string;
+}
+
+export interface CashbackWithdrawResponse {
+  txHash: string;
+}
+
+export interface CashbackWithdrawEstimationResponse {
+  wei: string;
+  eth: string;
+  price: string;
 }

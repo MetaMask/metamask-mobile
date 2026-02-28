@@ -8,13 +8,13 @@ export const MAX_MARKET_PATTERN_LENGTH = 100;
 
 export type MarketPatternMatcher = RegExp | string;
 
-export interface CompiledMarketPattern {
+export type CompiledMarketPattern = {
   pattern: string;
   matcher: MarketPatternMatcher;
-}
+};
 
 export const escapeRegex = (str: string): string =>
-  str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  str.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 
 export const validateMarketPattern = (pattern: string): boolean => {
   if (!pattern || pattern.trim().length === 0) {
@@ -29,14 +29,14 @@ export const validateMarketPattern = (pattern: string): boolean => {
     );
   }
 
-  const dangerousChars = /[\\()[\]{}^$+?.|]/;
+  const dangerousChars = /[\\()[\]{}^$+?.|]/u;
   if (dangerousChars.test(normalizedPattern)) {
     throw new Error(
       `Market pattern contains invalid regex characters: ${normalizedPattern}`,
     );
   }
 
-  const validPattern = /^[a-zA-Z0-9:_\-*]+$/;
+  const validPattern = /^[a-zA-Z0-9:_\-*]+$/u;
   if (!validPattern.test(normalizedPattern)) {
     throw new Error(
       `Market pattern contains invalid characters: ${normalizedPattern}`,
@@ -52,11 +52,11 @@ export const compileMarketPattern = (pattern: string): MarketPatternMatcher => {
 
   if (normalizedPattern.endsWith(':*')) {
     const prefix = normalizedPattern.slice(0, -2);
-    return new RegExp(`^${escapeRegex(prefix)}:`);
+    return new RegExp(`^${escapeRegex(prefix)}:`, 'u');
   }
 
   if (!normalizedPattern.includes(':')) {
-    return new RegExp(`^${escapeRegex(normalizedPattern)}:`);
+    return new RegExp(`^${escapeRegex(normalizedPattern)}:`, 'u');
   }
 
   return normalizedPattern;
@@ -134,10 +134,10 @@ export const getPerpsDexFromSymbol = (symbol: string): string | null => {
   return null;
 };
 
-interface FundingCountdownParams {
+type FundingCountdownParams = {
   nextFundingTime?: number;
   fundingIntervalHours?: number;
-}
+};
 
 export const calculateFundingCountdown = (
   params?: FundingCountdownParams,

@@ -36,6 +36,7 @@ import {
   ConnectionStatus,
   GameUpdateCallback,
   GeoBlockResponse,
+  GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
@@ -60,6 +61,7 @@ import {
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
   ROUNDING_CONFIG,
+  SAFE_EXEC_GAS_LIMIT,
 } from './constants';
 import {
   computeProxyAddress,
@@ -99,7 +101,7 @@ import {
   roundOrderAmount,
   submitClobOrder,
 } from './utils';
-import { PredictFeeCollection } from '../../types/flags';
+import { PredictFeatureFlags } from '../../types/flags';
 import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
@@ -133,6 +135,7 @@ export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
   readonly name = 'Polymarket';
   readonly chainId = POLYGON_MAINNET_CHAIN_ID;
+  readonly #getFeatureFlags: () => PredictFeatureFlags;
 
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, AccountState> = new Map();
@@ -144,6 +147,14 @@ export class PolymarketProvider implements PredictProvider {
   >();
 
   private static readonly FALLBACK_CATEGORY: PredictCategory = 'trending';
+
+  constructor({
+    getFeatureFlags,
+  }: {
+    getFeatureFlags: () => PredictFeatureFlags;
+  }) {
+    this.#getFeatureFlags = getFeatureFlags;
+  }
 
   /**
    * Generate standard error context for Logger.error calls with searchable tags and context.
@@ -174,16 +185,15 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarketDetails({
     marketId,
-    liveSportsLeagues = [],
   }: {
     marketId: string;
-    liveSportsLeagues?: string[];
   }): Promise<PredictMarket> {
     if (!marketId) {
       throw new Error('marketId is required');
     }
 
     try {
+      const { liveSportsLeagues } = this.#getFeatureFlags();
       const event = await getMarketDetailsFromGammaApi({
         marketId,
       });
@@ -221,25 +231,20 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
-  public async getMarketsByIds(
-    marketIds: string[],
-    liveSportsLeagues: string[] = [],
-  ): Promise<PredictMarket[]> {
+  public async getMarketsByIds(marketIds: string[]): Promise<PredictMarket[]> {
     if (!marketIds || marketIds.length === 0) {
       return [];
     }
 
     try {
       const marketPromises = marketIds.map((marketId) =>
-        this.getMarketDetails({ marketId, liveSportsLeagues }).catch(
-          (error) => {
-            DevLogger.log(
-              `PolymarketProvider: Failed to fetch market ${marketId}`,
-              error,
-            );
-            return null;
-          },
-        ),
+        this.getMarketDetails({ marketId }).catch((error) => {
+          DevLogger.log(
+            `PolymarketProvider: Failed to fetch market ${marketId}`,
+            error,
+          );
+          return null;
+        }),
       );
 
       const results = await Promise.all(marketPromises);
@@ -299,7 +304,7 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const liveSportsLeagues = params?.liveSportsLeagues ?? [];
+      const { liveSportsLeagues } = this.#getFeatureFlags();
       const liveSportsEnabled = liveSportsLeagues.length > 0;
 
       if (liveSportsEnabled) {
@@ -424,7 +429,7 @@ export class PolymarketProvider implements PredictProvider {
    */
   public async getPrices({
     queries,
-  }: Omit<GetPriceParams, 'providerId'>): Promise<GetPriceResponse> {
+  }: GetPriceParams): Promise<GetPriceResponse> {
     if (!queries || queries.length === 0) {
       throw new Error('queries parameter is required and must not be empty');
     }
@@ -710,7 +715,7 @@ export class PolymarketProvider implements PredictProvider {
   }: {
     address: string;
     positions: PredictPosition[];
-    claimable: boolean;
+    claimable?: boolean;
     marketId?: string;
     outcomeId?: string;
   }): PredictPosition[] {
@@ -816,7 +821,7 @@ export class PolymarketProvider implements PredictProvider {
     address,
     limit = 100, // todo: reduce this once we've decided on the pagination approach
     offset = 0,
-    claimable = false,
+    claimable,
     marketId,
     outcomeId,
   }: GetPositionsParams): Promise<PredictPosition[]> {
@@ -833,8 +838,11 @@ export class PolymarketProvider implements PredictProvider {
       offset: offset.toString(),
       user: predictAddress,
       sortBy: 'CURRENT',
-      redeemable: claimable.toString(),
     });
+
+    if (claimable !== undefined) {
+      queryParams.set('redeemable', claimable.toString());
+    }
 
     // Use market (conditionId/outcomeId) if provided for targeted fetch
     // This is mutually exclusive with eventId (marketId)
@@ -961,12 +969,12 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async previewOrder(
-    params: Omit<PreviewOrderParams, 'providerId'> & {
+    params: PreviewOrderParams & {
       signer: Signer;
-      feeCollection?: PredictFeeCollection;
     },
   ): Promise<OrderPreview> {
-    const basePreview = await previewOrder(params);
+    const { feeCollection } = this.#getFeatureFlags();
+    const basePreview = await previewOrder({ ...params, feeCollection });
 
     if (params.signer) {
       if (this.isRateLimited(params.signer.address)) {
@@ -981,7 +989,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async placeOrder(
-    params: Omit<PlaceOrderParams, 'providerId'> & { signer: Signer },
+    params: PlaceOrderParams & { signer: Signer },
   ): Promise<OrderResult> {
     const { signer, preview } = params;
     const {
@@ -990,6 +998,7 @@ export class PolymarketProvider implements PredictProvider {
       maxAmountSpent,
       minAmountReceived,
       negRisk,
+      feeRateBps,
       fees,
       slippage,
       tickSize,
@@ -1099,7 +1108,7 @@ export class PolymarketProvider implements PredictProvider {
         takerAmount,
         expiration: '0',
         nonce: '0',
-        feeRateBps: '0',
+        feeRateBps: feeRateBps ?? '0',
         side: side === Side.BUY ? UtilsSide.BUY : UtilsSide.SELL,
         signatureType: SignatureType.POLY_GNOSIS_SAFE,
       };
@@ -1411,7 +1420,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async prepareDeposit(
-    params: PrepareDepositParams & { signer: Signer },
+    params: PrepareDepositParams,
   ): Promise<PrepareDepositResponse> {
     const transactions = [];
     const { signer } = params;
@@ -1501,9 +1510,9 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
-  public async getAccountState(params: {
-    ownerAddress: string;
-  }): Promise<AccountState> {
+  public async getAccountState(
+    params: GetAccountStateParams,
+  ): Promise<AccountState> {
     try {
       const { ownerAddress } = params;
 
@@ -1578,7 +1587,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async prepareWithdraw(
-    params: PrepareWithdrawParams & { signer: Signer },
+    params: PrepareWithdrawParams,
   ): Promise<PrepareWithdrawResponse> {
     const { signer } = params;
 
@@ -1601,6 +1610,7 @@ export class PolymarketProvider implements PredictProvider {
         params: {
           to: MATIC_CONTRACTS.collateral as Hex,
           data: callData,
+          gas: numberToHex(SAFE_EXEC_GAS_LIMIT) as Hex,
         },
         type: TransactionType.predictWithdraw,
       },

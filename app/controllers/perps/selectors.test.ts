@@ -1,3 +1,5 @@
+import { MARKET_SORTING_CONFIG } from './constants/perpsConfig';
+import type { PerpsControllerState } from './PerpsController';
 import {
   selectIsFirstTimeUser,
   selectTradeConfiguration,
@@ -8,8 +10,6 @@ import {
   selectMarketFilterPreferences,
   selectOrderBookGrouping,
 } from './selectors';
-import type { PerpsControllerState } from './PerpsController';
-import { MARKET_SORTING_CONFIG } from './constants/perpsConfig';
 
 describe('PerpsController selectors', () => {
   describe('selectIsFirstTimeUser', () => {

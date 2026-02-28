@@ -14,28 +14,33 @@
  * - USDT collateral (vs USDC)
  */
 
+import { fromMYXPrice } from '../constants/myxConfig';
 import type {
   MarketInfo,
   PerpsMarketData,
   MarketDataFormatters,
 } from '../types';
-import {
-  MYX_HL_OVERLAPPING_MARKETS,
-  type MYXPoolSymbol,
-  type MYXTicker,
-} from '../types/myx-types';
-import { fromMYXPrice } from '../constants/myxConfig';
+import { MYX_HL_OVERLAPPING_MARKETS } from '../types/myx-types';
+import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
 
 /**
  * Format a price change value with sign prefix.
  * Uses injected formatters (same pattern as marketDataTransform.ts formatChange).
+ *
+ * @param change - The price change value to format.
+ * @param formatters - Injectable formatters for platform-agnostic formatting.
+ * @returns The formatted change string with sign and dollar symbol.
  */
 function formatChange(
   change: number,
   formatters: MarketDataFormatters,
 ): string {
-  if (isNaN(change) || !isFinite(change)) return '$0.00';
-  if (change === 0) return '$0.00';
+  if (isNaN(change) || !isFinite(change)) {
+    return '$0.00';
+  }
+  if (change === 0) {
+    return '$0.00';
+  }
 
   const formatted = formatters.formatPerpsFiat(Math.abs(change), {
     ranges: formatters.priceRangesUniversal,
@@ -214,7 +219,7 @@ export function buildSymbolPoolsMap(
   const map = new Map<string, string[]>();
   for (const pool of pools) {
     const symbol = pool.baseSymbol || extractSymbolFromPoolId(pool.poolId);
-    const existing = map.get(symbol) || [];
+    const existing = map.get(symbol) ?? [];
     existing.push(pool.poolId);
     map.set(symbol, existing);
   }
@@ -238,6 +243,9 @@ export function extractSymbolFromPoolId(poolId: string): string {
 /**
  * Get full token name from symbol
  * Returns the symbol as name if not found (MYX-specific tokens)
+ *
+ * @param symbol - The market symbol to look up.
+ * @returns The human-readable token name, or the symbol itself if not found.
  */
 function getTokenName(symbol: string): string {
   const tokenNames: Record<string, string> = {

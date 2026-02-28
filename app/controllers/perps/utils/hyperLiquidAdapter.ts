@@ -1,12 +1,7 @@
-import type {
-  AssetPosition,
-  FrontendOrder,
-  ClearinghouseStateResponse,
-  SpotClearinghouseStateResponse,
-  MetaResponse,
-  SDKOrderParams,
-} from '../types/hyperliquid-types';
 import { Hex, isHexString } from '@metamask/utils';
+
+import { HIP3_ASSET_ID_CONFIG } from '../constants/hyperLiquidConfig';
+import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 import type {
   AccountState,
   MarketInfo,
@@ -16,12 +11,54 @@ import type {
   RawLedgerUpdate,
   UserHistoryItem,
 } from '../types';
-import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
-import { HIP3_ASSET_ID_CONFIG } from '../constants/hyperLiquidConfig';
 import {
   countSignificantFigures,
   roundToSignificantFigures,
 } from './significantFigures';
+import type {
+  AssetPosition,
+  FrontendOrder,
+  ClearinghouseStateResponse,
+  SpotClearinghouseStateResponse,
+  MetaResponse,
+  SDKOrderParams,
+} from '../types/hyperliquid-types';
+
+type FrontendOrderWithParentTpsl = FrontendOrder & {
+  takeProfitPrice?: unknown;
+  stopLossPrice?: unknown;
+  takeProfitOrderId?: unknown;
+  stopLossOrderId?: unknown;
+};
+
+const readOptionalString = (value: unknown): string | undefined =>
+  typeof value === 'string' && value.length > 0 ? value : undefined;
+
+const readOptionalOrderId = (value: unknown): string | undefined => {
+  if (typeof value === 'string' && value.length > 0) {
+    return value;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value.toString();
+  }
+
+  return undefined;
+};
+
+const getParentTpslMetadata = (
+  rawOrder: FrontendOrderWithParentTpsl,
+): {
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
+  takeProfitOrderId?: string;
+  stopLossOrderId?: string;
+} => ({
+  takeProfitPrice: readOptionalString(rawOrder.takeProfitPrice),
+  stopLossPrice: readOptionalString(rawOrder.stopLossPrice),
+  takeProfitOrderId: readOptionalOrderId(rawOrder.takeProfitOrderId),
+  stopLossOrderId: readOptionalOrderId(rawOrder.stopLossOrderId),
+});
 
 /**
  * HyperLiquid SDK Adapter Utilities
@@ -58,9 +95,9 @@ export function adaptOrderToSDK(
   return {
     a: assetId,
     b: order.isBuy,
-    p: order.price || '0',
+    p: order.price ?? '0',
     s: order.size,
-    r: order.reduceOnly || false,
+    r: order.reduceOnly ?? false,
     t:
       order.orderType === 'limit'
         ? {
@@ -104,12 +141,19 @@ export function adaptOrderFromSDK(
   rawOrder: FrontendOrder,
   position?: Position,
 ): Order {
+  // TODO: Remove this widened boundary type when FrontendOrder includes
+  // takeProfitPrice/stopLossPrice and takeProfitOrderId/stopLossOrderId.
+  const parentTpslMetadata = getParentTpslMetadata(
+    rawOrder as FrontendOrderWithParentTpsl,
+  );
+
+  // Extract basic fields with appropriate conversions
   const orderId = rawOrder.oid.toString();
   const symbol = rawOrder.coin;
   const side: 'buy' | 'sell' = rawOrder.side === 'B' ? 'buy' : 'sell';
   const detailedOrderType = rawOrder.orderType;
-  const isTrigger = rawOrder.isTrigger;
-  const reduceOnly = rawOrder.reduceOnly;
+  const { isTrigger } = rawOrder;
+  const { reduceOnly } = rawOrder;
 
   let orderType: 'limit' | 'market' = 'market';
   if (detailedOrderType.toLowerCase().includes('limit') || rawOrder.limitPx) {
@@ -155,6 +199,13 @@ export function adaptOrderFromSDK(
     });
   }
 
+  // Fallback: preserve parent-level TP/SL metadata when children are absent.
+  takeProfitPrice ??= parentTpslMetadata.takeProfitPrice;
+  stopLossPrice ??= parentTpslMetadata.stopLossPrice;
+  takeProfitOrderId ??= parentTpslMetadata.takeProfitOrderId;
+  stopLossOrderId ??= parentTpslMetadata.stopLossOrderId;
+
+  // Build the order object
   const order: Order = {
     orderId,
     symbol,
@@ -171,6 +222,10 @@ export function adaptOrderFromSDK(
     isTrigger,
     reduceOnly,
   };
+
+  if (typeof rawOrder.isPositionTpsl === 'boolean') {
+    order.isPositionTpsl = rawOrder.isPositionTpsl;
+  }
 
   if (takeProfitPrice) {
     order.takeProfitPrice = takeProfitPrice;
@@ -237,7 +292,7 @@ export function adaptAccountStateFromSDK(
   if (spotState?.balances && Array.isArray(spotState.balances)) {
     spotBalance = spotState.balances.reduce(
       (sum: number, balance: { total?: string }) =>
-        sum + parseFloat(balance.total || '0'),
+        sum + parseFloat(balance.total ?? '0'),
       0,
     );
   }
@@ -307,17 +362,19 @@ export function formatHyperLiquidSize(params: {
   szDecimals: number;
 }): string {
   const { size, szDecimals } = params;
-  const num = typeof size === 'string' ? parseFloat(size) : size;
+  const number = typeof size === 'string' ? parseFloat(size) : size;
 
-  if (isNaN(num)) return '0';
+  if (isNaN(number)) {
+    return '0';
+  }
 
-  const formatted = num.toFixed(szDecimals);
+  const formatted = number.toFixed(szDecimals);
 
   if (!formatted.includes('.')) {
     return formatted;
   }
 
-  return formatted.replace(/\.?0+$/, '');
+  return formatted.replace(/\.?0+$/u, '');
 }
 
 export function calculatePositionSize(params: {
@@ -362,11 +419,17 @@ export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
 ): UserHistoryItem[] {
   return (rawLedgerUpdates || [])
     .filter((update) => {
-      if (update.delta.type === 'deposit') return true;
-      if (update.delta.type === 'withdraw') return true;
+      if (update.delta.type === 'deposit') {
+        return true;
+      }
+      if (update.delta.type === 'withdraw') {
+        return true;
+      }
       if (update.delta.type === 'internalTransfer') {
         const usdc = Number.parseFloat(update.delta.usdc ?? '0');
-        if (Number.isNaN(usdc)) return false;
+        if (Number.isNaN(usdc)) {
+          return false;
+        }
         return usdc > 0;
       }
       return false;
