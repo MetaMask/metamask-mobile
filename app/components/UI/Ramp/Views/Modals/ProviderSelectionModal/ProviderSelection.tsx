@@ -170,8 +170,11 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   const currency = userRegion?.country?.currency ?? 'USD';
   const symbol = selectedToken?.symbol ?? '';
 
+  const hasSuccessfulQuotes = (quotes?.success?.length ?? 0) > 0;
+  const displayQuotes = showQuotes && (quotesLoading || hasSuccessfulQuotes);
+
   const sortedListItems = useMemo((): ProviderListItem[] => {
-    if (!showQuotes || !quotes || quotesLoading) {
+    if (!displayQuotes || !quotes || quotesLoading) {
       return providers.map((provider) => ({ type: 'provider', provider }));
     }
 
@@ -216,7 +219,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     }
 
     return items;
-  }, [providers, quotes, quotesLoading, showQuotes]);
+  }, [providers, quotes, quotesLoading, displayQuotes]);
 
   const handleProviderSelect = useCallback(
     (provider: Provider, _matchedQuote: Quote | null) => {
@@ -254,7 +257,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           ? formatCurrency(Number(matchedQuote.quote.amountOutInFiat), currency)
           : null;
       const isSelected = selectedProvider?.id === provider.id;
-      const tag = showQuotes
+      const tag = displayQuotes
         ? getProviderTag(provider.id, matchedQuote, ordersProviders)
         : null;
 
@@ -278,20 +281,14 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
               </Text>
             ) : null}
           </ListItemColumn>
-          {showQuotes ? (
+          {displayQuotes && (quotesLoading || matchedQuote) ? (
             <ListItemColumn widthType={WidthType.Auto}>
               {quotesLoading ? (
                 <QuoteDisplay cryptoAmount="" fiatAmount={null} isLoading />
-              ) : matchedQuote ? (
+              ) : (
                 <QuoteDisplay
                   cryptoAmount={cryptoAmount}
                   fiatAmount={fiatAmount}
-                />
-              ) : (
-                <QuoteDisplay
-                  cryptoAmount=""
-                  fiatAmount={null}
-                  quoteUnavailable
                 />
               )}
             </ListItemColumn>
@@ -306,7 +303,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
       selectedProvider,
       selectedPaymentMethod,
       quotesLoading,
-      showQuotes,
+      displayQuotes,
       ordersProviders,
       handleProviderSelect,
       formatToken,
@@ -347,7 +344,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
         title={strings('fiat_on_ramp.providers')}
         onBack={showBackButton ? onBack : undefined}
       />
-      {showQuotes && selectedPaymentMethod ? (
+      {displayQuotes && selectedPaymentMethod ? (
         <PaymentMethodBanner
           paymentMethodName={selectedPaymentMethod.name}
           paymentType={selectedPaymentMethod.paymentType}
@@ -361,7 +358,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           />
         </Box>
       ) : null}
-      {showQuotes && quotesLoading ? (
+      {displayQuotes && quotesLoading ? (
         <ProviderListSkeleton />
       ) : (
         <FlatList
