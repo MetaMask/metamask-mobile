@@ -105,7 +105,10 @@ jest.mock('@metamask/design-tokens', () => ({
 jest.mock('../../../../../component-library/hooks', () => {
   const { mockTheme } = jest.requireActual('../../../../../util/theme');
   return {
-    useStyles: jest.fn(() => mockTheme),
+    useStyles: jest.fn(() => ({
+      styles: {},
+      theme: mockTheme,
+    })),
   };
 });
 jest.mock('../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
