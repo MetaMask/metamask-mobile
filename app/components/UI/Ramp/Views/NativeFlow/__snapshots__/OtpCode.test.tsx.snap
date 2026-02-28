@@ -26,6 +26,7 @@ exports[`V2OtpCode matches snapshot 1`] = `
         undefined,
       ]
     }
+    testID="otp-code-screen"
   >
     <View
       style={

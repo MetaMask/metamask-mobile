@@ -28,6 +28,7 @@ import Logger from '../../../../../util/Logger';
 import useAnalytics from '../../hooks/useAnalytics';
 import { useTransakController } from '../../hooks/useTransakController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { EnterEmailSelectorsIDs } from './EnterEmail.testIds';
 
 export interface V2EnterEmailParams {
   amount?: string;
@@ -120,6 +121,7 @@ const V2EnterEmail = () => {
             </Text>
 
             <TextField
+              testID={EnterEmailSelectorsIDs.EMAIL_INPUT}
               autoComplete="email"
               keyboardType="email-address"
               placeholder={strings('deposit.enter_email.input_placeholder')}
@@ -154,6 +156,7 @@ const V2EnterEmail = () => {
             width={ButtonWidthTypes.Full}
             loading={isLoading}
             isDisabled={isLoading}
+            testID={EnterEmailSelectorsIDs.SEND_EMAIL_BUTTON}
           />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
