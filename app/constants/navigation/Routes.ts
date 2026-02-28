@@ -21,6 +21,7 @@ const Routes = {
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
     AMOUNT_INPUT: 'RampAmountInput',
+    HEADLESS_BUY: 'RampHeadlessBuy',
     ENTER_EMAIL: 'RampEnterEmail',
     OTP_CODE: 'RampOtpCode',
     ORDER_PROCESSING: 'RampOrderProcessing',

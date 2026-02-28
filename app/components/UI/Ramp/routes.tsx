@@ -21,6 +21,7 @@ import ProviderSelectionModal from './Views/Modals/ProviderSelectionModal';
 import ErrorDetailsModal from './Views/Modals/ErrorDetailsModal';
 import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import RampsOrderDetails from './Views/OrderDetails';
+import HeadlessBuy from './Views/HeadlessBuy/HeadlessBuy';
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();
@@ -65,6 +66,7 @@ const MainRoutes = () => (
       name={Routes.RAMP.ADDITIONAL_VERIFICATION}
       component={V2AdditionalVerification}
     />
+    <Stack.Screen name={Routes.RAMP.HEADLESS_BUY} component={HeadlessBuy} />
     <Stack.Screen
       name={Routes.RAMP.CHECKOUT}
       component={Checkout}
