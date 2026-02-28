@@ -2,10 +2,11 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import type { Provider } from '@metamask/ramps-controller';
+import { useSelector } from 'react-redux';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useNavigationState } from '@react-navigation/native';
 import {
   createNavigationDetails,
   useParams,
@@ -15,6 +16,7 @@ import ProviderSelection from './ProviderSelection';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
+import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -53,6 +55,14 @@ function ProviderSelectionModal() {
     selectedPaymentMethod,
     selectedToken,
   } = useRampsController();
+
+  const ordersProviders = useSelector(getOrdersProviders);
+
+  const hasPaymentModalInStack = useNavigationState((state) =>
+    state.routes.some(
+      (route) => route.name === Routes.RAMP.MODALS.PAYMENT_SELECTION,
+    ),
+  );
 
   const amount = routeAmount ?? DEFAULT_QUOTE_AMOUNT;
   const walletAddress =
@@ -139,6 +149,8 @@ function ProviderSelectionModal() {
           quotesLoading={quotesLoading}
           quotesError={quotesError}
           showQuotes={!skipQuotes}
+          showBackButton={hasPaymentModalInStack}
+          ordersProviders={ordersProviders}
           onBack={handleBack}
           onProviderSelect={handleProviderSelect}
         />

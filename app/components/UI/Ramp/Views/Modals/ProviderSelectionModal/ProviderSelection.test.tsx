@@ -170,7 +170,7 @@ describe('ProviderSelection', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders providers immediately when quotes are loading', () => {
+  it('renders skeleton loading state when quotes are loading', () => {
     jest.mocked(useRampsController).mockReturnValue({
       ...defaultMockController,
       userRegion: mockUserRegion,
@@ -178,10 +178,14 @@ describe('ProviderSelection', () => {
       providers: mockProviders,
       selectedProvider: mockProviders[0],
     });
-    const { getByText } = renderWithProvider(mockProviders, mockProviders[0], {
-      quotesLoading: true,
-    });
-    expect(getByText('Transak')).toBeOnTheScreen();
+    const { queryByText } = renderWithProvider(
+      mockProviders,
+      mockProviders[0],
+      {
+        quotesLoading: true,
+      },
+    );
+    expect(queryByText('Transak')).toBeNull();
   });
 
   it('matches snapshot when quotes fail to load', async () => {

@@ -473,18 +473,21 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                         data={
                           [
                             {
-                              "description": "Test provider",
-                              "environmentType": "PRODUCTION",
-                              "hqAddress": "Test Address",
-                              "id": "/providers/transak",
-                              "links": [],
-                              "logos": {
-                                "dark": "https://example.com/logo-dark.png",
-                                "height": 24,
-                                "light": "https://example.com/logo-light.png",
-                                "width": 90,
+                              "provider": {
+                                "description": "Test provider",
+                                "environmentType": "PRODUCTION",
+                                "hqAddress": "Test Address",
+                                "id": "/providers/transak",
+                                "links": [],
+                                "logos": {
+                                  "dark": "https://example.com/logo-dark.png",
+                                  "height": 24,
+                                  "light": "https://example.com/logo-light.png",
+                                  "width": 90,
+                                },
+                                "name": "Transak",
                               },
-                              "name": "Transak",
+                              "type": "provider",
                             },
                           ]
                         }
@@ -565,13 +568,17 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 18,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 18,
+                                            "fontWeight": 500,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
                                       }
                                     >
                                       Transak
@@ -1124,227 +1131,796 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                           />
                         </View>
                       </View>
-                      <RCTScrollView
-                        collapsable={false}
-                        data={
-                          [
-                            {
-                              "description": "Test provider",
-                              "environmentType": "PRODUCTION",
-                              "hqAddress": "Test Address",
-                              "id": "/providers/transak",
-                              "links": [],
-                              "logos": {
-                                "dark": "https://example.com/logo-dark.png",
-                                "height": 24,
-                                "light": "https://example.com/logo-light.png",
-                                "width": 90,
-                              },
-                              "name": "Transak",
-                            },
-                          ]
-                        }
-                        getItem={[Function]}
-                        getItemCount={[Function]}
-                        handlerTag={-1}
-                        handlerType="NativeViewGestureHandler"
-                        keyExtractor={[Function]}
-                        keyboardDismissMode="none"
-                        keyboardShouldPersistTaps="always"
-                        onContentSizeChange={[Function]}
-                        onGestureHandlerEvent={[Function]}
-                        onGestureHandlerStateChange={[Function]}
-                        onLayout={[Function]}
-                        onMomentumScrollBegin={[Function]}
-                        onMomentumScrollEnd={[Function]}
-                        onScroll={[Function]}
-                        onScrollBeginDrag={[Function]}
-                        onScrollEndDrag={[Function]}
-                        removeClippedSubviews={false}
-                        renderItem={[Function]}
-                        renderScrollComponent={[Function]}
-                        scrollEventThrottle={0.0001}
-                        stickyHeaderIndices={[]}
+                      <TouchableOpacity
+                        disabled={true}
                         style={
                           {
-                            "flex": 1,
-                            "minHeight": 0,
+                            "backgroundColor": "#ffffff",
+                            "borderRadius": 4,
+                            "opacity": 0.5,
+                            "position": "relative",
                           }
                         }
-                        viewabilityConfigCallbackPairs={[]}
                       >
-                        <View>
+                        <View
+                          accessibilityRole="none"
+                          accessible={true}
+                          style={
+                            {
+                              "padding": 16,
+                            }
+                          }
+                        >
                           <View
-                            onFocusCapture={[Function]}
-                            onLayout={[Function]}
-                            style={null}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                              }
+                            }
                           >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              disabled={false}
-                              onPress={[Function]}
+                            <View
                               style={
                                 {
-                                  "backgroundColor": "#ffffff",
-                                  "borderRadius": 4,
-                                  "opacity": 1,
-                                  "position": "relative",
+                                  "flex": 1,
                                 }
                               }
+                              testID="listitemcolumn"
                             >
                               <View
-                                accessibilityRole="none"
-                                accessible={true}
                                 style={
                                   {
-                                    "padding": 16,
+                                    "borderRadius": 4,
+                                    "height": 18,
+                                    "overflow": "hidden",
+                                    "width": 120,
                                   }
+                                }
+                              >
+                                <View
+                                  collapsable={false}
+                                  pointerEvents="none"
+                                  style={
+                                    {
+                                      "backgroundColor": "#686e7d",
+                                      "borderRadius": 4,
+                                      "bottom": 0,
+                                      "left": 0,
+                                      "opacity": 0.2,
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                    }
+                                  }
+                                />
+                              </View>
+                            </View>
+                            <View
+                              accessible={false}
+                              style={
+                                {
+                                  "width": 16,
+                                }
+                              }
+                              testID="listitem-gap"
+                            />
+                            <View
+                              style={
+                                {
+                                  "flex": -1,
+                                }
+                              }
+                              testID="listitemcolumn"
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "flex-end",
+                                      "display": "flex",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 <View
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
+                                      "borderRadius": 4,
+                                      "height": 16,
+                                      "overflow": "hidden",
+                                      "width": 80,
                                     }
                                   }
                                 >
                                   <View
+                                    collapsable={false}
+                                    pointerEvents="none"
                                     style={
                                       {
-                                        "flex": 1,
+                                        "backgroundColor": "#686e7d",
+                                        "borderRadius": 4,
+                                        "bottom": 0,
+                                        "left": 0,
+                                        "opacity": 0.2,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
                                       }
                                     }
-                                    testID="listitemcolumn"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 18,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      Transak
-                                    </Text>
-                                  </View>
-                                  <View
-                                    accessible={false}
-                                    style={
-                                      {
-                                        "width": 16,
-                                      }
-                                    }
-                                    testID="listitem-gap"
                                   />
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "height": 6,
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "borderRadius": 4,
+                                      "height": 16,
+                                      "overflow": "hidden",
+                                      "width": 60,
+                                    }
+                                  }
+                                >
                                   <View
+                                    collapsable={false}
+                                    pointerEvents="none"
                                     style={
                                       {
-                                        "flex": -1,
+                                        "backgroundColor": "#686e7d",
+                                        "borderRadius": 4,
+                                        "bottom": 0,
+                                        "left": 0,
+                                        "opacity": 0.2,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
                                       }
                                     }
-                                    testID="listitemcolumn"
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "alignItems": "flex-end",
-                                            "display": "flex",
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "borderRadius": 4,
-                                            "height": 16,
-                                            "overflow": "hidden",
-                                            "width": 80,
-                                          }
-                                        }
-                                      >
-                                        <View
-                                          collapsable={false}
-                                          pointerEvents="none"
-                                          style={
-                                            {
-                                              "backgroundColor": "#686e7d",
-                                              "borderRadius": 4,
-                                              "bottom": 0,
-                                              "left": 0,
-                                              "opacity": 0.2,
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "top": 0,
-                                            }
-                                          }
-                                        />
-                                      </View>
-                                      <View
-                                        style={
-                                          {
-                                            "height": 6,
-                                          }
-                                        }
-                                      />
-                                      <View
-                                        style={
-                                          {
-                                            "borderRadius": 4,
-                                            "height": 16,
-                                            "overflow": "hidden",
-                                            "width": 60,
-                                          }
-                                        }
-                                      >
-                                        <View
-                                          collapsable={false}
-                                          pointerEvents="none"
-                                          style={
-                                            {
-                                              "backgroundColor": "#686e7d",
-                                              "borderRadius": 4,
-                                              "bottom": 0,
-                                              "left": 0,
-                                              "opacity": 0.2,
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "top": 0,
-                                            }
-                                          }
-                                        />
-                                      </View>
-                                    </View>
-                                  </View>
+                                  />
                                 </View>
                               </View>
-                              <View
-                                accessibilityRole="checkbox"
-                                accessible={true}
-                                style={
-                                  {
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "bottom": 0,
-                                    "flexDirection": "row",
-                                    "left": 0,
-                                    "position": "absolute",
-                                    "right": 0,
-                                    "top": 0,
-                                  }
-                                }
-                              />
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
-                      </RCTScrollView>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        disabled={true}
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "borderRadius": 4,
+                            "opacity": 0.5,
+                            "position": "relative",
+                          }
+                        }
+                      >
+                        <View
+                          accessibilityRole="none"
+                          accessible={true}
+                          style={
+                            {
+                              "padding": 16,
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
+                              testID="listitemcolumn"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "borderRadius": 4,
+                                    "height": 18,
+                                    "overflow": "hidden",
+                                    "width": 120,
+                                  }
+                                }
+                              >
+                                <View
+                                  collapsable={false}
+                                  pointerEvents="none"
+                                  style={
+                                    {
+                                      "backgroundColor": "#686e7d",
+                                      "borderRadius": 4,
+                                      "bottom": 0,
+                                      "left": 0,
+                                      "opacity": 0.2,
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                    }
+                                  }
+                                />
+                              </View>
+                            </View>
+                            <View
+                              accessible={false}
+                              style={
+                                {
+                                  "width": 16,
+                                }
+                              }
+                              testID="listitem-gap"
+                            />
+                            <View
+                              style={
+                                {
+                                  "flex": -1,
+                                }
+                              }
+                              testID="listitemcolumn"
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "flex-end",
+                                      "display": "flex",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "borderRadius": 4,
+                                      "height": 16,
+                                      "overflow": "hidden",
+                                      "width": 80,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    pointerEvents="none"
+                                    style={
+                                      {
+                                        "backgroundColor": "#686e7d",
+                                        "borderRadius": 4,
+                                        "bottom": 0,
+                                        "left": 0,
+                                        "opacity": 0.2,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  />
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "height": 6,
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "borderRadius": 4,
+                                      "height": 16,
+                                      "overflow": "hidden",
+                                      "width": 60,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    pointerEvents="none"
+                                    style={
+                                      {
+                                        "backgroundColor": "#686e7d",
+                                        "borderRadius": 4,
+                                        "bottom": 0,
+                                        "left": 0,
+                                        "opacity": 0.2,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        disabled={true}
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "borderRadius": 4,
+                            "opacity": 0.5,
+                            "position": "relative",
+                          }
+                        }
+                      >
+                        <View
+                          accessibilityRole="none"
+                          accessible={true}
+                          style={
+                            {
+                              "padding": 16,
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
+                              testID="listitemcolumn"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "borderRadius": 4,
+                                    "height": 18,
+                                    "overflow": "hidden",
+                                    "width": 120,
+                                  }
+                                }
+                              >
+                                <View
+                                  collapsable={false}
+                                  pointerEvents="none"
+                                  style={
+                                    {
+                                      "backgroundColor": "#686e7d",
+                                      "borderRadius": 4,
+                                      "bottom": 0,
+                                      "left": 0,
+                                      "opacity": 0.2,
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                    }
+                                  }
+                                />
+                              </View>
+                            </View>
+                            <View
+                              accessible={false}
+                              style={
+                                {
+                                  "width": 16,
+                                }
+                              }
+                              testID="listitem-gap"
+                            />
+                            <View
+                              style={
+                                {
+                                  "flex": -1,
+                                }
+                              }
+                              testID="listitemcolumn"
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "flex-end",
+                                      "display": "flex",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "borderRadius": 4,
+                                      "height": 16,
+                                      "overflow": "hidden",
+                                      "width": 80,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    pointerEvents="none"
+                                    style={
+                                      {
+                                        "backgroundColor": "#686e7d",
+                                        "borderRadius": 4,
+                                        "bottom": 0,
+                                        "left": 0,
+                                        "opacity": 0.2,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  />
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "height": 6,
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "borderRadius": 4,
+                                      "height": 16,
+                                      "overflow": "hidden",
+                                      "width": 60,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    pointerEvents="none"
+                                    style={
+                                      {
+                                        "backgroundColor": "#686e7d",
+                                        "borderRadius": 4,
+                                        "bottom": 0,
+                                        "left": 0,
+                                        "opacity": 0.2,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        disabled={true}
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "borderRadius": 4,
+                            "opacity": 0.5,
+                            "position": "relative",
+                          }
+                        }
+                      >
+                        <View
+                          accessibilityRole="none"
+                          accessible={true}
+                          style={
+                            {
+                              "padding": 16,
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
+                              testID="listitemcolumn"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "borderRadius": 4,
+                                    "height": 18,
+                                    "overflow": "hidden",
+                                    "width": 120,
+                                  }
+                                }
+                              >
+                                <View
+                                  collapsable={false}
+                                  pointerEvents="none"
+                                  style={
+                                    {
+                                      "backgroundColor": "#686e7d",
+                                      "borderRadius": 4,
+                                      "bottom": 0,
+                                      "left": 0,
+                                      "opacity": 0.2,
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                    }
+                                  }
+                                />
+                              </View>
+                            </View>
+                            <View
+                              accessible={false}
+                              style={
+                                {
+                                  "width": 16,
+                                }
+                              }
+                              testID="listitem-gap"
+                            />
+                            <View
+                              style={
+                                {
+                                  "flex": -1,
+                                }
+                              }
+                              testID="listitemcolumn"
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "flex-end",
+                                      "display": "flex",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "borderRadius": 4,
+                                      "height": 16,
+                                      "overflow": "hidden",
+                                      "width": 80,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    pointerEvents="none"
+                                    style={
+                                      {
+                                        "backgroundColor": "#686e7d",
+                                        "borderRadius": 4,
+                                        "bottom": 0,
+                                        "left": 0,
+                                        "opacity": 0.2,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  />
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "height": 6,
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "borderRadius": 4,
+                                      "height": 16,
+                                      "overflow": "hidden",
+                                      "width": 60,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    pointerEvents="none"
+                                    style={
+                                      {
+                                        "backgroundColor": "#686e7d",
+                                        "borderRadius": 4,
+                                        "bottom": 0,
+                                        "left": 0,
+                                        "opacity": 0.2,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        disabled={true}
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "borderRadius": 4,
+                            "opacity": 0.5,
+                            "position": "relative",
+                          }
+                        }
+                      >
+                        <View
+                          accessibilityRole="none"
+                          accessible={true}
+                          style={
+                            {
+                              "padding": 16,
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "flex": 1,
+                                }
+                              }
+                              testID="listitemcolumn"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "borderRadius": 4,
+                                    "height": 18,
+                                    "overflow": "hidden",
+                                    "width": 120,
+                                  }
+                                }
+                              >
+                                <View
+                                  collapsable={false}
+                                  pointerEvents="none"
+                                  style={
+                                    {
+                                      "backgroundColor": "#686e7d",
+                                      "borderRadius": 4,
+                                      "bottom": 0,
+                                      "left": 0,
+                                      "opacity": 0.2,
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                    }
+                                  }
+                                />
+                              </View>
+                            </View>
+                            <View
+                              accessible={false}
+                              style={
+                                {
+                                  "width": 16,
+                                }
+                              }
+                              testID="listitem-gap"
+                            />
+                            <View
+                              style={
+                                {
+                                  "flex": -1,
+                                }
+                              }
+                              testID="listitemcolumn"
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "flex-end",
+                                      "display": "flex",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "borderRadius": 4,
+                                      "height": 16,
+                                      "overflow": "hidden",
+                                      "width": 80,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    pointerEvents="none"
+                                    style={
+                                      {
+                                        "backgroundColor": "#686e7d",
+                                        "borderRadius": 4,
+                                        "bottom": 0,
+                                        "left": 0,
+                                        "opacity": 0.2,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  />
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "height": 6,
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "borderRadius": 4,
+                                      "height": 16,
+                                      "overflow": "hidden",
+                                      "width": 60,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    pointerEvents="none"
+                                    style={
+                                      {
+                                        "backgroundColor": "#686e7d",
+                                        "borderRadius": 4,
+                                        "bottom": 0,
+                                        "left": 0,
+                                        "opacity": 0.2,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </View>
@@ -1902,18 +2478,21 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                         data={
                           [
                             {
-                              "description": "Test provider",
-                              "environmentType": "PRODUCTION",
-                              "hqAddress": "Test Address",
-                              "id": "/providers/transak",
-                              "links": [],
-                              "logos": {
-                                "dark": "https://example.com/logo-dark.png",
-                                "height": 24,
-                                "light": "https://example.com/logo-light.png",
-                                "width": 90,
+                              "provider": {
+                                "description": "Test provider",
+                                "environmentType": "PRODUCTION",
+                                "hqAddress": "Test Address",
+                                "id": "/providers/transak",
+                                "links": [],
+                                "logos": {
+                                  "dark": "https://example.com/logo-dark.png",
+                                  "height": 24,
+                                  "light": "https://example.com/logo-light.png",
+                                  "width": 90,
+                                },
+                                "name": "Transak",
                               },
-                              "name": "Transak",
+                              "type": "provider",
                             },
                           ]
                         }
@@ -1994,13 +2573,17 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 18,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 18,
+                                            "fontWeight": 500,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
                                       }
                                     >
                                       Transak
