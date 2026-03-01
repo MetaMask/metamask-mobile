@@ -16,10 +16,10 @@ const STATE_MOCK = merge(
 
 function runHook({
   type,
-  postQuoteFlags,
+  predictWithdrawAnyToken = false,
 }: {
   type?: TransactionType;
-  postQuoteFlags?: Record<string, unknown>;
+  predictWithdrawAnyToken?: boolean;
 } = {}) {
   const mockState = cloneDeep(STATE_MOCK);
 
@@ -31,11 +31,11 @@ function runHook({
   mockState.engine.backgroundState.RemoteFeatureFlagController = {
     ...mockState.engine.backgroundState.RemoteFeatureFlagController,
     remoteFeatureFlags: {
-      confirmations_pay_post_quote: postQuoteFlags ?? {
-        default: { enabled: false },
+      confirmations_pay: {
+        predictWithdrawAnyToken,
       },
     },
-  } as never;
+  };
 
   return renderHookWithProvider(useTransactionPayWithdraw, {
     state: mockState,
@@ -43,6 +43,17 @@ function runHook({
 }
 
 describe('useTransactionPayWithdraw', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+    delete process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN;
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
+  });
+
   describe('isWithdraw', () => {
     it('returns false for non-withdraw transaction types', () => {
       const { result } = runHook({ type: TransactionType.simpleSend });
@@ -57,72 +68,44 @@ describe('useTransactionPayWithdraw', () => {
 
   describe('canSelectWithdrawToken', () => {
     it('returns false for non-withdraw transactions regardless of flags', () => {
+      process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN = 'true';
       const { result } = runHook({
         type: TransactionType.simpleSend,
-        postQuoteFlags: {
-          default: { enabled: true },
-        },
+        predictWithdrawAnyToken: true,
       });
       expect(result.current.canSelectWithdrawToken).toBe(false);
     });
 
-    it('returns false when feature flag is disabled', () => {
+    it('returns false when both env var and feature flag are disabled', () => {
       const { result } = runHook({
         type: TransactionType.predictWithdraw,
-        postQuoteFlags: {
-          default: { enabled: false },
-        },
+        predictWithdrawAnyToken: false,
       });
       expect(result.current.canSelectWithdrawToken).toBe(false);
     });
 
-    it('returns true when feature flag is enabled', () => {
+    it('returns false when only feature flag is enabled', () => {
       const { result } = runHook({
         type: TransactionType.predictWithdraw,
-        postQuoteFlags: {
-          default: { enabled: true },
-        },
-      });
-      expect(result.current.canSelectWithdrawToken).toBe(true);
-    });
-
-    it('uses override config when override key matches transaction type', () => {
-      const { result } = runHook({
-        type: TransactionType.predictWithdraw,
-        postQuoteFlags: {
-          default: { enabled: false },
-          overrides: {
-            predictWithdraw: { enabled: true },
-          },
-        },
-      });
-      expect(result.current.canSelectWithdrawToken).toBe(true);
-    });
-
-    it('override disabled takes precedence over default enabled', () => {
-      const { result } = runHook({
-        type: TransactionType.predictWithdraw,
-        postQuoteFlags: {
-          default: { enabled: true },
-          overrides: {
-            predictWithdraw: { enabled: false },
-          },
-        },
+        predictWithdrawAnyToken: true,
       });
       expect(result.current.canSelectWithdrawToken).toBe(false);
     });
 
-    it('inherits enabled from default when override omits enabled', () => {
+    it('returns false when only env var is enabled', () => {
+      process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN = 'true';
       const { result } = runHook({
         type: TransactionType.predictWithdraw,
-        postQuoteFlags: {
-          default: { enabled: true },
-          overrides: {
-            predictWithdraw: {
-              tokens: { '0x1': ['0xaaa'] },
-            },
-          },
-        },
+        predictWithdrawAnyToken: false,
+      });
+      expect(result.current.canSelectWithdrawToken).toBe(false);
+    });
+
+    it('returns true when both env var and feature flag are enabled', () => {
+      process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN = 'true';
+      const { result } = runHook({
+        type: TransactionType.predictWithdraw,
+        predictWithdrawAnyToken: true,
       });
       expect(result.current.canSelectWithdrawToken).toBe(true);
     });

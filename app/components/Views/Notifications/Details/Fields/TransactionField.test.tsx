@@ -2,14 +2,14 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import TransactionField from './TransactionField';
-import * as useAnalyticsModule from '../../../../hooks/useAnalytics/useAnalytics';
+import * as useMetricsModule from '../../../../hooks/useMetrics';
 import * as useCopyClipboardModule from '../hooks/useCopyClipboard';
 import { ModalFieldType } from '../../../../../util/notifications';
 import MOCK_NOTIFICATIONS from '../../../../UI/Notification/__mocks__/mock_notifications';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 
 // Mock the required modules
-jest.mock('../../../../hooks/useAnalytics/useAnalytics');
+jest.mock('../../../../hooks/useMetrics');
 jest.mock('../hooks/useCopyClipboard');
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -29,10 +29,10 @@ describe('TransactionField', () => {
   const mockCopyToClipboard = jest.fn();
 
   beforeEach(() => {
-    jest.spyOn(useAnalyticsModule, 'useAnalytics').mockReturnValue({
+    jest.spyOn(useMetricsModule, 'useMetrics').mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as unknown as ReturnType<typeof useAnalyticsModule.useAnalytics>);
+    } as unknown as useMetricsModule.IUseMetricsHook);
     jest
       .spyOn(useCopyClipboardModule, 'default')
       .mockReturnValue(mockCopyToClipboard);

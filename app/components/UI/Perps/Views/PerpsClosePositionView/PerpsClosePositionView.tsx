@@ -1,6 +1,7 @@
 import {
   useNavigation,
   useRoute,
+  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, {
@@ -83,7 +84,7 @@ import PerpsCloseSummary from '../../components/PerpsCloseSummary';
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
   const { position } = route.params as { position: Position };

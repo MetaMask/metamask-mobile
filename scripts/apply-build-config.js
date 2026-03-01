@@ -4,8 +4,10 @@
  * Runs at workflow runtime (during the "Apply build config" step).
  *
  * Exports: env, code_fencing, remote_feature_flags. Does NOT handle secrets
- * (those are injected by the "Set secrets" step via set-secrets-from-config.js,
- * which reads all secrets via toJSON(secrets) — no explicit per-secret list needed).
+ * (those are injected by the "Set secrets" step via set-secrets-from-config.js).
+ *
+ * See scripts/generate-build-workflow-secrets-env.js for the maintenance script
+ * that regenerates the "Set secrets" env block in build.yml from builds.yml.
  *
  * Usage:
  *   node scripts/apply-build-config.js main-prod

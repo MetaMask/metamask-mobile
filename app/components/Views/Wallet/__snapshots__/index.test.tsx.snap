@@ -159,55 +159,8 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                       }
                     >
                       <View
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": undefined,
-                          }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
-                          }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 12,
-                            "left": 12,
-                            "right": 12,
-                            "top": 12,
-                          }
-                        }
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
                         style={
                           [
-                            {
-                              "alignItems": "center",
-                              "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "height": 32,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "width": 32,
-                            },
-                            undefined,
                             {
                               "transform": [
                                 {
@@ -215,77 +168,88 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                                 },
                               ],
                             },
+                            {
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                            },
                           ]
                         }
-                        testID="wallet-account-copy-button"
                       >
-                        <SvgMock
-                          fill="currentColor"
-                          name="Copy"
+                        <View
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          hitSlop={
+                            {
+                              "bottom": 12,
+                              "left": 12,
+                              "right": 12,
+                              "top": 12,
+                            }
+                          }
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
                           style={
                             [
                               {
-                                "color": "#121314",
-                                "height": 24,
-                                "width": 24,
+                                "alignItems": "center",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 8,
+                                "height": 32,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 32,
                               },
                               undefined,
                             ]
                           }
-                        />
+                          testID="wallet-account-copy-button"
+                        >
+                          <SvgMock
+                            fill="currentColor"
+                            name="Copy"
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "height": 24,
+                                  "width": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                        </View>
                       </View>
                     </View>
                   </View>
                   <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    hitSlop={
-                      {
-                        "bottom": 12,
-                        "left": 12,
-                        "right": 12,
-                        "top": 12,
-                      }
-                    }
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
                     style={
                       [
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 8,
-                          "height": 32,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 32,
-                        },
-                        undefined,
                         {
                           "transform": [
                             {
@@ -293,24 +257,82 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                             },
                           ],
                         },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
                       ]
                     }
-                    testID="wallet-scan-button"
                   >
-                    <SvgMock
-                      fill="currentColor"
-                      name="QrCode"
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         [
                           {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 8,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 32,
                           },
                           undefined,
                         ]
                       }
-                    />
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
+                    </View>
                   </View>
                   <View
                     style={
@@ -327,55 +349,8 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                       onLayout={[Function]}
                     >
                       <View
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": undefined,
-                          }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
-                          }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 12,
-                            "left": 12,
-                            "right": 12,
-                            "top": 12,
-                          }
-                        }
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
                         style={
                           [
-                            {
-                              "alignItems": "center",
-                              "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "height": 32,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "width": 32,
-                            },
-                            undefined,
                             {
                               "transform": [
                                 {
@@ -383,24 +358,82 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                                 },
                               ],
                             },
+                            {
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                            },
                           ]
                         }
-                        testID="wallet-notifications-button"
                       >
-                        <SvgMock
-                          fill="currentColor"
-                          name="Notification"
+                        <View
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          hitSlop={
+                            {
+                              "bottom": 12,
+                              "left": 12,
+                              "right": 12,
+                              "top": 12,
+                            }
+                          }
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
                           style={
                             [
                               {
-                                "color": "#121314",
-                                "height": 24,
-                                "width": 24,
+                                "alignItems": "center",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 8,
+                                "height": 32,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 32,
                               },
                               undefined,
                             ]
                           }
-                        />
+                          testID="wallet-notifications-button"
+                        >
+                          <SvgMock
+                            fill="currentColor"
+                            name="Notification"
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "height": 24,
+                                  "width": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                        </View>
                       </View>
                     </View>
                     <View
@@ -419,55 +452,8 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                     />
                   </View>
                   <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    hitSlop={
-                      {
-                        "bottom": 12,
-                        "left": 12,
-                        "right": 12,
-                        "top": 12,
-                      }
-                    }
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
                     style={
                       [
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 8,
-                          "height": 32,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 32,
-                        },
-                        undefined,
                         {
                           "transform": [
                             {
@@ -475,24 +461,82 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                             },
                           ],
                         },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
                       ]
                     }
-                    testID="navbar-hamburger-menu-button"
                   >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Menu"
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         [
                           {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 8,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 32,
                           },
                           undefined,
                         ]
                       }
-                    />
+                      testID="navbar-hamburger-menu-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Menu"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
+                    </View>
                   </View>
                 </View>
               </View>
@@ -1294,55 +1338,8 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                       }
                     >
                       <View
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": undefined,
-                          }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
-                          }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 12,
-                            "left": 12,
-                            "right": 12,
-                            "top": 12,
-                          }
-                        }
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
                         style={
                           [
-                            {
-                              "alignItems": "center",
-                              "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "height": 32,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "width": 32,
-                            },
-                            undefined,
                             {
                               "transform": [
                                 {
@@ -1350,77 +1347,88 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                                 },
                               ],
                             },
+                            {
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                            },
                           ]
                         }
-                        testID="wallet-account-copy-button"
                       >
-                        <SvgMock
-                          fill="currentColor"
-                          name="Copy"
+                        <View
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          hitSlop={
+                            {
+                              "bottom": 12,
+                              "left": 12,
+                              "right": 12,
+                              "top": 12,
+                            }
+                          }
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
                           style={
                             [
                               {
-                                "color": "#121314",
-                                "height": 24,
-                                "width": 24,
+                                "alignItems": "center",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 8,
+                                "height": 32,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 32,
                               },
                               undefined,
                             ]
                           }
-                        />
+                          testID="wallet-account-copy-button"
+                        >
+                          <SvgMock
+                            fill="currentColor"
+                            name="Copy"
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "height": 24,
+                                  "width": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                        </View>
                       </View>
                     </View>
                   </View>
                   <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    hitSlop={
-                      {
-                        "bottom": 12,
-                        "left": 12,
-                        "right": 12,
-                        "top": 12,
-                      }
-                    }
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
                     style={
                       [
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 8,
-                          "height": 32,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 32,
-                        },
-                        undefined,
                         {
                           "transform": [
                             {
@@ -1428,24 +1436,82 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                             },
                           ],
                         },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
                       ]
                     }
-                    testID="wallet-scan-button"
                   >
-                    <SvgMock
-                      fill="currentColor"
-                      name="QrCode"
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         [
                           {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 8,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 32,
                           },
                           undefined,
                         ]
                       }
-                    />
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
+                    </View>
                   </View>
                   <View
                     style={
@@ -1462,55 +1528,8 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                       onLayout={[Function]}
                     >
                       <View
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": undefined,
-                          }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
-                          }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 12,
-                            "left": 12,
-                            "right": 12,
-                            "top": 12,
-                          }
-                        }
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
                         style={
                           [
-                            {
-                              "alignItems": "center",
-                              "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "height": 32,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "width": 32,
-                            },
-                            undefined,
                             {
                               "transform": [
                                 {
@@ -1518,24 +1537,82 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                                 },
                               ],
                             },
+                            {
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                            },
                           ]
                         }
-                        testID="wallet-notifications-button"
                       >
-                        <SvgMock
-                          fill="currentColor"
-                          name="Notification"
+                        <View
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          hitSlop={
+                            {
+                              "bottom": 12,
+                              "left": 12,
+                              "right": 12,
+                              "top": 12,
+                            }
+                          }
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
                           style={
                             [
                               {
-                                "color": "#121314",
-                                "height": 24,
-                                "width": 24,
+                                "alignItems": "center",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 8,
+                                "height": 32,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 32,
                               },
                               undefined,
                             ]
                           }
-                        />
+                          testID="wallet-notifications-button"
+                        >
+                          <SvgMock
+                            fill="currentColor"
+                            name="Notification"
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "height": 24,
+                                  "width": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                        </View>
                       </View>
                     </View>
                     <View
@@ -1554,55 +1631,8 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                     />
                   </View>
                   <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    hitSlop={
-                      {
-                        "bottom": 12,
-                        "left": 12,
-                        "right": 12,
-                        "top": 12,
-                      }
-                    }
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
                     style={
                       [
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 8,
-                          "height": 32,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 32,
-                        },
-                        undefined,
                         {
                           "transform": [
                             {
@@ -1610,24 +1640,82 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                             },
                           ],
                         },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
                       ]
                     }
-                    testID="navbar-hamburger-menu-button"
                   >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Menu"
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         [
                           {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 8,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 32,
                           },
                           undefined,
                         ]
                       }
-                    />
+                      testID="navbar-hamburger-menu-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Menu"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
+                    </View>
                   </View>
                 </View>
               </View>
@@ -2429,55 +2517,8 @@ exports[`Wallet should render correctly 1`] = `
                       }
                     >
                       <View
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": undefined,
-                          }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
-                          }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 12,
-                            "left": 12,
-                            "right": 12,
-                            "top": 12,
-                          }
-                        }
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
                         style={
                           [
-                            {
-                              "alignItems": "center",
-                              "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "height": 32,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "width": 32,
-                            },
-                            undefined,
                             {
                               "transform": [
                                 {
@@ -2485,77 +2526,88 @@ exports[`Wallet should render correctly 1`] = `
                                 },
                               ],
                             },
+                            {
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                            },
                           ]
                         }
-                        testID="wallet-account-copy-button"
                       >
-                        <SvgMock
-                          fill="currentColor"
-                          name="Copy"
+                        <View
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          hitSlop={
+                            {
+                              "bottom": 12,
+                              "left": 12,
+                              "right": 12,
+                              "top": 12,
+                            }
+                          }
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
                           style={
                             [
                               {
-                                "color": "#121314",
-                                "height": 24,
-                                "width": 24,
+                                "alignItems": "center",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 8,
+                                "height": 32,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 32,
                               },
                               undefined,
                             ]
                           }
-                        />
+                          testID="wallet-account-copy-button"
+                        >
+                          <SvgMock
+                            fill="currentColor"
+                            name="Copy"
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "height": 24,
+                                  "width": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                        </View>
                       </View>
                     </View>
                   </View>
                   <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    hitSlop={
-                      {
-                        "bottom": 12,
-                        "left": 12,
-                        "right": 12,
-                        "top": 12,
-                      }
-                    }
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
                     style={
                       [
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 8,
-                          "height": 32,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 32,
-                        },
-                        undefined,
                         {
                           "transform": [
                             {
@@ -2563,24 +2615,82 @@ exports[`Wallet should render correctly 1`] = `
                             },
                           ],
                         },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
                       ]
                     }
-                    testID="wallet-scan-button"
                   >
-                    <SvgMock
-                      fill="currentColor"
-                      name="QrCode"
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         [
                           {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 8,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 32,
                           },
                           undefined,
                         ]
                       }
-                    />
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
+                    </View>
                   </View>
                   <View
                     style={
@@ -2597,55 +2707,8 @@ exports[`Wallet should render correctly 1`] = `
                       onLayout={[Function]}
                     >
                       <View
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": undefined,
-                          }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
-                          }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 12,
-                            "left": 12,
-                            "right": 12,
-                            "top": 12,
-                          }
-                        }
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
                         style={
                           [
-                            {
-                              "alignItems": "center",
-                              "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "height": 32,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "width": 32,
-                            },
-                            undefined,
                             {
                               "transform": [
                                 {
@@ -2653,24 +2716,82 @@ exports[`Wallet should render correctly 1`] = `
                                 },
                               ],
                             },
+                            {
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                            },
                           ]
                         }
-                        testID="wallet-notifications-button"
                       >
-                        <SvgMock
-                          fill="currentColor"
-                          name="Notification"
+                        <View
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          hitSlop={
+                            {
+                              "bottom": 12,
+                              "left": 12,
+                              "right": 12,
+                              "top": 12,
+                            }
+                          }
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
                           style={
                             [
                               {
-                                "color": "#121314",
-                                "height": 24,
-                                "width": 24,
+                                "alignItems": "center",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 8,
+                                "height": 32,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 32,
                               },
                               undefined,
                             ]
                           }
-                        />
+                          testID="wallet-notifications-button"
+                        >
+                          <SvgMock
+                            fill="currentColor"
+                            name="Notification"
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "height": 24,
+                                  "width": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                        </View>
                       </View>
                     </View>
                     <View
@@ -2689,55 +2810,8 @@ exports[`Wallet should render correctly 1`] = `
                     />
                   </View>
                   <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    hitSlop={
-                      {
-                        "bottom": 12,
-                        "left": 12,
-                        "right": 12,
-                        "top": 12,
-                      }
-                    }
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
                     style={
                       [
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 8,
-                          "height": 32,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 32,
-                        },
-                        undefined,
                         {
                           "transform": [
                             {
@@ -2745,24 +2819,82 @@ exports[`Wallet should render correctly 1`] = `
                             },
                           ],
                         },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
                       ]
                     }
-                    testID="navbar-hamburger-menu-button"
                   >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Menu"
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         [
                           {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 8,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 32,
                           },
                           undefined,
                         ]
                       }
-                    />
+                      testID="navbar-hamburger-menu-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Menu"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
+                    </View>
                   </View>
                 </View>
               </View>
@@ -3564,55 +3696,8 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                       }
                     >
                       <View
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": undefined,
-                          }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
-                          }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 12,
-                            "left": 12,
-                            "right": 12,
-                            "top": 12,
-                          }
-                        }
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
                         style={
                           [
-                            {
-                              "alignItems": "center",
-                              "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "height": 32,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "width": 32,
-                            },
-                            undefined,
                             {
                               "transform": [
                                 {
@@ -3620,77 +3705,88 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                                 },
                               ],
                             },
+                            {
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                            },
                           ]
                         }
-                        testID="wallet-account-copy-button"
                       >
-                        <SvgMock
-                          fill="currentColor"
-                          name="Copy"
+                        <View
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          hitSlop={
+                            {
+                              "bottom": 12,
+                              "left": 12,
+                              "right": 12,
+                              "top": 12,
+                            }
+                          }
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
                           style={
                             [
                               {
-                                "color": "#121314",
-                                "height": 24,
-                                "width": 24,
+                                "alignItems": "center",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 8,
+                                "height": 32,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 32,
                               },
                               undefined,
                             ]
                           }
-                        />
+                          testID="wallet-account-copy-button"
+                        >
+                          <SvgMock
+                            fill="currentColor"
+                            name="Copy"
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "height": 24,
+                                  "width": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                        </View>
                       </View>
                     </View>
                   </View>
                   <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    hitSlop={
-                      {
-                        "bottom": 12,
-                        "left": 12,
-                        "right": 12,
-                        "top": 12,
-                      }
-                    }
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
                     style={
                       [
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 8,
-                          "height": 32,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 32,
-                        },
-                        undefined,
                         {
                           "transform": [
                             {
@@ -3698,24 +3794,82 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             },
                           ],
                         },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
                       ]
                     }
-                    testID="wallet-scan-button"
                   >
-                    <SvgMock
-                      fill="currentColor"
-                      name="QrCode"
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         [
                           {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 8,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 32,
                           },
                           undefined,
                         ]
                       }
-                    />
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
+                    </View>
                   </View>
                   <View
                     style={
@@ -3732,55 +3886,8 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                       onLayout={[Function]}
                     >
                       <View
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": undefined,
-                          }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
-                          }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 12,
-                            "left": 12,
-                            "right": 12,
-                            "top": 12,
-                          }
-                        }
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
                         style={
                           [
-                            {
-                              "alignItems": "center",
-                              "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "height": 32,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "width": 32,
-                            },
-                            undefined,
                             {
                               "transform": [
                                 {
@@ -3788,24 +3895,82 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                                 },
                               ],
                             },
+                            {
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                            },
                           ]
                         }
-                        testID="wallet-notifications-button"
                       >
-                        <SvgMock
-                          fill="currentColor"
-                          name="Notification"
+                        <View
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          hitSlop={
+                            {
+                              "bottom": 12,
+                              "left": 12,
+                              "right": 12,
+                              "top": 12,
+                            }
+                          }
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
                           style={
                             [
                               {
-                                "color": "#121314",
-                                "height": 24,
-                                "width": 24,
+                                "alignItems": "center",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 8,
+                                "height": 32,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 32,
                               },
                               undefined,
                             ]
                           }
-                        />
+                          testID="wallet-notifications-button"
+                        >
+                          <SvgMock
+                            fill="currentColor"
+                            name="Notification"
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "height": 24,
+                                  "width": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                        </View>
                       </View>
                     </View>
                     <View
@@ -3824,55 +3989,8 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                     />
                   </View>
                   <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    hitSlop={
-                      {
-                        "bottom": 12,
-                        "left": 12,
-                        "right": 12,
-                        "top": 12,
-                      }
-                    }
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
                     style={
                       [
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 8,
-                          "height": 32,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 32,
-                        },
-                        undefined,
                         {
                           "transform": [
                             {
@@ -3880,24 +3998,82 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             },
                           ],
                         },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
                       ]
                     }
-                    testID="navbar-hamburger-menu-button"
                   >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Menu"
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         [
                           {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 8,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 32,
                           },
                           undefined,
                         ]
                       }
-                    />
+                      testID="navbar-hamburger-menu-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Menu"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
+                    </View>
                   </View>
                 </View>
               </View>
@@ -4699,55 +4875,8 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                       }
                     >
                       <View
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": undefined,
-                          }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
-                          }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 12,
-                            "left": 12,
-                            "right": 12,
-                            "top": 12,
-                          }
-                        }
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
                         style={
                           [
-                            {
-                              "alignItems": "center",
-                              "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "height": 32,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "width": 32,
-                            },
-                            undefined,
                             {
                               "transform": [
                                 {
@@ -4755,77 +4884,88 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                                 },
                               ],
                             },
+                            {
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                            },
                           ]
                         }
-                        testID="wallet-account-copy-button"
                       >
-                        <SvgMock
-                          fill="currentColor"
-                          name="Copy"
+                        <View
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          hitSlop={
+                            {
+                              "bottom": 12,
+                              "left": 12,
+                              "right": 12,
+                              "top": 12,
+                            }
+                          }
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
                           style={
                             [
                               {
-                                "color": "#121314",
-                                "height": 24,
-                                "width": 24,
+                                "alignItems": "center",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 8,
+                                "height": 32,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 32,
                               },
                               undefined,
                             ]
                           }
-                        />
+                          testID="wallet-account-copy-button"
+                        >
+                          <SvgMock
+                            fill="currentColor"
+                            name="Copy"
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "height": 24,
+                                  "width": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                        </View>
                       </View>
                     </View>
                   </View>
                   <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    hitSlop={
-                      {
-                        "bottom": 12,
-                        "left": 12,
-                        "right": 12,
-                        "top": 12,
-                      }
-                    }
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
                     style={
                       [
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 8,
-                          "height": 32,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 32,
-                        },
-                        undefined,
                         {
                           "transform": [
                             {
@@ -4833,24 +4973,82 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             },
                           ],
                         },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
                       ]
                     }
-                    testID="wallet-scan-button"
                   >
-                    <SvgMock
-                      fill="currentColor"
-                      name="QrCode"
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         [
                           {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 8,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 32,
                           },
                           undefined,
                         ]
                       }
-                    />
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
+                    </View>
                   </View>
                   <View
                     style={
@@ -4867,55 +5065,8 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                       onLayout={[Function]}
                     >
                       <View
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": undefined,
-                          }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
-                          }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 12,
-                            "left": 12,
-                            "right": 12,
-                            "top": 12,
-                          }
-                        }
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
                         style={
                           [
-                            {
-                              "alignItems": "center",
-                              "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "height": 32,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "width": 32,
-                            },
-                            undefined,
                             {
                               "transform": [
                                 {
@@ -4923,24 +5074,82 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                                 },
                               ],
                             },
+                            {
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                            },
                           ]
                         }
-                        testID="wallet-notifications-button"
                       >
-                        <SvgMock
-                          fill="currentColor"
-                          name="Notification"
+                        <View
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          hitSlop={
+                            {
+                              "bottom": 12,
+                              "left": 12,
+                              "right": 12,
+                              "top": 12,
+                            }
+                          }
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
                           style={
                             [
                               {
-                                "color": "#121314",
-                                "height": 24,
-                                "width": 24,
+                                "alignItems": "center",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 8,
+                                "height": 32,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 32,
                               },
                               undefined,
                             ]
                           }
-                        />
+                          testID="wallet-notifications-button"
+                        >
+                          <SvgMock
+                            fill="currentColor"
+                            name="Notification"
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "height": 24,
+                                  "width": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                        </View>
                       </View>
                     </View>
                     <View
@@ -4959,55 +5168,8 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                     />
                   </View>
                   <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    hitSlop={
-                      {
-                        "bottom": 12,
-                        "left": 12,
-                        "right": 12,
-                        "top": 12,
-                      }
-                    }
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
                     style={
                       [
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 8,
-                          "height": 32,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 32,
-                        },
-                        undefined,
                         {
                           "transform": [
                             {
@@ -5015,24 +5177,82 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             },
                           ],
                         },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
                       ]
                     }
-                    testID="navbar-hamburger-menu-button"
                   >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Menu"
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         [
                           {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 8,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 32,
                           },
                           undefined,
                         ]
                       }
-                    />
+                      testID="navbar-hamburger-menu-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Menu"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
+                    </View>
                   </View>
                 </View>
               </View>

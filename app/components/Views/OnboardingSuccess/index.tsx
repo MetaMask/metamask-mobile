@@ -14,7 +14,7 @@ import {
 import {
   CommonActions,
   useNavigation,
-  RouteProp,
+  useRoute,
 } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -32,19 +32,6 @@ export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
   routes: [{ name: 'HomeNav' }],
 });
-
-interface OnboardingSuccessRouteParams {
-  successFlow?: ONBOARDING_SUCCESS_FLOW;
-}
-
-interface OnboardingSuccessParamList {
-  OnboardingSuccess: OnboardingSuccessRouteParams;
-  [key: string]: object | undefined;
-}
-
-interface OnboardingSuccessScreenProps {
-  route: RouteProp<OnboardingSuccessParamList, 'OnboardingSuccess'>;
-}
 
 interface OnboardingSuccessProps {
   onDone: () => void;
@@ -144,10 +131,12 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   );
 };
 
-export const OnboardingSuccess = ({ route }: OnboardingSuccessScreenProps) => {
+export const OnboardingSuccess = () => {
   const navigation = useNavigation();
-  const successFlow =
-    route?.params?.successFlow ?? ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP;
+  const route = useRoute();
+  const params = route.params as { successFlow: ONBOARDING_SUCCESS_FLOW };
+
+  const successFlow = params?.successFlow;
   const nextScreen = ResetNavigationToHome;
 
   return (

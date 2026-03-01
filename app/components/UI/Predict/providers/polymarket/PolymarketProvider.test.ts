@@ -55,7 +55,6 @@ import {
   encodeClaim,
   getBalance,
   getContractConfig,
-  getFeeRateBps,
   getL2Headers,
   getMarketDetailsFromGammaApi,
   getOrderTypedData,
@@ -97,7 +96,6 @@ jest.mock('./utils', () => {
     encodeErc1155Approve: jest.fn(),
     getContractConfig: jest.fn(),
     getL2Headers: jest.fn(),
-    getFeeRateBps: jest.fn(),
     getOrderBook: jest.fn(),
     getOrderTypedData: jest.fn(),
     parsePolymarketEvents: jest.fn(),
@@ -198,7 +196,6 @@ const mockGetMarketsFromPolymarketApi =
 const mockGetMarketDetailsFromGammaApi =
   getMarketDetailsFromGammaApi as jest.Mock;
 const mockGetContractConfig = getContractConfig as jest.Mock;
-const mockGetFeeRateBps = getFeeRateBps as jest.Mock;
 const mockGetL2Headers = getL2Headers as jest.Mock;
 const mockGetOrderTypedData = getOrderTypedData as jest.Mock;
 const mockParsePolymarketEvents = parsePolymarketEvents as jest.Mock;
@@ -797,7 +794,6 @@ describe('PolymarketProvider', () => {
       tickSize: 0.01,
       minOrderSize: 0.01,
       negRisk: false,
-      feeRateBps: '0',
       fees: {
         metamaskFee: 0.02,
         providerFee: 0.02,
@@ -898,8 +894,6 @@ describe('PolymarketProvider', () => {
       },
       error: undefined,
     });
-
-    mockGetFeeRateBps.mockResolvedValue('0');
 
     return {
       provider,
@@ -1269,48 +1263,6 @@ describe('PolymarketProvider', () => {
       expect(mockGetOrderTypedData).toHaveBeenCalledWith(
         expect.objectContaining({
           verifyingContract: '0x1234567890123456789012345678901234567890',
-        }),
-      );
-    });
-
-    it('uses preview feeRateBps when creating signed order', async () => {
-      const { provider, mockSigner } = setupPlaceOrderTest();
-      const preview = createMockOrderPreview({
-        side: Side.BUY,
-        feeRateBps: '30',
-      });
-
-      await provider.placeOrder({
-        signer: mockSigner,
-        preview,
-      });
-
-      expect(mockGetOrderTypedData).toHaveBeenCalledWith(
-        expect.objectContaining({
-          order: expect.objectContaining({
-            feeRateBps: '30',
-          }),
-        }),
-      );
-    });
-
-    it('uses zero feeRateBps when preview feeRateBps is missing', async () => {
-      const { provider, mockSigner } = setupPlaceOrderTest();
-      const preview = createMockOrderPreview({
-        side: Side.BUY,
-        feeRateBps: undefined,
-      });
-
-      await provider.placeOrder({
-        signer: mockSigner,
-        preview,
-      });
-
-      expect(mockGetOrderTypedData).toHaveBeenCalledWith(
-        expect.objectContaining({
-          order: expect.objectContaining({
-            feeRateBps: '0',
-          }),
         }),
       );
     });
