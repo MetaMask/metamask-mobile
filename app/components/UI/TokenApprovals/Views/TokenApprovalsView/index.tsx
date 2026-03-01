@@ -81,6 +81,16 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
   },
+  chainErrorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
 });
 
 const SKELETON_COUNT = 5;
@@ -89,8 +99,16 @@ const TokenApprovalsView: React.FC = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
 
-  const { approvals, filteredApprovals, isLoading, error, availableChains } =
-    useTokenApprovals();
+  const {
+    approvals,
+    filteredApprovals,
+    isLoading,
+    error,
+    chainErrors,
+    availableChains,
+  } = useTokenApprovals();
+
+  const failedChainCount = Object.keys(chainErrors).length;
 
   const {
     selectedChains,
@@ -180,6 +198,27 @@ const TokenApprovalsView: React.FC = () => {
         onRevokeAllRisky={handleRevokeAllRisky}
         isProcessing={false}
       />
+
+      {/* Partial data warning */}
+      {failedChainCount > 0 && (
+        <View
+          style={[
+            styles.chainErrorBanner,
+            { backgroundColor: colors.warning.muted },
+          ]}
+        >
+          <Icon
+            name={IconName.Warning}
+            size={IconSize.Sm}
+            color={IconColor.Warning}
+          />
+          <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
+            {failedChainCount === 1
+              ? 'Could not load approvals for 1 network. Data may be incomplete.'
+              : `Could not load approvals for ${failedChainCount} networks. Data may be incomplete.`}
+          </Text>
+        </View>
+      )}
 
       {/* Chain Filters */}
       <ChainFilterBar

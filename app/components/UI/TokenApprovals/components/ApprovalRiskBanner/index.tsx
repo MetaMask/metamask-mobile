@@ -16,6 +16,7 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
+import { formatUsd } from '../../utils/formatUsd';
 
 const styles = StyleSheet.create({
   container: {
@@ -72,7 +73,7 @@ const ApprovalRiskBanner: React.FC<ApprovalRiskBannerProps> = ({
       ? 'token_approvals.risk_banner_title'
       : 'token_approvals.risk_banner_title_plural';
 
-  const formattedExposure = `$${exposureUsd.toLocaleString()}`;
+  const formattedExposure = formatUsd(exposureUsd);
 
   return (
     <View

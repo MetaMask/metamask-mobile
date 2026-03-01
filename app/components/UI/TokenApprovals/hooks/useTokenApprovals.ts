@@ -5,6 +5,7 @@ import {
   setLoading,
   setError,
   setChainErrors,
+  resetTokenApprovals,
 } from '../../../../core/redux/slices/tokenApprovals';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { fetchAllApprovals } from '../api/fetchApprovals';
@@ -37,8 +38,8 @@ export function useTokenApprovals() {
       return;
     }
 
+    dispatch(resetTokenApprovals());
     dispatch(setLoading(true));
-    dispatch(setError(null));
 
     try {
       const result = await fetchAllApprovals(address);

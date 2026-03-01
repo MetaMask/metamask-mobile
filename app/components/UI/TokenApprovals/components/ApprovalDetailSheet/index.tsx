@@ -28,7 +28,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { selectApprovals } from '../../selectors';
 import { CHAIN_DISPLAY_NAMES } from '../../constants/chains';
 import { Verdict } from '../../types';
-import RiskBadge from '../RiskBadge';
+import { formatUsd } from '../../utils/formatUsd';
 import { useRevokeApproval } from '../../hooks/useRevokeApproval';
 
 const BLOCK_EXPLORER_URLS: Record<string, string> = {
@@ -157,6 +157,7 @@ const ApprovalDetailSheet: React.FC = () => {
   const explorerUrl = BLOCK_EXPLORER_URLS[approval.chainId];
   const isMalicious = approval.verdict === Verdict.Malicious;
   const isWarning = approval.verdict === Verdict.Warning;
+  const exposureUsd = Number(approval.exposure_usd) || 0;
 
   const handleViewExplorer = () => {
     if (explorerUrl) {
@@ -201,7 +202,6 @@ const ApprovalDetailSheet: React.FC = () => {
           >
             {approval.asset.name} ({approval.asset.symbol})
           </Text>
-          <RiskBadge verdict={approval.verdict} />
         </View>
 
         {/* Detail Card */}
@@ -265,7 +265,7 @@ const ApprovalDetailSheet: React.FC = () => {
         </View>
 
         {/* Exposure / Value at Risk - Highlighted separately */}
-        {approval.exposure_usd > 0 && (
+        {exposureUsd > 0 && (
           <View
             style={[
               styles.exposureRow,
@@ -276,7 +276,7 @@ const ApprovalDetailSheet: React.FC = () => {
               {strings('token_approvals.detail_exposure')}
             </Text>
             <Text variant={TextVariant.HeadingSM} color={TextColor.Error}>
-              ${approval.exposure_usd.toLocaleString()}
+              {formatUsd(exposureUsd)}
             </Text>
           </View>
         )}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import Skeleton from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 const styles = StyleSheet.create({
   container: {

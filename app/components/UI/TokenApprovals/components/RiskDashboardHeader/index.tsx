@@ -17,6 +17,7 @@ import Button, {
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { ApprovalItem, Verdict } from '../../types';
+import { formatUsd } from '../../utils/formatUsd';
 
 const styles = StyleSheet.create({
   container: {
@@ -136,13 +137,14 @@ const RiskDashboardHeader: React.FC<RiskDashboardHeaderProps> = ({
     let totalExposure = 0;
 
     for (const a of approvals) {
-      totalExposure += a.exposure_usd;
+      const exposureUsd = Number(a.exposure_usd) || 0;
+      totalExposure += exposureUsd;
       if (a.verdict === Verdict.Malicious) {
         maliciousCount++;
-        riskyExposure += a.exposure_usd;
+        riskyExposure += exposureUsd;
       } else if (a.verdict === Verdict.Warning) {
         warningCount++;
-        riskyExposure += a.exposure_usd;
+        riskyExposure += exposureUsd;
       } else {
         benignCount++;
       }
@@ -165,8 +167,7 @@ const RiskDashboardHeader: React.FC<RiskDashboardHeaderProps> = ({
     };
   }, [approvals]);
 
-  const formatUsd = (value: number) =>
-    `$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  // formatUsd imported from utils/formatUsd
 
   if (stats.total === 0) return null;
 

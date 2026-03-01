@@ -20,7 +20,7 @@ import { renderShortAddress } from '../../../../../util/address';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { strings } from '../../../../../../locales/i18n';
 import { ApprovalItem, RevocationStatus } from '../../types';
-import RiskBadge from '../RiskBadge';
+import { formatUsd } from '../../utils/formatUsd';
 
 const styles = StyleSheet.create({
   container: {
@@ -40,12 +40,13 @@ const styles = StyleSheet.create({
   },
   centerColumn: {
     flex: 1,
-    gap: 4,
+    gap: 2,
   },
-  nameRow: {
+  exposureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
+    marginTop: 2,
   },
   rightColumn: {
     alignItems: 'flex-end',
@@ -115,6 +116,8 @@ const ApprovalCard: React.FC<ApprovalCardProps> = ({
     ? { backgroundColor: colors.primary.muted }
     : undefined;
 
+  const exposureUsd = Number(approval.exposure_usd) || 0;
+
   return (
     <TouchableOpacity
       style={[styles.container, selectedStyle]}
@@ -158,26 +161,25 @@ const ApprovalCard: React.FC<ApprovalCardProps> = ({
         </BadgeWrapper>
       </View>
 
-      {/* Center: Token name + risk badge, spender */}
+      {/* Center: Token name, spender, value at risk */}
       <View style={styles.centerColumn}>
-        <View style={styles.nameRow}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {approval.asset.symbol}
-          </Text>
-          <RiskBadge verdict={approval.verdict} />
-        </View>
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          {approval.asset.symbol}
+        </Text>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {spenderLabel}
         </Text>
+        {exposureUsd > 0 && (
+          <View style={styles.exposureRow}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Warning}>
+              {formatUsd(exposureUsd)} at risk
+            </Text>
+          </View>
+        )}
       </View>
 
-      {/* Right: Value + Revoke button */}
+      {/* Right: Revoke button */}
       <View style={styles.rightColumn}>
-        {approval.exposure_usd > 0 && (
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            ${approval.exposure_usd.toLocaleString()}
-          </Text>
-        )}
         <Button
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Sm}
