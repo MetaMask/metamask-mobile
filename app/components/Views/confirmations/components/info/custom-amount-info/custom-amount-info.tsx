@@ -167,7 +167,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             overrideContent(amountHuman)
           ) : (
             <>
-              {disablePay !== true && !selectedFiatPaymentMethod && (
+              {disablePay !== true && (
                 <PayTokenAmount
                   amountHuman={amountHuman}
                   disabled={!hasTokens}

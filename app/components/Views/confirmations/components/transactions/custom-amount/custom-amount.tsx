@@ -11,7 +11,6 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
 } from '../../../hooks/pay/useTransactionPayData';
-import { useFiatPaymentCurrency } from '../../../hooks/pay/useFiatPaymentCurrency';
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -35,9 +34,8 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const isQuotesLoading = useIsTransactionPayLoading();
   const selectedCurrency = useSelector(selectCurrentCurrency);
-  const fiatPaymentCurrency = useFiatPaymentCurrency();
   const currency = currencyProp ?? selectedCurrency;
-  const fiatSymbol = getCurrencySymbol(fiatPaymentCurrency ?? currency);
+  const fiatSymbol = getCurrencySymbol(currency);
   const amountLength = amountFiat.length;
 
   const { styles } = useStyles(styleSheet, {
