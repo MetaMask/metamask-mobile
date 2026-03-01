@@ -3,7 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
 import TokenApprovalsView from '../Views/TokenApprovalsView';
 import ApprovalDetailSheet from '../components/ApprovalDetailSheet';
-import RevokeConfirmSheet from '../components/RevokeConfirmSheet';
+import BatchRevokeConfirmSheet from '../components/BatchRevokeConfirmSheet';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -34,8 +34,8 @@ const TokenApprovalsModalStack = () => (
       options={{ headerShown: false }}
     />
     <ModalStack.Screen
-      name={Routes.TOKEN_APPROVALS.MODALS.REVOKE_CONFIRM}
-      component={RevokeConfirmSheet}
+      name={Routes.TOKEN_APPROVALS.MODALS.BATCH_REVOKE_CONFIRM}
+      component={BatchRevokeConfirmSheet}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>

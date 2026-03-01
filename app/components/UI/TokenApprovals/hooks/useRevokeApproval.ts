@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import { useDispatch } from 'react-redux';
-import { Interface } from '@ethersproject/abi';
+import { useSelector, useDispatch } from 'react-redux';
+import { TransactionType } from '@metamask/transaction-controller';
 import { addTransaction } from '../../../../util/transaction-controller';
 import {
   setRevocationStatus,
@@ -8,52 +8,24 @@ import {
 } from '../../../../core/redux/slices/tokenApprovals';
 import { ApprovalItem, ApprovalAssetType } from '../types';
 import {
-  ERC20_APPROVE_ABI,
-  ERC721_SET_APPROVAL_FOR_ALL_ABI,
-} from '../constants/approvals';
+  buildRevokeTransactionData,
+  getNetworkClientIdForChain,
+} from '../utils/revokeTransaction';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 
-import Engine from '../../../../core/Engine';
-
-function buildRevokeTransactionData(approval: ApprovalItem): string {
+function getTransactionType(approval: ApprovalItem) {
   if (
     approval.asset.type === ApprovalAssetType.ERC721 ||
     approval.asset.type === ApprovalAssetType.ERC1155
   ) {
-    const iface = new Interface(ERC721_SET_APPROVAL_FOR_ALL_ABI);
-    return iface.encodeFunctionData('setApprovalForAll', [
-      approval.spender.address,
-      false,
-    ]);
+    return TransactionType.tokenMethodSetApprovalForAll;
   }
-
-  // ERC-20: approve(spender, 0)
-  const iface = new Interface(ERC20_APPROVE_ABI);
-  return iface.encodeFunctionData('approve', [approval.spender.address, 0]);
-}
-
-function getNetworkClientIdForChain(chainId: string): string | undefined {
-  const { NetworkController } = Engine.context;
-  const networkState = NetworkController.state;
-
-  // Find network client for the given chainId
-  for (const [clientId, config] of Object.entries(
-    networkState.networkConfigurationsByChainId ?? {},
-  )) {
-    if (clientId.toLowerCase() === chainId.toLowerCase()) {
-      const rpcEndpoints = (
-        config as { rpcEndpoints?: { networkClientId: string }[] }
-      ).rpcEndpoints;
-      if (rpcEndpoints?.[0]?.networkClientId) {
-        return rpcEndpoints[0].networkClientId;
-      }
-    }
-  }
-
-  return undefined;
+  return TransactionType.tokenMethodApprove;
 }
 
 export function useRevokeApproval() {
   const dispatch = useDispatch();
+  const address = useSelector(selectSelectedInternalAccountAddress);
 
   const revokeApproval = useCallback(
     async (approval: ApprovalItem) => {
@@ -70,7 +42,7 @@ export function useRevokeApproval() {
 
         const txParams = {
           to: approval.asset.address as `0x${string}`,
-          from: undefined, // Will use selected account
+          from: address as `0x${string}`,
           data: data as `0x${string}`,
           value: '0x0' as `0x${string}`,
         };
@@ -78,6 +50,7 @@ export function useRevokeApproval() {
         const result = await addTransaction(txParams, {
           networkClientId,
           origin: 'MetaMask',
+          type: getTransactionType(approval),
         });
 
         dispatch(
@@ -116,7 +89,7 @@ export function useRevokeApproval() {
         );
       }
     },
-    [dispatch],
+    [dispatch, address],
   );
 
   return { revokeApproval };

@@ -246,6 +246,27 @@ describe('Confirm Title', () => {
       ).toBeTruthy();
     });
 
+    it('renders revoke title for ERC20 while token details are still loading', () => {
+      mockUseGetTokenStandardAndDetails.mockReturnValue({
+        details: {
+          standard: TokenStandard.ERC20,
+          decimalsNumber: 0,
+        },
+        isPending: true,
+      } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
+
+      const { getByText } = renderWithProvider(<Title />, {
+        state: revokeERC20TransactionStateMock,
+      });
+
+      expect(getByText('Remove permission')).toBeTruthy();
+      expect(
+        getByText(
+          "You're removing someone's permission to spend tokens from your account.",
+        ),
+      ).toBeTruthy();
+    });
+
     it('renders correct title and subtitle for approve NFTs', () => {
       mockUseGetTokenStandardAndDetails.mockReturnValue({
         details: {

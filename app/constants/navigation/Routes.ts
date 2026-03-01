@@ -471,7 +471,7 @@ const Routes = {
     MODALS: {
       ROOT: 'TokenApprovalsModals',
       APPROVAL_DETAIL: 'ApprovalDetailSheet',
-      REVOKE_CONFIRM: 'RevokeConfirmSheet',
+      BATCH_REVOKE_CONFIRM: 'BatchRevokeConfirmSheet',
     },
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',

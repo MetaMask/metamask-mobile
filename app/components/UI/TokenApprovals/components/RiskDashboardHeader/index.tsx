@@ -237,7 +237,7 @@ const RiskDashboardHeader: React.FC<RiskDashboardHeaderProps> = ({
         </View>
 
         {/* Progress bar */}
-        <View style={styles.progressBarContainer}>
+        {/* <View style={styles.progressBarContainer}>
           <View
             style={[
               styles.progressBarTrack,
@@ -331,7 +331,7 @@ const RiskDashboardHeader: React.FC<RiskDashboardHeaderProps> = ({
               </View>
             </View>
           </View>
-        </View>
+        </View> */}
 
         {/* Stats row */}
         <View style={styles.statsRow}>

@@ -2965,7 +2965,13 @@
     "chain_error": "Failed to load approvals for {{chain}}",
     "wallet_banner_title": "Malicious approvals detected",
     "wallet_banner_description": "Review and revoke suspicious token approvals",
-    "wallet_banner_cta": "Review Approvals"
+    "wallet_banner_cta": "Review Approvals",
+    "batch_confirm_title": "Revoke {{count}} Approvals",
+    "batch_confirm_batched": "1 batch transaction",
+    "batch_confirm_sequential": "{{count}} individual transactions",
+    "batch_confirm_upgrade_title": "Account upgrade included",
+    "batch_confirm_upgrade_description": "Your account will be upgraded to a smart account on {{chains}} to enable batch transactions. This is a one-time upgrade per network.",
+    "batch_confirm_cta": "Confirm Revoke"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",

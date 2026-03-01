@@ -24,6 +24,7 @@ import { ApprovalItem, Verdict } from '../../types';
 import { useTokenApprovals } from '../../hooks/useTokenApprovals';
 import { useApprovalFilters } from '../../hooks/useApprovalFilters';
 import { useBatchRevoke } from '../../hooks/useBatchRevoke';
+import { useRevokeApproval } from '../../hooks/useRevokeApproval';
 import RiskDashboardHeader from '../../components/RiskDashboardHeader';
 import RiskGroupedList from '../../components/RiskGroupedList';
 import ChainFilterBar from '../../components/ChainFilterBar';
@@ -107,6 +108,7 @@ const TokenApprovalsView: React.FC = () => {
   } = useApprovalFilters();
 
   const { batchRevoke } = useBatchRevoke();
+  const { revokeApproval } = useRevokeApproval();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -124,22 +126,21 @@ const TokenApprovalsView: React.FC = () => {
 
   const handleRevoke = useCallback(
     (approval: ApprovalItem) => {
-      navigation.navigate(Routes.TOKEN_APPROVALS.MODALS.ROOT, {
-        screen: Routes.TOKEN_APPROVALS.MODALS.REVOKE_CONFIRM,
-        params: { approvalId: approval.id },
-      });
+      // Skip intermediate confirmation, go straight to standard MetaMask confirmation UI
+      revokeApproval(approval);
     },
-    [navigation],
+    [revokeApproval],
   );
 
-  const handleBatchRevoke = useCallback(async () => {
-    setIsBatchProcessing(true);
-    try {
-      await batchRevoke(selectedApprovalIds);
-    } finally {
-      setIsBatchProcessing(false);
-    }
-  }, [batchRevoke, selectedApprovalIds]);
+  const handleBatchRevoke = useCallback(() => {
+    navigation.navigate(
+      Routes.TOKEN_APPROVALS.MODALS.ROOT as never,
+      {
+        screen: Routes.TOKEN_APPROVALS.MODALS.BATCH_REVOKE_CONFIRM,
+        params: { approvalIds: selectedApprovalIds },
+      } as never,
+    );
+  }, [navigation, selectedApprovalIds]);
 
   const handleRevokeAllRisky = useCallback(async () => {
     const riskyIds = approvals

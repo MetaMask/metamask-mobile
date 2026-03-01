@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useCallback } from 'react';
 import { View, StyleSheet, Linking, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -29,7 +29,7 @@ import { selectApprovals } from '../../selectors';
 import { CHAIN_DISPLAY_NAMES } from '../../constants/chains';
 import { Verdict } from '../../types';
 import RiskBadge from '../RiskBadge';
-import Routes from '../../../../../constants/navigation/Routes';
+import { useRevokeApproval } from '../../hooks/useRevokeApproval';
 
 const BLOCK_EXPLORER_URLS: Record<string, string> = {
   '0x1': 'https://etherscan.io/address/',
@@ -124,10 +124,10 @@ const styles = StyleSheet.create({
 
 const ApprovalDetailSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
   const route = useRoute();
   const { colors } = useTheme();
   const approvals = useSelector(selectApprovals);
+  const { revokeApproval } = useRevokeApproval();
 
   const { approvalId } = (route.params as { approvalId: string }) ?? {};
 
@@ -140,9 +140,14 @@ const ApprovalDetailSheet: React.FC = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const closeAndNavigate = useCallback((navigateFunc: () => void) => {
-    sheetRef.current?.onCloseBottomSheet(navigateFunc);
-  }, []);
+  const handleRevoke = useCallback(() => {
+    if (!approval) return;
+    // Close the detail sheet, then submit the revoke transaction
+    // addTransaction() inside revokeApproval triggers the standard confirmation UI
+    sheetRef.current?.onCloseBottomSheet(() => {
+      revokeApproval(approval);
+    });
+  }, [approval, revokeApproval]);
 
   if (!approval) {
     return null;
@@ -157,15 +162,6 @@ const ApprovalDetailSheet: React.FC = () => {
     if (explorerUrl) {
       Linking.openURL(`${explorerUrl}${approval.spender.address}`);
     }
-  };
-
-  const handleRevoke = () => {
-    closeAndNavigate(() => {
-      navigation.navigate(
-        Routes.TOKEN_APPROVALS.MODALS.REVOKE_CONFIRM as never,
-        { approvalId: approval.id } as never,
-      );
-    });
   };
 
   const getFeatureIconBg = () => {
