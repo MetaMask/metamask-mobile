@@ -5,7 +5,7 @@ import { ApprovalItem, ApprovalAssetType, Verdict } from '../types';
 import { fetchMockApprovals } from './mockApprovals';
 
 // TODO: Remove this flag before merging – set to true to use live PhishingController data
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 function mapVerdict(verdict: string): Verdict {
   switch (verdict) {
