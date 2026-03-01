@@ -43,7 +43,7 @@ import {
 } from '../../../component-library/components/Toast';
 import { useSelector } from 'react-redux';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
-import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
@@ -87,7 +87,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
   const hdKeyrings = useSelector(selectHDKeyrings);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
