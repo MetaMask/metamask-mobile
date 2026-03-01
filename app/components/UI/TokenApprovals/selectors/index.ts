@@ -51,6 +51,11 @@ export const selectSelectedApprovalIds = createSelector(
   (tokenApprovals) => tokenApprovals.selectedApprovalIds,
 );
 
+export const selectIsSelectionModeActive = createSelector(
+  selectTokenApprovalsState,
+  (tokenApprovals) => tokenApprovals.isSelectionModeActive,
+);
+
 export const selectRevocations = createSelector(
   selectTokenApprovalsState,
   (tokenApprovals) => tokenApprovals.revocations,

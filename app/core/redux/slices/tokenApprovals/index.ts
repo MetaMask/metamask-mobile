@@ -19,6 +19,7 @@ export const initialState: TokenApprovalsState = {
   sortBy: 'risk',
   searchQuery: '',
   selectedApprovalIds: [],
+  isSelectionModeActive: false,
   revocations: {},
   hasSeenEducation: false,
 };
@@ -74,6 +75,14 @@ const tokenApprovalsSlice = createSlice({
     },
     clearSelection: (state) => {
       state.selectedApprovalIds = [];
+      state.isSelectionModeActive = false;
+    },
+    enterSelectionMode: (state) => {
+      state.isSelectionModeActive = true;
+    },
+    exitSelectionMode: (state) => {
+      state.isSelectionModeActive = false;
+      state.selectedApprovalIds = [];
     },
     setRevocationStatus: (
       state,
@@ -124,6 +133,8 @@ export const {
   toggleApprovalSelection,
   selectAllApprovals,
   clearSelection,
+  enterSelectionMode,
+  exitSelectionMode,
   setRevocationStatus,
   removeApproval,
   setHasSeenEducation,

@@ -2941,6 +2941,8 @@
     "education_description": "When you interact with a dApp, you may grant it permission to spend your tokens. These approvals persist even after you leave the dApp. Revoking unused approvals reduces your risk exposure.",
     "education_dismiss": "Got it",
     "education_learn_more": "Learn more",
+    "select_button": "Select",
+    "cancel_button": "Cancel",
     "detail_title": "Approval Details",
     "detail_spender": "Spender",
     "detail_allowance": "Allowance",

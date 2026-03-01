@@ -48,6 +48,9 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 4,
   },
+  headerTitleContainer: {
+    flex: 1,
+  },
   searchContainer: {
     paddingTop: 4,
     paddingHorizontal: 16,
@@ -121,13 +124,28 @@ const TokenApprovalsView: React.FC = () => {
     onToggleSelection,
     onSelectAll,
     onClearSelection,
+    onEnterSelectionMode,
+    onExitSelectionMode,
   } = useApprovalFilters();
 
   const { revokeApproval } = useRevokeApproval();
 
   const handleBack = useCallback(() => {
+    if (selectionMode) {
+      onExitSelectionMode();
+    }
     navigation.goBack();
-  }, [navigation]);
+  }, [navigation, selectionMode, onExitSelectionMode]);
+
+  const handleToggleSelectionMode = useCallback(() => {
+    if (selectionMode) {
+      onExitSelectionMode();
+    } else {
+      onEnterSelectionMode();
+    }
+  }, [selectionMode, onEnterSelectionMode, onExitSelectionMode]);
+
+  const showSelectButton = filteredApprovals.length > 0;
 
   const handleApprovalPress = useCallback(
     (approval: ApprovalItem) => {
@@ -247,9 +265,31 @@ const TokenApprovalsView: React.FC = () => {
             color={IconColor.Default}
           />
         </TouchableOpacity>
-        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-          {strings('token_approvals.title')}
-        </Text>
+        <View style={styles.headerTitleContainer}>
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+            {strings('token_approvals.title')}
+          </Text>
+        </View>
+        {showSelectButton && (
+          <TouchableOpacity
+            onPress={handleToggleSelectionMode}
+            accessibilityRole="button"
+            accessibilityLabel={
+              selectionMode
+                ? strings('token_approvals.cancel_button')
+                : strings('token_approvals.select_button')
+            }
+          >
+            <Text
+              variant={TextVariant.BodyMD}
+              color={selectionMode ? TextColor.Error : TextColor.Info}
+            >
+              {selectionMode
+                ? strings('token_approvals.cancel_button')
+                : strings('token_approvals.select_button')}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Learn more link */}

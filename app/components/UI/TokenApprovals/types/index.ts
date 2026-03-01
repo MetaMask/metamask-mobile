@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-shadow
 export enum Verdict {
   Malicious = 'Malicious',
   Warning = 'Warning',
@@ -71,6 +72,7 @@ export interface TokenApprovalsState {
   sortBy: SortOption;
   searchQuery: string;
   selectedApprovalIds: string[];
+  isSelectionModeActive: boolean;
   revocations: Record<string, RevocationStatus>;
   hasSeenEducation: boolean;
 }

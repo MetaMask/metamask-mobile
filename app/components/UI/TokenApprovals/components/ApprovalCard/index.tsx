@@ -42,11 +42,10 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
-  exposureRow: {
+  tokenRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 2,
+    gap: 6,
   },
   rightColumn: {
     alignItems: 'flex-end',
@@ -161,21 +160,21 @@ const ApprovalCard: React.FC<ApprovalCardProps> = ({
         </BadgeWrapper>
       </View>
 
-      {/* Center: Token name, spender, value at risk */}
+      {/* Center: Token name + value at risk, spender */}
       <View style={styles.centerColumn}>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          {approval.asset.symbol}
-        </Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {spenderLabel}
-        </Text>
-        {exposureUsd > 0 && (
-          <View style={styles.exposureRow}>
+        <View style={styles.tokenRow}>
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {approval.asset.symbol}
+          </Text>
+          {exposureUsd > 0 && (
             <Text variant={TextVariant.BodyXS} color={TextColor.Warning}>
               {formatUsd(exposureUsd)} at risk
             </Text>
-          </View>
-        )}
+          )}
+        </View>
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {spenderLabel}
+        </Text>
       </View>
 
       {/* Right: Revoke button */}

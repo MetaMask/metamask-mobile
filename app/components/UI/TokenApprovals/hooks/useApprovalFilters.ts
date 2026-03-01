@@ -7,7 +7,8 @@ import {
   setSearchQuery,
   toggleApprovalSelection,
   selectAllApprovals,
-  clearSelection,
+  enterSelectionMode,
+  exitSelectionMode,
 } from '../../../../core/redux/slices/tokenApprovals';
 import {
   selectSelectedChains,
@@ -15,6 +16,7 @@ import {
   selectSortBy,
   selectSearchQuery,
   selectSelectedApprovalIds,
+  selectIsSelectionModeActive,
   selectRevocations,
 } from '../selectors';
 import { VerdictFilter, SortOption } from '../types';
@@ -26,6 +28,7 @@ export function useApprovalFilters() {
   const sortBy = useSelector(selectSortBy);
   const searchQuery = useSelector(selectSearchQuery);
   const selectedApprovalIds = useSelector(selectSelectedApprovalIds);
+  const isSelectionModeActive = useSelector(selectIsSelectionModeActive);
   const revocations = useSelector(selectRevocations);
 
   const handleChainToggle = useCallback(
@@ -74,7 +77,15 @@ export function useApprovalFilters() {
   );
 
   const handleClearSelection = useCallback(() => {
-    dispatch(clearSelection());
+    dispatch(exitSelectionMode());
+  }, [dispatch]);
+
+  const handleEnterSelectionMode = useCallback(() => {
+    dispatch(enterSelectionMode());
+  }, [dispatch]);
+
+  const handleExitSelectionMode = useCallback(() => {
+    dispatch(exitSelectionMode());
   }, [dispatch]);
 
   return {
@@ -84,7 +95,7 @@ export function useApprovalFilters() {
     searchQuery,
     selectedApprovalIds,
     revocations,
-    selectionMode: selectedApprovalIds.length > 0,
+    selectionMode: isSelectionModeActive || selectedApprovalIds.length > 0,
     onChainToggle: handleChainToggle,
     onVerdictFilterChange: handleVerdictFilterChange,
     onSortChange: handleSortChange,
@@ -92,5 +103,7 @@ export function useApprovalFilters() {
     onToggleSelection: handleToggleSelection,
     onSelectAll: handleSelectAll,
     onClearSelection: handleClearSelection,
+    onEnterSelectionMode: handleEnterSelectionMode,
+    onExitSelectionMode: handleExitSelectionMode,
   };
 }

@@ -20,8 +20,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 32,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     ...Platform.select({
