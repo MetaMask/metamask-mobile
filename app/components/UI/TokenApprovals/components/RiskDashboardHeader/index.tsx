@@ -1,120 +1,25 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
-import Text, {
+import {
+  Box,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Icon,
   IconName,
   IconSize,
   IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { useTheme } from '../../../../../util/theme';
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { ApprovalItem, Verdict } from '../../types';
 import { formatUsd } from '../../utils/formatUsd';
-
-const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: 16,
-    marginTop: 4,
-    marginBottom: 12,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  innerContainer: {
-    padding: 16,
-    gap: 16,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTextColumn: {
-    flex: 1,
-  },
-  progressBarContainer: {
-    gap: 8,
-  },
-  progressBarTrack: {
-    height: 8,
-    borderRadius: 4,
-    flexDirection: 'row',
-    overflow: 'hidden',
-  },
-  progressSegmentMalicious: {
-    height: '100%',
-  },
-  progressSegmentWarning: {
-    height: '100%',
-  },
-  progressSegmentSafe: {
-    height: '100%',
-  },
-  progressLabelsRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  statBlock: {
-    gap: 2,
-  },
-  statBlockRight: {
-    gap: 2,
-    alignItems: 'flex-end',
-  },
-  countsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  countPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  countDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  cleanContainer: {
-    marginHorizontal: 16,
-    marginTop: 4,
-    marginBottom: 12,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  cleanInner: {
-    padding: 20,
-    alignItems: 'center',
-    gap: 8,
-  },
-  cleanIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-});
 
 interface RiskDashboardHeaderProps {
   approvals: ApprovalItem[];
@@ -127,7 +32,7 @@ const RiskDashboardHeader: React.FC<RiskDashboardHeaderProps> = ({
   onRevokeAllRisky,
   isProcessing = false,
 }) => {
-  const { colors } = useTheme();
+  const tw = useTailwind();
 
   const stats = useMemo(() => {
     let maliciousCount = 0;
@@ -161,213 +66,127 @@ const RiskDashboardHeader: React.FC<RiskDashboardHeaderProps> = ({
       total,
       riskyExposure,
       totalExposure,
-      maliciousPct: total > 0 ? (maliciousCount / total) * 100 : 0,
-      warningPct: total > 0 ? (warningCount / total) * 100 : 0,
-      safePct: total > 0 ? (benignCount / total) * 100 : 0,
     };
   }, [approvals]);
 
-  // formatUsd imported from utils/formatUsd
-
   if (stats.total === 0) return null;
 
-  // Clean state: no risky approvals
   if (stats.riskyCount === 0) {
     return (
-      <View
-        style={[
-          styles.cleanContainer,
-          { backgroundColor: colors.success.muted },
-        ]}
-      >
-        <View style={styles.cleanInner}>
-          <View
-            style={[
-              styles.cleanIconCircle,
-              { backgroundColor: colors.success.default + '22' },
-            ]}
-          >
-            <Icon
-              name={IconName.SecurityTick}
-              size={IconSize.Lg}
-              color={IconColor.Success}
-            />
-          </View>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Success}>
-            {strings('token_approvals.dashboard_clean_title')}
-          </Text>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings('token_approvals.dashboard_clean_subtitle', {
-              count: stats.total.toString(),
-            })}
-          </Text>
-        </View>
-      </View>
+      <Box twClassName="mx-4 mt-1 mb-3 rounded-2xl overflow-hidden bg-success-muted">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={3}
+          twClassName="px-4 py-4"
+        >
+          <Icon
+            name={IconName.SecurityTick}
+            size={IconSize.Md}
+            color={IconColor.SuccessDefault}
+          />
+          <Box twClassName="flex-1">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.SuccessDefault}
+            >
+              {strings('token_approvals.dashboard_clean_title')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('token_approvals.dashboard_clean_subtitle', {
+                count: stats.total.toString(),
+              })}
+            </Text>
+          </Box>
+        </Box>
+      </Box>
     );
   }
 
-  // Risky state
   return (
-    <View style={[styles.container, { backgroundColor: colors.error.muted }]}>
-      <View style={styles.innerContainer}>
-        {/* Header: icon + title */}
-        <View style={styles.headerRow}>
-          <View
-            style={[
-              styles.iconCircle,
-              { backgroundColor: colors.error.default + '22' },
-            ]}
+    <Box twClassName="mx-4 mt-1 mb-3 rounded-2xl overflow-hidden bg-background-alternative">
+      <Box twClassName="p-4" gap={4}>
+        {/* Risk indicator */}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={3}
+        >
+          <Box
+            style={tw.style(
+              'w-10 h-10 rounded-full items-center justify-center bg-error-muted',
+            )}
           >
             <Icon
-              name={IconName.SecuritySearch}
+              name={IconName.Danger}
               size={IconSize.Md}
-              color={IconColor.Error}
+              color={IconColor.ErrorDefault}
             />
-          </View>
-          <View style={styles.headerTextColumn}>
-            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
-              {strings('token_approvals.dashboard_title')}
-            </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {strings('token_approvals.dashboard_at_risk', {
-                count: stats.riskyCount.toString(),
-                total: stats.total.toString(),
-              })}
-            </Text>
-          </View>
-        </View>
-
-        {/* Progress bar */}
-        {/* <View style={styles.progressBarContainer}>
-          <View
-            style={[
-              styles.progressBarTrack,
-              { backgroundColor: colors.success.default + '33' },
-            ]}
+          </Box>
+          <Text
+            variant={TextVariant.BodyLg}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
           >
-            {stats.maliciousPct > 0 && (
-              <View
-                style={[
-                  styles.progressSegmentMalicious,
-                  {
-                    width: `${stats.maliciousPct}%`,
-                    backgroundColor: colors.error.default,
-                  },
-                ]}
-              />
-            )}
-            {stats.warningPct > 0 && (
-              <View
-                style={[
-                  styles.progressSegmentWarning,
-                  {
-                    width: `${stats.warningPct}%`,
-                    backgroundColor: colors.warning.default,
-                  },
-                ]}
-              />
-            )}
-            {stats.safePct > 0 && (
-              <View
-                style={[
-                  styles.progressSegmentSafe,
-                  {
-                    width: `${stats.safePct}%`,
-                    backgroundColor: colors.success.default,
-                  },
-                ]}
-              />
-            )}
-          </View>
-          <View style={styles.progressLabelsRow}>
-            <View style={styles.countsRow}>
-              {stats.maliciousCount > 0 && (
-                <View style={styles.countPill}>
-                  <View
-                    style={[
-                      styles.countDot,
-                      { backgroundColor: colors.error.default },
-                    ]}
-                  />
-                  <Text
-                    variant={TextVariant.BodyXS}
-                    color={TextColor.Alternative}
-                  >
-                    {stats.maliciousCount}{' '}
-                    {strings('token_approvals.filter_malicious').toLowerCase()}
-                  </Text>
-                </View>
-              )}
-              {stats.warningCount > 0 && (
-                <View style={styles.countPill}>
-                  <View
-                    style={[
-                      styles.countDot,
-                      { backgroundColor: colors.warning.default },
-                    ]}
-                  />
-                  <Text
-                    variant={TextVariant.BodyXS}
-                    color={TextColor.Alternative}
-                  >
-                    {stats.warningCount}{' '}
-                    {strings('token_approvals.filter_warning').toLowerCase()}
-                  </Text>
-                </View>
-              )}
-              <View style={styles.countPill}>
-                <View
-                  style={[
-                    styles.countDot,
-                    { backgroundColor: colors.success.default },
-                  ]}
-                />
-                <Text
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Alternative}
-                >
-                  {stats.benignCount}{' '}
-                  {strings('token_approvals.dashboard_safe').toLowerCase()}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View> */}
+            {strings('token_approvals.dashboard_at_risk', {
+              count: stats.riskyCount.toString(),
+              total: stats.total.toString(),
+            })}
+          </Text>
+        </Box>
 
-        {/* Stats row */}
-        <View style={styles.statsRow}>
-          <View style={styles.statBlock}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-              {strings('token_approvals.dashboard_exposed')}
-            </Text>
-            <Text variant={TextVariant.HeadingSM} color={TextColor.Error}>
+        {/* Stats */}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+          alignItems={BoxAlignItems.Start}
+        >
+          <Box gap={1}>
+            <Text
+              variant={TextVariant.HeadingSm}
+              color={TextColor.ErrorDefault}
+            >
               {formatUsd(stats.riskyExposure)}
             </Text>
-          </View>
-          <View style={styles.statBlockRight}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-              {strings('token_approvals.dashboard_total_approved')}
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+            >
+              {strings('token_approvals.dashboard_exposed')}
             </Text>
-            <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+          </Box>
+          <Box gap={1} twClassName="items-end">
+            <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
               {formatUsd(stats.totalExposure)}
             </Text>
-          </View>
-        </View>
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+            >
+              {strings('token_approvals.dashboard_total_approved')}
+            </Text>
+          </Box>
+        </Box>
 
         {/* CTA */}
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isDanger
-          label={strings('token_approvals.dashboard_revoke_risky', {
+          onPress={onRevokeAllRisky}
+          isFullWidth
+          isDisabled={isProcessing}
+        >
+          {strings('token_approvals.dashboard_revoke_risky', {
             count: stats.riskyCount.toString(),
           })}
-          onPress={onRevokeAllRisky}
-          width={ButtonWidthTypes.Full}
-          isDisabled={isProcessing}
-        />
-      </View>
-    </View>
+        </Button>
+      </Box>
+    </Box>
   );
 };
 
