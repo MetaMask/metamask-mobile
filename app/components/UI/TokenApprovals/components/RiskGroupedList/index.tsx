@@ -132,7 +132,7 @@ const SECTION_CONFIG: Record<
     iconName: IconName.SecurityTick,
     iconColor: IconColor.Success,
     textColor: TextColor.Success,
-    defaultExpanded: false,
+    defaultExpanded: true,
   },
   [Verdict.Error]: {
     titleKey: 'token_approvals.section_benign',
@@ -140,7 +140,7 @@ const SECTION_CONFIG: Record<
     iconName: IconName.Info,
     iconColor: IconColor.Muted,
     textColor: TextColor.Alternative,
-    defaultExpanded: false,
+    defaultExpanded: true,
   },
 };
 
@@ -190,27 +190,9 @@ const RiskGroupedList: React.FC<RiskGroupedListProps> = ({
     return result;
   }, [approvals]);
 
-  const hasMaliciousOrWarning = useMemo(
-    () =>
-      sections.some(
-        (s) => s.verdict === Verdict.Malicious || s.verdict === Verdict.Warning,
-      ),
-    [sections],
-  );
-
   const [collapsedSections, setCollapsedSections] = useState<
     Record<string, boolean>
-  >(() => {
-    const initial: Record<string, boolean> = {};
-    for (const verdict of Object.values(Verdict)) {
-      const config = SECTION_CONFIG[verdict];
-      // If there are risky approvals, collapse benign by default
-      if (!config.defaultExpanded && hasMaliciousOrWarning) {
-        initial[verdict] = true;
-      }
-    }
-    return initial;
-  });
+  >({});
 
   const toggleSection = useCallback((verdict: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
