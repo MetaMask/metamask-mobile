@@ -22,6 +22,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
+import KYCWebview from '../components/Onboarding/KYCWebview';
 import {
   NavigationProp,
   ParamListBase,
@@ -292,6 +293,11 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.VERIFY_IDENTITY}
         component={VerifyIdentity}
+        options={PostEmailNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.WEBVIEW}
+        component={KYCWebview}
         options={PostEmailNavigationOptions}
       />
       <Stack.Screen

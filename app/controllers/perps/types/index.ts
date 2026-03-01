@@ -126,6 +126,9 @@ export type TrackingData = {
   tradeWithToken?: boolean;
   mmPayTokenSelected?: string; // Token symbol when tradeWithToken is true
   mmPayNetworkSelected?: string; // chainId when tradeWithToken is true
+
+  // A/B test context to attribute trade events to specific experiments
+  abTests?: Record<string, string>;
 };
 
 // TP/SL-specific tracking data for analytics events
@@ -1269,7 +1272,7 @@ export type PerpsTraceValue = string | number | boolean;
  */
 export type PerpsAnalyticsProperties = Record<
   string,
-  string | number | boolean | null | undefined
+  string | number | boolean | Record<string, string> | null | undefined
 >;
 
 /**

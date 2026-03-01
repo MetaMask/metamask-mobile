@@ -113,6 +113,7 @@ import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 import { parseCaipAccountId } from '@metamask/utils';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
+import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import {
   Box,
   BoxFlexDirection,
@@ -199,6 +200,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       onMessage: (message: Record<string, unknown>) => void;
     }>();
     const searchEngine = useSelector(selectSearchEngine);
+    const isAssetsTrendingTokensEnabled = useSelector(
+      selectAssetsTrendingTokensEnabled,
+    );
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
       const permissionsControllerState = selectPermissionControllerState(state);
@@ -1276,12 +1280,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       } else if (fromTrending) {
         // If within trending follow the normal back button behavior
         navigation.goBack();
-      } else {
+      } else if (isAssetsTrendingTokensEnabled) {
+        // If trending is enabled, go to trending view
         navigation.navigate(Routes.TRENDING_VIEW, {
           screen: Routes.TRENDING_FEED,
         });
+      } else {
+        // If trending is disabled, go back to wallet home
+        navigation.navigate(Routes.WALLET.HOME);
       }
-    }, [navigation, fromTrending, fromPerps]);
+    }, [navigation, fromTrending, fromPerps, isAssetsTrendingTokensEnabled]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();

@@ -11,14 +11,8 @@ import {
   IconSize,
   IconColor,
   FontWeight,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import type {
-  MarketInsightsArticle,
-  MarketInsightsTweet,
-} from '@metamask/ai-controllers';
+import type { MarketInsightsArticle } from '@metamask/ai-controllers';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -31,12 +25,11 @@ interface MarketInsightsTrendSourcesBottomSheetProps {
   onClose: () => void;
   trendTitle: string;
   articles: MarketInsightsArticle[];
-  tweets?: MarketInsightsTweet[];
 }
 
 const MarketInsightsTrendSourcesBottomSheet: React.FC<
   MarketInsightsTrendSourcesBottomSheetProps
-> = ({ isVisible, onClose, trendTitle, articles, tweets = [] }) => {
+> = ({ isVisible, onClose, trendTitle, articles }) => {
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -49,7 +42,7 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
     }
   }, [isVisible]);
 
-  const handleSourcePress = useCallback((url: string) => {
+  const handleArticlePress = useCallback((url: string) => {
     Linking.openURL(url);
   }, []);
 
@@ -78,7 +71,7 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
         {articles.map((article) => (
           <Pressable
             key={article.url}
-            onPress={() => handleSourcePress(article.url)}
+            onPress={() => handleArticlePress(article.url)}
             style={({ pressed }) =>
               tw.style(
                 'flex-row items-center py-3 border-b border-muted',
@@ -102,49 +95,6 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
                 numberOfLines={2}
               >
                 {article.title}
-              </Text>
-            </Box>
-            <Icon
-              name={IconName.Export}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </Pressable>
-        ))}
-
-        {tweets.map((tweet) => (
-          <Pressable
-            key={tweet.url}
-            onPress={() => handleSourcePress(tweet.url)}
-            style={({ pressed }) =>
-              tw.style(
-                'flex-row items-center py-3 border-b border-muted',
-                pressed && 'opacity-70',
-              )
-            }
-          >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="w-8 h-8 rounded-full bg-muted mr-3"
-            >
-              <Icon
-                name={IconName.X}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            </Box>
-            <Box twClassName="flex-1">
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                @{tweet.author}
-              </Text>
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-                numberOfLines={2}
-              >
-                {tweet.contentSummary}
               </Text>
             </Box>
             <Icon
