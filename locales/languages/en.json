@@ -104,7 +104,7 @@
       "title": "Insufficient funds"
     },
     "no_pay_token_quotes": {
-      "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+      "message": "This payment route isn't available right now. Try changing the payment method, amount, network, or token and we'll find the best option.",
       "title": "No quotes"
     },
     "perps_hardware_account": {
