@@ -1,113 +1,71 @@
-import AppConstants from '../../../../core/AppConstants';
-import {
-  CHAIN_ID_TO_BLOCKAID_NAME,
-  SUPPORTED_CHAIN_IDS,
-} from '../constants/chains';
-import { APPROVALS_API_ENDPOINT } from '../constants/approvals';
-import {
-  ApprovalItem,
-  ApprovalAssetType,
-  BlockaidApprovalResponse,
-  Verdict,
-} from '../types';
+import type { Approval } from '@metamask/phishing-controller';
+import Engine from '../../../../core/Engine';
+import { SUPPORTED_CHAIN_IDS, CHAIN_DISPLAY_NAMES } from '../constants/chains';
+import { ApprovalItem, ApprovalAssetType, Verdict } from '../types';
 
-function getApiUrl(endpoint: string): string {
-  const host = AppConstants.SECURITY_ALERTS_API.URL;
-  if (!host) {
-    throw new Error('Security alerts API URL is not set');
-  }
-  return `${host}/${endpoint}`;
-}
-
-async function fetchChainApprovals(
-  address: string,
-  chainName: string,
-): Promise<BlockaidApprovalResponse> {
-  const url = getApiUrl(APPROVALS_API_ENDPOINT);
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      address,
-      chain: chainName,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Approvals API request failed for ${chainName}: ${response.status}`,
-    );
-  }
-
-  return response.json();
-}
-
-function normalizeVerdict(verdict: string): Verdict {
-  switch (verdict.toLowerCase()) {
-    case 'malicious':
+function mapVerdict(verdict: string): Verdict {
+  switch (verdict) {
+    case 'Malicious':
       return Verdict.Malicious;
-    case 'warning':
+    case 'Warning':
       return Verdict.Warning;
+    case 'Benign':
+      return Verdict.Benign;
+    case 'Error':
+      return Verdict.Error;
     default:
       return Verdict.Benign;
   }
 }
 
-function normalizeAssetType(type: string): ApprovalAssetType {
+function mapAssetType(type?: string): ApprovalAssetType | undefined {
+  if (!type) return undefined;
   switch (type.toUpperCase()) {
+    case 'ERC20':
+      return ApprovalAssetType.ERC20;
     case 'ERC721':
       return ApprovalAssetType.ERC721;
     case 'ERC1155':
       return ApprovalAssetType.ERC1155;
     default:
-      return ApprovalAssetType.ERC20;
+      return undefined;
   }
 }
 
-function normalizeApprovals(
-  response: BlockaidApprovalResponse,
-  chainId: string,
-  chainName: string,
-): ApprovalItem[] {
-  const items: ApprovalItem[] = [];
+function mapApprovalToItem(approval: Approval, chainId: string): ApprovalItem {
+  const verdict = mapVerdict(approval.verdict);
 
-  for (const rawApproval of response.approvals) {
-    for (const spender of rawApproval.spenders) {
-      const id = `${chainId}-${rawApproval.asset.address}-${spender.address}`;
-      const verdict = normalizeVerdict(spender.verdict);
-
-      items.push({
-        id,
-        chainId,
-        chainName,
-        asset: {
-          address: rawApproval.asset.address,
-          symbol: rawApproval.asset.symbol,
-          name: rawApproval.asset.name,
-          decimals: rawApproval.asset.decimals,
-          logo_url: rawApproval.asset.logo_url,
-          type: normalizeAssetType(rawApproval.asset.type),
-        },
-        spender: {
-          address: spender.address,
-          label: spender.label,
-          is_contract: spender.is_contract,
-          features: spender.features,
-          verdict,
-          exposure_usd: spender.exposure_usd,
-        },
-        allowance: {
-          amount: spender.approval.amount,
-          is_unlimited: spender.approval.is_unlimited,
-        },
-        verdict,
-        exposure_usd: spender.exposure_usd ?? 0,
-      });
-    }
-  }
-
-  return items;
+  return {
+    id: `${chainId}-${approval.asset.address}-${approval.spender.address}`,
+    chainId,
+    chainName: CHAIN_DISPLAY_NAMES[chainId] ?? chainId,
+    asset: {
+      address: approval.asset.address,
+      symbol: approval.asset.symbol,
+      name: approval.asset.name,
+      decimals: approval.asset.decimals,
+      logo_url: approval.asset.logo_url,
+      type: mapAssetType(approval.asset.type),
+    },
+    spender: {
+      address: approval.spender.address,
+      label: approval.spender.label,
+      is_verified: approval.spender.is_verified,
+      features: (approval.features ?? []).map((f) => ({
+        id: f.feature_id,
+        type: f.type,
+        description: f.description,
+      })),
+      verdict,
+      exposure_usd: approval.exposure.usd,
+    },
+    allowance: {
+      amount: approval.allowance.amount,
+      is_unlimited: approval.allowance.is_unlimited,
+    },
+    verdict,
+    exposure_usd: approval.exposure.usd ?? 0,
+  };
 }
 
 export interface FetchAllApprovalsResult {
@@ -118,14 +76,11 @@ export interface FetchAllApprovalsResult {
 export async function fetchAllApprovals(
   address: string,
 ): Promise<FetchAllApprovalsResult> {
-  const chainEntries = SUPPORTED_CHAIN_IDS.map((chainId) => ({
-    chainId,
-    chainName: CHAIN_ID_TO_BLOCKAID_NAME[chainId],
-  }));
+  const { PhishingController } = Engine.context;
 
   const results = await Promise.allSettled(
-    chainEntries.map(({ chainName }) =>
-      fetchChainApprovals(address, chainName),
+    SUPPORTED_CHAIN_IDS.map((chainId) =>
+      PhishingController.getApprovals(chainId, address),
     ),
   );
 
@@ -133,14 +88,17 @@ export async function fetchAllApprovals(
   const chainErrors: Record<string, string> = {};
 
   results.forEach((result, index) => {
-    const { chainId, chainName } = chainEntries[index];
+    const chainId = SUPPORTED_CHAIN_IDS[index];
 
     if (result.status === 'fulfilled') {
-      const normalized = normalizeApprovals(result.value, chainId, chainName);
-      allApprovals.push(...normalized);
+      const items = result.value.approvals.map((approval) =>
+        mapApprovalToItem(approval, chainId),
+      );
+      allApprovals.push(...items);
     } else {
       chainErrors[chainId] =
-        result.reason?.message ?? `Failed to fetch approvals for ${chainName}`;
+        result.reason?.message ??
+        `Failed to fetch approvals for ${CHAIN_DISPLAY_NAMES[chainId] ?? chainId}`;
     }
   });
 

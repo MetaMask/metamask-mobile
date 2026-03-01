@@ -6,10 +6,8 @@ import {
   setError,
   setChainErrors,
 } from '../../../../core/redux/slices/tokenApprovals';
-// TODO: Switch back to real API when done testing UI
-// import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
-// import { fetchAllApprovals } from '../api/fetchApprovals';
-import { fetchMockApprovals } from '../api/mockApprovals';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { fetchAllApprovals } from '../api/fetchApprovals';
 import {
   selectApprovals,
   selectIsLoading,
@@ -23,6 +21,7 @@ import {
 
 export function useTokenApprovals() {
   const dispatch = useDispatch();
+  const address = useSelector(selectSelectedInternalAccountAddress);
   const approvals = useSelector(selectApprovals);
   const filteredApprovals = useSelector(selectFilteredApprovals);
   const isLoading = useSelector(selectIsLoading);
@@ -33,11 +32,16 @@ export function useTokenApprovals() {
   const availableChains = useSelector(selectAvailableChains);
 
   const loadApprovals = useCallback(async () => {
+    if (!address) {
+      dispatch(setError('No account address available'));
+      return;
+    }
+
     dispatch(setLoading(true));
     dispatch(setError(null));
 
     try {
-      const result = await fetchMockApprovals();
+      const result = await fetchAllApprovals(address);
       dispatch(setApprovals(result.approvals));
       dispatch(setChainErrors(result.chainErrors));
     } catch (err) {
@@ -47,7 +51,7 @@ export function useTokenApprovals() {
         ),
       );
     }
-  }, [dispatch]);
+  }, [dispatch, address]);
 
   useEffect(() => {
     loadApprovals();

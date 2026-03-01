@@ -149,6 +149,7 @@ export const selectGroupedByVerdict = createSelector(
       [Verdict.Malicious]: [],
       [Verdict.Warning]: [],
       [Verdict.Benign]: [],
+      [Verdict.Error]: [],
     };
 
     for (const approval of approvals) {

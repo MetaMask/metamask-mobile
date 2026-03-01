@@ -17,7 +17,7 @@ const MOCK_APPROVALS: ApprovalItem[] = [
     spender: {
       address: '0xdead00000000000000000000000000000000beef',
       label: 'Fake_Uniswap_Router',
-      is_contract: true,
+      is_verified: false,
       features: [
         { id: 'phishing', description: 'Known phishing contract' },
         { id: 'drain', description: 'Has drained funds from other wallets' },
@@ -43,7 +43,7 @@ const MOCK_APPROVALS: ApprovalItem[] = [
     },
     spender: {
       address: '0xbad0000000000000000000000000000000000bad',
-      is_contract: true,
+      is_verified: false,
       features: [
         { id: 'honeypot', description: 'Identified as honeypot contract' },
         {
@@ -72,7 +72,7 @@ const MOCK_APPROVALS: ApprovalItem[] = [
     spender: {
       address: '0x5ca10000000000000000000000000000000000001',
       label: 'Airdrop Scam Contract',
-      is_contract: true,
+      is_verified: false,
       features: [
         {
           id: 'airdrop_scam',
@@ -102,7 +102,7 @@ const MOCK_APPROVALS: ApprovalItem[] = [
     spender: {
       address: '0x1111111254eeb25477b68fb85ed929f73a960582',
       label: '1inch v5 Router',
-      is_contract: true,
+      is_verified: true,
       features: [
         { id: 'unlimited', description: 'Unlimited approval granted' },
         {
@@ -130,7 +130,7 @@ const MOCK_APPROVALS: ApprovalItem[] = [
     },
     spender: {
       address: '0x000000000000000000000000000000000000002',
-      is_contract: true,
+      is_verified: false,
       features: [
         {
           id: 'dormant',
@@ -159,7 +159,7 @@ const MOCK_APPROVALS: ApprovalItem[] = [
     spender: {
       address: '0x00000000006c3852cbef3e08e8df289169ede581',
       label: 'OpenSea Seaport',
-      is_contract: true,
+      is_verified: true,
       features: [
         { id: 'nft_marketplace', description: 'NFT marketplace contract' },
         {
@@ -190,7 +190,7 @@ const MOCK_APPROVALS: ApprovalItem[] = [
     spender: {
       address: '0x7a250d5630b4cf539739df2c5dacb4c659f2488d',
       label: 'Uniswap V2 Router',
-      is_contract: true,
+      is_verified: true,
       features: [
         { id: 'verified', description: 'Contract source code verified' },
         { id: 'audited', description: 'Has been audited by Trail of Bits' },
@@ -216,7 +216,7 @@ const MOCK_APPROVALS: ApprovalItem[] = [
     spender: {
       address: '0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45',
       label: 'Uniswap V3 Router 2',
-      is_contract: true,
+      is_verified: true,
       features: [
         { id: 'verified', description: 'Contract source code verified' },
       ],
@@ -241,7 +241,7 @@ const MOCK_APPROVALS: ApprovalItem[] = [
     spender: {
       address: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
       label: 'Uniswap Universal Router',
-      is_contract: true,
+      is_verified: true,
       features: [
         { id: 'verified', description: 'Contract source code verified' },
         { id: 'audited', description: 'Has been audited' },
@@ -267,7 +267,7 @@ const MOCK_APPROVALS: ApprovalItem[] = [
     spender: {
       address: '0xe592427a0aece92de3edee1f18e0157c05861564',
       label: 'Uniswap V3 Router',
-      is_contract: true,
+      is_verified: true,
       features: [
         { id: 'verified', description: 'Contract source code verified' },
       ],
@@ -292,7 +292,7 @@ const MOCK_APPROVALS: ApprovalItem[] = [
     spender: {
       address: '0x10ed43c718714eb63d5aa57b78b54704e256024e',
       label: 'PancakeSwap Router',
-      is_contract: true,
+      is_verified: true,
       features: [
         { id: 'verified', description: 'Contract source code verified' },
         { id: 'high_volume', description: 'High transaction volume' },
@@ -318,7 +318,7 @@ const MOCK_APPROVALS: ApprovalItem[] = [
     spender: {
       address: '0x272e156df8da513bdcc65a4f467090c2402a828',
       label: 'SyncSwap Router',
-      is_contract: true,
+      is_verified: true,
       features: [
         { id: 'verified', description: 'Contract source code verified' },
       ],

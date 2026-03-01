@@ -2,6 +2,7 @@ export enum Verdict {
   Malicious = 'Malicious',
   Warning = 'Warning',
   Benign = 'Benign',
+  Error = 'Error',
 }
 
 export enum ApprovalAssetType {
@@ -12,13 +13,14 @@ export enum ApprovalAssetType {
 
 export interface SpenderFeature {
   id: string;
+  type?: string;
   description: string;
 }
 
 export interface ApprovalSpender {
   address: string;
   label?: string;
-  is_contract: boolean;
+  is_verified?: boolean;
   features: SpenderFeature[];
   verdict: Verdict;
   exposure_usd?: number;
@@ -30,7 +32,7 @@ export interface ApprovalAsset {
   name: string;
   decimals: number;
   logo_url?: string;
-  type: ApprovalAssetType;
+  type?: ApprovalAssetType;
 }
 
 export interface ApprovalAllowance {
@@ -48,36 +50,6 @@ export interface ApprovalItem {
   verdict: Verdict;
   exposure_usd: number;
   last_updated?: string;
-}
-
-export interface BlockaidApprovalResponse {
-  approvals: BlockaidRawApproval[];
-}
-
-export interface BlockaidRawApproval {
-  asset: {
-    address: string;
-    symbol: string;
-    name: string;
-    decimals: number;
-    logo_url?: string;
-    type: string;
-  };
-  spenders: {
-    address: string;
-    label?: string;
-    is_contract: boolean;
-    features: {
-      id: string;
-      description: string;
-    }[];
-    approval: {
-      amount: string;
-      is_unlimited: boolean;
-    };
-    verdict: string;
-    exposure_usd?: number;
-  }[];
 }
 
 export type VerdictFilter = 'All' | Verdict;

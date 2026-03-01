@@ -47,6 +47,11 @@ const RiskBadge: React.FC<RiskBadgeProps> = ({ verdict }) => {
       dot: colors.success.default,
       text: TextColor.Success,
     },
+    [Verdict.Error]: {
+      bg: colors.background.alternative,
+      dot: colors.icon.muted,
+      text: TextColor.Alternative,
+    },
   };
 
   const { bg, dot, text } = badgeColors[verdict];
