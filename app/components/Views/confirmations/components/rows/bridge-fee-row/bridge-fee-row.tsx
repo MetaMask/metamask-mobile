@@ -22,6 +22,7 @@ import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { BigNumber } from 'bignumber.js';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import AlertRow from '../../UI/info-row/alert-row';
@@ -39,6 +40,9 @@ export function BridgeFeeRow() {
   const isLoading = useIsTransactionPayLoading();
   const quotes = useTransactionPayQuotes();
   const totals = useTransactionPayTotals();
+  const selectedFiatPaymentMethod =
+    useTransactionPaySelectedFiatPaymentMethod();
+  const isFiatPaymentSelected = Boolean(selectedFiatPaymentMethod);
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
 
@@ -55,6 +59,27 @@ export function BridgeFeeRow() {
     );
   }
 
+  if (isFiatPaymentSelected) {
+    return (
+      <>
+        <TransactionFeeRow
+          totals={totals}
+          quotes={quotes}
+          transactionMeta={transactionMetadata}
+          hasAlert={hasAlert}
+          isFiatPaymentSelected={isFiatPaymentSelected}
+          isLoading={isLoading}
+        />
+        <FiatProviderFeeRow
+          isFiatPaymentSelected={isFiatPaymentSelected}
+          quotes={quotes}
+          totals={totals}
+          isLoading={isLoading}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <TransactionFeeRow
@@ -62,6 +87,7 @@ export function BridgeFeeRow() {
         quotes={quotes}
         transactionMeta={transactionMetadata}
         hasAlert={hasAlert}
+        isFiatPaymentSelected={false}
         isLoading={isLoading}
       />
       <MetaMaskFeeRow quotes={quotes} totals={totals} isLoading={isLoading} />
@@ -72,12 +98,14 @@ export function BridgeFeeRow() {
 function TransactionFeeRow({
   transactionMeta,
   hasAlert,
+  isFiatPaymentSelected,
   quotes,
   totals,
   isLoading,
 }: {
   transactionMeta: TransactionMeta;
   hasAlert: boolean;
+  isFiatPaymentSelected: boolean;
   quotes?: TransactionPayQuote<Json>[];
   totals?: TransactionPayTotals;
   isLoading: boolean;
@@ -105,7 +133,11 @@ function TransactionFeeRow({
       label={strings('confirm.label.transaction_fee')}
       tooltip={
         hasQuotes && totals ? (
-          <Tooltip transactionMeta={transactionMeta} totals={totals} />
+          <Tooltip
+            isFiatPaymentSelected={isFiatPaymentSelected}
+            transactionMeta={transactionMeta}
+            totals={totals}
+          />
         ) : undefined
       }
       tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
@@ -209,10 +241,57 @@ function MetaMaskFeeRow({
   );
 }
 
+function FiatProviderFeeRow({
+  isFiatPaymentSelected,
+  quotes,
+  totals,
+  isLoading,
+}: {
+  isFiatPaymentSelected: boolean;
+  quotes?: TransactionPayQuote<Json>[];
+  totals?: TransactionPayTotals;
+  isLoading: boolean;
+}) {
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
+
+  const hasQuotes = Boolean(quotes?.length);
+
+  const fiatProviderFeeUsd = useMemo(
+    () => formatFiat(new BigNumber(totals?.fees.fiatProvider?.usd ?? 0)),
+    [totals, formatFiat],
+  );
+
+  if (!isFiatPaymentSelected) {
+    return null;
+  }
+
+  if (isLoading) {
+    return <InfoRowSkeleton testId="fiat-provider-fee-row-skeleton" />;
+  }
+
+  if (!hasQuotes) {
+    return null;
+  }
+
+  return (
+    <InfoRow
+      testID="fiat-provider-fee-row"
+      label={strings('transaction_details.label.provider_fee')}
+      rowVariant={InfoRowVariant.Small}
+    >
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        {fiatProviderFeeUsd}
+      </Text>
+    </InfoRow>
+  );
+}
+
 function Tooltip({
+  isFiatPaymentSelected,
   transactionMeta,
   totals,
 }: {
+  isFiatPaymentSelected: boolean;
   transactionMeta: TransactionMeta;
   totals: TransactionPayTotals;
 }): ReactNode {
@@ -243,13 +322,21 @@ function Tooltip({
 
   if (!message) return null;
 
-  return <FeesTooltip message={message} totals={totals} />;
+  return (
+    <FeesTooltip
+      isFiatPaymentSelected={isFiatPaymentSelected}
+      message={message}
+      totals={totals}
+    />
+  );
 }
 
 function FeesTooltip({
+  isFiatPaymentSelected,
   message,
   totals,
 }: {
+  isFiatPaymentSelected: boolean;
   message: string;
   totals: TransactionPayTotals;
 }) {
@@ -268,6 +355,11 @@ function FeesTooltip({
   return (
     <Box gap={14}>
       <Text>{message}</Text>
+      {isFiatPaymentSelected && (
+        <Text color={TextColor.Alternative}>
+          {strings('confirm.tooltip.settlement_fee_not_in_total')}
+        </Text>
+      )}
       <Box
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}

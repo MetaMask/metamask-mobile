@@ -6330,7 +6330,8 @@
       "title": {
         "transaction_fee": "Fees"
       },
-      "network_fee": "Network fees depend on how busy the network is and how complex your transaction is."
+      "network_fee": "Network fees depend on how busy the network is and how complex your transaction is.",
+      "settlement_fee_not_in_total": "This estimated settlement fee does not increase the total fiat you pay."
     },
     "spending_cap": "Spending cap",
     "withdraw": "Withdraw",
