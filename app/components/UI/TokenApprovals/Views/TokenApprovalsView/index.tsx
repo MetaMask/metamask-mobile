@@ -20,11 +20,12 @@ import Icon, {
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { ApprovalItem } from '../../types';
+import { ApprovalItem, Verdict } from '../../types';
 import { useTokenApprovals } from '../../hooks/useTokenApprovals';
 import { useApprovalFilters } from '../../hooks/useApprovalFilters';
 import { useBatchRevoke } from '../../hooks/useBatchRevoke';
-import ApprovalsList from '../../components/ApprovalsList';
+import RiskDashboardHeader from '../../components/RiskDashboardHeader';
+import RiskGroupedList from '../../components/RiskGroupedList';
 import ChainFilterBar from '../../components/ChainFilterBar';
 import BatchRevokeBar from '../../components/BatchRevokeBar';
 import EmptyState from '../../components/EmptyState';
@@ -47,10 +48,6 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 4,
   },
-  subtitleContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 4,
-  },
   searchContainer: {
     paddingTop: 4,
     paddingHorizontal: 16,
@@ -72,6 +69,10 @@ const styles = StyleSheet.create({
   clearButton: {
     padding: 4,
   },
+  learnMoreRow: {
+    paddingHorizontal: 16,
+    paddingBottom: 4,
+  },
   loadingContainer: {
     paddingTop: 8,
     gap: 2,
@@ -89,7 +90,7 @@ const TokenApprovalsView: React.FC = () => {
   const { colors } = useTheme();
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
 
-  const { filteredApprovals, isLoading, error, availableChains } =
+  const { approvals, filteredApprovals, isLoading, error, availableChains } =
     useTokenApprovals();
 
   const {
@@ -101,6 +102,7 @@ const TokenApprovalsView: React.FC = () => {
     onChainToggle,
     onSearchChange,
     onToggleSelection,
+    onSelectAll,
     onClearSelection,
   } = useApprovalFilters();
 
@@ -139,6 +141,22 @@ const TokenApprovalsView: React.FC = () => {
     }
   }, [batchRevoke, selectedApprovalIds]);
 
+  const handleRevokeAllRisky = useCallback(async () => {
+    const riskyIds = approvals
+      .filter(
+        (a) => a.verdict === Verdict.Malicious || a.verdict === Verdict.Warning,
+      )
+      .map((a) => a.id);
+    if (riskyIds.length > 0) {
+      setIsBatchProcessing(true);
+      try {
+        await batchRevoke(riskyIds);
+      } finally {
+        setIsBatchProcessing(false);
+      }
+    }
+  }, [approvals, batchRevoke]);
+
   const handleLearnMore = useCallback(() => {
     Linking.openURL(LEARN_MORE_URL);
   }, []);
@@ -157,12 +175,12 @@ const TokenApprovalsView: React.FC = () => {
 
   const renderListHeader = () => (
     <View>
-      {/* Risk Banner */}
-      {/* <ApprovalRiskBanner
-        maliciousCount={maliciousCount}
-        exposureUsd={maliciousExposureUsd}
-        onRevokeAll={revokeAllMalicious}
-      /> */}
+      {/* Risk Dashboard */}
+      <RiskDashboardHeader
+        approvals={approvals}
+        onRevokeAllRisky={handleRevokeAllRisky}
+        isProcessing={isBatchProcessing}
+      />
 
       {/* Chain Filters */}
       <ChainFilterBar
@@ -196,8 +214,8 @@ const TokenApprovalsView: React.FC = () => {
         </Text>
       </View>
 
-      {/* Subtitle */}
-      <View style={styles.subtitleContainer}>
+      {/* Learn more link */}
+      <View style={styles.learnMoreRow}>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {strings('token_approvals.subtitle')}{' '}
           <Text
@@ -264,7 +282,7 @@ const TokenApprovalsView: React.FC = () => {
       ) : filteredApprovals.length === 0 ? (
         <EmptyState />
       ) : (
-        <ApprovalsList
+        <RiskGroupedList
           approvals={filteredApprovals}
           selectedIds={selectedApprovalIds}
           revocations={revocations}
@@ -272,6 +290,7 @@ const TokenApprovalsView: React.FC = () => {
           onApprovalPress={handleApprovalPress}
           onApprovalSelect={onToggleSelection}
           onApprovalRevoke={handleRevoke}
+          onSelectAll={onSelectAll}
           ListHeaderComponent={renderListHeader()}
         />
       )}
