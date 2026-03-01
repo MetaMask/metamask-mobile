@@ -501,47 +501,8 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                 onLayout={[Function]}
                               >
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -549,24 +510,74 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           },
                                         ],
                                       },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
                                     ]
                                   }
-                                  testID="button-icon"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Close"
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
                                         },
                                         undefined,
                                       ]
                                     }
-                                  />
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -1489,47 +1500,8 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 onLayout={[Function]}
                               >
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -1537,24 +1509,74 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           },
                                         ],
                                       },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
                                     ]
                                   }
-                                  testID="button-icon"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Close"
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
                                         },
                                         undefined,
                                       ]
                                     }
-                                  />
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -2477,47 +2499,8 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 onLayout={[Function]}
                               >
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -2525,24 +2508,74 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           },
                                         ],
                                       },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
                                     ]
                                   }
-                                  testID="button-icon"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Close"
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
                                         },
                                         undefined,
                                       ]
                                     }
-                                  />
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -3465,47 +3498,8 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                 onLayout={[Function]}
                               >
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -3513,24 +3507,74 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           },
                                         ],
                                       },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
                                     ]
                                   }
-                                  testID="button-icon"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Close"
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
                                         },
                                         undefined,
                                       ]
                                     }
-                                  />
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>

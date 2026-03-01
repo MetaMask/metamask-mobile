@@ -74,7 +74,7 @@ describe('depositOrderToFiatOrder', () => {
     };
 
     expect(depositOrderToFiatOrder(mockOrder as DepositOrder)).toEqual({
-      id: 'test-order-id',
+      id: 'test-id',
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
@@ -83,8 +83,7 @@ describe('depositOrderToFiatOrder', () => {
       cryptoAmount: 0.012361263,
       cryptoFee: 9,
       currency: 'USD',
-      currencySymbol: '$',
-      amountInUSD: '123',
+      currencySymbol: '',
       cryptocurrency: 'BTC',
       state: 'COMPLETED',
       account: '0x1234',
@@ -98,7 +97,7 @@ describe('depositOrderToFiatOrder', () => {
     });
 
     expect(depositOrderToFiatOrder(failedOrder as DepositOrder)).toEqual({
-      id: 'test-order-id',
+      id: 'test-id',
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
@@ -107,8 +106,7 @@ describe('depositOrderToFiatOrder', () => {
       cryptoAmount: 0.012361263,
       cryptoFee: 9,
       currency: 'USD',
-      currencySymbol: '$',
-      amountInUSD: '123',
+      currencySymbol: '',
       cryptocurrency: 'BTC',
       state: 'FAILED',
       account: '0x1234',
@@ -121,7 +119,7 @@ describe('depositOrderToFiatOrder', () => {
       data: failedOrder,
     });
     expect(depositOrderToFiatOrder(cancelledOrder as DepositOrder)).toEqual({
-      id: 'test-order-id',
+      id: 'test-id',
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
@@ -130,8 +128,7 @@ describe('depositOrderToFiatOrder', () => {
       cryptoAmount: 0.012361263,
       cryptoFee: 9,
       currency: 'USD',
-      currencySymbol: '$',
-      amountInUSD: '123',
+      currencySymbol: '',
       cryptocurrency: 'BTC',
       state: 'CANCELLED',
       account: '0x1234',
@@ -144,7 +141,7 @@ describe('depositOrderToFiatOrder', () => {
       data: cancelledOrder,
     });
     expect(depositOrderToFiatOrder(pendingOrder as DepositOrder)).toEqual({
-      id: 'test-order-id',
+      id: 'test-id',
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
@@ -153,8 +150,7 @@ describe('depositOrderToFiatOrder', () => {
       cryptoAmount: 0.012361263,
       cryptoFee: 9,
       currency: 'USD',
-      currencySymbol: '$',
-      amountInUSD: '123',
+      currencySymbol: '',
       cryptocurrency: 'BTC',
       state: 'PENDING',
       account: '0x1234',
@@ -168,7 +164,7 @@ describe('depositOrderToFiatOrder', () => {
     });
 
     expect(depositOrderToFiatOrder(createdOrder as DepositOrder)).toEqual({
-      id: 'test-order-id',
+      id: 'test-id',
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
@@ -177,8 +173,7 @@ describe('depositOrderToFiatOrder', () => {
       cryptoAmount: 0.012361263,
       cryptoFee: 9,
       currency: 'USD',
-      currencySymbol: '$',
-      amountInUSD: '123',
+      currencySymbol: '',
       cryptocurrency: 'BTC',
       state: 'CREATED',
       account: '0x1234',
@@ -192,7 +187,7 @@ describe('depositOrderToFiatOrder', () => {
     });
 
     expect(depositOrderToFiatOrder(unknownStateOrder as DepositOrder)).toEqual({
-      id: 'test-order-id',
+      id: 'test-id',
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
@@ -201,8 +196,7 @@ describe('depositOrderToFiatOrder', () => {
       cryptoAmount: 0.012361263,
       cryptoFee: 9,
       currency: 'USD',
-      currencySymbol: '$',
-      amountInUSD: '123',
+      currencySymbol: '',
       cryptocurrency: 'BTC',
       state: 'PENDING',
       account: '0x1234',
@@ -269,8 +263,7 @@ describe('depositOrderToFiatOrder', () => {
       cryptoAmount: 0,
       cryptoFee: 0,
       currency: 'USD',
-      currencySymbol: '$',
-      amountInUSD: undefined,
+      currencySymbol: '',
       cryptocurrency: 'ETH',
       state: 'COMPLETED',
       account: '0x1234',
@@ -294,8 +287,7 @@ describe('depositOrderToFiatOrder', () => {
       cryptoAmount: 0,
       cryptoFee: 0,
       currency: 'USD',
-      currencySymbol: '$',
-      amountInUSD: undefined,
+      currencySymbol: '',
       cryptocurrency: 'ETH',
       state: 'COMPLETED',
       account: '0x1234',
@@ -365,8 +357,6 @@ describe('processDepositOrder', () => {
     expect(DepositSDKNoAuth.getOrder).toHaveBeenCalledWith('test-id', '0x1234');
     expect(updatedOrder).toEqual({
       ...mockOrder,
-      currencySymbol: '$',
-      amountInUSD: undefined,
       state: 'FAILED',
       lastTimeFetched: 1673886669600,
       data: { ...mockOrder.data, status: 'FAILED' },
@@ -408,36 +398,9 @@ describe('processDepositOrder', () => {
     expect(DepositSDKNoAuth.getOrder).not.toHaveBeenCalled();
     expect(updatedOrder).toEqual({
       ...mockOrder,
-      currencySymbol: '$',
-      amountInUSD: undefined,
       state: 'PENDING',
       lastTimeFetched: 1673886669600,
       data: { ...mockOrder.data, status: 'PENDING' },
     });
-  });
-
-  it('should preserve original order ID when providerOrderId differs', async () => {
-    const orderWithCustomId = {
-      ...mockOrder,
-      id: 'custom-redux-id',
-      data: {
-        ...mockOrder.data,
-        id: 'deposit-internal-id',
-        providerOrderId: 'provider-external-id',
-      },
-    } as unknown as FiatOrder;
-
-    (DepositSDKNoAuth.getOrder as jest.Mock).mockImplementation(() => ({
-      ...orderWithCustomId.data,
-      status: 'COMPLETED',
-    }));
-    jest.spyOn(Date, 'now').mockImplementation(() => 1673886669600);
-
-    const updatedOrder = await processDepositOrder(orderWithCustomId);
-
-    expect(updatedOrder.id).toBe('custom-redux-id');
-    expect((updatedOrder.data as DepositOrder).providerOrderId).toBe(
-      'provider-external-id',
-    );
   });
 });

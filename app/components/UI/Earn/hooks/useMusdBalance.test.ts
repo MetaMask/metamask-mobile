@@ -9,20 +9,9 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import { EVM_SCOPE } from '../constants/networks';
 import { RootState } from '../../../../reducers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import { toChecksumAddress } from '../../../../util/address';
 
 jest.mock('react-redux');
 jest.mock('../../../../selectors/multichainAccounts/accounts');
-jest.mock('../../../../../locales/i18n', () => ({
-  __esModule: true,
-  default: { locale: 'en-US' },
-}));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockSelectSelectedInternalAccountByScope =
@@ -31,9 +20,6 @@ const mockSelectSelectedInternalAccountByScope =
   >;
 
 type TokenBalancesByAddress = Record<Hex, Record<Hex, Record<Hex, string>>>;
-type TokenMarketData = Record<Hex, Record<Hex, { price?: number }>>;
-type NetworkConfigurations = Record<Hex, { nativeCurrency?: string }>;
-type CurrencyRates = Record<string, { conversionRate?: number }>;
 
 describe('useMusdBalance', () => {
   const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
@@ -42,19 +28,11 @@ describe('useMusdBalance', () => {
 
   let selectedEvmAddress: Hex | undefined;
   let tokenBalancesByAddress: TokenBalancesByAddress;
-  let tokenMarketDataByChainId: TokenMarketData;
-  let networkConfigurationsByChainId: NetworkConfigurations;
-  let currencyRatesBySymbol: CurrencyRates;
-  let currentCurrency: string | undefined;
 
   beforeEach(() => {
     jest.clearAllMocks();
     selectedEvmAddress = MOCK_EVM_ADDRESS;
     tokenBalancesByAddress = {} as TokenBalancesByAddress;
-    tokenMarketDataByChainId = {} as TokenMarketData;
-    networkConfigurationsByChainId = {} as NetworkConfigurations;
-    currencyRatesBySymbol = {} as CurrencyRates;
-    currentCurrency = 'usd';
 
     mockSelectSelectedInternalAccountByScope.mockImplementation(
       (_state: RootState) => (scope) => {
@@ -71,22 +49,6 @@ describe('useMusdBalance', () => {
         return tokenBalancesByAddress;
       }
 
-      if (selector === selectTokenMarketData) {
-        return tokenMarketDataByChainId;
-      }
-
-      if (selector === selectCurrencyRates) {
-        return currencyRatesBySymbol;
-      }
-
-      if (selector === selectCurrentCurrency) {
-        return currentCurrency;
-      }
-
-      if (selector === selectNetworkConfigurations) {
-        return networkConfigurationsByChainId;
-      }
-
       if (typeof selector === 'function') {
         return selector(mockState);
       }
@@ -95,20 +57,16 @@ describe('useMusdBalance', () => {
     });
   });
 
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   describe('hook structure', () => {
-    it('returns object with expected properties', () => {
+    it('returns object with hasMusdBalanceOnAnyChain and balancesByChain properties', () => {
       const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current).toHaveProperty('hasMusdBalanceOnAnyChain');
-      expect(result.current).toHaveProperty('hasMusdBalanceOnChain');
-
-      expect(result.current).toHaveProperty('tokenBalanceByChain');
-      expect(result.current).toHaveProperty('fiatBalanceByChain');
-      expect(result.current).toHaveProperty('fiatBalanceFormattedByChain');
-
-      expect(result.current).toHaveProperty('tokenBalanceAggregated');
-      expect(result.current).toHaveProperty('fiatBalanceAggregated');
-      expect(result.current).toHaveProperty('fiatBalanceAggregatedFormatted');
+      expect(result.current).toHaveProperty('balancesByChain');
     });
 
     it('returns hasMusdBalanceOnAnyChain as boolean', () => {
@@ -117,15 +75,15 @@ describe('useMusdBalance', () => {
       expect(typeof result.current.hasMusdBalanceOnAnyChain).toBe('boolean');
     });
 
-    it('returns hasMusdBalanceOnChain as function', () => {
+    it('returns balancesByChain as object', () => {
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(typeof result.current.hasMusdBalanceOnChain).toBe('function');
+      expect(typeof result.current.balancesByChain).toBe('object');
     });
   });
 
-  describe('balances + fiat (Mainnet + Linea only)', () => {
-    it('returns empty values when no mUSD balances exist', () => {
+  describe('balance detection', () => {
+    it('returns hasMusdBalanceOnAnyChain false when no balances exist', () => {
       tokenBalancesByAddress = {
         [MOCK_EVM_ADDRESS]: {},
       };
@@ -133,153 +91,9 @@ describe('useMusdBalance', () => {
       const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalanceOnAnyChain).toBe(false);
-      expect(result.current.hasMusdBalanceOnChain(CHAIN_IDS.MAINNET)).toBe(
-        false,
-      );
-      expect(
-        result.current.hasMusdBalanceOnChain(CHAIN_IDS.LINEA_MAINNET),
-      ).toBe(false);
-
-      expect(result.current.tokenBalanceByChain).toEqual({});
-      expect(result.current.fiatBalanceByChain).toEqual({});
-      expect(result.current.fiatBalanceFormattedByChain).toEqual({});
-
-      expect(result.current.tokenBalanceAggregated).toBe('0');
-      expect(result.current.fiatBalanceAggregated).toBeUndefined();
-      expect(result.current.fiatBalanceAggregatedFormatted).toBe('$0.00');
+      expect(result.current.balancesByChain).toEqual({});
     });
 
-    it('computes per-chain and aggregated values when rates are available', () => {
-      // 1 mUSD with 6 decimals -> 1_000_000 minimal units -> 0x0f4240
-      const oneMusdMinimalHex = '0x0f4240' as Hex;
-      tokenBalancesByAddress = {
-        [MOCK_EVM_ADDRESS]: {
-          [CHAIN_IDS.MAINNET]: {
-            [MUSD_ADDRESS]: oneMusdMinimalHex,
-          },
-        },
-      };
-
-      // 1 mUSD = 0.0005 ETH, ETH = 2000 (preferred currency) -> 1 mUSD = 1 fiat
-      const checksummedMusdAddress = toChecksumAddress(MUSD_ADDRESS);
-      tokenMarketDataByChainId = {
-        [CHAIN_IDS.MAINNET]: {
-          [checksummedMusdAddress]: { price: 0.0005 },
-        },
-      } as TokenMarketData;
-      networkConfigurationsByChainId = {
-        [CHAIN_IDS.MAINNET]: { nativeCurrency: 'ETH' },
-      } as NetworkConfigurations;
-      currencyRatesBySymbol = {
-        ETH: { conversionRate: 2000 },
-      };
-
-      const { result } = renderHook(() => useMusdBalance());
-
-      expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
-      expect(result.current.hasMusdBalanceOnChain(CHAIN_IDS.MAINNET)).toBe(
-        true,
-      );
-      expect(
-        result.current.hasMusdBalanceOnChain(CHAIN_IDS.LINEA_MAINNET),
-      ).toBe(false);
-
-      expect(result.current.tokenBalanceByChain[CHAIN_IDS.MAINNET]).toBe('1');
-      expect(result.current.tokenBalanceAggregated).toBe('1');
-
-      expect(result.current.fiatBalanceByChain[CHAIN_IDS.MAINNET]).toBe('1');
-      expect(result.current.fiatBalanceAggregated).toBe('1');
-
-      expect(
-        result.current.fiatBalanceFormattedByChain[CHAIN_IDS.MAINNET],
-      ).toBe('$1.00');
-      expect(result.current.fiatBalanceAggregatedFormatted).toBe('$1.00');
-    });
-
-    it('returns token balances but omits fiat when conversion rate is missing', () => {
-      const balance = '0x0f4240' as Hex;
-      tokenBalancesByAddress = {
-        [MOCK_EVM_ADDRESS]: {
-          [CHAIN_IDS.MAINNET]: {
-            [MUSD_ADDRESS]: balance,
-          },
-        },
-      };
-
-      const checksummedMusdAddress = toChecksumAddress(MUSD_ADDRESS);
-      tokenMarketDataByChainId = {
-        [CHAIN_IDS.MAINNET]: {
-          [checksummedMusdAddress]: { price: 0.0005 },
-        },
-      } as TokenMarketData;
-      networkConfigurationsByChainId = {
-        [CHAIN_IDS.MAINNET]: { nativeCurrency: 'ETH' },
-      } as NetworkConfigurations;
-      currencyRatesBySymbol = {
-        // ETH conversionRate missing
-        ETH: {},
-      };
-
-      const { result } = renderHook(() => useMusdBalance());
-
-      expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
-      expect(result.current.tokenBalanceByChain[CHAIN_IDS.MAINNET]).toBe('1');
-      expect(result.current.tokenBalanceAggregated).toBe('1');
-
-      expect(
-        result.current.fiatBalanceByChain[CHAIN_IDS.MAINNET],
-      ).toBeUndefined();
-      expect(
-        result.current.fiatBalanceFormattedByChain[CHAIN_IDS.MAINNET],
-      ).toBeUndefined();
-      expect(result.current.fiatBalanceAggregated).toBeUndefined();
-      expect(result.current.fiatBalanceAggregatedFormatted).toBe('$0.00');
-    });
-
-    it('returns token balances but omits fiat when token price is missing', () => {
-      // Arrange
-      const balance = '0x0f4240' as Hex; // 1 mUSD (6 decimals)
-      tokenBalancesByAddress = {
-        [MOCK_EVM_ADDRESS]: {
-          [CHAIN_IDS.MAINNET]: {
-            [MUSD_ADDRESS]: balance,
-          },
-        },
-      };
-
-      networkConfigurationsByChainId = {
-        [CHAIN_IDS.MAINNET]: { nativeCurrency: 'ETH' },
-      } as NetworkConfigurations;
-      currencyRatesBySymbol = {
-        ETH: { conversionRate: 2000 },
-      };
-      tokenMarketDataByChainId = {
-        [CHAIN_IDS.MAINNET]: {
-          // price omitted
-          [toChecksumAddress(MUSD_ADDRESS)]: {},
-        },
-      } as TokenMarketData;
-
-      // Act
-      const { result } = renderHook(() => useMusdBalance());
-
-      // Assert
-      expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
-      expect(result.current.tokenBalanceByChain[CHAIN_IDS.MAINNET]).toBe('1');
-      expect(result.current.tokenBalanceAggregated).toBe('1');
-
-      expect(
-        result.current.fiatBalanceByChain[CHAIN_IDS.MAINNET],
-      ).toBeUndefined();
-      expect(
-        result.current.fiatBalanceFormattedByChain[CHAIN_IDS.MAINNET],
-      ).toBeUndefined();
-      expect(result.current.fiatBalanceAggregated).toBeUndefined();
-      expect(result.current.fiatBalanceAggregatedFormatted).toBe('$0.00');
-    });
-  });
-
-  describe('balance detection', () => {
     it('returns hasMusdBalanceOnAnyChain false when MUSD balance is 0x0', () => {
       tokenBalancesByAddress = {
         [MOCK_EVM_ADDRESS]: {
@@ -292,7 +106,7 @@ describe('useMusdBalance', () => {
       const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalanceOnAnyChain).toBe(false);
-      expect(result.current.tokenBalanceByChain).toEqual({});
+      expect(result.current.balancesByChain).toEqual({});
     });
 
     it('returns hasMusdBalanceOnAnyChain true when MUSD balance exists on mainnet', () => {
@@ -308,9 +122,9 @@ describe('useMusdBalance', () => {
       const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
-      expect(result.current.hasMusdBalanceOnChain(CHAIN_IDS.MAINNET)).toBe(
-        true,
-      );
+      expect(result.current.balancesByChain).toEqual({
+        [CHAIN_IDS.MAINNET]: balance,
+      });
     });
 
     it('returns hasMusdBalanceOnAnyChain true when MUSD balance exists on Linea', () => {
@@ -328,12 +142,12 @@ describe('useMusdBalance', () => {
       const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
-      expect(
-        result.current.hasMusdBalanceOnChain(CHAIN_IDS.LINEA_MAINNET),
-      ).toBe(true);
+      expect(result.current.balancesByChain).toEqual({
+        [CHAIN_IDS.LINEA_MAINNET]: balance,
+      });
     });
 
-    it('ignores BSC even when balance exists there', () => {
+    it('returns hasMusdBalanceOnAnyChain true when MUSD balance exists on BSC', () => {
       const bscMusdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.BSC];
       const balance = '0x9abc';
       tokenBalancesByAddress = {
@@ -346,11 +160,13 @@ describe('useMusdBalance', () => {
 
       const { result } = renderHook(() => useMusdBalance());
 
-      expect(result.current.hasMusdBalanceOnAnyChain).toBe(false);
-      expect(result.current.tokenBalanceByChain).toEqual({});
+      expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
+      expect(result.current.balancesByChain).toEqual({
+        [CHAIN_IDS.BSC]: balance,
+      });
     });
 
-    it('returns balances from multiple supported chains', () => {
+    it('returns balances from multiple chains', () => {
       const mainnetBalance = '0x1111';
       const lineaBalance = '0x2222';
       tokenBalancesByAddress = {
@@ -368,12 +184,10 @@ describe('useMusdBalance', () => {
       const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
-      expect(result.current.hasMusdBalanceOnChain(CHAIN_IDS.MAINNET)).toBe(
-        true,
-      );
-      expect(
-        result.current.hasMusdBalanceOnChain(CHAIN_IDS.LINEA_MAINNET),
-      ).toBe(true);
+      expect(result.current.balancesByChain).toEqual({
+        [CHAIN_IDS.MAINNET]: mainnetBalance,
+        [CHAIN_IDS.LINEA_MAINNET]: lineaBalance,
+      });
     });
   });
 
@@ -395,10 +209,11 @@ describe('useMusdBalance', () => {
 
     it('handles checksummed token address in balances', () => {
       const balance = '0x1234';
+      // MUSD_ADDRESS is already lowercase in the constant
       tokenBalancesByAddress = {
         [MOCK_EVM_ADDRESS]: {
           [CHAIN_IDS.MAINNET]: {
-            [toChecksumAddress(MUSD_ADDRESS)]: balance,
+            [MUSD_ADDRESS]: balance,
           },
         },
       };
@@ -423,7 +238,7 @@ describe('useMusdBalance', () => {
       const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalanceOnAnyChain).toBe(false);
-      expect(result.current.tokenBalanceByChain).toEqual({});
+      expect(result.current.balancesByChain).toEqual({});
     });
 
     it('ignores non-MUSD tokens on supported chains', () => {
@@ -440,7 +255,7 @@ describe('useMusdBalance', () => {
       const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalanceOnAnyChain).toBe(false);
-      expect(result.current.tokenBalanceByChain).toEqual({});
+      expect(result.current.balancesByChain).toEqual({});
     });
 
     it('ignores MUSD-like tokens on unsupported chains', () => {
@@ -456,7 +271,7 @@ describe('useMusdBalance', () => {
       const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalanceOnAnyChain).toBe(false);
-      expect(result.current.tokenBalanceByChain).toEqual({});
+      expect(result.current.balancesByChain).toEqual({});
     });
 
     it('handles mixed zero and non-zero balances correctly', () => {
@@ -475,12 +290,9 @@ describe('useMusdBalance', () => {
       const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalanceOnAnyChain).toBe(true);
-      expect(
-        result.current.hasMusdBalanceOnChain(CHAIN_IDS.LINEA_MAINNET),
-      ).toBe(true);
-      expect(result.current.hasMusdBalanceOnChain(CHAIN_IDS.MAINNET)).toBe(
-        false,
-      );
+      expect(result.current.balancesByChain).toEqual({
+        [CHAIN_IDS.LINEA_MAINNET]: balance,
+      });
     });
 
     it('handles undefined chain balances gracefully', () => {
@@ -496,7 +308,7 @@ describe('useMusdBalance', () => {
       const { result } = renderHook(() => useMusdBalance());
 
       expect(result.current.hasMusdBalanceOnAnyChain).toBe(false);
-      expect(result.current.tokenBalanceByChain).toEqual({});
+      expect(result.current.balancesByChain).toEqual({});
     });
   });
 });

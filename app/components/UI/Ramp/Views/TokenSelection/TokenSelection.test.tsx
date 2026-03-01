@@ -172,8 +172,15 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      quotes: null,
+      selectedQuote: null,
       getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
+      startQuotePolling: jest.fn(),
+      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
+      quotesLoading: false,
+      quotesError: null,
     });
   });
 
@@ -306,8 +313,15 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      quotes: null,
+      selectedQuote: null,
       getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
+      startQuotePolling: jest.fn(),
+      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
+      quotesLoading: false,
+      quotesError: null,
     });
 
     const { UNSAFE_getByType } = renderWithProvider(TokenSelection);
@@ -353,8 +367,15 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      quotes: null,
+      selectedQuote: null,
       getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
+      startQuotePolling: jest.fn(),
+      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
+      quotesLoading: false,
+      quotesError: null,
     });
 
     const { getByText } = renderWithProvider(TokenSelection);
@@ -412,8 +433,15 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      quotes: null,
+      selectedQuote: null,
       getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
+      startQuotePolling: jest.fn(),
+      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
+      quotesLoading: false,
+      quotesError: null,
     });
 
     renderWithProvider(TokenSelection);
@@ -481,8 +509,15 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      quotes: null,
+      selectedQuote: null,
       getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
+      startQuotePolling: jest.fn(),
+      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
+      quotesLoading: false,
+      quotesError: null,
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -554,8 +589,15 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      quotes: null,
+      selectedQuote: null,
       getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
+      startQuotePolling: jest.fn(),
+      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
+      quotesLoading: false,
+      quotesError: null,
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -629,8 +671,15 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      quotes: null,
+      selectedQuote: null,
       getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
+      startQuotePolling: jest.fn(),
+      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
+      quotesLoading: false,
+      quotesError: null,
     });
 
     renderWithProvider(TokenSelection);

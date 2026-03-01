@@ -19,10 +19,6 @@ class LoginView {
     return Matchers.getElementByID(LoginViewSelectors.REMEMBER_ME_SWITCH);
   }
 
-  get loginButton(): DetoxElement {
-    return Matchers.getElementByID(LoginViewSelectors.LOGIN_BUTTON_ID);
-  }
-
   async enterPassword(password: string): Promise<void> {
     await Gestures.typeText(this.passwordInput, password, {
       hideKeyboard: true,
@@ -39,12 +35,6 @@ class LoginView {
   async toggleRememberMeSwitch(): Promise<void> {
     await Gestures.waitAndTap(this.rememberMeSwitch, {
       elemDescription: 'Remember Me Switch',
-    });
-  }
-
-  async tapLoginButton(): Promise<void> {
-    await Gestures.waitAndTap(this.loginButton, {
-      elemDescription: 'Login Button',
     });
   }
 }

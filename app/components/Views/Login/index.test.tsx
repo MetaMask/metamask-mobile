@@ -16,6 +16,7 @@ import { strings } from '../../../../locales/i18n';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passwordRequirementsMet } from '../../../util/password';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import { passcodeType } from '../../../util/authentication';
 import {
   TraceName,
@@ -23,6 +24,7 @@ import {
   endTrace,
   trace,
 } from '../../../util/trace';
+import { BIOMETRY_CHOICE_DISABLED, TRUE } from '../../../constants/storage';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
@@ -38,8 +40,6 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import { downloadStateLogs } from '../../../util/logs';
 import { getVaultFromBackup } from '../../../core/BackupVault';
-import { AuthCapabilities } from '../../../core/Authentication/types';
-import { IconName } from '@metamask/design-system-react-native';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -75,29 +75,6 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   }),
 }));
 
-const defaultCapabilities: AuthCapabilities = {
-  authType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-  isBiometricsAvailable: true,
-  passcodeAvailable: true,
-  authLabel: 'Device Authentication',
-  authDescription:
-    'Use your device’s biometrics or passcode to unlock MetaMask.',
-  authIcon: IconName.Lock,
-  osAuthEnabled: true,
-  allowLoginWithRememberMe: false,
-  deviceAuthRequiresSettings: false,
-};
-
-const mockUseAuthCapabilities = jest.fn(() => ({
-  capabilities: defaultCapabilities,
-  isLoading: false,
-}));
-
-jest.mock('../../../core/Authentication/hooks/useAuthCapabilities', () => ({
-  __esModule: true,
-  default: () => mockUseAuthCapabilities(),
-}));
-
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -107,11 +84,6 @@ jest.mock('@react-navigation/native', () => {
       replace: mockReplace,
       reset: mockReset,
       goBack: mockGoBack,
-      dispatch: jest.fn((action) => {
-        if (action.type === 'REPLACE') {
-          mockReplace(action.payload.name, action.payload.params);
-        }
-      }),
     }),
     useRoute: () => mockRoute(),
   };
@@ -257,23 +229,14 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
 
 jest.mock('../../../util/trace', () => {
   const actualTrace = jest.requireActual('../../../util/trace');
-  const traceCallbackPromiseRef: { current: Promise<unknown> | null } = {
-    current: null,
-  };
-  const traceFn = jest.fn().mockImplementation(async (_request, callback) => {
-    if (callback) {
-      traceCallbackPromiseRef.current = callback();
-      return await traceCallbackPromiseRef.current;
-    }
-    return 'mockTraceContext';
-  });
-  // Expose ref so tests can await the trace callback promise inside act()
-  Object.assign(traceFn, {
-    __traceCallbackPromiseRef: traceCallbackPromiseRef,
-  });
   return {
     ...actualTrace,
-    trace: traceFn,
+    trace: jest.fn().mockImplementation((_request, callback) => {
+      if (callback) {
+        return callback();
+      }
+      return 'mockTraceContext';
+    }),
     endTrace: jest.fn(),
   };
 });
@@ -355,10 +318,6 @@ describe('Login', () => {
     mockGetAuthType.mockResolvedValue({
       currentAuthType: 'password',
       availableBiometryType: null,
-    });
-    mockUseAuthCapabilities.mockReturnValue({
-      capabilities: defaultCapabilities,
-      isLoading: false,
     });
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
     mockBackHandlerAddEventListener.mockClear();
@@ -458,8 +417,49 @@ describe('Login', () => {
     });
   });
 
-  describe('Device authentication button visibility', () => {
+  describe('Remember Me Authentication', () => {
+    it('set up remember me authentication when auth type is REMEMBER_ME', async () => {
+      mockGetAuthType.mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
+        availableBiometryType: null,
+      });
+
+      renderWithProvider(<Login />);
+
+      // Wait for useEffect to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(setAllowLoginWithRememberMe).toHaveBeenCalledWith(true);
+    });
+  });
+
+  describe('Passcode Authentication', () => {
     beforeEach(() => {
+      (StorageWrapper.getItem as jest.Mock).mockReset();
+    });
+
+    it('set up passcode authentication when auth type is PASSCODE', async () => {
+      mockGetAuthType.mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType: 'TouchID',
+      });
+
+      renderWithProvider(<Login />);
+
+      // Wait for useEffect to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(passcodeType).toHaveBeenCalledWith(AUTHENTICATION_TYPE.PASSCODE);
+    });
+  });
+
+  describe('Biometric Authentication Setup', () => {
+    beforeEach(() => {
+      (StorageWrapper.getItem as jest.Mock).mockReset();
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -468,27 +468,24 @@ describe('Login', () => {
       });
     });
 
-    it('renders device authentication button when capabilities allow device auth', async () => {
-      mockUseAuthCapabilities.mockReturnValue({
-        capabilities: {
-          ...defaultCapabilities,
-          authType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-        },
-        isLoading: false,
+    it('biometric authentication is setup when availableBiometryType is present', async () => {
+      mockGetAuthType.mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'TouchID',
       });
 
       const { getByTestId } = renderWithProvider(<Login />);
 
+      // Wait for useEffect to complete
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(
-        getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
-      ).toBeOnTheScreen();
+      // Should render biometric button when biometric is available
+      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeOnTheScreen();
     });
 
-    it('hides device authentication button when device is locked', async () => {
+    it('biometric button is not shown when device is locked', async () => {
       mockRoute.mockReturnValue({
         params: {
           locked: true,
@@ -496,35 +493,43 @@ describe('Login', () => {
         },
       });
 
+      mockGetAuthType.mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'FaceID',
+      });
+
       const { queryByTestId } = renderWithProvider(<Login />);
 
+      // Wait for useEffect to complete
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(
-        queryByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
-      ).toBeNull();
+      // Should NOT render biometric button when device is locked
+      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
     });
 
-    it('hides device authentication button when capabilities do not support device auth', async () => {
-      mockUseAuthCapabilities.mockReturnValue({
-        capabilities: {
-          ...defaultCapabilities,
-          authType: AUTHENTICATION_TYPE.PASSWORD,
-        },
-        isLoading: false,
+    it('biometric button is shown when biometric credentials exist', async () => {
+      // With toggle removed, biometric button shows based on credentials, not storage flags
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === BIOMETRY_CHOICE_DISABLED) return Promise.resolve(TRUE);
+        return Promise.resolve(null);
       });
 
-      const { queryByTestId } = renderWithProvider(<Login />);
+      mockGetAuthType.mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'TouchID',
+      });
 
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      // Wait for useEffect to complete
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(
-        queryByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
-      ).toBeNull();
+      // Should render biometric button when biometric credentials exist
+      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeOnTheScreen();
     });
   });
 
@@ -731,9 +736,7 @@ describe('Login', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      const biometryButton = getByTestId(
-        LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
-      );
+      const biometryButton = getByTestId(LoginViewSelectors.BIOMETRY_BUTTON);
 
       await act(async () => {
         fireEvent.press(biometryButton);
@@ -758,9 +761,7 @@ describe('Login', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      const biometryButton = getByTestId(
-        LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
-      );
+      const biometryButton = getByTestId(LoginViewSelectors.BIOMETRY_BUTTON);
 
       // Act
       await act(async () => {
@@ -879,17 +880,7 @@ describe('Login', () => {
           oauthLoginSuccess: false,
         },
       });
-      // Isolate auth mocks so previous tests cannot leave stale implementations
-      // (e.g. mockRejectedValue or mockResolvedValueOnce from other describe blocks).
-      mockUnlockWallet.mockReset();
       mockUnlockWallet.mockResolvedValue(true);
-      mockGetAuthType.mockReset();
-      mockGetAuthType.mockResolvedValue({
-        currentAuthType: 'password',
-        availableBiometryType: null,
-      });
-      mockCheckIsSeedlessPasswordOutdated.mockReset();
-      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
     });
 
     it('checks seedless password status and calls getAuthType when outdated', async () => {
@@ -899,34 +890,30 @@ describe('Login', () => {
         currentAuthType: 'password',
         availableBiometryType: 'FaceID',
       });
+      const getAuthTypeCallCountBefore = mockGetAuthType.mock.calls.length;
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
-      // Act - commit password, then submit and wait for the trace callback inside act
-      // so the async unlock flow (checkIsSeedlessPasswordOutdated -> unlockWallet -> getAuthType) completes before we assert.
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
+      // Act
+      fireEvent.changeText(passwordInput, 'valid-password123');
       await act(async () => {
         fireEvent(passwordInput, 'submitEditing');
-        const promiseRef = (
-          trace as {
-            __traceCallbackPromiseRef?: { current: Promise<unknown> | null };
-          }
-        ).__traceCallbackPromiseRef;
-        if (promiseRef?.current) {
-          await promiseRef.current;
-          promiseRef.current = null;
-        }
       });
 
-      // Assert
-      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
-      expect(mockUnlockWallet).toHaveBeenCalledWith({
-        password: 'valid-password123',
+      // Assert - verify the full code path executed
+      await waitFor(() => {
+        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
       });
-      expect(mockGetAuthType).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalled();
+      });
+      // getAuthType called extra time inside the if(isSeedlessPasswordOutdated) block
+      await waitFor(() => {
+        expect(mockGetAuthType.mock.calls.length).toBeGreaterThan(
+          getAuthTypeCallCountBefore,
+        );
+      });
     });
 
     it('does not call getAuthType after unlock when seedless password is not outdated', async () => {
@@ -1297,17 +1284,13 @@ describe('Login', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      const biometryButton = getByTestId(
-        LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
-      );
+      const biometryButton = getByTestId(LoginViewSelectors.BIOMETRY_BUTTON);
 
       await act(async () => {
         fireEvent.press(biometryButton);
       });
 
-      expect(
-        getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
-      ).toBeOnTheScreen();
+      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeOnTheScreen();
     });
   });
 });

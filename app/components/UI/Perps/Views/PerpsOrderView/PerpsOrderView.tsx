@@ -2,6 +2,7 @@ import {
   useNavigation,
   useRoute,
   CommonActions,
+  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, {
@@ -95,6 +96,7 @@ import {
   type OrderType,
   type Position,
 } from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
@@ -194,7 +196,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const source = TrendingFeedSessionManager.getInstance().isFromTrending
     ? 'trending'
     : undefined;
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
@@ -569,9 +571,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return requiredUsd > balanceUsd;
   }, [hasCustomTokenSelected, marginRequired, payToken]);
 
-  // Order execution using new hook. "Submitting your trade" toast is shown before execution; no separate "Order submitted" toast.
+  // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
+      onSubmitted: () => {
+        showToast(
+          PerpsToastOptions.orderManagement[orderForm.type].submitted(
+            orderForm.direction,
+            positionSize,
+            orderForm.asset,
+          ),
+        );
+      },
       onSuccess: (_position) => {
         showToast(
           PerpsToastOptions.orderManagement[orderForm.type].confirmed(
@@ -1037,9 +1048,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           },
         };
 
-        // Persistent "Submitting your trade" toast until order completes (user can dismiss via close button or swipe)
-        showToast(PerpsToastOptions.orderManagement.shared.submitting());
-
         // Check if TP/SL should be handled separately (for new positions or position flips)
         const shouldHandleTPSLSeparately =
           (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
@@ -1098,7 +1106,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       executeOrder,
       showToast,
       PerpsToastOptions.formValidation.orderForm,
-      PerpsToastOptions.orderManagement.shared,
       PerpsToastOptions.positionManagement.tpsl,
       updatePositionTPSL,
       marginRequired,

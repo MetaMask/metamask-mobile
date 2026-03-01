@@ -135,8 +135,8 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+jest.mock('../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -235,7 +235,7 @@ describe('Browser - Tab Operations', () => {
     it('navigates away when closing tabs view with zero tabs', async () => {
       // This tests the bug fix: closeTabsView should navigate away when tabs.length === 0
       jest.setTimeout(10000); // Increase timeout for async operations
-      const TabsMock = Tabs as unknown as jest.Mock;
+      const TabsMock = jest.mocked(Tabs);
       const BrowserTabMock = jest.mocked(BrowserTab);
       let closeTabsViewCallback: (() => void) | undefined;
       const mockCaptureScreen = captureScreen as jest.Mock;
@@ -375,7 +375,7 @@ describe('Browser - Tab Operations', () => {
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];
-      const TabsMock = Tabs as unknown as jest.Mock;
+      const TabsMock = jest.mocked(Tabs);
       let closeTabsViewCallback: (() => void) | undefined;
 
       TabsMock.mockImplementation((props) => {

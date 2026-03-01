@@ -39,33 +39,27 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
-// Mock useAnalytics hook which is used by withAnalyticsAwareness HOC
-jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+// Mock useMetrics hook which is used by withMetricsAwareness HOC
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
     isEnabled: mockMetricsIsEnabled,
   }),
+  withMetricsAwareness:
+    (Component: React.ComponentType) => (props: Record<string, unknown>) => (
+      <Component
+        {...props}
+        {...({
+          metrics: {
+            trackEvent: mockTrackEvent,
+            createEventBuilder: mockCreateEventBuilder,
+            isEnabled: mockMetricsIsEnabled,
+          },
+        } as Record<string, unknown>)}
+      />
+    ),
 }));
-
-jest.mock(
-  '../../../components/hooks/useAnalytics/withAnalyticsAwareness',
-  () => ({
-    withAnalyticsAwareness:
-      (Component: React.ComponentType) => (props: Record<string, unknown>) => (
-        <Component
-          {...props}
-          {...({
-            analytics: {
-              trackEvent: mockTrackEvent,
-              createEventBuilder: mockCreateEventBuilder,
-              isEnabled: mockMetricsIsEnabled,
-            },
-          } as Record<string, unknown>)}
-        />
-      ),
-  }),
-);
 
 const mockStore = configureMockStore();
 

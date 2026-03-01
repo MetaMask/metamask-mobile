@@ -1,8 +1,4 @@
-import {
-  selectPredictEnabledFlag,
-  selectPredictGtmOnboardingModalEnabledFlag,
-  selectPredictHotTabFlag,
-} from '.';
+import { selectPredictEnabledFlag, selectPredictHotTabFlag } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
   mockedState,
@@ -36,7 +32,6 @@ describe('Predict Feature Flag Selectors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     delete process.env.MM_PREDICT_ENABLED;
-    delete process.env.MM_PREDICT_GTM_MODAL_ENABLED;
     mockHasMinimumRequiredVersion = jest.spyOn(
       remoteFeatureFlagModule,
       'hasMinimumRequiredVersion',
@@ -46,7 +41,6 @@ describe('Predict Feature Flag Selectors', () => {
 
   afterEach(() => {
     delete process.env.MM_PREDICT_ENABLED;
-    delete process.env.MM_PREDICT_GTM_MODAL_ENABLED;
     mockHasMinimumRequiredVersion?.mockRestore();
   });
 
@@ -189,79 +183,6 @@ describe('Predict Feature Flag Selectors', () => {
 
         expect(result).toBe(true);
       });
-    });
-  });
-
-  describe('selectPredictGtmOnboardingModalEnabledFlag', () => {
-    it('returns true when remote flag is enabled (VersionGated shape from builds.yml)', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: {
-                  enabled: true,
-                  minimumVersion: '0.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-      expect(selectPredictGtmOnboardingModalEnabledFlag(state)).toBe(true);
-    });
-
-    it('returns false when remote flag is disabled (VersionGated shape from builds.yml)', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: {
-                  enabled: false,
-                  minimumVersion: '0.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-      expect(selectPredictGtmOnboardingModalEnabledFlag(state)).toBe(false);
-    });
-
-    it('falls back to process.env.MM_PREDICT_GTM_MODAL_ENABLED when remote flag is absent', () => {
-      const emptyRemoteState = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {},
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-      const emptyRemoteState2 = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {},
-              cacheTimestamp: 1,
-            },
-          },
-        },
-      };
-
-      process.env.MM_PREDICT_GTM_MODAL_ENABLED = 'true';
-      expect(selectPredictGtmOnboardingModalEnabledFlag(emptyRemoteState)).toBe(
-        true,
-      );
-
-      process.env.MM_PREDICT_GTM_MODAL_ENABLED = 'false';
-      expect(
-        selectPredictGtmOnboardingModalEnabledFlag(emptyRemoteState2),
-      ).toBe(false);
     });
   });
 

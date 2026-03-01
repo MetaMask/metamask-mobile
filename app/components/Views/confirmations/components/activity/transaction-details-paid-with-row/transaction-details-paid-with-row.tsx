@@ -12,21 +12,17 @@ import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testId
 export function TransactionDetailsPaidWithRow() {
   const { transactionMeta } = useTransactionDetails();
   const { metamaskPay } = transactionMeta;
-  const { chainId, tokenAddress, isPostQuote } = metamaskPay || {};
+  const { chainId, tokenAddress } = metamaskPay || {};
   const token = useTokenWithBalance(tokenAddress ?? '0x0', chainId ?? '0x0');
 
   if (!chainId || !tokenAddress || !token) {
     return null;
   }
 
-  // For post-quote withdrawals, metamaskPay token is the destination (received),
-  // not the source (paid with).
-  const label = isPostQuote
-    ? strings('transaction_details.label.receive_token')
-    : strings('transaction_details.label.paid_with');
-
   return (
-    <TransactionDetailsRow label={label}>
+    <TransactionDetailsRow
+      label={strings('transaction_details.label.paid_with')}
+    >
       <Box
         flexDirection={FlexDirection.Row}
         gap={6}

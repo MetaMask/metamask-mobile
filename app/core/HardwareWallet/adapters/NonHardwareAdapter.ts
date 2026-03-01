@@ -1,6 +1,5 @@
 /* eslint-disable no-empty-function, @typescript-eslint/no-unused-vars, @typescript-eslint/no-useless-constructor */
 
-import { ErrorCode } from '@metamask/hw-wallet-sdk';
 import {
   DiscoveredDevice,
   HardwareWalletAdapter,
@@ -73,13 +72,5 @@ export class NonHardwareAdapter implements HardwareWalletAdapter {
 
   getRequiredAppName(): string | undefined {
     return undefined;
-  }
-
-  getTransportDisabledErrorCode(): ErrorCode | null {
-    return null;
-  }
-
-  getConnectionTips(): string[] {
-    return [];
   }
 }

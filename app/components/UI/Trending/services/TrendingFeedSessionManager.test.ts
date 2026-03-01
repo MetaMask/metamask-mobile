@@ -5,9 +5,8 @@ import TrendingFeedSessionManager, {
   SearchProperties,
   FilterChangeProperties,
 } from './TrendingFeedSessionManager';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { analytics } from '../../../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 // Mock dependencies
@@ -21,13 +20,14 @@ jest.mock('uuid', () => ({
   v4: jest.fn(() => 'mock-session-id'),
 }));
 
-jest.mock('../../../../util/analytics/analytics', () => ({
-  analytics: {
-    trackEvent: jest.fn(),
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: jest.fn(() => ({
+      trackEvent: mockTrackEvent,
+      updateDataRecordingFlag: jest.fn(),
+    })),
   },
-}));
-
-jest.mock('../../../../core/Analytics/MetaMetrics.events', () => ({
   MetaMetricsEvents: {
     TRENDING_FEED_VIEWED: 'TRENDING_FEED_VIEWED',
   },
@@ -38,13 +38,11 @@ const mockEventBuilder = {
   build: jest.fn().mockReturnValue({ event: 'TRENDING_FEED_VIEWED' }),
 };
 
-jest.mock('../../../../util/analytics/AnalyticsEventBuilder', () => ({
-  AnalyticsEventBuilder: {
+jest.mock('../../../../core/Analytics/MetricsEventBuilder', () => ({
+  MetricsEventBuilder: {
     createEventBuilder: jest.fn(() => mockEventBuilder),
   },
 }));
-
-const mockTrackEvent = analytics.trackEvent as jest.Mock;
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
@@ -99,7 +97,7 @@ describe('TrendingFeedSessionManager', () => {
 
       sessionManager.startSession(entryPoint);
 
-      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.TRENDING_FEED_VIEWED,
       );
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
@@ -469,7 +467,7 @@ describe('TrendingFeedSessionManager', () => {
 
       sessionManager.trackTokenClick(mockTokenClickProperties);
 
-      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.TRENDING_FEED_VIEWED,
       );
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
@@ -565,7 +563,7 @@ describe('TrendingFeedSessionManager', () => {
 
       sessionManager.trackSearch(mockSearchProperties);
 
-      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.TRENDING_FEED_VIEWED,
       );
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
@@ -643,7 +641,7 @@ describe('TrendingFeedSessionManager', () => {
 
       sessionManager.trackFilterChange(mockFilterChangeProperties);
 
-      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.TRENDING_FEED_VIEWED,
       );
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({

@@ -367,11 +367,6 @@ export const DEFAULT_MOCKS = {
         features: [],
       },
     },
-    {
-      urlEndpoint: 'https://security-alerts.api.cx.metamask.io/token/scan-bulk',
-      responseCode: 200,
-      response: [],
-    },
     ...(DEFAULT_REWARDS_MOCKS.POST || []),
     ...(PERPS_HYPERLIQUID_MOCKS.POST || []),
   ],
