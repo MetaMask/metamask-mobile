@@ -28,7 +28,6 @@ import { setHasSeenEducation } from '../../../../../core/redux/slices/tokenAppro
 import { selectHasSeenEducation } from '../../selectors';
 import ApprovalsList from '../../components/ApprovalsList';
 import ChainFilterBar from '../../components/ChainFilterBar';
-import FilterSortRow from '../../components/FilterSortRow';
 import BatchRevokeBar from '../../components/BatchRevokeBar';
 import ApprovalRiskBanner from '../../components/ApprovalRiskBanner';
 import ApprovalsEducation from '../../components/ApprovalsEducation';
@@ -77,10 +76,6 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
   },
-  filterDivider: {
-    height: StyleSheet.hairlineWidth,
-    marginHorizontal: 16,
-  },
 });
 
 const SKELETON_COUNT = 5;
@@ -103,15 +98,11 @@ const TokenApprovalsView: React.FC = () => {
 
   const {
     selectedChains,
-    verdictFilter,
-    sortBy,
     searchQuery,
     selectedApprovalIds,
     revocations,
     selectionMode,
     onChainToggle,
-    onVerdictFilterChange,
-    onSortChange,
     onSearchChange,
     onToggleSelection,
     onClearSelection,
@@ -187,19 +178,6 @@ const TokenApprovalsView: React.FC = () => {
         chains={availableChains}
         selectedChains={selectedChains}
         onChainToggle={onChainToggle}
-      />
-
-      {/* Divider between filter groups */}
-      <View
-        style={[styles.filterDivider, { backgroundColor: colors.border.muted }]}
-      />
-
-      {/* Verdict + Sort Filters */}
-      <FilterSortRow
-        verdictFilter={verdictFilter}
-        sortBy={sortBy}
-        onVerdictFilterChange={onVerdictFilterChange}
-        onSortChange={onSortChange}
       />
     </View>
   );

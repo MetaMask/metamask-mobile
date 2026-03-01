@@ -2,6 +2,10 @@ import type { Approval } from '@metamask/phishing-controller';
 import Engine from '../../../../core/Engine';
 import { SUPPORTED_CHAIN_IDS, CHAIN_DISPLAY_NAMES } from '../constants/chains';
 import { ApprovalItem, ApprovalAssetType, Verdict } from '../types';
+import { fetchMockApprovals } from './mockApprovals';
+
+// TODO: Remove this flag before merging – set to true to use live PhishingController data
+const USE_MOCK_DATA = true;
 
 function mapVerdict(verdict: string): Verdict {
   switch (verdict) {
@@ -76,6 +80,10 @@ export interface FetchAllApprovalsResult {
 export async function fetchAllApprovals(
   address: string,
 ): Promise<FetchAllApprovalsResult> {
+  if (USE_MOCK_DATA) {
+    return fetchMockApprovals();
+  }
+
   const { PhishingController } = Engine.context;
 
   const results = await Promise.allSettled(
