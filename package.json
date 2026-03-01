@@ -408,6 +408,7 @@
     "prop-types": "15.7.2",
     "pump": "3.0.0",
     "punycode": "^2.1.1",
+    "pusher-js": "^8.4.0",
     "qs": "6.14.1",
     "query-string": "^6.12.1",
     "randomfill": "^1.0.4",
