@@ -10,7 +10,7 @@ import {
   setRevocationStatus,
   removeApproval,
 } from '../../../../core/redux/slices/tokenApprovals';
-import { ApprovalItem, ApprovalAssetType, Verdict } from '../types';
+import { ApprovalItem, ApprovalAssetType } from '../types';
 import {
   addTransaction,
   addTransactionBatch,
@@ -212,14 +212,5 @@ export function useBatchRevoke() {
     [approvals, revokeBatch, revokeSequential, dispatch],
   );
 
-  const revokeAllMalicious = useCallback(async () => {
-    const maliciousIds = approvals
-      .filter((a) => a.verdict === Verdict.Malicious)
-      .map((a) => a.id);
-    if (maliciousIds.length > 0) {
-      await batchRevoke(maliciousIds);
-    }
-  }, [approvals, batchRevoke]);
-
-  return { batchRevoke, revokeAllMalicious };
+  return { batchRevoke };
 }

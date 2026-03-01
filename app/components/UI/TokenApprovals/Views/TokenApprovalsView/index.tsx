@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import {
   SafeAreaView,
   View,
@@ -23,7 +23,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { ApprovalItem, Verdict } from '../../types';
 import { useTokenApprovals } from '../../hooks/useTokenApprovals';
 import { useApprovalFilters } from '../../hooks/useApprovalFilters';
-import { useBatchRevoke } from '../../hooks/useBatchRevoke';
 import { useRevokeApproval } from '../../hooks/useRevokeApproval';
 import RiskDashboardHeader from '../../components/RiskDashboardHeader';
 import RiskGroupedList from '../../components/RiskGroupedList';
@@ -89,7 +88,6 @@ const SKELETON_COUNT = 5;
 const TokenApprovalsView: React.FC = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
 
   const { approvals, filteredApprovals, isLoading, error, availableChains } =
     useTokenApprovals();
@@ -107,7 +105,6 @@ const TokenApprovalsView: React.FC = () => {
     onClearSelection,
   } = useApprovalFilters();
 
-  const { batchRevoke } = useBatchRevoke();
   const { revokeApproval } = useRevokeApproval();
 
   const handleBack = useCallback(() => {
@@ -142,21 +139,22 @@ const TokenApprovalsView: React.FC = () => {
     );
   }, [navigation, selectedApprovalIds]);
 
-  const handleRevokeAllRisky = useCallback(async () => {
+  const handleRevokeAllRisky = useCallback(() => {
     const riskyIds = approvals
       .filter(
         (a) => a.verdict === Verdict.Malicious || a.verdict === Verdict.Warning,
       )
       .map((a) => a.id);
     if (riskyIds.length > 0) {
-      setIsBatchProcessing(true);
-      try {
-        await batchRevoke(riskyIds);
-      } finally {
-        setIsBatchProcessing(false);
-      }
+      navigation.navigate(
+        Routes.TOKEN_APPROVALS.MODALS.ROOT as never,
+        {
+          screen: Routes.TOKEN_APPROVALS.MODALS.BATCH_REVOKE_CONFIRM,
+          params: { approvalIds: riskyIds },
+        } as never,
+      );
     }
-  }, [approvals, batchRevoke]);
+  }, [approvals, navigation]);
 
   const handleLearnMore = useCallback(() => {
     Linking.openURL(LEARN_MORE_URL);
@@ -180,7 +178,7 @@ const TokenApprovalsView: React.FC = () => {
       <RiskDashboardHeader
         approvals={approvals}
         onRevokeAllRisky={handleRevokeAllRisky}
-        isProcessing={isBatchProcessing}
+        isProcessing={false}
       />
 
       {/* Chain Filters */}
@@ -301,7 +299,7 @@ const TokenApprovalsView: React.FC = () => {
         selectedCount={selectedApprovalIds.length}
         onRevoke={handleBatchRevoke}
         onClear={onClearSelection}
-        isProcessing={isBatchProcessing}
+        isProcessing={false}
       />
     </SafeAreaView>
   );
