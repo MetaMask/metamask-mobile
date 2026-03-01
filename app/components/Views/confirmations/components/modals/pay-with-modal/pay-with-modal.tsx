@@ -17,7 +17,10 @@ import {
   isHighlightedItemOutsideAssetList,
   TokenListItem,
 } from '../../../types/token';
-import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayRequiredTokens,
+} from '../../../hooks/pay/useTransactionPayData';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -30,6 +33,7 @@ import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { useFiatPaymentHighlightedActions } from '../../../hooks/pay/useFiatPaymentHighlightedActions';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -48,6 +52,8 @@ export function PayWithModal() {
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
+  const mmPayFiatHighlightedAction = useFiatPaymentHighlightedActions();
+  const fiatPayment = useTransactionPayFiatPayment();
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -153,6 +159,7 @@ export function PayWithModal() {
         payToken,
         requiredTokens,
         tokens,
+        fiatPayment,
       });
 
       let filteredTokens: TokenListItem[] = availableTokens;
@@ -169,7 +176,12 @@ export function PayWithModal() {
         filteredTokens = perpsBalanceTokenFilter(availableTokens);
       }
 
-      return wrapHighlightedItemCallbacks(filteredTokens);
+      const availableTokensWithFiatActions = [
+        ...mmPayFiatHighlightedAction,
+        ...filteredTokens,
+      ];
+
+      return wrapHighlightedItemCallbacks(availableTokensWithFiatActions);
     },
     [
       withdrawTokenFilter,
@@ -179,6 +191,8 @@ export function PayWithModal() {
       transactionMeta,
       perpsBalanceTokenFilter,
       wrapHighlightedItemCallbacks,
+      mmPayFiatHighlightedAction,
+      fiatPayment,
     ],
   );
 

@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
+import { PaymentType } from '@consensys/on-ramp-sdk';
 import {
   AvatarToken,
   Box,
@@ -18,7 +19,11 @@ import {
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-import { HighlightedItem as HighlightedItemType } from '../../../types/token';
+import PaymentMethodIcon from '../../../../../UI/Ramp/Aggregator/components/PaymentMethodIcon';
+import {
+  HighlightedItem as HighlightedItemType,
+  HighlightedPaymentIcon,
+} from '../../../types/token';
 
 interface HighlightedItemProps {
   item: HighlightedItemType;
@@ -26,9 +31,14 @@ interface HighlightedItemProps {
 
 export function HighlightedItem({ item }: HighlightedItemProps) {
   const tw = useTailwind();
-  const iconName = Object.values(IconName).includes(item.icon as IconName)
-    ? (item.icon as IconName)
-    : undefined;
+  const isStringIcon = typeof item.icon === 'string';
+  const paymentIcon =
+    !isStringIcon && isHighlightedPaymentIcon(item.icon) ? item.icon : null;
+  const avatarUri = typeof item.icon === 'string' ? item.icon : undefined;
+  const iconName =
+    isStringIcon && Object.values(IconName).includes(item.icon as IconName)
+      ? (item.icon as IconName)
+      : undefined;
   const hasActionButtons = (item.actions?.length ?? 0) > 0;
 
   const handlePress = useCallback(() => {
@@ -46,7 +56,19 @@ export function HighlightedItem({ item }: HighlightedItemProps) {
       onPress={handlePress}
     >
       <Box twClassName="flex-row items-center flex-1 min-w-0">
-        {iconName ? (
+        {paymentIcon ? (
+          <Box
+            style={tw.style(
+              'w-10 h-10 rounded-full bg-background-section items-center justify-center',
+            )}
+            testID="icon"
+          >
+            <PaymentMethodIcon
+              paymentMethodType={paymentIcon.icon as PaymentType}
+              size={20}
+            />
+          </Box>
+        ) : iconName ? (
           <Box
             style={tw.style(
               'w-10 h-10 rounded-full bg-background-section items-center justify-center',
@@ -62,7 +84,7 @@ export function HighlightedItem({ item }: HighlightedItemProps) {
         ) : (
           <AvatarToken
             name={item.name}
-            src={item.icon ? { uri: item.icon } : undefined}
+            src={avatarUri ? { uri: avatarUri } : undefined}
             style={tw.style('w-10 h-10')}
           />
         )}
@@ -124,5 +146,18 @@ export function HighlightedItem({ item }: HighlightedItemProps) {
         </Box>
       )}
     </Pressable>
+  );
+}
+
+function isHighlightedPaymentIcon(
+  icon: HighlightedItemType['icon'],
+): icon is HighlightedPaymentIcon {
+  return (
+    typeof icon === 'object' &&
+    icon !== null &&
+    'type' in icon &&
+    icon.type === 'payment' &&
+    'icon' in icon &&
+    typeof icon.icon === 'string'
   );
 }

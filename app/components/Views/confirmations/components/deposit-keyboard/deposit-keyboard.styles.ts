@@ -20,6 +20,10 @@ const styleSheet = (_params: { theme: Theme }) =>
       borderRadius: 10,
       flex: 1,
     },
+
+    emptyContainer: {
+      height: 60,
+    }
   });
 
 export default styleSheet;

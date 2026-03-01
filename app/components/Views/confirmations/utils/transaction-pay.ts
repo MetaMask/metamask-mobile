@@ -8,6 +8,7 @@ import { Hex } from '@metamask/utils';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { AssetType, TokenStandard } from '../types/token';
 import {
+  TransactionFiatPayment,
   TransactionPayRequiredToken,
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
@@ -87,10 +88,12 @@ export function getAvailableTokens({
   payToken,
   requiredTokens,
   tokens,
+  fiatPayment,
 }: {
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
+  fiatPayment?: TransactionFiatPayment;
 }): AssetType[] {
   const supportedGasFeeTokens = getSupportedGasFeeTokens();
 
@@ -150,11 +153,13 @@ export function getAvailableTokens({
         payToken?.address.toLowerCase() === token.address.toLowerCase() &&
         payToken?.chainId === token.chainId;
 
+      const isFiatSelected = fiatPayment?.selectedPaymentMethodId;
+
       return {
         ...token,
         disabled,
         disabledMessage,
-        isSelected,
+        isSelected: isFiatSelected ? false : isSelected,
       };
     });
 }

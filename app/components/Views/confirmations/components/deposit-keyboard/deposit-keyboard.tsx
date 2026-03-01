@@ -43,6 +43,7 @@ export interface DepositKeyboardProps {
   doneLabel?: string;
   hasInput?: boolean;
   hasMax?: boolean;
+  hidePercentageButtons: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
@@ -55,6 +56,7 @@ export const DepositKeyboard = memo(
     doneLabel,
     hasInput,
     hasMax,
+    hidePercentageButtons,
     onChange,
     onDonePress,
     onPercentagePress,
@@ -79,6 +81,9 @@ export const DepositKeyboard = memo(
     );
 
     const buttons = useMemo(() => {
+      if (hidePercentageButtons) {
+        return [];
+      }
       const newButtons = [...PERCENTAGE_BUTTONS];
 
       if (hasMax) {
@@ -87,7 +92,7 @@ export const DepositKeyboard = memo(
       }
 
       return newButtons;
-    }, [hasMax]);
+    }, [hasMax, hidePercentageButtons]);
 
     return (
       <View>
@@ -118,6 +123,10 @@ export const DepositKeyboard = memo(
                 variant={ButtonVariants.Secondary}
               />
             ))}
+          {/* This is just to avoid flickering when the "Continue" button shown   */}
+          {hidePercentageButtons && !(!alertMessage && hasInput) && (
+            <Box style={styles.emptyContainer} />
+          )}
           {!alertMessage && hasInput && (
             <Button
               testID="deposit-keyboard-done-button"
