@@ -1,11 +1,5 @@
-import React, { useMemo } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Linking,
-  ScrollView,
-} from 'react-native';
+import React, { useMemo, useRef, useCallback } from 'react';
+import { View, StyleSheet, Linking, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Text, {
@@ -24,11 +18,16 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { useTheme } from '../../../../../util/theme';
 import { renderShortAddress } from '../../../../../util/address';
 import { strings } from '../../../../../../locales/i18n';
 import { selectApprovals } from '../../selectors';
 import { CHAIN_DISPLAY_NAMES } from '../../constants/chains';
+import { Verdict } from '../../types';
 import RiskBadge from '../RiskBadge';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -44,78 +43,87 @@ const BLOCK_EXPLORER_URLS: Record<string, string> = {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingBottom: 32,
-  },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 16,
     paddingBottom: 32,
-  },
-  closeButton: {
-    alignSelf: 'flex-end',
-    padding: 4,
-    marginBottom: 8,
   },
   heroSection: {
     alignItems: 'center',
-    paddingVertical: 24,
-    gap: 12,
+    paddingTop: 8,
+    paddingBottom: 20,
+    gap: 8,
   },
-  heroName: {
+  tokenName: {
     textAlign: 'center',
+    marginTop: 4,
   },
   detailCard: {
     borderRadius: 12,
-    padding: 16,
-    marginTop: 16,
+    overflow: 'hidden',
   },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
   detailRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  featuresSection: {
-    marginTop: 16,
+  exposureRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginTop: 8,
   },
-  featuresLabel: {
-    marginBottom: 8,
+  sectionHeader: {
+    marginTop: 20,
+    marginBottom: 10,
   },
   featuresList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 8,
   },
   featurePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    gap: 6,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  warningIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureText: {
+    flex: 1,
   },
   explorerButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 20,
+    borderRadius: 999,
+    borderWidth: 1,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginTop: 16,
+    paddingVertical: 12,
+    marginTop: 20,
     gap: 6,
   },
   revokeButton: {
-    marginTop: 24,
-    borderRadius: 12,
+    marginTop: 12,
+    borderRadius: 999,
   },
 });
 
 const ApprovalDetailSheet: React.FC = () => {
+  const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const route = useRoute();
   const { colors } = useTheme();
@@ -128,14 +136,22 @@ const ApprovalDetailSheet: React.FC = () => {
     [approvals, approvalId],
   );
 
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const closeAndNavigate = useCallback((navigateFunc: () => void) => {
+    sheetRef.current?.onCloseBottomSheet(navigateFunc);
+  }, []);
+
   if (!approval) {
     return null;
   }
 
   const chainName = CHAIN_DISPLAY_NAMES[approval.chainId] ?? approval.chainId;
   const explorerUrl = BLOCK_EXPLORER_URLS[approval.chainId];
-
-  const handleClose = () => navigation.goBack();
+  const isMalicious = approval.verdict === Verdict.Malicious;
+  const isWarning = approval.verdict === Verdict.Warning;
 
   const handleViewExplorer = () => {
     if (explorerUrl) {
@@ -144,25 +160,33 @@ const ApprovalDetailSheet: React.FC = () => {
   };
 
   const handleRevoke = () => {
-    navigation.navigate(Routes.TOKEN_APPROVALS.MODALS.REVOKE_CONFIRM, {
-      approvalId: approval.id,
+    closeAndNavigate(() => {
+      navigation.navigate(
+        Routes.TOKEN_APPROVALS.MODALS.REVOKE_CONFIRM as never,
+        { approvalId: approval.id } as never,
+      );
     });
   };
 
-  return (
-    <View
-      style={[styles.container, { backgroundColor: colors.background.default }]}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Close button */}
-        <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-          <Icon
-            name={IconName.Close}
-            size={IconSize.Md}
-            color={IconColor.Default}
-          />
-        </TouchableOpacity>
+  const getFeatureIconBg = () => {
+    if (isMalicious) return colors.error.muted;
+    if (isWarning) return colors.warning.muted;
+    return colors.background.alternative;
+  };
 
+  return (
+    <BottomSheet
+      ref={sheetRef}
+      shouldNavigateBack
+      keyboardAvoidingViewEnabled={false}
+    >
+      <BottomSheetHeader onClose={handleClose}>
+        <Text variant={TextVariant.HeadingSM}>
+          {strings('token_approvals.detail_title')}
+        </Text>
+      </BottomSheetHeader>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Hero Section */}
         <View style={styles.heroSection}>
           <AvatarToken
@@ -177,7 +201,7 @@ const ApprovalDetailSheet: React.FC = () => {
           <Text
             variant={TextVariant.HeadingSM}
             color={TextColor.Default}
-            style={styles.heroName}
+            style={styles.tokenName}
           >
             {approval.asset.name} ({approval.asset.symbol})
           </Text>
@@ -199,10 +223,10 @@ const ApprovalDetailSheet: React.FC = () => {
               { borderBottomColor: colors.border.muted },
             ]}
           >
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('token_approvals.detail_chain')}
             </Text>
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            <Text variant={TextVariant.BodyMDBold} color={TextColor.Default}>
               {chainName}
             </Text>
           </View>
@@ -215,53 +239,59 @@ const ApprovalDetailSheet: React.FC = () => {
               { borderBottomColor: colors.border.muted },
             ]}
           >
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('token_approvals.detail_spender')}
             </Text>
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            <Text variant={TextVariant.BodyMDBold} color={TextColor.Default}>
               {approval.spender.label ||
                 renderShortAddress(approval.spender.address)}
             </Text>
           </View>
 
           {/* Allowance */}
-          <View
-            style={[
-              styles.detailRow,
-              styles.detailRowBorder,
-              { borderBottomColor: colors.border.muted },
-            ]}
-          >
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <View style={styles.detailRow}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('token_approvals.detail_allowance')}
             </Text>
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.BodyMDBold}
+              color={
+                approval.allowance.is_unlimited
+                  ? TextColor.Warning
+                  : TextColor.Default
+              }
+            >
               {approval.allowance.is_unlimited
                 ? strings('token_approvals.unlimited')
                 : approval.allowance.amount}
             </Text>
           </View>
-
-          {/* Exposure */}
-          {approval.exposure_usd > 0 && (
-            <View style={styles.detailRow}>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {strings('token_approvals.detail_exposure')}
-              </Text>
-              <Text variant={TextVariant.BodyMDBold} color={TextColor.Error}>
-                ${approval.exposure_usd.toLocaleString()}
-              </Text>
-            </View>
-          )}
         </View>
 
-        {/* Spender Features */}
+        {/* Exposure / Value at Risk - Highlighted separately */}
+        {approval.exposure_usd > 0 && (
+          <View
+            style={[
+              styles.exposureRow,
+              { backgroundColor: colors.error.muted },
+            ]}
+          >
+            <Text variant={TextVariant.BodyMDBold} color={TextColor.Error}>
+              {strings('token_approvals.detail_exposure')}
+            </Text>
+            <Text variant={TextVariant.HeadingSM} color={TextColor.Error}>
+              ${approval.exposure_usd.toLocaleString()}
+            </Text>
+          </View>
+        )}
+
+        {/* Spender Features / Analysis */}
         {approval.spender.features.length > 0 && (
-          <View style={styles.featuresSection}>
+          <>
             <Text
-              variant={TextVariant.BodySM}
+              variant={TextVariant.BodyMDBold}
               color={TextColor.Alternative}
-              style={styles.featuresLabel}
+              style={styles.sectionHeader}
             >
               {strings('token_approvals.detail_spender_features')}
             </Text>
@@ -271,41 +301,55 @@ const ApprovalDetailSheet: React.FC = () => {
                   key={feature.id}
                   style={[
                     styles.featurePill,
-                    { backgroundColor: colors.background.alternative },
+                    { backgroundColor: colors.background.muted },
                   ]}
                 >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Xs}
-                    color={IconColor.Muted}
-                  />
-                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                  <View
+                    style={[
+                      styles.warningIcon,
+                      { backgroundColor: getFeatureIconBg() },
+                    ]}
+                  >
+                    <Icon
+                      name={
+                        isMalicious || isWarning
+                          ? IconName.Warning
+                          : IconName.Info
+                      }
+                      size={IconSize.Xs}
+                      color={
+                        isMalicious
+                          ? IconColor.Error
+                          : isWarning
+                            ? IconColor.Warning
+                            : IconColor.Muted
+                      }
+                    />
+                  </View>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Default}
+                    style={styles.featureText}
+                  >
                     {feature.description}
                   </Text>
                 </View>
               ))}
             </View>
-          </View>
+          </>
         )}
 
         {/* Block Explorer */}
         {explorerUrl && (
-          <TouchableOpacity
-            style={[
-              styles.explorerButton,
-              { backgroundColor: colors.background.alternative },
-            ]}
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            label={strings('token_approvals.detail_view_explorer')}
             onPress={handleViewExplorer}
-          >
-            <Icon
-              name={IconName.Export}
-              size={IconSize.Sm}
-              color={IconColor.Default}
-            />
-            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-              {strings('token_approvals.detail_view_explorer')}
-            </Text>
-          </TouchableOpacity>
+            style={styles.explorerButton}
+            width={ButtonWidthTypes.Full}
+            startIconName={IconName.Export}
+          />
         )}
 
         {/* Revoke */}
@@ -319,7 +363,7 @@ const ApprovalDetailSheet: React.FC = () => {
           width={ButtonWidthTypes.Full}
         />
       </ScrollView>
-    </View>
+    </BottomSheet>
   );
 };
 

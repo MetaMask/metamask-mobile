@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  Linking,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector, useDispatch } from 'react-redux';
 import Text, {
   TextVariant,
   TextColor,
@@ -24,15 +24,14 @@ import { ApprovalItem } from '../../types';
 import { useTokenApprovals } from '../../hooks/useTokenApprovals';
 import { useApprovalFilters } from '../../hooks/useApprovalFilters';
 import { useBatchRevoke } from '../../hooks/useBatchRevoke';
-import { setHasSeenEducation } from '../../../../../core/redux/slices/tokenApprovals';
-import { selectHasSeenEducation } from '../../selectors';
 import ApprovalsList from '../../components/ApprovalsList';
 import ChainFilterBar from '../../components/ChainFilterBar';
 import BatchRevokeBar from '../../components/BatchRevokeBar';
-import ApprovalRiskBanner from '../../components/ApprovalRiskBanner';
-import ApprovalsEducation from '../../components/ApprovalsEducation';
 import EmptyState from '../../components/EmptyState';
 import SkeletonApprovalCard from '../../components/SkeletonApprovalCard';
+
+const LEARN_MORE_URL =
+  'https://support.metamask.io/privacy-and-security/how-to-revoke-smart-contract-allowances-token-approvals/';
 
 const styles = StyleSheet.create({
   container: {
@@ -48,7 +47,12 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 4,
   },
+  subtitleContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 4,
+  },
   searchContainer: {
+    paddingTop: 4,
     paddingHorizontal: 16,
     paddingBottom: 8,
   },
@@ -82,19 +86,11 @@ const SKELETON_COUNT = 5;
 
 const TokenApprovalsView: React.FC = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
   const { colors } = useTheme();
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
-  const hasSeenEducation = useSelector(selectHasSeenEducation);
 
-  const {
-    filteredApprovals,
-    isLoading,
-    error,
-    maliciousCount,
-    maliciousExposureUsd,
-    availableChains,
-  } = useTokenApprovals();
+  const { filteredApprovals, isLoading, error, availableChains } =
+    useTokenApprovals();
 
   const {
     selectedChains,
@@ -108,7 +104,7 @@ const TokenApprovalsView: React.FC = () => {
     onClearSelection,
   } = useApprovalFilters();
 
-  const { batchRevoke, revokeAllMalicious } = useBatchRevoke();
+  const { batchRevoke } = useBatchRevoke();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -143,9 +139,9 @@ const TokenApprovalsView: React.FC = () => {
     }
   }, [batchRevoke, selectedApprovalIds]);
 
-  const handleDismissEducation = useCallback(() => {
-    dispatch(setHasSeenEducation(true));
-  }, [dispatch]);
+  const handleLearnMore = useCallback(() => {
+    Linking.openURL(LEARN_MORE_URL);
+  }, []);
 
   const handleClearSearch = useCallback(() => {
     onSearchChange('');
@@ -162,16 +158,11 @@ const TokenApprovalsView: React.FC = () => {
   const renderListHeader = () => (
     <View>
       {/* Risk Banner */}
-      <ApprovalRiskBanner
+      {/* <ApprovalRiskBanner
         maliciousCount={maliciousCount}
         exposureUsd={maliciousExposureUsd}
         onRevokeAll={revokeAllMalicious}
-      />
-
-      {/* Education Card */}
-      {!hasSeenEducation && (
-        <ApprovalsEducation onDismiss={handleDismissEducation} />
-      )}
+      /> */}
 
       {/* Chain Filters */}
       <ChainFilterBar
@@ -202,6 +193,21 @@ const TokenApprovalsView: React.FC = () => {
         </TouchableOpacity>
         <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
           {strings('token_approvals.title')}
+        </Text>
+      </View>
+
+      {/* Subtitle */}
+      <View style={styles.subtitleContainer}>
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {strings('token_approvals.subtitle')}{' '}
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Info}
+            onPress={handleLearnMore}
+            suppressHighlighting
+          >
+            {strings('token_approvals.education_learn_more')}
+          </Text>
         </Text>
       </View>
 
