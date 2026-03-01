@@ -1692,23 +1692,5 @@ describe('HyperLiquidClientService', () => {
       expect(error).toBeInstanceOf(Error);
       expect(error.message).toContain('WebSocket transport ready timeout');
     });
-
-    it('throws a proper Error (not undefined) when transport.ready() rejects with undefined', async () => {
-      await service.initialize(mockWallet);
-
-      // Simulate the HyperLiquid SDK rejecting with undefined (the root cause of Sentry issues
-      // 5E7M, 5EF8, 5GBE, 5G91: "Unknown error (no details provided)")
-      mockWsTransportReady.mockImplementationOnce(() =>
-        Promise.reject(undefined),
-      );
-
-      const error = await service.ensureTransportReady().catch((e) => e);
-
-      // Must be a real Error instance, not undefined
-      expect(error).toBeInstanceOf(Error);
-      expect(error.message).toContain(
-        'HyperLiquidClientService.ensureTransportReady',
-      );
-    });
   });
 });

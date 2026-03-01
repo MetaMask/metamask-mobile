@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
@@ -17,7 +17,6 @@ import {
   sortTransactions,
   filterByAddressAndNetwork,
   isTransactionOnChains,
-  buildTrustedAddressSet,
 } from '../../../util/activity';
 import { areAddressesEqual } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
@@ -27,11 +26,7 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
-import {
-  selectSelectedInternalAccount,
-  selectInternalAccounts,
-} from '../../../selectors/accountsController';
-import { selectAddressBook } from '../../../selectors/addressBookController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
 import {
   selectEnabledNetworksByNamespace,
@@ -61,8 +56,6 @@ const TransactionsView = ({
   transactions,
   tokens,
   tokenNetworkFilter,
-  addressBook,
-  internalAccounts,
 }) => {
   const [allTransactions, setAllTransactions] = useState([]);
   const [submittedTxs, setSubmittedTxs] = useState([]);
@@ -79,15 +72,6 @@ const TransactionsView = ({
 
   const selectedAddress = toChecksumHexAddress(
     selectedInternalAccount?.address,
-  );
-
-  const trustedAddresses = useMemo(
-    () =>
-      buildTrustedAddressSet(
-        addressBook,
-        internalAccounts.map((account) => account.address),
-      ),
-    [addressBook, internalAccounts],
   );
 
   const filterTransactions = useCallback(() => {
@@ -110,7 +94,6 @@ const TransactionsView = ({
         tokenNetworkFilter,
         allTransactionsSorted,
         bridgeHistory,
-        trustedAddresses,
       );
 
       if (!filter) return false;
@@ -206,7 +189,6 @@ const TransactionsView = ({
     tokenNetworkFilter,
     enabledNetworksByNamespace,
     bridgeHistory,
-    trustedAddresses,
   ]);
 
   useEffect(() => {
@@ -264,14 +246,6 @@ TransactionsView.propTypes = {
    * Array of network tokens filter
    */
   tokenNetworkFilter: PropTypes.object,
-  /**
-   * Address book from AddressBookController
-   */
-  addressBook: PropTypes.object,
-  /**
-   * Internal accounts from AccountsController
-   */
-  internalAccounts: PropTypes.array,
 };
 
 const mapStateToProps = (state) => {
@@ -304,8 +278,6 @@ const mapStateToProps = (state) => {
       (acc, network) => ({ ...acc, [network]: true }),
       {},
     ),
-    addressBook: selectAddressBook(state),
-    internalAccounts: selectInternalAccounts(state),
   };
 };
 

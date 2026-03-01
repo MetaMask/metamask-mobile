@@ -333,14 +333,10 @@ export class NetworkSettings extends PureComponent {
         ticker = networkConfiguration?.nativeCurrency;
       } else {
         const networkConfiguration = Object.values(networkConfigurations).find(
-          ({ rpcEndpoints, defaultRpcEndpointIndex }) => {
-            const endpoint = rpcEndpoints?.[defaultRpcEndpointIndex];
-            if (!endpoint) return false;
-            return (
-              endpoint.url === networkTypeOrRpcUrl ||
-              endpoint.networkClientId === networkTypeOrRpcUrl
-            );
-          },
+          ({ rpcEndpoints, defaultRpcEndpointIndex }) =>
+            rpcEndpoints[defaultRpcEndpointIndex].url === networkTypeOrRpcUrl ||
+            rpcEndpoints[defaultRpcEndpointIndex].networkClientId ===
+              networkTypeOrRpcUrl,
         );
         const defaultRpcEndpoint = networkConfiguration
           ? networkConfiguration.rpcEndpoints[
@@ -406,39 +402,7 @@ export class NetworkSettings extends PureComponent {
         initialState,
       });
     } else {
-      // No existing network — enter add mode, optionally pre-filling from
-      // route params.
-      const prefill = route.params?.prefill;
-      this.setState(
-        {
-          addMode: true,
-          ...(prefill?.rpcUrl ? { rpcUrl: prefill.rpcUrl } : {}),
-          ...(prefill?.chainId ? { chainId: prefill.chainId } : {}),
-          ...(prefill?.nickname ? { nickname: prefill.nickname } : {}),
-          ...(prefill?.ticker ? { ticker: prefill.ticker } : {}),
-          ...(prefill?.blockExplorerUrl
-            ? { blockExplorerUrl: prefill.blockExplorerUrl }
-            : {}),
-        },
-        async () => {
-          if (prefill) {
-            // Populate the rpcUrls / blockExplorerUrls arrays so that
-            // handleNetworkUpdate has valid rpcEndpoints to save.
-            if (prefill.rpcUrl) {
-              await this.onRpcItemAdd(prefill.rpcUrl, '');
-            }
-            if (prefill.blockExplorerUrl) {
-              await this.onBlockExplorerItemAdd(prefill.blockExplorerUrl);
-            }
-            this.getCurrentState();
-            // Kick off RPC + symbol/name validation so warnings show
-            // before the user taps Save.
-            if (prefill.rpcUrl && prefill.chainId) {
-              this.validateChainId();
-            }
-          }
-        },
-      );
+      this.setState({ addMode: true });
     }
 
     setTimeout(() => {

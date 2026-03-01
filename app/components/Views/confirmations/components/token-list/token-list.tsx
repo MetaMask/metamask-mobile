@@ -6,21 +6,18 @@ import {
 } from '@metamask/design-system-react-native';
 
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  AssetType,
-  HighlightedItem as HighlightedItemType,
-} from '../../types/token';
+import { HighlightedAssetListItem, AssetType } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
 import { useSendScreenNavigation } from '../../hooks/send/useSendScreenNavigation';
 import { useAssetSelectionMetrics } from '../../hooks/send/metrics/useAssetSelectionMetrics';
 import { Token } from '../UI/token';
-import { HighlightedItem } from '../UI/highlighted-item';
+import { HighlightedAsset } from '../UI/highlighted-asset';
 
 const TOKEN_COUNT_PER_PAGE = 20;
 interface TokenListProps {
   onSelect?: (token: AssetType) => void;
   tokens: AssetType[];
-  highlightedAssets?: HighlightedItemType[];
+  highlightedAssets?: HighlightedAssetListItem[];
 }
 
 export function TokenList({
@@ -81,7 +78,7 @@ export function TokenList({
     <>
       <Box>
         {highlightedAssets.map((item, index) => (
-          <HighlightedItem
+          <HighlightedAsset
             key={`highlighted-asset-${item.name}-${index}`}
             item={item}
           />

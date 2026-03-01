@@ -1,4 +1,8 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import React, { useLayoutEffect, useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -21,6 +25,7 @@ import ScreenView from '../../../../Base/ScreenView';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
+import { PerpsNavigationParamList } from '../../types/navigation';
 import {
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
@@ -39,7 +44,7 @@ import { styleSheet } from './PerpsPositionTransactionView.styles';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<PerpsPositionTransactionRouteProp>();
   const selectedInternalAccount = useSelector(
     selectSelectedInternalAccountByScope,

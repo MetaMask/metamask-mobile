@@ -1,6 +1,6 @@
 // Third party dependencies
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 
 // External dependencies
 import Text from '../../components/Texts/Text';
@@ -17,149 +17,128 @@ import {
 import { TagColor } from './TagColored.types';
 
 describe('TagColored', () => {
-  it('renders with default props and matches snapshot', () => {
+  it('should render TagColored', () => {
     const wrapper = render(<TagColored {...SAMPLE_TAGCOLORED_PROPS} />);
-
     expect(wrapper).toMatchSnapshot();
-    expect(screen.getByTestId(TAGCOLORED_TESTID)).toBeOnTheScreen();
+    expect(wrapper.queryByTestId(TAGCOLORED_TESTID)).not.toBe(null);
   });
 
-  it('renders custom element children', () => {
+  it('should render children correctly when provided', () => {
     const testText = 'TagColored';
     const ChildrenComponent = () => <Text>{testText}</Text>;
 
-    render(
+    const { getByText } = render(
       <TagColored>
         <ChildrenComponent />
       </TagColored>,
     );
 
-    expect(screen.getByText(testText)).toBeOnTheScreen();
+    expect(getByText(testText)).toBeDefined();
   });
 
-  it('renders string children as label text', () => {
+  it('should render children correctly when a string is provided', () => {
     const testText = 'TagColored';
 
-    render(<TagColored>{testText}</TagColored>);
+    const { getByText } = render(<TagColored>{testText}</TagColored>);
 
-    expect(screen.getByText(testText)).toBeOnTheScreen();
+    expect(getByText(testText)).toBeDefined();
   });
 
-  it('uses default text variant for string children', () => {
+  it('should render children with the right text variant if typeof children === string', () => {
     const testText = 'TagColored';
 
-    render(<TagColored>{testText}</TagColored>);
+    const { getByText } = render(<TagColored>{testText}</TagColored>);
 
-    expect(screen.getByText(testText).props.style.fontSize).toBe(
+    expect(getByText(testText).props.style.fontSize).toBe(
       mockTheme.typography[DEFAULT_TAGCOLORED_TEXTVARIANT].fontSize,
     );
   });
 
-  it('applies default background and text color when color not specified', () => {
+  it('should render the correct default color on default', () => {
     const testText = 'TagColored';
 
-    render(<TagColored>{testText}</TagColored>);
+    const { getByTestId } = render(<TagColored>{testText}</TagColored>);
 
-    expect(
-      screen.getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor,
-    ).toBe(mockTheme.colors.background.alternative);
-    expect(screen.getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
+    expect(getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor).toBe(
+      mockTheme.colors.background.alternative,
+    );
+    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
       mockTheme.colors.text.alternative,
     );
   });
 
-  it('applies default background and text color when color is Default', () => {
+  it('should render the correct default color when given', () => {
     const testText = 'TagColored';
 
-    render(<TagColored color={TagColor.Default}>{testText}</TagColored>);
+    const { getByTestId } = render(
+      <TagColored color={TagColor.Default}>{testText}</TagColored>,
+    );
 
-    expect(
-      screen.getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor,
-    ).toBe(mockTheme.colors.background.alternative);
-    expect(screen.getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
+    expect(getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor).toBe(
+      mockTheme.colors.background.alternative,
+    );
+    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
       mockTheme.colors.text.alternative,
     );
   });
 
-  it('applies success background and text color when color is Success', () => {
+  it('should render the correct success color when given', () => {
     const testText = 'TagColored';
 
-    render(<TagColored color={TagColor.Success}>{testText}</TagColored>);
+    const { getByTestId } = render(
+      <TagColored color={TagColor.Success}>{testText}</TagColored>,
+    );
 
-    expect(
-      screen.getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor,
-    ).toBe(mockTheme.colors.success.muted);
-    expect(screen.getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
+    expect(getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor).toBe(
+      mockTheme.colors.success.muted,
+    );
+    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
       mockTheme.colors.success.default,
     );
   });
 
-  it('applies info background and text color when color is Info', () => {
+  it('should render the correct info color when given', () => {
     const testText = 'TagColored';
 
-    render(<TagColored color={TagColor.Info}>{testText}</TagColored>);
+    const { getByTestId } = render(
+      <TagColored color={TagColor.Info}>{testText}</TagColored>,
+    );
 
-    expect(
-      screen.getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor,
-    ).toBe(mockTheme.colors.primary.muted);
-    expect(screen.getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
+    expect(getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor).toBe(
+      mockTheme.colors.primary.muted,
+    );
+    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
       mockTheme.colors.primary.default,
     );
   });
 
-  it('applies danger background and text color when color is Danger', () => {
+  it('should render the correct danger color when given', () => {
     const testText = 'TagColored';
 
-    render(<TagColored color={TagColor.Danger}>{testText}</TagColored>);
+    const { getByTestId } = render(
+      <TagColored color={TagColor.Danger}>{testText}</TagColored>,
+    );
 
-    expect(
-      screen.getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor,
-    ).toBe(mockTheme.colors.error.muted);
-    expect(screen.getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
+    expect(getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor).toBe(
+      mockTheme.colors.error.muted,
+    );
+    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
       mockTheme.colors.error.default,
     );
   });
 
-  it('applies warning background and text color when color is Warning', () => {
+  it('should render the correct warning color when given', () => {
     const testText = 'TagColored';
 
-    render(<TagColored color={TagColor.Warning}>{testText}</TagColored>);
+    const { getByTestId } = render(
+      <TagColored color={TagColor.Warning}>{testText}</TagColored>,
+    );
 
-    expect(
-      screen.getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor,
-    ).toBe(mockTheme.colors.warning.muted);
-    expect(screen.getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
+    expect(getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor).toBe(
+      mockTheme.colors.warning.muted,
+    );
+    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
       mockTheme.colors.warning.default,
     );
-  });
-
-  it('applies labelProps style to text', () => {
-    const testText = 'TagColored';
-
-    render(
-      <TagColored labelProps={{ style: { textTransform: 'none' } }}>
-        {testText}
-      </TagColored>,
-    );
-
-    const textStyle = screen.getByTestId(TAGCOLORED_TEXT_TESTID).props.style;
-    expect(textStyle.textTransform).toBe('none');
-  });
-
-  it('merges labelProps style with tag text styles', () => {
-    const testText = 'TagColored';
-
-    render(
-      <TagColored
-        color={TagColor.Success}
-        labelProps={{ style: { textTransform: 'capitalize' } }}
-      >
-        {testText}
-      </TagColored>,
-    );
-
-    const textStyle = screen.getByTestId(TAGCOLORED_TEXT_TESTID).props.style;
-    expect(textStyle.color).toBe(mockTheme.colors.success.default);
-    expect(textStyle.textTransform).toBe('capitalize');
   });
 });

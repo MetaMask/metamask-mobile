@@ -87,7 +87,13 @@ import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import createStyles from './ChoosePassword.styles';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  ParamListBase,
+} from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 interface KeyringState {
   type: string;
@@ -113,7 +119,7 @@ const ChoosePassword = () => {
   const { colors, themeAppearance } = useContext(ThemeContext);
   const styles = createStyles(colors);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route =
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
@@ -475,7 +481,7 @@ const ChoosePassword = () => {
       url: learnMoreUrl,
     });
 
-    navigation.navigate('Webview', {
+    navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: learnMoreUrl,

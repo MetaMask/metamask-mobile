@@ -1,4 +1,5 @@
 import React, { ReactNode, useMemo } from 'react';
+import InfoRow from '../../UI/info-row';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import Text, {
   TextColor,
@@ -43,22 +44,28 @@ export function BridgeFeeRow() {
 
   if (hasTransactionType(transactionMetadata, NETWORK_FEE_ONLY_TYPES)) {
     return (
-      <NetworkFeeRow
-        totals={totals}
-        hasAlert={hasAlert}
-        isLoading={isLoading}
-      />
+      <>
+        <NetworkFeeRow
+          totals={totals}
+          hasAlert={hasAlert}
+          isLoading={isLoading}
+        />
+        <MetaMaskFeeRow quotes={quotes} isLoading={isLoading} />
+      </>
     );
   }
 
   return (
-    <TransactionFeeRow
-      totals={totals}
-      quotes={quotes}
-      transactionMeta={transactionMetadata}
-      hasAlert={hasAlert}
-      isLoading={isLoading}
-    />
+    <>
+      <TransactionFeeRow
+        totals={totals}
+        quotes={quotes}
+        transactionMeta={transactionMetadata}
+        hasAlert={hasAlert}
+        isLoading={isLoading}
+      />
+      <MetaMaskFeeRow quotes={quotes} isLoading={isLoading} />
+    </>
   );
 }
 
@@ -81,8 +88,7 @@ function TransactionFeeRow({
     if (!totals?.fees) return '';
 
     return formatFiat(
-      new BigNumber(totals.fees.metaMask.usd ?? 0)
-        .plus(totals.fees.provider.usd)
+      new BigNumber(totals.fees.provider.usd)
         .plus(totals.fees.sourceNetwork.estimate.usd)
         .plus(totals.fees.targetNetwork.usd),
     );
@@ -168,6 +174,39 @@ function NetworkFeeRow({
   );
 }
 
+function MetaMaskFeeRow({
+  quotes,
+  isLoading,
+}: {
+  quotes?: TransactionPayQuote<Json>[];
+  isLoading: boolean;
+}) {
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
+
+  const hasQuotes = Boolean(quotes?.length);
+
+  const metamaskFeeUsd = useMemo(
+    () => formatFiat(new BigNumber(0)),
+    [formatFiat],
+  );
+
+  if (isLoading) return <InfoRowSkeleton testId="metamask-fee-row-skeleton" />;
+
+  if (!hasQuotes) return null;
+
+  return (
+    <InfoRow
+      testID="metamask-fee-row"
+      label={strings('confirm.label.metamask_fee')}
+      rowVariant={InfoRowVariant.Small}
+    >
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        {metamaskFeeUsd}
+      </Text>
+    </InfoRow>
+  );
+}
+
 function Tooltip({
   transactionMeta,
   totals,
@@ -224,11 +263,6 @@ function FeesTooltip({
     [totals, formatFiat],
   );
 
-  const metaMaskFeeUsd = useMemo(
-    () => formatFiat(new BigNumber(totals.fees.metaMask.usd ?? 0)),
-    [totals, formatFiat],
-  );
-
   return (
     <Box gap={14}>
       <Text>{message}</Text>
@@ -246,18 +280,9 @@ function FeesTooltip({
         justifyContent={JustifyContent.spaceBetween}
       >
         <Text color={TextColor.Alternative}>
-          {strings('confirm.label.provider_fee')}
+          {strings('confirm.label.bridge_fee')}
         </Text>
         <Text color={TextColor.Alternative}>{providerFeeUsd}</Text>
-      </Box>
-      <Box
-        flexDirection={FlexDirection.Row}
-        justifyContent={JustifyContent.spaceBetween}
-      >
-        <Text color={TextColor.Alternative}>
-          {strings('confirm.label.metamask_fee')}
-        </Text>
-        <Text color={TextColor.Alternative}>{metaMaskFeeUsd}</Text>
       </Box>
     </Box>
   );

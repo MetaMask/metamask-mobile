@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixtures/performance';
+import { test } from '../../framework/fixtures/performance-test.js';
 import TimerHelper from '../../framework/TimerHelper';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
@@ -56,7 +56,7 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer4 = new TimerHelper(
         'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
-        { ios: 1600, android: 1600 },
+        { ios: 1000, android: 1600 },
         device,
       );
       const timer5 = new TimerHelper(

@@ -6,22 +6,10 @@ import {
   transferConfirmationState,
 } from '../../../../../util/test/confirm-data-helpers';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useParams } from '../../../../../util/navigation/navUtils';
 import { MMM_ORIGIN } from '../../constants/confirmations';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
-  useParams: jest.fn().mockReturnValue({
-    forceBottomSheet: false,
-  }),
-}));
-
 describe('useFullScreenConfirmation', () => {
-  beforeEach(() => {
-    (useParams as jest.Mock).mockReturnValue({ forceBottomSheet: false });
-  });
-
   it('returns true for staking confirmation', async () => {
     const { result } = renderHookWithProvider(useFullScreenConfirmation, {
       state: stakingDepositConfirmationState,
@@ -33,16 +21,6 @@ describe('useFullScreenConfirmation', () => {
   it('returns false for personal sign request', async () => {
     const { result } = renderHookWithProvider(useFullScreenConfirmation, {
       state: personalSignatureConfirmationState,
-    });
-
-    expect(result.current.isFullScreenConfirmation).toBe(false);
-  });
-
-  it('returns false when forceBottomSheet is true', async () => {
-    (useParams as jest.Mock).mockReturnValue({ forceBottomSheet: true });
-
-    const { result } = renderHookWithProvider(useFullScreenConfirmation, {
-      state: stakingDepositConfirmationState,
     });
 
     expect(result.current.isFullScreenConfirmation).toBe(false);

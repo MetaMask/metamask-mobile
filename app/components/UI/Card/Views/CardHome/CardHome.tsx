@@ -62,8 +62,7 @@ import {
   TOKEN_RATE_UNDEFINED,
 } from '../../../Tokens/constants';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import {
   DEPOSIT_SUPPORTED_TOKENS,
@@ -163,7 +162,7 @@ const CardHome = () => {
 
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const theme = useTheme();
@@ -1424,26 +1423,6 @@ const CardHome = () => {
                 rightIcon={IconName.ArrowRight}
                 onPress={orderMetalCardAction}
                 testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
-              />
-            )}
-            {isAuthenticated && kycStatus?.verificationState === 'VERIFIED' && (
-              <ManageCardListItem
-                title={strings('card.card_home.manage_card_options.cashback')}
-                description={strings(
-                  'card.card_home.manage_card_options.cashback_description',
-                )}
-                rightIcon={IconName.ArrowRight}
-                onPress={() => {
-                  trackEvent(
-                    createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-                      .addProperties({
-                        action: CardActions.CASHBACK_BUTTON,
-                      })
-                      .build(),
-                  );
-                  navigation.navigate(Routes.CARD.CASHBACK);
-                }}
-                testID={CardHomeSelectors.CASHBACK_ITEM}
               />
             )}
             <ManageCardListItem

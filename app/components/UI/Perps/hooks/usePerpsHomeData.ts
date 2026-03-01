@@ -76,7 +76,6 @@ export const usePerpsHomeData = ({
     usePerpsLiveOrders({
       throttleMs: 1000,
       hideTpSl: true, // Hide Take Profit and Stop Loss orders from home screen
-      hideReduceOnly: true, // Hide all reduce-only orders from home screen
     });
 
   // Fetch fills via WebSocket for recent activity (instant updates, already cached)

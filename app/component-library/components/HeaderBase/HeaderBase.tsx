@@ -21,11 +21,6 @@ import {
 } from './HeaderBase.constants';
 
 /**
- * @deprecated Please update your code to use `HeaderBase` from `@metamask/design-system-react-native`.
- * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/HeaderBase/README.md}
- * @since @metamask/design-system-react-native@0.7.0
- *
  * HeaderBase is a flexible header component that supports optional
  * start and end accessories with configurable alignment and text variants.
  */
