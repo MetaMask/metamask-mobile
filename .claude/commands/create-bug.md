@@ -128,24 +128,37 @@ For `render: shell` fields, wrap the value in a code fence:
 
 ## Step 6: Root Cause Analysis
 
-When the user opts in, perform all three phases below and post a single comment on the issue with the combined findings.
+When the user opts in, run a two-phase analysis: a cheap gathering phase (Haiku subagent) followed by an expensive reasoning phase (main context).
 
-### 6a: Investigate the root cause
+### Phase 1 — Gather Evidence (Haiku subagent)
 
-- Trace the bug through the code to identify the exact files, lines, and logic causing the issue
-- Research only — no code changes
+Launch an Agent with `model: "haiku"` and `subagent_type: "general-purpose"`. Pass a prompt that includes the bug description, steps to reproduce, and any relevant context from the issue. The prompt must instruct the subagent to:
 
-### 6b: Identify regression PRs
+1. **6a gathering** — Search for files and functions related to the bug using grep, glob, and read. Trace the code path from entry point to failure point. Record file paths, line numbers, and relevant code snippets.
+2. **6b gathering** — Run `git log` on affected files comparing the current release branch against the previous release branch. Collect PR numbers, titles, authors, and relevant diffs that may have introduced or surfaced the bug.
+3. **6c gathering** — Search the codebase for the same pattern, function, or anti-pattern that causes the bug. List all files and locations that share the pattern.
 
-- Check `git log` history of affected files, comparing the release branch against the previous release branch
-- Identify which PRs introduced or surfaced the bug (new code, removed compensating mechanisms, refactors, etc.)
-- Note whether the issue is a new regression or pre-existing
+The subagent prompt must end with this instruction:
 
-### 6c: Scope analysis
+> Return a structured summary with exactly these sections. Do NOT return raw file contents or full git logs — only the distilled findings:
+>
+> **Relevant files** — path, line numbers, and what each file does in relation to the bug
+>
+> **Code flow trace** — entry point → intermediate steps → failure point, with file:line references
+>
+> **Git history findings** — PR numbers, titles, authors, what changed, and how the change relates to the bug
+>
+> **Pattern matches (scope analysis)** — other files and locations that use the same pattern/function/anti-pattern, with file:line references
 
-- Search the codebase for the same pattern, function, or anti-pattern causing the bug
-- Identify all affected areas beyond the originally reported bug
-- If other features are impacted, file separate bug issues for each and link them
+### Phase 2 — Analyze & Post (main context)
+
+Using the structured summary returned by the Haiku subagent, the main context performs the reasoning:
+
+1. **Determine root cause** — analyze the code flow trace and git history to identify exactly what causes the bug
+2. **Identify regression PRs** — determine which PRs introduced or surfaced the bug, and whether it is a new regression or pre-existing
+3. **Assess scope of impact** — review the pattern matches to understand the full blast radius beyond the reported bug
+4. **File separate bugs** — if other features are impacted by the same pattern/anti-pattern, file separate bug issues for each and link them
+5. **Post the comment** — write and post a single comment on the issue with all findings
 
 ### Comment format
 
