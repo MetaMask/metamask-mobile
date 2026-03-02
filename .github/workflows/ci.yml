@@ -332,7 +332,7 @@ jobs:
         run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html
       - uses: actions/upload-artifact@v4
         with:
-          name: html-coverage-cv-test
+          name: cv-test-coverage-html
           path: ./tests/coverage-cv-lcov/
           if-no-files-found: error
       - name: Require clean working directory
