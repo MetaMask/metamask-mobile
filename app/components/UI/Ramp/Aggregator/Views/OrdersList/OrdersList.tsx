@@ -6,7 +6,6 @@ import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
-import { createRampsOrderDetailsNavDetails } from '../../../Views/OrderDetails';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import OrderListItem from '../../components/OrderListItem';
 import createStyles from './OrdersList.styles';
@@ -19,6 +18,7 @@ import {
 import { FiatOrder, getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
+import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
 import {
   Box,
@@ -60,31 +60,15 @@ function OrdersList() {
     [navigation],
   );
 
-  const handleNavigateToRampsTxDetails = useCallback(
-    (orderId: string) => {
-      navigation.navigate(
-        ...createRampsOrderDetailsNavDetails({
-          orderId,
-        }),
-      );
-    },
-    [navigation],
-  );
-
   const handleNavigateToDepositTxDetails = useCallback(
     (orderId: string) => {
       const order = orders.find((o) => o.id === orderId);
 
-      // CREATED state means the order is at the bank details step,
-      // which requires the DepositSDKProvider context for cancel/confirm actions
-      if (
-        order?.state === FIAT_ORDER_STATES.CREATED &&
-        order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
-      ) {
+      if (order?.state === FIAT_ORDER_STATES.CREATED) {
         goToDeposit();
       } else {
         navigation.navigate(
-          ...createRampsOrderDetailsNavDetails({
+          ...createDepositOrderDetailsNavDetails({
             orderId,
           }),
         );
@@ -101,11 +85,9 @@ function OrdersList() {
       onPress={
         item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR
           ? () => handleNavigateToAggregatorTxDetails(item.id)
-          : item.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
-            ? () => handleNavigateToRampsTxDetails(item.id)
-            : item.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
-              ? () => handleNavigateToDepositTxDetails(item.id)
-              : undefined
+          : item.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
+            ? () => handleNavigateToDepositTxDetails(item.id)
+            : undefined
       }
       underlayColor={colors.background.alternative}
       activeOpacity={1}

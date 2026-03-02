@@ -159,7 +159,6 @@ export const PerpsPayRow = ({
         address: pendingAddr as Hex,
         chainId: pendingChainId as Hex,
       });
-
       Engine.context.PerpsController?.setSelectedPaymentToken?.({
         description: pendingConfigSelectedPaymentToken.description,
         address: pendingAddr as Hex,

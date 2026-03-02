@@ -3,12 +3,13 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useEffect } from 'react';
 import { BackHandler } from 'react-native';
 import Device from '../../../../../util/device';
+import { StakeNavigationParamsList } from '../../../../UI/Stake/types';
 import { useConfirmActions } from '../useConfirmActions';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
-import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 
 const useClearConfirmationOnBackSwipe = () => {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { onReject } = useConfirmActions();
 

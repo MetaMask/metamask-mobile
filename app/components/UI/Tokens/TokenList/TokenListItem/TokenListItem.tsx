@@ -18,8 +18,7 @@ import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import AssetElement from '../../../AssetElement';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
@@ -27,7 +26,6 @@ import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
 import {
   selectMerklCampaignClaimingEnabledFlag,
-  selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
@@ -66,7 +64,6 @@ import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
 import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -124,7 +121,7 @@ export const TokenListItem = React.memo(
     showPercentageChange = true,
     isFullView = false,
   }: TokenListItemProps) => {
-    const { trackEvent, createEventBuilder } = useAnalytics();
+    const { trackEvent, createEventBuilder } = useMetrics();
     const navigation = useNavigation();
     const { colors } = useTheme();
     const styles = createStyles(colors);
@@ -147,17 +144,12 @@ export const TokenListItem = React.memo(
       selectStablecoinLendingEnabledFlag,
     );
 
-    const isQuickConvertEnabled = useSelector(
-      selectMusdQuickConvertEnabledFlag,
-    );
-
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
 
     const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
-
-    const { initiateCustomConversion, hasSeenConversionEducationScreen } =
+    const { initiateConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
     const shouldShowConvertToMusdCta = useMemo(
@@ -224,15 +216,10 @@ export const TokenListItem = React.memo(
       const submitCtaPressedEvent = () => {
         const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
-        const getRedirectLocation = () => {
-          if (!hasSeenConversionEducationScreen) {
-            return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
-          }
-
-          return isQuickConvertEnabled
-            ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-            : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
-        };
+        const getRedirectLocation = () =>
+          hasSeenConversionEducationScreen
+            ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
+            : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
@@ -262,13 +249,13 @@ export const TokenListItem = React.memo(
         }
 
         const assetChainId = toHex(asset.chainId);
-        await initiateCustomConversion({
+
+        await initiateConversion({
           preferredPaymentToken: {
             address: toHex(asset.address),
             chainId: assetChainId,
           },
           navigationStack: Routes.EARN.ROOT,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       } catch (error) {
         Logger.error(
@@ -283,8 +270,7 @@ export const TokenListItem = React.memo(
       chainId,
       createEventBuilder,
       hasSeenConversionEducationScreen,
-      initiateCustomConversion,
-      isQuickConvertEnabled,
+      initiateConversion,
       networkName,
       trackEvent,
     ]);

@@ -1,8 +1,5 @@
 import { NavigationContainerRef } from '@react-navigation/native';
-import { Platform } from 'react-native';
 import Logger from '../../util/Logger';
-import ReduxService from '../redux';
-import Engine from '../Engine';
 
 /**
  * Navigation methods that should be deferred to the next frame.
@@ -94,35 +91,6 @@ class NavigationService {
   static set navigation(navRef: NavigationContainerRef) {
     this.#assertNavigationRefType(navRef);
     this.#navigation = this.#createReactAwareNavigation(navRef);
-
-    // Agentic bridge — exposes navigation primitives on globalThis so that
-    // AI coding agents (Claude Code, Cursor, etc.) can inspect and drive the
-    // app remotely via Metro's Hermes CDP WebSocket. The bridge is consumed
-    // by the scripts in `scripts/perps/agentic/` (cdp-bridge.js).
-    //
-    // __DEV__ only — completely stripped from production builds.
-    // See docs/perps/perps-agentic-feedback-loop.md for the full workflow.
-    if (__DEV__) {
-      Logger.log('[NavigationService] __AGENTIC__ bridge installed');
-      // Use this.#navigation (the deferred-wrapped proxy) so navigate/goBack
-      // honour the requestAnimationFrame deferral, matching production behaviour.
-      const deferredNav = this.#navigation;
-      (globalThis as Record<string, unknown>).__AGENTIC__ = {
-        platform: Platform.OS,
-        navigate: (name: string, params?: object) =>
-          deferredNav.navigate(name as never, params as never),
-        getRoute: () => navRef.getCurrentRoute(),
-        getState: () => navRef.dangerouslyGetState(),
-        canGoBack: () => navRef.canGoBack(),
-        goBack: () => deferredNav.goBack(),
-      };
-      try {
-        (globalThis as Record<string, unknown>).store = ReduxService.store;
-      } catch {
-        // ReduxService.store may not be initialized yet (e.g. in tests); skip.
-      }
-      (globalThis as Record<string, unknown>).Engine = Engine;
-    }
   }
 
   /**

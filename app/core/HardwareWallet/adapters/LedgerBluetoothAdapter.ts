@@ -8,7 +8,6 @@ import {
   HardwareWalletType,
   DeviceEvent,
   DeviceEventPayload,
-  ErrorCode,
 } from '@metamask/hw-wallet-sdk';
 import {
   DiscoveredDevice,
@@ -307,19 +306,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
   getRequiredAppName(): string {
     return 'Ethereum';
-  }
-
-  getTransportDisabledErrorCode(): ErrorCode {
-    return ErrorCode.BluetoothDisabled;
-  }
-
-  getConnectionTips(): string[] {
-    return [
-      'hardware_wallet.connecting.tip_unlock',
-      'hardware_wallet.connecting.tip_open_app',
-      'hardware_wallet.connecting.tip_enable_bluetooth',
-      'hardware_wallet.connecting.tip_dnd_off',
-    ];
   }
 
   /**

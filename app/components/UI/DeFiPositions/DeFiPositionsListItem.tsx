@@ -22,8 +22,7 @@ import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 import styleSheet from './DeFiPositionsListItem.styles';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import { useStyles } from '../../hooks/useStyles';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { getTokenAvatarUrl } from './get-token-avatar-url';
 
 interface DeFiPositionsListItemProps {
@@ -41,7 +40,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
 }: DeFiPositionsListItemProps) => {
   const { styles } = useStyles(styleSheet, undefined);
 
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
 
   const networkIconAvatar = useMemo(

@@ -1,10 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import {
-  IconColor as DsIconColor,
-  IconSize as DsIconSize,
-} from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+import { TouchableOpacity, View, ActivityIndicator } from 'react-native';
 
 import Icon, {
   IconName,
@@ -15,6 +10,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
+import { useTheme } from '../../../../../util/theme';
 
 import styleSheet from './PaymentMethodPill.styles';
 
@@ -35,23 +31,14 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
   isLoading = false,
   testID = 'payment-method-pill',
 }) => {
-  const { styles } = useStyles(styleSheet);
-
-  if (isLoading) {
-    return (
-      <View style={[styles.container, styles.loadingContainer]} testID={testID}>
-        <Spinner
-          color={DsIconColor.IconDefault}
-          spinnerIconProps={{ size: DsIconSize.Sm }}
-        />
-      </View>
-    );
-  }
+  const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
 
   return (
     <TouchableOpacity
       style={styles.container}
-      onPress={onPress}
+      onPress={isLoading ? undefined : onPress}
+      disabled={isLoading}
       testID={testID}
       activeOpacity={0.7}
     >
@@ -66,11 +53,15 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
         {label}
       </Text>
       <View style={styles.arrowWrapper}>
-        <Icon
-          name={IconName.ArrowDown}
-          size={IconSize.Sm}
-          color={IconColor.Default}
-        />
+        {isLoading ? (
+          <ActivityIndicator size="small" color={colors.icon.default} />
+        ) : (
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Sm}
+            color={IconColor.Default}
+          />
+        )}
       </View>
     </TouchableOpacity>
   );

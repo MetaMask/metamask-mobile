@@ -39,8 +39,12 @@ jest.mock('../../../../../core/redux/slices/card', () => ({
   resetOnboardingState: jest.fn(() => ({ type: 'card/resetOnboardingState' })),
 }));
 
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+  MetaMetricsEvents: {
+    CARD_ONBOARDING_PAGE_VIEWED: 'CARD_ONBOARDING_PAGE_VIEWED',
+    CARD_ONBOARDING_BUTTON_CLICKED: 'CARD_ONBOARDING_BUTTON_CLICKED',
+  },
 }));
 
 jest.mock('../../util/cardTokenVault', () => ({
@@ -225,14 +229,12 @@ describe('Complete Component', () => {
 
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
 
-    const { useAnalytics } = jest.requireMock(
-      '../../../../hooks/useAnalytics/useAnalytics',
-    );
+    const { useMetrics } = jest.requireMock('../../../../hooks/useMetrics');
     mockCreateEventBuilder.mockReturnValue({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn().mockReturnValue({}),
     });
-    useAnalytics.mockReturnValue({
+    useMetrics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });

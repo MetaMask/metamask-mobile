@@ -1,12 +1,12 @@
 import { mockNetworkState } from '../../../util/test/network';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { analytics } from '../../../util/analytics/analytics';
+import MetaMetrics from '../../Analytics/MetaMetrics';
+import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
 import { MetaMetricsEvents } from '../../Analytics';
 import { switchToNetwork } from './ethereum-chain-utils';
 import { getDefaultCaip25CaveatValue } from '../../Permissions';
 
-jest.mock('../../../util/analytics/analytics');
-jest.mock('../../../util/analytics/AnalyticsEventBuilder');
+jest.mock('../../Analytics/MetaMetrics');
+jest.mock('../../Analytics/MetricsEventBuilder');
 jest.mock('../../../core/Permissions', () => ({
   ...jest.requireActual('../../../core/Permissions'),
   getPermittedAccounts: jest.fn().mockReturnValue([]),
@@ -28,11 +28,13 @@ jest.mock('../../Engine', () => ({
 describe('switchToNetwork', () => {
   it('tracks the network switch event', async () => {
     const mockTrackEvent = jest.fn();
-    (analytics.trackEvent as jest.Mock) = mockTrackEvent;
+    (MetaMetrics.getInstance as jest.Mock).mockReturnValue({
+      trackEvent: mockTrackEvent,
+    });
 
     const mockAddProperties = jest.fn().mockReturnThis();
     const mockMetricsBuilderBuild = {};
-    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue({
+    (MetricsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue({
       addProperties: mockAddProperties,
       build: jest.fn().mockReturnValue(mockMetricsBuilderBuild),
     });
@@ -58,7 +60,7 @@ describe('switchToNetwork', () => {
       ticker: 'ETH',
     });
 
-    const analyticsParam = {
+    const analytics = {
       test: 'test',
     };
     const origin = 'test';
@@ -69,13 +71,13 @@ describe('switchToNetwork', () => {
       nativeCurrency: network.nativeCurrency,
       rpcUrl: network.rpcEndpoints[0].url,
       chainId,
-      analytics: analyticsParam,
+      analytics,
       origin,
       autoApprove,
       hooks: mockHooks,
     });
 
-    expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+    expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.NETWORK_SWITCHED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({

@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import { AccountOverviewSelectorsIDs } from './AccountOverview.testIds';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
@@ -43,8 +42,7 @@ import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { analytics } from '../../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { isPortfolioUrl } from '../../../util/url';
 import { buildPortfolioUrl } from '../../../util/browser';
 
@@ -188,6 +186,10 @@ class AccountOverview extends PureComponent {
      */
     browserTabs: PropTypes.array,
     /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
+    /**
      * Whether data collection for marketing is enabled
      */
     isDataCollectionForMarketingEnabled: PropTypes.bool,
@@ -286,10 +288,10 @@ class AccountOverview extends PureComponent {
     });
     setTimeout(() => this.props.protectWalletModalVisible(), 2000);
 
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_COPIED_ADDRESS,
-      ).build(),
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.WALLET_COPIED_ADDRESS)
+        .build(),
     );
   };
 
@@ -303,7 +305,7 @@ class AccountOverview extends PureComponent {
   };
 
   onOpenPortfolio = () => {
-    const { navigation, browserTabs } = this.props;
+    const { navigation, browserTabs, metrics } = this.props;
     const existingPortfolioTab = browserTabs.find((tab) =>
       isPortfolioUrl(tab.url),
     );
@@ -313,7 +315,7 @@ class AccountOverview extends PureComponent {
       existingTabId = existingPortfolioTab.id;
     } else {
       const additionalParams = {
-        metricsEnabled: analytics.isEnabled(),
+        metricsEnabled: metrics.isEnabled(),
         marketingEnabled:
           this.props.isDataCollectionForMarketingEnabled ?? false,
       };
@@ -332,10 +334,9 @@ class AccountOverview extends PureComponent {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.PORTFOLIO_LINK_CLICKED,
-      )
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
         .addProperties({ portfolioUrl: AppConstants.PORTFOLIO.URL })
         .build(),
     );
@@ -431,7 +432,6 @@ class AccountOverview extends PureComponent {
 
             <TouchableOpacity
               style={styles.addressWrapper}
-              testID={AccountOverviewSelectorsIDs.ADDRESS_COPY_BUTTON}
               onPress={this.copyAccountToClipboard}
             >
               <EthereumAddress
@@ -464,4 +464,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 AccountOverview.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(AccountOverview);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(AccountOverview));

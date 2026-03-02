@@ -7,7 +7,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.testIds';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 // Mock ButtonIcon to pass through testID and onPress
 jest.mock('../../../component-library/components/Buttons/ButtonIcon', () => {
@@ -106,16 +105,22 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: mockBuild,
 }));
 
-jest.mock('../../../util/analytics/analytics', () => ({
-  analytics: {
-    trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+jest.mock('../../hooks/useMetrics/withMetricsAwareness', () =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (Component: React.ComponentType<any>) => {
+    const WithMetrics = (props: Record<string, unknown>) => (
+      <Component
+        {...props}
+        metrics={{
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }}
+      />
+    );
+    WithMetrics.displayName = 'WithMetricsAwareness';
+    return WithMetrics;
   },
-}));
-
-jest.mock('../../../util/analytics/AnalyticsEventBuilder');
-
-(AnalyticsEventBuilder as Record<string, unknown>).createEventBuilder =
-  mockCreateEventBuilder;
+);
 
 const mockTabs = [
   { id: 1, url: 'https://example.com', image: 'image1' },

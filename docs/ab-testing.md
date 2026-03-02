@@ -1,228 +1,220 @@
 # A/B Testing Framework
 
-Generic A/B testing guidance for MetaMask Mobile.
+Generic A/B testing for MetaMask Mobile.
 
-## Current Analytics Standard
+The `ab_tests` Segment property already exists and supports nested test keys for concurrent experiments.
 
-Use these two mechanisms together:
-
-1. **Exposure event (automatic):** `Experiment Viewed`
-2. **Business events context (manual):** `active_ab_tests`
-
-`ab_tests` is legacy and should not be used for new instrumentation.
-
-## References
+**References:**
 
 - [Remote Feature Flags Documentation](https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md)
 - [Perps A/B Testing Guide](./perps/perps-ab-testing.md)
 
 ---
 
-## How Variant Assignment Works
+## How It Works
 
-MetaMask Mobile does not use LaunchDarkly native percentage rollout rules for assignment. The app buckets users from a JSON array value:
+MetaMask does **NOT use LaunchDarkly's percentage rollout targeting**. Instead, thresholds are defined **inside the variant value**, and the app does its own bucketing:
 
-1. LaunchDarkly returns an array where each item has `scope.value` (0-1).
-2. App computes `sha256(metametricsId + flagName)` to get deterministic threshold 0-1.
-3. App picks first variant where `userThreshold <= scope.value`.
+1. **LD returns array with thresholds in variant** — each element has `scope.value` (0-1)
+2. **App hashes** `SHA256(metametricsId + flagName)` → deterministic value 0-1
+3. **App selects variant** — first element where `userThreshold <= scope.value`
 
-Flag value example:
+**Flag value structure:**
 
 ```json
 [
   {
     "name": "control",
-    "scope": { "type": "percentage_rollout", "value": 0.5 }
+    "scope": { "type": "percentage_rollout", "value": 0.5 },
+    "value": { "buttonColor": "green" }
   },
   {
     "name": "treatment",
-    "scope": { "type": "percentage_rollout", "value": 1.0 }
+    "scope": { "type": "percentage_rollout", "value": 1.0 },
+    "value": { "buttonColor": "blue" }
   }
 ]
 ```
 
-The controller stores `{ name, value }` in `RemoteFeatureFlagController.remoteFeatureFlags`. `useABTest` reads `name`.
+**Selection logic:** User threshold = 0.45 → 0.45 <= 0.5? YES → `control` selected
+
+> **Key:** Thresholds are IN the variant. App does bucketing via `@metamask/remote-feature-flag-controller`. We do NOT use LD's native percentage rollout targeting.
+
+### How the Controller Detects A/B Test Flags
+
+The `RemoteFeatureFlagController` identifies flags that need bucketing by checking if the value is an **array of objects with a `scope` property**:
+
+```javascript
+// Controller checks: is it an object with a 'scope' property?
+{ name: "control", scope: { value: 0.5 }, value: {...} }  // ✓ Triggers bucketing
+{ enabled: true, minimumVersion: "7.0.0" }                 // ✗ Simple flag, no bucketing
+```
+
+When detected, the controller:
+
+1. Computes `sha256(metametricsId + flagName)` → deterministic threshold (0-1)
+2. Finds first array item where `threshold <= scope.value`
+3. Stores `{ name, value }` object in `state.remoteFeatureFlags` (value is optional/undefined if not in LD config)
+
+The `scope.type` field (e.g., `"percentage_rollout"`) is metadata only - the controller just checks for presence of `scope`.
+
+The `useABTest` hook reads the `name` property from this stored object and maps it to your locally-defined variant data.
 
 ---
 
-## `useABTest` Hook
+## The Hook
 
-Generic examples below use template-style keys; see SWAPS4135 section for a concrete implementation.
+The generic `useABTest` hook provides a simple, type-safe interface for A/B testing:
+
+```typescript
+// app/hooks/useABTest.ts
+
+import { useABTest } from '../hooks';
+
+const { variant, variantName, isActive } = useABTest('buttonColorTest', {
+  control: { color: 'green' },
+  treatment: { color: 'blue' },
+});
+```
+
+### API Reference
+
+```typescript
+function useABTest<T extends Record<string, unknown>>(
+  flagKey: string,
+  variants: T,
+): {
+  variant: T[keyof T]; // The variant data for the assigned variant
+  variantName: string; // The name of the assigned variant (e.g., 'control')
+  isActive: boolean; // Whether the A/B test is active
+};
+```
+
+**Parameters:**
+
+- `flagKey` - The feature flag key in LaunchDarkly (camelCase, e.g., `'buttonColorTest'`)
+- `variants` - Object mapping variant names to their data. **Must include a `control` key** which is used as the fallback when the flag is not set or invalid.
+
+**Returns:**
+
+- `variant` - The data object for the assigned variant
+- `variantName` - Name of the assigned variant (e.g., `'control'`, `'treatment'`)
+- `isActive` - `true` if the flag is set AND matches a valid variant; `false` otherwise
+
+---
+
+## Usage
+
+### Basic Usage
 
 ```typescript
 import { useABTest } from '../hooks';
 
-const { variant, variantName, isActive } = useABTest(
-  'teamTEAM1234AbtestButtonColor',
-  {
+const MyComponent = () => {
+  const { variant, variantName, isActive } = useABTest('buttonColorTest', {
     control: { color: 'green' },
     treatment: { color: 'blue' },
-  },
-  {
-    experimentName: 'Button Color Test',
-    variationNames: {
-      control: 'Control',
-      treatment: 'Treatment',
-    },
-  },
-);
-```
+  });
 
-API:
-
-```typescript
-function useABTest<T extends { control: unknown } & Record<string, unknown>>(
-  flagKey: string,
-  variants: T,
-  exposureMetadata?: {
-    experimentName?: string;
-    variationNames?: Partial<Record<Extract<keyof T, string>, string>>;
-  },
-): {
-  variant: T[keyof T];
-  variantName: string;
-  isActive: boolean;
+  return (
+    <Button color={variant.color}>
+      Submit
+    </Button>
+  );
 };
 ```
 
-Behavior:
+### Tracking with Analytics
 
-- Fallback is always `control` when flag is missing/invalid.
-- `isActive` is `true` only when flag value matches a defined variant.
-- When active, the hook emits `Experiment Viewed` once per `experiment_id + variation_id` per app session.
-
----
-
-## Automatic Exposure Event (`Experiment Viewed`)
-
-The hook emits:
-
-- `event`: `Experiment Viewed`
-- Required props:
-  - `experiment_id` (flag key)
-  - `variation_id` (`control`, `treatment`, etc.)
-- Optional props:
-  - `experiment_name`
-  - `variation_name`
-
-You do not need to manually track this event when using `useABTest`.
-
----
-
-## Business Event Instrumentation (`active_ab_tests`)
-
-For feature/business events (page view, click, submit, conversion), add active test assignments via `active_ab_tests`.
-
-Shape:
+Track events with a single `ab_tests` JSON property (no per-test schema changes after initial setup):
 
 ```typescript
-active_ab_tests: Array<{ key: string; value: string }>;
+import { useABTest } from '../hooks';
+import { useAnalytics } from '../components/hooks/useAnalytics';
+import { MetaMetricsEvents } from '../core/Analytics';
+
+const MyComponent = () => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { variant, variantName, isActive } = useABTest('buttonColorTest', {
+    control: { color: 'green' },
+    treatment: { color: 'blue' },
+  });
+
+  const handlePress = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SCREEN_VIEWED)
+        .addProperties({
+          screen: 'details',
+          ...(isActive && { ab_tests: { button_color: variantName } }),
+        })
+        .build()
+    );
+  };
+
+  return <Button onPress={handlePress} color={variant.color}>Submit</Button>;
+};
 ```
 
-Single test example:
+### Multiple Concurrent Tests
 
 ```typescript
-const abAssignments = isActive
-  ? [{ key: flagKey, value: variantName }]
-  : undefined;
+const buttonTest = useABTest('buttonColorTest', {
+  control: { color: 'green' },
+  treatment: { color: 'blue' },
+});
+
+const ctaTest = useABTest('ctaTextTest', {
+  control: { text: 'Get Started' },
+  urgent: { text: 'Start Now!' },
+});
 
 trackEvent(
   createEventBuilder(MetaMetricsEvents.SCREEN_VIEWED)
     .addProperties({
-      screen: 'details',
-      ...(abAssignments && { active_ab_tests: abAssignments }),
+      ab_tests: {
+        ...(buttonTest.isActive && { button_color: buttonTest.variantName }),
+        ...(ctaTest.isActive && { cta_text: ctaTest.variantName }),
+      },
     })
     .build(),
 );
 ```
 
-Multiple concurrent tests:
-
-```typescript
-const activeABTests = [
-  ...(buttonTest.isActive
-    ? [{ key: 'teamTEAM1234AbtestButtonColor', value: buttonTest.variantName }]
-    : []),
-  ...(ctaTest.isActive
-    ? [{ key: 'teamTEAM1234AbtestCtaText', value: ctaTest.variantName }]
-    : []),
-];
-
-trackEvent(
-  createEventBuilder(MetaMetricsEvents.SCREEN_VIEWED)
-    .addProperties({
-      ...(activeABTests.length > 0 && { active_ab_tests: activeABTests }),
-    })
-    .build(),
-);
-```
-
-Do not send per-test nested properties under `ab_tests`.
-
 ---
 
-## Segment Schema Contract
+## Segment Schema
 
-Canonical global field is `active_ab_tests` (from `metamask-mobile-globals`):
+The Segment global property for A/B tests is a nested object where keys are test names and values are variant names:
 
 ```yaml
-active_ab_tests:
-  type: array
+# libraries/properties/metamask-mobile-globals.yaml
+
+ab_tests:
+  type: object
+  description: 'Active A/B test variants. Keys are test names, values are variant names.'
   required: false
-  items:
-    type: object
-    required: [key, value]
-    properties:
-      key:
-        type: string
-      value:
-        type: string
+  additionalProperties:
+    type: string
 ```
 
-Implication:
-
-- No explicit per-test key like `ab_tests.someTest` should be emitted.
-- New tests should use the generic `active_ab_tests` array shape.
-
----
-
-## Migration from legacy `ab_tests`
-
-1. Remove per-test `ab_tests.*` emits from business events.
-2. Emit `active_ab_tests: [{ key, value }]` only when assignment is active.
-3. Keep `Experiment Viewed` exposure sourced from `useABTest` (do not manually emit duplicates).
-4. Validate no payload contains `ab_tests.<experiment_key>`.
-5. Validate each `active_ab_tests` item always contains both `key` and `value` strings.
-
-Before/after payload example:
-
-```typescript
-// Before
-ab_tests: {
-  swapsSWAPS4135AbtestNumpadQuickAmounts: 'control';
-}
-
-// After
-active_ab_tests: [
-  { key: 'swapsSWAPS4135AbtestNumpadQuickAmounts', value: 'control' },
-];
-```
-
-Note: legacy historical docs/tests may still mention `ab_tests`; the goal is no new business-event instrumentation using it.
+This is why no per-test schema PR is needed after the `ab_tests` object is available.
 
 ---
 
 ## LaunchDarkly Setup
 
-1. Create JSON flag.
-2. Name format: `{team name}{ticket ID}Abtest{test name}`.
-   - Team name prefix: lower camel team token (for example `swaps`).
-   - Ticket ID: uppercase project key + number (for example `SWAPS4135`).
-   - Literal segment: exact `Abtest`.
-   - Test name: PascalCase semantic name (for example `NumpadQuickAmounts`).
-   - Example: `swapsSWAPS4135AbtestButtonColor`
-3. Enable mobile SDK availability.
-4. Configure variation value as threshold array:
+Thresholds are defined **inside the variation value** as an array. Do NOT use LD's percentage rollout targeting.
+
+### Step 1: Create the Flag
+
+1. LaunchDarkly → Feature Flags → Create Flag
+2. **Name:** `{team}{TicketID}{TestName}` (e.g., `perpsTAT1234AbtestButtonColor`)
+3. **Flag type:** JSON
+4. **Client-side SDK availability:** Check "SDKs using Mobile Key"
+
+### Step 2: Define Variation Value with Thresholds
+
+The variation value is an **array** with cumulative thresholds:
 
 ```json
 [
@@ -237,53 +229,143 @@ Note: legacy historical docs/tests may still mention `ab_tests`; the goal is no 
 ]
 ```
 
-Use default targeting rule to serve this variation value.
+**Threshold math:**
+
+- `scope.value: 0.5` → users with hash 0-0.5 (50%)
+- `scope.value: 1.0` → users with hash 0.5-1.0 (remaining 50%)
+
+For 3 variants (33% each): 0.33, 0.66, 1.0
+
+### Step 3: Configure Targeting
+
+- **Default rule:** Serve the variation (single variation with threshold array)
+- **When targeting is OFF:** Serve fallback variation
+
+### Step 4: Enable
+
+Toggle targeting ON. The `RemoteFeatureFlagController` handles bucketing automatically.
 
 ---
 
-## SWAPS4135 Example
+## Adding a New Test (Summary)
 
-- Flag key: `swapsSWAPS4135AbtestNumpadQuickAmounts`
-- `Experiment Viewed`:
-  - `experiment_id = "swapsSWAPS4135AbtestNumpadQuickAmounts"`
-  - `variation_id = "control" | "treatment"`
-- Business events:
+1. **Create LaunchDarkly flag** (JSON type, threshold array in variation)
+2. **Define cumulative thresholds** in `scope.value` (0.5, 1.0 for 50/50)
+3. **Add hook to component:**
 
 ```typescript
-active_ab_tests: [
-  { key: 'swapsSWAPS4135AbtestNumpadQuickAmounts', value: variantName },
-];
+const { variant, variantName, isActive } = useABTest('swapsQuoteLayout', {
+  control: { showFees: false },
+  expanded: { showFees: true },
+});
 ```
+
+4. **Track events:**
+
+```typescript
+trackEvent(
+  createEventBuilder(MetaMetricsEvents.QUOTE_VIEWED)
+    .addProperties({
+      ...(isActive && { ab_tests: { quote_layout: variantName } }),
+    })
+    .build(),
+);
+```
+
+5. **Build Mixpanel funnel** — Filter by `ab_tests.quote_layout`
+
+---
+
+## Mixpanel Queries
+
+Filter by nested property:
+
+```
+// Funnel step filter
+ab_tests.button_color == "control"
+
+// Breakdown
+ab_tests.button_color
+```
+
+---
+
+## Manual Mixpanel Dashboard Setup
+
+### 1. Create a New Board
+
+- Boards → Create Board → Name: `[Test Name] A/B Analysis`
+
+### 2. Add Funnel Report
+
+- New Report → Funnel
+- Define conversion steps (e.g., Screen Viewed → Button Clicked → Transaction Completed)
+- Filter: `ab_tests.[your_test_name]` is set
+- Breakdown: `ab_tests.[your_test_name]`
+
+### 3. Add Conversion Over Time
+
+- New Report → Insights
+- Metric: Conversion rate from your funnel
+- Breakdown: `ab_tests.[your_test_name]`
+
+### 4. Add Sample Size Tracker
+
+- New Report → Insights → Event: Your entry event
+- Breakdown: `ab_tests.[your_test_name]` → Display as: Total count
+
+### 5. Statistical Significance
+
+- Use Funnel report, compare variants side-by-side
+- Look for 95%+ confidence before calling winner
+
+**Template:** [A/B Test Template Dashboard](https://mixpanel.com/project/2697051/view/3233695/app/boards#id=10912360)
+
+---
 
 ---
 
 ## Checklist
 
-- [ ] LaunchDarkly JSON flag created with threshold array
-- [ ] `useABTest` added in feature component
-- [ ] Relevant business events include `active_ab_tests`
+- [ ] LaunchDarkly flag created (JSON type, threshold array in variation value)
+- [ ] Cumulative thresholds defined in `scope.value` (e.g., 0.5, 1.0 for 50/50)
+- [ ] Hook used in component
+- [ ] Events tracked with `ab_tests: { test_name: variantName }`
+- [ ] Mixpanel funnel created filtering by `ab_tests.test_name`
 
 ---
 
 ## FAQ
 
-**Q: Should I send both `ab_tests` and `active_ab_tests`?**  
-No. Use `active_ab_tests`.
+**Q: Does `ab_tests` already exist in Segment?**
+Yes.
 
-**Q: Do I manually emit `Experiment Viewed`?**  
-No, not when using `useABTest`. The hook emits it automatically for active assignments.
+**Q: How does bucketing work?**
+`RemoteFeatureFlagController` hashes `SHA256(metametricsId + flagName)` → value 0-1. Selects first variant where `userThreshold <= scope.value`.
 
-**Q: What is the fallback variant?**  
-`control`.
+**Q: Why don't we use LD's percentage rollout?**
+Thresholds are defined in the variant value itself. App-side controller does bucketing. This gives us control and consistency across platforms.
 
-**Q: Do I need a per-test Segment schema key?**  
-No. Use the shared `active_ab_tests` array of `{ key, value }`.
+**Q: Do I need a Segment schema PR for each test?**
+No. The `ab_tests` object accepts any keys. Define once, use forever.
+
+**Q: What if user opts out of MetaMetrics?**
+No `metametricsId` → controller returns array unchanged → no variant selection.
+
+**Q: What does `isActive` mean?**
+`isActive` is `true` when the flag is set AND matches a valid variant. It's `false` when using the fallback (flag not set or invalid).
+
+**Q: Which variant is used as the fallback?**
+The `control` variant is always used as the fallback when the flag is not set, invalid, or doesn't match any defined variant. The `variants` object must include a `control` key (enforced by TypeScript). This ensures users see the default experience when the test is inactive.
+
+**Q: Is there an existing example?**
+Yes. See Perps button color test (TAT-1937): `perpsAbtestButtonColor`.
 
 ---
 
 ## Related Files
 
-- `app/hooks/useABTest.ts`
-- `app/hooks/useABTest.test.ts`
-- `app/core/Analytics/MetaMetrics.events.ts`
-- `app/selectors/featureFlagController/index.ts`
+- **Generic Hook:** `app/hooks/useABTest.ts`
+- **Generic Hook Tests:** `app/hooks/useABTest.test.ts`
+- **Hooks Index:** `app/hooks/index.ts`
+- **Feature Flag Selector:** `app/selectors/featureFlagController/index.ts`

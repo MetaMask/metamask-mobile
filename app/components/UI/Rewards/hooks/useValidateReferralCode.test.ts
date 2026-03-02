@@ -2,10 +2,20 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useValidateReferralCode } from './useValidateReferralCode';
 import Engine from '../../../../core/Engine';
 
+// Mock dependencies
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
   },
+}));
+
+jest.mock('lodash', () => ({
+  debounce: jest.fn((fn) => {
+    // Return a simple mock that calls the function immediately for testing
+    const mockFn = (...args: unknown[]) => fn(...args);
+    mockFn.cancel = jest.fn();
+    return mockFn;
+  }),
 }));
 
 describe('useValidateReferralCode', () => {
@@ -17,7 +27,7 @@ describe('useValidateReferralCode', () => {
     jest.clearAllMocks();
   });
 
-  it('initializes with correct default values', () => {
+  it('should initialize with correct default values', () => {
     const { result } = renderHook(() => useValidateReferralCode());
 
     expect(result.current.referralCode).toBe('');
@@ -28,187 +38,120 @@ describe('useValidateReferralCode', () => {
     expect(typeof result.current.validateCode).toBe('function');
   });
 
-  it('initializes with custom initial value and validates immediately', async () => {
-    mockEngineCall.mockResolvedValueOnce(true);
+  it('should initialize with custom initial value', () => {
+    const { result } = renderHook(() => useValidateReferralCode('INITIAL'));
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useValidateReferralCode('ABCDEF'),
-    );
-
-    await waitForNextUpdate();
-
-    expect(result.current.referralCode).toBe('ABCDEF');
-    expect(result.current.isValid).toBe(true);
+    expect(result.current.referralCode).toBe('INITIAL');
   });
 
-  it('validates code directly via validateCode', async () => {
+  it('should validate code successfully', async () => {
     mockEngineCall.mockResolvedValueOnce(true);
+
     const { result } = renderHook(() => useValidateReferralCode());
 
     await act(async () => {
-      const error = await result.current.validateCode('VALID1');
+      const error = await result.current.validateCode('VALID123');
       expect(error).toBe('');
     });
 
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:validateReferralCode',
-      'VALID1',
+      'VALID123',
     );
   });
 
-  it('returns error from validateCode for invalid code', async () => {
+  it('should return error for invalid code', async () => {
     mockEngineCall.mockResolvedValueOnce(false);
+
     const { result } = renderHook(() => useValidateReferralCode());
 
     await act(async () => {
-      const error = await result.current.validateCode('BADONE');
-      expect(error).toBe('Invalid referral code. Please check and try again.');
+      const error = await result.current.validateCode('INVALID');
+      expect(error).toBe('Invalid code');
     });
   });
 
-  it('converts code to uppercase and trims whitespace', async () => {
-    mockEngineCall.mockResolvedValueOnce(true);
-    const { result } = renderHook(() => useValidateReferralCode());
-
-    await act(async () => {
-      result.current.setReferralCode('  abcdef  ');
-    });
-
-    expect(result.current.referralCode).toBe('ABCDEF');
-    expect(mockEngineCall).toHaveBeenCalledWith(
-      'RewardsController:validateReferralCode',
-      'ABCDEF',
-    );
-  });
-
-  it('does not validate when code is shorter than 6 characters', () => {
+  it('should update referral code', () => {
     const { result } = renderHook(() => useValidateReferralCode());
 
     act(() => {
-      result.current.setReferralCode('ABC');
+      result.current.setReferralCode('NEW123');
     });
 
-    expect(result.current.referralCode).toBe('ABC');
-    expect(result.current.isValid).toBe(false);
-    expect(result.current.isValidating).toBe(false);
-    expect(mockEngineCall).not.toHaveBeenCalled();
+    expect(result.current.referralCode).toBe('NEW123');
   });
 
-  it('does not validate when code is longer than 6 characters', () => {
+  it('should set validating state when code is provided', () => {
     const { result } = renderHook(() => useValidateReferralCode());
 
     act(() => {
-      result.current.setReferralCode('ABCDEFG');
+      result.current.setReferralCode('TEST123');
     });
 
-    expect(result.current.isValid).toBe(false);
-    expect(result.current.isValidating).toBe(false);
-    expect(mockEngineCall).not.toHaveBeenCalled();
+    expect(result.current.referralCode).toBe('TEST123');
   });
 
-  it('validates immediately for valid 6-char code', async () => {
-    mockEngineCall.mockResolvedValueOnce(true);
+  it('should not validate when code length is less than 6 but set relevant error', () => {
     const { result } = renderHook(() => useValidateReferralCode());
 
-    await act(async () => {
-      result.current.setReferralCode('ABCDEF');
+    act(() => {
+      result.current.setReferralCode('12345');
     });
 
-    expect(mockEngineCall).toHaveBeenCalledWith(
-      'RewardsController:validateReferralCode',
-      'ABCDEF',
-    );
-    expect(result.current.isValid).toBe(true);
-    expect(result.current.isValidating).toBe(false);
-  });
-
-  it('sets isUnknownError when validation throws', async () => {
-    mockEngineCall.mockRejectedValueOnce(new Error('Network error'));
-    const { result } = renderHook(() => useValidateReferralCode());
-
-    await act(async () => {
-      result.current.setReferralCode('ABCDEF');
-    });
-
-    expect(result.current.isUnknownError).toBe(true);
+    expect(result.current.referralCode).toBe('12345');
     expect(result.current.isValid).toBe(false);
   });
 
-  it('clears isUnknownError on subsequent successful validation', async () => {
-    mockEngineCall
-      .mockRejectedValueOnce(new Error('Network error'))
-      .mockResolvedValueOnce(true);
+  it('should set isUnknownError when validation fails with network error', async () => {
+    // Arrange
+    const mockError = new Error('Network error');
+    mockEngineCall.mockRejectedValueOnce(mockError);
 
     const { result } = renderHook(() => useValidateReferralCode());
 
+    // Act
     await act(async () => {
-      result.current.setReferralCode('ABCDEF');
+      try {
+        await result.current.validateCode('TEST123');
+      } catch {
+        // Expected to throw
+      }
     });
 
+    // Assert
+    expect(result.current.isUnknownError).toBe(true);
+  });
+
+  it('should clear isUnknownError on successful validation', async () => {
+    // Arrange - First fail, then succeed
+    const mockError = new Error('Network error');
+    mockEngineCall.mockRejectedValueOnce(mockError).mockResolvedValueOnce(true);
+
+    const { result } = renderHook(() => useValidateReferralCode());
+
+    // Act - First validation fails
+    await act(async () => {
+      try {
+        await result.current.validateCode('TEST123');
+      } catch {
+        // Expected to throw
+      }
+    });
+
+    // Verify unknown error is set
     expect(result.current.isUnknownError).toBe(true);
 
+    // Act - Set referral code to trigger validation which should succeed
     await act(async () => {
-      result.current.setReferralCode('GHJKMN');
+      result.current.setReferralCode('VALID1');
     });
 
+    // Wait for debounced validation to complete
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1100)); // Wait longer than debounce
+    });
+
+    // Assert - Unknown error should be cleared
     expect(result.current.isUnknownError).toBe(false);
-    expect(result.current.isValid).toBe(true);
-  });
-
-  it('discards stale responses when a newer validation is in flight', async () => {
-    let resolveFirst: (value: boolean) => void;
-    const firstPromise = new Promise<boolean>((resolve) => {
-      resolveFirst = resolve;
-    });
-    mockEngineCall
-      .mockReturnValueOnce(firstPromise)
-      .mockResolvedValueOnce(true);
-
-    const { result } = renderHook(() => useValidateReferralCode());
-
-    act(() => {
-      result.current.setReferralCode('ABCDEF');
-    });
-
-    await act(async () => {
-      result.current.setReferralCode('GHJKMN');
-    });
-
-    await act(async () => {
-      resolveFirst?.(false);
-    });
-
-    expect(result.current.isValid).toBe(true);
-    expect(result.current.referralCode).toBe('GHJKMN');
-  });
-
-  it('invalidates in-flight request when code length changes away from 6', async () => {
-    let resolveValidation: (value: boolean) => void;
-    const validationPromise = new Promise<boolean>((resolve) => {
-      resolveValidation = resolve;
-    });
-    mockEngineCall.mockReturnValueOnce(validationPromise);
-
-    const { result } = renderHook(() => useValidateReferralCode());
-
-    act(() => {
-      result.current.setReferralCode('ABCDEF');
-    });
-
-    expect(result.current.isValidating).toBe(true);
-
-    act(() => {
-      result.current.setReferralCode('ABCDE');
-    });
-
-    expect(result.current.isValidating).toBe(false);
-    expect(result.current.isValid).toBe(false);
-
-    await act(async () => {
-      resolveValidation?.(true);
-    });
-
-    expect(result.current.isValid).toBe(false);
-    expect(result.current.referralCode).toBe('ABCDE');
   });
 });

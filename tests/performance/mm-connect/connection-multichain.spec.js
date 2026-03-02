@@ -1,5 +1,4 @@
-import { test } from '../../framework/fixtures/performance';
-import TimerHelper from '../../framework/TimerHelper';
+import { test } from 'appwright';
 
 import { login } from '../../framework/utils/Flows.js';
 import {
@@ -50,7 +49,6 @@ test.afterAll(async () => {
 
 test('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
   device,
-  performanceTracker,
 }) => {
   // Get platform-specific URL (use bs-local.com when running on BrowserStack Local tunnel)
   const platform = device.getPlatform?.() || 'android';
@@ -87,17 +85,10 @@ test('@metamask/connect-multichain - Connect via Multichain API to Local Browser
   // Connect via Multichain API (wait for dapp ready then tap Connect to minimize idle time / auto-lock)
   //
 
-  const connectTimer = new TimerHelper(
-    'Time from tapping Connect to dapp confirming Multichain connected state',
-    { ios: 20000, android: 30000 },
-    device,
-  );
-
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
       await BrowserPlaygroundDapp.waitForConnectButtonVisible(15000);
-      connectTimer.start();
       await BrowserPlaygroundDapp.tapConnect();
     },
     DAPP_URL,
@@ -123,15 +114,12 @@ test('@metamask/connect-multichain - Connect via Multichain API to Local Browser
     async () => {
       // Verify connected by checking for scope cards section
       await BrowserPlaygroundDapp.assertMultichainConnected(true);
-      connectTimer.stop();
 
       // Verify at least one scope card is visible (eip155:1 is default)
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
     },
     DAPP_URL,
   );
-
-  performanceTracker.addTimers(connectTimer);
 
   //
   // Cleanup - disconnect

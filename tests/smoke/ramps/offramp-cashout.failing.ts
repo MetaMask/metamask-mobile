@@ -16,7 +16,7 @@ import {
 import SoftAssert from '../../framework/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 
 const PaymentMethods = {
   SEPA_BANK_TRANSFER: 'SEPA Bank Transfer',
