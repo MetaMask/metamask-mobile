@@ -8,12 +8,8 @@ import {
 } from '../../../../../constants/on-ramp';
 import { DepositSDKNoAuth } from '../sdk';
 import Logger from '../../../../../util/Logger';
-import currencySymbols from '../../../../../util/currency-symbols.json';
 
 function getFiatCurrencySymbol(currencyCode: string): string {
-  const symbol =
-    currencySymbols[currencyCode.toLowerCase() as keyof typeof currencySymbols];
-  if (symbol) return symbol;
   try {
     const parts = new Intl.NumberFormat('en', {
       style: 'currency',
