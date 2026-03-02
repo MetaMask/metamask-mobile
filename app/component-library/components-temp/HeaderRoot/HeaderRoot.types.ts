@@ -25,7 +25,7 @@ export interface HeaderRootProps extends ViewProps {
    */
   titleAccessory?: ReactNode;
   /**
-   * Optional main title text, rendered with TextVariant.DisplayMd.
+   * Optional main title text, rendered with TextVariant.HeadingLg.
    * Only used when children is not provided.
    */
   title?: string;
