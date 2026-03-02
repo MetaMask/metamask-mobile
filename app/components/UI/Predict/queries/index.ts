@@ -1,6 +1,10 @@
 import { predictActivityKeys, predictActivityOptions } from './activity';
 import { predictBalanceKeys, predictBalanceOptions } from './balance';
 import { predictPositionsKeys, predictPositionsOptions } from './positions';
+import {
+  predictPriceHistoryKeys,
+  predictPriceHistoryOptions,
+} from './priceHistory';
 
 export const predictQueries = {
   activity: {
@@ -14,5 +18,9 @@ export const predictQueries = {
   positions: {
     keys: predictPositionsKeys,
     options: predictPositionsOptions,
+  },
+  priceHistory: {
+    keys: predictPriceHistoryKeys,
+    options: predictPriceHistoryOptions,
   },
 };
