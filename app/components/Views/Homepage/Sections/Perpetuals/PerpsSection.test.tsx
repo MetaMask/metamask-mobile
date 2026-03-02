@@ -845,7 +845,7 @@ describe('PerpsSection', () => {
       expect(screen.queryByTestId('favorite-badge-ETH')).toBeNull();
     });
 
-    it('shows only watchlist tiles when watchlist exceeds max carousel size', () => {
+    it('caps at 5 tiles even when watchlist exceeds max carousel size', () => {
       const markets = Array.from({ length: 7 }, (_, i) =>
         makeTrendingMarket({
           symbol: `MKT${i}`,
@@ -865,10 +865,12 @@ describe('PerpsSection', () => {
       });
 
       const allTiles = screen.getAllByTestId(/^perps-market-tile-/);
-      expect(allTiles).toHaveLength(6);
+      expect(allTiles).toHaveLength(5);
 
       expect(screen.queryByTestId('favorite-badge-MKT6')).toBeNull();
       expect(screen.queryByText('MKT6')).toBeNull();
+      // MKT5 is the 6th watchlist item, truncated by the cap
+      expect(screen.queryByText('MKT5')).toBeNull();
     });
 
     it('ignores watchlist symbols not present in market data', () => {

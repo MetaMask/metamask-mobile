@@ -154,7 +154,8 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   }, [markets, watchlistMarkets]);
 
   const allCarouselMarkets = useMemo(
-    () => [...watchlistMarkets, ...trendingMarkets],
+    () =>
+      [...watchlistMarkets, ...trendingMarkets].slice(0, MAX_TRENDING_MARKETS),
     [watchlistMarkets, trendingMarkets],
   );
 
