@@ -341,14 +341,29 @@ describe('BuildQuote', () => {
     expect(getByText('$0')).toBeOnTheScreen();
   });
 
-  it('clears the full amount when delete button is pressed after typing', () => {
+  it('deletes one character when delete button is pressed after typing', () => {
     const { getByText, getByTestId } = renderWithTheme(<BuildQuote />);
 
     fireEvent.press(getByText('1'));
     fireEvent.press(getByText('2'));
     fireEvent.press(getByTestId('keypad-delete-button'));
 
+    expect(getByText('$1001')).toBeOnTheScreen();
+  });
+
+  it('deletes one character when delete is pressed after user has modified amount even if value equals default', () => {
+    const { getByText, getByTestId } = renderWithTheme(<BuildQuote />);
+
+    fireEvent.press(getByTestId('keypad-delete-button'));
     expect(getByText('$0')).toBeOnTheScreen();
+
+    fireEvent.press(getByText('1'));
+    fireEvent.press(getByText('0'));
+    fireEvent.press(getByText('0'));
+    expect(getByText('$100')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('keypad-delete-button'));
+    expect(getByText('$10')).toBeOnTheScreen();
   });
 
   it('sets navigation options with token and network data', () => {
