@@ -58,6 +58,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ title, onRetry }) => {
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         onPress={handleRetry}
+        twClassName={'self-center'}
       >
         {strings('homepage.error.retry')}
       </Button>

@@ -37,11 +37,6 @@ export const ResetNavigationToHome = CommonActions.reset({
   routes: [{ name: 'HomeNav' }],
 });
 
-interface OnboardingSuccessProps {
-  onDone: () => void;
-  successFlow: ONBOARDING_SUCCESS_FLOW;
-}
-
 interface OnboardingSuccessRouteParams {
   successFlow?: ONBOARDING_SUCCESS_FLOW;
 }
@@ -53,6 +48,11 @@ interface OnboardingSuccessParamList {
 
 interface OnboardingSuccessScreenProps {
   route?: RouteProp<OnboardingSuccessParamList, 'OnboardingSuccess'>;
+}
+
+interface OnboardingSuccessProps {
+  onDone: () => void;
+  successFlow: ONBOARDING_SUCCESS_FLOW;
 }
 
 export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({

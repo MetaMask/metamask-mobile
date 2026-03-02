@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import SecuritySettings from './SecuritySettings';
@@ -73,13 +74,6 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
 // DeviceSecurityToggle uses useAuthCapabilities; mock so it renders the toggle instead of null
 jest.mock('../../../../core/Authentication/hooks/useAuthCapabilities', () => ({
   __esModule: true,
@@ -106,6 +100,7 @@ jest.mock(
 
 describe('SecuritySettings', () => {
   beforeEach(() => {
+    mockGoBack.mockClear();
     mockUseParamsValues = {
       scrollToDetectNFTs: undefined,
     };
@@ -132,6 +127,24 @@ describe('SecuritySettings', () => {
     });
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
+
+  it('renders inline header with Security and privacy title', () => {
+    const { getByText } = renderWithProvider(<SecuritySettings />, {
+      state: initialState,
+    });
+    expect(getByText(strings('app_settings.security_title'))).toBeTruthy();
+  });
+
+  it('calls navigation.goBack when header back button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<SecuritySettings />, {
+      state: initialState,
+    });
+    const header = getByTestId('header');
+    const backButton = within(header).getByTestId('button-icon');
+    fireEvent.press(backButton);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('renders all sections when account menu is disabled', () => {
     const { getByText, getByTestId } = renderWithProvider(
       <SecuritySettings />,

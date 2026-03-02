@@ -40,7 +40,7 @@ const mockRampsOrder: RampsOrder = {
     logos: { light: '', dark: '', height: 24, width: 90 },
   },
   fiatCurrency: { symbol: 'USD', decimals: 2, denomSymbol: '$' },
-  cryptoCurrency: { symbol: 'ETH', decimals: 18 },
+  cryptoCurrency: { symbol: 'ETH', decimals: 18, chainId: 'eip155:1' },
   fiatAmount: 100,
   totalFeesFiat: 5,
   cryptoAmount: 0.05,
@@ -75,7 +75,7 @@ const mockOrder: FiatOrder = {
   cryptocurrency: 'ETH',
   state: FIAT_ORDER_STATES.PENDING,
   account: '0xabc',
-  network: '1',
+  network: 'eip155:1',
   excludeFromPurchases: false,
   orderType: OrderOrderTypeEnum.Buy,
   errorCount: 0,
@@ -149,18 +149,19 @@ describe('processUnifiedOrder', () => {
       }
     });
 
-    it('preserves original network when API returns empty network chainId', async () => {
+    it('preserves original network when API returns empty chainIds', async () => {
       mockGetOrder.mockResolvedValue({
         ...mockRampsOrder,
+        cryptoCurrency: { symbol: 'ETH', decimals: 18 },
         network: { chainId: '', name: '' },
       });
 
       const result = await processUnifiedOrder({
         ...mockOrder,
-        network: '137',
+        network: 'eip155:137',
       });
 
-      expect(result.network).toBe('137');
+      expect(result.network).toBe('eip155:137');
     });
 
     it('preserves original account when API returns empty walletAddress', async () => {
@@ -174,9 +175,26 @@ describe('processUnifiedOrder', () => {
       expect(result.account).toBe('0xoriginal');
     });
 
-    it('uses API-provided network when original network is empty', async () => {
+    it('uses cryptoCurrency.chainId as primary network source', async () => {
       mockGetOrder.mockResolvedValue({
         ...mockRampsOrder,
+        cryptoCurrency: {
+          symbol: 'MATIC',
+          decimals: 18,
+          chainId: 'eip155:137',
+        },
+        network: { chainId: '137', name: 'Polygon' },
+      });
+
+      const result = await processUnifiedOrder({ ...mockOrder, network: '' });
+
+      expect(result.network).toBe('eip155:137');
+    });
+
+    it('falls back to network.chainId when cryptoCurrency.chainId is missing', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        cryptoCurrency: { symbol: 'MATIC', decimals: 18 },
         network: { chainId: '137', name: 'Polygon' },
       });
 
