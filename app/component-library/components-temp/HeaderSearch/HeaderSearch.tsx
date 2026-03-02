@@ -16,20 +16,20 @@ import { strings } from '../../../../locales/i18n';
 import TextFieldSearch from '../../components/Form/TextFieldSearch';
 import { TextFieldSearchProps } from '../../components/Form/TextFieldSearch/TextFieldSearch.types';
 import {
-  HeaderCompactSearchInlineProps,
-  HeaderCompactSearchProps,
-  HeaderCompactSearchScreenProps,
-  HeaderCompactSearchVariant,
-} from './HeaderCompactSearch.types';
+  HeaderSearchInlineProps,
+  HeaderSearchProps,
+  HeaderSearchScreenProps,
+  HeaderSearchVariant,
+} from './HeaderSearch.types';
 
 /**
- * HeaderCompactSearch is a header component that combines a search field
+ * HeaderSearch is a header component that combines a search field
  * with either a back button (screen variant) or cancel button (inline variant).
  *
  * @example
  * // Screen variant with back button
- * <HeaderCompactSearch
- *   variant={HeaderCompactSearchVariant.Screen}
+ * <HeaderSearch
+ *   variant={HeaderSearchVariant.Screen}
  *   onPressBackButton={handleBack}
  *   textFieldSearchProps={{
  *     value: searchText,
@@ -41,8 +41,8 @@ import {
  *
  * @example
  * // Inline variant with cancel button
- * <HeaderCompactSearch
- *   variant={HeaderCompactSearchVariant.Inline}
+ * <HeaderSearch
+ *   variant={HeaderSearchVariant.Inline}
  *   onPressCancelButton={handleCancel}
  *   textFieldSearchProps={{
  *     value: searchText,
@@ -52,7 +52,7 @@ import {
  *   }}
  * />
  */
-const HeaderCompactSearch: React.FC<HeaderCompactSearchProps> = (props) => {
+const HeaderSearch: React.FC<HeaderSearchProps> = (props) => {
   const {
     variant,
     textFieldSearchProps,
@@ -62,11 +62,11 @@ const HeaderCompactSearch: React.FC<HeaderCompactSearchProps> = (props) => {
 
   const baseTwClassName = 'h-14 flex-row items-center';
 
-  if (variant === HeaderCompactSearchVariant.Screen) {
+  if (variant === HeaderSearchVariant.Screen) {
     const { onPressBackButton, backButtonProps } =
-      props as HeaderCompactSearchScreenProps;
+      props as HeaderSearchScreenProps;
     const screenBoxProps = boxProps as Omit<
-      HeaderCompactSearchScreenProps,
+      HeaderSearchScreenProps,
       | 'variant'
       | 'textFieldSearchProps'
       | 'twClassName'
@@ -98,9 +98,9 @@ const HeaderCompactSearch: React.FC<HeaderCompactSearchProps> = (props) => {
 
   // Inline variant
   const { onPressCancelButton, cancelButtonProps } =
-    props as HeaderCompactSearchInlineProps;
+    props as HeaderSearchInlineProps;
   const inlineBoxProps = boxProps as Omit<
-    HeaderCompactSearchInlineProps,
+    HeaderSearchInlineProps,
     | 'variant'
     | 'textFieldSearchProps'
     | 'twClassName'
@@ -133,4 +133,4 @@ const HeaderCompactSearch: React.FC<HeaderCompactSearchProps> = (props) => {
   );
 };
 
-export default HeaderCompactSearch;
+export default HeaderSearch;

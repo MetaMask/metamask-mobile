@@ -9,9 +9,9 @@ import {
 import { TextFieldSearchProps } from '../../components/Form/TextFieldSearch/TextFieldSearch.types';
 
 /**
- * Variant enum for HeaderCompactSearch component.
+ * Variant enum for HeaderSearch component.
  */
-export enum HeaderCompactSearchVariant {
+export enum HeaderSearchVariant {
   Screen = 'screen',
   Inline = 'inline',
 }
@@ -19,7 +19,7 @@ export enum HeaderCompactSearchVariant {
 /**
  * Base props shared by both variants - extends BoxProps.
  */
-interface HeaderCompactSearchBaseProps extends Omit<BoxProps, 'children'> {
+interface HeaderSearchBaseProps extends Omit<BoxProps, 'children'> {
   /**
    * Props to pass to the TextFieldSearch component.
    */
@@ -30,12 +30,11 @@ interface HeaderCompactSearchBaseProps extends Omit<BoxProps, 'children'> {
  * Screen variant props.
  * Renders a back button (ArrowLeft) on the left side.
  */
-export interface HeaderCompactSearchScreenProps
-  extends HeaderCompactSearchBaseProps {
+export interface HeaderSearchScreenProps extends HeaderSearchBaseProps {
   /**
    * The variant of the component.
    */
-  variant: HeaderCompactSearchVariant.Screen;
+  variant: HeaderSearchVariant.Screen;
   /**
    * Callback when the back button is pressed.
    */
@@ -50,12 +49,11 @@ export interface HeaderCompactSearchScreenProps
  * Inline variant props.
  * Renders a cancel button on the right side.
  */
-export interface HeaderCompactSearchInlineProps
-  extends HeaderCompactSearchBaseProps {
+export interface HeaderSearchInlineProps extends HeaderSearchBaseProps {
   /**
    * The variant of the component.
    */
-  variant: HeaderCompactSearchVariant.Inline;
+  variant: HeaderSearchVariant.Inline;
   /**
    * Callback when the cancel button is pressed.
    */
@@ -67,8 +65,8 @@ export interface HeaderCompactSearchInlineProps
 }
 
 /**
- * HeaderCompactSearch component props.
+ * HeaderSearch component props.
  */
-export type HeaderCompactSearchProps =
-  | HeaderCompactSearchScreenProps
-  | HeaderCompactSearchInlineProps;
+export type HeaderSearchProps =
+  | HeaderSearchScreenProps
+  | HeaderSearchInlineProps;
