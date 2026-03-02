@@ -119,6 +119,8 @@ export const Confirm = ({
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
   const transaction = useTransactionMetadataRequest();
+  const params = useParams<ConfirmationParams & { predictHeader?: unknown }>();
+  const hasPredictHeader = Boolean(params?.predictHeader);
   const isPredictDepositAndOrder = hasTransactionType(transaction, [
     PREDICT_DEPOSIT_AND_ORDER_TYPE,
   ]);
@@ -132,18 +134,18 @@ export const Confirm = ({
   useEffect(() => {
     if (approvalRequest) {
       const options = {
-        headerShown: false,
         // If there is an approvalRequest, we need to allow the user to swipe to reject the confirmation
         gestureEnabled: true,
+        headerShown: false,
       };
 
-      if (isFullScreenConfirmation) {
+      if (isFullScreenConfirmation || hasPredictHeader) {
         // If the confirmation is full screen, we need to show the header
         options.headerShown = true;
       }
       navigation.setOptions(options);
     }
-  }, [approvalRequest, isFullScreenConfirmation, navigation]);
+  }, [approvalRequest, hasPredictHeader, isFullScreenConfirmation, navigation]);
 
   useEffect(() => {
     if (!approvalRequest) {

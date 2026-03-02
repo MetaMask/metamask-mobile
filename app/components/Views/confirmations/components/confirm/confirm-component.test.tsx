@@ -168,6 +168,7 @@ describe('Confirm', () => {
       onReject: mockOnReject,
       onConfirm: jest.fn(),
     });
+    useParamsMock.mockReturnValue({});
 
     jest.mocked(useConfirmationAlerts).mockReturnValue([]);
     jest.mocked(useFullScreenConfirmation).mockReturnValue({
@@ -519,6 +520,26 @@ describe('Confirm', () => {
 
     expect(mockSetOptions).toHaveBeenCalledWith({
       headerShown: false,
+      gestureEnabled: true,
+    });
+  });
+
+  it('keeps navigation header shown when predict header params are present', () => {
+    jest.mocked(useFullScreenConfirmation).mockReturnValue({
+      isFullScreenConfirmation: false,
+    });
+    useParamsMock.mockReturnValue({
+      predictHeader: {
+        marketTitle: 'market',
+      },
+    });
+
+    renderWithProvider(<Confirm />, {
+      state: typedSignV1ConfirmationState,
+    });
+
+    expect(mockSetOptions).toHaveBeenCalledWith({
+      headerShown: true,
       gestureEnabled: true,
     });
   });

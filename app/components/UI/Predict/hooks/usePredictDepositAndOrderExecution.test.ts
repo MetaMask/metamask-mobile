@@ -8,6 +8,7 @@ import { PredictBuyPreviewParams } from '../types/navigation';
 
 const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
 const mockPlaceOrder = jest.fn();
 const mockOnApprovalConfirm = jest.fn();
 const mockShowToast = jest.fn();
@@ -19,6 +20,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     dispatch: mockDispatch,
     goBack: mockGoBack,
+    setOptions: mockSetOptions,
   }),
 }));
 
