@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
 import Logger from '../../../../util/Logger';
 import { CardVerificationState, UserResponse } from '../types';
-import { dashboardKeys } from '../queries';
+import { cardQueries } from '../queries';
 
 export interface UserKYCStatus {
   verificationState: CardVerificationState | null;
@@ -29,7 +29,7 @@ const useGetUserKYCStatus = (): UseGetUserKYCStatusResult => {
   sdkRef.current = sdk;
 
   const { data, isLoading, error, refetch } = useQuery<UserKYCStatus | null>({
-    queryKey: dashboardKeys.kycStatus(),
+    queryKey: cardQueries.dashboard.keys.kycStatus(),
     queryFn: async () => {
       try {
         const currentSdk = sdkRef.current;

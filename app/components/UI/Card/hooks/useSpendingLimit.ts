@@ -20,7 +20,7 @@ import {
   LINEA_CAIP_CHAIN_ID,
   QUICK_SELECT_TOKENS,
 } from '../util/buildTokenList';
-import { dashboardKeys } from '../queries';
+import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
@@ -407,7 +407,7 @@ const useSpendingLimit = ({
       // Wait for backend to process
       await new Promise((resolve) => setTimeout(resolve, 3000));
       await queryClient.invalidateQueries({
-        queryKey: dashboardKeys.externalWalletDetails(),
+        queryKey: cardQueries.dashboard.keys.externalWalletDetails(),
       });
 
       if (!isOnboardingFlow) {

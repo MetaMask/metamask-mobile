@@ -7,7 +7,7 @@ import {
   DelegationSettingsNetwork,
 } from '../types';
 import { CardSDK } from '../sdk/CardSDK';
-import { dashboardKeys } from '../queries';
+import { cardQueries } from '../queries';
 
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
@@ -115,7 +115,9 @@ describe('useGetDelegationSettings', () => {
       renderHook(() => useGetDelegationSettings());
 
       const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
-      expect(queryConfig.queryKey).toEqual(dashboardKeys.delegationSettings());
+      expect(queryConfig.queryKey).toEqual(
+        cardQueries.dashboard.keys.delegationSettings(),
+      );
     });
 
     it('passes correct staleTime to useQuery', () => {
@@ -322,7 +324,7 @@ describe('useGetDelegationSettings', () => {
 
       expect(mockFetchQuery).toHaveBeenCalledWith(
         expect.objectContaining({
-          queryKey: dashboardKeys.delegationSettings(),
+          queryKey: cardQueries.dashboard.keys.delegationSettings(),
           staleTime: 10 * 60 * 1000,
         }),
       );
@@ -398,7 +400,9 @@ describe('useGetDelegationSettings', () => {
       const secondCallKey = (useQuery as jest.Mock).mock.calls[1][0].queryKey;
 
       expect(firstCallKey).toEqual(secondCallKey);
-      expect(firstCallKey).toEqual(dashboardKeys.delegationSettings());
+      expect(firstCallKey).toEqual(
+        cardQueries.dashboard.keys.delegationSettings(),
+      );
     });
   });
 
@@ -485,7 +489,7 @@ describe('useGetDelegationSettings', () => {
       const secondKey = (useQuery as jest.Mock).mock.calls[1][0].queryKey;
 
       expect(firstKey).toEqual(secondKey);
-      expect(firstKey).toEqual(dashboardKeys.delegationSettings());
+      expect(firstKey).toEqual(cardQueries.dashboard.keys.delegationSettings());
     });
 
     it('uses same staleTime across multiple instances', () => {

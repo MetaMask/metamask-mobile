@@ -5,7 +5,7 @@ import { CardVerificationState } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { selectOnboardingId } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
-import { dashboardKeys } from '../queries';
+import { cardQueries } from '../queries';
 
 const POLLING_INTERVAL = 5000;
 
@@ -30,7 +30,9 @@ export const useUserRegistrationStatus =
     const [isPolling, setIsPolling] = useState(false);
 
     const { data, isLoading, error } = useQuery({
-      queryKey: dashboardKeys.registrationStatus(onboardingId ?? ''),
+      queryKey: cardQueries.dashboard.keys.registrationStatus(
+        onboardingId ?? '',
+      ),
       queryFn: async () => {
         if (!sdk) throw new Error('Card SDK not initialized');
         if (!onboardingId) throw new Error('Onboarding ID not available');

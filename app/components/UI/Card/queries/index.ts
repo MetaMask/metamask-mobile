@@ -6,11 +6,10 @@ import {
 } from './cashback';
 import { dashboardKeys } from './dashboard';
 
-export { cardKeys } from './keys';
-export { dashboardKeys } from './dashboard';
-export { cashbackKeys } from './cashback';
-
 export const cardQueries = {
+  keys: {
+    all: () => ['card'] as const,
+  },
   dashboard: {
     keys: dashboardKeys,
   },

@@ -10,7 +10,7 @@ import {
 import Logger from '../../../../util/Logger';
 import { isZero } from '../../../../util/lodash';
 import { ARBITRARY_ALLOWANCE } from '../constants';
-import { dashboardKeys } from '../queries';
+import { cardQueries } from '../queries';
 
 const determineAllowanceState = (allowanceFloat: number): AllowanceState => {
   if (allowanceFloat === 0) {
@@ -70,12 +70,12 @@ const useGetCardExternalWalletDetails = (
   sdkRef.current = sdk;
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: dashboardKeys.externalWalletDetails(),
+    queryKey: cardQueries.dashboard.keys.externalWalletDetails(),
     queryFn: async () => {
       const currentDelegationSettings =
         delegationSettings ??
         queryClient.getQueryData<DelegationSettingsResponse | null>(
-          dashboardKeys.delegationSettings(),
+          cardQueries.dashboard.keys.delegationSettings(),
         );
       if (!currentDelegationSettings) {
         return null;

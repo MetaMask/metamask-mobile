@@ -9,7 +9,7 @@ import {
   DelegationSettingsNetwork,
 } from '../types';
 import { CaipChainId } from '@metamask/utils';
-import { dashboardKeys } from '../queries';
+import { cardQueries } from '../queries';
 
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
@@ -137,7 +137,7 @@ describe('useGetCardExternalWalletDetails', () => {
 
       const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
       expect(queryConfig.queryKey).toEqual(
-        dashboardKeys.externalWalletDetails(),
+        cardQueries.dashboard.keys.externalWalletDetails(),
       );
       expect(queryConfig.staleTime).toBe(60000);
       expect(queryConfig.enabled).toBe(false);
@@ -404,7 +404,7 @@ describe('useGetCardExternalWalletDetails', () => {
 
       const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
       expect(queryConfig.queryKey).toEqual(
-        dashboardKeys.externalWalletDetails(),
+        cardQueries.dashboard.keys.externalWalletDetails(),
       );
     });
   });

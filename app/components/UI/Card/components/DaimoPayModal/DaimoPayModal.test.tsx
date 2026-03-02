@@ -5,7 +5,7 @@ import DaimoPayModal from './DaimoPayModal';
 import { DaimoPayModalSelectors } from './DaimoPayModal.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
-import { dashboardKeys } from '../../queries';
+import { cardQueries } from '../../queries';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -519,7 +519,7 @@ describe('DaimoPayModal', () => {
       });
 
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
-        queryKey: dashboardKeys.cardDetails(),
+        queryKey: cardQueries.dashboard.keys.cardDetails(),
       });
     });
 

@@ -8,7 +8,7 @@ import {
   CardStatus,
   CardStateWarning,
 } from '../types';
-import { dashboardKeys } from '../queries';
+import { cardQueries } from '../queries';
 
 interface CardDetailsResult {
   cardDetails: CardDetailsResponse | null;
@@ -26,7 +26,7 @@ const useCardDetails = () => {
     error,
     refetch,
   } = useQuery<CardDetailsResult | null>({
-    queryKey: dashboardKeys.cardDetails(),
+    queryKey: cardQueries.dashboard.keys.cardDetails(),
     queryFn: async (): Promise<CardDetailsResult | null> => {
       try {
         const currentSdk = sdkRef.current;

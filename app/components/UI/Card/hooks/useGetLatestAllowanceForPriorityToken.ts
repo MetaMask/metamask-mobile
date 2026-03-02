@@ -9,7 +9,7 @@ import {
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../constants';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
-import { dashboardKeys } from '../queries';
+import { cardQueries } from '../queries';
 
 /**
  * Determines whether fetching the latest allowance is applicable for the given token.
@@ -64,7 +64,7 @@ const useGetLatestAllowanceForPriorityToken = (
   const decimals = applicable ? priorityToken.decimals || 0 : 0;
 
   const { data, isLoading, error, refetch } = useQuery<string | null>({
-    queryKey: dashboardKeys.latestAllowance(
+    queryKey: cardQueries.dashboard.keys.latestAllowance(
       tokenAddress,
       delegationContract,
       walletAddress,

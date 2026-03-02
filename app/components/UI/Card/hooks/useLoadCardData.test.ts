@@ -18,7 +18,7 @@ import {
   DelegationSettingsResponse,
   CardErrorType,
 } from '../types';
-import { dashboardKeys } from '../queries';
+import { cardQueries } from '../queries';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
@@ -363,10 +363,11 @@ describe('useLoadCardData', () => {
       });
 
       expect(mockRefetchQueries).toHaveBeenCalledWith({
-        queryKey: dashboardKeys.priorityTokenOnChain(mockSelectedAddress),
+        queryKey:
+          cardQueries.dashboard.keys.priorityTokenOnChain(mockSelectedAddress),
       });
       expect(mockRefetchQueries).not.toHaveBeenCalledWith({
-        queryKey: dashboardKeys.externalWalletDetails(),
+        queryKey: cardQueries.dashboard.keys.externalWalletDetails(),
       });
     });
   });
@@ -872,7 +873,8 @@ describe('useLoadCardData', () => {
 
       expect(mockRefetchQueries).toHaveBeenCalledTimes(1);
       expect(mockRefetchQueries).toHaveBeenCalledWith({
-        queryKey: dashboardKeys.priorityTokenOnChain(mockSelectedAddress),
+        queryKey:
+          cardQueries.dashboard.keys.priorityTokenOnChain(mockSelectedAddress),
       });
     });
 
@@ -1142,7 +1144,7 @@ describe('useLoadCardData', () => {
         });
 
         expect(mockRefetchQueries).not.toHaveBeenCalledWith({
-          queryKey: dashboardKeys.kycStatus(),
+          queryKey: cardQueries.dashboard.keys.kycStatus(),
         });
       });
     });

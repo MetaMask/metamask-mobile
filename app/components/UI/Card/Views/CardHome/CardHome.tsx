@@ -76,7 +76,7 @@ import {
   resetAuthenticatedData,
   selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
-import { cardKeys, dashboardKeys } from '../../queries';
+import { cardQueries } from '../../queries';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -1080,7 +1080,7 @@ const CardHome = () => {
         }
 
         dispatch(resetAuthenticatedData());
-        queryClient.removeQueries({ queryKey: cardKeys.all() });
+        queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
 
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -1129,7 +1129,7 @@ const CardHome = () => {
 
       const hasInvalidatedQueries = queryClient
         .getQueryCache()
-        .findAll({ queryKey: dashboardKeys.all() })
+        .findAll({ queryKey: cardQueries.dashboard.keys.all() })
         .some((query) => query.state.isInvalidated);
 
       if (hasInvalidatedQueries) {

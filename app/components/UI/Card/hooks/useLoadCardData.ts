@@ -11,7 +11,7 @@ import useGetDelegationSettings from './useGetDelegationSettings';
 import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
 import useGetUserKYCStatus from './useGetUserKYCStatus';
 import { CardTokenAllowance, CardStateWarning } from '../types';
-import { dashboardKeys } from '../queries';
+import { cardQueries } from '../queries';
 
 const useLoadCardData = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
@@ -161,7 +161,8 @@ const useLoadCardData = () => {
       ]);
     } else if (selectedAddress) {
       await queryClient.refetchQueries({
-        queryKey: dashboardKeys.priorityTokenOnChain(selectedAddress),
+        queryKey:
+          cardQueries.dashboard.keys.priorityTokenOnChain(selectedAddress),
       });
     }
   }, [queryClient, isAuthenticated, selectedAddress]);

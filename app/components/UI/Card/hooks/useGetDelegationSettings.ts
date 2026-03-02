@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
 import { DelegationSettingsResponse } from '../types';
-import { dashboardKeys } from '../queries';
+import { cardQueries } from '../queries';
 
 const STALE_TIME = 10 * 60 * 1000; // 10 minutes
 
@@ -17,7 +17,7 @@ const useGetDelegationSettings = () => {
   const sdkRef = useRef(sdk);
   sdkRef.current = sdk;
 
-  const queryKey = dashboardKeys.delegationSettings();
+  const queryKey = cardQueries.dashboard.keys.delegationSettings();
 
   const queryFn = () => {
     const currentSdk = sdkRef.current;

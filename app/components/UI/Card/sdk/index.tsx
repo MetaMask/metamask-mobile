@@ -25,7 +25,7 @@ import {
   setContactVerificationId,
   setUserCardLocation,
 } from '../../../../core/redux/slices/card';
-import { cardKeys, dashboardKeys } from '../queries';
+import { cardQueries } from '../queries';
 import { CardLocation, UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { mapCountryToLocation } from '../util/mapCountryToLocation';
@@ -94,7 +94,7 @@ export const CardSDKProvider = ({
   userCardLocationRef.current = userCardLocation;
 
   const { data: registrationData, refetch: refetchRegistration } = useQuery({
-    queryKey: dashboardKeys.registrationStatus(onboardingId ?? ''),
+    queryKey: cardQueries.dashboard.keys.registrationStatus(onboardingId ?? ''),
     queryFn: async () => {
       if (!sdk || !onboardingId) {
         throw new Error('SDK or onboardingId not available');
@@ -133,7 +133,7 @@ export const CardSDKProvider = ({
   useEffect(() => {
     if (!registrationData && onboardingId && hasInitialOnboardingId) {
       const queryState = queryClient.getQueryState(
-        dashboardKeys.registrationStatus(onboardingId),
+        cardQueries.dashboard.keys.registrationStatus(onboardingId),
       );
       const msg = getErrorMessage(queryState?.error);
       if (msg?.includes('Invalid onboarding ID')) {
@@ -178,7 +178,7 @@ export const CardSDKProvider = ({
     }
 
     dispatch(resetAuthenticatedData());
-    queryClient.removeQueries({ queryKey: cardKeys.all() });
+    queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
     dispatch(resetOnboardingState());
     setUser(null);
   }, [sdk, dispatch, queryClient]);
