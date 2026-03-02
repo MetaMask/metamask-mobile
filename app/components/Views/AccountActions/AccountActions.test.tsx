@@ -227,7 +227,7 @@ jest.mock('@react-navigation/native', () => {
 import { useRoute } from '@react-navigation/native';
 import { RootState } from '../../../reducers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { forgetLedger } from '../../../core/Ledger/Ledger';
+import { forgetLedger, getDeviceId } from '../../../core/Ledger/Ledger';
 import {
   forgetQrDevice,
   withQrKeyring,
@@ -333,6 +333,7 @@ jest.mock('../../../core/Multichain/utils', () => ({
 
 jest.mock('../../../core/Ledger/Ledger', () => ({
   forgetLedger: jest.fn().mockResolvedValue(undefined),
+  getDeviceId: jest.fn().mockResolvedValue('mock-ledger-device-id'),
 }));
 
 jest.mock('../../../core/QrKeyring/QrKeyring', () => ({
@@ -766,6 +767,7 @@ describe('AccountActions', () => {
 
     beforeEach(() => {
       (forgetLedger as jest.Mock).mockClear();
+      (getDeviceId as jest.Mock).mockClear();
       (forgetQrDevice as jest.Mock).mockClear();
       (withQrKeyring as jest.Mock).mockClear();
     });

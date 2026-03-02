@@ -39,7 +39,7 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import ExtendedKeyringTypes, {
   HardwareDeviceTypes,
 } from '../../../constants/keyringTypes';
-import { forgetLedger } from '../../../core/Ledger/Ledger';
+import { forgetLedger, getDeviceId } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
@@ -51,7 +51,6 @@ import {
   forgetQrDevice,
   withQrKeyring,
 } from '../../../core/QrKeyring/QrKeyring';
-import useLedgerDeviceForAccount from '../../hooks/Ledger/useLedgerDeviceForAccount';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -86,8 +85,6 @@ const AccountActions = () => {
 
   const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;
-
-  const { ledgerDevice } = useLedgerDeviceForAccount(selectedAccount);
 
   const blockExplorer:
     | {
@@ -306,7 +303,9 @@ const AccountActions = () => {
     if (requestForgetDevice) {
       switch (keyringType) {
         case ExtendedKeyringTypes.ledger: {
-          const ledgerDeviceId = ledgerDevice?.id;
+          // Get the stored device ID from keyring for analytics before forgetting
+          const ledgerDeviceId = await getDeviceId();
+
           await forgetLedger();
           trackEvent(
             createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
@@ -341,7 +340,6 @@ const AccountActions = () => {
   }, [
     controllers.KeyringController,
     keyring?.type,
-    ledgerDevice?.id,
     trackEvent,
     createEventBuilder,
   ]);
