@@ -11,7 +11,7 @@ import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
-import Keypad, { type KeypadChangeData } from '../../../../Base/Keypad';
+import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
 import Text, {
@@ -358,7 +358,15 @@ function BuildQuote() {
   }, [navigation, selectedToken, networkInfo, trackEvent, createEventBuilder]);
 
   const handleKeypadChange = useCallback(
-    ({ value, valueAsNumber }: KeypadChangeData) => {
+    ({ value, valueAsNumber, pressedKey }: KeypadChangeData) => {
+      if (pressedKey === Keys.Back) {
+        setAmount('0');
+        setAmountAsNumber(0);
+        setUserHasEnteredAmount(true);
+        setNativeFlowError(null);
+        return;
+      }
+
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
       setUserHasEnteredAmount(true);

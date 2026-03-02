@@ -330,14 +330,22 @@ describe('BuildQuote', () => {
     expect(getByText('$100123')).toBeOnTheScreen();
   });
 
-  it('deletes last digit when delete button is pressed', () => {
+  it('clears the default amount when delete is pressed', () => {
+    const { getByText, getByTestId } = renderWithTheme(<BuildQuote />);
+
+    fireEvent.press(getByTestId('keypad-delete-button'));
+
+    expect(getByText('$0')).toBeOnTheScreen();
+  });
+
+  it('clears the full amount when delete button is pressed after typing', () => {
     const { getByText, getByTestId } = renderWithTheme(<BuildQuote />);
 
     fireEvent.press(getByText('1'));
     fireEvent.press(getByText('2'));
     fireEvent.press(getByTestId('keypad-delete-button'));
 
-    expect(getByText('$1001')).toBeOnTheScreen();
+    expect(getByText('$0')).toBeOnTheScreen();
   });
 
   it('sets navigation options with token and network data', () => {
