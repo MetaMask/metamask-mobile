@@ -35,6 +35,7 @@ import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 import useHydrateRampsController from './hooks/useHydrateRampsController';
 import useRampsSmartRouting from './hooks/useRampsSmartRouting';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { isRampsUnifiedV2Enabled } from './utils/isRampsUnifiedV2Enabled';
 import { showV2OrderToast } from './utils/v2OrderToast';
 
@@ -67,7 +68,7 @@ export async function processFiatOrder(
             orderId: updatedOrder.id,
             cryptocurrency: updatedOrder.cryptocurrency,
             cryptoAmount: updatedOrder.cryptoAmount,
-            state: updatedOrder.state,
+            status: updatedOrder.state as unknown as RampsOrderStatus,
           });
         } else {
           const notificationDetails = getNotificationDetails(updatedOrder);
@@ -113,7 +114,7 @@ async function processCustomOrderId(
             orderId: fiatOrder.id,
             cryptocurrency: fiatOrder.cryptocurrency,
             cryptoAmount: fiatOrder.cryptoAmount,
-            state: fiatOrder.state,
+            status: fiatOrder.state as unknown as RampsOrderStatus,
           });
         } else {
           const notificationDetails = getNotificationDetails(fiatOrder);

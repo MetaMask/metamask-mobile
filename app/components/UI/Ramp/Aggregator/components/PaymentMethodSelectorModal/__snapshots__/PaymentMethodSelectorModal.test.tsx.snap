@@ -334,7 +334,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -384,7 +384,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -421,7 +421,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -481,7 +481,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -559,7 +559,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "height": 24,
                                           "width": 24,
                                         },
@@ -609,7 +609,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "backgroundColor": "#3c4d9d0f",
+                                            "backgroundColor": "#b4b4b528",
                                             "borderRadius": 8,
                                             "padding": 16,
                                           },
@@ -654,7 +654,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f3f5f9",
+                                                    "backgroundColor": "#f3f3f4",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -678,7 +678,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                                       "fontSize": 13,
                                                     },
                                                     {
-                                                      "color": "#121314",
+                                                      "color": "#131416",
                                                     },
                                                     {
                                                       "fontFamily": "Material Icons",
@@ -714,7 +714,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
@@ -777,7 +777,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#b7bbc866",
+                                                  "backgroundColor": "#b4b4b566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -792,7 +792,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "letterSpacing": 0,
@@ -829,7 +829,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -843,7 +843,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -857,7 +857,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -892,7 +892,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "backgroundColor": "#3c4d9d0f",
+                                            "backgroundColor": "#b4b4b528",
                                             "borderRadius": 8,
                                             "padding": 16,
                                           },
@@ -935,7 +935,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f3f5f9",
+                                                    "backgroundColor": "#f3f3f4",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -959,7 +959,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                                       "fontSize": 13,
                                                     },
                                                     {
-                                                      "color": "#121314",
+                                                      "color": "#131416",
                                                     },
                                                     {
                                                       "fontFamily": "Material Design Icons",
@@ -995,7 +995,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
@@ -1058,7 +1058,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#b7bbc866",
+                                                  "backgroundColor": "#b4b4b566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -1073,7 +1073,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "letterSpacing": 0,
@@ -1110,7 +1110,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -1124,7 +1124,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -1138,7 +1138,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -1168,7 +1168,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#686e7d",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
                                         "letterSpacing": 0,
@@ -1532,7 +1532,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1582,7 +1582,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -1619,7 +1619,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -1679,7 +1679,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -1757,7 +1757,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "height": 24,
                                           "width": 24,
                                         },
@@ -1807,7 +1807,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                       style={
                                         [
                                           {
-                                            "backgroundColor": "#3c4d9d0f",
+                                            "backgroundColor": "#b4b4b528",
                                             "borderRadius": 8,
                                             "padding": 16,
                                           },
@@ -1852,7 +1852,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f3f5f9",
+                                                    "backgroundColor": "#f3f3f4",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -1876,7 +1876,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                                       "fontSize": 13,
                                                     },
                                                     {
-                                                      "color": "#121314",
+                                                      "color": "#131416",
                                                     },
                                                     {
                                                       "fontFamily": "Material Icons",
@@ -1912,7 +1912,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
@@ -1975,7 +1975,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#b7bbc866",
+                                                  "backgroundColor": "#b4b4b566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -1990,7 +1990,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "letterSpacing": 0,
@@ -2027,7 +2027,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -2041,7 +2041,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -2055,7 +2055,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -2090,7 +2090,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                       style={
                                         [
                                           {
-                                            "backgroundColor": "#3c4d9d0f",
+                                            "backgroundColor": "#b4b4b528",
                                             "borderRadius": 8,
                                             "padding": 16,
                                           },
@@ -2133,7 +2133,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f3f5f9",
+                                                    "backgroundColor": "#f3f3f4",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -2157,7 +2157,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                                       "fontSize": 13,
                                                     },
                                                     {
-                                                      "color": "#121314",
+                                                      "color": "#131416",
                                                     },
                                                     {
                                                       "fontFamily": "Material Design Icons",
@@ -2193,7 +2193,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
@@ -2256,7 +2256,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#b7bbc866",
+                                                  "backgroundColor": "#b4b4b566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -2271,7 +2271,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "letterSpacing": 0,
@@ -2308,7 +2308,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -2322,7 +2322,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -2336,7 +2336,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -2366,7 +2366,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#686e7d",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
                                         "letterSpacing": 0,
@@ -2730,7 +2730,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -2780,7 +2780,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -2817,7 +2817,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -2877,7 +2877,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -2955,7 +2955,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "height": 24,
                                           "width": 24,
                                         },
@@ -3005,7 +3005,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                       style={
                                         [
                                           {
-                                            "backgroundColor": "#3c4d9d0f",
+                                            "backgroundColor": "#b4b4b528",
                                             "borderRadius": 8,
                                             "padding": 16,
                                           },
@@ -3048,7 +3048,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f3f5f9",
+                                                    "backgroundColor": "#f3f3f4",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -3072,7 +3072,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                                       "fontSize": 13,
                                                     },
                                                     {
-                                                      "color": "#121314",
+                                                      "color": "#131416",
                                                     },
                                                     {
                                                       "fontFamily": "Material Icons",
@@ -3108,7 +3108,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
@@ -3171,7 +3171,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#b7bbc866",
+                                                  "backgroundColor": "#b4b4b566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -3186,7 +3186,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "letterSpacing": 0,
@@ -3223,7 +3223,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -3237,7 +3237,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -3251,7 +3251,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -3286,7 +3286,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                       style={
                                         [
                                           {
-                                            "backgroundColor": "#3c4d9d0f",
+                                            "backgroundColor": "#b4b4b528",
                                             "borderRadius": 8,
                                             "padding": 16,
                                           },
@@ -3331,7 +3331,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                                 [
                                                   {
                                                     "alignItems": "center",
-                                                    "backgroundColor": "#f3f5f9",
+                                                    "backgroundColor": "#f3f3f4",
                                                     "borderRadius": 6,
                                                     "height": 38,
                                                     "justifyContent": "center",
@@ -3355,7 +3355,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                                       "fontSize": 13,
                                                     },
                                                     {
-                                                      "color": "#121314",
+                                                      "color": "#131416",
                                                     },
                                                     {
                                                       "fontFamily": "Material Design Icons",
@@ -3391,7 +3391,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 18,
                                                   "letterSpacing": 0,
@@ -3454,7 +3454,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#b7bbc866",
+                                                  "backgroundColor": "#b4b4b566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -3469,7 +3469,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
                                                 "letterSpacing": 0,
@@ -3506,7 +3506,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -3520,7 +3520,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -3534,7 +3534,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#b7bbc8",
+                                                  "color": "#babbbe",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
