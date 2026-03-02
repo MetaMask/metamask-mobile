@@ -1,10 +1,10 @@
-import { useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useCallback, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
-import { useSelector } from 'react-redux';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import { DelegationSettingsResponse } from '../types';
 import { dashboardKeys } from '../queries';
+
+const STALE_TIME = 10 * 60 * 1000; // 10 minutes
 
 /**
  * Hook to fetch and cache delegation settings from the Card SDK.
@@ -13,23 +13,34 @@ import { dashboardKeys } from '../queries';
  */
 const useGetDelegationSettings = () => {
   const { sdk } = useCardSDK();
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const queryClient = useQueryClient();
+  const sdkRef = useRef(sdk);
+  sdkRef.current = sdk;
 
-  const { data, isLoading, error, refetch } =
+  const queryKey = dashboardKeys.delegationSettings();
+
+  const queryFn = () => {
+    const currentSdk = sdkRef.current;
+    if (!currentSdk) throw new Error('SDK not initialized');
+    return currentSdk.getDelegationSettings();
+  };
+
+  const { data, isLoading, error } =
     useQuery<DelegationSettingsResponse | null>({
-      queryKey: dashboardKeys.delegationSettings(),
-      queryFn: () => {
-        if (!sdk) throw new Error('SDK not initialized');
-        return sdk.getDelegationSettings();
-      },
-      enabled: isAuthenticated && !!sdk,
-      staleTime: 10 * 60 * 1000, // 10 minutes
+      queryKey,
+      queryFn,
+      enabled: false,
+      staleTime: STALE_TIME,
     });
 
   const fetchData = useCallback(async () => {
-    const result = await refetch();
-    return result.data ?? null;
-  }, [refetch]);
+    const result = await queryClient.fetchQuery({
+      queryKey,
+      queryFn,
+      staleTime: STALE_TIME,
+    });
+    return result ?? null;
+  }, [queryClient, queryKey]);
 
   return {
     data: data ?? null,

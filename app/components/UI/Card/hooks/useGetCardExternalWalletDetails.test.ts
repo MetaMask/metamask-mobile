@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import { useCardSDK } from '../sdk';
@@ -11,10 +10,6 @@ import {
 } from '../types';
 import { CaipChainId } from '@metamask/utils';
 import { dashboardKeys } from '../queries';
-
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
 
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
@@ -38,7 +33,6 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
 
@@ -104,8 +98,6 @@ describe('useGetCardExternalWalletDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseSelector.mockReturnValue(true);
-
     mockUseCardSDK.mockReturnValue({
       ...jest.requireMock('../sdk'),
       sdk: mockSDK,
@@ -148,12 +140,39 @@ describe('useGetCardExternalWalletDetails', () => {
         dashboardKeys.externalWalletDetails(),
       );
       expect(queryConfig.staleTime).toBe(60000);
-      expect(queryConfig.enabled).toBe(true);
+      expect(queryConfig.enabled).toBe(false);
     });
   });
 
-  describe('Prerequisites Check', () => {
-    it('disables query when SDK is not available', () => {
+  describe('SDK ref (stale closure)', () => {
+    it('uses current SDK from ref when queryFn runs so refetch works after SDK becomes available', async () => {
+      mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
+        sdk: null,
+      });
+
+      const { rerender } = renderHook(() =>
+        useGetCardExternalWalletDetails(mockDelegationSettings),
+      );
+
+      mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
+        sdk: mockSDK,
+      });
+      mockGetCardExternalWalletDetails.mockResolvedValue([mockWalletDetail1]);
+
+      rerender();
+
+      const queryConfig = (useQuery as jest.Mock).mock.calls[1][0];
+      const result = await queryConfig.queryFn();
+
+      expect(mockGetCardExternalWalletDetails).toHaveBeenCalledWith(
+        mockDelegationSettings.networks,
+      );
+      expect(result?.walletDetails).toEqual([mockWalletDetail1]);
+    });
+
+    it('throws when queryFn runs and SDK ref is still null', async () => {
       mockUseCardSDK.mockReturnValue({
         ...jest.requireMock('../sdk'),
         sdk: null,
@@ -162,20 +181,17 @@ describe('useGetCardExternalWalletDetails', () => {
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
       const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
-      expect(queryConfig.enabled).toBe(false);
+
+      await expect(queryConfig.queryFn()).rejects.toThrow(
+        'SDK not initialized',
+      );
+      expect(mockGetCardExternalWalletDetails).not.toHaveBeenCalled();
     });
+  });
 
-    it('disables query when user is not authenticated', () => {
-      mockUseSelector.mockReturnValue(false);
-
+  describe('Prerequisites Check', () => {
+    it('query is always disabled (fetching is done via fetchData)', () => {
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
-      expect(queryConfig.enabled).toBe(false);
-    });
-
-    it('disables query when delegation settings are not available', () => {
-      renderHook(() => useGetCardExternalWalletDetails(null));
 
       const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
       expect(queryConfig.enabled).toBe(false);

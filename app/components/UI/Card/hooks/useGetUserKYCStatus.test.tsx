@@ -6,7 +6,9 @@ import useGetUserKYCStatus from './useGetUserKYCStatus';
 import { useCardSDK } from '../sdk';
 import { CardSDK } from '../sdk/CardSDK';
 import { CardError, CardErrorType } from '../types';
-import cardReducer from '../../../../core/redux/slices/card';
+import cardReducer, {
+  setIsAuthenticatedCard,
+} from '../../../../core/redux/slices/card';
 
 jest.mock('../sdk');
 
@@ -87,12 +89,14 @@ describe('useGetUserKYCStatus', () => {
     );
   });
 
-  it('enables query when authenticated and SDK is available', () => {
+  it('query is always disabled (fetching is done via fetchKYCStatus)', () => {
     const { useQuery: mockUseQuery } = jest.requireMock(
       '@tanstack/react-query',
     );
 
     const store = createTestStore();
+    store.dispatch(setIsAuthenticatedCard(true));
+
     renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
@@ -209,17 +213,28 @@ describe('useGetUserKYCStatus', () => {
     expect(mockRefetch).toHaveBeenCalledTimes(2);
   });
 
-  it('returns null status when SDK is not available', () => {
+  it('disables query when SDK is not available even if authenticated', () => {
+    const { useQuery: mockUseQuery } = jest.requireMock(
+      '@tanstack/react-query',
+    );
+
     mockUseCardSDK.mockReturnValue({
       ...mockCardSDKContext,
       sdk: null,
     });
 
     const store = createTestStore();
+    store.dispatch(setIsAuthenticatedCard(true));
+
     const { result } = renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: false,
+      }),
+    );
     expect(result.current.kycStatus).toBeNull();
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();

@@ -76,7 +76,7 @@ import {
   resetAuthenticatedData,
   selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
-import { cardKeys } from '../../queries';
+import { cardKeys, dashboardKeys } from '../../queries';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -153,6 +153,8 @@ const CardHome = () => {
   const { reauthenticate } = useAuthentication();
   const hasTrackedCardHomeView = useRef(false);
   const hasHandledAuthErrorRef = useRef(false);
+  const hasCompletedInitialFetchRef = useRef(false);
+  const hasLoadedCardHomeView = useRef(false);
   const isComponentUnmountedRef = useRef(false);
   const hasShownDeeplinkToast = useRef(false);
   const [
@@ -1011,24 +1013,38 @@ const CardHome = () => {
     handleAuthenticationError();
   }, [cardError, dispatch, queryClient, isAuthenticated, navigation, toastRef]);
 
+  useEffect(() => {
+    if (isSDKLoading) {
+      return;
+    }
+    if (!hasLoadedCardHomeView.current && isAuthenticated) {
+      hasLoadedCardHomeView.current = true;
+      fetchAllData().then(() => {
+        hasCompletedInitialFetchRef.current = true;
+      });
+    }
+  }, [fetchAllData, isAuthenticated, isSDKLoading]);
+
   useFocusEffect(
     useCallback(() => {
+      if (!hasCompletedInitialFetchRef.current) {
+        return;
+      }
+
       if (isSDKLoading || !isAuthenticated) {
         return;
       }
 
-      if (!externalWalletDetailsData && !isLoading) {
+      const hasInvalidatedQueries = queryClient
+        .getQueryCache()
+        .findAll({ queryKey: dashboardKeys.all() })
+        .some((query) => query.state.isInvalidated);
+
+      if (hasInvalidatedQueries) {
         fetchAllData();
       }
-    }, [
-      isSDKLoading,
-      isAuthenticated,
-      externalWalletDetailsData,
-      isLoading,
-      fetchAllData,
-    ]),
+    }, [isSDKLoading, isAuthenticated, fetchAllData, queryClient]),
   );
-
   /**
    * Check if the current token supports the spending limit progress bar feature.
    * Some tokens (e.g., aUSDC) have different allowance behavior and are unsupported.

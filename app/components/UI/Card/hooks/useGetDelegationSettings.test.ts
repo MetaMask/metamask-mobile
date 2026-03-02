@@ -1,5 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { useQuery } from '@tanstack/react-query';
 import useGetDelegationSettings from './useGetDelegationSettings';
 import { useCardSDK } from '../sdk';
@@ -10,25 +9,23 @@ import {
 import { CardSDK } from '../sdk/CardSDK';
 import { dashboardKeys } from '../queries';
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
 
-const mockRefetch = jest.fn();
+const mockFetchQuery = jest.fn();
+const mockQueryClient = {
+  fetchQuery: (...args: unknown[]) => mockFetchQuery(...args),
+};
 jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn().mockReturnValue({
     data: undefined,
     isLoading: false,
     error: null,
-    refetch: jest.fn(),
   }),
+  useQueryClient: jest.fn(() => mockQueryClient),
 }));
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
 
 describe('useGetDelegationSettings', () => {
@@ -82,8 +79,6 @@ describe('useGetDelegationSettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseSelector.mockReturnValue(true);
-
     mockUseCardSDK.mockReturnValue({
       ...jest.requireMock('../sdk'),
       sdk: mockSDK,
@@ -93,9 +88,12 @@ describe('useGetDelegationSettings', () => {
       data: undefined,
       isLoading: false,
       error: null,
-      refetch: mockRefetch,
     });
 
+    const { useQueryClient } = jest.requireMock('@tanstack/react-query');
+    useQueryClient.mockReturnValue(mockQueryClient);
+
+    mockFetchQuery.mockResolvedValue(mockDelegationSettingsResponse);
     mockGetDelegationSettings.mockResolvedValue(mockDelegationSettingsResponse);
   });
 
@@ -149,22 +147,21 @@ describe('useGetDelegationSettings', () => {
       expect(mockGetDelegationSettings).not.toHaveBeenCalled();
     });
 
-    it('disables query when user is not authenticated', () => {
-      mockUseSelector.mockReturnValue(false);
-
+    it('query is always disabled (fetching is done via fetchData)', () => {
       renderHook(() => useGetDelegationSettings());
 
       const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
       expect(queryConfig.enabled).toBe(false);
     });
 
-    it('calls getDelegationSettings when SDK and authentication are available', async () => {
-      renderHook(() => useGetDelegationSettings());
+    it('calls getDelegationSettings when SDK is available via fetchData', async () => {
+      const { result } = renderHook(() => useGetDelegationSettings());
 
-      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
-      await queryConfig.queryFn();
+      await act(async () => {
+        await result.current.fetchData();
+      });
 
-      expect(mockGetDelegationSettings).toHaveBeenCalledTimes(1);
+      expect(mockFetchQuery).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -310,10 +307,49 @@ describe('useGetDelegationSettings', () => {
   });
 
   describe('Cache Integration', () => {
-    it('exposes fetchData function that wraps refetch', () => {
+    it('exposes fetchData function', () => {
       const { result } = renderHook(() => useGetDelegationSettings());
 
       expect(typeof result.current.fetchData).toBe('function');
+    });
+
+    it('delegates cache freshness to fetchQuery with staleTime', async () => {
+      const { result } = renderHook(() => useGetDelegationSettings());
+
+      await act(async () => {
+        await result.current.fetchData();
+      });
+
+      expect(mockFetchQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: dashboardKeys.delegationSettings(),
+          staleTime: 10 * 60 * 1000,
+        }),
+      );
+    });
+
+    it('returns fetched data from fetchData', async () => {
+      const { result } = renderHook(() => useGetDelegationSettings());
+
+      let fetchResult;
+      await act(async () => {
+        fetchResult = await result.current.fetchData();
+      });
+
+      expect(fetchResult).toEqual(mockDelegationSettingsResponse);
+    });
+
+    it('returns null when fetchQuery returns null', async () => {
+      mockFetchQuery.mockResolvedValue(null);
+
+      const { result } = renderHook(() => useGetDelegationSettings());
+
+      let fetchResult;
+      await act(async () => {
+        fetchResult = await result.current.fetchData();
+      });
+
+      expect(fetchResult).toBeNull();
     });
 
     it('returns data from useQuery when available', () => {
@@ -321,7 +357,6 @@ describe('useGetDelegationSettings', () => {
         data: mockDelegationSettingsResponse,
         isLoading: false,
         error: null,
-        refetch: mockRefetch,
       });
 
       const { result } = renderHook(() => useGetDelegationSettings());
@@ -334,7 +369,6 @@ describe('useGetDelegationSettings', () => {
         data: undefined,
         isLoading: true,
         error: null,
-        refetch: mockRefetch,
       });
 
       const { result } = renderHook(() => useGetDelegationSettings());
@@ -347,7 +381,6 @@ describe('useGetDelegationSettings', () => {
         data: undefined,
         isLoading: false,
         error: new Error('Test error'),
-        refetch: mockRefetch,
       });
 
       const { result } = renderHook(() => useGetDelegationSettings());
@@ -370,28 +403,7 @@ describe('useGetDelegationSettings', () => {
   });
 
   describe('Enabled Condition', () => {
-    it('enables query when SDK and authentication are available', () => {
-      renderHook(() => useGetDelegationSettings());
-
-      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
-      expect(queryConfig.enabled).toBe(true);
-    });
-
-    it('disables query when SDK is not available', () => {
-      mockUseCardSDK.mockReturnValue({
-        ...jest.requireMock('../sdk'),
-        sdk: null,
-      });
-
-      renderHook(() => useGetDelegationSettings());
-
-      const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
-      expect(queryConfig.enabled).toBe(false);
-    });
-
-    it('disables query when authentication state changes to false', () => {
-      mockUseSelector.mockReturnValue(false);
-
+    it('query is always disabled (manual fetching via fetchData)', () => {
       renderHook(() => useGetDelegationSettings());
 
       const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];

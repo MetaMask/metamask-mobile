@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -55,7 +55,7 @@ const useLoadCardData = () => {
     isLoading: isLoadingKYCStatus,
     error: kycStatusError,
     fetchKYCStatus,
-  } = useGetUserKYCStatus(isAuthenticated);
+  } = useGetUserKYCStatus();
 
   const priorityTokenWithLatestAllowance = useMemo(() => {
     if (!priorityToken || !isAuthenticated) {
@@ -73,7 +73,7 @@ const useLoadCardData = () => {
     isLoading: isLoadingCardDetails,
     error: cardDetailsError,
     warning: cardDetailsWarning,
-    fetchCardDetails,
+    fetchCardDetails: fetchCardDetailsQuery,
   } = useCardDetails();
 
   const allTokens: CardTokenAllowance[] = useMemo(() => {
@@ -137,28 +137,38 @@ const useLoadCardData = () => {
     return priorityTokenWarning || cardDetailsWarning;
   }, [priorityTokenWarning, cardDetailsWarning]);
 
+  const fetchRef = useRef({
+    fetchDelegationSettings,
+    fetchExternalWalletDetails,
+    fetchCardDetails: fetchCardDetailsQuery,
+    fetchKYCStatus,
+  });
+  fetchRef.current = {
+    fetchDelegationSettings,
+    fetchExternalWalletDetails,
+    fetchCardDetails: fetchCardDetailsQuery,
+    fetchKYCStatus,
+  };
+
   const fetchAllData = useCallback(async () => {
     if (isAuthenticated) {
-      await fetchDelegationSettings();
+      const fns = fetchRef.current;
+      await fns.fetchDelegationSettings();
       await Promise.all([
-        fetchExternalWalletDetails(),
-        fetchCardDetails(),
-        fetchKYCStatus(),
+        fns.fetchExternalWalletDetails(),
+        fns.fetchCardDetails(),
+        fns.fetchKYCStatus(),
       ]);
     } else if (selectedAddress) {
       await queryClient.refetchQueries({
         queryKey: dashboardKeys.priorityTokenOnChain(selectedAddress),
       });
     }
-  }, [
-    queryClient,
-    isAuthenticated,
-    selectedAddress,
-    fetchDelegationSettings,
-    fetchExternalWalletDetails,
-    fetchCardDetails,
-    fetchKYCStatus,
-  ]);
+  }, [queryClient, isAuthenticated, selectedAddress]);
+
+  const fetchCardDetails = useCallback(async () => {
+    await fetchRef.current.fetchCardDetails();
+  }, []);
 
   return {
     priorityToken: priorityTokenWithLatestAllowance,

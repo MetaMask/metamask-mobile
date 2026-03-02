@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
 import Logger from '../../../../util/Logger';
@@ -25,13 +25,16 @@ interface UseGetUserKYCStatusResult {
  */
 const useGetUserKYCStatus = (): UseGetUserKYCStatusResult => {
   const { sdk } = useCardSDK();
+  const sdkRef = useRef(sdk);
+  sdkRef.current = sdk;
 
   const { data, isLoading, error, refetch } = useQuery<UserKYCStatus | null>({
     queryKey: dashboardKeys.kycStatus(),
     queryFn: async () => {
       try {
-        if (!sdk) throw new Error('SDK not initialized');
-        const response = await sdk.getUserDetails();
+        const currentSdk = sdkRef.current;
+        if (!currentSdk) throw new Error('SDK not initialized');
+        const response = await currentSdk.getUserDetails();
 
         return {
           verificationState: response.verificationState ?? null,

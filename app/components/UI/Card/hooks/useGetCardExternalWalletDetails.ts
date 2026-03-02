@@ -1,8 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import {
   CardExternalWalletDetail,
   CardTokenAllowance,
@@ -67,8 +65,9 @@ const useGetCardExternalWalletDetails = (
   delegationSettings: DelegationSettingsResponse | null,
 ) => {
   const { sdk } = useCardSDK();
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const queryClient = useQueryClient();
+  const sdkRef = useRef(sdk);
+  sdkRef.current = sdk;
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: dashboardKeys.externalWalletDetails(),
@@ -82,11 +81,12 @@ const useGetCardExternalWalletDetails = (
         return null;
       }
 
-      if (!sdk) throw new Error('SDK not initialized');
+      const currentSdk = sdkRef.current;
+      if (!currentSdk) throw new Error('SDK not initialized');
 
       try {
         const cardExternalWalletDetails =
-          await sdk.getCardExternalWalletDetails(
+          await currentSdk.getCardExternalWalletDetails(
             currentDelegationSettings.networks,
           );
 
@@ -144,7 +144,7 @@ const useGetCardExternalWalletDetails = (
         throw normalizedError;
       }
     },
-    enabled: isAuthenticated && !!sdk && !!delegationSettings,
+    enabled: false,
     staleTime: 60_000,
   });
 

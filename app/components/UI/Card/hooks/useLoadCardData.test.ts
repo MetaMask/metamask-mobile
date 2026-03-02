@@ -449,7 +449,7 @@ describe('useLoadCardData', () => {
       expect(result.current.allTokens).toEqual([]);
     });
 
-    it('refetches all queries when fetchAllData is invoked', async () => {
+    it('fetches delegation settings first, then wallet details, card details, and KYC in parallel', async () => {
       const { result } = renderHook(() => useLoadCardData());
 
       await act(async () => {
@@ -463,7 +463,7 @@ describe('useLoadCardData', () => {
     });
 
     it('handles fetchAllData errors gracefully', async () => {
-      mockFetchDelegationSettings.mockRejectedValue(
+      mockFetchExternalWalletDetails.mockRejectedValue(
         new Error('Refetch failed'),
       );
 
@@ -876,7 +876,7 @@ describe('useLoadCardData', () => {
       });
     });
 
-    it('fetchAllData refetches all queries for authenticated mode', async () => {
+    it('fetchAllData fetches delegation settings first then other queries for authenticated mode', async () => {
       mockIsAuthenticated = true; // Authenticated
 
       const { result } = renderHook(() => useLoadCardData());

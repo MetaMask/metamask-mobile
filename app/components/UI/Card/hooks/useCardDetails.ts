@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
 import {
@@ -17,6 +17,8 @@ interface CardDetailsResult {
 
 const useCardDetails = () => {
   const { sdk } = useCardSDK();
+  const sdkRef = useRef(sdk);
+  sdkRef.current = sdk;
 
   const {
     data: cardDetailsData,
@@ -27,8 +29,9 @@ const useCardDetails = () => {
     queryKey: dashboardKeys.cardDetails(),
     queryFn: async (): Promise<CardDetailsResult | null> => {
       try {
-        if (!sdk) throw new Error('SDK not initialized');
-        const cardDetailsResponse = await sdk.getCardDetails();
+        const currentSdk = sdkRef.current;
+        if (!currentSdk) throw new Error('SDK not initialized');
+        const cardDetailsResponse = await currentSdk.getCardDetails();
         let warning: CardStateWarning | null = null;
 
         if (cardDetailsResponse.status === CardStatus.FROZEN) {
