@@ -14,7 +14,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
         "fontFamily": "Geist-Bold",
         "fontSize": 18,
         "letterSpacing": 0,
@@ -180,7 +180,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -204,7 +204,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -230,7 +230,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -260,7 +260,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
         "fontFamily": "Geist-Bold",
         "fontSize": 18,
         "letterSpacing": 0,
@@ -426,7 +426,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -459,7 +459,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,

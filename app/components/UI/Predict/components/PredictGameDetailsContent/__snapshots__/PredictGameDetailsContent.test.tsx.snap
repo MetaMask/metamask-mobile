@@ -83,7 +83,7 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#121314",
+              "color": "#131416",
               "height": 24,
               "width": 24,
             },
@@ -113,7 +113,7 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Bold",
               "fontSize": 18,
               "fontWeight": 700,
