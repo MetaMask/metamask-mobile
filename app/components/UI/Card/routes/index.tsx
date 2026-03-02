@@ -27,6 +27,7 @@ import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
 import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
+import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
 import {
@@ -230,6 +231,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.DAIMO_PAY}
       component={DaimoPayModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.VIEW_PIN}
+      component={ViewPinBottomSheet}
     />
   </ModalsStack.Navigator>
 );

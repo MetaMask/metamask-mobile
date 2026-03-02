@@ -51,7 +51,9 @@ function TokenNotAvailableModal() {
 
   const handleChangeToken = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.RAMP.TOKEN_SELECTION);
+      navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+        screen: Routes.RAMP.TOKEN_SELECTION,
+      });
     });
   }, [navigation]);
 
