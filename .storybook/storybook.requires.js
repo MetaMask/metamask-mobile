@@ -54,6 +54,7 @@ const getStories = () => {
     "./app/component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard.stories.tsx": require("../app/component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard.stories.tsx"),
     "./app/component-library/components-temp/HeaderStackedStandard/HeaderStackedStandard.stories.tsx": require("../app/component-library/components-temp/HeaderStackedStandard/HeaderStackedStandard.stories.tsx"),
     "./app/component-library/components-temp/HeaderStackedSubpage/HeaderStackedSubpage.stories.tsx": require("../app/component-library/components-temp/HeaderStackedSubpage/HeaderStackedSubpage.stories.tsx"),
+    "./app/component-library/components-temp/HeaderStandardAnimated/HeaderStandardAnimated.stories.tsx": require("../app/component-library/components-temp/HeaderStandardAnimated/HeaderStandardAnimated.stories.tsx"),
     "./app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx": require("../app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx"),
     "./app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories.tsx": require("../app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories.tsx"),
     "./app/component-library/components-temp/ListItemMultiSelectWithMenuButton/ListItemMultiSelectWithMenuButton.stories.tsx": require("../app/component-library/components-temp/ListItemMultiSelectWithMenuButton/ListItemMultiSelectWithMenuButton.stories.tsx"),
