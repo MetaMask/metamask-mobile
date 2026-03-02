@@ -216,8 +216,11 @@ jest.mock('../../hooks/useTransakRouting', () => ({
   }),
 }));
 
-jest.mock('../NativeFlow/EnterEmail', () => ({
-  createV2EnterEmailNavDetails: (params: unknown) => ['RampEnterEmail', params],
+jest.mock('../NativeFlow/VerifyIdentity', () => ({
+  createV2VerifyIdentityNavDetails: (params: unknown) => [
+    'RampVerifyIdentity',
+    params,
+  ],
 }));
 
 jest.mock('react-redux', () => ({
@@ -757,7 +760,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('navigates to enter email for native provider when no existing token', async () => {
+    it('navigates to verify identity for native provider when no existing token', async () => {
       mockTransakCheckExistingToken.mockResolvedValue(false);
 
       const mockNativeQuote = {
@@ -808,7 +811,7 @@ describe('BuildQuote', () => {
 
       expect(mockTransakCheckExistingToken).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(
-        'RampEnterEmail',
+        'RampVerifyIdentity',
         expect.objectContaining({
           amount: '100',
           currency: 'USD',
