@@ -218,6 +218,13 @@ class WalletView {
     await Assertions.expectElementToBeVisible(elem, {
       description: `${tokenLabel} token in wallet list`,
     });
+    // Wait for the token list to finish loading/reordering before tapping.
+    // New tokens appearing asynchronously can shift positions mid-tap.
+    await Utilities.waitForElementToStopMoving(elem, {
+      timeout: 5000,
+      interval: 500,
+      stableCount: 6,
+    });
     await Gestures.waitAndTap(elem, {
       elemDescription: 'Token',
     });
@@ -226,7 +233,6 @@ class WalletView {
   async tapIdenticon(): Promise<void> {
     await Gestures.waitAndTap(this.accountIcon, {
       elemDescription: 'Top Account Icon',
-      checkStability: true,
     });
   }
 

@@ -13,7 +13,7 @@ import { getForceRampsStaging } from './getForceRampsStaging';
  * always returns Staging regardless of the build environment.
  *
  * Otherwise:
- * - When GITHUB_ACTIONS (and not E2E), uses RAMPS_ENVIRONMENT (set by builds.yml).
+ * - When BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (and not E2E), uses RAMPS_ENVIRONMENT (set by builds.yml).
  * - When not (Bitrise / .js.env / E2E), uses METAMASK_ENVIRONMENT switch.
  *
  * @param featureFlagState - The current RemoteFeatureFlagController state.
@@ -26,7 +26,7 @@ export function getRampsEnvironment(
     return RampsEnvironment.Staging;
   }
 
-  if (process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true') {
+  if (process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY === 'true') {
     const rampsEnv = process.env.RAMPS_ENVIRONMENT;
     return rampsEnv === 'production'
       ? RampsEnvironment.Production

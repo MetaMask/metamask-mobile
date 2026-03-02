@@ -258,6 +258,11 @@ const mockNav = {
   replace: mockReplace,
   reset: jest.fn(),
   setOptions: jest.fn(),
+  dispatch: jest.fn((action) => {
+    if (action.type === 'REPLACE') {
+      mockReplace(action.payload.name, action.payload.params);
+    }
+  }),
 };
 jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: () => ({
@@ -662,7 +667,10 @@ describe('Onboarding', () => {
       });
 
       expect(Authentication.resetVault).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      expect(mockReplace).toHaveBeenCalledWith(
+        Routes.ONBOARDING.HOME_NAV,
+        undefined,
+      );
     });
 
     it('navigates to LOGIN when unlock is pressed and password is set', async () => {
@@ -1433,6 +1441,62 @@ describe('Onboarding', () => {
         .mockReturnValueOnce('mockGoogleFallbackHandler');
       mockOAuthService.handleOAuthLogin
         .mockRejectedValueOnce(oneTapFailureError)
+        .mockRejectedValueOnce(fallbackError);
+
+      mockNavigate.mockClear();
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      mockNavigate.mockClear();
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      // Verify fallback was attempted
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        true,
+      );
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
+
+      Platform.OS = 'ios';
+    });
+
+    it('attempts browser fallback when no provider dependencies found in Android', async () => {
+      Platform.OS = 'android';
+      const noProviderDepsError = new OAuthError(
+        '',
+        OAuthErrorType.GoogleLoginNoProviderDependencies,
+      );
+      const fallbackError = new OAuthError('', OAuthErrorType.GoogleLoginError);
+
+      mockCreateLoginHandler
+        .mockReturnValueOnce('mockGoogleHandler')
+        .mockReturnValueOnce('mockGoogleFallbackHandler');
+      mockOAuthService.handleOAuthLogin
+        .mockRejectedValueOnce(noProviderDepsError)
         .mockRejectedValueOnce(fallbackError);
 
       mockNavigate.mockClear();

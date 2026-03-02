@@ -8,7 +8,7 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import FundActionMenu from '../../page-objects/UI/FundActionMenu';
 import BuyGetStartedView from '../../page-objects/Ramps/BuyGetStartedView';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
-import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 import { Mockttp } from 'mockttp';
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';

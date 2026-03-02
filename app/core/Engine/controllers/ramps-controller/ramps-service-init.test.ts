@@ -33,31 +33,27 @@ jest.mock('@metamask/ramps-controller', () => {
 
 describe('getRampsEnvironment', () => {
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
-  const originalGithubActions = process.env.GITHUB_ACTIONS;
+  const originalBuildsEnabled =
+    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
   const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
-  const originalE2e = process.env.E2E;
 
   beforeEach(() => {
-    process.env.GITHUB_ACTIONS = 'false';
+    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'false';
     mockGetForceRampsStaging.mockReturnValue(false);
   });
 
   afterEach(() => {
     process.env.METAMASK_ENVIRONMENT = originalEnv;
-    if (originalGithubActions !== undefined) {
-      process.env.GITHUB_ACTIONS = originalGithubActions;
+    if (originalBuildsEnabled !== undefined) {
+      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY =
+        originalBuildsEnabled;
     } else {
-      delete process.env.GITHUB_ACTIONS;
+      delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
     }
     if (originalRampsEnvironment !== undefined) {
       process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
     } else {
       delete process.env.RAMPS_ENVIRONMENT;
-    }
-    if (originalE2e !== undefined) {
-      process.env.E2E = originalE2e;
-    } else {
-      delete process.env.E2E;
     }
   });
 
@@ -76,9 +72,9 @@ describe('getRampsEnvironment', () => {
       expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
     });
 
-    it('returns Staging even when GITHUB_ACTIONS with RAMPS_ENVIRONMENT production', () => {
+    it('returns Staging even when BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY with RAMPS_ENVIRONMENT production', () => {
       mockGetForceRampsStaging.mockReturnValue(true);
-      process.env.GITHUB_ACTIONS = 'true';
+      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
       process.env.RAMPS_ENVIRONMENT = 'production';
       delete process.env.E2E;
 
@@ -86,10 +82,9 @@ describe('getRampsEnvironment', () => {
     });
   });
 
-  describe('when GITHUB_ACTIONS (builds.yml path)', () => {
+  describe('when BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (builds.yml path)', () => {
     beforeEach(() => {
-      process.env.GITHUB_ACTIONS = 'true';
-      delete process.env.E2E;
+      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
     });
 
     it('returns Production when RAMPS_ENVIRONMENT is production', () => {
@@ -111,14 +106,6 @@ describe('getRampsEnvironment', () => {
       process.env.METAMASK_ENVIRONMENT = 'production';
       process.env.RAMPS_ENVIRONMENT = 'staging';
       expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
-    });
-
-    it('uses METAMASK_ENVIRONMENT when E2E is true (E2E path)', () => {
-      process.env.GITHUB_ACTIONS = 'true';
-      process.env.E2E = 'true';
-      process.env.RAMPS_ENVIRONMENT = 'staging';
-      process.env.METAMASK_ENVIRONMENT = 'production';
-      expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
     });
   });
 
@@ -199,14 +186,14 @@ describe('rampsServiceInit', () => {
   >;
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
   const originalOS = Platform.OS;
-  const originalGithubActions = process.env.GITHUB_ACTIONS;
+  const originalBuildsEnabled =
+    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
   const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
-  const originalE2e = process.env.E2E;
 
   beforeEach(() => {
     jest.resetAllMocks();
     mockGetForceRampsStaging.mockReturnValue(false);
-    process.env.GITHUB_ACTIONS = 'false';
+    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'false';
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
@@ -219,20 +206,16 @@ describe('rampsServiceInit', () => {
   afterEach(() => {
     process.env.METAMASK_ENVIRONMENT = originalEnv;
     Platform.OS = originalOS;
-    if (originalGithubActions !== undefined) {
-      process.env.GITHUB_ACTIONS = originalGithubActions;
+    if (originalBuildsEnabled !== undefined) {
+      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY =
+        originalBuildsEnabled;
     } else {
-      delete process.env.GITHUB_ACTIONS;
+      delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
     }
     if (originalRampsEnvironment !== undefined) {
       process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
     } else {
       delete process.env.RAMPS_ENVIRONMENT;
-    }
-    if (originalE2e !== undefined) {
-      process.env.E2E = originalE2e;
-    } else {
-      delete process.env.E2E;
     }
   });
 
@@ -341,9 +324,9 @@ describe('rampsServiceInit', () => {
     });
   });
 
-  describe('when GITHUB_ACTIONS (builds.yml path)', () => {
+  describe('when BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (builds.yml path)', () => {
     beforeEach(() => {
-      process.env.GITHUB_ACTIONS = 'true';
+      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
       delete process.env.E2E;
     });
 

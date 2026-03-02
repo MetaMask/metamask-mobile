@@ -1,4 +1,5 @@
 name: ci
+
 on:
   push:
     branches: [main]
@@ -25,7 +26,7 @@ jobs:
           cache: yarn
       - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
         with:
-          ruby-version: '3.1.6'
+          ruby-version: '3.2.9'
         env:
           BUNDLE_GEMFILE: ios/Gemfile
       - name: Install Yarn dependencies with retry
@@ -51,6 +52,7 @@ jobs:
           else
             echo "No changes detected"
           fi
+  
   dedupe:
     runs-on: ubuntu-latest
     steps:
@@ -82,6 +84,7 @@ jobs:
             echo "Duplicate dependencies detected; run 'yarn deduplicate' to remove them"
             exit 1
           fi
+
   git-safe-dependencies:
     runs-on: ubuntu-latest
     steps:
@@ -106,6 +109,7 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn git-safe-dependencies
+
   scripts:
     runs-on: ubuntu-latest
     strategy:
@@ -144,6 +148,71 @@ jobs:
           else
             echo "No changes detected"
           fi
+
+  js-bundle-size-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --no-build-android
+
+      - name: Generate iOS bundle
+        run: yarn gen-bundle:ios
+        env:
+          NODE_OPTIONS: --max_old_space_size=12288
+
+      - name: Check bundle size
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
+
+      - name: Upload iOS bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-bundle
+          path: ios/main.jsbundle
+
+  ship-js-bundle-size-check:
+    runs-on: ubuntu-latest
+    needs: [js-bundle-size-check]
+    if: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download iOS bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-bundle
+          path: ios/main.jsbundle
+
+      - name: Push bundle size to mobile_bundlesize_stats repo
+        run: ./scripts/push-bundle-size.sh
+        env:
+          GITHUB_ACTOR: metamaskbot
+          GITHUB_TOKEN: ${{ secrets.MOBILE_BUNDLESIZE_TOKEN }}
+
+  check-workflows:
+    name: Check workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download actionlint
+        id: download-actionlint
+        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
+        shell: bash
+      - name: Check workflow files
+        run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
+        shell: bash
+
   unit-tests:
     runs-on: ubuntu-latest
     strategy:
@@ -164,19 +233,23 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
+      - name: Prepare results directory
+        run: mkdir -p tests/results
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
+      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: --max_old_space_size=20480
-      - name: Rename coverage report to include shard number
+      - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
-          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-${{ matrix.shard }}.json
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
+          count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
+          echo "{\"count\": $count}" > ./tests/coverage/count.json
       - uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.shard }}
-          path: ./tests/coverage/coverage-${{ matrix.shard }}.json
+          name: coverage-unit-${{ matrix.shard }}
+          path: ./tests/coverage/
           if-no-files-found: error
       - name: Require clean working directory
         shell: bash
@@ -187,9 +260,10 @@ jobs:
           else
             echo "No changes detected"
           fi
+
   merge-unit-and-component-view-tests:
     runs-on: ubuntu-latest
-    needs: [unit-tests, cv-test]
+    needs: [unit-tests, component-view-tests]
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v3
@@ -208,17 +282,58 @@ jobs:
         run: yarn setup:github-ci --node
       - uses: actions/download-artifact@v4
         with:
+          pattern: coverage-*
           path: tests/coverage/
-      - name: Gather partial coverage reports into one directory
+      - name: Aggregate test counts and gather coverage reports
         shell: bash
         run: |
-          mv ./tests/coverage/coverage-*/* ./tests/coverage
+          unit_total=0
+          for file in ./tests/coverage/coverage-unit-*/count.json; do
+            [ -f "$file" ] || continue
+            count=$(jq '.count // 0' "$file")
+            unit_total=$((unit_total + count))
+          done
+          echo "{\"unit_test_number\": $unit_total}" > unit-test-stats.json
+          echo "Unit test count: $unit_total"
+
+          cv_total=0
+          for file in ./tests/coverage/coverage-cv-*/count.json; do
+            [ -f "$file" ] || continue
+            count=$(jq '.count // 0' "$file")
+            cv_total=$((cv_total + count))
+          done
+          echo "{\"component_view_test_number\": $cv_total}" > cv-test-stats.json
+          echo "CV test count: $cv_total"
+
+          mkdir -p tests/coverage-cv-merged
+          for file in ./tests/coverage/coverage-cv-*/coverage-cv-*.json; do
+            [ -f "$file" ] && cp "$file" ./tests/coverage-cv-merged/
+          done
+
+          find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
       - uses: actions/upload-artifact@v4
         with:
-          name: coverage
+          name: lcov.info
           path: ./tests/merged-coverage/lcov.info
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cv-test-stats
+          path: ./cv-test-stats.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-stats
+          path: ./unit-test-stats.json
+          if-no-files-found: error
+      - name: Generate CV test HTML coverage report
+        run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cv-test-coverage-html
+          path: ./tests/coverage-cv-lcov/
           if-no-files-found: error
       - name: Require clean working directory
         shell: bash
@@ -229,9 +344,8 @@ jobs:
           else
             echo "No changes detected"
           fi
-  needs_e2e_build:
-    uses: ./.github/workflows/needs-e2e-build.yml
-  cv-test:
+
+  component-view-tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -251,55 +365,30 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
-      - run: yarn test:view:ci --shard=${{ matrix.shard }}/2
+      - name: Prepare results directory
+        run: mkdir -p tests/results
+      - run: |
+          yarn test:view:ci \
+            --shard=${{ matrix.shard }}/2 \
+            --json \
+            --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: --max-old-space-size=20480
-      - name: Rename coverage report for this shard
+      - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
-          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-test-${{ matrix.shard }}.json
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
+          count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
+          echo "{\"count\": $count}" > ./tests/coverage/count.json
       - uses: actions/upload-artifact@v4
         with:
-          name: coverage-cv-test-${{ matrix.shard }}
+          name: coverage-cv-${{ matrix.shard }}
           path: ./tests/coverage/
           if-no-files-found: error
-  merge-cv-test-coverage:
-    runs-on: ubuntu-latest
-    needs: [cv-test]
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: coverage-cv-test-*
-          path: tests/coverage-cv-test/
-      - name: Gather CV test shard coverage into one directory
-        shell: bash
-        run: |
-          mkdir -p tests/coverage-cv-test-merged
-          for d in tests/coverage-cv-test/coverage-cv-test-*; do
-            if [ -d "$d" ]; then
-              cp "$d"/*.json tests/coverage-cv-test-merged/ 2>/dev/null || true
-            fi
-          done
-      - name: Generate merged CV test HTML coverage report
-        run: yarn nyc report --temp-dir ./tests/coverage-cv-test-merged --report-dir ./tests/coverage-cv-test-lcov --reporter html
-      - uses: actions/upload-artifact@v4
-        with:
-          name: html-coverage-cv-test
-          path: ./tests/coverage-cv-test-lcov/
-          if-no-files-found: error
+
+  needs_e2e_build:
+    uses: ./.github/workflows/needs-e2e-build.yml
+
   smart-e2e-selection:
     name: 'Smart E2E Selection'
     runs-on: ubuntu-latest
@@ -448,56 +537,52 @@ jobs:
         }}
     secrets: inherit
 
-  js-bundle-size-check:
+  # Fixture validation — ensures committed E2E fixtures match the live app state schema
+  # TODO: Remove continue-on-error once fixture validation is stable
+  validate-e2e-fixtures:
+    name: 'Validate E2E Fixtures'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, ios-tests-ready]
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: validate-e2e-fixtures
+      platform: ios
+      test_suite_tag: 'FixtureValidation'
+      split_number: 1
+      total_splits: 1
+      build_type: 'main'
+      metamask_environment: 'qa'
+    secrets: inherit
+
+  report-fixture-validation:
+    name: 'Report Fixture Validation'
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --no-build-android
-
-      - name: Generate iOS bundle
-        run: yarn gen-bundle:ios
-        env:
-          NODE_OPTIONS: --max_old_space_size=12288
-
-      - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
-
-      - name: Upload iOS bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-bundle
-          path: ios/main.jsbundle
-
-  ship-js-bundle-size-check:
-    runs-on: ubuntu-latest
-    needs: [js-bundle-size-check]
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
+    needs: [validate-e2e-fixtures]
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download iOS bundle
+      - name: Download fixture validation results
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
-          name: ios-bundle
-          path: ios/main.jsbundle
+          name: test-e2e-validate-e2e-fixtures-junit-results
+          path: fixture-results/
 
-      - name: Push bundle size to mobile_bundlesize_stats repo
-        run: ./scripts/push-bundle-size.sh
+      - name: Report results
         env:
-          GITHUB_ACTOR: metamaskbot
-          GITHUB_TOKEN: ${{ secrets.MOBILE_BUNDLESIZE_TOKEN }}
+          RESULTS_PATH: fixture-results
+          VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node .github/scripts/e2e-report-fixture-validation.mjs
 
   sonar-cloud:
     runs-on: ubuntu-latest
@@ -513,7 +598,7 @@ jobs:
           node-version-file: '.nvmrc'
       - uses: actions/download-artifact@v4
         with:
-          name: coverage
+          name: lcov.info
           path: coverage/
       - name: Upload coverage reports to Codecov
         if: ${{ always() }}
@@ -543,6 +628,7 @@ jobs:
             echo "$path"
             git update-index --no-assume-unchanged "$path"
           done
+
   sonar-cloud-quality-gate-status:
     runs-on: ubuntu-latest
     needs: sonar-cloud
@@ -599,18 +685,7 @@ jobs:
               exit 1
             fi
           fi
-  check-workflows:
-    name: Check workflows
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download actionlint
-        id: download-actionlint
-        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
-        shell: bash
-      - name: Check workflow files
-        run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
-        shell: bash
+
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-latest
@@ -621,7 +696,7 @@ jobs:
         dedupe,
         scripts,
         unit-tests,
-        cv-test,
+        component-view-tests,
         check-workflows,
         js-bundle-size-check,
       ]
@@ -662,6 +737,7 @@ jobs:
           fi
 
           echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
+  
   check-all-jobs-pass:
     name: Check all jobs pass
     if: ${{ !cancelled() }}
