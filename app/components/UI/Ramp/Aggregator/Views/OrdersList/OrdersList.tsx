@@ -12,6 +12,8 @@ import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import createStyles from './OrdersList.styles';
 import {
   getOrderRowTestId,
+  getOrderRowCryptoAmountTestId,
+  getOrderRowFiatAmountTestId,
   type RampsOrderTypeSlug,
 } from './OrdersList.testIds';
 import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
@@ -106,7 +108,15 @@ function getStatusColorAndText(
   return [statusColor, statusText];
 }
 
-function DisplayOrderListItem({ item }: { item: DisplayOrder }) {
+function DisplayOrderListItem({
+  item,
+  rowIndex,
+  orderTypeSlug,
+}: {
+  item: DisplayOrder;
+  rowIndex: number;
+  orderTypeSlug: RampsOrderTypeSlug;
+}) {
   const isBuy = item.orderType === 'BUY' || item.orderType === 'DEPOSIT';
   const [statusColor, statusText] = getStatusColorAndText(
     item.status,
@@ -142,10 +152,17 @@ function DisplayOrderListItem({ item }: { item: DisplayOrder }) {
       </ListItemColumn>
 
       <ListItemColumnEnd>
-        <Text variant={TextVariant.BodyMD}>
+        <Text
+          variant={TextVariant.BodyMD}
+          testID={getOrderRowCryptoAmountTestId(orderTypeSlug, rowIndex)}
+        >
           {item.cryptoAmount} {item.cryptoCurrencySymbol}
         </Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodySM}
+          color={TextColor.Alternative}
+          testID={getOrderRowFiatAmountTestId(orderTypeSlug, rowIndex)}
+        >
           {item.fiatAmount == null
             ? '...'
             : addCurrencySymbol(
@@ -276,19 +293,27 @@ function OrdersList() {
   }: {
     item: DisplayOrder;
     index: number;
-  }) => (
-    <TouchableHighlight
-      testID={getOrderRowTestId(getOrderTypeSlug(item), index + 1)}
-      accessibilityRole="button"
-      accessible
-      style={styles.row}
-      onPress={() => handleItemPress(item)}
-      underlayColor={colors.background.alternative}
-      activeOpacity={1}
-    >
-      <DisplayOrderListItem item={item} />
-    </TouchableHighlight>
-  );
+  }) => {
+    const orderTypeSlug = getOrderTypeSlug(item);
+    const rowIndex = index + 1;
+    return (
+      <TouchableHighlight
+        testID={getOrderRowTestId(orderTypeSlug, rowIndex)}
+        accessibilityRole="button"
+        accessible
+        style={styles.row}
+        onPress={() => handleItemPress(item)}
+        underlayColor={colors.background.alternative}
+        activeOpacity={1}
+      >
+        <DisplayOrderListItem
+          item={item}
+          rowIndex={rowIndex}
+          orderTypeSlug={orderTypeSlug}
+        />
+      </TouchableHighlight>
+    );
+  };
 
   return (
     <FlatList

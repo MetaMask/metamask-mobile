@@ -22,10 +22,3 @@ export function getOrderRowFiatAmountTestId(
 ): string {
   return `${ORDER_ROW_PREFIX}-${orderType}-${rowIndex}-fiat-amount`;
 }
-
-export const OrdersListTestIds = {
-  ORDER_ROW_PREFIX,
-  getOrderRowTestId,
-  getOrderRowCryptoAmountTestId,
-  getOrderRowFiatAmountTestId,
-} as const;
