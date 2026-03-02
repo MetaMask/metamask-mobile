@@ -19,7 +19,7 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
       style={
         {
           "alignSelf": "center",
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Bold",
           "fontSize": 18,
           "letterSpacing": 0,
@@ -59,7 +59,7 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -90,7 +90,7 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "flexDirection": "column",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
@@ -105,7 +105,7 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Bold",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -138,7 +138,7 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "center",
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -157,7 +157,7 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -179,7 +179,7 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "center",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#131416",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 40,
