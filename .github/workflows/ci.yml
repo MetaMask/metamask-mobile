@@ -249,10 +249,15 @@ jobs:
           name: coverage-unit-${{ matrix.shard }}
           path: ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
           if-no-files-found: error
+      - name: Extract test count for this shard
+        shell: bash
+        run: |
+          count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
+          echo "{\"count\": $count}" > tests/results/unit-shard-count-${{ matrix.shard }}.json
       - uses: actions/upload-artifact@v4
         with:
-          name: unit-test-results-${{ matrix.shard }}
-          path: tests/results/unit-test-results-${{ matrix.shard }}.json
+          name: unit-shard-count-${{ matrix.shard }}
+          path: tests/results/unit-shard-count-${{ matrix.shard }}.json
           if-no-files-found: error
       - name: Require clean working directory
         shell: bash
@@ -298,47 +303,36 @@ jobs:
           name: lcov.info
           path: ./tests/merged-coverage/lcov.info
           if-no-files-found: error
-      - name: Download CV test results (all shards)
+      - name: Download CV test shard counts
         uses: actions/download-artifact@v4
         with:
-          pattern: cv-test-results-*
-          path: ./cv-test-results/
+          pattern: cv-shard-count-*
+          path: ./cv-shard-counts/
           merge-multiple: false
-      - name: Download unit test results (all shards)
+      - name: Download unit test shard counts
         uses: actions/download-artifact@v4
         with:
-          pattern: unit-test-results-*
-          path: ./unit-test-results/
+          pattern: unit-shard-count-*
+          path: ./unit-shard-counts/
           merge-multiple: false
       - name: Aggregate test scenario counts
+        shell: bash
         run: |
-          node -e "
-          const fs = require('fs');
-          const path = require('path');
+          cv_total=0
+          for file in ./cv-shard-counts/*/*.json; do
+            count=$(jq '.count // 0' "$file")
+            cv_total=$((cv_total + count))
+          done
+          echo "{\"component_view_test_number\": $cv_total}" > cv-test-stats.json
+          echo "CV test count: $cv_total"
 
-          function sumTests(base) {
-            let total = 0;
-            if (!fs.existsSync(base)) return total;
-            for (const dir of fs.readdirSync(base)) {
-              const full = path.join(base, dir);
-              if (!fs.statSync(full).isDirectory()) continue;
-              for (const file of fs.readdirSync(full)) {
-                if (!file.endsWith('.json')) continue;
-                const data = JSON.parse(fs.readFileSync(path.join(full, file), 'utf8'));
-                total += data.numTotalTests ?? 0;
-              }
-            }
-            return total;
-          }
-
-          const cvStats = { component_view_test_number: sumTests('./cv-test-results') };
-          fs.writeFileSync('./cv-test-stats.json', JSON.stringify(cvStats, null, 2));
-          console.log('CV test stats:', cvStats);
-
-          const unitStats = { unit_test_number: sumTests('./unit-test-results') };
-          fs.writeFileSync('./unit-test-stats.json', JSON.stringify(unitStats, null, 2));
-          console.log('Unit test stats:', unitStats);
-          "
+          unit_total=0
+          for file in ./unit-shard-counts/*/*.json; do
+            count=$(jq '.count // 0' "$file")
+            unit_total=$((unit_total + count))
+          done
+          echo "{\"unit_test_number\": $unit_total}" > unit-test-stats.json
+          echo "Unit test count: $unit_total"
       - uses: actions/upload-artifact@v4
         with:
           name: cv-test-stats
@@ -397,11 +391,15 @@ jobs:
           name: coverage-cv-${{ matrix.shard }}
           path: ./tests/coverage/
           if-no-files-found: error
+      - name: Extract test count for this shard
+        shell: bash
+        run: |
+          count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
+          echo "{\"count\": $count}" > tests/results/cv-shard-count-${{ matrix.shard }}.json
       - uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: cv-test-results-${{ matrix.shard }}
-          path: tests/results/cv-test-results-${{ matrix.shard }}.json
+          name: cv-shard-count-${{ matrix.shard }}
+          path: tests/results/cv-shard-count-${{ matrix.shard }}.json
           if-no-files-found: error
 
   needs_e2e_build:
