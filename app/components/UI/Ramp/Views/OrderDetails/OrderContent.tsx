@@ -26,7 +26,11 @@ import BadgeWrapper, {
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { strings } from '../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../util/date';
-import { renderFiat } from '../../../../../util/number';
+import {
+  renderFiat,
+  getCurrencySymbol,
+  formatFiatValue,
+} from '../../../../../util/number';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
 import Button, {
@@ -201,8 +205,16 @@ const OrderContent: React.FC<OrderContentProps> = ({
     trackEvent,
   ]);
 
-  const fiatDenomSymbol = order.fiatCurrency?.denomSymbol ?? '';
-  const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
+  const fiatCurrencyCode =
+    typeof order.fiatCurrency === 'string'
+      ? order.fiatCurrency
+      : (order.fiatCurrency?.symbol ?? '');
+  const fiatDenomSymbol =
+    typeof order.fiatCurrency === 'object' && order.fiatCurrency?.denomSymbol
+      ? order.fiatCurrency.denomSymbol
+      : fiatCurrencyCode
+        ? getCurrencySymbol(fiatCurrencyCode)
+        : '';
   const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
 
   const normalizeChainIdForBadge = (chainId: string): string => {
@@ -442,12 +454,16 @@ const OrderContent: React.FC<OrderContentProps> = ({
           <Box twClassName="bg-muted rounded h-[18px] w-20" />
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {fiatDenomSymbol}
-            {renderFiat(
-              Number(order.totalFeesFiat ?? 0),
-              fiatCurrencyCode,
-              fiatDecimals,
-            )}
+            {fiatDenomSymbol
+              ? `${fiatDenomSymbol}${formatFiatValue(
+                  Number(order.totalFeesFiat ?? 0),
+                  fiatDecimals,
+                )}`
+              : renderFiat(
+                  Number(order.totalFeesFiat ?? 0),
+                  fiatCurrencyCode,
+                  fiatDecimals,
+                )}
           </Text>
         )}
       </Box>
@@ -468,12 +484,16 @@ const OrderContent: React.FC<OrderContentProps> = ({
           <Box twClassName="bg-muted rounded h-[18px] w-24" />
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {fiatDenomSymbol}
-            {renderFiat(
-              Number(order.fiatAmount ?? 0),
-              fiatCurrencyCode,
-              fiatDecimals,
-            )}
+            {fiatDenomSymbol
+              ? `${fiatDenomSymbol}${formatFiatValue(
+                  Number(order.fiatAmount ?? 0),
+                  fiatDecimals,
+                )}`
+              : renderFiat(
+                  Number(order.fiatAmount ?? 0),
+                  fiatCurrencyCode,
+                  fiatDecimals,
+                )}
           </Text>
         )}
       </Box>

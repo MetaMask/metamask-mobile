@@ -769,7 +769,17 @@ export function getCurrencySymbol(currencyCode) {
   if (currencySymbols[currencyCode]) {
     return `${currencySymbols[currencyCode]}`;
   }
+  const lower = currencyCode?.toLowerCase?.();
+  if (lower && currencySymbols[lower]) {
+    return currencySymbols[lower];
+  }
   return currencyCode;
+}
+
+export function formatFiatValue(value, decimals = 2) {
+  const base = Math.pow(10, decimals);
+  const fixed = parseFloat((Math.round(value * base) / base).toFixed(decimals));
+  return (isNaN(fixed) ? 0 : fixed).toFixed(decimals);
 }
 
 /**
