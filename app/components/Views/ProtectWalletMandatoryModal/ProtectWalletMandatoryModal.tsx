@@ -44,7 +44,7 @@ const ProtectWalletMandatoryModal = () => {
   const passwordSet = useSelector(selectPasswordSet);
   const seedphraseBackedUp = useSelector(selectSeedphraseBackedUp);
   useEffect(() => {
-    const route = findRouteNameFromNavigatorState(getState().routes);
+    const route = findRouteNameFromNavigatorState(getState()?.routes ?? []);
     if (isSeedlessOnboardingLoginFlow) {
       setShowProtectWalletModal(false);
       return;

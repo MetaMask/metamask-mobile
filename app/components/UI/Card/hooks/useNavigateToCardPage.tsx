@@ -4,12 +4,12 @@ import { RootState } from '../../../../reducers';
 import { BrowserTab } from '../../Tokens/types';
 import { isCardUrl, isCardTravelUrl, isCardTosUrl } from '../../../../util/url';
 import AppConstants from '../../../../core/AppConstants';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { CardActions } from '../util/metrics';
 import { Linking } from 'react-native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 export enum CardInternalBrowserPage {
   TRAVEL = 'travel',
@@ -43,7 +43,7 @@ const PAGE_CONFIG: Record<
 };
 
 export const useNavigateToInternalBrowserPage = (
-  navigation: NavigationProp<ParamListBase>,
+  navigation: AppNavigationProp,
 ) => {
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -107,9 +107,7 @@ export const useNavigateToInternalBrowserPage = (
  * Hook that provides navigation functions for Card-related internal browser pages.
  * Returns convenience methods for navigating to Card, Travel, and TOS pages.
  */
-export const useNavigateToCardPage = (
-  navigation: NavigationProp<ParamListBase>,
-) => {
+export const useNavigateToCardPage = (navigation: AppNavigationProp) => {
   const { navigateToInternalBrowserPage } =
     useNavigateToInternalBrowserPage(navigation);
 

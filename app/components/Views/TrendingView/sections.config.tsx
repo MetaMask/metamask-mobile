@@ -1,7 +1,8 @@
 import React, { PropsWithChildren, useContext, useMemo } from 'react';
 import Fuse, { type FuseOptions } from 'fuse.js';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -53,16 +54,16 @@ interface SectionConfig {
   id: SectionId;
   title: string;
   icon: SectionIcon;
-  viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
+  viewAllAction: (navigation: AppNavigationProp) => void;
   RowItem: React.ComponentType<{
     item: unknown;
     index: number;
-    navigation: NavigationProp<ParamListBase>;
+    navigation: AppNavigationProp;
   }>;
   OverrideRowItemSearch?: React.ComponentType<{
     item: unknown;
     index?: number;
-    navigation: NavigationProp<ParamListBase>;
+    navigation: AppNavigationProp;
   }>;
   Skeleton: React.ComponentType;
   OverrideSkeletonSearch?: React.ComponentType;

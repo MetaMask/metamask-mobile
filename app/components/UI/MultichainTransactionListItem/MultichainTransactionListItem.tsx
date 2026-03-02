@@ -1,5 +1,5 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useCallback } from 'react';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   Image,
   TouchableHighlight,
@@ -38,7 +38,7 @@ const MultichainTransactionListItem = ({
 }: {
   transaction: Transaction;
   chainId: SupportedCaipChainId;
-  navigation: NavigationProp<ParamListBase>;
+  navigation: AppNavigationProp;
   index?: number;
   location?: TransactionDetailLocation;
 }) => {
@@ -63,13 +63,10 @@ const MultichainTransactionListItem = ({
         .build(),
     );
 
-    navigation.navigate(
-      Routes.MODAL.ROOT_MODAL_FLOW as never,
-      {
-        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
-        params: { displayData, transaction },
-      } as never,
-    );
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
+      params: { displayData, transaction },
+    });
   }, [
     navigation,
     displayData,

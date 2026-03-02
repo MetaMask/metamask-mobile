@@ -1,7 +1,7 @@
 import React from 'react';
 import { ButtonVariant } from '@metamask/design-system-react-native';
-import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { ModalAction, ModalType } from '../../../RewardsBottomSheetModal';
 import { strings } from '../../../../../../../../locales/i18n';
 import { getEventDetails } from '../../../../utils/eventDetailsUtils';
@@ -63,7 +63,7 @@ export const ActivityDetailsSheet: React.FC<ActivityDetailsSheetProps> = ({
 
 // Helper to open the Rewards bottom sheet with the activity details content
 export const openActivityDetailsSheet = (
-  navigation: ReturnType<typeof useNavigation>,
+  navigation: AppNavigationProp,
   props: ActivityDetailsSheetProps,
 ) => {
   const {

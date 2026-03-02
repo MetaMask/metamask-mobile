@@ -185,13 +185,10 @@ const V2BasicInfo = (): JSX.Element => {
         await submitSsnDetails(ssn, quote.quoteId);
       }
 
-      navigation.navigate(
-        Routes.RAMP.ENTER_ADDRESS as never,
-        {
-          previousFormData,
-          quote,
-        } as never,
-      );
+      navigation.navigate(Routes.RAMP.ENTER_ADDRESS, {
+        previousFormData,
+        quote,
+      });
     } catch (submissionError) {
       const apiError = (
         submissionError as {

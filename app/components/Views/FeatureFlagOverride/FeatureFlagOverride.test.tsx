@@ -272,7 +272,8 @@ describe('useFeatureFlagOverride Hook', () => {
 });
 
 describe('FeatureFlagOverride', () => {
-  let mockNavigation: ReturnType<typeof useNavigation>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockNavigation: any;
 
   // Helper to render with providers
   const renderWithProviders = (
