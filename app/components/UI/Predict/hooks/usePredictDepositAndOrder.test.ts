@@ -3,8 +3,9 @@ import { act, renderHook } from '@testing-library/react-native';
 import React from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../component-library/components/Toast';
-import { usePredictDepositAndOrderExecution } from './usePredictDepositAndOrderExecution';
+import { usePredictDepositAndOrder } from './usePredictDepositAndOrder';
 import { PredictBuyPreviewParams } from '../types/navigation';
+import { useSelector } from 'react-redux';
 
 const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
@@ -22,6 +23,11 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
     setOptions: mockSetOptions,
   }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('./usePredictTrading', () => ({
@@ -96,9 +102,10 @@ const wrapper = ({ children }: { children: React.ReactNode }) =>
     children,
   );
 
-describe('usePredictDepositAndOrderExecution', () => {
+describe('usePredictDepositAndOrder', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useSelector).mockReturnValue(undefined);
     mockIsPredictBalanceSelected = false;
     mockPlaceOrder.mockResolvedValue(undefined);
     mockOnApprovalConfirm.mockResolvedValue(undefined);
@@ -107,7 +114,7 @@ describe('usePredictDepositAndOrderExecution', () => {
   it('redirects to buy preview with amount right after approval when non-predict balance is selected', async () => {
     const { result } = renderHook(
       () =>
-        usePredictDepositAndOrderExecution({
+        usePredictDepositAndOrder({
           market,
           outcome,
           outcomeToken,
@@ -146,7 +153,7 @@ describe('usePredictDepositAndOrderExecution', () => {
 
     const { result } = renderHook(
       () =>
-        usePredictDepositAndOrderExecution({
+        usePredictDepositAndOrder({
           market,
           outcome,
           outcomeToken,

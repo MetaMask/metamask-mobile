@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { usePredictTransactionErrorDismissal } from './usePredictTransactionErrorDismissal';
+import { useSelector } from 'react-redux';
 
 let mockActiveOrder: {
   market: { id: string };
@@ -12,8 +13,9 @@ let mockActiveOrder: {
 let mockIsPredictBalanceSelected = true;
 let mockSelectedPaymentTokenAddress: string | null = null;
 
-jest.mock('./usePredictActiveOrder', () => ({
-  usePredictActiveOrder: () => mockActiveOrder,
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('./usePredictPaymentToken', () => ({
@@ -36,6 +38,7 @@ jest.mock('../../../../core/Engine', () => ({
 describe('usePredictTransactionErrorDismissal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useSelector).mockImplementation(() => mockActiveOrder);
     mockActiveOrder = {
       market: { id: 'market-1' },
       outcome: { id: 'outcome-1' },

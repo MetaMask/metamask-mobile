@@ -2,6 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { noop } from 'lodash';
 import Engine from '../../../../../../core/Engine';
+import { useSelector } from 'react-redux';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
@@ -38,11 +39,11 @@ import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaym
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../../constants/predict';
-import { usePredictActiveOrder } from '../../../../../UI/Predict/hooks/usePredictActiveOrder';
+import { selectPredictActiveOrder } from '../../../../../UI/Predict/selectors/predictController';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
-  const activePredictOrder = usePredictActiveOrder();
+  const activePredictOrder = useSelector(selectPredictActiveOrder);
   const isPredictPayContext =
     hasTransactionType(transactionMeta, [PREDICT_DEPOSIT_AND_ORDER_TYPE]) ||
     (!transactionMeta && Boolean(activePredictOrder));

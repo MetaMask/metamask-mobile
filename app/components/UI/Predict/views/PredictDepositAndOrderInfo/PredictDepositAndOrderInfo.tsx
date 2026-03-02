@@ -12,6 +12,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { ActivityIndicator, Linking, ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
@@ -28,13 +29,13 @@ import PredictKeypad, {
 } from '../../components/PredictKeypad';
 import PredictBuyPreviewHeader from '../../components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
 import { PredictPayWithRow } from '../../components/PredictPayWithRow';
-import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
+import { usePredictDepositAndOrder } from '../../hooks/usePredictDepositAndOrder';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import { usePredictDepositAndOrderExecution } from '../../hooks/usePredictDepositAndOrderExecution';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictRewards } from '../../hooks/usePredictRewards';
 import { usePredictTransactionErrorDismissal } from '../../hooks/usePredictTransactionErrorDismissal';
+import { selectPredictActiveOrder } from '../../selectors/predictController';
 import { Side } from '../../types';
 import { formatCents, formatPrice } from '../../utils/format';
 import { BigNumber } from 'bignumber.js';
@@ -59,7 +60,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const MINIMUM_BET = 1;
 
 export function PredictDepositAndOrderInfo() {
-  const activeOrder = usePredictActiveOrder();
+  const activeOrder = useSelector(selectPredictActiveOrder);
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const { onReject } = useConfirmActions();
@@ -224,7 +225,7 @@ export function PredictDepositAndOrderInfo() {
   const totalWithDepositFee = total + depositFeeUsd;
 
   const { isConfirming, confirmError, handleConfirm } =
-    usePredictDepositAndOrderExecution({
+    usePredictDepositAndOrder({
       market,
       outcome,
       outcomeToken,

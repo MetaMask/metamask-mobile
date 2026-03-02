@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { usePredictActiveOrder } from './usePredictActiveOrder';
+import { selectPredictActiveOrder } from '../selectors/predictController';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
 
 interface UsePredictTransactionErrorDismissalParams {
@@ -10,7 +11,7 @@ interface UsePredictTransactionErrorDismissalParams {
 export function usePredictTransactionErrorDismissal({
   amount,
 }: UsePredictTransactionErrorDismissalParams) {
-  const activeOrder = usePredictActiveOrder();
+  const activeOrder = useSelector(selectPredictActiveOrder);
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
 
