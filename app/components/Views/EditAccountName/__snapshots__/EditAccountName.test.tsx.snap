@@ -222,6 +222,7 @@ exports[`EditAccountName should render correctly 1`] = `
               }
             }
             testID="input"
+            value=""
           />
         </View>
       </View>

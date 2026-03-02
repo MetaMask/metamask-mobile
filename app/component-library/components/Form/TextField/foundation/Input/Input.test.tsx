@@ -91,7 +91,7 @@ describe('Input', () => {
     expect(getStyleProp(input.props.style, 'lineHeight')).toBeUndefined();
   });
 
-  it('calls onChangeText when text changes', () => {
+  it('calls onChangeText when text changes (controlled)', () => {
     const onChangeText = jest.fn();
     const { getByTestId } = renderWithTheme(
       <Input value="" onChangeText={onChangeText} />,
@@ -101,5 +101,62 @@ describe('Input', () => {
     fireEvent.changeText(input, 'a');
 
     expect(onChangeText).toHaveBeenCalledWith('a');
+  });
+
+  describe('uncontrolled', () => {
+    it('uses defaultValue as initial value and displays it', () => {
+      const { getByTestId } = renderWithTheme(<Input defaultValue="initial" />);
+
+      const input = getByTestId(INPUT_TEST_ID);
+
+      expect(input.props.value).toBe('initial');
+    });
+
+    it('updates internal value and displayed value when user types', () => {
+      const { getByTestId } = renderWithTheme(<Input />);
+
+      const input = getByTestId(INPUT_TEST_ID);
+      fireEvent.changeText(input, 'typed');
+
+      expect(getByTestId(INPUT_TEST_ID).props.value).toBe('typed');
+    });
+
+    it('invokes onChangeText when uncontrolled and user types', () => {
+      const onChangeText = jest.fn();
+      const { getByTestId } = renderWithTheme(
+        <Input onChangeText={onChangeText} />,
+      );
+
+      const input = getByTestId(INPUT_TEST_ID);
+      fireEvent.changeText(input, 'x');
+
+      expect(onChangeText).toHaveBeenCalledWith('x');
+    });
+
+    it('syncs displayed value when defaultValue prop changes', () => {
+      const { getByTestId, rerender } = renderWithTheme(
+        <Input defaultValue="first" />,
+      );
+
+      expect(getByTestId(INPUT_TEST_ID).props.value).toBe('first');
+
+      rerender(
+        <ThemeContext.Provider value={mockTheme}>
+          <Input defaultValue="second" />
+        </ThemeContext.Provider>,
+      );
+
+      expect(getByTestId(INPUT_TEST_ID).props.value).toBe('second');
+    });
+
+    it('applies lineHeight 0 when uncontrolled with placeholder and empty defaultValue', () => {
+      const { getByTestId } = renderWithTheme(
+        <Input defaultValue="" placeholder="Hint" />,
+      );
+
+      const input = getByTestId(INPUT_TEST_ID);
+
+      expect(getStyleProp(input.props.style, 'lineHeight')).toBe(0);
+    });
   });
 });

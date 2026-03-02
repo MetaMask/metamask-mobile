@@ -431,6 +431,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           }
                                         }
                                         testID="source-token-area-input"
+                                        value=""
                                       />
                                     </View>
                                     <TouchableOpacity
@@ -2246,6 +2247,7 @@ exports[`BridgeView renders 1`] = `
                                           }
                                         }
                                         testID="source-token-area-input"
+                                        value=""
                                       />
                                     </View>
                                     <TouchableOpacity

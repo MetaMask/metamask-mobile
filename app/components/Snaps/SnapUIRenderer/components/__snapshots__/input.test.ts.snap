@@ -138,7 +138,6 @@ exports[`SnapUIInput handles disabled input 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
-                        "lineHeight": 0,
                         "opacity": 1,
                       }
                     }
