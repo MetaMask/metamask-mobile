@@ -1,6 +1,6 @@
 import { Inflate } from 'pako';
 
-export const MAX_DECOMPRESSED_PAYLOAD_SIZE = 5 * 1024 * 1024; // 5 MB
+export const MAX_DECOMPRESSED_PAYLOAD_SIZE = 1024 * 1024; // 1 MB
 
 /**
  * Decompress a base64-encoded compressed string using streaming inflation.
@@ -21,9 +21,7 @@ export function decompressPayloadB64(compressedBase64: string): string {
   inflator.onData = (chunk) => {
     outputSize += chunk.byteLength;
     if (outputSize > MAX_DECOMPRESSED_PAYLOAD_SIZE) {
-      throw new Error(
-        `Decompressed payload too large (max ${MAX_DECOMPRESSED_PAYLOAD_SIZE} bytes)`,
-      );
+      throw new Error(`Decompressed payload too large (max 1MB).`);
     }
     collectChunk.call(inflator, chunk);
   };
