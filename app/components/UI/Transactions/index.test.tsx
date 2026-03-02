@@ -19,6 +19,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
+import { CancelSpeedupModal } from '../../../components/Views/confirmations/components/modals/cancel-speedup-modal';
 
 // Mock the navigation and other dependencies
 const mockNavigationPush = jest.fn();
@@ -2050,6 +2051,54 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
     const result = instance.renderList();
     expect(result).toBeDefined();
+  });
+
+  it('renders single CancelSpeedupModal with correct props when speed up or cancel is open', () => {
+    instance.context = {
+      colors: {
+        background: { default: '#fff' },
+        text: { muted: '#999' },
+        primary: { default: '#037dd6' },
+        icon: { default: '#24272a' },
+      },
+      typography: {},
+    };
+    instance.state = {
+      refreshing: false,
+      cancelConfirmDisabled: false,
+      speedUpConfirmDisabled: false,
+    };
+    instance.props = {
+      ...defaultTestProps,
+      submittedTransactions: [],
+      confirmedTransactions: [],
+      transactions: [{ id: 'tx-1' }],
+      isSigningQRObject: false,
+    };
+    instance.existingTx = { id: 'tx-1', chainId: '0x1' };
+
+    // When both closed: no modal
+    instance.state.speedUpIsOpen = false;
+    instance.state.cancelIsOpen = false;
+    let listResult = instance.renderList();
+    let listWrapper = shallow(listResult);
+    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(0);
+
+    // When speed up open: one modal, isCancel false
+    instance.state.speedUpIsOpen = true;
+    instance.state.cancelIsOpen = false;
+    listResult = instance.renderList();
+    listWrapper = shallow(listResult);
+    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isCancel')).toBe(false);
+
+    // When cancel open: one modal, isCancel true
+    instance.state.speedUpIsOpen = false;
+    instance.state.cancelIsOpen = true;
+    listResult = instance.renderList();
+    listWrapper = shallow(listResult);
+    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isCancel')).toBe(true);
   });
 
   it('should test render method directly', () => {

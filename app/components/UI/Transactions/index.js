@@ -753,26 +753,29 @@ class Transactions extends PureComponent {
           )}
         </PriceChartContext.Consumer>
 
-        {!isSigningQRObject && (
-          <CancelSpeedupModal
-            isVisible={this.state.speedUpIsOpen}
-            isCancel={false}
-            tx={this.existingTx}
-            onConfirm={this.speedUpTransaction}
-            onClose={this.onSpeedUpCompleted}
-            confirmDisabled={speedUpConfirmDisabled}
-          />
-        )}
-        {!isSigningQRObject && (
-          <CancelSpeedupModal
-            isVisible={this.state.cancelIsOpen}
-            isCancel
-            tx={this.existingTx}
-            onConfirm={this.cancelTransaction}
-            onClose={this.onCancelCompleted}
-            confirmDisabled={cancelConfirmDisabled}
-          />
-        )}
+        {!isSigningQRObject &&
+          (this.state.speedUpIsOpen || this.state.cancelIsOpen) && (
+            <CancelSpeedupModal
+              isVisible
+              isCancel={this.state.cancelIsOpen}
+              tx={this.existingTx}
+              onConfirm={
+                this.state.cancelIsOpen
+                  ? this.cancelTransaction
+                  : this.speedUpTransaction
+              }
+              onClose={
+                this.state.cancelIsOpen
+                  ? this.onCancelCompleted
+                  : this.onSpeedUpCompleted
+              }
+              confirmDisabled={
+                this.state.cancelIsOpen
+                  ? cancelConfirmDisabled
+                  : speedUpConfirmDisabled
+              }
+            />
+          )}
       </View>
     );
   };

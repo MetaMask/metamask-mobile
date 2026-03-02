@@ -678,23 +678,19 @@ const UnifiedTransactionsView = ({
             />
           )}
         </PriceChartContext.Consumer>
-        {/* Speed up / Cancel modals */}
-        <CancelSpeedupModal
-          isVisible={speedUpIsOpen}
-          isCancel={false}
-          tx={existingTx}
-          onConfirm={speedUpTransaction}
-          onClose={onSpeedUpCompleted}
-          confirmDisabled={speedUpConfirmDisabled}
-        />
-        <CancelSpeedupModal
-          isVisible={cancelIsOpen}
-          isCancel
-          tx={existingTx}
-          onConfirm={cancelTransaction}
-          onClose={onCancelCompleted}
-          confirmDisabled={cancelConfirmDisabled}
-        />
+        {/* Single CancelSpeedupModal for speed up or cancel; only mount when open to avoid hook cost when closed */}
+        {(speedUpIsOpen || cancelIsOpen) && (
+          <CancelSpeedupModal
+            isVisible
+            isCancel={cancelIsOpen}
+            tx={existingTx}
+            onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
+            onClose={cancelIsOpen ? onCancelCompleted : onSpeedUpCompleted}
+            confirmDisabled={
+              cancelIsOpen ? cancelConfirmDisabled : speedUpConfirmDisabled
+            }
+          />
+        )}
         <RetryModal
           onCancelPress={() => toggleRetry(undefined)}
           onConfirmPress={() => {
