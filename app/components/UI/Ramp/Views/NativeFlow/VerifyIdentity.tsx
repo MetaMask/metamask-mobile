@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Image, Linking, ScrollView } from 'react-native';
 import Text, {
   TextVariant,
@@ -25,10 +25,13 @@ import {
   TRANSAK_URL,
 } from '../../Deposit/constants/constants';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 const V2VerifyIdentity = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { userRegion } = useRampsUserRegion();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
@@ -43,27 +46,107 @@ const V2VerifyIdentity = () => {
         navigation,
         { title: strings('deposit.verify_identity.navbar_title') },
         theme,
+        () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Verify Identity',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
+        },
       ),
     );
-  }, [navigation, theme]);
+  }, [navigation, theme, trackEvent, createEventBuilder]);
+
+  const hasTrackedScreenViewRef = useRef(false);
+  useEffect(() => {
+    if (hasTrackedScreenViewRef.current) return;
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'Verify Identity',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const handleSubmit = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_TERMS_CONSENT_CLICKED)
+        .addProperties({
+          location: 'Verify Identity',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     navigateToEnterEmail();
-  }, [navigateToEnterEmail]);
+  }, [navigateToEnterEmail, trackEvent, createEventBuilder]);
 
   const handleTransakLink = useCallback(() => {
+    let urlDomain: string = TRANSAK_URL;
+    try {
+      urlDomain = new URL(TRANSAK_URL).hostname;
+    } catch {
+      // use TRANSAK_URL as fallback for analytics if parse fails
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
+        .addProperties({
+          location: 'Verify Identity',
+          external_link_description: 'Transak',
+          url_domain: urlDomain,
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     Linking.openURL(TRANSAK_URL);
-  }, []);
+  }, [trackEvent, createEventBuilder]);
 
   const handlePrivacyPolicyLink = useCallback(() => {
+    let urlDomain: string = CONSENSYS_PRIVACY_POLICY_URL;
+    try {
+      urlDomain = new URL(CONSENSYS_PRIVACY_POLICY_URL).hostname;
+    } catch {
+      // use raw URL as fallback for analytics if parse fails
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
+        .addProperties({
+          location: 'Verify Identity',
+          external_link_description: 'Privacy Policy',
+          url_domain: urlDomain,
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     Linking.openURL(CONSENSYS_PRIVACY_POLICY_URL);
-  }, []);
+  }, [trackEvent, createEventBuilder]);
 
   const handleTransakTermsLink = useCallback(() => {
-    Linking.openURL(
-      regionIsoCode === 'US' ? TRANSAK_TERMS_URL_US : TRANSAK_TERMS_URL_WORLD,
+    const termsUrl =
+      regionIsoCode === 'US' ? TRANSAK_TERMS_URL_US : TRANSAK_TERMS_URL_WORLD;
+    let urlDomain: string = termsUrl;
+    try {
+      urlDomain = new URL(termsUrl).hostname;
+    } catch {
+      // use termsUrl as fallback for analytics if parse fails
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
+        .addProperties({
+          location: 'Verify Identity',
+          external_link_description: 'Transak Terms',
+          url_domain: urlDomain,
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
     );
-  }, [regionIsoCode]);
+    Linking.openURL(termsUrl);
+  }, [regionIsoCode, trackEvent, createEventBuilder]);
 
   return (
     <ScreenLayout>

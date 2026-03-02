@@ -54,6 +54,13 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useSelector } from 'react-redux';
+import {
+  getRampRoutingDecision,
+  UnifiedRampRoutingType,
+} from '../../../../../reducers/fiatOrders';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
 
@@ -131,6 +138,8 @@ function BuildQuote() {
     selectedPaymentMethod,
   } = useRampsController();
 
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const prevSelectedProviderRef = useRef(selectedProvider);
   useEffect(() => {
     if (prevSelectedProviderRef.current !== selectedProvider) {
@@ -175,6 +184,23 @@ function BuildQuote() {
 
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
+
+  const hasTrackedScreenViewRef = useRef(false);
+  useEffect(() => {
+    if (hasTrackedScreenViewRef.current) return;
+    if (rampRoutingDecision != null) {
+      hasTrackedScreenViewRef.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+          .addProperties({
+            location: 'Amount Input',
+            ramp_type: 'UNIFIED_BUY_2',
+            ramp_routing: rampRoutingDecision,
+          })
+          .build(),
+      );
+    }
+  }, [rampRoutingDecision, trackEvent, createEventBuilder]);
 
   useEffect(() => {
     if (!userHasEnteredAmount && userRegion?.country?.defaultAmount != null) {
@@ -233,6 +259,46 @@ function BuildQuote() {
     error: quoteFetchError,
   } = useRampsQuotes(quoteFetchEnabled ? quoteFetchParams : null);
 
+  const lastTrackedQuoteErrorRef = useRef<unknown>(null);
+  useEffect(() => {
+    if (
+      quoteFetchError &&
+      quoteFetchError !== lastTrackedQuoteErrorRef.current
+    ) {
+      lastTrackedQuoteErrorRef.current = quoteFetchError;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_QUOTE_ERROR)
+          .addProperties({
+            error_message: parseUserFacingError(
+              quoteFetchError,
+              strings('deposit.buildQuote.quoteFetchError'),
+            ),
+            amount: amountAsNumber,
+            currency_source: currency,
+            currency_destination: selectedToken?.assetId,
+            payment_method_id: selectedPaymentMethod?.id,
+            chain_id: selectedToken?.chainId,
+            ramp_type: 'UNIFIED_BUY_2',
+            ramp_routing: rampRoutingDecision ?? undefined,
+          })
+          .build(),
+      );
+    }
+    if (!quoteFetchError) {
+      lastTrackedQuoteErrorRef.current = null;
+    }
+  }, [
+    quoteFetchError,
+    amountAsNumber,
+    currency,
+    selectedToken?.assetId,
+    selectedToken?.chainId,
+    selectedPaymentMethod?.id,
+    rampRoutingDecision,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
   const selectedQuote = useMemo(() => {
     if (!quotesResponse?.success || !selectedProvider || !selectedPaymentMethod)
       return null;
@@ -267,11 +333,29 @@ function BuildQuote() {
         networkName: networkInfo?.networkName ?? undefined,
         networkImageSource: networkInfo?.networkImageSource,
         onSettingsPress: () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_SETTINGS_CLICKED)
+              .addProperties({
+                location: 'Amount Input',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
           navigation.navigate(...createSettingsModalNavDetails());
+        },
+        onBackPress: () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Amount Input',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
         },
       }),
     );
-  }, [navigation, selectedToken, networkInfo]);
+  }, [navigation, selectedToken, networkInfo, trackEvent, createEventBuilder]);
 
   const handleKeypadChange = useCallback(
     ({ value, valueAsNumber }: KeypadChangeData) => {
@@ -283,24 +367,54 @@ function BuildQuote() {
     [],
   );
 
-  const handleQuickAmountPress = useCallback((quickAmount: number) => {
-    setAmount(String(quickAmount));
-    setAmountAsNumber(quickAmount);
-    setUserHasEnteredAmount(true);
-    setNativeFlowError(null);
-  }, []);
+  const handleQuickAmountPress = useCallback(
+    (quickAmount: number) => {
+      setAmount(String(quickAmount));
+      setAmountAsNumber(quickAmount);
+      setUserHasEnteredAmount(true);
+      setNativeFlowError(null);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_QUICK_AMOUNT_CLICKED)
+          .addProperties({
+            amount: quickAmount,
+            currency_source: currency,
+            location: 'Amount Input',
+            ramp_type: 'UNIFIED_BUY_2',
+          })
+          .build(),
+      );
+    },
+    [currency, trackEvent, createEventBuilder],
+  );
 
   const handlePaymentPillPress = useCallback(() => {
     if (debouncedPollingAmount <= 0) {
       return;
     }
 
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED,
+      )
+        .addProperties({
+          current_payment_method: selectedPaymentMethod?.id,
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     navigation.navigate(
       ...createPaymentSelectionModalNavigationDetails({
         amount: debouncedPollingAmount,
       }),
     );
-  }, [debouncedPollingAmount, navigation]);
+  }, [
+    debouncedPollingAmount,
+    navigation,
+    selectedPaymentMethod?.id,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const handleContinuePress = useCallback(async () => {
     if (!selectedQuote || !selectedProvider) return;
@@ -330,6 +444,24 @@ function BuildQuote() {
         return;
       }
     }
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED)
+        .addProperties({
+          ramp_routing:
+            rampRoutingDecision ?? UnifiedRampRoutingType.AGGREGATOR,
+          ramp_type: 'UNIFIED_BUY_2',
+          amount_source: amountAsNumber,
+          payment_method_id: selectedPaymentMethod?.id ?? '',
+          provider_onramp: selectedProvider?.name,
+          region: userRegion?.regionCode ?? '',
+          chain_id: selectedToken?.chainId ?? '',
+          currency_destination: selectedToken?.assetId ?? '',
+          currency_destination_symbol: selectedToken?.symbol,
+          currency_source: currency,
+        })
+        .build(),
+    );
 
     if (isNativeProvider(selectedQuote)) {
       setIsContinueLoading(true);
@@ -434,6 +566,10 @@ function BuildQuote() {
     transakCheckExistingToken,
     transakGetBuyQuote,
     transakRouteAfterAuth,
+    rampRoutingDecision,
+    userRegion?.regionCode,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const hasAmount = amountAsNumber > 0;

@@ -31,6 +31,8 @@ import PaymentSelectionAlert from './PaymentSelectionAlert';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 export interface PaymentSelectionModalParams {
   amount?: number;
@@ -46,6 +48,7 @@ export const createPaymentSelectionModalNavigationDetails =
 const DEFAULT_QUOTE_AMOUNT = 100;
 
 function PaymentSelectionModal() {
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -106,17 +109,48 @@ function PaymentSelectionModal() {
     useRampsQuotes(quoteFetchParams);
 
   const handleChangeProviderPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_CHANGE_PROVIDER_BUTTON_CLICKED)
+        .addProperties({
+          current_provider: selectedProvider?.name,
+          location: 'Payment Selection',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     navigation.navigate(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });
-  }, [navigation, amount]);
+  }, [
+    navigation,
+    amount,
+    selectedProvider?.name,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const handlePaymentMethodPress = useCallback(
     (paymentMethod: PaymentMethod) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTED)
+          .addProperties({
+            payment_method_id: paymentMethod.id,
+            ramp_type: 'UNIFIED_BUY_2',
+            region: userRegion?.regionCode ?? '',
+            is_authenticated: false,
+          })
+          .build(),
+      );
       setSelectedPaymentMethod(paymentMethod);
       sheetRef.current?.onCloseBottomSheet(() => {
         onPaymentMethodSelect?.();
       });
     },
-    [setSelectedPaymentMethod, onPaymentMethodSelect],
+    [
+      setSelectedPaymentMethod,
+      onPaymentMethodSelect,
+      userRegion?.regionCode,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const currency = userRegion?.country?.currency ?? 'USD';
