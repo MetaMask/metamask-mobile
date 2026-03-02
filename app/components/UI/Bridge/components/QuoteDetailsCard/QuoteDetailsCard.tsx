@@ -42,10 +42,10 @@ import { toSentenceCase } from '../../../../../util/string';
 import TagColored, {
   TagColor,
 } from '../../../../../component-library/components-temp/TagColored';
-import AppConstants from '../../../../../core/AppConstants';
 import { useShouldRenderGasSponsoredBanner } from '../../hooks/useShouldRenderGasSponsoredBanner';
 import { isGaslessQuote } from '../../utils/isGaslessQuote';
 import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
+import { getPriceImpactViewData } from '../../utils/getPriceImpactViewData';
 
 if (
   Platform.OS === 'android' &&
@@ -53,30 +53,6 @@ if (
 ) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-
-export const getPriceImpactTextColor = (
-  priceImpactValue?: string,
-): TextColor => {
-  if (!priceImpactValue) {
-    return TextColor.Alternative;
-  }
-
-  const priceImpact = Number.parseFloat(priceImpactValue.replace('%', ''));
-
-  if (!Number.isFinite(priceImpact)) {
-    return TextColor.Alternative;
-  }
-
-  if (priceImpact > AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD) {
-    return TextColor.Error;
-  }
-
-  if (priceImpact > AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD) {
-    return TextColor.Warning;
-  }
-
-  return TextColor.Alternative;
-};
 
 const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   hasInsufficientBalance,
@@ -127,7 +103,17 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     });
   };
 
-  // Early return for invalid states
+  const isGasless = isGaslessQuote(activeQuote?.quote);
+
+  const formattedMinToTokenAmount = formatMinimumReceived(
+    activeQuote?.minToTokenAmount?.amount || '0',
+  );
+
+  const priceImactViewData = useMemo(
+    () => getPriceImpactViewData(formattedQuoteData?.priceImpact),
+    [formattedQuoteData?.priceImpact],
+  );
+
   if (
     !sourceToken?.chainId ||
     !destToken?.chainId ||
@@ -136,14 +122,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   ) {
     return null;
   }
-
-  const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
-
-  const isGasless = isGaslessQuote(activeQuote?.quote);
-
-  const formattedMinToTokenAmount = formatMinimumReceived(
-    activeQuote?.minToTokenAmount?.amount || '0',
-  );
 
   return (
     <Box>
@@ -181,7 +159,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                 minimumFontScale={0.8}
                 color={TextColor.Alternative}
               >
-                {rate}
+                {formattedQuoteData.rate}
               </Text>
             ),
           }}
@@ -240,7 +218,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                 style={styles.strikethroughText}
                 color={TextColor.Alternative}
               >
-                {networkFee}
+                {formattedQuoteData.networkFee}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('bridge.included')}
@@ -264,7 +242,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             }}
             value={{
               label: {
-                text: networkFee,
+                text: formattedQuoteData.networkFee,
                 variant: TextVariant.BodyMD,
                 color: TextColor.Alternative,
               },
@@ -298,7 +276,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
                 >
-                  {slippage}
+                  {formattedQuoteData.slippage}
                 </Text>
                 <Icon
                   name={IconName.Edit}
@@ -335,7 +313,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           />
         )}
 
-        {priceImpact && (
+        {formattedQuoteData.priceImpact && (
           <KeyValueRow
             field={{
               label: {
@@ -353,10 +331,11 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               },
             }}
             value={{
+              icon: priceImactViewData.icon,
               label: {
-                text: priceImpact,
+                text: formattedQuoteData.priceImpact,
                 variant: TextVariant.BodyMD,
-                color: getPriceImpactTextColor(priceImpact),
+                color: priceImactViewData.textColor,
               },
             }}
           />
