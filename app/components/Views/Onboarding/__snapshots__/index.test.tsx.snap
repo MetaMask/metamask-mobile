@@ -11,51 +11,67 @@ exports[`Onboarding renders correctly 1`] = `
     }
   }
   style={
-    [
-      {
-        "flex": 1,
-      },
-      {
-        "backgroundColor": "#FFF2EB",
-      },
-    ]
+    {
+      "backgroundColor": "#FFF2EB",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+    }
   }
   testID="onboarding-screen"
 >
   <RCTScrollView
     contentContainerStyle={
       {
-        "flex": 1,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
       }
     }
     style={
       {
-        "flex": 1,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
       }
     }
   >
     <View>
       <View
         style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "justifyContent": "center",
-            "paddingVertical": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexBasis": "0%",
+              "flexGrow": 1,
+              "flexShrink": 1,
+              "justifyContent": "center",
+              "paddingBottom": 16,
+              "paddingTop": 16,
+            },
+            undefined,
+          ]
         }
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "flexDirection": "column",
-              "justifyContent": "space-between",
-              "paddingHorizontal": 20,
-              "rowGap": 24,
-              "width": "100%",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexDirection": "column",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "space-between",
+                "paddingLeft": 20,
+                "paddingRight": 20,
+                "rowGap": 24,
+                "width": "100%",
+              },
+              undefined,
+            ]
           }
         >
           <View
@@ -193,7 +209,16 @@ exports[`Onboarding renders correctly 1`] = `
     }
     testID="fox-animation-mock"
   />
-  <View />
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+        },
+        undefined,
+      ]
+    }
+  />
 </RNCSafeAreaView>
 `;
 
@@ -208,51 +233,67 @@ exports[`Onboarding renders correctly with android 1`] = `
     }
   }
   style={
-    [
-      {
-        "flex": 1,
-      },
-      {
-        "backgroundColor": "#FFF2EB",
-      },
-    ]
+    {
+      "backgroundColor": "#FFF2EB",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+    }
   }
   testID="onboarding-screen"
 >
   <RCTScrollView
     contentContainerStyle={
       {
-        "flex": 1,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
       }
     }
     style={
       {
-        "flex": 1,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
       }
     }
   >
     <View>
       <View
         style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "justifyContent": "center",
-            "paddingVertical": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexBasis": "0%",
+              "flexGrow": 1,
+              "flexShrink": 1,
+              "justifyContent": "center",
+              "paddingBottom": 16,
+              "paddingTop": 16,
+            },
+            undefined,
+          ]
         }
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "flexDirection": "column",
-              "justifyContent": "space-between",
-              "paddingHorizontal": 20,
-              "rowGap": 16,
-              "width": "100%",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexDirection": "column",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "space-between",
+                "paddingLeft": 20,
+                "paddingRight": 20,
+                "rowGap": 16,
+                "width": "100%",
+              },
+              undefined,
+            ]
           }
         >
           <View
@@ -390,7 +431,16 @@ exports[`Onboarding renders correctly with android 1`] = `
     }
     testID="fox-animation-mock"
   />
-  <View />
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+        },
+        undefined,
+      ]
+    }
+  />
 </RNCSafeAreaView>
 `;
 
@@ -405,51 +455,67 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
     }
   }
   style={
-    [
-      {
-        "flex": 1,
-      },
-      {
-        "backgroundColor": "#FFF2EB",
-      },
-    ]
+    {
+      "backgroundColor": "#FFF2EB",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+    }
   }
   testID="onboarding-screen"
 >
   <RCTScrollView
     contentContainerStyle={
       {
-        "flex": 1,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
       }
     }
     style={
       {
-        "flex": 1,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
       }
     }
   >
     <View>
       <View
         style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "justifyContent": "center",
-            "paddingVertical": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexBasis": "0%",
+              "flexGrow": 1,
+              "flexShrink": 1,
+              "justifyContent": "center",
+              "paddingBottom": 16,
+              "paddingTop": 16,
+            },
+            undefined,
+          ]
         }
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "flexDirection": "column",
-              "justifyContent": "space-between",
-              "paddingHorizontal": 20,
-              "rowGap": 24,
-              "width": "100%",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexDirection": "column",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "space-between",
+                "paddingLeft": 20,
+                "paddingRight": 20,
+                "rowGap": 24,
+                "width": "100%",
+              },
+              undefined,
+            ]
           }
         >
           <View
@@ -587,7 +653,16 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
     }
     testID="fox-animation-mock"
   />
-  <View />
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+        },
+        undefined,
+      ]
+    }
+  />
 </RNCSafeAreaView>
 `;
 
@@ -602,51 +677,67 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
     }
   }
   style={
-    [
-      {
-        "flex": 1,
-      },
-      {
-        "backgroundColor": "#FFF2EB",
-      },
-    ]
+    {
+      "backgroundColor": "#FFF2EB",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+    }
   }
   testID="onboarding-screen"
 >
   <RCTScrollView
     contentContainerStyle={
       {
-        "flex": 1,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
       }
     }
     style={
       {
-        "flex": 1,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
       }
     }
   >
     <View>
       <View
         style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "justifyContent": "center",
-            "paddingVertical": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexBasis": "0%",
+              "flexGrow": 1,
+              "flexShrink": 1,
+              "justifyContent": "center",
+              "paddingBottom": 16,
+              "paddingTop": 16,
+            },
+            undefined,
+          ]
         }
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "flexDirection": "column",
-              "justifyContent": "space-between",
-              "paddingHorizontal": 20,
-              "rowGap": 16,
-              "width": "100%",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexDirection": "column",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "space-between",
+                "paddingLeft": 20,
+                "paddingRight": 20,
+                "rowGap": 16,
+                "width": "100%",
+              },
+              undefined,
+            ]
           }
         >
           <View
@@ -784,6 +875,15 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
     }
     testID="fox-animation-mock"
   />
-  <View />
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+        },
+        undefined,
+      ]
+    }
+  />
 </RNCSafeAreaView>
 `;
