@@ -15,6 +15,7 @@ import {
   type PerpsMarketData,
   type Position,
 } from '@metamask/perps-controller';
+import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
 import FadingScrollContainer from '../../components/FadingScrollContainer';
@@ -126,6 +127,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   // When user has no positions/orders, keep skeleton visible until markets
   // load so the section doesn't flash empty while trending tiles are fetched.
   const pendingTrending = !showSkeleton && !hasItems && marketsLoading;
+  const showTrending = !showSkeleton && !hasItems && !marketsLoading;
 
   const safeWatchlistSymbols = useMemo(
     () => watchlistSymbols ?? [],
@@ -134,8 +136,10 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   const watchlistMarkets = useMemo(() => {
     if (markets.length === 0 || safeWatchlistSymbols.length === 0) return [];
-    const symbolSet = new Set(safeWatchlistSymbols);
-    return markets.filter((m) => symbolSet.has(m.symbol));
+    const marketBySymbol = new Map(markets.map((m) => [m.symbol, m]));
+    return safeWatchlistSymbols
+      .map((sym) => marketBySymbol.get(sym))
+      .filter((m): m is PerpsMarketDataWithVolumeNumber => m != null);
   }, [markets, safeWatchlistSymbols]);
 
   const trendingMarkets = useMemo(() => {
@@ -160,8 +164,8 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   );
 
   const carouselSymbols = useMemo(
-    () => allCarouselMarkets.map((m) => m.symbol),
-    [allCarouselMarkets],
+    () => (showTrending ? allCarouselMarkets.map((m) => m.symbol) : []),
+    [showTrending, allCarouselMarkets],
   );
   const { sparklines, refresh: refreshSparklines } =
     useHomepageSparklines(carouselSymbols);

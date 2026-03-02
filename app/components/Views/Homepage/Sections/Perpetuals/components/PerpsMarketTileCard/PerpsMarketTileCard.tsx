@@ -147,7 +147,10 @@ const TileCardInner: React.FC<
               recyclingKey={market.symbol}
             />
             {showFavoriteTag && (
-              <View style={styles.favoriteBadge}>
+              <View
+                style={styles.favoriteBadge}
+                testID={`favorite-badge-${market.symbol}`}
+              >
                 <Icon
                   name={IconName.StarFilled}
                   size={IconSize.Sm}
