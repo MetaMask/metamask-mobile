@@ -41,7 +41,6 @@ const createStyles = (colors: Colors, insets: EdgeInsets) =>
       resizeMode: 'contain',
       width: Device.getDeviceWidth() * 0.6,
       height: 64,
-      overflow: 'visible',
     },
     connectLedgerText: {
       ...(fontStyles.normal as TextStyle),
@@ -64,7 +63,10 @@ const createStyles = (colors: Colors, insets: EdgeInsets) =>
     },
     imageContainer: {
       alignItems: 'center',
+      justifyContent: 'center',
       marginTop: Device.getDeviceHeight() * 0.08,
+      minHeight: 64,
+      flexShrink: 0,
     },
     buttonContainer: {
       marginBottom: insets.bottom + 20,
