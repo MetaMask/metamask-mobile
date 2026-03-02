@@ -3,6 +3,7 @@ import { screen, fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PerpsSection from './PerpsSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 
 const mockNavigate = jest.fn();
 
@@ -319,13 +320,14 @@ describe('PerpsSection', () => {
     expect(roeElements.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('navigates to perps home on title press', () => {
+  it('navigates to perps home on title press with home_screen source', () => {
     renderWithProvider(<PerpsSection />);
 
     fireEvent.press(screen.getByText('Perpetuals'));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
+      params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SCREEN },
     });
   });
 
@@ -655,7 +657,7 @@ describe('PerpsSection', () => {
       expect(screen.getByText('View more')).toBeOnTheScreen();
     });
 
-    it('navigates to perps home when "View more" card is pressed', () => {
+    it('navigates to perps home with home_screen source when "View more" card is pressed', () => {
       usePerpsMarkets.mockReturnValue({
         markets: [
           makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
@@ -672,6 +674,7 @@ describe('PerpsSection', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SCREEN },
       });
     });
 

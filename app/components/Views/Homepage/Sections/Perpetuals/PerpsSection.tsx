@@ -13,6 +13,7 @@ import { Box } from '@metamask/design-system-react-native';
 import {
   type PerpsMarketData,
   type Position,
+  PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
@@ -157,6 +158,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const handleViewAllPerps = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
+      params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SCREEN },
     });
   }, [navigation]);
 
