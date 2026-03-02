@@ -318,7 +318,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Medium",
                               "fontSize": 14,
                               "letterSpacing": 0,
@@ -344,13 +344,13 @@ exports[`AddAccountActions renders correctly 1`] = `
                           testID="add-account-new-account"
                         >
                           <SvgMock
-                            color="#121314"
+                            color="#131416"
                             fill="currentColor"
                             height={20}
                             name="Add"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -362,7 +362,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 18,
                                 "letterSpacing": 0,
@@ -387,13 +387,13 @@ exports[`AddAccountActions renders correctly 1`] = `
                           testID="add-account-add-solana-account"
                         >
                           <SvgMock
-                            color="#121314"
+                            color="#131416"
                             fill="currentColor"
                             height={20}
                             name="Add"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -405,7 +405,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 18,
                                 "letterSpacing": 0,
@@ -430,13 +430,13 @@ exports[`AddAccountActions renders correctly 1`] = `
                           testID="add-account-add-bitcoin-account"
                         >
                           <SvgMock
-                            color="#121314"
+                            color="#131416"
                             fill="currentColor"
                             height={20}
                             name="Add"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -448,7 +448,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 18,
                                 "letterSpacing": 0,
@@ -473,13 +473,13 @@ exports[`AddAccountActions renders correctly 1`] = `
                           testID="add-account-add-tron-account"
                         >
                           <SvgMock
-                            color="#121314"
+                            color="#131416"
                             fill="currentColor"
                             height={20}
                             name="Add"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -491,7 +491,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 18,
                                 "letterSpacing": 0,
@@ -506,7 +506,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Medium",
                               "fontSize": 14,
                               "letterSpacing": 0,
@@ -532,13 +532,13 @@ exports[`AddAccountActions renders correctly 1`] = `
                           testID="add-account-srp-account"
                         >
                           <SvgMock
-                            color="#121314"
+                            color="#131416"
                             fill="currentColor"
                             height={20}
                             name="Wallet"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -550,7 +550,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 18,
                                 "letterSpacing": 0,
@@ -575,13 +575,13 @@ exports[`AddAccountActions renders correctly 1`] = `
                           testID="add-account-import-account"
                         >
                           <SvgMock
-                            color="#121314"
+                            color="#131416"
                             fill="currentColor"
                             height={20}
                             name="Key"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -593,7 +593,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 18,
                                 "letterSpacing": 0,
@@ -608,7 +608,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Medium",
                               "fontSize": 14,
                               "letterSpacing": 0,
@@ -634,13 +634,13 @@ exports[`AddAccountActions renders correctly 1`] = `
                           testID="add-account-add-hardware-wallet"
                         >
                           <SvgMock
-                            color="#121314"
+                            color="#131416"
                             fill="currentColor"
                             height={20}
                             name="Hardware"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -652,7 +652,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 18,
                                 "letterSpacing": 0,
