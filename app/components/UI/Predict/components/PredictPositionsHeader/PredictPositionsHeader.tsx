@@ -119,7 +119,7 @@ const PredictPositionsHeader = forwardRef<
   useImperativeHandle(ref, () => ({
     refresh: async () => {
       await Promise.all([
-        loadUnrealizedPnL({ isRefresh: true }),
+        loadUnrealizedPnL(),
         queryClient.invalidateQueries({
           queryKey: predictQueries.balance.keys.all(),
         }),
