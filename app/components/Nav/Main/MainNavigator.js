@@ -68,6 +68,7 @@ import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
+import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
@@ -266,6 +267,10 @@ const TransactionsHome = () => (
     <Stack.Screen
       name={Routes.RAMP.RAMPS_ORDER_DETAILS}
       component={RampsOrderDetails}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.ORDER_DETAILS}
+      component={DepositOrderDetails}
     />
     <Stack.Screen
       name={Routes.RAMP.BANK_DETAILS_STANDALONE}

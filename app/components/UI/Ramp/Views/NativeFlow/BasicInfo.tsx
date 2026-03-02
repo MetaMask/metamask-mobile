@@ -250,6 +250,15 @@ const V2BasicInfo = (): JSX.Element => {
     }
   }, [logoutFromProvider, navigation]);
 
+  const handleSsnInfoPress = useCallback(() => {
+    navigation.navigate(
+      Routes.RAMP.MODALS.ID as never,
+      {
+        screen: Routes.RAMP.MODALS.SSN_INFO,
+      } as never,
+    );
+  }, [navigation]);
+
   const focusNextField = useCallback(
     (nextRef: React.RefObject<TextInput>) => () => {
       nextRef.current?.focus();
@@ -439,7 +448,10 @@ const V2BasicInfo = (): JSX.Element => {
                     <Text variant={TextVariant.BodyMD}>
                       {strings('deposit.basic_info.social_security_number')}
                     </Text>
-                    <TouchableOpacity testID="ssn-info-button">
+                    <TouchableOpacity
+                      onPress={handleSsnInfoPress}
+                      testID="ssn-info-button"
+                    >
                       <Icon
                         name={IconName.Info}
                         size={IconSize.Sm}
