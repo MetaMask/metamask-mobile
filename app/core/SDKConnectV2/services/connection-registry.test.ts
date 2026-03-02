@@ -249,7 +249,7 @@ describe('ConnectionRegistry', () => {
 
       // @ts-expect-error test non-string input
       await expect(registry.handleMwpDeeplink(null)).rejects.toThrow(
-        'Invalid MWP deeplink: null',
+        'Invalid MWP deeplink: [invalid URL]',
       );
     });
   });

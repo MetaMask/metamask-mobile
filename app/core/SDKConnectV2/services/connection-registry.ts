@@ -11,7 +11,7 @@ import { IConnectionStore } from '../types/connection-store';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
 import { Connection } from './connection';
 import { ConnectionInfo } from '../types/connection-info';
-import logger from './logger';
+import logger, { redactUrl } from './logger';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import { decompressPayloadB64 } from '../utils/compression-utils';
 import { whenStoreReady } from '../utils/when-store-ready';
@@ -89,7 +89,7 @@ export class ConnectionRegistry {
 
   public async handleMwpDeeplink(url: string): Promise<void> {
     if (!this.isMwpDeeplink(url)) {
-      throw new Error(`Invalid MWP deeplink: ${url}`);
+      throw new Error(`Invalid MWP deeplink: ${redactUrl(url)}`);
     }
 
     try {
@@ -164,7 +164,7 @@ export class ConnectionRegistry {
     if (this.deeplinks.has(url)) return;
     this.deeplinks.add(url);
 
-    logger.debug('Handling connect deeplink:', url);
+    logger.debug('Handling connect deeplink:', redactUrl(url));
 
     let conn: Connection | undefined;
     let connInfo: ConnectionInfo | undefined;
@@ -194,9 +194,9 @@ export class ConnectionRegistry {
       this.connections.set(conn.id, conn);
       await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
-      logger.debug('Handled connect deeplink.', connInfo);
+      logger.debug('Handled connect deeplink.', connInfo?.id);
     } catch (error) {
-      logger.error('Failed to handle connect deeplink:', error, url);
+      logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
       this.hostapp.showConnectionError();
       if (conn) await this.disconnect(conn.id);
     } finally {
