@@ -105,7 +105,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       <Pressable
         onPress={goToDefaultSettings}
         testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
-        style={tw.style('py-2 items-center')}
+        style={({ pressed }) =>
+          tw.style('py-2 items-center', pressed && 'opacity-60')
+        }
       >
         <Text color={TextColor.Info} variant={TextVariant.BodyMDMedium}>
           {strings('onboarding_success.manage_default_settings')}
