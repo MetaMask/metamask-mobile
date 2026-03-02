@@ -116,36 +116,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                 }
               }
             >
-              <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": undefined,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
+              <TouchableOpacity
+                onPress={[Function]}
                 testID="import-from-seed-screen-back-button-id"
               >
                 <SvgMock
@@ -162,7 +134,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                   }
                   width={24}
                 />
-              </View>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -204,36 +176,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                 }
               }
             >
-              <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": undefined,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
+              <TouchableOpacity
+                onPress={[Function]}
                 testID="import-from-seed-screen-qr-code-button-id"
               >
                 <SvgMock
@@ -251,7 +195,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                   }
                   width={24}
                 />
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -539,36 +483,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                 >
                                   Enter your Secret Recovery Phrase
                                 </Text>
-                                <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": undefined,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
+                                <TouchableOpacity
+                                  onPress={[Function]}
                                   testID="import-from-seed-screen-seedphrase-link-id"
                                 >
                                   <SvgMock
@@ -584,7 +500,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     }
                                     width={20}
                                   />
-                                </View>
+                                </TouchableOpacity>
                               </View>
                               <View
                                 style={

@@ -7,7 +7,7 @@ import React, {
   useMemo,
 } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, Pressable, Animated, Dimensions } from 'react-native';
+import { Alert, TouchableOpacity, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useSelector } from 'react-redux';
 import {
@@ -226,7 +226,7 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const headerLeft = () => (
-    <Pressable
+    <TouchableOpacity
       onPress={onBackPress}
       testID={ImportFromSeedSelectorsIDs.BACK_BUTTON_ID}
     >
@@ -236,12 +236,12 @@ const ImportFromSecretRecoveryPhrase = ({
         color={colors.text.default}
         style={tw.style('ml-4')}
       />
-    </Pressable>
+    </TouchableOpacity>
   );
 
   const headerRight = () =>
     currentStep === 0 ? (
-      <Pressable
+      <TouchableOpacity
         onPress={onQrCodePress}
         testID={ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID}
       >
@@ -252,7 +252,7 @@ const ImportFromSecretRecoveryPhrase = ({
           onPress={onQrCodePress}
           style={tw.style('mr-4')}
         />
-      </Pressable>
+      </TouchableOpacity>
     ) : (
       <Box />
     );
@@ -607,7 +607,7 @@ const ImportFromSecretRecoveryPhrase = ({
                       'import_from_seed.enter_your_secret_recovery_phrase',
                     )}
                   </Text>
-                  <Pressable
+                  <TouchableOpacity
                     onPress={showWhatIsSeedPhrase}
                     testID={
                       ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
@@ -618,7 +618,7 @@ const ImportFromSecretRecoveryPhrase = ({
                       size={IconSize.Md}
                       color={colors.icon.alternative}
                     />
-                  </Pressable>
+                  </TouchableOpacity>
                 </Box>
                 <SrpInputGrid
                   ref={srpInputGridRef}
