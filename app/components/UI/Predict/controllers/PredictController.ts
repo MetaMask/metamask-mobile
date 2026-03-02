@@ -1046,6 +1046,7 @@ export class PredictController extends BaseController<
     failureReason,
     sharePrice,
     pnl,
+    orderType,
   }: {
     status: PredictTradeStatusValue;
     amountUsd?: number;
@@ -1054,6 +1055,7 @@ export class PredictController extends BaseController<
     failureReason?: string;
     sharePrice?: number;
     pnl?: number;
+    orderType?: string;
   }): Promise<void> {
     if (!analyticsProperties) {
       return;
@@ -1106,6 +1108,9 @@ export class PredictController extends BaseController<
       }),
       ...(analyticsProperties.gameClock && {
         [PredictEventProperties.GAME_CLOCK]: analyticsProperties.gameClock,
+      }),
+      ...(orderType && {
+        [PredictEventProperties.ORDER_TYPE]: orderType,
       }),
     };
 
@@ -1436,6 +1441,7 @@ export class PredictController extends BaseController<
         amountUsd,
         analyticsProperties,
         sharePrice,
+        orderType: preview.orderType,
       });
 
       // Invalidate query cache (to avoid nonce issues)
@@ -1496,6 +1502,7 @@ export class PredictController extends BaseController<
         analyticsProperties,
         completionDuration,
         sharePrice: realSharePrice,
+        orderType: preview.orderType,
       });
 
       traceData = { success: true, side: preview.side };
@@ -1515,6 +1522,7 @@ export class PredictController extends BaseController<
         sharePrice,
         completionDuration,
         failureReason: errorMessage,
+        orderType: preview.orderType,
       });
 
       // Update error state for Sentry integration
