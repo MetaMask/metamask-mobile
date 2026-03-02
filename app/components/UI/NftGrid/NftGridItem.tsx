@@ -11,6 +11,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import CollectibleMedia from '../CollectibleMedia';
+import { useSelector } from 'react-redux';
+import { selectEvmChainId } from '../../../selectors/networkController';
+import { getDecimalChainId } from '../../../util/networks';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 
 const debouncedNavigation = debounce((navigation, collectible, source) => {
   navigation.navigate('NftDetails', { collectible, source });
@@ -27,10 +32,20 @@ const NftGridItem = ({
 }) => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const chainId = useSelector(selectEvmChainId);
 
   const onPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NFT_DETAILS_OPENED)
+        .addProperties({
+          chain_id: getDecimalChainId(chainId),
+          ...(source && { source }),
+        })
+        .build(),
+    );
     debouncedNavigation(navigation, item, source);
-  }, [navigation, item, source]);
+  }, [navigation, item, source, trackEvent, createEventBuilder, chainId]);
 
   return (
     <Pressable

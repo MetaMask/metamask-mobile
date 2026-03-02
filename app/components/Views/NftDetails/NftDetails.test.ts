@@ -10,7 +10,6 @@ const initialState = {
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
-const mockTrackEvent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -21,50 +20,6 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetOptions,
     }),
     useFocusEffect: jest.fn(),
-  };
-});
-
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
-  let capturedTrackEvent: jest.Mock;
-
-  return {
-    useAnalytics: () => {
-      capturedTrackEvent = jest.fn((event) => {
-        if (mockTrackEvent) {
-          mockTrackEvent(event);
-        }
-      });
-
-      return {
-        trackEvent: capturedTrackEvent,
-        createEventBuilder: jest.fn((eventName) => {
-          const builder = {
-            eventName,
-            properties: {},
-            addProperties: jest.fn(function (props) {
-              this.properties = { ...this.properties, ...props };
-              return this;
-            }),
-            build: jest.fn(function () {
-              return {
-                eventName: this.eventName,
-                properties: this.properties,
-              };
-            }),
-          };
-          return builder;
-        }),
-        enable: jest.fn(),
-        addTraitsToUser: jest.fn(),
-        createDataDeletionTask: jest.fn(),
-        checkDataDeleteStatus: jest.fn(),
-        getDeleteRegulationCreationDate: jest.fn(),
-        getDeleteRegulationId: jest.fn(),
-        isDataRecorded: jest.fn(),
-        isEnabled: jest.fn(),
-        getAnalyticsId: jest.fn(),
-      };
-    },
   };
 });
 
@@ -179,7 +134,6 @@ const TEST_COLLECTIBLE = {
 
 let mockUseParamsValues: {
   collectible: typeof TEST_COLLECTIBLE;
-  source?: 'mobile-nft-list' | 'mobile-nft-list-page';
 } = {
   collectible: TEST_COLLECTIBLE,
 };
@@ -205,60 +159,5 @@ describe('NftDetails', () => {
     );
 
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('tracks NFT Details Opened event with mobile-nft-list source', () => {
-    mockUseParamsValues = {
-      collectible: TEST_COLLECTIBLE,
-      source: 'mobile-nft-list',
-    };
-
-    renderScreen(QrScanner, { name: 'NftDetails' }, { state: initialState });
-
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        properties: expect.objectContaining({
-          chain_id: '1',
-          source: 'mobile-nft-list',
-        }),
-      }),
-    );
-  });
-
-  it('tracks NFT Details Opened event with mobile-nft-list-page source', () => {
-    mockUseParamsValues = {
-      collectible: TEST_COLLECTIBLE,
-      source: 'mobile-nft-list-page',
-    };
-
-    renderScreen(QrScanner, { name: 'NftDetails' }, { state: initialState });
-
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        properties: expect.objectContaining({
-          chain_id: '1',
-          source: 'mobile-nft-list-page',
-        }),
-      }),
-    );
-  });
-
-  it('tracks NFT Details Opened event without source when not provided', () => {
-    mockUseParamsValues = {
-      collectible: TEST_COLLECTIBLE,
-    };
-
-    renderScreen(QrScanner, { name: 'NftDetails' }, { state: initialState });
-
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        properties: expect.objectContaining({
-          chain_id: '1',
-        }),
-      }),
-    );
-    // Verify source is not included when not provided
-    const callArgs = mockTrackEvent.mock.calls[0][0];
-    expect(callArgs.properties).not.toHaveProperty('source');
   });
 });

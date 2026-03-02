@@ -40,9 +40,7 @@ import { formatCurrency } from '../../../util/confirm-tx';
 import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/ContentDisplay';
 import BigNumber from 'bignumber.js';
-import { getDecimalChainId } from '../../../util/networks';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+
 import { renderShortText } from '../../../util/general';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import { formatTimestampToYYYYMMDD } from '../../../util/date';
@@ -55,12 +53,11 @@ import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const NftDetails = () => {
   const navigation = useNavigation();
-  const { collectible, source } = useParams<NftDetailsParams>();
+  const { collectible } = useParams<NftDetailsParams>();
   const chainId = useSelector(selectChainId);
   const dispatch = useDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectEvmTicker);
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const selectedNativeConversionRate = useSelector(selectConversionRate);
   const { navigateToSendPage } = useSendNavigation();
   const hasLastSalePrice = Boolean(
@@ -99,20 +96,6 @@ const NftDetails = () => {
   useEffect(() => {
     updateNavBar();
   }, [updateNavBar]);
-
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NFT_DETAILS_OPENED)
-        .addProperties({
-          chain_id: getDecimalChainId(chainId),
-          ...(source && { source }),
-        })
-        .build(),
-    );
-    // The linter wants `trackEvent` to be added as a dependency,
-    // But the event fires twice if I do that.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId, source]);
 
   const viewHighestFloorPriceSource = () => {
     const url =
