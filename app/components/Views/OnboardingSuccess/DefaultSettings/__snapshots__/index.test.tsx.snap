@@ -4,16 +4,23 @@ exports[`DefaultSettings should render correctly 1`] = `
 <RCTScrollView
   style={
     {
-      "flex": 1,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
   <View>
     <View
       style={
-        {
-          "paddingHorizontal": 16,
-        }
+        [
+          {
+            "display": "flex",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          undefined,
+        ]
       }
     >
       <Text

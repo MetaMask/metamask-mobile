@@ -9,10 +9,13 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
   }
   style={
     {
-      "flex": 1,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
       "paddingBottom": 16,
-      "paddingHorizontal": 16,
-      "paddingVertical": 8,
+      "paddingLeft": 16,
+      "paddingRight": 16,
+      "paddingTop": 8,
     }
   }
 >
