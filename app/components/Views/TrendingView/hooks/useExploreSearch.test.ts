@@ -1,6 +1,6 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { useExploreSearch } from './useExploreSearch';
-import { SECTIONS_ARRAY } from '../sections.config';
+import type { SectionId } from '../sections.config';
 
 const mockTrendingTokens = [
   { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
@@ -90,6 +90,31 @@ jest.mock('../../../UI/Sites/hooks/useSiteData/useSitesData', () => ({
     refetch: jest.fn(),
   }),
 }));
+
+jest.mock('../../../UI/Trending/hooks/useRwaTokens/useRwaTokens', () => ({
+  useRwaTokens: () => ({
+    data: [],
+    isLoading: false,
+    refetch: jest.fn(),
+  }),
+}));
+
+// Mock useSectionsArray to return all sections for testing
+const mockSectionsArray: { id: SectionId }[] = [
+  { id: 'tokens' },
+  { id: 'stocks' },
+  { id: 'perps' },
+  { id: 'predictions' },
+  { id: 'sites' },
+];
+
+jest.mock('../sections.config', () => {
+  const actual = jest.requireActual('../sections.config');
+  return {
+    ...actual,
+    useSectionsArray: () => mockSectionsArray,
+  };
+});
 
 describe('useExploreSearch', () => {
   beforeEach(() => {
@@ -217,7 +242,7 @@ describe('useExploreSearch', () => {
   it('processes all sections defined in config', () => {
     const { result } = renderHook(() => useExploreSearch(''));
 
-    SECTIONS_ARRAY.forEach((section) => {
+    mockSectionsArray.forEach((section) => {
       expect(result.current.data[section.id]).toBeDefined();
       expect(result.current.isLoading[section.id]).toBeDefined();
     });
@@ -227,12 +252,18 @@ describe('useExploreSearch', () => {
     const { result } = renderHook(() => useExploreSearch(''));
 
     expect(result.current.sectionsOrder).toEqual(
-      SECTIONS_ARRAY.map((s) => s.id),
+      mockSectionsArray.map((s) => s.id),
     );
   });
 
   it('returns custom sectionsOrder when provided in options', () => {
-    const customOrder = ['sites', 'tokens', 'perps', 'predictions'] as const;
+    const customOrder = [
+      'sites',
+      'tokens',
+      'stocks',
+      'perps',
+      'predictions',
+    ] as const;
     const { result } = renderHook(() =>
       useExploreSearch('', { sectionsOrder: [...customOrder] }),
     );

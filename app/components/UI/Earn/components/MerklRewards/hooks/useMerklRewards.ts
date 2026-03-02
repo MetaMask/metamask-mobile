@@ -13,7 +13,6 @@ import {
 import {
   fetchMerklRewardsForAsset,
   getClaimedAmountFromContract,
-  getClaimChainId,
 } from '../merkl-client';
 import Logger from '../../../../../../util/Logger';
 
@@ -26,7 +25,7 @@ const MUSD_ADDRESS_MAINNET = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
 export const eligibleTokens: Record<Hex, Hex[]> = {
   [CHAIN_IDS.MAINNET]: [AGLAMERKL_ADDRESS_MAINNET, MUSD_ADDRESS_MAINNET], // mUSD and test token
   [CHAIN_IDS.LINEA_MAINNET]: [AGLAMERKL_ADDRESS_LINEA, MUSD_ADDRESS], // mUSD and test token
-  ['0xe709' as Hex]: [AGLAMERKL_ADDRESS_LINEA], // Linea fork
+  ['0xe709' as Hex]: [AGLAMERKL_ADDRESS_LINEA, MUSD_ADDRESS], // Linea fork
 };
 
 /**
@@ -117,7 +116,7 @@ export const useMerklRewards = ({
         // but the contract's claimed mapping is updated immediately
         // If the contract call fails, fall back to the API's claimed value
         // For mUSD, we always check the Linea contract since that's where claims happen
-        const claimChainId = getClaimChainId(asset);
+        const claimChainId = CHAIN_IDS.LINEA_MAINNET as Hex;
         const claimedFromContract = await getClaimedAmountFromContract(
           selectedAddress,
           matchingReward.token.address as Hex,
@@ -147,9 +146,15 @@ export const useMerklRewards = ({
           );
           // Handle the "< 0.00001" case from renderFromTokenMinimalUnit
           // by showing "< 0.01" for consistency with 2 decimal places
-          const displayAmount = unclaimedAmount.startsWith('<')
-            ? '< 0.01'
-            : unclaimedAmount;
+          // Also ensure we always show exactly 2 decimal places for currency display
+          let displayAmount: string;
+          if (unclaimedAmount.startsWith('<')) {
+            displayAmount = '< 0.01';
+          } else {
+            // Ensure exactly 2 decimal places (e.g., "0.9" -> "0.90")
+            const numValue = parseFloat(unclaimedAmount);
+            displayAmount = numValue.toFixed(2);
+          }
           // Double-check that the rendered amount is not '0' or '0.00'
           // This handles edge cases where very small amounts round to zero
           if (

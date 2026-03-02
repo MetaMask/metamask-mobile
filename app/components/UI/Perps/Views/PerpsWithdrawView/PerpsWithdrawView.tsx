@@ -1,4 +1,4 @@
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { captureException } from '@sentry/react-native';
 import React, {
   useCallback,
@@ -16,7 +16,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -31,7 +31,7 @@ import Text, {
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Keypad from '../../../../Base/Keypad';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import {
@@ -39,11 +39,9 @@ import {
   USDC_DECIMALS,
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
-} from '../../constants/hyperLiquidConfig';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import {
   usePerpsMeasurement,
   usePerpsNetwork,
@@ -54,7 +52,6 @@ import { TraceName } from '../../../../../util/trace';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import { formatPerpsFiat, parseCurrencyString } from '../../utils/formatUtils';
 
 import type { Hex } from '@metamask/utils';
@@ -83,7 +80,7 @@ const MAX_INPUT_LENGTH = 20;
 const PerpsWithdrawView: React.FC = () => {
   const tw = useTailwind();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
 
   // State
   const [withdrawAmount, setWithdrawAmount] = useState<string>(''); // Start with empty string for keypad
@@ -162,8 +159,8 @@ const PerpsWithdrawView: React.FC = () => {
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.WITHDRAWAL,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.WITHDRAWAL,
     },
   });
 
@@ -364,7 +361,7 @@ const PerpsWithdrawView: React.FC = () => {
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
       <Box twClassName="flex-1 bg-default">
         {/* Header */}
-        <HeaderCenter
+        <HeaderCompactStandard
           title={strings('perps.withdrawal.title')}
           onBack={handleBack}
           backButtonProps={{

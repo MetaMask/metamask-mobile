@@ -12,7 +12,7 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Text, {
   TextColor,
   TextVariant,
@@ -47,7 +47,7 @@ const ShowDisplayNftMediaSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderCenter
+      <HeaderCompactStandard
         title={strings('show_display_nft_media.show_display_nft_media_title')}
         onClose={onCancel}
       />

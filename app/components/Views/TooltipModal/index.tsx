@@ -6,7 +6,7 @@ import BottomSheet, {
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Text, {
   TextVariant,
   TextColor,
@@ -47,7 +47,7 @@ const TooltipModal = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <HeaderCenter title={title} onClose={onCloseModal} />
+      <HeaderCompactStandard title={title} onClose={onCloseModal} />
       <View style={styles.content}>
         {isValidElement(tooltip) ? (
           tooltip

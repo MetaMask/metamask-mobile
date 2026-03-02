@@ -9,11 +9,11 @@ import { selectPerpsRewardsReferralCodeEnabledFlag } from '../../selectors/featu
 import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
 import Logger from '../../../../../util/Logger';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import {
   PerpsHeroCardViewSelectorsIDs,
   getPerpsHeroCardViewSelector,
@@ -425,9 +425,9 @@ describe('PerpsHeroCardView', () => {
         expect(mockTrack).toHaveBeenCalledWith(
           MetaMetricsEvents.PERPS_UI_INTERACTION,
           expect.objectContaining({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
-            [PerpsEventProperties.INTERACTION_TYPE]:
-              PerpsEventValues.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.INITIATED,
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
           }),
         );
       });
@@ -446,9 +446,9 @@ describe('PerpsHeroCardView', () => {
         expect(mockTrack).toHaveBeenCalledWith(
           MetaMetricsEvents.PERPS_UI_INTERACTION,
           expect.objectContaining({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.SUCCESS,
-            [PerpsEventProperties.INTERACTION_TYPE]:
-              PerpsEventValues.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.SUCCESS,
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
           }),
         );
       });
@@ -488,8 +488,8 @@ describe('PerpsHeroCardView', () => {
         expect(Logger.error).toHaveBeenCalledWith(
           error,
           expect.objectContaining({
-            message: 'Error capturing Perps Hero Card',
-            context: 'PerpsHeroCardView.captureCard',
+            tags: { feature: 'perps' },
+            context: { name: 'PerpsHeroCardView.captureCard', data: {} },
           }),
         );
       });
@@ -512,10 +512,10 @@ describe('PerpsHeroCardView', () => {
         expect(mockTrack).toHaveBeenCalledWith(
           MetaMetricsEvents.PERPS_UI_INTERACTION,
           expect.objectContaining({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ERROR_MESSAGE]: 'Share failed',
-            [PerpsEventProperties.INTERACTION_TYPE]:
-              PerpsEventValues.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'Share failed',
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
           }),
         );
       });
@@ -582,8 +582,8 @@ describe('PerpsHeroCardView', () => {
         expect(Logger.error).toHaveBeenCalledWith(
           error,
           expect.objectContaining({
-            message: 'Error sharing Perps Hero Card',
-            context: 'PerpsHeroCardView.handleShare',
+            tags: { feature: 'perps' },
+            context: { name: 'PerpsHeroCardView.handleShare', data: {} },
           }),
         );
       });

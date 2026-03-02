@@ -9,10 +9,10 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { PredictCategory, PredictMarket } from '../types';
 
 export interface UsePredictMarketDataOptions {
-  providerId?: string;
   q?: string;
   category?: PredictCategory;
   pageSize?: number;
+  customQueryParams?: string;
 }
 
 export interface UsePredictMarketDataResult {
@@ -32,7 +32,12 @@ export interface UsePredictMarketDataResult {
 export const usePredictMarketData = (
   options: UsePredictMarketDataOptions = {},
 ): UsePredictMarketDataResult => {
-  const { category = 'trending', q, pageSize = 20, providerId } = options;
+  const {
+    category = 'trending',
+    q,
+    pageSize = 20,
+    customQueryParams,
+  } = options;
   const [marketData, setMarketData] = useState<PredictMarket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -92,11 +97,11 @@ export const usePredictMarketData = (
             }
 
             const markets = await controller.getMarkets({
-              providerId,
               category,
               q,
               limit: pageSize,
               offset,
+              customQueryParams,
             });
             DevLogger.log('Market data received:', markets);
 
@@ -167,7 +172,6 @@ export const usePredictMarketData = (
               method: 'loadMarketData',
               action: 'market_data_load',
               operation: 'data_fetching',
-              providerId,
               category,
               hasSearchQuery: !!q,
               pageSize,
@@ -184,7 +188,7 @@ export const usePredictMarketData = (
         setIsLoadingMore(false);
       }
     },
-    [category, q, pageSize, providerId],
+    [category, q, pageSize, customQueryParams],
   );
 
   const loadMore = useCallback(async () => {
@@ -203,7 +207,7 @@ export const usePredictMarketData = (
     setHasMore(true);
     setMarketData([]);
     fetchMarketData(false);
-  }, [category, q, fetchMarketData]);
+  }, [category, q, customQueryParams, fetchMarketData]);
 
   return {
     marketData,

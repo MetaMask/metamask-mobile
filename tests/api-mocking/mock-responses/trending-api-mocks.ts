@@ -1,5 +1,14 @@
 import { MockEventsObject } from '../../framework';
 
+/**
+ * Minimal HTML returned for favicon fetch mocks.
+ * The favicon utility (app/util/favicon/index.ts) makes GET requests to
+ * site origins to extract <link rel="icon"> tags from the HTML source.
+ * These mocks prevent unmocked live requests during E2E tests.
+ */
+const FAVICON_HTML =
+  '<html><head><link rel="icon" href="/favicon.ico"></head><body></body></html>';
+
 const TRENDING_TOKENS_RESPONSE = [
   {
     assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -14,6 +23,26 @@ const TRENDING_TOKENS_RESPONSE = [
     },
   },
 ];
+
+export const RWA_STOCK_ASSET_ID =
+  'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c';
+
+const RWA_TOKENS_SEARCH_RESPONSE = {
+  count: 1,
+  data: [
+    {
+      assetId: RWA_STOCK_ASSET_ID,
+      symbol: 'USDY',
+      name: 'Ondo US Dollar Yield (Ondo Tokenized)',
+      decimals: 18,
+      price: '1.05',
+      aggregatedUsdVolume: 500000,
+      marketCap: 200000000,
+      pricePercentChange1d: '0.12',
+      rwaData: { type: 'rwa' },
+    },
+  ],
+};
 
 export const TRENDING_API_MOCKS: MockEventsObject = {
   GET: [
@@ -34,8 +63,7 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
       priority: 1000,
     },
     {
-      urlEndpoint:
-        /https:\/\/portfolio\.api\.cx\.metamask\.io\/explore\/sites.*/,
+      urlEndpoint: /https:\/\/nft\.api\.cx\.metamask\.io\/explore\/sites.*/,
       responseCode: 200,
       response: {
         dapps: [
@@ -50,6 +78,27 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
           },
         ],
       },
+      priority: 1000,
+    },
+    // Favicon fetch mocks — the useFavicon hook fetches site HTML to extract
+    // <link rel="icon"> tags. Without these mocks the requests leak to live
+    // servers and cause "unmocked request" test failures.
+    {
+      urlEndpoint: 'https://portfolio.metamask.io/',
+      responseCode: 200,
+      response: FAVICON_HTML,
+      priority: 1000,
+    },
+    {
+      urlEndpoint: 'https://uniswap.org/',
+      responseCode: 200,
+      response: FAVICON_HTML,
+      priority: 1000,
+    },
+    {
+      urlEndpoint: 'https://app.uniswap.org/',
+      responseCode: 200,
+      response: FAVICON_HTML,
       priority: 1000,
     },
     {
@@ -122,6 +171,12 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
         ],
       ],
       priority: 1000,
+    },
+    {
+      urlEndpoint: /\/tokens\/search.*Ondo/,
+      responseCode: 200,
+      response: RWA_TOKENS_SEARCH_RESPONSE,
+      priority: 1001,
     },
     {
       urlEndpoint: /\/tokens\/search.*/,

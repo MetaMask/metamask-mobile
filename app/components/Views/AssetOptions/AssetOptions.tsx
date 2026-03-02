@@ -12,7 +12,7 @@ import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
 import Routes from '../../../constants/navigation/Routes';
 import { useStyles } from '../../../component-library/hooks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../locales/i18n';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import styleSheet from './AssetOptions.styles';
@@ -36,6 +36,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+import { isMusdToken } from '../../UI/Earn/constants/musd';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -130,7 +131,7 @@ const AssetOptions = (props: Props) => {
   }, [assets, networkId, address]);
 
   const explorer = useBlockExplorer(asset.chainId ?? networkId);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.onCloseBottomSheet(() => {
@@ -308,6 +309,7 @@ const AssetOptions = (props: Props) => {
         icon: IconName.DocumentCode,
       });
     !isNativeToken &&
+      !isMusdToken(address) &&
       tokenExistsInState &&
       options.push({
         label: strings('asset_details.options.remove_token'),

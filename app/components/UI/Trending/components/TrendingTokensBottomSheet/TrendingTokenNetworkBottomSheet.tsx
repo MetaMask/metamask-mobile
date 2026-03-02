@@ -3,7 +3,7 @@ import { StyleSheet, ScrollView } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Icon, {
   IconName,
   IconSize,
@@ -18,7 +18,6 @@ import Cell, {
 import { strings } from '../../../../../../locales/i18n';
 import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { CaipChainId } from '@metamask/utils';
-import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 
 export enum NetworkOption {
   AllNetworks = 'all',
@@ -29,6 +28,8 @@ export interface TrendingTokenNetworkBottomSheetProps {
   onClose: () => void;
   onNetworkSelect?: (chainIds: CaipChainId[] | null) => void;
   selectedNetwork?: CaipChainId[] | null;
+  /** Networks to display in the bottom sheet */
+  networks: ProcessedNetwork[];
 }
 
 const TrendingTokenNetworkBottomSheet: React.FC<
@@ -38,9 +39,9 @@ const TrendingTokenNetworkBottomSheet: React.FC<
   onClose,
   onNetworkSelect,
   selectedNetwork: initialSelectedNetwork,
+  networks,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const networks = TRENDING_NETWORKS_LIST;
 
   // Default to "All networks" if no selection
   const [selectedNetwork, setSelectedNetwork] = useState<
@@ -118,7 +119,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
       onClose={handleSheetClose}
       testID="trending-token-network-bottom-sheet"
     >
-      <HeaderCenter
+      <HeaderCompactStandard
         title={strings('trending.networks')}
         onClose={handleClose}
         closeButtonProps={{ testID: 'close-button' }}

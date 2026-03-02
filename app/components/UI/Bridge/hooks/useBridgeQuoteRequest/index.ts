@@ -12,23 +12,32 @@ import {
   selectSelectedDestChainId,
   selectSlippage,
   selectDestAddress,
-  selectGasIncludedQuoteParams,
 } from '../../../../../core/redux/slices/bridge';
+import {
+  selectGasIncludedQuoteParams,
+  selectSourceWalletAddress,
+} from '../../../../../selectors/bridge';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
 import { debounce } from 'lodash';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
-import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
+import { BigNumber } from 'ethers';
 
 export const DEBOUNCE_WAIT = 300;
+
+interface UseBridgeQuoteRequestOptions {
+  latestSourceAtomicBalance?: BigNumber;
+}
 
 /**
  * Hook for handling bridge quote request updates
  * @returns {Function} A debounced function to update quote parameters
  */
-export const useBridgeQuoteRequest = () => {
+export const useBridgeQuoteRequest = (
+  options: UseBridgeQuoteRequestOptions = {},
+) => {
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -37,17 +46,33 @@ export const useBridgeQuoteRequest = () => {
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
   const context = useUnifiedSwapBridgeContext();
+  const { latestSourceAtomicBalance } = options;
+  const hasLatestSourceBalanceOverride = 'latestSourceAtomicBalance' in options;
 
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-  });
+  const latestSourceBalance = useLatestBalance(
+    hasLatestSourceBalanceOverride
+      ? {}
+      : {
+          address: sourceToken?.address,
+          decimals: sourceToken?.decimals,
+          chainId: sourceToken?.chainId,
+          balance: sourceToken?.balance,
+        },
+  );
 
+  const sourceAtomicBalance = hasLatestSourceBalanceOverride
+    ? latestSourceAtomicBalance
+    : latestSourceBalance?.atomicBalance;
+
+  // Use simple balance check (ignoring gas fees) for quote requests to avoid circular dependencies.
+  // The full balance check with gas fees is used separately within the BridgeView to block user from executing
+  // the swap in insufficient balance.
+  // This prevents the infinite loop: quote request → gas data changes → insufficientBal changes → new quote request
   const insufficientBal = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
-    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    latestAtomicBalance: sourceAtomicBalance,
+    ignoreGasFees: true,
   });
 
   const { gasIncluded, gasIncluded7702 } = useSelector(

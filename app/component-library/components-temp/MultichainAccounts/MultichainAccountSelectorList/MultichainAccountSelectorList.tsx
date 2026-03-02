@@ -15,7 +15,6 @@ import { useStyles } from '../../../hooks';
 import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
 import TextFieldSearch from '../../../components/Form/TextFieldSearch';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectMultichainAccountsState1Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import AccountListHeader from './AccountListHeader';
 import AccountListCell from './AccountListCell';
@@ -31,10 +30,15 @@ import {
   MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID,
+  MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID,
 } from './MultichainAccountSelectorList.constants';
 import { strings } from '../../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import ExternalAccountCell from './ExternalAccountCell';
+import {
+  areAddressesEqual,
+  isAddressCompatibleWithChainId,
+} from '../../../../util/address';
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
@@ -53,9 +57,6 @@ const MultichainAccountSelectorList = ({
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
-  const isMultichainAccountsEnabled = useSelector(
-    selectMultichainAccountsState1Enabled,
-  );
   const accountSectionsFromSelector = useSelector(selectAccountGroupsByWallet);
   const accountSections = accountSectionsProp || accountSectionsFromSelector;
   const internalAccountsById = useSelector(selectInternalAccountsById);
@@ -108,11 +109,7 @@ const MultichainAccountSelectorList = ({
   );
 
   const walletSections = useMemo((): WalletSection[] => {
-    if (
-      !isMultichainAccountsEnabled ||
-      !accountSections ||
-      accountSections.length === 0
-    ) {
+    if (!accountSections || accountSections.length === 0) {
       return [];
     }
 
@@ -122,7 +119,7 @@ const MultichainAccountSelectorList = ({
       walletName: section.title,
       walletId: section.wallet.id,
     }));
-  }, [isMultichainAccountsEnabled, accountSections]);
+  }, [accountSections]);
 
   const filteredWalletSections = useMemo((): WalletSection[] => {
     if (!debouncedSearchText.trim()) {
@@ -139,15 +136,44 @@ const MultichainAccountSelectorList = ({
       .filter((section) => section.data.length > 0);
   }, [walletSections, debouncedSearchText, matchesSearch]);
 
+  const trimmedSearchText = useMemo(
+    () => debouncedSearchText.trim(),
+    [debouncedSearchText],
+  );
+
+  const shouldShowExternalAccount = useMemo(
+    () =>
+      Boolean(trimmedSearchText) &&
+      filteredWalletSections.length === 0 &&
+      showExternalAccountOnEmptySearch,
+    [
+      filteredWalletSections.length,
+      showExternalAccountOnEmptySearch,
+      trimmedSearchText,
+    ],
+  );
+
+  const isExternalAddressValid = useMemo(() => {
+    if (!shouldShowExternalAccount || !chainId) {
+      return true;
+    }
+    return isAddressCompatibleWithChainId(trimmedSearchText, chainId);
+  }, [chainId, shouldShowExternalAccount, trimmedSearchText]);
+
+  const shouldShowInvalidAddressError =
+    shouldShowExternalAccount && !isExternalAddressValid;
+
   const flattenedData = useMemo((): FlattenedMultichainAccountListItem[] => {
     const items: FlattenedMultichainAccountListItem[] = [];
 
     if (filteredWalletSections.length === 0) {
-      if (showExternalAccountOnEmptySearch) {
-        const address = debouncedSearchText.trim();
+      if (shouldShowExternalAccount) {
         items.push({
           type: 'external',
-          data: { address },
+          data: {
+            address: trimmedSearchText,
+            isValid: isExternalAddressValid,
+          },
         });
       }
       return items;
@@ -176,8 +202,9 @@ const MultichainAccountSelectorList = ({
     return items;
   }, [
     filteredWalletSections,
-    debouncedSearchText,
-    showExternalAccountOnEmptySearch,
+    isExternalAddressValid,
+    shouldShowExternalAccount,
+    trimmedSearchText,
   ]);
 
   // Track if we've done the initial scroll to selected item
@@ -301,8 +328,7 @@ const MultichainAccountSelectorList = ({
 
           case 'external': {
             const isSelected = selectedExternalAddress
-              ? item.data.address.toLowerCase() ===
-                selectedExternalAddress.toLowerCase()
+              ? areAddressesEqual(item.data.address, selectedExternalAddress)
               : false;
             return (
               <ExternalAccountCell
@@ -310,6 +336,7 @@ const MultichainAccountSelectorList = ({
                 onPress={() => handleSelectExternalAccount(item.data.address)}
                 chainId={chainId}
                 isSelected={isSelected}
+                isDisabled={!item.data.isValid}
               />
             );
           }
@@ -367,10 +394,10 @@ const MultichainAccountSelectorList = ({
 
   const emptyStateText = useMemo(
     () =>
-      debouncedSearchText.trim()
+      trimmedSearchText
         ? strings('accounts.no_accounts_found_for_search')
         : strings('accounts.no_accounts_found'),
-    [debouncedSearchText],
+    [trimmedSearchText],
   );
 
   return (
@@ -379,12 +406,22 @@ const MultichainAccountSelectorList = ({
         <TextFieldSearch
           value={searchText}
           onChangeText={setSearchText}
+          onPressClearButton={() => setSearchText('')}
           placeholder={strings('accounts.search_your_accounts')}
-          placeholderTextColor={styles.searchPlaceholderText.color}
           testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID}
           autoFocus={false}
-          style={styles.searchTextField}
+          isError={shouldShowInvalidAddressError}
         />
+        {shouldShowInvalidAddressError ? (
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Error}
+            style={styles.searchErrorText}
+            testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID}
+          >
+            {strings('bridge.invalid_recipient_address')}
+          </Text>
+        ) : null}
       </View>
       <View style={styles.listContainer} testID={testID}>
         {flattenedData.length === 0 ? (

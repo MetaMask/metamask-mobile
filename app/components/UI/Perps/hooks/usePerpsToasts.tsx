@@ -14,19 +14,22 @@ import { ButtonVariants } from '../../../../component-library/components/Buttons
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
+  ButtonIconVariant,
   ToastOptions,
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { capitalize } from '../../../../util/general';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { PerpsEventValues } from '../constants/eventNames';
-import { OrderDirection } from '../types/perps-types';
+import {
+  PERPS_EVENT_VALUE,
+  OrderDirection,
+  getPerpsDisplaySymbol,
+  type Position,
+} from '@metamask/perps-controller';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { handlePerpsError } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
-import { Position } from '../controllers/types';
-import { getPerpsDisplaySymbol } from '../utils/marketUtils';
 
 export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
   hapticsType: NotificationFeedbackType;
@@ -45,6 +48,8 @@ export interface PerpsToastOptionsConfig {
         processingTimeInSeconds: number | undefined,
         transactionId: string,
       ) => PerpsToastOptions;
+      takingLonger: PerpsToastOptions;
+      tradeCanceled: PerpsToastOptions;
       error: PerpsToastOptions;
     };
     oneClickTrade: {
@@ -74,6 +79,7 @@ export interface PerpsToastOptionsConfig {
       creationFailed: (error?: string) => PerpsToastOptions;
     };
     shared: {
+      submitting: () => PerpsToastOptions;
       cancellationInProgress: (
         direction: OrderDirection,
         amount: string,
@@ -271,6 +277,14 @@ const usePerpsToasts = (): {
         backgroundColor: theme.colors.accent01.light,
         hapticsType: NotificationFeedbackType.Error,
       },
+      warning: {
+        ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
+        variant: ToastVariants.Icon,
+        iconName: IconName.Warning,
+        iconColor: theme.colors.warning.default,
+        backgroundColor: theme.colors.warning.muted,
+        hapticsType: NotificationFeedbackType.Warning,
+      },
     }),
     [theme],
   );
@@ -298,7 +312,7 @@ const usePerpsToasts = (): {
         navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
           position,
           marketPrice,
-          source: PerpsEventValues.SOURCE.CLOSE_TOAST,
+          source: PERPS_EVENT_VALUE.SOURCE.CLOSE_TOAST,
         });
       },
     }),
@@ -393,6 +407,42 @@ const usePerpsToasts = (): {
               ),
               closeButtonOptions,
             };
+          },
+          takingLonger: {
+            ...perpsBaseToastOptions.warning,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.deposit.deposit_taking_longer'),
+            ),
+            hasNoTimeout: true,
+            closeButtonOptions: {
+              label: (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  style={{ color: theme.colors.error.default }}
+                >
+                  {strings('perps.deposit.cancel_trade')}
+                </Text>
+              ),
+              variant: ButtonVariants.Secondary,
+              style: { backgroundColor: theme.colors.background.muted },
+              onPress: () => {
+                /* no-op */
+              },
+            },
+          },
+          tradeCanceled: {
+            ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
+            variant: ToastVariants.Icon,
+            iconName: IconName.Warning,
+            iconColor: theme.colors.error.default,
+            backgroundColor: theme.colors.error.muted,
+            hapticsType: NotificationFeedbackType.Warning,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.deposit.trade_canceled'),
+            ),
+            descriptionOptions: {
+              description: strings('perps.deposit.funds_returned_to_account'),
+            },
           },
           error: {
             ...perpsBaseToastOptions.error,
@@ -537,6 +587,18 @@ const usePerpsToasts = (): {
         },
         // Used for both market and limit orders.
         shared: {
+          submitting: () => ({
+            ...perpsBaseToastOptions.inProgress,
+            hasNoTimeout: true,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.submitting_your_trade'),
+            ),
+            closeButtonOptions: {
+              variant: ButtonIconVariant.Icon,
+              iconName: IconName.Close,
+              onPress: () => toastRef?.current?.closeToast(),
+            },
+          }),
           cancellationInProgress: (
             direction: OrderDirection,
             amount: string,
@@ -929,9 +991,13 @@ const usePerpsToasts = (): {
       perpsBaseToastOptions.inProgress,
       perpsBaseToastOptions.info,
       perpsBaseToastOptions.success,
+      perpsBaseToastOptions.warning,
       perpsToastButtonOptions,
+      theme.colors.background.muted,
       theme.colors.error.default,
+      theme.colors.error.muted,
       theme.colors.success.default,
+      toastRef,
     ],
   );
 

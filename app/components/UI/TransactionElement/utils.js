@@ -35,8 +35,21 @@ import { calculateTotalGas, renderGwei } from './utils-gas';
 import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
 import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
 import { BigNumber } from 'bignumber.js';
+import {
+  convertMusdClaimAmount,
+  getClaimPayoutFromReceipt,
+} from '../Earn/utils/musd';
+import { store } from '../../../store';
+import {
+  selectConversionRateByChainId,
+  selectUSDConversionRateByChainId,
+} from '../../../selectors/currencyRateController';
+import { selectSingleTokenByAddressAndChainId } from '../../../selectors/tokensController';
+import { selectTickerByChainId } from '../../../selectors/networkController';
+import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 
 const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
+  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
@@ -179,7 +192,7 @@ function getTokenTransfer(args) {
 
   const signPrefix = isPositive ? '' : '- ';
 
-  const transactionElement = {
+  let transactionElement = {
     actionKey: renderActionKey,
     value: !renderTokenAmount
       ? strings('transaction.value_not_available')
@@ -189,6 +202,11 @@ function getTokenTransfer(args) {
     transactionType,
     nonce,
   };
+
+  const postQuoteDisplay = getPostQuoteDisplay(tx, currentCurrency);
+  if (postQuoteDisplay) {
+    transactionElement = { ...transactionElement, ...postQuoteDisplay };
+  }
 
   return [transactionElement, transactionDetails];
 }
@@ -206,6 +224,85 @@ function getMetamaskPayTargetFiat(tx, decimals) {
     .toFixed();
 
   return new BN(targetFiatNoDecimals);
+}
+
+// For post-quote predict withdrawals, derive the received token amount and
+// user-currency fiat from the USD targetFiat stored in metamaskPay.
+function getPostQuoteDisplay(tx, currentCurrency) {
+  const { metamaskPay } = tx ?? {};
+  if (
+    !hasTransactionType(tx, [TransactionType.predictWithdraw]) ||
+    !metamaskPay?.isPostQuote ||
+    !metamaskPay?.targetFiat
+  ) {
+    return undefined;
+  }
+
+  const destChainId = metamaskPay.chainId;
+  const fiatUsd = parseFloat(metamaskPay.targetFiat);
+
+  if (!destChainId || !Number.isFinite(fiatUsd) || fiatUsd <= 0) {
+    return undefined;
+  }
+
+  const state = store.getState();
+
+  const destToken = metamaskPay.tokenAddress
+    ? selectSingleTokenByAddressAndChainId(
+        state,
+        metamaskPay.tokenAddress,
+        destChainId,
+      )
+    : undefined;
+  const destSymbol =
+    destToken?.symbol ?? selectTickerByChainId(state, destChainId);
+
+  if (!destSymbol) {
+    return undefined;
+  }
+
+  const nativeUsdRate = selectUSDConversionRateByChainId(state, destChainId);
+  if (!nativeUsdRate) {
+    return undefined;
+  }
+
+  // For ERC-20 tokens, derive the token's USD price from its exchange rate
+  // relative to the native token. For native tokens, use the native USD rate directly.
+  let tokenUsdRate = nativeUsdRate;
+  if (metamaskPay.tokenAddress) {
+    let checksumAddress;
+    try {
+      checksumAddress = toChecksumAddress(metamaskPay.tokenAddress);
+    } catch {
+      return undefined;
+    }
+    const contractRates = selectContractExchangeRatesByChainId(
+      state,
+      destChainId,
+    );
+    const tokenExchangeRate = contractRates?.[checksumAddress]?.price;
+    if (!tokenExchangeRate) {
+      return undefined;
+    }
+    tokenUsdRate = tokenExchangeRate * nativeUsdRate;
+  }
+
+  const destRate = selectConversionRateByChainId(state, destChainId);
+  const isConverted = destRate && nativeUsdRate;
+  const receivedAmount = fiatUsd / tokenUsdRate;
+  const userFiat = isConverted ? fiatUsd * (destRate / nativeUsdRate) : fiatUsd;
+
+  if (!Number.isFinite(receivedAmount) || !Number.isFinite(userFiat)) {
+    return undefined;
+  }
+
+  return {
+    value: `${receivedAmount >= 1 ? receivedAmount.toFixed(2) : receivedAmount.toPrecision(4)} ${destSymbol}`,
+    fiatValue: addCurrencySymbol(
+      userFiat.toFixed(2),
+      isConverted ? currentCurrency : 'usd',
+    ),
+  };
 }
 
 function getCollectibleTransfer(args) {
@@ -818,6 +915,96 @@ function decodeConfirmTx(args) {
 }
 
 /**
+ * Decode musdClaim transaction for display in activity list
+ */
+function decodeMusdClaimTx(args) {
+  const {
+    tx: {
+      txParams,
+      txParams: { from, gas },
+      txReceipt,
+      hash,
+    },
+    txChainId,
+    conversionRate,
+    currencyRates,
+    currentCurrency,
+    primaryCurrency,
+    ticker,
+  } = args;
+
+  const totalGas = calculateTotalGas(txParams);
+  const renderFrom = renderFullAddress(from);
+
+  const claimAmountRaw = getClaimPayoutFromReceipt(txReceipt?.logs, from);
+
+  // Calculate display values
+  let renderClaimAmount = strings('transaction.value_not_available');
+  let renderClaimFiat;
+
+  if (claimAmountRaw) {
+    const nativeCurrency = ticker || 'ETH';
+    const usdConversionRate =
+      currencyRates?.[nativeCurrency]?.usdConversionRate ?? 0;
+
+    const { claimAmountDecimal, fiatValue, isConverted } =
+      convertMusdClaimAmount({
+        claimAmountRaw,
+        conversionRate,
+        usdConversionRate,
+      });
+
+    renderClaimAmount = `${claimAmountDecimal.toFixed(2)} mUSD`;
+    renderClaimFiat = addCurrencySymbol(
+      parseFloat(fiatValue.toFixed(2)),
+      isConverted ? currentCurrency : 'usd',
+    );
+  }
+
+  const transactionElement = {
+    renderFrom,
+    actionKey: strings('transactions.claim'),
+    value: renderClaimAmount,
+    fiatValue: renderClaimFiat,
+    transactionType: TRANSACTION_TYPES.RECEIVED_TOKEN,
+  };
+
+  let transactionDetails = {
+    renderFrom,
+    hash,
+    renderValue: renderClaimAmount,
+    renderGas: parseInt(gas, 16).toString(),
+    renderGasPrice: renderGwei(txParams),
+    renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
+    txChainId,
+  };
+
+  if (primaryCurrency === 'ETH') {
+    transactionDetails = {
+      ...transactionDetails,
+      summaryAmount: renderClaimAmount,
+      summaryFee: `${renderFromWei(totalGas)} ${ticker}`,
+      summarySecondaryTotalAmount: weiToFiat(
+        totalGas,
+        conversionRate,
+        currentCurrency,
+      ),
+      summaryTotalAmount: renderClaimAmount,
+    };
+  } else {
+    transactionDetails = {
+      ...transactionDetails,
+      summaryAmount: renderClaimFiat || renderClaimAmount,
+      summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
+      summarySecondaryTotalAmount: renderClaimAmount,
+      summaryTotalAmount: renderClaimFiat || renderClaimAmount,
+    };
+  }
+
+  return [transactionElement, transactionDetails];
+}
+
+/**
  * Parse transaction with wallet information to render
  *
  * @param {*} args - Should contain tx, selectedAddress, ticker, conversionRate,
@@ -861,6 +1048,7 @@ export default async function decodeTransaction(args) {
     });
   } else {
     switch (actionKey) {
+      case strings('transactions.tx_review_musd_conversion'):
       case strings('transactions.tx_review_perps_deposit'):
       case strings('transactions.tx_review_predict_deposit'):
       case strings('transactions.tx_review_predict_withdraw'):
@@ -879,6 +1067,12 @@ export default async function decodeTransaction(args) {
         break;
       case strings('transactions.contract_deploy'):
         [transactionElement, transactionDetails] = decodeDeploymentTx({
+          ...args,
+          actionKey,
+        });
+        break;
+      case TransactionType.musdClaim:
+        [transactionElement, transactionDetails] = decodeMusdClaimTx({
           ...args,
           actionKey,
         });

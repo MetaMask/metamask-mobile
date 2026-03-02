@@ -163,7 +163,6 @@ const slice = createSlice({
     resetAuthenticatedData: (state) => {
       state.authenticatedPriorityToken = null;
       state.authenticatedPriorityTokenLastFetched = null;
-      state.userCardLocation = 'international';
       state.isAuthenticated = false;
     },
     setCacheData: (
@@ -200,8 +199,9 @@ const slice = createSlice({
       })
       .addCase(verifyCardAuthentication.fulfilled, (state, action) => {
         state.isAuthenticated = action.payload.isAuthenticated;
-        state.userCardLocation =
-          action.payload.userCardLocation ?? 'international';
+        if (action.payload.userCardLocation) {
+          state.userCardLocation = action.payload.userCardLocation;
+        }
       })
       .addCase(verifyCardAuthentication.rejected, (state, action) => {
         Logger.log(
@@ -211,7 +211,6 @@ const slice = createSlice({
         state.isAuthenticated = false;
         state.authenticatedPriorityToken = null;
         state.authenticatedPriorityTokenLastFetched = null;
-        state.userCardLocation = 'international';
       });
   },
 });

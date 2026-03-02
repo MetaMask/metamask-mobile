@@ -22,7 +22,7 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
-const BUILDS_PATH = path.join(__dirname, '../.github/builds.yml');
+const BUILDS_PATH = path.join(__dirname, '../builds.yml');
 const BITRISE_PATH = path.join(__dirname, '../bitrise.yml');
 
 // Environment variables to verify (env section of builds.yml)
@@ -31,7 +31,7 @@ const ENV_VARS_TO_VERIFY = [
   'METAMASK_ENVIRONMENT',
   'METAMASK_BUILD_TYPE',
   // Server URLs
-  'PORTFOLIO_API_URL',
+  'MM_PORTFOLIO_URL',
   'SECURITY_ALERTS_API_URL',
   'DECODING_API_URL',
   'AUTH_SERVICE_URL',
@@ -152,7 +152,7 @@ function getBuildName(buildType, environment) {
  */
 function loadConfig(buildName) {
   if (!fs.existsSync(BUILDS_PATH)) {
-    throw new Error('.github/builds.yml not found');
+    throw new Error('builds.yml not found');
   }
 
   const config = yaml.load(fs.readFileSync(BUILDS_PATH, 'utf8'));
@@ -309,25 +309,6 @@ function verifyConfig(options = {}) {
       actual: 'undefined',
     });
     console.log(`   ❌ No code fencing defined in builds.yml`);
-  }
-
-  // Verify remote feature flags
-  console.log('\n🚩 Checking remote feature flags...');
-  if (config.remote_feature_flags) {
-    const flags = Object.keys(config.remote_feature_flags);
-    if (verbose) {
-      Object.entries(config.remote_feature_flags).forEach(([flag, value]) => {
-        console.log(`   ✅ ${flag}: ${value}`);
-      });
-    } else {
-      console.log(`   ✅ ${flags.length} remote feature flags configured`);
-    }
-  } else {
-    warnings.push({
-      key: 'remote_feature_flags',
-      reason: 'Not defined in builds.yml',
-    });
-    console.log(`   ⚠️  No remote feature flags defined`);
   }
 
   // REVERSE CHECK: Find Bitrise env vars NOT in builds.yml

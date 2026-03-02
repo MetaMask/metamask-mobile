@@ -2,8 +2,8 @@ import { strings } from '../../../../../locales/i18n';
 import {
   PERPS_ERROR_CODES,
   type PerpsErrorCode,
-} from '../controllers/perpsErrorCodes';
-import type { PerpsDebugLogger } from '../controllers/types';
+  type PerpsDebugLogger,
+} from '@metamask/perps-controller';
 
 /**
  * Optional debug logger for error handling functions.
@@ -83,6 +83,8 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.subscriptionClientNotAvailable',
   // Wallet/account errors
   [PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED]: 'perps.errors.noAccountSelected',
+  // Keyring locked errors are handled silently in ensure* methods; never shown to users
+  [PERPS_ERROR_CODES.KEYRING_LOCKED]: 'perps.errors.unknownError',
   [PERPS_ERROR_CODES.INVALID_ADDRESS_FORMAT]:
     'perps.errors.invalidAddressFormat',
   // Transfer/swap errors

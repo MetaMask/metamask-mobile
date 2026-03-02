@@ -1,6 +1,7 @@
 import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '.';
+import Engine from '../../../../../core/Engine';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { Hex } from '@metamask/utils';
 import { EthScope, SolScope, BtcScope } from '@metamask/keyring-api';
@@ -20,22 +21,18 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
 }));
 
-// Mock useMetrics hook
+// Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
-jest.mock('../../../../hooks/useMetrics', () => {
-  const actualMetrics = jest.requireActual('../../../../hooks/useMetrics');
-  return {
-    ...actualMetrics,
-    useMetrics: jest.fn(() => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    })),
-  };
-});
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  })),
+}));
 
 const mockGetIsBridgeEnabledSource = jest.fn(() => true);
 const mockSetIsDestTokenManuallySet = jest.fn();
@@ -90,6 +87,9 @@ jest.mock('../../../../../core/Engine', () => ({
       },
       MultichainNetworkController: {
         setActiveNetwork: jest.fn(),
+      },
+      BridgeController: {
+        setLocation: jest.fn(),
       },
     },
   },
@@ -163,6 +163,8 @@ describe('useSwapBridgeNavigation', () => {
       }),
       isDisabled: false,
       hasEnabledNetworks: true,
+      isNetworkEnabledForDefi: true,
+      hasMultipleNamespacesEnabled: false,
     });
 
     (isSolanaChainId as jest.Mock).mockReturnValue(false);
@@ -226,6 +228,7 @@ describe('useSwapBridgeNavigation', () => {
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -257,6 +260,7 @@ describe('useSwapBridgeNavigation', () => {
         sourceToken: mockToken,
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -296,6 +300,7 @@ describe('useSwapBridgeNavigation', () => {
         sourceToken: overrideToken,
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -344,6 +349,7 @@ describe('useSwapBridgeNavigation', () => {
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -366,6 +372,7 @@ describe('useSwapBridgeNavigation', () => {
         sourceToken: mockNativeAsset,
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -395,6 +402,8 @@ describe('useSwapBridgeNavigation', () => {
       }),
       isDisabled: false,
       hasEnabledNetworks: true,
+      isNetworkEnabledForDefi: true,
+      hasMultipleNamespacesEnabled: false,
     });
 
     (getNativeAssetForChainId as jest.Mock).mockReturnValue({
@@ -428,6 +437,7 @@ describe('useSwapBridgeNavigation', () => {
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -445,6 +455,8 @@ describe('useSwapBridgeNavigation', () => {
       }),
       isDisabled: false,
       hasEnabledNetworks: true,
+      isNetworkEnabledForDefi: true,
+      hasMultipleNamespacesEnabled: false,
     });
 
     const { result } = renderHookWithProvider(
@@ -471,6 +483,7 @@ describe('useSwapBridgeNavigation', () => {
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -494,6 +507,7 @@ describe('useSwapBridgeNavigation', () => {
           sourceToken: mockNativeAsset,
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -624,6 +638,7 @@ describe('useSwapBridgeNavigation', () => {
           sourceToken: sourceOverride,
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
       expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
@@ -733,6 +748,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
@@ -768,6 +785,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -782,6 +800,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
@@ -817,6 +837,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -833,6 +854,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(false);
@@ -868,6 +891,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -886,6 +910,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
@@ -921,6 +947,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -937,6 +964,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(false);
@@ -972,6 +1001,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -990,6 +1020,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
@@ -1025,6 +1057,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -1172,6 +1205,71 @@ describe('useSwapBridgeNavigation', () => {
         button_label: 'Swap',
         location: ActionLocation.ASSET_DETAILS,
       });
+    });
+  });
+
+  describe('skipLocationUpdate', () => {
+    it('calls setLocation by default', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenView,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(Engine.context.BridgeController.setLocation).toHaveBeenCalledWith(
+        'Token View',
+      );
+    });
+
+    it('does not call setLocation when skipLocationUpdate is true', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenView,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            skipLocationUpdate: true,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(
+        Engine.context.BridgeController.setLocation,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('still navigates and tracks events when skipLocationUpdate is true', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenView,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            skipLocationUpdate: true,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.objectContaining({
+          sourceToken: mockSourceToken,
+          sourcePage: mockSourcePage,
+          location: 'Token View',
+        }),
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

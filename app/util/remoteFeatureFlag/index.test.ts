@@ -210,6 +210,18 @@ describe('validatedVersionGatedFeatureFlag', () => {
       expect(result).toBe(true);
     });
 
+    it('returns true when flag is wrapped in a value property and version check passes', () => {
+      const wrappedFlag = {
+        value: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      };
+
+      const result = validatedVersionGatedFeatureFlag(wrappedFlag);
+      expect(result).toBe(true);
+    });
+
     it('returns false when flag is enabled but version check fails', () => {
       const flagWithHigherVersion: VersionGatedFeatureFlag = {
         enabled: true,
@@ -219,8 +231,32 @@ describe('validatedVersionGatedFeatureFlag', () => {
       expect(result).toBe(false);
     });
 
+    it('returns false when wrapped flag is enabled but version check fails', () => {
+      const wrappedFlag = {
+        value: {
+          enabled: true,
+          minimumVersion: '99.0.0',
+        },
+      };
+
+      const result = validatedVersionGatedFeatureFlag(wrappedFlag);
+      expect(result).toBe(false);
+    });
+
     it('returns false when flag is disabled regardless of version', () => {
       const result = validatedVersionGatedFeatureFlag(validDisabledFlag);
+      expect(result).toBe(false);
+    });
+
+    it('returns false when wrapped flag is disabled regardless of version', () => {
+      const wrappedFlag = {
+        value: {
+          enabled: false,
+          minimumVersion: '1.0.0',
+        },
+      };
+
+      const result = validatedVersionGatedFeatureFlag(wrappedFlag);
       expect(result).toBe(false);
     });
 
@@ -269,6 +305,27 @@ describe('validatedVersionGatedFeatureFlag', () => {
       const result = validatedVersionGatedFeatureFlag(
         undefined as unknown as VersionGatedFeatureFlag,
       );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when flag is wrapped but value is malformed', () => {
+      const wrappedMalformedFlag = {
+        value: {
+          enabled: 'true',
+          minimumVersion: '1.0.0',
+        },
+      };
+
+      const result = validatedVersionGatedFeatureFlag(wrappedMalformedFlag);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when flag is wrapped but value is missing', () => {
+      const wrappedMissingValueFlag = {
+        value: undefined,
+      };
+
+      const result = validatedVersionGatedFeatureFlag(wrappedMissingValueFlag);
       expect(result).toBeUndefined();
     });
 

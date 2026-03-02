@@ -21,6 +21,11 @@ import {
 } from './HeaderBase.constants';
 
 /**
+ * @deprecated Please update your code to use `HeaderBase` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/HeaderBase/README.md}
+ * @since @metamask/design-system-react-native@0.7.0
+ *
  * HeaderBase is a flexible header component that supports optional
  * start and end accessories with configurable alignment and text variants.
  */
@@ -120,7 +125,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   // Compact: fixed height, Display: content-based with no default styles
   const baseStyles = isLeftAligned
     ? 'flex-row items-center gap-4'
-    : 'flex-row items-center gap-4 h-14';
+    : 'flex-row items-center gap-4 min-h-14';
   const resolvedTwClassName = twClassName
     ? `${baseStyles} ${twClassName}`
     : baseStyles;

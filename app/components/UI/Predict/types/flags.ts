@@ -1,4 +1,5 @@
 import type { Hex } from '@metamask/utils';
+import { VersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 
 export interface PredictFeeCollection {
   enabled: boolean;
@@ -6,6 +7,8 @@ export interface PredictFeeCollection {
   metamaskFee: number;
   providerFee: number;
   waiveList: string[];
+  executors?: string[];
+  permit2Enabled?: boolean;
 }
 
 export interface PredictLiveSportsFlag {
@@ -18,7 +21,16 @@ export interface PredictMarketHighlight {
   markets: string[];
 }
 
-export interface PredictMarketHighlightsFlag {
-  enabled: boolean;
+export interface PredictMarketHighlightsFlag extends VersionGatedFeatureFlag {
   highlights: PredictMarketHighlight[];
+}
+
+export interface PredictFeatureFlags {
+  feeCollection: PredictFeeCollection;
+  liveSportsLeagues: string[];
+  marketHighlightsFlag: PredictMarketHighlightsFlag;
+}
+
+export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
+  queryParams?: string; // Raw query params WITHOUT leading &: "tag_id=149&tag_id=100995&order=volume24hr"
 }

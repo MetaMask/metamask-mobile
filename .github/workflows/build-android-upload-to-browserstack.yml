@@ -19,6 +19,11 @@ on:
         required: false
         type: string
         description: 'Branch name to use for builds (defaults to github.ref_name)'
+      build_variant:
+        required: false
+        type: string
+        description: 'Build variant for Bitrise (rc = release, exp = experimental)'
+        default: 'rc'
     outputs:
       with-srp-browserstack-url:
         description: 'BrowserStack URL for with-SRP version'
@@ -81,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [check-builds-needed]
     env:
-      METAMASK_WORKFLOW: build_android_main_rc
+      METAMASK_WORKFLOW: ${{ inputs.build_variant == 'exp' && 'build_android_main_exp' || 'build_android_main_rc' }}
     outputs:
       build-id: ${{ steps.trigger-build.outputs.build-id }}
       build-slug: ${{ steps.trigger-build.outputs.build-slug }}
@@ -218,7 +223,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [check-builds-needed]
     env:
-      METAMASK_WORKFLOW: build_android_main_rc
+      METAMASK_WORKFLOW: ${{ inputs.build_variant == 'exp' && 'build_android_main_exp' || 'build_android_main_rc' }}
     outputs:
       build-id: ${{ steps.trigger-build.outputs.build-id }}
       build-slug: ${{ steps.trigger-build.outputs.build-slug }}
@@ -372,12 +377,18 @@ jobs:
           # Initialize variables to avoid undefined references
           WITH_SRP_APP_URL=""
           WITHOUT_SRP_APP_URL=""
+          WITH_SRP_ERROR=""
+          WITHOUT_SRP_ERROR=""
           
           # Initialize upload status outputs
           {
             echo "with-srp-apk-uploaded=false"
             echo "without-srp-apk-uploaded=false"
           } >> "$GITHUB_OUTPUT"
+          
+          # Determine APK name pattern based on build variant (rc or exp)
+          BUILD_VARIANT="${{ inputs.build_variant || 'rc' }}"
+          echo "Build variant: $BUILD_VARIANT"
           
           # Get build IDs from job outputs
           WITH_SRP_BUILD_ID="${{ needs.trigger-android-with-srp-build.outputs.build-id }}"
@@ -403,98 +414,102 @@ jobs:
             
             # Validate JSON response
             if ! echo "$WITH_SRP_ARTIFACTS" | jq empty 2>/dev/null; then
-              echo "Error: Invalid JSON response from Bitrise API (HTTP $HTTP_STATUS)"
+              echo "❌ With-SRP: Invalid JSON response from Bitrise API (HTTP $HTTP_STATUS)"
               echo "Response (first 500 chars): ${WITH_SRP_ARTIFACTS:0:500}"
-              exit 1
+              WITH_SRP_ERROR="Invalid JSON response from Bitrise API"
             fi
             
-            # Debug: Show all artifact titles for troubleshooting
-            echo "All artifact titles:"
-            echo "$WITH_SRP_ARTIFACTS" | jq -r '.data[]?.title // empty' 2>/dev/null || echo "Could not extract titles"
-            
-            # Find the APK artifact - matches metamask-main-rc-[number].apk
-            # Pattern matches reference script: filter by artifact_type if available, then by title pattern
-            # Note: Without -r flag, this returns JSON object which we can parse again
-            WITH_SRP_APK_ARTIFACT=$(echo "$WITH_SRP_ARTIFACTS" | jq '.data[] | 
-              select((.artifact_type == "android-apk") or (.artifact_type | not)) | 
-              select(.title | endswith(".apk")) | 
-              select(.title | test("metamask-main-rc-[0-9]+\\.apk"))')
-            
-            if [[ -n "$WITH_SRP_APK_ARTIFACT" && "$WITH_SRP_APK_ARTIFACT" != "null" && "$WITH_SRP_APK_ARTIFACT" != "" ]]; then
-              WITH_SRP_APK_SLUG=$(echo "$WITH_SRP_APK_ARTIFACT" | jq -r '.slug')
+            if [ -z "$WITH_SRP_ERROR" ]; then
+              # Debug: Show all artifact titles for troubleshooting
+              echo "All artifact titles:"
+              echo "$WITH_SRP_ARTIFACTS" | jq -r '.data[]?.title // empty' 2>/dev/null || echo "Could not extract titles"
               
-              if [[ -z "$WITH_SRP_APK_SLUG" || "$WITH_SRP_APK_SLUG" == "null" ]]; then
-                echo "Error: Failed to extract APK slug from artifact"
-                echo "Artifact: $WITH_SRP_APK_ARTIFACT"
-                exit 1
+              # Find the APK artifact - matches metamask-main-<variant>-[number].apk
+              WITH_SRP_APK_ARTIFACT=$(echo "$WITH_SRP_ARTIFACTS" | jq --arg variant "$BUILD_VARIANT" '.data[] | 
+                select((.artifact_type == "android-apk") or (.artifact_type | not)) | 
+                select(.title | endswith(".apk")) | 
+                select(.title | test("metamask-main-" + $variant + "-[0-9]+\\.apk"))')
+              
+              echo "Looking for APK matching: metamask-main-${BUILD_VARIANT}-[0-9]+.apk"
+              
+              if [[ -n "$WITH_SRP_APK_ARTIFACT" && "$WITH_SRP_APK_ARTIFACT" != "null" && "$WITH_SRP_APK_ARTIFACT" != "" ]]; then
+                WITH_SRP_APK_SLUG=$(echo "$WITH_SRP_APK_ARTIFACT" | jq -r '.slug')
+                
+                if [[ -z "$WITH_SRP_APK_SLUG" || "$WITH_SRP_APK_SLUG" == "null" ]]; then
+                  WITH_SRP_ERROR="Failed to extract APK slug from artifact"
+                  echo "❌ With-SRP: $WITH_SRP_ERROR"
+                fi
+              else
+                WITH_SRP_ERROR="APK artifact not found (looking for metamask-main-${BUILD_VARIANT}-*.apk)"
+                echo "❌ With-SRP: $WITH_SRP_ERROR"
               fi
-              
+            fi
+            
+            if [ -z "$WITH_SRP_ERROR" ]; then
               WITH_SRP_DOWNLOAD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
                 "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITH_SRP_BUILD_ID/artifacts/$WITH_SRP_APK_SLUG")
               
-              # Validate JSON response
               if ! echo "$WITH_SRP_DOWNLOAD_RESPONSE" | jq empty 2>/dev/null; then
-                echo "Error: Invalid JSON response from Bitrise API for download URL"
-                echo "Response: $WITH_SRP_DOWNLOAD_RESPONSE"
-                exit 1
-              fi
-              
-              WITH_SRP_DOWNLOAD_URL=$(echo "$WITH_SRP_DOWNLOAD_RESPONSE" | jq -r '.data.expiring_download_url // empty')
-              
-              if [[ -n "$WITH_SRP_DOWNLOAD_URL" && "$WITH_SRP_DOWNLOAD_URL" != "null" ]]; then
-                echo "Downloading with-SRP APK..."
-                DOWNLOAD_SUCCESS=false
-                if command -v wget >/dev/null 2>&1; then
-                  if wget -O "metamask-android-with-srp.apk" "$WITH_SRP_DOWNLOAD_URL" 2>&1; then
-                    DOWNLOAD_SUCCESS=true
+                WITH_SRP_ERROR="Invalid JSON response from Bitrise API for download URL"
+                echo "❌ With-SRP: $WITH_SRP_ERROR"
+              else
+                WITH_SRP_DOWNLOAD_URL=$(echo "$WITH_SRP_DOWNLOAD_RESPONSE" | jq -r '.data.expiring_download_url // empty')
+                
+                if [[ -n "$WITH_SRP_DOWNLOAD_URL" && "$WITH_SRP_DOWNLOAD_URL" != "null" ]]; then
+                  echo "Downloading with-SRP APK..."
+                  DOWNLOAD_SUCCESS=false
+                  if command -v wget >/dev/null 2>&1; then
+                    if wget -O "metamask-android-with-srp.apk" "$WITH_SRP_DOWNLOAD_URL" 2>&1; then
+                      DOWNLOAD_SUCCESS=true
+                    else
+                      echo "wget failed, trying curl..."
+                      if curl -L -f -o "metamask-android-with-srp.apk" "$WITH_SRP_DOWNLOAD_URL" 2>&1; then
+                        DOWNLOAD_SUCCESS=true
+                      fi
+                    fi
                   else
-                    echo "wget failed, trying curl..."
+                    echo "Using curl to download APK..."
                     if curl -L -f -o "metamask-android-with-srp.apk" "$WITH_SRP_DOWNLOAD_URL" 2>&1; then
                       DOWNLOAD_SUCCESS=true
                     fi
                   fi
-                else
-                  echo "Using curl to download APK..."
-                  if curl -L -f -o "metamask-android-with-srp.apk" "$WITH_SRP_DOWNLOAD_URL" 2>&1; then
-                    DOWNLOAD_SUCCESS=true
+                  
+                  if [[ "$DOWNLOAD_SUCCESS" != "true" ]] || [[ ! -f "metamask-android-with-srp.apk" ]]; then
+                    WITH_SRP_ERROR="Failed to download with-SRP APK"
+                    echo "❌ With-SRP: $WITH_SRP_ERROR"
+                  else
+                    echo "APK downloaded successfully. File size: $(du -h metamask-android-with-srp.apk | cut -f1)"
+                    
+                    # Upload to BrowserStack
+                    echo "Uploading with-SRP APK to BrowserStack..."
+                    WITH_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                      -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+                      -F "file=@metamask-android-with-srp.apk" \
+                      -F "custom_id=MetaMask-Android-With-SRP-${{ github.run_id }}")
+                    
+                    WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url')
+                    WITH_SRP_APP_ID=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_id')
+                    
+                    echo "With-SRP APK uploaded successfully"
+                    echo "  App URL: $WITH_SRP_APP_URL"
+                    echo "  App ID: $WITH_SRP_APP_ID"
+                    
+                    {
+                      echo "with-srp-browserstack-url=$WITH_SRP_APP_URL"
+                      echo "with-srp-app-id=$WITH_SRP_APP_ID"
+                      echo "with-srp-version=Bitrise-Build"
+                      echo "with-srp-apk-uploaded=true"
+                    } >> "$GITHUB_OUTPUT"
                   fi
+                else
+                  WITH_SRP_ERROR="Failed to get with-SRP APK download URL"
+                  echo "❌ With-SRP: $WITH_SRP_ERROR"
                 fi
-                
-                if [[ "$DOWNLOAD_SUCCESS" != "true" ]] || [[ ! -f "metamask-android-with-srp.apk" ]]; then
-                  echo "Error: Failed to download with-SRP APK"
-                  exit 1
-                fi
-                
-                echo "APK downloaded successfully. File size: $(du -h metamask-android-with-srp.apk | cut -f1)"
-                
-                # Upload to BrowserStack
-                echo "Uploading with-SRP APK to BrowserStack..."
-                WITH_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
-                  -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
-                  -F "file=@metamask-android-with-srp.apk" \
-                  -F "custom_id=MetaMask-Android-With-SRP-${{ github.run_id }}")
-                
-                WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url')
-                WITH_SRP_APP_ID=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_id')
-                
-                echo "With-SRP APK uploaded successfully"
-                echo "  App URL: $WITH_SRP_APP_URL"
-                echo "  App ID: $WITH_SRP_APP_ID"
-                
-                {
-                  echo "with-srp-browserstack-url=$WITH_SRP_APP_URL"
-                  echo "with-srp-app-id=$WITH_SRP_APP_ID"
-                  echo "with-srp-version=Bitrise-Build"
-                  echo "with-srp-apk-uploaded=true"
-                } >> "$GITHUB_OUTPUT"
-              else
-                echo "Failed to get with-SRP APK download URL"
               fi
-            else
-              echo "With-SRP APK artifact not found (looking for metamask-main-rc-*.apk)"
             fi
           else
-            echo "With-SRP build ID not available"
+            WITH_SRP_ERROR="Build ID not available"
+            echo "❌ With-SRP: $WITH_SRP_ERROR"
           fi
           
           # Download without-SRP APK
@@ -514,108 +529,121 @@ jobs:
             
             # Validate JSON response
             if ! echo "$WITHOUT_SRP_ARTIFACTS" | jq empty 2>/dev/null; then
-              echo "Error: Invalid JSON response from Bitrise API (HTTP $HTTP_STATUS)"
+              echo "❌ Without-SRP: Invalid JSON response from Bitrise API (HTTP $HTTP_STATUS)"
               echo "Response (first 500 chars): ${WITHOUT_SRP_ARTIFACTS:0:500}"
-              exit 1
+              WITHOUT_SRP_ERROR="Invalid JSON response from Bitrise API"
             fi
             
-            # Debug: Show all artifact titles for troubleshooting
-            echo "All artifact titles:"
-            echo "$WITHOUT_SRP_ARTIFACTS" | jq -r '.data[]?.title // empty' 2>/dev/null || echo "Could not extract titles"
-            
-            # Find the APK artifact - matches metamask-main-rc-[number].apk
-            # Pattern matches reference script: filter by artifact_type if available, then by title pattern
-            # Note: Without -r flag, this returns JSON object which we can parse again
-            WITHOUT_SRP_APK_ARTIFACT=$(echo "$WITHOUT_SRP_ARTIFACTS" | jq '.data[] | 
-              select((.artifact_type == "android-apk") or (.artifact_type | not)) | 
-              select(.title | endswith(".apk")) | 
-              select(.title | test("metamask-main-rc-[0-9]+\\.apk"))')
-            
-            if [[ -n "$WITHOUT_SRP_APK_ARTIFACT" && "$WITHOUT_SRP_APK_ARTIFACT" != "null" && "$WITHOUT_SRP_APK_ARTIFACT" != "" ]]; then
-              WITHOUT_SRP_APK_SLUG=$(echo "$WITHOUT_SRP_APK_ARTIFACT" | jq -r '.slug')
+            if [ -z "$WITHOUT_SRP_ERROR" ]; then
+              # Debug: Show all artifact titles for troubleshooting
+              echo "All artifact titles:"
+              echo "$WITHOUT_SRP_ARTIFACTS" | jq -r '.data[]?.title // empty' 2>/dev/null || echo "Could not extract titles"
               
-              if [[ -z "$WITHOUT_SRP_APK_SLUG" || "$WITHOUT_SRP_APK_SLUG" == "null" ]]; then
-                echo "Error: Failed to extract APK slug from artifact"
-                echo "Artifact: $WITHOUT_SRP_APK_ARTIFACT"
-                exit 1
+              # Find the APK artifact - matches metamask-main-<variant>-[number].apk
+              WITHOUT_SRP_APK_ARTIFACT=$(echo "$WITHOUT_SRP_ARTIFACTS" | jq --arg variant "$BUILD_VARIANT" '.data[] | 
+                select((.artifact_type == "android-apk") or (.artifact_type | not)) | 
+                select(.title | endswith(".apk")) | 
+                select(.title | test("metamask-main-" + $variant + "-[0-9]+\\.apk"))')
+              
+              echo "Looking for APK matching: metamask-main-${BUILD_VARIANT}-[0-9]+.apk"
+              
+              if [[ -n "$WITHOUT_SRP_APK_ARTIFACT" && "$WITHOUT_SRP_APK_ARTIFACT" != "null" && "$WITHOUT_SRP_APK_ARTIFACT" != "" ]]; then
+                WITHOUT_SRP_APK_SLUG=$(echo "$WITHOUT_SRP_APK_ARTIFACT" | jq -r '.slug')
+                
+                if [[ -z "$WITHOUT_SRP_APK_SLUG" || "$WITHOUT_SRP_APK_SLUG" == "null" ]]; then
+                  WITHOUT_SRP_ERROR="Failed to extract APK slug from artifact"
+                  echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
+                fi
+              else
+                WITHOUT_SRP_ERROR="APK artifact not found (looking for metamask-main-${BUILD_VARIANT}-*.apk)"
+                echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
               fi
-              
+            fi
+            
+            if [ -z "$WITHOUT_SRP_ERROR" ]; then
               WITHOUT_SRP_DOWNLOAD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
                 "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITHOUT_SRP_BUILD_ID/artifacts/$WITHOUT_SRP_APK_SLUG")
               
-              # Validate JSON response
               if ! echo "$WITHOUT_SRP_DOWNLOAD_RESPONSE" | jq empty 2>/dev/null; then
-                echo "Error: Invalid JSON response from Bitrise API for download URL"
-                echo "Response: $WITHOUT_SRP_DOWNLOAD_RESPONSE"
-                exit 1
-              fi
-              
-              WITHOUT_SRP_DOWNLOAD_URL=$(echo "$WITHOUT_SRP_DOWNLOAD_RESPONSE" | jq -r '.data.expiring_download_url // empty')
-              
-              if [[ -n "$WITHOUT_SRP_DOWNLOAD_URL" && "$WITHOUT_SRP_DOWNLOAD_URL" != "null" ]]; then
-                echo "Downloading without-SRP APK..."
-                DOWNLOAD_SUCCESS=false
-                if command -v wget >/dev/null 2>&1; then
-                  if wget -O "metamask-android-without-srp.apk" "$WITHOUT_SRP_DOWNLOAD_URL" 2>&1; then
-                    DOWNLOAD_SUCCESS=true
+                WITHOUT_SRP_ERROR="Invalid JSON response from Bitrise API for download URL"
+                echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
+              else
+                WITHOUT_SRP_DOWNLOAD_URL=$(echo "$WITHOUT_SRP_DOWNLOAD_RESPONSE" | jq -r '.data.expiring_download_url // empty')
+                
+                if [[ -n "$WITHOUT_SRP_DOWNLOAD_URL" && "$WITHOUT_SRP_DOWNLOAD_URL" != "null" ]]; then
+                  echo "Downloading without-SRP APK..."
+                  DOWNLOAD_SUCCESS=false
+                  if command -v wget >/dev/null 2>&1; then
+                    if wget -O "metamask-android-without-srp.apk" "$WITHOUT_SRP_DOWNLOAD_URL" 2>&1; then
+                      DOWNLOAD_SUCCESS=true
+                    else
+                      echo "wget failed, trying curl..."
+                      if curl -L -f -o "metamask-android-without-srp.apk" "$WITHOUT_SRP_DOWNLOAD_URL" 2>&1; then
+                        DOWNLOAD_SUCCESS=true
+                      fi
+                    fi
                   else
-                    echo "wget failed, trying curl..."
+                    echo "Using curl to download APK..."
                     if curl -L -f -o "metamask-android-without-srp.apk" "$WITHOUT_SRP_DOWNLOAD_URL" 2>&1; then
                       DOWNLOAD_SUCCESS=true
                     fi
                   fi
-                else
-                  echo "Using curl to download APK..."
-                  if curl -L -f -o "metamask-android-without-srp.apk" "$WITHOUT_SRP_DOWNLOAD_URL" 2>&1; then
-                    DOWNLOAD_SUCCESS=true
+                  
+                  if [[ "$DOWNLOAD_SUCCESS" != "true" ]] || [[ ! -f "metamask-android-without-srp.apk" ]]; then
+                    WITHOUT_SRP_ERROR="Failed to download without-SRP APK"
+                    echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
+                  else
+                    echo "APK downloaded successfully. File size: $(du -h metamask-android-without-srp.apk | cut -f1)"
+                    
+                    # Upload to BrowserStack
+                    echo "Uploading without-SRP APK to BrowserStack..."
+                    WITHOUT_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                      -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+                      -F "file=@metamask-android-without-srp.apk" \
+                      -F "custom_id=MetaMask-Android-Without-SRP-${{ github.run_id }}")
+                    
+                    WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url')
+                    WITHOUT_SRP_APP_ID=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_id')
+                    
+                    echo "Without-SRP APK uploaded successfully"
+                    echo "App URL: $WITHOUT_SRP_APP_URL"
+                    echo "App ID: $WITHOUT_SRP_APP_ID"
+                    
+                    {
+                      echo "without-srp-browserstack-url=$WITHOUT_SRP_APP_URL"
+                      echo "without-srp-app-id=$WITHOUT_SRP_APP_ID"
+                      echo "without-srp-version=Bitrise-Build"
+                      echo "without-srp-apk-uploaded=true"
+                    } >> "$GITHUB_OUTPUT"
                   fi
+                else
+                  WITHOUT_SRP_ERROR="Failed to get without-SRP APK download URL"
+                  echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
                 fi
-                
-                if [[ "$DOWNLOAD_SUCCESS" != "true" ]] || [[ ! -f "metamask-android-without-srp.apk" ]]; then
-                  echo "Error: Failed to download without-SRP APK"
-                  exit 1
-                fi
-                
-                echo "APK downloaded successfully. File size: $(du -h metamask-android-without-srp.apk | cut -f1)"
-                
-                # Upload to BrowserStack
-                echo "Uploading without-SRP APK to BrowserStack..."
-                WITHOUT_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
-                  -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
-                  -F "file=@metamask-android-without-srp.apk" \
-                  -F "custom_id=MetaMask-Android-Without-SRP-${{ github.run_id }}")
-                
-                WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url')
-                WITHOUT_SRP_APP_ID=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_id')
-                
-                echo "Without-SRP APK uploaded successfully"
-                echo "App URL: $WITHOUT_SRP_APP_URL"
-                echo "App ID: $WITHOUT_SRP_APP_ID"
-                
-                {
-                  echo "without-srp-browserstack-url=$WITHOUT_SRP_APP_URL"
-                  echo "without-srp-app-id=$WITHOUT_SRP_APP_ID"
-                  echo "without-srp-version=Bitrise-Build"
-                  echo "without-srp-apk-uploaded=true"
-                } >> "$GITHUB_OUTPUT"
-              else
-                echo "Failed to get without-SRP APK download URL"
               fi
-            else
-              echo "Without-SRP APK artifact not found (looking for metamask-main-rc-*.apk)"
             fi
           else
-            echo "Without-SRP build ID not available"
+            WITHOUT_SRP_ERROR="Build ID not available"
+            echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
           fi
           
-          echo "BrowserStack upload process completed!"
+          # Summary
+          echo ""
+          echo "=== BrowserStack Upload Summary ==="
           if [[ -n "$WITH_SRP_APP_URL" ]]; then
-            echo "With-SRP URL: $WITH_SRP_APP_URL"
+            echo "✅ With-SRP URL: $WITH_SRP_APP_URL"
           else
-            echo "With-SRP URL: (not uploaded)"
+            echo "❌ With-SRP: FAILED - ${WITH_SRP_ERROR:-unknown error}"
           fi
           if [[ -n "$WITHOUT_SRP_APP_URL" ]]; then
-            echo "Without-SRP URL: $WITHOUT_SRP_APP_URL"
+            echo "✅ Without-SRP URL: $WITHOUT_SRP_APP_URL"
           else
-            echo "Without-SRP URL: (not uploaded)"
+            echo "❌ Without-SRP: FAILED - ${WITHOUT_SRP_ERROR:-unknown error}"
+          fi
+          
+          # Fail the step only if BOTH uploads failed
+          if [[ -z "$WITH_SRP_APP_URL" && -z "$WITHOUT_SRP_APP_URL" ]]; then
+            echo ""
+            echo "❌ Both APK uploads failed. Failing step."
+            exit 1
           fi

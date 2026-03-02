@@ -7,7 +7,7 @@ import { updateSelectedGasFeeToken } from '../../../../../../util/transaction-co
 import BottomModal from '../../UI/bottom-modal';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
-import HeaderCenter from '../../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import styleSheet from './gas-fee-token-modal.styles';
 import { GasFeeTokenListItem } from '../gas-fee-token-list-item';
 import { Hex } from '@metamask/utils';
@@ -56,7 +56,7 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
       }
     >
       <View style={styles.modalContainer}>
-        <HeaderCenter
+        <HeaderCompactStandard
           title={strings('gas_fee_token_modal.title')}
           onClose={onClose}
           closeButtonProps={{ testID: 'close-button' }}

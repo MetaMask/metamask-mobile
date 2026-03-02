@@ -3,15 +3,47 @@ import { ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
-  Icon,
-  IconColor,
-  IconSize,
+  Icon as DSIcon,
+  IconColor as DSIconColor,
+  IconSize as DSIconSize,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import LocalIcon, {
+  IconColor as LocalIconColor,
+  IconSize as LocalIconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SECTIONS_ARRAY, SectionId } from '../../sections.config';
+import {
+  useSectionsArray,
+  SectionId,
+  type SectionIcon,
+} from '../../sections.config';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
+
+const SectionIconRenderer: React.FC<{
+  icon: SectionIcon;
+  style?: object;
+}> = ({ icon, style }) => {
+  if (icon.source === 'design-system') {
+    return (
+      <DSIcon
+        name={icon.name}
+        size={DSIconSize.Md}
+        color={DSIconColor.IconAlternative}
+        style={style}
+      />
+    );
+  }
+  return (
+    <LocalIcon
+      name={icon.name}
+      size={LocalIconSize.Md}
+      color={LocalIconColor.Alternative}
+      style={style}
+    />
+  );
+};
 
 interface QuickActionsProps {
   /** Set of section IDs that have empty data and should be hidden */
@@ -26,10 +58,9 @@ interface QuickActionsProps {
 const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const sectionsArray = useSectionsArray();
 
-  const visibleSections = SECTIONS_ARRAY.filter(
-    (s) => !emptySections.has(s.id),
-  );
+  const visibleSections = sectionsArray.filter((s) => !emptySections.has(s.id));
 
   return (
     <Box twClassName="mt-1 mb-4">
@@ -48,10 +79,8 @@ const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
                 'flex-row items-center justify-center gap-1 rounded-xl bg-background-section px-3 py-2',
               )}
             >
-              <Icon
-                name={section.icon}
-                size={IconSize.Md}
-                color={IconColor.IconAlternative}
+              <SectionIconRenderer
+                icon={section.icon}
                 style={tw.style('-ml-1')}
               />
               <Text variant={TextVariant.BodySm}>{section.title}</Text>

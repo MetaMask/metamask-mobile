@@ -395,14 +395,13 @@ export const BridgeTransactionDetails = (
             onPress={() => {
               // For swaps, go directly to block explorer web view
               if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
-                navigation.navigate(Routes.BROWSER.HOME, {
-                  screen: Routes.BROWSER.VIEW,
+                navigation.navigate(Routes.WEBVIEW.MAIN, {
+                  screen: Routes.WEBVIEW.SIMPLE,
                   params: {
-                    newTabUrl: swapSrcExplorerData.explorerTxUrl,
-                    timestamp: Date.now(),
+                    url: swapSrcExplorerData.explorerTxUrl,
                   },
                 });
-              } else {
+              } else if (isBridge) {
                 // For bridges, show the modal with both explorers
                 navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
                   screen:

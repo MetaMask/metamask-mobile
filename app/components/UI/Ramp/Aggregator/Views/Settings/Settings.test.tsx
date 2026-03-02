@@ -1,6 +1,9 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import Settings from './Settings';
+import Settings, {
+  RAMP_SETTINGS_BACK_BUTTON_TEST_ID,
+  RAMP_SETTINGS_HEADER_TEST_ID,
+} from './Settings';
 import useActivationKeys from '../../hooks/useActivationKeys';
 import { RampSDK, withRampSDK } from '../../sdk';
 import { ActivationKey } from '../../../../../../reducers/fiatOrders/types';
@@ -30,7 +33,7 @@ function render(Component: React.ComponentType) {
 }
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -38,9 +41,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions.mockImplementation(
-        actualReactNavigation.useNavigation().setOptions,
-      ),
+      goBack: mockGoBack,
     }),
   };
 });
@@ -85,7 +86,6 @@ jest.mock('../../hooks/useActivationKeys', () =>
 );
 
 const mockSetUserRegion = jest.fn();
-const mockFetchUserRegion = jest.fn();
 const mockSetSelectedProvider = jest.fn();
 
 const createMockUserRegion = (regionCode: string): UserRegion => {
@@ -117,10 +117,7 @@ const mockUseRampsControllerInitialValues: ReturnType<
   typeof useRampsController
 > = {
   userRegion: createMockUserRegion('eu'),
-  userRegionLoading: false,
-  userRegionError: null,
   setUserRegion: mockSetUserRegion,
-  fetchUserRegion: mockFetchUserRegion,
   selectedProvider: null,
   setSelectedProvider: mockSetSelectedProvider,
   providers: [],
@@ -139,6 +136,14 @@ const mockUseRampsControllerInitialValues: ReturnType<
   setSelectedPaymentMethod: jest.fn(),
   paymentMethodsLoading: false,
   paymentMethodsError: null,
+  getQuotes: jest.fn(),
+  getWidgetUrl: jest.fn(),
+  orders: [],
+  getOrderById: jest.fn(),
+  addOrder: jest.fn(),
+  removeOrder: jest.fn(),
+  refreshOrder: jest.fn(),
+  getOrderFromCallback: jest.fn(),
 };
 
 let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;
@@ -195,6 +200,19 @@ describe('Settings', () => {
     render(Settings);
     expect(screen.toJSON()).toMatchSnapshot();
     expect(withRampSDK).toHaveBeenCalled();
+  });
+
+  it('renders inline header with title Buy & sell crypto', () => {
+    render(Settings);
+    expect(screen.getByText('Buy & sell crypto')).toBeOnTheScreen();
+    expect(screen.getByTestId(RAMP_SETTINGS_HEADER_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('navigates back when header back button is pressed', () => {
+    render(Settings);
+    const backButton = screen.getByTestId(RAMP_SETTINGS_BACK_BUTTON_TEST_ID);
+    fireEvent.press(backButton);
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('renders correctly for internal builds', () => {

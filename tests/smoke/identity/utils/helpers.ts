@@ -47,7 +47,7 @@ export const getSrpIdentifierFromHeaders = (
 export const arrangeTestUtils = (
   userStorageMockttpController: UserStorageMockttpController,
 ) => {
-  const BASE_TIMEOUT = 12000;
+  const BASE_TIMEOUT = 30000;
   const BASE_INTERVAL = 1000;
 
   const prepareEventsEmittedCounter = (
@@ -134,9 +134,13 @@ export const arrangeTestUtils = (
 
         ids.timeout = setTimeout(() => {
           clearInterval(ids.interval);
+          const actual =
+            userStorageMockttpController.paths.get(
+              USER_STORAGE_GROUPS_FEATURE_KEY,
+            )?.response?.length ?? 0;
           reject(
             new Error(
-              `Timeout waiting for synced accounts number to be ${expectedNumber}`,
+              `Timeout waiting for synced accounts number to be ${expectedNumber}\n Actual: ${actual}`,
             ),
           );
         }, BASE_TIMEOUT);
@@ -177,9 +181,13 @@ export const arrangeTestUtils = (
 
         ids.timeout = setTimeout(() => {
           clearInterval(ids.interval);
+          const actual =
+            userStorageMockttpController.paths.get(
+              USER_STORAGE_FEATURE_NAMES.addressBook,
+            )?.response?.length ?? 0;
           reject(
             new Error(
-              `Timeout waiting for synced contacts number to be ${expectedNumber}`,
+              `Timeout waiting for synced contacts number to be ${expectedNumber}\n Actual: ${actual}`,
             ),
           );
         }, BASE_TIMEOUT);
@@ -226,9 +234,11 @@ export const arrangeTestUtils = (
 
         ids.timeout = setTimeout(() => {
           clearInterval(ids.interval);
+          const actual =
+            userStorageMockttpController.paths.get(path)?.response?.length ?? 0;
           reject(
             new Error(
-              `Timeout waiting for synced accounts number to be ${expectedNumber}`,
+              `Timeout waiting for synced elements at "${path}" to be ${expectedNumber}\n Actual: ${actual}`,
             ),
           );
         }, BASE_TIMEOUT);

@@ -43,6 +43,7 @@ describe('getDepositAnalyticsPayload', () => {
       currency_destination_symbol: 'USDC',
       currency_destination_network: 'Ethereum',
       currency_source: 'USD',
+      provider_onramp: 'TRANSAK',
     });
   });
 
@@ -78,6 +79,7 @@ describe('getDepositAnalyticsPayload', () => {
       currency_destination_network: 'Ethereum',
       currency_source: 'USD',
       error_message: 'Payment failed',
+      provider_onramp: 'TRANSAK',
     });
   });
 
@@ -109,6 +111,7 @@ describe('getDepositAnalyticsPayload', () => {
       currency_destination_network: 'Ethereum',
       currency_source: 'USD',
       error_message: 'transaction_failed',
+      provider_onramp: 'TRANSAK',
     });
   });
 
@@ -147,6 +150,7 @@ describe('getDepositAnalyticsPayload', () => {
       currency_destination_symbol: 'USDC',
       currency_destination_network: 'Ethereum',
       currency_source: 'USD',
+      provider_onramp: 'TRANSAK',
     });
   });
 
@@ -243,6 +247,7 @@ describe('getDepositAnalyticsPayload', () => {
       currency_destination_symbol: 'USDC',
       currency_destination_network: 'Ethereum',
       currency_source: 'USD',
+      provider_onramp: 'TRANSAK',
     });
   });
 
@@ -276,6 +281,7 @@ describe('getDepositAnalyticsPayload', () => {
       currency_destination_symbol: 'USDC',
       currency_destination_network: 'Ethereum',
       currency_source: 'USD',
+      provider_onramp: 'TRANSAK',
     });
   });
 
@@ -309,6 +315,7 @@ describe('getDepositAnalyticsPayload', () => {
       currency_destination_network: 'Ethereum',
       currency_destination_symbol: 'USDC',
       currency_source: 'USD',
+      provider_onramp: 'TRANSAK',
     });
   });
 });

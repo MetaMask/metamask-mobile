@@ -75,3 +75,25 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
   </View>
 </TouchableOpacity>
 `;
+
+exports[`PaymentMethodPill when isLoading is true matches snapshot when loading 1`] = `
+<View
+  style={
+    [
+      {
+        "alignItems": "center",
+        "alignSelf": "center",
+        "backgroundColor": "#3c4d9d0f",
+        "borderRadius": 100,
+        "flexDirection": "row",
+        "padding": 8,
+      },
+      {
+        "justifyContent": "center",
+        "minWidth": 120,
+      },
+    ]
+  }
+  testID="payment-method-pill"
+/>
+`;

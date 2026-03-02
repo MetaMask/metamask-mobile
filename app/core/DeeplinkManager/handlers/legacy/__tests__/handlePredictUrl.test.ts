@@ -168,6 +168,153 @@ describe('handlePredictUrl', () => {
         },
       });
     });
+
+    it('navigates to market list with tab parameter when provided', async () => {
+      await handlePredictUrl({ predictPath: '?tab=crypto' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          tab: 'crypto',
+        },
+      });
+    });
+
+    it('ignores invalid tab parameter and falls back to default list params', async () => {
+      await handlePredictUrl({ predictPath: '?tab=invalid' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+        },
+      });
+    });
+
+    it('navigates to market list with hot tab parameter', async () => {
+      await handlePredictUrl({ predictPath: '?tab=hot' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          tab: 'hot',
+        },
+      });
+    });
+
+    it('normalizes uppercase tab parameter to lowercase', async () => {
+      await handlePredictUrl({ predictPath: '?tab=CRYPTO' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          tab: 'crypto',
+        },
+      });
+    });
+
+    it('ignores tab parameter when market parameter is present', async () => {
+      await handlePredictUrl({ predictPath: '?market=123&tab=crypto' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '123',
+          entryPoint: 'deeplink',
+        },
+      });
+    });
+  });
+
+  describe('with query parameter', () => {
+    it('navigates to market list with query parameter', async () => {
+      await handlePredictUrl({ predictPath: '?query=bitcoin' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          query: 'bitcoin',
+        },
+      });
+    });
+
+    it('navigates to market list with q shorthand parameter', async () => {
+      await handlePredictUrl({ predictPath: '?q=ethereum' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          query: 'ethereum',
+        },
+      });
+    });
+
+    it('prioritizes query over q when both provided', async () => {
+      await handlePredictUrl({ predictPath: '?query=bitcoin&q=ethereum' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          query: 'bitcoin',
+        },
+      });
+    });
+
+    it('ignores query parameter when market parameter is present', async () => {
+      await handlePredictUrl({ predictPath: '?market=123&query=bitcoin' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '123',
+          entryPoint: 'deeplink',
+        },
+      });
+    });
+
+    it('passes both tab and query when both are provided', async () => {
+      await handlePredictUrl({ predictPath: '?tab=crypto&query=bitcoin' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          tab: 'crypto',
+          query: 'bitcoin',
+        },
+      });
+    });
+
+    it('passes both tab and query regardless of order in URL', async () => {
+      await handlePredictUrl({ predictPath: '?q=bitcoin&tab=crypto' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          tab: 'crypto',
+          query: 'bitcoin',
+        },
+      });
+    });
+
+    it('handles query with special characters', async () => {
+      await handlePredictUrl({ predictPath: '?query=super%20bowl' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          query: 'super bowl',
+        },
+      });
+    });
   });
 
   describe('error handling', () => {
@@ -247,7 +394,12 @@ describe('handlePredictUrl', () => {
 
       expect(DevLogger.log).toHaveBeenCalledWith(
         '[handlePredictUrl] Parsed navigation parameters:',
-        { market: '23246', utmSource: undefined },
+        {
+          market: '23246',
+          utmSource: undefined,
+          tab: undefined,
+          query: undefined,
+        },
       );
     });
 
@@ -533,7 +685,7 @@ describe('handlePredictUrl', () => {
 
       expect(DevLogger.log).toHaveBeenCalledWith(
         '[handlePredictUrl] Parsed navigation parameters:',
-        { market: '23246', utmSource: 'test' },
+        { market: '23246', utmSource: 'test', tab: undefined },
       );
     });
 

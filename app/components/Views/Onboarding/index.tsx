@@ -56,9 +56,8 @@ import {
   useNavigation,
   useRoute,
   RouteProp,
-  ParamListBase,
+  StackActions,
 } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import {
   TraceName,
   TraceOperation,
@@ -87,7 +86,7 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
@@ -119,14 +118,15 @@ interface OnboardingRouteParams {
   [PREVIOUS_SCREEN]: string;
   delete_wallet_toast_visible?: boolean;
   delete?: string;
+  showErrorReportSentToast?: boolean;
 }
 
 const Onboarding = () => {
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: OnboardingRouteParams }, 'params'>>();
   const dispatch = useDispatch();
-  const metrics = useMetrics();
+  const metrics = useAnalytics();
 
   const passwordSet = useSelector((state: RootState) => state.user.passwordSet);
   const existingUserProp = useSelector(selectExistingUser);
@@ -297,7 +297,7 @@ const Onboarding = () => {
   const onLogin = useCallback(async (): Promise<void> => {
     if (!passwordSet) {
       await Authentication.resetVault();
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+      navigation.dispatch(StackActions.replace(Routes.ONBOARDING.HOME_NAV));
     } else {
       await Authentication.lockApp({ navigateToLogin: true });
     }
@@ -529,7 +529,10 @@ const Onboarding = () => {
           // login as an alternative since the user's intent is to sign in - they just prefer
           // not to use the One Tap UI. Browser OAuth provides a familiar login experience.
           error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature ||
-          error.code === OAuthErrorType.GoogleLoginOneTapFailure
+          error.code === OAuthErrorType.GoogleLoginOneTapFailure ||
+          // GoogleLoginNoProviderDependencies: The Android Credential Manager cannot find
+          // required provider dependencies. Fallback to browser-based OAuth.
+          error.code === OAuthErrorType.GoogleLoginNoProviderDependencies
         ) {
           // For Android Google, try browser fallback instead of showing error.
           // Note: We intentionally call handleOAuthLoginError (not handleLoginError) in the
@@ -635,22 +638,26 @@ const Onboarding = () => {
       try {
         const netState = await netInfoFetch();
         if (!netState.isConnected || netState.isInternetReachable === false) {
-          navigation.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-            params: {
-              title: strings(`error_sheet.no_internet_connection_title`),
-              description: strings(
-                `error_sheet.no_internet_connection_description`,
-              ),
-              descriptionAlign: 'left',
-              buttonLabel: strings(`error_sheet.no_internet_connection_button`),
-              primaryButtonLabel: strings(
-                `error_sheet.no_internet_connection_button`,
-              ),
-              closeOnPrimaryButtonPress: true,
-              type: 'error',
-            },
-          });
+          navigation.dispatch(
+            StackActions.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
+              screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+              params: {
+                title: strings(`error_sheet.no_internet_connection_title`),
+                description: strings(
+                  `error_sheet.no_internet_connection_description`,
+                ),
+                descriptionAlign: 'left',
+                buttonLabel: strings(
+                  `error_sheet.no_internet_connection_button`,
+                ),
+                primaryButtonLabel: strings(
+                  `error_sheet.no_internet_connection_button`,
+                ),
+                closeOnPrimaryButtonPress: true,
+                type: 'error',
+              },
+            }),
+          );
           return;
         }
       } catch (error) {
@@ -841,7 +848,21 @@ const Onboarding = () => {
 
   const handleSimpleNotification =
     useCallback((): React.ReactElement | null => {
-      if (!route?.params?.delete) return null;
+      if (!route?.params?.delete && !route?.params?.showErrorReportSentToast)
+        return null;
+
+      const notificationData = route?.params?.showErrorReportSentToast
+        ? {
+            title: strings('wallet_creation_error.error_report_sent_title'),
+            description: strings(
+              'wallet_creation_error.error_report_sent_description',
+            ),
+          }
+        : {
+            title: strings('onboarding.success'),
+            description: strings('onboarding.your_wallet'),
+          };
+
       return (
         <Animated.View
           style={[
@@ -850,17 +871,16 @@ const Onboarding = () => {
           ]}
         >
           <ElevatedView style={styles.modalTypeView} elevation={100}>
-            <BaseNotification
-              status="success"
-              data={{
-                title: strings('onboarding.success'),
-                description: strings('onboarding.your_wallet'),
-              }}
-            />
+            <BaseNotification status="success" data={notificationData} />
           </ElevatedView>
         </Animated.View>
       );
-    }, [route?.params?.delete, styles, notificationAnimated]);
+    }, [
+      route?.params?.delete,
+      route?.params?.showErrorReportSentToast,
+      styles,
+      notificationAnimated,
+    ]);
 
   useEffect(() => {
     onboardingTraceCtx.current = trace({
@@ -878,7 +898,7 @@ const Onboarding = () => {
     InteractionManager.runAfterInteractions(() => {
       checkForMigrationFailureAndVaultBackup();
       PreventScreenshot.forbid();
-      if (route?.params?.delete) {
+      if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
         showNotification();
       }
       setState((prevState) => ({

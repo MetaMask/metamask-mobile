@@ -2,8 +2,8 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useMusdConversion } from './useMusdConversion';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { generateTransferData } from '../../../../util/transactions';
-import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { Hex } from '@metamask/utils';
@@ -12,11 +12,19 @@ import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { selectMusdConversionEducationSeen } from '../../../../reducers/user';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+import { RootState } from '../../../../reducers';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { useMusdConversionTokens } from './useMusdConversionTokens';
+import { AssetType } from '../../../Views/confirmations/types/token';
 
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
 
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
+jest.mock('../../../../core/EngineService', () => ({
+  __esModule: true,
+  default: { flushState: jest.fn() },
+}));
 jest.mock('../../../../util/Logger');
 jest.mock('../../../../util/transactions');
 jest.mock('@react-navigation/native');
@@ -30,6 +38,7 @@ jest.mock('../../../../util/trace', () => ({
     MusdConversionOperation: 'musd.conversion.operation',
   },
 }));
+jest.mock('./useMusdConversionTokens');
 jest.mock(
   '../../../Views/confirmations/components/confirm/confirm-component',
   () => ({
@@ -38,6 +47,11 @@ jest.mock(
     },
   }),
 );
+
+const mockUseMusdConversionTokens =
+  useMusdConversionTokens as jest.MockedFunction<
+    typeof useMusdConversionTokens
+  >;
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -65,6 +79,20 @@ const mockTransactionController = {
   addTransaction: jest.fn(),
 };
 
+const mockTransactionPayController = {
+  setTransactionConfig: jest.fn(),
+  updatePaymentToken: jest.fn(),
+};
+
+const mockApprovalController = {
+  reject: jest.fn(),
+};
+
+const mockFetchGasFeeEstimates = jest.fn().mockResolvedValue(undefined);
+const mockGasFeeController = {
+  fetchGasFeeEstimates: mockFetchGasFeeEstimates,
+};
+
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -83,25 +111,50 @@ describe('useMusdConversion', () => {
   const setupUseSelectorMock = ({
     selectedAccount = mockSelectedAccount,
     hasSeenConversionEducationScreen = true,
+    pendingApprovals = {},
+    transactions = [],
   }: {
     selectedAccount?: typeof mockSelectedAccount | null;
     hasSeenConversionEducationScreen?: boolean;
+    pendingApprovals?: Record<string, unknown>;
+    transactions?: {
+      id: string;
+      type?: TransactionType;
+      chainId?: Hex;
+      txParams?: { from?: string };
+      metamaskPay?: { tokenAddress?: string };
+    }[];
   } = {}) => {
-    const mockAccountSelector = jest.fn(() => selectedAccount);
     mockUseSelector.mockReset();
+    const mockState = {
+      engine: {
+        backgroundState: {
+          ApprovalController: {
+            pendingApprovals,
+          },
+          TransactionController: {
+            transactions,
+          },
+        },
+      },
+    } as unknown as RootState;
+
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectMusdConversionEducationSeen) {
         return hasSeenConversionEducationScreen;
       }
 
-      return mockAccountSelector;
-    });
+      if (selector === selectSelectedInternalAccountByScope) {
+        return () => selectedAccount;
+      }
 
-    return { mockAccountSelector };
+      return selector(mockState);
+    });
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFetchGasFeeEstimates.mockResolvedValue(undefined);
 
     mockUseNavigation.mockReturnValue(mockNavigation);
 
@@ -109,19 +162,30 @@ describe('useMusdConversion', () => {
       value: {
         NetworkController: mockNetworkController,
         TransactionController: mockTransactionController,
+        TransactionPayController: mockTransactionPayController,
+        GasFeeController: mockGasFeeController,
+        ApprovalController: mockApprovalController,
       },
       writable: true,
       configurable: true,
     });
 
     (generateTransferData as jest.Mock).mockReturnValue('0xmockedTransferData');
+
+    mockUseMusdConversionTokens.mockReturnValue({
+      filterAllowedTokens: jest.fn(),
+      hasConvertibleTokensByChainId: jest.fn().mockReturnValue(true),
+      isConversionToken: jest.fn(),
+      isMusdSupportedOnChain: jest.fn(),
+      tokens: [],
+    });
   });
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
-  describe('initiateConversion', () => {
+  describe('initiateCustomConversion', () => {
     const mockConfig = {
       preferredPaymentToken: {
         address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
@@ -141,7 +205,9 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      await result.current.initiateConversion(mockConfig);
+      await act(async () => {
+        await result.current.initiateCustomConversion(mockConfig);
+      });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -153,6 +219,116 @@ describe('useMusdConversion', () => {
           },
         },
       });
+    });
+
+    it('returns same transaction ID for concurrent initiations before approval exists', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+
+      let resolveAddTransaction!: (value: {
+        transactionMeta: { id: string };
+      }) => void;
+      const addTransactionPromise = new Promise<{
+        transactionMeta: { id: string };
+      }>((resolve) => {
+        resolveAddTransaction = resolve;
+      });
+      mockTransactionController.addTransaction.mockReturnValue(
+        addTransactionPromise,
+      );
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      let transactionIds!: [
+        { transactionId: string } | void,
+        { transactionId: string } | void,
+      ];
+      await act(async () => {
+        const firstCall = result.current.initiateCustomConversion(mockConfig);
+        const secondCall = result.current.initiateCustomConversion(mockConfig);
+
+        resolveAddTransaction({ transactionMeta: { id: 'tx-123' } });
+
+        transactionIds = await Promise.all([firstCall, secondCall]);
+      });
+
+      expect(transactionIds).toEqual([
+        { transactionId: 'tx-123' },
+        { transactionId: 'tx-123' },
+      ]);
+      expect(
+        mockNetworkController.findNetworkClientIdByChainId,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockTransactionController.addTransaction).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns existing pending musdConversion transaction ID for same account and chain', async () => {
+      setupUseSelectorMock({
+        pendingApprovals: {
+          'tx-existing': { id: 'tx-existing' },
+        },
+        transactions: [
+          {
+            id: 'tx-existing',
+            type: TransactionType.musdConversion,
+            chainId: '0x1',
+            txParams: { from: mockSelectedAccount.address },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      let transactionId!: { transactionId: string } | void;
+      await act(async () => {
+        transactionId =
+          await result.current.initiateCustomConversion(mockConfig);
+      });
+
+      expect(transactionId).toEqual({ transactionId: 'tx-existing' });
+      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
+      expect(
+        mockNetworkController.findNetworkClientIdByChainId,
+      ).not.toHaveBeenCalled();
+      expect(mockTransactionController.addTransaction).not.toHaveBeenCalled();
+    });
+
+    it('returns existing pending musdConversion transaction ID with mixed-case chainId and from address', async () => {
+      setupUseSelectorMock({
+        pendingApprovals: {
+          'tx-existing': { id: 'tx-existing' },
+        },
+        transactions: [
+          {
+            id: 'tx-existing',
+            type: TransactionType.musdConversion,
+            chainId: '0x1',
+            txParams: {
+              from: mockSelectedAccount.address.toUpperCase() as unknown as string,
+            },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      let transactionId!: { transactionId: string } | void;
+      await act(async () => {
+        transactionId = await result.current.initiateCustomConversion({
+          preferredPaymentToken: {
+            ...mockConfig.preferredPaymentToken,
+            chainId: '0x1' as Hex,
+          },
+        });
+      });
+
+      expect(transactionId).toEqual({ transactionId: 'tx-existing' });
+      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
+      expect(mockTransactionController.addTransaction).not.toHaveBeenCalled();
     });
 
     it('creates transaction with correct data structure', async () => {
@@ -167,7 +343,9 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      await result.current.initiateConversion(mockConfig);
+      await act(async () => {
+        await result.current.initiateCustomConversion(mockConfig);
+      });
 
       expect(mockTransactionController.addTransaction).toHaveBeenCalledWith(
         {
@@ -178,7 +356,7 @@ describe('useMusdConversion', () => {
         },
         {
           networkClientId: 'mainnet',
-          origin: MMM_ORIGIN,
+          origin: ORIGIN_METAMASK,
           skipInitialGasEstimate: true,
           type: TransactionType.musdConversion,
         },
@@ -192,7 +370,7 @@ describe('useMusdConversion', () => {
 
       await act(async () => {
         await expect(
-          result.current.initiateConversion(mockConfig),
+          result.current.initiateCustomConversion(mockConfig),
         ).rejects.toThrow('No account selected');
       });
 
@@ -210,7 +388,7 @@ describe('useMusdConversion', () => {
 
       await act(async () => {
         await expect(
-          result.current.initiateConversion(mockConfig),
+          result.current.initiateCustomConversion(mockConfig),
         ).rejects.toThrow('Network client not found for chain ID');
       });
 
@@ -230,7 +408,7 @@ describe('useMusdConversion', () => {
       await act(async () => {
         await expect(
           // @ts-expect-error - Intentionally testing invalid config with missing preferredPaymentToken
-          result.current.initiateConversion(invalidConfig),
+          result.current.initiateCustomConversion(invalidConfig),
         ).rejects.toThrow('Preferred payment token is required');
       });
     });
@@ -242,7 +420,11 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      const transactionId = await result.current.initiateConversion(mockConfig);
+      let transactionId!: { transactionId: string } | void;
+      await act(async () => {
+        transactionId =
+          await result.current.initiateCustomConversion(mockConfig);
+      });
 
       expect(transactionId).toBeUndefined();
       expect(mockTransactionController.addTransaction).not.toHaveBeenCalled();
@@ -275,12 +457,15 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      const transactionId = await result.current.initiateConversion({
-        ...mockConfig,
-        skipEducationCheck: true,
+      let transactionId!: { transactionId: string } | void;
+      await act(async () => {
+        transactionId = await result.current.initiateCustomConversion({
+          ...mockConfig,
+          skipEducationCheck: true,
+        });
       });
 
-      expect(transactionId).toBe('tx-123');
+      expect(transactionId).toEqual({ transactionId: 'tx-123' });
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: {
@@ -308,7 +493,7 @@ describe('useMusdConversion', () => {
 
       await act(async () => {
         await expect(
-          result.current.initiateConversion(mockConfig),
+          result.current.initiateCustomConversion(mockConfig),
         ).rejects.toThrow('Transaction failed');
       });
 
@@ -334,7 +519,9 @@ describe('useMusdConversion', () => {
         navigationStack: 'CustomStack',
       };
 
-      await result.current.initiateConversion(configWithCustomStack);
+      await act(async () => {
+        await result.current.initiateCustomConversion(configWithCustomStack);
+      });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith('CustomStack', {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -360,9 +547,13 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      const transactionId = await result.current.initiateConversion(mockConfig);
+      let transactionId!: { transactionId: string } | void;
+      await act(async () => {
+        transactionId =
+          await result.current.initiateCustomConversion(mockConfig);
+      });
 
-      expect(transactionId).toBe('tx-123');
+      expect(transactionId).toEqual({ transactionId: 'tx-123' });
     });
 
     it('starts navigation trace when navigating to conversion screen', async () => {
@@ -377,7 +568,9 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      await result.current.initiateConversion(mockConfig);
+      await act(async () => {
+        await result.current.initiateCustomConversion(mockConfig);
+      });
 
       expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.MusdConversionNavigation,
@@ -409,9 +602,428 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      await result.current.initiateConversion(mockConfig);
+      await act(async () => {
+        await result.current.initiateCustomConversion(mockConfig);
+      });
 
       expect(callOrder).toEqual(['trace', 'navigate']);
+    });
+  });
+
+  describe('initiateMaxConversion', () => {
+    const mockToken: AssetType = {
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
+      chainId: '0x1' as Hex,
+      symbol: 'USDC',
+      decimals: 6,
+      rawBalance: '0x5f5e100' as Hex, // 100 USDC in minimal units
+      name: 'USD Coin',
+      aggregators: [],
+      image: 'https://example.com/usdc.png',
+      balance: '100',
+      logo: 'https://example.com/usdc.png',
+      isETH: false,
+    };
+    const mockDaiToken: AssetType = {
+      ...mockToken,
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f' as Hex,
+      symbol: 'DAI',
+      name: 'Dai Stablecoin',
+    };
+
+    it('reuses existing pending transaction for same account, chain, and token', async () => {
+      setupUseSelectorMock({
+        pendingApprovals: {
+          'tx-existing': { id: 'tx-existing' },
+        },
+        transactions: [
+          {
+            id: 'tx-existing',
+            type: TransactionType.musdConversion,
+            chainId: '0x1',
+            txParams: { from: mockSelectedAccount.address },
+            metamaskPay: { tokenAddress: mockToken.address },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      let conversionResult;
+      await act(async () => {
+        conversionResult =
+          await result.current.initiateMaxConversion(mockToken);
+      });
+
+      expect(conversionResult).toEqual({ transactionId: 'tx-existing' });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.EARN.MODALS.ROOT,
+        {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          params: {
+            forceBottomSheet: true,
+            token: mockToken,
+          },
+        },
+      );
+      expect(
+        mockNetworkController.findNetworkClientIdByChainId,
+      ).not.toHaveBeenCalled();
+      expect(mockTransactionController.addTransaction).not.toHaveBeenCalled();
+    });
+
+    it('does not reuse existing pending transaction when token differs on same account and chain', async () => {
+      setupUseSelectorMock({
+        pendingApprovals: {
+          'tx-existing': { id: 'tx-existing' },
+        },
+        transactions: [
+          {
+            id: 'tx-existing',
+            type: TransactionType.musdConversion,
+            chainId: '0x1',
+            txParams: { from: mockSelectedAccount.address },
+            metamaskPay: { tokenAddress: mockToken.address },
+          },
+        ],
+      });
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-new' },
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      let conversionResult;
+      await act(async () => {
+        conversionResult =
+          await result.current.initiateMaxConversion(mockDaiToken);
+      });
+
+      expect(conversionResult).toEqual({ transactionId: 'tx-max-new' });
+      expect(mockTransactionController.addTransaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reuse existing pending transaction when existing transaction token is missing', async () => {
+      setupUseSelectorMock({
+        pendingApprovals: {
+          'tx-existing': { id: 'tx-existing' },
+        },
+        transactions: [
+          {
+            id: 'tx-existing',
+            type: TransactionType.musdConversion,
+            chainId: '0x1',
+            txParams: { from: mockSelectedAccount.address },
+          },
+        ],
+      });
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-new' },
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      let conversionResult;
+      await act(async () => {
+        conversionResult =
+          await result.current.initiateMaxConversion(mockToken);
+      });
+
+      expect(conversionResult).toEqual({ transactionId: 'tx-max-new' });
+      expect(mockTransactionController.addTransaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('creates transaction with full token balance', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-123' },
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await result.current.initiateMaxConversion(mockToken);
+      });
+
+      expect(mockTransactionController.addTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          from: '0x123456789abcdef',
+          value: '0x0',
+        }),
+        expect.objectContaining({
+          skipInitialGasEstimate: true,
+          origin: ORIGIN_METAMASK,
+          type: TransactionType.musdConversion,
+        }),
+      );
+    });
+
+    it('sets payment token via TransactionPayController', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-123' },
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await result.current.initiateMaxConversion(mockToken);
+      });
+
+      expect(
+        mockTransactionPayController.setTransactionConfig,
+      ).toHaveBeenCalledWith('tx-max-123', expect.any(Function));
+      expect(
+        mockTransactionPayController.updatePaymentToken,
+      ).toHaveBeenCalledWith({
+        transactionId: 'tx-max-123',
+        tokenAddress: mockToken.address,
+        chainId: mockToken.chainId,
+      });
+    });
+
+    it('navigates to max conversion modal after transaction creation', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-123' },
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await result.current.initiateMaxConversion(mockToken);
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.EARN.MODALS.ROOT,
+        {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          params: {
+            forceBottomSheet: true,
+            token: mockToken,
+          },
+        },
+      );
+    });
+
+    it('returns transaction ID on success', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-123' },
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      let conversionResult;
+      await act(async () => {
+        conversionResult =
+          await result.current.initiateMaxConversion(mockToken);
+      });
+
+      expect(conversionResult).toEqual({
+        transactionId: 'tx-max-123',
+      });
+    });
+
+    it('throws error when token balance is zero', async () => {
+      setupUseSelectorMock();
+
+      const tokenWithZeroBalance: AssetType = {
+        ...mockToken,
+        rawBalance: '0x0' as Hex,
+      };
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await expect(
+          result.current.initiateMaxConversion(tokenWithZeroBalance),
+        ).rejects.toThrow('Token balance must be greater than zero');
+      });
+
+      expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('throws error when token balance is missing', async () => {
+      setupUseSelectorMock();
+
+      const tokenWithNoBalance: AssetType = {
+        ...mockToken,
+        rawBalance: undefined,
+      };
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await expect(
+          result.current.initiateMaxConversion(tokenWithNoBalance),
+        ).rejects.toThrow('Token balance must be greater than zero');
+      });
+    });
+
+    it('throws error when no account selected', async () => {
+      setupUseSelectorMock({ selectedAccount: null });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await expect(
+          result.current.initiateMaxConversion(mockToken),
+        ).rejects.toThrow('No account selected');
+      });
+
+      expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('throws error when network client not found', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        undefined,
+      );
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await expect(
+          result.current.initiateMaxConversion(mockToken),
+        ).rejects.toThrow('Network client not found for chain ID');
+      });
+
+      expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('sets error state when transaction creation fails', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockRejectedValue(
+        new Error('Max conversion failed'),
+      );
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await expect(
+          result.current.initiateMaxConversion(mockToken),
+        ).rejects.toThrow('Max conversion failed');
+      });
+
+      expect(result.current.error).toBe('Max conversion failed');
+      expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('rejects the created transaction when post-creation max configuration fails', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-123' },
+      });
+
+      const postCreationError = new Error(
+        'Failed to set max conversion transaction config',
+      );
+      mockTransactionPayController.setTransactionConfig.mockImplementation(
+        () => {
+          throw postCreationError;
+        },
+      );
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await expect(
+          result.current.initiateMaxConversion(mockToken),
+        ).rejects.toThrow(postCreationError);
+      });
+
+      expect(mockApprovalController.reject).toHaveBeenCalledWith(
+        'tx-max-123',
+        expect.objectContaining({
+          message:
+            'Automatically rejected transaction due to error with post creation configuration',
+          data: expect.objectContaining({
+            cause: 'musdMaxConversionPostCreationConfigurationError',
+            transactionId: 'tx-max-123',
+          }),
+        }),
+      );
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      expect(result.current.error).toBe(
+        'Failed to set max conversion transaction config',
+      );
+    });
+
+    it('preserves original post-creation error when rejection cleanup fails', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-123' },
+      });
+
+      const postCreationError = new Error(
+        'Failed to set max conversion transaction config',
+      );
+      mockTransactionPayController.setTransactionConfig.mockImplementation(
+        () => {
+          throw postCreationError;
+        },
+      );
+
+      const rejectCleanupError = new Error('Failed to reject pending approval');
+      mockApprovalController.reject.mockImplementation(() => {
+        throw rejectCleanupError;
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await expect(
+          result.current.initiateMaxConversion(mockToken),
+        ).rejects.toThrow(postCreationError);
+      });
+
+      expect(mockApprovalController.reject).toHaveBeenCalledTimes(1);
+      expect(Logger.error).toHaveBeenCalledWith(
+        rejectCleanupError,
+        '[mUSD Max Conversion] Failed to reject transaction after post-creation configuration error',
+      );
+      expect(result.current.error).toBe(
+        'Failed to set max conversion transaction config',
+      );
     });
   });
 
@@ -446,7 +1058,7 @@ describe('useMusdConversion', () => {
 
       await act(async () => {
         await expect(
-          result.current.initiateConversion(testConfig),
+          result.current.initiateCustomConversion(testConfig),
         ).rejects.toThrow('Transaction failed');
       });
 
@@ -457,7 +1069,7 @@ describe('useMusdConversion', () => {
       });
 
       await act(async () => {
-        await result.current.initiateConversion(testConfig);
+        await result.current.initiateCustomConversion(testConfig);
       });
 
       expect(result.current.error).toBeNull();

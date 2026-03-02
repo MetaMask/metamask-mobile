@@ -1,6 +1,6 @@
 {
   "sample_feature": {
-    "title": "Sample feature",
+    "title": "नमूना फीचर",
     "description": "यह स्क्रीन MetaMask में एक नमूना फीचर को शुरू से अंत तक बनाने का तरीका प्रदर्शित करती है।",
     "counter": {
       "title": "काउंटर",
@@ -9,7 +9,7 @@
     },
     "pet_name": {
       "list_count_text": "इस नेटवर्क पर पेट नेम",
-      "add_pet_name_button": "Add pet name",
+      "add_pet_name_button": "पेट नेम जोड़ें",
       "address": "पता",
       "address_placeholder": "ऑक्स...",
       "name": "नाम",
@@ -25,6 +25,8 @@
       "title": "एलर्ट",
       "checkbox_label": "मैंने जोखिम को स्वीकार कर लिया है और इसके बावजूद आगे बढ़ना चाहता हूँ",
       "got_it_btn": "समझ गए",
+      "acknowledge_btn": "स्वीकार करें",
+      "close_btn": "बंद करें",
       "alert_details": "एलर्ट संबंधी विवरण"
     },
     "confirm_modal": {
@@ -113,6 +115,10 @@
       "message": "आप अपनी एसेट्स एक बर्न एड्रेस पर भेज रहे हैं। यदि आप जारी रखते हैं, तो आप अपनी एसेट्स खो देंगे।",
       "title": "एसेट्स को बर्न एड्रेस पर भेजना"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "इस ट्रांसेक्शन के लिए गैस स्पॉन्सरशिप उपलब्ध नहीं है। आपको अपने अकाउंट में कम से कम %{minBalance} %{nativeTokenSymbol} रखना होगा।",
+      "title": "गैस स्पॉन्सरशिप उपलब्ध नहीं है"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "इस टोकन को बुरी नीयत वाला पाया गया है। इस टोकन के साथ इंटरैक्ट करने पर आपको पैसे गंवाने पड़ सकते हैं।",
@@ -122,6 +128,10 @@
         "message": "यह टोकन बुरी नीयत के मज़बूत संकेत दिखाता है। इसे जारी रखने पर आपको पैसे गंवाने पड़ सकते हैं।",
         "title": "संदिग्ध टोकन"
       }
+    },
+    "first_time_interaction": {
+      "message": "आप इस एड्रेस से पहली बार इंटरैक्ट कर रहे हैं। आगे बढ़ने से पहले पक्का कर लें कि यह सही है।",
+      "title": "पहला इंटरैक्शन"
     },
     "address_trust_signal": {
       "malicious": {
@@ -196,7 +206,10 @@
     "placeholder": "साइट या एड्रेस से ढूंढें",
     "recents": "हाल ही",
     "favorites": "पसंदीदा",
-    "sites": "साइट्स"
+    "sites": "साइट्स",
+    "tokens": "ट्रेंडिंग टोकन",
+    "perps": "पर्प्स",
+    "predictions": "प्रेडिक्शंस"
   },
   "navigation": {
     "back": "वापस",
@@ -445,7 +458,11 @@
     "reset_wallet_desc_bold": "डिवाइस",
     "reset_wallet_desc_2": "पर MetaMask से आपका वॉलेट डेटा हमेशा के लिए मिटा दिया जाएगा। इसे वापस नहीं लाया जा सकता।",
     "reset_wallet_desc_login": "अपने वॉलेट को रिस्टोर करने के लिए, आप अपने सीक्रेट रिकवरी फ्रेज़, या अपने Google या Apple अकाउंट के पासवर्ड का उपयोग कर सकते हैं। MetaMask के पास यह जानकारी नहीं है।",
-    "reset_wallet_desc_srp": "अपने वॉलेट को रिस्टोर करने के लिए, सुनिश्चित करें कि आपके पास अपना सीक्रेट रिकवरी फ्रेज़ है। MetaMask के पास यह जानकारी नहीं है।"
+    "reset_wallet_desc_srp": "अपने वॉलेट को रिस्टोर करने के लिए, सुनिश्चित करें कि आपके पास अपना सीक्रेट रिकवरी फ्रेज़ है। MetaMask के पास यह जानकारी नहीं है।",
+    "biometric_authentication_cancelled": "बायोमेट्रिक ऑथेंटिकेशन कैंसिल हो गया",
+    "biometric_authentication_cancelled_title": "बायोमेट्रिक सेटअप नहीं हो पाया",
+    "biometric_authentication_cancelled_description": "कृपया सेटिंग्स से बायोमेट्रिक ऑथेंटिकेशन को री-सेटअप करें।",
+    "biometric_authentication_cancelled_button": "कन्फर्म करें"
   },
   "connect_hardware": {
     "title_select_hardware": "किसी hardware wallet को कनेक्ट करें",
@@ -493,6 +510,19 @@
     "password_error": "पासवर्ड मेल नहीं खाते।",
     "marketing_opt_in_description": "उत्पाद अपडेट, सुझाव और समाचार प्राप्त करें, जिसमें ईमेल भी शामिल है। हम आपके इंटरैक्शन का उपयोग साझा की जाने वाली जानकारी को बेहतर बनाने के लिए कर सकते हैं।",
     "loose_password_description": "यदि मैं यह पासवर्ड खो देता हूँ, तो MetaMask इसे रीसेट नहीं कर सकता।"
+  },
+  "wallet_creation_error": {
+    "title": "कुछ गलत हो गया",
+    "social_login_description_part1": "आपका वॉलेट बनाते समय एक गड़बड़ी हुई। फिर से प्रयास करें, और यदि समस्या बनी रहती है, तो संपर्क करें",
+    "srp_description_part1": "समस्या को ठीक करने और MetaMask को बेहतर बनाने में मदद के लिए हमें एक गुमनाम गड़बड़ी रिपोर्ट भेजें। यदि समस्या बनी रहती है, तो संपर्क करें",
+    "metamask_support": "MetaMask समर्थन",
+    "error_report": "गड़बड़ी रिपोर्ट",
+    "copy": "कॉपी करें",
+    "copied": "कॉपी किया गया",
+    "send_error_report": "गड़बड़ी रिपोर्ट भेजें",
+    "try_again": "फिर से प्रयास करें",
+    "error_report_sent_title": "गड़बड़ी रिपोर्ट भेजी गई",
+    "error_report_sent_description": "हम इस समस्या की जांच कर रहे हैं। अपना वॉलेट फिर से बनाने का प्रयास करें।"
   },
   "reset_password": {
     "title": "पासवर्ड बदलें",
@@ -585,7 +615,7 @@
     "trade": "ट्रेड करें",
     "settings": "सेटिंग्स",
     "rewards": "पुरस्कार",
-    "trending": "Explore"
+    "trending": "एक्सप्लोर करें"
   },
   "drawer": {
     "send_button": "भेजें",
@@ -617,7 +647,8 @@
     "available": "उपलब्ध",
     "invalid_value": "मूल्य ग़लत है",
     "insufficient_funds": "अपर्याप्त फंड",
-    "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "insufficient_balance_to_cover_fee": "शुल्क कवर करने के लिए बैलेंस अपर्याप्त है",
+    "transaction_error": "लेन-देन में त्रुटि",
     "continue": "जारी रखें",
     "unit": "यूनिट",
     "units": "यूनिट्स",
@@ -643,8 +674,8 @@
     "no_tokens_available": "कोई टोकन उपलब्ध नहीं है",
     "sign": "हस्ताक्षर करें",
     "network_not_found_title": "नेटवर्क नहीं मिला",
-    "network_not_found_description": "Network with chain ID {{chain_id}} not found in your wallet. Please add the network first.",
-    "network_missing_id": "Missing chain ID.",
+    "network_not_found_description": "आपके वॉलेट में {{chain_id}} चेन ID के साथ नेटवर्क नहीं मिला। कृपया नेटवर्क को पहले जोड़ें।",
+    "network_missing_id": "चेन ID अनुपस्थित है।",
     "search_tokens": "टोकन ढूंढें",
     "search_tokens_and_nfts": "टोकन और NFTs ढूंढें",
     "tokens": "टोकन",
@@ -1008,11 +1039,12 @@
       "set_stop_loss_subtitle": "स्टॉप लॉस को {{price}} ({{percent}}) पर सेट करें",
       "set_button": "निर्धारित करें"
     },
+    "confirm": "कन्फर्म करें",
     "deposit": {
       "title": "डिपॉज़िट करने के लिए राशि",
       "get_usdc_hyperliquid": "USDC प्राप्त करें • हाइपरलिक्विड",
       "insufficient_funds": "अपर्याप्त फंड",
-      "no_funds_available": "कोई फंड उपलब्ध नहीं है। कृपया पहले डिपॉज़िट करें।",
+      "no_funds_available": "पर्याप्त फंड उपलब्ध नहीं हैं। फंड जमा करें या पेमेंट का कोई दूसरा तरीका चुनें",
       "enter_amount": "रकम डालें",
       "fetching_quote": "कोटेशन लाया जा रहा है",
       "submitting": "ट्रांसेक्शन सबमिट किया जा रहा है",
@@ -1081,10 +1113,20 @@
       "error_toast": "ट्रांसेक्शन नहीं हो पाया",
       "error_generic": "फंड्स आपको वापस कर दिए गए हैं",
       "in_progress": "पर्प्स में फंड्स जोड़े जा रहे हैं",
+      "depositing_your_funds": "आपका ट्रेड सेट किया जा रहा है",
+      "deposit_taking_longer": "डिपॉज़िट सामान्य से अधिक समय ले रहा है",
+      "cancel_trade": "ट्रेड कैंसिल करें",
+      "trade_canceled": "ट्रेड कैंसिल किया गया",
+      "funds_returned_to_account": "राशि आपके अकाउंट में वापस कर दी गई है",
+      "your_funds_have_arrived": "आपके फंड आ गए हैं",
       "estimated_processing_time": "अनुमानित {{time}}",
       "funds_available_momentarily": "फंड्स थोड़ी ही देर में उपलब्ध होंगे",
       "your_funds_are_available_to_trade": "आपके फंड्स ट्रेड करने के लिए उपलब्ध हैं",
       "track": "ट्रैक करें"
+    },
+    "one_click_trade": {
+      "tx_creation_failed_title": "पोज़िशन खोली नहीं जा सकी",
+      "tx_creation_failed_description": "ट्रांसेक्शन बनाना नहीं हो पाया। कृपया फिर से प्रयास करें।"
     },
     "withdrawal": {
       "title": "निकालें",
@@ -1162,6 +1204,7 @@
         "amount_required": "ऑर्डर राशि 0 से अधिक होनी चाहिए",
         "minimum_amount": "न्यूनतम ऑर्डर आकार ${{amount}} है",
         "insufficient_funds": "अपर्याप्त फंड",
+        "insufficient_funds_to_cover_trade": "ट्रेड को पूरा करने के लिए पर्याप्त राशि नहीं है",
         "insufficient_balance": "अपर्याप्त बैलेंस। आवश्यक: ${{required}}, उपलब्ध: ${{available}}",
         "invalid_leverage": "लेवरेज {{min}}x और {{max}}x के बीच होना चाहिए",
         "leverage_below_position": "लीवरेज कम से कम {{required}}x होना चाहिए ताकि आपकी मौजूदा पोज़िशन से मेल खा सके (वर्तमान: {{provided}}x)",
@@ -1247,6 +1290,16 @@
           "description": "केवल अपने निर्दिष्ट प्राइस या बेहतर पर निष्पादित करें"
         }
       },
+      "payment_token": "भुगतान टोकन",
+      "select_payment_token": "भुगतान टोकन चुनें",
+      "select_token": "टोकन चुनें",
+      "no_payment_tokens": "कोई भुगतान टोकन उपलब्ध नहीं है",
+      "swap": "स्वैप",
+      "swap_submitted": "स्वैप सबमिट किया गया",
+      "transaction_id": "ट्रांसेक्शन आईडी: {{txId}}",
+      "swap_failed": "स्वैप नहीं हो पाया",
+      "swap_error_message": "स्वैप ट्रांसेक्शन सबमिट करना नहीं हो पाया: {{error}}",
+      "swap_converting": "ARBITRUM पर बैलेंस को USDC में कन्वर्ट किया जा रहा है",
       "success": {
         "title": "ऑर्डर सफलतापूर्वक दिया गया",
         "subtitle": "{{asset}} के लिए आपकी {{direction}} पोजीशन बना दी गई है",
@@ -1275,7 +1328,10 @@
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "ऑर्डर नहीं हो पाया",
       "your_funds_have_been_returned_to_you": "आपके फंड्स आपको वापस कर दिए गए हैं",
-      "order_cancelled_success": "{{detailedOrderType}} ऑर्डर कैंसिल किया गया"
+      "order_cancelled_success": "{{detailedOrderType}} ऑर्डर कैंसिल किया गया",
+      "pay_with_token_required": "टोकन चयन आवश्यक है",
+      "select_token_to_pay_with": "कृपया अपना ऑर्डर देने से पहले भुगतान के लिए टोकन का चयन करें",
+      "initializing": "ऑर्डर शुरू किया जा रहा है…"
     },
     "price_deviation_warning": {
       "message": "प्राइस फ़िलहाल स्पॉट प्राइस से बहुत ज़्यादा बदल गया है। इस समय नई पोज़िशन्स ओपन नहीं की जा सकतीं।"
@@ -1631,6 +1687,7 @@
         "content": "जब आप किसी पोज़िशन को खोलते या बंद करते हैं तो ट्रेडिंग फीस लिया जाता है।",
         "metamask_fee": "MetaMask फीस",
         "provider_fee": "प्रदाता फीस",
+        "bridge_fee": "ब्रिज फीस",
         "total": "कुल फीस",
         "discount_message": "आप MetaMask रिवार्ड्स के साथ {{percentage}}% सेव कर रहे हैं।"
       },
@@ -1712,6 +1769,10 @@
       "spread": {
         "title": "स्प्रेड",
         "content": "स्प्रेड वह अंतर है जो बेस्ट बिड (खरीदने के लिए लगाई गई सबसे ज़्यादा कीमत) और बेस्ट आस्क (बेचने के लिए माँगी गई सबसे कम कीमत) के बीच का अंतर है। कम स्प्रेड ज़्यादा लिक्विडिटी का सूचक है।"
+      },
+      "pay_with": {
+        "title": "के साथ भुगतान करें",
+        "content": "इस ट्रेड के भुगतान के लिए कौन-सा टोकन या बैलेंस इस्तेमाल करना है, उसे चुनें। आप अपने पर्प्स बैलेंस से भुगतान कर सकते हैं या अपने वॉलेट से कोई अन्य टोकन चुन सकते हैं।"
       }
     },
     "connection": {
@@ -1766,14 +1827,18 @@
       "commodities": "कमोडिटीज़",
       "stocks_and_commodities": "स्टॉक्स और कमोडिटीज़ एक्सप्लोर करें",
       "tabs": {
-        "all": "सभी",
         "crypto": "क्रिप्टो",
-        "stocks_and_commodities": "स्टॉक्स"
+        "stocks": "स्टॉक्स",
+        "commodities": "कमोडिटीज़",
+        "forex": "फॉरेक्स",
+        "new": "नया"
       },
       "filter_by": "इसके द्वारा फिल्टर",
       "forex": "फॉरेक्स",
       "watchlist": "वॉचलिस्ट",
-      "markets": "मार्केट"
+      "markets": "मार्केट",
+      "explore_markets": "मार्केट एक्सप्लोर करें",
+      "see_all_perps": "सभी पर्प्स देखें"
     },
     "learn_more": {
       "title": "पर्प्स के बारे में जानें",
@@ -1842,6 +1907,9 @@
       "time": "समय",
       "apply": "लागू करें"
     },
+    "provider_selector": {
+      "title": "प्रदाता चुनें"
+    },
     "market_type": {
       "filter_by": "इसके द्वारा फिल्टर"
     },
@@ -1904,6 +1972,14 @@
       },
       "view_on_explorer": "ब्लॉक एक्सप्लोरर पर देखें",
       "trade_again": "फिर से ट्रेड करें",
+      "activity": {
+        "deposit_title": "डिपॉज़िट करें",
+        "deposited_amount": "{{amount}} {{symbol}} डिपॉज़िट किया गया",
+        "withdrew_amount": "{{amount}} {{symbol}} निकाला गया",
+        "status_completed": "पूरा किया गया",
+        "status_failed": "नहीं हो पाया",
+        "status_pending": "अभी पूरा नहीं हुआ"
+      },
       "empty_state": {
         "no_transactions": "अभी तक कोई {{type}} ट्रांसेक्शन नहीं हुआ है। आपकी ट्रेडिंग हिस्ट्री यहाँ दिखाई देगी"
       }
@@ -1978,6 +2054,16 @@
       "export_success": "एक्सपोर्ट किया गया इमेज",
       "referral_code_text": "एक्स्ट्रा रिवॉर्ड कमाने के लिए मेरे रेफ़रल कोड का उपयोग करें।"
     }
+  },
+  "market_insights": {
+    "title": "मार्केट इनसाइट्स",
+    "updated_ago": "{{time}} अपडेट किया गया",
+    "disclaimer": "AI इनसाइट्स। फाइनेंशियल सलाह नहीं।",
+    "whats_driving_price": "कीमत किस वजह से बढ़ रही है?",
+    "what_people_saying": "लोग क्या कह रहे हैं",
+    "trade_button": "ट्रेड करें",
+    "sources_count": "+{{count}} सोर्स",
+    "sources_title": "सोर्स"
   },
   "predict": {
     "title": "MetaMask प्रिडिक्शन्स",
@@ -2062,10 +2148,12 @@
     "resolved_outcomes": "रिज़ॉल्व्ड आउटकम्स",
     "category": {
       "trending": "ट्रेंडिंग",
+      "ending_soon": "जल्द खत्म हो रहा है",
       "new": "नया",
       "sports": "स्पोर्ट्स",
       "crypto": "क्रिप्टो",
-      "politics": "राजनीति"
+      "politics": "राजनीति",
+      "hot": "हॉट"
     },
     "search_placeholder": "प्रेडिक्शन मार्केट ढूंढें",
     "search_cancel": "कैंसिल करें",
@@ -2173,7 +2261,15 @@
       "no_funds_enough": "फंड काफ़ी नहीं है।",
       "prediction_minimum_bet": "न्यूनतम राशि {{amount}} है",
       "to_win": "जीतने के लिए",
-      "order_failed_generic": "ट्रांसेक्शन नहीं हो पाया। कृपया फिर से प्रयास करें।"
+      "order_failed_generic": "ट्रांसेक्शन नहीं हो पाया। कृपया फिर से प्रयास करें।",
+      "market_busy_title": "मार्केट बिज़ी है",
+      "market_busy_body_buy": "मार्केट तेज़ी से आगे बढ़ रहा है, इसलिए हम {{price}} पर नहीं खरीद सके। सबसे अच्छी उपलब्ध कीमत पर फिर से कोशिश करें?",
+      "market_busy_body_sell": "मार्केट तेज़ी से आगे बढ़ रहा है, इसलिए हम {{price}} पर नहीं बेच सके। सबसे अच्छी उपलब्ध कीमत पर फिर से कोशिश करें?",
+      "order_failed_title": "ऑर्डर नहीं हो पाया",
+      "order_failed_body": "इस कीमत पर लिक्विडिटी काफ़ी नहीं थी। फिर से कोशिश करना चाहते हैं?",
+      "try_again": "फिर से कोशिश करें",
+      "yes_buy": "हाँ, खरीदें",
+      "yes_sell": "हाँ, बेचें"
     },
     "withdraw": {
       "withdrawing": "विदड्रॉवल प्रोग्रेस में है",
@@ -2302,23 +2398,23 @@
     "no_available_tokens": "अपना टोकन नहीं देखें?",
     "add_tokens": "टोकन इम्पोर्ट करें",
     "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
     "import_token": "Would you like to import this token?",
+    "import_tokens": "Would you like to import these tokens?",
     "tokens_detected_in_account": "इस खाते में {{tokenCount}} नया {{tokensLabel}} मिला",
     "token_toast": {
-      "tokens_imported_title": "Imported tokens",
+      "tokens_imported_title": "इंपोर्ट किए गए टोकन",
       "tokens_imported_desc": "{{tokenSymbols}} सफलतापूर्वक इंपोर्ट किया गया",
-      "token_imported_title": "Imported token",
+      "token_imported_title": "इंपोर्ट किया गया टोकन",
       "token_imported_desc": "{{tokenSymbol}} सफलतापूर्वक इम्पोर्ट किया गया",
       "token_imported_desc_1": "You’ve imported a token.",
       "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
-      "tokens_hidden_title": "Hiding tokens",
+      "tokens_hidden_title": "टोकन छुपाना",
       "tokens_hidden_desc": "अपने वॉलेट से पता लगाए गए टोकन छिपाना",
-      "token_hidden_title": "Hiding token",
+      "token_hidden_title": "टोकन छुपाना",
       "token_hidden_desc": "छिपा रहा है {{tokenSymbol}}"
     },
     "hide_token": {
-      "title": "Hide token?",
+      "title": "टोकन छुपाएं?",
       "desc": "आप \"इम्पोर्ट टोकन\" पर जाकर और टोकन की खोज करके इस टोकन को भविष्य में वापस जोड़ सकते हैं।",
       "cancel_cta": "कैंसिल करें",
       "confirm_cta": "कन्फर्म करें"
@@ -2341,7 +2437,7 @@
     "add_funds": "फंड जोड़ें",
     "next": "आगे",
     "buy_asset": "{{asset}} खरीदें",
-    "no_tokens": "You don't have any tokens",
+    "no_tokens": "आपके पास कोई टोकन नहीं है",
     "show_tokens_without_balance": "बैलेंस के बिना टोकन दिखाएं",
     "nfts_autodetection_title": "NFT का पता लगाना",
     "nfts_autodetection_desc": "MetaMask को ऑटोमेटिक तरीके से NFTs का पता लगाने और आपके वॉलेट में दिखाने के लिए अनुमति दें।",
@@ -2354,7 +2450,7 @@
     "target_scam_network": "जिससे इसमें स्कैम किया जा सकता है। स्कैम करने वाले आपको बदले में ज़्यादा कीमती करेंसी भेजने का झांसा दे सकते हैं। आगे बढ़ने से पहले सब कुछ वेरीफाई करें।",
     "use_the_currency_symbol": "करेंसी सिंबल का उपयोग करता है",
     "use_correct_symbol": "आगे बढ़ने से पहले यह पक्का कर लें कि आप सही सिंबल का उपयोग कर रहे हैं",
-    "chain_id_currently_used": "This chain ID is currently used by the",
+    "chain_id_currently_used": "यह चेन ID वर्तमान में इसके द्वारा इस्तेमाल की जाती है",
     "incorrect_network_name_warning": "हमारे रिकॉर्ड के अनुसार, नेटवर्क का नाम इस चेन ID से ठीक से मेल नहीं खा सकता है।",
     "suggested_name": "सुझाया गया नाम:",
     "network_check_validation_desc": "किसी बुरी नीयत वाले या गलत नेटवर्क से जुड़ने की आपकी संभावना कम हो जाती है।",
@@ -2363,17 +2459,17 @@
     "learn_more": "ज्यादा जानें।",
     "add_collectibles": "NFT इम्पोर्ट करें",
     "nft_empty_description": "NFTs की दुनिया है। आज ही अपना कलेक्शन शुरू करें।",
-    "tokens_empty_description": "Nothing to see yet. Why not browse tokens or make a trade?",
+    "tokens_empty_description": "अभी देखने के लिए कुछ नहीं है। क्यों न टोकन ब्राउज़ करें या कोई ट्रेड करें?",
     "discover_nfts": "NFTs इंपोर्ट करें",
-    "no_transactions": "You have no transactions",
+    "no_transactions": "आपका कोई ट्रांसेक्शन नहीं है",
     "switch_network_to_view_transactions": "कृपया ट्रांसेक्शन देखने के लिए नेटवर्क बदलें",
     "send_button": "भेजें",
     "deposit_button": "जमा करें",
     "copy_address": "कॉपी करें",
-    "collectible_action_title": "Collectible options",
-    "remove_token_title": "Hide token?",
+    "collectible_action_title": "कलेक्टिबल विकल्प",
+    "remove_token_title": "टोकन छुपाएं?",
     "remove_collectible_title": "क्या आप इस संग्रहणीय वस्तु को हटाना चाहते हैं?",
-    "refresh_metadata": "Refresh metadata",
+    "refresh_metadata": "Metadata को रिफ्रेश करें",
     "token_removal_issue_title": "टोकन हटाने में मुश्किल।",
     "token_removal_issue_desc": "जब टोकन हटाने की कोशिश कर रहे थे तब समस्या हुई थी। फिर से कोशिश करें।",
     "collectible_removed_title": "संग्रहणीय वस्तु हटा दी गई!",
@@ -2406,16 +2502,16 @@
   },
   "asset_details": {
     "token": "टोकन",
-    "amount": "Token amount",
+    "amount": "टोकन राशि",
     "address": "टोकन अनुबंध पता",
     "decimal": "Token decimal",
     "network": "नेटवर्क",
     "network_fee": "नेटवर्क फी",
-    "lists": "Token lists",
+    "lists": "टोकन की सूचियां",
     "hide_cta": "टोकन छुपाएं",
     "perps_trading": "पर्प्स ट्रेडिंग",
     "options": {
-      "title": "Token options",
+      "title": "टोकन के विकल्प",
       "view_on_portfolio": "Portfolio पर देखें",
       "view_on_block": "ब्लॉक एक्सप्लोरर पर देखें",
       "token_details": "टोकन विवरण",
@@ -2471,7 +2567,7 @@
       "custom_warning_link": "स्कैम और सुरक्षा जोखिम",
       "custom_info_desc": "इस नेटवर्क पर टोकन डिटेक्शन अभी उपलब्ध नहीं है। कृपया टोकन को मैन्युअल रूप से इम्पोर्ट करें और सुनिश्चित करें कि आप उस पर भरोसा करते हैं। टोकन घोटालों और सुरक्षा जोख़िमों के बारे में ",
       "custom_info_link": "अधिक जानें।",
-      "custom_security_tips": "Security tips"
+      "custom_security_tips": "सुरक्षा के लिए सुझाव"
     }
   },
   "defi_positions": {
@@ -2568,6 +2664,7 @@
     "decimals_cant_be_empty": "टोकन का दशमलव खाली नहीं रह सकता।",
     "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "हम उस नाम के साथ कोई टोकन नहीं ढ़ूंढ़ सके।",
+    "tokens_empty_description": "Search for any token and import it",
     "select_token": "टोकन चुनें",
     "address_must_be_smart_contract": "व्यक्तिगत पता का पहचान हुई। टोकन अनुबंध पता दर्ज करें।",
     "billion_abbreviation": "B",
@@ -2578,15 +2675,15 @@
     "contract_address": "कॉन्ट्रैक्ट का एड्रेस",
     "token_list": "टोकन की सूची",
     "market_details": "मार्केट का ब्यौरा",
-    "market_cap": "Market cap",
-    "total_volume": "Total volume (24h)",
-    "volume_to_marketcap": "Volume / Market cap",
+    "market_cap": "मार्केट कैप",
+    "total_volume": "कुल वॉल्यूम (24h)",
+    "volume_to_marketcap": "वॉल्यूम / मार्केट कैप",
     "circulating_supply": "सप्लाई सर्कुलेट किया जा रहा है",
     "all_time_high": "अब तक के सबसे ऊँचे स्तर पर",
     "all_time_low": "अब तक के सबसे निचले स्तर पर",
     "fully_diluted": "पूरी तरह से डाइल्यूट किया हुआ",
     "unknown": "अज्ञात",
-    "stock": "Stock"
+    "stock": "स्टॉक"
   },
   "collectible": {
     "collectible_address": "पता",
@@ -2611,7 +2708,7 @@
     "collectible_asset_contract": "संपत्ति का अनुबंध",
     "share_check_out_nft": "मेरे NFT को देखें!",
     "share_via": "के जरिए साझा किया गया",
-    "untitled_collection": "Untitled collection",
+    "untitled_collection": "बिना टाइटल वाला कलेक्शन",
     "collection": "संग्रह"
   },
   "transfer": {
@@ -2637,7 +2734,7 @@
     "remove_snap_account": "Snap अकाउंट हटाएं",
     "remove_snap_account_alert_description": "यह अकाउंट आपके वॉलेट से हटा दिया जाएगा। कृपया जारी रखने से पहले सुनिश्चित करें कि आपके पास इस इंपोर्ट किए गए अकाउंट के लिए मूल सीक्रेट रिकवरी फ्रेज़ या प्राइवेट की (key) है। आप अकाउंट ड्रॉप-डाउन से दोबारा अकाउंट इंपोर्ट कर या बना सकते हैं।",
     "remove_account_alert_remove_btn": "हटाएं",
-    "remove_account_alert_cancel_btn": "Never mind",
+    "remove_account_alert_cancel_btn": "कोई बात नहीं",
     "accounts_title": "एकाउंट्स",
     "connect_account_title": "खाता कनेक्ट करें",
     "connect_accounts_title": "खातों को कनेक्ट करें",
@@ -2670,11 +2767,14 @@
     "disconnect_all_accounts": "सभी खाते डिस्कनेक्ट करें",
     "deceptive_site_ahead": "आगे धोखाधड़ी करने वाली साइट मौजूद है",
     "deceptive_site_desc": "आप जिस साइट पर जाना चाह रहे हैं वह सुरक्षित नहीं है। हमला करने वाले आपको कुछ खतरनाक काम करने के लिए उकसा सकते हैं।",
+    "malicious_site_detected": "बुरी नीयत वाली साइट का पता चला",
+    "malicious_site_warning": "अगर आप इस साइट से कनेक्ट होते हैं, तो आप अपने सभी एसेट खो सकते हैं।",
+    "connect_anyway": "तब भी कनेक्ट करें",
     "learn_more": "ज़्यादा जानें",
     "advisory_by": "Ethereum Phishing Detector और PhishFort द्वारा दी गई एडवाइज़री",
     "potential_threat": "बड़े ख़तरों में शामिल हैं",
     "fake_metamask": "MetaMask के नकली वर्जन",
-    "srp_theft": "Secret Recovery Phrase or password theft",
+    "srp_theft": "सीक्रेट रिकवरी फ्रेज़ या पासवर्ड की चोरी",
     "malicious_transactions": "बुरी नीयत वाले ट्रांसेक्शन जिनके कारण एसेट चोरी हो जाते हैं",
     "secret_recovery_phrase": "सीक्रेट रिकवरी फ्रेज़ है",
     "account_name": "अकाउंट का नाम",
@@ -2729,7 +2829,7 @@
   },
   "connect_qr_hardware": {
     "title": "क्यूआर-आधारित हार्डवेयर वॉलेट के साथ कनेक्ट करें",
-    "description1": "Connect an airgapped hardware wallet that communicates through QR codes.",
+    "description1": "ऐसे एयरग्रैप्ड हार्डवेयर वॉलेट के साथ कनेक्ट करें जोकि QR कोड के जरिए कम्युनिकेट करता हो।",
     "description2": "ये कैसे काम करता है",
     "description3": "आधिकारिक तौर पर सपोर्टेड एयरग्रैप्ड हार्डवेयर में शामिल हैं:",
     "keystone": "Keystone",
@@ -2741,9 +2841,8 @@
     "description5": "1. अपना कीस्टोन अनलॉक करें",
     "description6": "2. मेनू पर टैप करें, इसके बाद सिंक पर जाएं",
     "button_continue": "जारी रखें",
-    "hint_text": "अपने हार्डवेयर वॉलेट को स्कैन करें ",
-    "purpose_connect": "कनेक्ट",
-    "purpose_sign": "लेनदेन की पुष्टि करें",
+    "hint_text_pair": "अपने हार्डवेयर वॉलेट को स्कैन करें",
+    "hint_text_sign": "ट्रांज़ैक्शन कन्फ़र्म करने के लिए अपना हार्डवेयर वॉलेट स्कैन करें",
     "select_accounts": "किसी अकाउंट को चुनें"
   },
   "data_collection_modal": {
@@ -2759,14 +2858,22 @@
   "address_selector": {
     "select_an_address": "किसी एड्रेस का चयन करें"
   },
+  "accounts_menu": {
+    "manage": "मैनेज करें",
+    "resources": "संसाधन",
+    "permissions": "अनुमतियां",
+    "card_title": "MetaMask कार्ड",
+    "settings": "सेटिंग्स",
+    "networks": "नेटवर्क",
+    "log_out": "लॉग आउट करें",
+    "notifications": "अपने वॉलेट का उपयोग करना",
+    "buy": "खरीदें",
+    "scan": "स्कैन करें"
+  },
   "app_settings": {
     "enabling_notifications": "नोटिफिकेशंस चालू किया जा रहा है...",
     "updating_notifications": "नोटिफिकेशंस अपडेट किया जा रहा है...",
     "updating_account_settings": "अकाउंट सेटिंग्स अपडेट किया जा रहा है...",
-    "reset_notifications_title": "नोटीफिकेशंस रीसेट करें",
-    "reset_notifications_description": "नोटीफिकेशंस को रीसेट करने का मतलब है कि आप अपनी नोटीफिकेशंस स्टोरेज कीज़ डिलीट कर रहे हैं और अपने सभी नोटीफिकेशंस इतिहास को रीसेट कर रहे हैं। क्या आप वास्तव में इसे करना चाहते हैं?",
-    "reset_notifications": "नोटीफिकेशंस रीसेट करें",
-    "reset_notifications_success": "नोटीफिकेशंस स्टोरेज की डिलीट की गई/फिर से बनाई गई और नोटीफिकेशंस इतिहास रीसेट किया गया।",
     "notifications_dismiss_modal": "खारिज करें",
     "select_rpc_url": "RPC URL को चुनें",
     "title": "सेटिंग",
@@ -2781,6 +2888,8 @@
     "state_logs": "स्टेट लॉग्स",
     "add_network_title": "एक नेटवर्क जोड़ें",
     "auto_lock": "ऑटो-लॉक",
+    "enable_device_authentication": "डिवाइस ऑथेंटिकेशन चालू करें",
+    "enable_device_authentication_desc": "MetaMask को अनलॉक करने के लिए अपने डिवाइस के बायोमेट्रिक्स या पासकोड का इस्तेमाल करें।",
     "auto_lock_desc": "एप्लिकेशन के अपने आप लॉक होने में लगने वाले समय का चयन करें। ",
     "state_logs_desc": "किसी समस्या को डिबग करने में यह MetaMask की मदद करेगा, जिससे आपका मुकाबला हो सकता है।  कृपया इसे हैमबर्गर आइकन > फीडबेक भेजें के जरिए MetaMask समर्थन को भेजें, या अपने वर्तमान टिकट का जवाब दें यदि आपके पास एक है।",
     "autolock_immediately": "तुरंत ही",
@@ -2886,6 +2995,11 @@
     "add_rpc_url": "RPC URL जोड़ें",
     "add_block_explorer_url": "ब्लॉक एक्सप्लोरर URL जोड़ें",
     "networks_desc": "कस्टम RPC नेटवर्क को जोड़ें और संपादित करें",
+    "networks_enabled": "Enabled Networks",
+    "networks_test_networks": "Test Networks",
+    "networks_additional": "Additional Networks",
+    "networks_search_placeholder": "नेटवर्क ढूंढें",
+    "networks_no_results": "कोई नेटवर्क नहीं मिला",
     "network_name_label": "नेटवर्क का नाम",
     "network_name_placeholder": "नेटवर्क का नाम (वैकल्पिक)",
     "network_rpc_url_label": "RPC URL",
@@ -2902,7 +3016,16 @@
     "network_other_networks": "अन्य नेटवर्क",
     "network_rpc_networks": "RPC नेटवर्क",
     "network_add_network": "नेटवर्क जोड़ें",
+    "add_chain_title": "एक नेटवर्क जोड़ें",
+    "add_chain_search_placeholder": "Search by name, chain ID, or currency",
+    "add_chain_loading": "Loading networks…",
+    "add_chain_error": "Failed to load networks. Please try again.",
+    "add_chain_retry": "फिर से प्रयास करें",
+    "add_chain_added": "Added",
+    "add_chain_or": "या",
+    "add_chain_custom_link": "एक कस्टम नेटवर्क जोड़ें",
     "network_add_custom_network": "एक कस्टम नेटवर्क जोड़ें",
+    "network_add_test_network": "Add a test network",
     "network_add": "जोड़ें",
     "network_save": "सहेजें",
     "remove_network_title": "क्या आप इस नेटवर्क को हटाना चाहते हैं?",
@@ -3120,9 +3243,6 @@
     "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।",
     "dismiss_smart_account_update_heading": "\"स्मार्ट अकाउंट पर स्विच करें\" सुझाव को खारिज करें",
     "dismiss_smart_account_update_desc": "किसी भी अकाउंट पर \"स्मार्ट अकाउंट पर स्विच करें\" सुझाव न देखने के लिए इसे चालू करें। स्मार्ट अकाउंट से तेज़ ट्रांसेक्शन, कम नेटवर्क फ़ीस और आसानी से पेमेंट कर सकने का लाभ मिलता है।",
-    "use_smart_account_heading": "स्मार्ट अकाउंट का उपयोग करें",
-    "use_smart_account_desc": "जब भी प्रासंगिक सुविधाएं उपलब्ध हों, जैसे कि तेज ट्रांसेक्शन, कम नेटवर्क शुल्क और उनके लिए भुगतान पर लचीलापन, तो MetaMask के भीतर बनाए गए एकाउंट्स को स्वचालित रूप से स्मार्ट एकाउंट्स में बदलने के लिए इसे चालू रखें।",
-    "use_smart_account_learn_more": "ज़्यादा जानें",
     "smart_transactions_opt_in_heading": "स्मार्ट ट्रांसेक्शन",
     "smart_transactions_opt_in_desc_supported_networks": "समर्थित नेटवर्क पर अधिक विश्वसनीय और सुरक्षित ट्रांसेक्शन के लिए स्मार्ट ट्रांसेक्शन चालू करें।",
     "smart_transactions_learn_more": "ज़्यादा जानें",
@@ -3136,7 +3256,12 @@
       "generate_trace_test": "ट्रेस टैस्ट जनरेट करें",
       "generate_trace_test_desc": "एक डेवलपर टैस्ट सेंट्री ट्रेस जनरेट करें।",
       "navigate_to_sample_feature": "नमूना फीचर पर जाएं",
-      "sample_feature_desc": "डेवलपर्स के लिए एक टेम्पलेट के रूप में दिया गया नमूना फीचर।"
+      "sample_feature_desc": "डेवलपर्स के लिए एक टेम्पलेट के रूप में दिया गया नमूना फीचर।",
+      "card": {
+        "title": "कार्ड",
+        "reset_onboarding_description": "ऑनबोर्डिंग प्रक्रिया को शुरुआत से दोबारा शुरू करने के लिए कार्ड की ऑनबोर्डिंग स्टेट रीसेट करें।",
+        "reset_onboarding_button": "ऑनबोर्डिंग स्टेट रीसेट करें"
+      }
     },
     "feature_flag_override": {
       "title": "फीचर फ़्लैग ओवरराइड",
@@ -3192,7 +3317,7 @@
   "sdk_feedback_modal": {
     "ok": "ठीक है",
     "title": "खाता कनेक्ट नहीं हो सका",
-    "info": "Please scan the QR code on the site to reconnect to MetaMask"
+    "info": "MetaMask से फिर से कनेक्ट करने के लिए कृपया साइट पर क्यूआर कोड स्कैन करें"
   },
   "app_information": {
     "title": "जानकारी",
@@ -3201,8 +3326,8 @@
     "terms_of_use": "उपयोग की शर्तें",
     "attributions": "विशेषताएं",
     "support_center": "हमारे सपोर्ट सेंटर पर जाएं",
-    "web_site": "Visit our website",
-    "contact_us": "Contact us"
+    "web_site": "हमारी वेबसाइट पर जाएं",
+    "contact_us": "हमसे संपर्क करें"
   },
   "reveal_credential": {
     "seed_phrase_title": "सीक्रेट रिकवरी फ्रेज प्रकट करें",
@@ -3265,8 +3390,10 @@
   "screenshot_deterrent": {
     "title": "सुरक्षा चेतावनी",
     "description": "स्क्रीनशॉट आपके {{credentialName}} पर नज़र रखने का सुरक्षित तरीका नहीं है। अपने खाते को सुरक्षित रखने के लिए इसे कहीं स्टोर करें जिसका ऑनलाइन बैकअप नहीं लिया गया है।",
+    "card_description": "आपके कार्ड डिटेल्स के स्क्रीनशॉट दूसरे लोग देख सकते हैं। अपना कार्ड नंबर या CVV कभी भी शेयर न करें।",
     "srp_text": "सीक्रेट रिकवरी फ्रेज़ है",
-    "priv_key_text": "प्राइवेट की (key)"
+    "priv_key_text": "प्राइवेट की (key)",
+    "card_text": "कार्ड की जानकारी"
   },
   "password_reset": {
     "password_title": "पासवर्ड",
@@ -3286,8 +3413,13 @@
     "sell_description": "कैश के लिए क्रिप्टो बेचें"
   },
   "asset_overview": {
+    "market_closed": "मार्केट बंद",
     "send_button": "भेजें",
     "buy_button": "खरीदें",
+    "cash_buy_button": "कैश में खरीदें",
+    "long_button": "लॉन्ग",
+    "short_button": "शॉर्ट",
+    "more_button": "अधिक",
     "token_marketplace": "टोकन मार्केटप्लेस",
     "sell_button": "बेचें",
     "receive_button": "प्राप्त करें",
@@ -3302,15 +3434,6 @@
     "bridge": "ब्रिज",
     "earn": "कमाएं",
     "convert_to_musd": "mUSD में कन्वर्ट करें",
-    "merkl_rewards": {
-      "annual_bonus": "{{apy}}% बोनस",
-      "claimable_bonus": "क्लेम करने योग्य बोनस",
-      "claimable_bonus_tooltip_description": "mUSD bonuses are claimed on Linea.",
-      "terms_apply": "Terms apply.",
-      "ok": "ठीक है",
-      "claim": "क्लेम करें",
-      "processing_claim": "Processing claim..."
-    },
     "tron": {
       "daily_resource_new_energy": "नई दैनिक ऊर्जा",
       "sufficient_to_cover": "कवर करने के लिए पर्याप्त",
@@ -3336,7 +3459,7 @@
       "perps": "इस अकाउंट के लिए पर्प्स ट्रेडिंग सपोर्टेड नहीं है"
     },
     "description": "विवरण",
-    "totalSupply": "Total supply",
+    "totalSupply": "कुल आपूर्ति",
     "address": "पता",
     "were_unable": "हम लोड करने में असमर्थ हैं आपका",
     "balance": "बैलेंस: समर्थन लेख को देखें",
@@ -3376,7 +3499,7 @@
     "no_chart_data": {
       "title": "कोई चार्ट डेटा नहीं",
       "description": "इस टोकन के लिए कोई डेटा नहीं पाया जा सका",
-      "insufficient_data": "Data is not available for this time period"
+      "insufficient_data": "इस समयावधि के लिए डेटा उपलब्ध नहीं है"
     },
     "your_balance": "आपका बैलेंस",
     "perps_position": "पर्प्स पोज़िशन",
@@ -3387,10 +3510,10 @@
       "show_less": "कम दिखाएं"
     },
     "activity": "{{symbol}} गतिविधि",
-    "disclaimer": "Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy."
+    "disclaimer": "मार्केट डेटा CoinGecko जैसे थर्ड-पार्टी सोर्स से मिलता है। डेटा सिर्फ़ जानकारी के लिए है। इसकी सटीकता के लिए MetaMask ज़िम्मेदार नहीं है।"
   },
   "account_details": {
-    "title": "Account details",
+    "title": "अकाउंट का विवरण",
     "share_account": "साझा करें",
     "view_account": "Etherscan पर अकाउंट देखें",
     "show_private_key": "निजी की दिखाएं",
@@ -3429,7 +3552,7 @@
     "address_copied_to_clipboard": "टोकन पता क्लिपबोर्ड पर कॉपी किया गया"
   },
   "qr_scanner": {
-    "invalid_qr_code_title": "Invalid QR code",
+    "invalid_qr_code_title": "QR कोड ग़लत है",
     "invalid_qr_code_message": "QR कोड जिसे आप स्कैन करने की कोशिश कर रहे हैं मान्य नहीं है।",
     "allow_camera_dialog_title": "कैमरे की पहुंच की अनुमति दें",
     "allow_camera_dialog_message": "QR कोड स्कैन करने के लिए हमें आपकी अनुमति की जरुरत है",
@@ -3442,7 +3565,7 @@
     "attempting_sync_from_wallet_error": "ऐसा लगता है जैसे कि एक्सटेंशन के साथ आप सिंक करने की कोशिश कर रहे हैं। ऐसा करने के लिए, आपको अपने वर्तमान वॉलेट को मिटाना होगा। \n\nएक बार जब आपने ऐप के नए प्रारुप को मिटा दिया या फिर से स्थापित कर दिया हो, तब \"MetaMask एक्सटेंशन के साथ सिंक करें\" विकल्प को चुनें। महत्वपूर्ण! अपने वॉलेट को मिटाने से पहले, ये सुनिश्चित कर लें कि आपने अपने सीक्रेट रिकवरी फ्रेज का बैकअप ले लिया है।",
     "not_allowed_error_title": "कैमरे की ऐक्सेस चालू करें",
     "not_allowed_error_desc": "QR कोड को स्कैन करने के लिए, आपको अपने डिवाइस के सेटिंग्स मेनू से MetaMask कैमरे की ऐक्सेस देनी होगी।",
-    "unrecognized_address_qr_code_title": "Unrecognized QR code",
+    "unrecognized_address_qr_code_title": "अनजाना QR कोड",
     "unrecognized_address_qr_code_desc": "क्षमा करें, यह QR कोड किसी खाते के पते या अनुबंध के पते से संबद्ध नहीं है।",
     "url_redirection_alert_title": "आप किसी बाहरी लिंक पर जाने वाले हैं",
     "url_redirection_alert_desc": "लिंक का उपयोग लोगों को धोखा देने या फिश करने के लिए किया जा सकता है, इसलिए सुनिश्चित करें कि केवल उन्हीं वेबसाइटों पर जाएं जिन पर आप भरोसा करते हैं।",
@@ -3521,7 +3644,7 @@
     "invalid_collectible_ownership": "आप इस संग्रहणीय वस्तु के मालिक नहीं हैं",
     "known_asset_contract": "ज्ञात संपत्ति अनुबंध पता",
     "max": "अधिकतम",
-    "recipient_address": "Recipient address",
+    "recipient_address": "प्राप्तकर्ता का पता",
     "required": "जरुरी",
     "to": "को",
     "total": "कुल",
@@ -3537,10 +3660,10 @@
     "cancel_tx_message": "इस प्रयास को सबमिट करने से इस बात की गारंटी नहीं मिलती कि आपका मूल लेन-देन रद्द कर दिया जाएगा। यदि रद्द करने का प्रयास सफल रहा, तो आपसे उपरोक्त लेन-देन शुल्क लिया जाएगा।",
     "speedup_tx_title": "गति बढ़ाने का प्रयास?",
     "speedup_tx_message": "इस प्रयास को सबमिट करने से इस बात की गारंटी नहीं मिलती कि आपका मूल लेन-देन तेजी से होगा। यदि गति बढ़ाने का प्रयास सफल रहा, तो आपसे उपरोक्त लेन-देन शुल्क लिया जाएगा।",
-    "nevermind": "Never mind",
+    "nevermind": "कोई बात नहीं",
     "edit_network_fee": "गैस शुल्क संपादित करें",
     "edit_priority": "प्राथमिकता को संपादित करें",
-    "gas_cancel_fee": "Gas cancellation fee",
+    "gas_cancel_fee": "गैस कैंसिल करने का शुल्क",
     "gas_speedup_fee": "गैस की गति बढ़ाने का शुल्क",
     "use_max": "अधिकतम उपयोग करें",
     "set_gas": "निर्धारित करें",
@@ -3549,7 +3672,7 @@
     "transaction_fee": "गैस शुल्क",
     "transaction_fee_less": "कोई शुल्क नहीं",
     "total_amount": "कुल रकम",
-    "view_data": "View data",
+    "view_data": "डेटा देखें",
     "adjust_transaction_fee": "लेन-देन शुल्क को समायोजित करें",
     "could_not_resolve_ens": "ENS सुलझा नहीं सके",
     "asset": "संपत्ति",
@@ -3605,7 +3728,7 @@
     "advanced_options": "एडवांस",
     "basic_options": "बुनियादी",
     "hide_advanced_options": "एडवांस को छुपाएं",
-    "gas_limit": "Gas limit:",
+    "gas_limit": "गैस लिमिट:",
     "gas_price": "गैस की कीमत: (GWEI)",
     "save": "सहेजें",
     "warning_gas_limit": "गैस की सीमा 20999 से ज्यादा होनी चाहिए",
@@ -3668,7 +3791,7 @@
     "reload": "फिर से लोड करें",
     "share": "साझा करें",
     "bookmark": "बुकमार्क",
-    "add_to_favorites": "Add to favorites",
+    "add_to_favorites": "पसंदीदा में जोड़े",
     "error": "त्रुटि",
     "cancel": "रद्द करें",
     "go_back": "वापस जाएं",
@@ -3676,7 +3799,7 @@
     "home": "घर",
     "close": "बंद करें",
     "open_in_browser": "ब्राउजर में खोलें",
-    "change_url": "Change URL",
+    "change_url": "URL बदलें",
     "switch_network": "नेटवर्क बदलें",
     "dapp_browser": "DAPP ब्राउजर",
     "dapp_browser_message": "विकेन्द्रीकृत वेब के लिए MetaMask आपका वॉलेट और ब्राउजर है। अपने आस - पास देखें!",
@@ -3688,11 +3811,13 @@
     "new_tab": "नया टैब",
     "tabs_close_all": "सब बंद करें",
     "tabs_done": "सम्पन्न",
-    "no_tabs_title": "No open tabs",
+    "opened_tabs": "खुले हुए टैब",
+    "add_new_tab": "नया टैब जोड़ें",
+    "no_tabs_title": "कोई खुला टैब नहीं",
     "no_tabs_desc": "विकेन्द्रीकृत वेब ब्राउज करने के लिए, एक नया टैब जोड़ें",
     "got_it": "समझ गए",
     "max_tabs_title": "अधिकतम टैब की सीमा पूरी हो गई",
-    "max_tabs_desc": "हम वर्तमान में एक बार में केवल 5 ओपन टैब सपोर्ट करते हैं। कृपया नए टैब जोड़ने से पहले मौजूदा टैब बंद करें।",
+    "max_tabs_desc": "हम वर्तमान में एक बार में केवल 20 ओपन टैब सपोर्ट करते हैं। कृपया नए टैब जोड़ने से पहले मौजूदा टैब बंद करें।",
     "failed_to_resolve_ens_name": "हम उस  ENS नाम को सुलझा नहीं सके",
     "remove_bookmark_title": "पसंदीदा हटाएं",
     "remove_bookmark_msg": "क्या आप वास्तव में इस साइट को अपने पसंदीदा से हटाना चाहते हैं?",
@@ -3725,7 +3850,7 @@
     "cancel_button": "रद्द करें"
   },
   "approval": {
-    "title": "Confirm transaction"
+    "title": "ट्रांसेक्शन कन्फर्म करें"
   },
   "approve": {
     "title": "स्वीकृति दें",
@@ -3733,42 +3858,44 @@
     "qr_code": "QR कोड"
   },
   "transactions": {
+    "unavailable": "अनुपलब्ध",
     "tx_review_confirm": "पुष्टि करें",
     "tx_review_transfer": "स्थानांतरण",
-    "tx_review_contract_deployment": "Contract deployment",
-    "tx_review_transfer_from": "Transfer from",
-    "tx_review_unknown": "Unknown method",
+    "tx_review_contract_deployment": "कॉन्ट्रैक्ट डिप्लॉयमेंट",
+    "tx_review_transfer_from": "यहाँ से ट्रांसफर करें",
+    "tx_review_unknown": "अज्ञात तरीका",
     "tx_review_approve": "स्वीकृति दें",
-    "tx_review_increase_allowance": "Increase allowance",
-    "tx_review_set_approval_for_all": "Set approval for all",
-    "tx_review_staking_claim": "Staking claim",
+    "tx_review_increase_allowance": "भत्ता बढ़ाएं",
+    "tx_review_set_approval_for_all": "सभी के लिए एप्रूवल सेट करें",
+    "tx_review_staking_claim": "क्लेम पर दावा ठोकना",
     "tx_review_staking_deposit": "डिपॉज़िट स्टेक करना",
     "tx_review_staking_unstake": "अनस्टेक करें",
     "tx_review_lending_deposit": "डिपॉज़िट उधार दिया जा रहा है",
-    "tx_review_lending_withdraw": "Lending withdrawal",
+    "tx_review_lending_withdraw": "प्राप्त उधार को निकालना",
     "tx_review_perps_deposit": "फंडेड पर्प्स",
     "tx_review_predict_deposit": "फ़ंड किए गए प्रेडिक्शन",
     "tx_review_predict_claim": "क्लेम किया गया जीत का ईनाम",
     "tx_review_predict_withdraw": "प्रेडिक्शन विदड्रॉ",
     "tx_review_musd_conversion": "mUSD कन्वर्शन",
-    "sent_ether": "Sent ETH",
-    "self_sent_ether": "Sent yourself ETH",
-    "received_ether": "Received ETH",
+    "claim": "क्लेम करें",
+    "sent_ether": "ETH भेजा",
+    "self_sent_ether": "खुद को ETH भेजा",
+    "received_ether": "ETH मिला",
     "sent_dai": "DAI भेजे गए",
     "self_sent_dai": "खुद को DAI भेजें",
     "received_dai": "DAI प्राप्त किया",
-    "sent_tokens": "Sent tokens",
-    "received_tokens": "Received tokens",
+    "sent_tokens": "टोकन भेजे गए",
+    "received_tokens": "टोकन प्राप्त हुए",
     "ether": "ETH",
     "sent_unit": "{{unit}} भेजे गए",
-    "self_sent_unit": "Sent yourself {{unit}}",
+    "self_sent_unit": "खुद को {{unit}} भेजे",
     "received_unit": "{{unit}} प्राप्त किया",
-    "sent_collectible": "Sent collectible",
-    "received_collectible": "Received collectible",
-    "send_ether": "Send ETH",
-    "send_unit": "Send {{unit}}",
-    "send_collectible": "Send collectible",
-    "receive_collectible": "Receive collectible",
+    "sent_collectible": "कलेक्टिबल भेजा गया",
+    "received_collectible": "कलेक्टिबल प्राप्त किया गया",
+    "send_ether": "ETH भेजें",
+    "send_unit": "{{unit}} भेजें",
+    "send_collectible": "कलेक्टिबल भेजें",
+    "receive_collectible": "कलेक्टिबल प्राप्त करें",
     "sent": "भेजा गया",
     "received": "प्राप्त किया",
     "receive": "प्राप्त करें",
@@ -3776,17 +3903,17 @@
     "send": "भेजें",
     "redeposit": "फिर से डिपॉज़िट करें",
     "interaction": "इंटरैक्शन",
-    "contract_deploy": "Contract deployment",
-    "to_contract": "New contract",
-    "mint": "Mint",
+    "contract_deploy": "कॉन्ट्रैक्ट डिप्लॉयमेंट",
+    "to_contract": "नया कॉन्ट्रैक्ट",
+    "mint": "मिंट",
     "tx_details_free": "मुफ्त",
     "tx_details_not_available": "उपलब्ध नहीं है",
     "smart_contract_interaction": "स्मार्ट अनुबंध संपर्क",
     "swaps_transaction": "स्वैप का लेन-देन",
     "bridge_transaction": "ब्रिज",
     "approve": "स्वीकृति दें",
-    "increase_allowance": "Increase allowance",
-    "set_approval_for_all": "Set approval for all",
+    "increase_allowance": "भत्ता बढ़ाएं",
+    "set_approval_for_all": "सभी के लिए एप्रूवल सेट करें",
     "hash": "हैश",
     "from": "से",
     "to": "को",
@@ -3794,15 +3921,15 @@
     "amount": "रकम",
     "fee": {
       "transaction_fee_in_ether": "ट्रांसेक्शन फीस",
-      "transaction_fee_in_usd": "Transaction fee (USD)"
+      "transaction_fee_in_usd": "ट्रांसेक्शन फीस (USD)"
     },
-    "gas_used": "Gas used (units)",
-    "gas_limit": "Gas limit (units)",
-    "gas_price": "Gas price (GWEI)",
-    "base_fee": "Base fee (GWEI)",
-    "priority_fee": "Priority fee (GWEI)",
+    "gas_used": "इस्तेमाल की गई गैस (यूनिट्स)",
+    "gas_limit": "गैस लिमिट (यूनिट्स)",
+    "gas_price": "गैस प्राइस (GWEI)",
+    "base_fee": "बेस फी (GWEI)",
+    "priority_fee": "प्रायोरिटी फी (GWEI)",
     "multichain_priority_fee": "प्रायोरिटी फी",
-    "max_fee": "Max fee per gas",
+    "max_fee": "प्रति गैस अधिकतम फीस",
     "total": "कुल",
     "view_on": "देखें",
     "view_on_etherscan": "Etherscan पर देखें",
@@ -3818,13 +3945,13 @@
     "nonce": "नॉन्स (nonce)",
     "from_device_label": "इस डिवाइस से",
     "import_wallet_row": "अकाउंट इस डिवाइस में जोड़ा गया",
-    "import_wallet_label": "Account added",
+    "import_wallet_label": "अकाउंट जोड़ा गया",
     "import_wallet_tip": "इस डिवाइस से भविष्य के सभी किए गए लेन-देन में टाइमस्टैम्प के बाद एक लेबल \"इस डिवाइस से\" शामिल होगा। अकाउंट को जोड़े जाने से पहले की तिथि के लेन-देन के लिए, इतिहास सूचित नहीं करेगा कि कौन से आउटगोइंग लेन-देन इस डिवाइस से उत्पन्न हुए हैं।",
     "sign_title_scan": "स्कैन करें ",
     "sign_title_device": "अपने हार्डवेयर वॉलेट के साथ",
     "sign_description_1": "अपने हार्डवेयर वॉलेट के साथ साइन करने के बाद,",
-    "sign_description_2": "Tap on get signature",
-    "sign_get_signature": "Get signature",
+    "sign_description_2": "\"सिग्नेचर प्राप्त करें\" पर टैप करें",
+    "sign_get_signature": "सिग्नेचर प्राप्त करें",
     "transaction_id": "ट्रांसेक्शन आईडी",
     "network": "नेटवर्क",
     "request_from": "इनसे मिला अनुरोध",
@@ -3848,7 +3975,7 @@
       "gas_limit": "गैस लिमिट",
       "save": "सेव करें",
       "max_base_fee": "अधिकतम बेस फी",
-      "priority_fee": "Priority fee",
+      "priority_fee": "प्रायोरिटी फी",
       "current_priority_fee": "वर्तमान: {{min}} - {{max}} GWEI",
       "historical_priority_fee": "12 घंटे: {{min}} - {{max}} GWEI",
       "estimated_base_fee": "वर्तमान: {{value}} GWEI",
@@ -3925,9 +4052,9 @@
   },
   "networks": {
     "title": "नेटवर्क",
-    "other_networks": "Other networks",
+    "other_networks": "अन्य नेटवर्क",
     "close": "बंद करें",
-    "status_ok": "All systems operational",
+    "status_ok": "सभी सिस्टम चालू हैं",
     "status_not_ok": "नेटवर्क में कुछ समस्या हो रही है",
     "want_to_add_network": "इस नेटवर्क को जोड़ना चाहते हैं?",
     "add_custom_network": "कस्टम नेटवर्क जोड़ें",
@@ -3946,7 +4073,7 @@
     "review": "समीक्षा करें",
     "view_details": "विवरण देखें",
     "network_details": "नेटवर्क का विवरण",
-    "network_select_confirm_use_safe_check": "Selecting confirm turns on network details check. You can turn off network details check in ",
+    "network_select_confirm_use_safe_check": "कन्फर्म करें को चुनने पर नेटवर्क डिटेल्स की जांच चालू हो जाती है। आप इस में नेटवर्क डिटेल्स की जांच बंद कर सकते हैं ",
     "network_settings_security_privacy": "सेटिंग्स में > सुरक्षा और गोपनीयता",
     "network_currency_symbol": "करेंसी सिंबल",
     "network_block_explorer_url": "एक्सप्लोरर URL को ब्लॉक करें",
@@ -3960,8 +4087,8 @@
     "edit_network_details": "नेटवर्क का ब्यौरा बदलें",
     "malicious_network_warning": "एक दुर्भावनापूर्ण नेटवर्क प्रदाता ब्लॉकचेन की स्थिति के बारे में झूठ बोल सकता है और आपकी नेटवर्क गतिविधि को रिकॉर्ड कर सकता है। केवल ऐसे कस्टम नेटवर्क जोड़ें जिन पर आपको भरोसा हो।",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "network_warning_title": "Network information",
-    "additional_network_information_title": "Additional networks information",
+    "network_warning_title": "नेटवर्क की जानकारी",
+    "additional_network_information_title": "अतिरिक्त नेटवर्क सूचना",
     "network_warning_desc": "यह नेटवर्क कनेक्शन थर्ड पार्टी पर निर्भर करता है। यह कनेक्शन कम विश्वसनीय हो सकता है या गतिविधि को ट्रैक करने के लिए तृतीय-पक्ष को सक्षम कर सकता है।",
     "additonial_network_information_desc": "इनमें से कुछ नेटवर्क थर्ड पार्टीज़ पर निर्भर हैं। कनेक्शन कम विश्वसनीय हो सकते हैं या गतिविधि को ट्रैक करने के लिए थर्ड पार्टीज़ को चालू कर सकते हैं।",
     "connect_more_networks": "अधिक नेटवर्क कनेक्ट करें",
@@ -3989,9 +4116,9 @@
     "show_test_networks": "परीक्षण नेटवर्क दिखाएं",
     "deprecated_goerli": "Ethereum के प्रोटोकॉल परिवर्तनों के कारण: Goerli परीक्षण नेटवर्क विश्वसनीय रूप से काम नहीं कर सकता है और जल्द ही बंद हो जाएगा।",
     "network_deprecated_title": "इस नेटवर्क को हटा दिया गया है",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on MetaMask.",
+    "network_deprecated_description": "जिस नेटवर्क से आप कनेक्ट करने का प्रयास कर रहे हैं उसे अब MetaMask सपोर्ट नहीं करता।",
     "edit_networks_title": "नेटवर्क बदलें",
-    "no_network_fee": "No network fee"
+    "no_network_fee": "कोई नेटवर्क फीस नहीं"
   },
   "permissions": {
     "title_this_site_wants_to": "यह साइट निम्नलिखित करना चाहती है:",
@@ -4006,11 +4133,11 @@
     "network_connected": "नेटवर्क कनेक्ट किया गया ",
     "see_your_accounts": "आपके अकाउंट को देखकर ट्रांसेक्शन का सुझाव देना",
     "connected_to": "से जुड़ा हुआ ",
-    "manage_permissions": "Manage permissions",
+    "manage_permissions": "अनुमतियाँ प्रबंधित करें",
     "edit": "बदलें",
     "cancel": "कैंसिल करें",
     "got_it": "समझ गए",
-    "connection_details_title": "Connection details",
+    "connection_details_title": "कनेक्शन का विवरण",
     "connection_details_description": "आप {{connectionDateTime}} पर MetaMask ब्राउज़र का उपयोग करके इस साइट से कनेक्टेड हैं",
     "title_add_network_permission": "नेटवर्क अनुमति जोड़ें",
     "add_this_network": "इस नेटवर्क को जोड़ें",
@@ -4044,7 +4171,7 @@
     "read_more": "ज्यादा पढ़ें"
   },
   "watch_asset_request": {
-    "title": "Add suggested token",
+    "title": "सुझाया गया टोकन जोड़ें",
     "cancel": "रद्द करें",
     "add": "टोकन जोड़ें",
     "message": "क्या आप इस टोकन को जोड़ना चाहेंगे?",
@@ -4076,28 +4203,24 @@
     "enable_device_passcode_android": "डिवाइस के PIN के साथ अनलॉक करें?"
   },
   "authentication": {
-    "auth_prompt_title": "प्रमाणीकरण की जरुरत है",
-    "auth_prompt_desc": "MetaMask के उपयोग के लिए कृपया प्रमाणित करें",
-    "fingerprint_prompt_title": "प्रमाणीकरण की जरुरत है",
-    "fingerprint_prompt_desc": "MetaMask को अनलॉक करने के लिए अपनी फिंगरप्रिंट का उपयोग करें",
-    "fingerprint_prompt_cancel": "रद्द करें"
+    "auth_prompt_desc": "MetaMask के उपयोग के लिए कृपया प्रमाणित करें"
   },
   "accountApproval": {
     "title": "कनेक्ट अनुरोध  ",
     "walletconnect_title": "वॉलेटकनेक्ट अनुरोध",
     "action": "इस साइट से कनेक्ट करें?",
-    "action_reconnect": "To resume connection, choose the number you see on the site",
-    "action_reconnect_deeplink": "Do you want to reconnect to this site?",
+    "action_reconnect": "कनेक्शन फिर से शुरू करने के लिए, वह नंबर चुनें जो आप साइट पर देखते हैं",
+    "action_reconnect_deeplink": "क्या आप इस साइट से फिर से कनेक्ट करना चाहते हैं?",
     "connect": "कनेक्ट",
     "resume": "फिर से शुरू करें",
     "cancel": "रद्द करें",
-    "donot_rememberme": "Do not remember this site connection",
+    "donot_rememberme": "इस साइट कनेक्शन को याद न रखें",
     "disconnect": "डिसकनेक्ट करें",
     "permission": "देखें अपना ",
     "address": "पब्लिक एड्रेस",
     "sign_messages": "संदेशों पर हस्ताक्षर करें",
     "on_your_behalf": "आपकी ओर से",
-    "warning": "By clicking connect, you allow this site to view your public address. This is an important security step to protect your data from potential phishing risks."
+    "warning": "कनेक्ट पर क्लिक करके, आप इस dapp साईट अपना पब्लिक एड्रेस देखने की अनुमति देते हैं। सुरक्षा के लिए य़ह एक महत्वपूर्ण कदम है ताकि संभावित फिशिंग जोखिम से अपने डेटा को सुरक्षित रख सकें।"
   },
   "import_private_key": {
     "title": "अकाउंट इंपोर्ट करें",
@@ -4113,7 +4236,7 @@
     "error_title": "कुछ गलत हो गया",
     "error_message": "हम उस निजी की को इम्पोर्ट नहीं कर सके। कृपया सुनिश्चित करें कि आपने इसे सही ढ़ंग से दर्ज किया है।",
     "error_empty_message": "आपको अपनी निजी की दर्ज करने की जरुरत है।",
-    "or_scan_a_qr_code": "or scan a QR code"
+    "or_scan_a_qr_code": "या एक QR कोड स्कैन करें"
   },
   "import_private_key_success": {
     "title": "अकाउंट सफलतापूर्वक इम्पोर्ट किया गया!",
@@ -4123,19 +4246,19 @@
     "title": "सीक्रेट रिकवरी फ्रेज़ इंपोर्ट करें",
     "import_wallet_title": "एक वॉलेट इंपोर्ट करें",
     "enter_srp_subtitle": "अपना सीक्रेट रिकवरी फ्रेज़ डालें",
-    "textarea_placeholder": "Add a space between each word and make sure no one is watching",
-    "description": "Enter your wallet's Secret Recovery Phrase. You can import any Ethereum, Solana, or Bitcoin Secret Recovery Phrase.",
-    "subtitle": "Paste your Secret Recovery Phrase",
+    "textarea_placeholder": "प्रत्येक शब्द के बीच एक स्पेस जोड़ें और ध्यान दें कि कोई भी नहीं देख रहा हो",
+    "description": "अपने वॉलेट का सीक्रेट रिकवरी फ्रेज़ एंटर करें। आप कोई भी Ethereum, Solana या Bitcoin सीक्रेट रिकवरी फ्रेज़ इंपोर्ट कर सकते हैं।",
+    "subtitle": "अपने सीक्रेट रिकवरी फ्रेज़ को पेस्ट करें",
     "cta_text": "जारी रखें",
     "paste": "पेस्ट करें",
     "clear": "सभी हटाएं",
     "srp_number_of_words_option_title": "शब्दों की संख्या",
-    "12_word_option": "I have a 12-word phrase",
-    "24_word_option": "I have a 24-word phrase",
+    "12_word_option": "मेरे पास 12 शब्दों का एक फ्रेज़ है",
+    "24_word_option": "मेरे पास 24 शब्दों का एक फ्रेज़ है",
     "error_title": "कुछ गलत हो गया",
-    "error_message": "We couldn't import that Secret Recovery Phrase. Please make sure you entered it correctly.",
-    "error_empty_message": "You need to enter your Secret Recovery Phrase.",
-    "error_number_of_words_error_message": "Secret Recovery Phrases contain 12 or 24 words",
+    "error_message": "हम उस सीक्रेट रिकवरी फ्रेज़ को इंपोर्ट नहीं कर सके। कृपया सुनिश्चित करें कि आपने इसे सही ढंग से एंटर किया है।",
+    "error_empty_message": "आपको अपना सीक्रेट रिकवरी फ्रेज़ एंटर करना होगा।",
+    "error_number_of_words_error_message": "सीक्रेट रिकवरी फ्रेज़ में 12, या 24 शब्द होते हैं",
     "error_srp_is_case_sensitive": "ग़लत इनपुट! सीक्रेट रिकवरी फ्रेज़ केस सेंसिटिव है।",
     "error_srp_word_error_1": "शब्द ",
     "error_srp_word_error_2": " गलत है या इसकी स्पेलिंग गलत है।",
@@ -4144,9 +4267,9 @@
     "error_multiple_srp_word_error_3": " गलत हैं या उनकी स्पेलिंग गलत है।",
     "error_invalid_srp": "अमान्य सीक्रेट रिकवरी फ्रेज",
     "error_duplicate_srp": "यह सीक्रेट रिकवरी फ्रेज़ पहले ही इंपोर्ट किया जा चुका है।",
-    "error_duplicate_account": "The account you are trying to import is a duplicate.",
-    "invalid_qr_code_title": "Invalid QR code",
-    "invalid_qr_code_message": "The QR code does not contain a valid Secret Recovery Phrase",
+    "error_duplicate_account": "आप जिस अकाउंट को इंपोर्ट करने की कोशिश कर रहे हैं वह डुप्लीकेट है।",
+    "invalid_qr_code_title": "QR कोड ग़लत है",
+    "invalid_qr_code_message": "QR कोड में कोई सही सीक्रेट रिकवरी फ्रेज़ नहीं है",
     "success_1": "वॉलेट",
     "success_2": "इम्पोर्ट किया गया"
   },
@@ -4409,7 +4532,7 @@
       "label_unstake_ready": "विदड्रॉवल तैयार है",
       "label_staked": "स्टेक किया गया",
       "label_received": "प्राप्त किया गया",
-      "label_unstaking_confirmed": "Unstaking confirmed",
+      "label_unstaking_confirmed": "अनस्टेकिंग कन्फर्म की गई",
       "label_swapped": "स्वैप किया गया",
       "label_to": "प्रति"
     },
@@ -4483,7 +4606,7 @@
       "metamask_swap_completed_title": "स्वैप पूरा हुआ",
       "metamask_swap_completed_description": "आपका MetaMask स्वैप सफल रहा",
       "nft_sent_title": "NFT भेजा गया",
-      "nft_sent_description": "You successfully sent an NFT",
+      "nft_sent_description": "आपने सफलतापूर्वक NFT भेज दिया है",
       "nft_received_title": "NFT प्राप्त किया गया",
       "nft_received_description": "आपको नए NFTs प्राप्त हुए",
       "rocketpool_stake_completed_title": "स्टेक पूरा हुआ",
@@ -4511,7 +4634,7 @@
       "perps_limit_order_filled_description_long": "आपकी {{symbol}} लॉन्ग पोज़िशन अब खुल गई है।",
       "perps_limit_order_filled_description_short": "आपकी {{symbol}} शॉर्ट पोज़िशन अब खुल गई है।"
     },
-    "prompt_title": "Receive push notifications",
+    "prompt_title": "पुश नोटिफिकेशन को प्राप्त करें",
     "notifications_enabled_error_title": "कुछ गलत हो गया",
     "notifications_enabled_error_desc": "हम नोटिफिकेशंस चालू नहीं कर सके। कृपया बाद में फिर से प्रयास करें।",
     "prompt_desc": "वॉलेट गतिविधि और अधिक पर महत्वपूर्ण अलर्ट प्राप्त करने के लिए सेटिंग्स से नोटिफिकेशंस चालू करें।",
@@ -4528,8 +4651,8 @@
     "wc_description": "कृपया एप्लिकेशन को जांचें",
     "wallet": "वॉलेट",
     "web3": "Web3",
-    "staking_provider": "Staking provider",
-    "network_fee_not_available": "Network fee not available",
+    "staking_provider": "स्टेकिंग प्रदाता",
+    "network_fee_not_available": "नेटवर्क शुल्क उपलब्ध नहीं है",
     "empty": {
       "title": "यहाँ देखने के लिए कुछ नहीं है।",
       "message": "यहाँ पर आप अपने वॉलेट में गतिविधि होने पर नोटिफिकेशंस पा सकते हैं। "
@@ -4560,7 +4683,7 @@
     "button": "वॉलेट को सुरक्षित रखें"
   },
   "transaction_update_retry_modal": {
-    "title": "Transaction update failed",
+    "title": "ट्रांसेक्शन अपडेट नहीं हो पाया",
     "text": "क्या आप फिर से कोशिश करना चाहेंगे?",
     "cancel_button": "रद्द करें",
     "retry_button": "फिर से कोशिश करें"
@@ -4579,18 +4702,18 @@
     "next": "अगला",
     "amount_placeholder": "0.00",
     "link_copied": "क्लिपबोर्ड पर लिंक कॉपी किया गया",
-    "send_link_title": "Send link",
+    "send_link_title": "लिंक भेजें",
     "description_1": "आपका अनुरोध लिंक भेजे जाने के लिए तैयार है!",
     "description_2": "इस लिंक को अपने एक दोस्त को भेजें, और यह उन्हें भेजने के लिए कहेगा",
     "copy_to_clipboard": "क्लिपबोर्ड पर कॉपी करें",
     "qr_code": "QR कोड",
-    "send_link": "Send link",
-    "request_qr_code": "Payment request QR code",
+    "send_link": "लिंक भेजें",
+    "request_qr_code": "पेमेंट के लिए QR कोड का रिक्वेस्ट",
     "balance": "बैलेंस"
   },
   "receive_request": {
     "title": "प्राप्त करें",
-    "share_title": "Share address",
+    "share_title": "एड्रेस शेयर करें",
     "share_description": "अपने पता को ईमेल या टेक्स्ट करें",
     "qr_code_title": "QR कोड",
     "qr_code_description": "स्कैन हो सकने वाली तस्वीर जो आपका पता पढ़ सकती है",
@@ -4598,8 +4721,8 @@
     "request_description": "दोस्तों से संपत्ति का अनुरोध करें",
     "buy_title": "खरीदें",
     "buy_description": "डेबिट कार्ड या बैंक स्थानांतरण के साथ क्रिप्टो खरीदें",
-    "public_address": "Public address",
-    "public_address_qr_code": "Public address",
+    "public_address": "पब्लिक एड्रेस",
+    "public_address_qr_code": "पब्लिक एड्रेस",
     "coming_soon": "जल्द आ रहा है...",
     "request_payment": "Request payment",
     "copy": "कॉपी करें",
@@ -4614,14 +4737,16 @@
     "select_provider": "अपना पसंदीदा प्रदाता चुनें",
     "switch_network": "कृपया Mainnet या sepolia पर बदलें",
     "card_title": "हमेशा MetaMask कार्ड बटन दिखाएं",
-    "card_desc": "MetaMask कार्ड केवल कुछ चुने हुए देशों के निवासियों के लिए उपलब्ध है।"
+    "card_desc": "MetaMask कार्ड केवल कुछ चुने हुए देशों के निवासियों के लिए उपलब्ध है।",
+    "daimo_demo_title": "Use DaimoPay demo environment",
+    "daimo_demo_desc": "Toggle between DaimoPay demo and production environments for card payments."
   },
   "walletconnect_sessions": {
     "no_active_sessions": "आपके पास सक्रिय सत्र नहीं हैं",
-    "end_session_title": "End session",
+    "end_session_title": "सेशन समाप्त करें",
     "end": "समाप्त करें",
     "cancel": "रद्द करें",
-    "session_ended_title": "Session ended",
+    "session_ended_title": "सेशन समाप्त हुआ",
     "session_ended_desc": "चुन गए सत्र को समाप्त कर दिया गया",
     "session_already_exist": "यह सत्र पहले से ही कनेक्ट हुआ पड़ा है।",
     "close_current_session": "नया सत्र शुरू करने से पहले वर्तमान सत्र को बंद कर दें।"
@@ -4629,7 +4754,7 @@
   "paymentRequest": {
     "title": "Payment request",
     "title_complete": "Payment complete",
-    "confirm": "Pay",
+    "confirm": "भुगतान करें",
     "cancel": "Decline",
     "is_requesting_you_to_pay": "आपसे भुगतान करने का अनुरोध कर रहा है",
     "total": "कुल:"
@@ -4657,6 +4782,15 @@
     "buy": "{{ticker}} खरीदें",
     "on_network": "{{networkName}} पर",
     "debit_card": "डेबिट कार्ड",
+    "select_payment_method": "भुगतान विधि चुनें",
+    "pay_with": "के साथ भुगतान करें",
+    "buying_via": "{{providerName}} के ज़रिए खरीद रहे हैं।",
+    "change_provider": "प्रोवाइडर बदलें।",
+    "payment_error": "कुछ गलत हो गया। कृपया फिर से कोशिश करें।",
+    "no_payment_methods_available": "पेमेंट का कोई तरीका उपलब्ध नहीं है।",
+    "error_fetching_quotes": "कुछ गलत हो गया। कृपया फिर से कोशिश करें।",
+    "no_quotes_available": "कोई प्रोवाइडर उपलब्ध नहीं है।",
+    "providers": "प्रोवाइडर्स",
     "continue": "जारी रखें",
     "powered_by_provider": "{{provider}} द्वारा संचालित",
     "purchased_currency": "{{currency}} खरीदा गया",
@@ -4754,6 +4888,15 @@
       "log_out": "{{provider}} से लॉग आउट करें",
       "logged_out_success": "सफलतापूर्वक लॉग आउट किया गया",
       "logged_out_error": "लॉग आउट करते समय गड़बड़ी"
+    },
+    "token_unavailable_modal": {
+      "title": "Not available",
+      "description": "{{token}} is not available with {{provider}} in your region.",
+      "change_token": "Change token",
+      "change_provider": "Change provider"
+    },
+    "provider_picker_modal": {
+      "title": "Choose a provider"
     }
   },
   "fiat_on_ramp_aggregator": {
@@ -4808,6 +4951,7 @@
       "lowest_sell_limit": "सबसे कम विक्रय सीमा",
       "medium_sell_limit": "मध्यम विक्रय सीमा",
       "highest_sell_limit": "उच्चतम विक्रय सीमा",
+      "change": "बदलें",
       "continue_to_amount": "राशि जारी रखें",
       "no_payment_methods_title": "{{regionName}} में कोई पेमेंट का तरीका नहीं है",
       "no_cash_destinations_title": "{{regionName}} में कोई कैश डेस्टिनेशन नहीं है",
@@ -5000,7 +5144,7 @@
       "start_swapping": "स्वैप करना शुरु करें"
     },
     "feature_off_title": "अस्थायी रुप से उपलब्ध नहीं",
-    "feature_off_body": "MetaMask Swaps are undergoing maintenance. Please check back later.",
+    "feature_off_body": "MetaMask स्वैप्स में रख-रखाव का काम चल रहा है। कृपया बाद में फिर से देखें।",
     "wrong_network_title": "स्वैप उपलब्ध नहीं है",
     "wrong_network_body": "Ethereum मुख्य नेटवर्क पर ही केवल आप टोकन स्वैप करने में सक्षम हैं।",
     "unallowed_asset_title": "इस टोकन को स्वैप नहीं कर सकते",
@@ -5042,7 +5186,7 @@
     "not_enough": "इस स्वैप को पूरा करने के लिए पर्याप्त {{symbol}} नहीं है",
     "max_slippage": "मैक्स स्लिपेज (slippage)",
     "max_slippage_amount": "अधिकतम गिरावट {{slippage}}",
-    "slippage_info": "If the rate changes between the time your order is placed and confirmed it’s called “slippage”. Your swap will automatically cancel if slippage exceeds your “max slippage” setting.",
+    "slippage_info": "अगर आपका ऑर्डर प्लेस होने और कन्फर्म होने के बीच रेट बदलता है तो इसे “स्लिपेज” कहते हैं। अगर स्लिपेज आपकी “मैक्स स्लिपेज” सेटिंग से ज़्यादा हो जाता है तो आपका स्वैप अपने आप कैंसिल हो जाएगा।",
     "slippage_warning": "सुनिश्चित करें कि आप जानते हैं कि आप क्या कर रहे हैं!",
     "allows_up_to_decimals": "{{symbol}} {{decimals}} दशमलव तक अनुमति देता है",
     "get_quotes": "उद्धरण पाएं",
@@ -5081,7 +5225,7 @@
     "edit": "संपादित करें",
     "quotes_include_fee": "उद्धरण में एक {{fee}}% MetaMask शुल्क शामिल है",
     "quotes_include_gas_and_metamask_fee": "कोटेशन में गैस और{{fee}}% MetaMask शुल्क शामिल है",
-    "tap_to_swap": "Tap to swap",
+    "tap_to_swap": "स्वैप करने के लिए टैप करें",
     "swipe_to_swap": "स्वैप करने के लिए स्वाइप करें",
     "swipe_to": "स्वाइप करें",
     "swap": "स्वैप करें",
@@ -5141,7 +5285,7 @@
       "approve": "स्वैप के लिए {{sourceToken}} को स्वीकृति दें: {{upTo}} तक"
     },
     "notification_label": {
-      "swap_pending": "Pending swap ({{sourceToken}} to {{destinationToken}})",
+      "swap_pending": "स्वैप ({{sourceToken}} से {{destinationToken}}) अभी पूरा नहीं हुआ",
       "swap_confirmed": "{{sourceToken}} का स्वैप पूरा करें {{destinationToken}}) में",
       "approve_pending": "स्वैप के लिए {{sourceToken}} को स्वीकृति दें",
       "approve_confirmed": "स्वीकृति के लिए {{sourceToken}} स्वीकृत"
@@ -5216,7 +5360,7 @@
       "descriptions": {
         "description_1": "नेटवर्क ड्रॉपडाउन आपके एसेट्स में स्थानांतरित कर दिया गया",
         "description_2": "एक सरल फ्लो में स्वैप और ब्रिज करें",
-        "description_3": "Streamlined send experience",
+        "description_3": "भेजने का आसान अनुभव",
         "description_4": "फ्रेश अकाउंट व्यू"
       },
       "more_information": "अब आप नेटवर्क की बजाय अपने टोकन और गतिविधियों पर ध्यान केंद्रित कर सकते हैं।",
@@ -5288,21 +5432,21 @@
       "aggressive_label": "एग्रेसिव",
       "aggressive_text": "उच्च संभावना, अस्थिर बाजारों में भी। लोकप्रिय एनएफटी ड्रॉप्स जैसी चीजों के कारण नेटवर्क ट्रैफ़िक में वृद्धि को कवर करने के लिए आक्रामक बने।",
       "market_label": "मार्केट",
-      "market_text": "Use market for fast processing at current market price.",
+      "market_text": "मौजूदा मार्केट प्राइस पर तेज़ प्रोसेसिंग के लिए मार्केट का इस्तेमाल करें।",
       "low_label": "निम्न",
       "low_text": "सस्ती कीमत की प्रतीक्षा करने के लिए लो का उपयोग करें। चूंकि कीमतें कुछ हद तक अप्रत्याशित होती हैं, इसलिए समय के अनुमान बहुत ही कम सटीक होते हैं।",
       "link": "कस्टमाइज गैस के बारे में ज्यादा जानें।"
     },
     "save": "सहेजें",
     "submit": "सबमिट करें",
-    "max_priority_fee_low": "Max priority fee is low for current network conditions",
-    "max_priority_fee_high": "Max priority fee is higher than necessary",
-    "max_priority_fee_speed_up_low": "Max priority fee must be at least {{speed_up_floor_value}} GWEI (10% higher than initial transaction)",
-    "max_priority_fee_cancel_low": "Max priority fee must be at least {{cancel_value}} GWEI (50% higher than initial transaction)",
-    "max_fee_low": "Max fee is low for current network conditions",
-    "max_fee_high": "Max fee is higher than necessary",
-    "max_fee_speed_up_low": "Max fee must be at least {{speed_up_floor_value}} GWEI (10% higher than initial transaction)",
-    "max_fee_cancel_low": "Max fee must be at least {{cancel_value}} GWEI (50% higher than initial transaction)",
+    "max_priority_fee_low": "अभी के नेटवर्क कंडीशन के लिए मैक्स प्रायोरिटी फीस कम है",
+    "max_priority_fee_high": "मैक्स प्रायोरिटी फीस ज़रूरत से ज़्यादा है",
+    "max_priority_fee_speed_up_low": "मैक्स प्रायोरिटी फी कम से कम {{speed_up_floor_value}} GWEI (प्रारंभिक ट्रांसेक्शन से 10% ज़्यादा) होना चाहिए",
+    "max_priority_fee_cancel_low": "मैक्स प्रायोरिटी फी कम से कम {{cancel_value}} GWEI (प्रारंभिक ट्रांसेक्शन से 50% ज़्यादा) होना चाहिए",
+    "max_fee_low": "अभी के नेटवर्क कंडीशन के लिए मैक्स फीस कम है",
+    "max_fee_high": "मैक्स फीस ज़रूरत से ज़्यादा है",
+    "max_fee_speed_up_low": "मैक्स फीस कम से कम {{speed_up_floor_value}} GWEI (शुरुआती ट्रांसेक्शन से 10% ज़्यादा) होनी चाहिए",
+    "max_fee_cancel_low": "मैक्स फीस कम से कम {{cancel_value}} GWEI (शुरुआती ट्रांसेक्शन से 50% ज़्यादा) होनी चाहिए",
     "learn_more_gas_limit": "गैस की सीमा गैस की वह अधिकतम इकाई है जिसका उपयोग करने की आप इच्छा रखते हैं। गैस की इकाई “अधिकतम प्राथमिकता शुल्क”और “अधिकतम शुल्क” का एक गुणक होती हैं।",
     "learn_more_max_priority_fee": "अधिकतम प्राथमिकता शुल्क (उर्फ “खनिकों का टिप”) सीधे खनिकों के पास जाता है आपके लेन-देन को प्राथमिकता देने के लिए उन्हें प्रोत्साहित करता है। आप अक्सर अपनी अधिकतम सेटिंग का भुगतान करेंगे।",
     "learn_more_max_fee": "अधिकतम शुल्क आपके द्वारा किया जाने वाला अधिकतम भुगतान होता है (आधार शुल्क + प्राथमिकता शुल्क)।",
@@ -5412,10 +5556,10 @@
     "enable_remember_me_description": "जब रिमेंबर मी चालू रहेगा, आपका फोन एक्सेस करने वाला कोई भी व्यक्ति आपके MetaMask अकाउंट को एक्सेस कर सकता है।"
   },
   "turn_off_remember_me": {
-    "title": "रिमेंबर मी को बंद करने के लिए अपना पासवर्ड दर्ज करें",
-    "placeholder": "पासवर्ड",
-    "description": "अगर आप इस ऑप्शन को बंद करते हैं, तो अब से आपको MetaMask अनलॉक करने के लिए अपने पासवर्ड की ज़रूरत होगी।",
-    "action": "रिमेंबर मी बंद करें"
+    "title": "Remember Me बंद करें",
+    "placeholder": "पासवर्ड कन्फर्म करें",
+    "description": "बंद करने के बाद, Remember Me का दोबारा इस्तेमाल नहीं किया जा सकता। यह फ़ीचर बंद कर दिया गया है, इसलिए आप इसके बजाय अपने पासवर्ड या बायोमेट्रिक्स से MetaMask अनलॉक कर सकते हैं।",
+    "action": "Remember Me बंद करें"
   },
   "dapp_connect": {
     "warning": "इस फीचर का उपयोग करने के लिए, कृपया ऐप को नवीनतम संस्करण में अपडेट करें"
@@ -5464,7 +5608,7 @@
       "learn_more": "ज़्यादा जानें"
     },
     "token_allowance": {
-      "verify_third_party_details": "Verify third-party details",
+      "verify_third_party_details": "थर्ड पार्टी के विवरण को सत्यापित करें",
       "protect_from_scams": "स्कैमर्स से खुद को बचाने के लिए, कुछ समय निकालकर थर्ड पार्टी के विवरण को सत्यापित करें।",
       "learn_to_verify": "थर्ड पार्टी के विवरण को सत्यापित करने का तरीका जानें",
       "spending_cap": "खर्च करने की सीमा",
@@ -5478,7 +5622,7 @@
   },
   "restore_wallet": {
     "restore_needed_title": "पुनर्स्थापित करने की आवश्यकता है",
-    "restore_needed_description": "Something went wrong, but don’t worry! Let’s try to restore your wallet.",
+    "restore_needed_description": "कुछ गड़बड़ हो गई है, लेकिन चिंता न करें! चलिए आपका वॉलेट रिस्टोर करने की कोशिश करते हैं।",
     "restore_needed_action": "वॉलेट पुनर्स्थापित करें"
   },
   "wallet_restored": {
@@ -5548,6 +5692,8 @@
     "running_app_close_error": "आपके Ledger डिवाइस पर चल रहे ऐप को बंद करने में विफल।",
     "ethereum_app_not_installed": "Ethereum ऐप इंस्टॉल नहीं है।",
     "ethereum_app_not_installed_error": "कृपया अपने Ledger डिवाइस पर Ethereum ऐप इंस्टॉल करें।",
+    "eth_app_not_open": "Ethereum ऐप खुला नहीं है",
+    "eth_app_not_open_message": "कृपया अपने Ledger डिवाइस पर Ethereum ऐप खोलें।",
     "ledger_is_locked": "Ledger लॉक है",
     "unlock_ledger_message": "कृपया अपने Ledger डिवाइस को अनलॉक करें",
     "cannot_get_account": "अकाउंट नहीं मिल रहा है",
@@ -5677,10 +5823,11 @@
     "error_description": "{{snap}} का इंस्टॉलेशन नहीं हो पाया।"
   },
   "earn": {
-    "claimable_bonus_tooltip": "An annual bonus claimable daily from your wallet.",
-    "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
-    "claimable_bonus": "Claimable bonus",
+    "claimable_bonus_tooltip": "एक सालाना बोनस जिसे आप अपने वॉलेट से रोज़ाना क्लेम कर सकते हैं।",
+    "earn_a_percentage_bonus": "{{percentage}}% बोनस कमाएं",
+    "claimable_bonus": "क्लेम करने योग्य बोनस",
     "claim_bonus": "Claim bonus",
+    "claim_bonus_subtitle": "Bonus will be paid out on {{networkName}}.",
     "empty_state_cta": {
       "heading": "{{tokenSymbol}} उधार दें और कमाएं",
       "body": "{{protocol}} के साथ अपना {{tokenSymbol}} उधार दें और सालाना",
@@ -5715,20 +5862,20 @@
       "withdrawal_time": "प्रोटोकॉल से अपना टोकन निकालने और उसे अपने वॉलेट में वापस लाने में लगने वाला समय",
       "receive": "इस टोकन का उपयोग आपकी एसेट्स और पुरस्कारों को ट्रैक करने के लिए किया जाता है। उन्हें ट्रांसफर या ट्रेड न करें, अन्यथा आप अपनी एसेट्स नहीं निकाल पाएंगे।",
       "health_factor": {
-        "your_health_factor_measures_liquidation_risk": "Your health factor measures liquidation risk",
+        "your_health_factor_measures_liquidation_risk": "आपका हेल्थ फैक्टर लिक्विडेशन रिस्क को मापता है",
         "above_two_dot_zero": "2.0 से ऊपर",
         "safe_position": "सुरक्षित पोजीशन",
         "between_one_dot_five_and_2_dot_zero": "1.5-2.0 के बीच",
-        "medium_liquidation_risk": "Medium liquidation risk",
+        "medium_liquidation_risk": "मध्यम लिक्विडेशन रिस्क",
         "below_one_dot_five": "1.5 से नीचे",
         "higher_liquidation_risk": "उच्च लिक्विडेशन जोखिम"
       },
       "lending_risk_aware_withdrawal_tooltip": {
         "why_cant_i_withdraw_full_balance": "मैं अपना पूरा बैलेंस क्यों नहीं निकाल सकता?",
         "your_withdrawal_amount_may_be_limited_by": "आपकी निकासी राशि इससे सीमित हो सकती है",
-        "pool_liquidity": "Pool liquidity",
+        "pool_liquidity": "पूल लिक्विडिटी",
         "not_enough_funds_available_in_the_lending_pool_right_now": "अभी ऋण पूल में पर्याप्त फंड्स उपलब्ध नहीं है।",
-        "existing_borrow_positions": "Existing borrow positions",
+        "existing_borrow_positions": "मौजूदा उधारी लेने की स्थितियाँ",
         "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "निकालने से आपकी मौजूदा ऋण स्थितियाँ लिक्विडेशन के जोखिम में पड़ सकती हैं।"
       }
     },
@@ -5765,7 +5912,7 @@
     },
     "musd_conversion": {
       "ok": "ठीक है",
-      "continue": "Continue",
+      "continue": "जारी रखें",
       "convert_and_get_percentage_bonus": "कन्वर्ट करें और {{percentage}}% पाएं",
       "get_a_percentage_musd_bonus": "{{percentage}}% mUSD बोनस पाएं",
       "convert": "कन्वर्ट करें",
@@ -5777,21 +5924,21 @@
       },
       "education": {
         "heading": "स्टेबलकॉइन्स पर {{percentage}}% पाएं",
-        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus.",
-        "terms_apply": "Terms apply.",
+        "description": "अपने स्टेबलकॉइन को mUSD में बदलें, जो MetaMask का US डॉलर-बैक्ड स्टेबलकॉइन है, और {{percentage}}% तक का बोनस प्राप्त करें।",
+        "terms_apply": "नियम लागू।",
         "primary_button": "शुरू करें",
         "secondary_button": "अभी नहीं"
       },
       "buy_musd": "mUSD खरीदें",
       "get_musd": "mUSD प्राप्त करें",
-      "boost_title": "Get {{percentage}}% on your stablecoins",
-      "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
+      "boost_title": "अपने स्टेबलकॉइंस पर {{percentage}}% पाएं",
+      "boost_description": "अपने स्टेबलकॉइंस को mUSD में कन्वर्ट करें और {{percentage}}% तक का बोनस प्राप्त करें।",
       "powered_by_relay": "Relay द्वारा संचालित"
     },
     "bonus_claim": {
       "toasts": {
-        "claiming": "Your mUSD bonus is processing",
-        "delivered": "Your mUSD bonus is here!",
+        "claiming": "आपका mUSD बोनस प्रोसेस हो रहा है",
+        "delivered": "आपका mUSD बोनस यहाँ है!",
         "failed": "Bonus claim failed"
       }
     },
@@ -5872,16 +6019,16 @@
     "stake_your_trx_cta": {
       "title": "ट्रॉन उधार दें और कमाएं",
       "description_start": "अपना ट्रॉन स्टेक पर लगाएं और कमाएं ",
-      "description_end": " annually.",
+      "description_end": " हर साल.",
       "learn_more": "अधिक जानें।",
       "earn_button": "कमाएं"
     },
     "trx_learn_more": {
-      "title": "Stake TRX and earn",
-      "stake_any_amount": "Stake any amount of TRX.",
+      "title": "TRX स्टेक करें और कमाएं",
+      "stake_any_amount": "TRX की किसी भी राशि को स्टेक करें।",
       "earn_trx_rewards": "TRX पुरस्कार अर्जित करें।",
       "earn_trx_rewards_description": "स्टेक करते ही कमाई शुरू करें। पुरस्कार स्वचालित रूप से जुड़ते हैं।",
-      "flexible_unstaking_description": "Unstake anytime. Unstaking takes 14 days to process."
+      "flexible_unstaking_description": "कभी भी अनस्टेक करें। अनस्टेकिंग को प्रोसेस होने में 14 दिन का समय लगता है।"
     },
     "day": {
       "zero": "",
@@ -6030,7 +6177,7 @@
     },
     "estimated_gas_fee": {
       "title": "अनुमानित गैस शुल्क",
-      "gas_recipient": "Gas fees are paid to crypto miners who process transactions on Ethereum network. MetaMask does not profit from gas fees.",
+      "gas_recipient": "गैस फीस उन क्रिप्टो माइनर्स को दी जाती है जो Ethereum नेटवर्क पर ट्रांसेक्शन प्रोसेस करते हैं। MetaMask को गैस फीस से कोई प्रॉफिट नहीं होता है।",
       "gas_fluctuation": "गैस फीस का अनुमान लगाया जाता है और नेटवर्क ट्रैफिक और ट्रांसेक्शन की जटिलता के आधार पर इसमें उतार-चढ़ाव आएगा।",
       "gas_learn_more": "गैस फीस के बारे में और अधिक जानें"
     },
@@ -6065,11 +6212,14 @@
       "signing_in_with": "के साथ साइन इन किया जा रहा है",
       "spender": "खर्च करने वाला",
       "now": "अब",
-      "switching_to": "Switching to",
+      "switching_to": "यहां स्विच किया जा रहा है",
       "bridge_estimated_time": "अनुमानित समय",
       "pay_with": "के साथ भुगतान करें",
+      "receive_as": "प्राप्त करें",
       "total": "कुल",
+      "you_receive": "आपको प्राप्त होगा",
       "transaction_fee": "ट्रांसेक्शन फीस",
+      "transaction_fees": "ट्रांसेक्शन फीस",
       "metamask_fee": "MetaMask फीस",
       "network_fee": "नेटवर्क फीस",
       "bridge_fee": "प्रदाता फीस ब्रिज करें"
@@ -6109,6 +6259,9 @@
       "predict_deposit": {
         "transaction_fee": "हम आपके टोकन को Polygon पर USDC.e में स्वैप करेंगे, जो प्रिडिक्शन्स द्वारा इस्तेमाल होने वाला नेटवर्क है। स्वैप प्रदाता फीस ले सकते हैं, लेकिन MetaMask कोई फीस नहीं लेगा।"
       },
+      "predict_withdraw": {
+        "transaction_fee": "MetaMask आपके लिए आपके पसंदीदा टोकन में स्वैप करेगा। जब आप MUSD में स्वैप करते हैं तो कोई MetaMask फीस लागू नहीं होती है।"
+      },
       "musd_conversion": {
         "transaction_fee": "mUSD कन्वर्शन फ़ीस में नेटवर्क कॉस्ट और प्रोवाइडर फ़ीस शामिल हो सकती है।"
       },
@@ -6129,12 +6282,12 @@
     "personal_sign_tooltip": "यह साइट आपका सिग्नेचर मांग रही है",
     "transaction_tooltip": "यह साइट आपका ट्रांसेक्शन मांग रही है",
     "details": "विवरण",
-    "qr_get_sign": "Get signature",
+    "qr_get_sign": "सिग्नेचर प्राप्त करें",
     "qr_scan_text": "अपने हार्डवेयर वॉलेट के साथ स्कैन करें",
     "sign_with_ledger": "Ledger के साथ साइन करें",
     "smart_account": "स्मार्ट अकाउंट",
     "smart_contract": "स्मार्ट कॉन्ट्रैक्ट",
-    "standard_account": "Standard account",
+    "standard_account": "मानक अकाउंट",
     "siwe_message": {
       "url": "URL",
       "network": "नेटवर्क",
@@ -6168,22 +6321,10 @@
     },
     "7702_functionality": {
       "smartAccountLabel": "स्मार्ट अकाउंट",
-      "standardAccountLabel": "Standard account",
+      "standardAccountLabel": "मानक अकाउंट",
       "switch": "बदलें",
       "switchBack": "वापस स्विच करें",
-      "splashpage": {
-        "accept": "हां",
-        "betterTransaction": "तेज़ ट्रांसेक्शन, कम शुल्क",
-        "betterTransactionDescription": "एक साथ ट्रांसेक्शन प्रोसेस करके समय और धन की बचत करें।",
-        "featuresDescription": "अपना अकाउंट एड्रेस वही रखें और आप किसी भी समय वापस स्विच कर सकते हैं।",
-        "payToken": "किसी भी टोकन से, किसी भी समय भुगतान करें",
-        "payTokenDescription": "नेटवर्क शुल्क को कवर करने के लिए आपके पास पहले से मौजूद टोकन का उपयोग करें।",
-        "reject": "नहीं",
-        "sameAccount": "वही अकाउंट, अधिक स्मार्ट फीचर्स।",
-        "splashTitle": "स्मार्ट अकाउंट का उपयोग करें?"
-      },
       "includes_transaction": "{{transactionCount}} ट्रांसेक्शन शामिल हैं",
-      "useSmartAccount": "स्मार्ट अकाउंट का उपयोग करें",
       "successful": "सफल",
       "success_message": "आपके अगले ट्रांसेक्शन के साथ आपका अकाउंट स्मार्ट अकाउंट में अपडेट हो जाएगा।"
     },
@@ -6192,9 +6333,9 @@
       "cancel": "कैंसिल करें",
       "description": "वह अमाउंट जिसे आप अपनी ओर से खर्च किए जाने में सहज महसूस करते हैं।",
       "invalid_number_error": "खर्च की सीमा एक संख्या होनी चाहिए",
-      "no_empty_error": "Spending cap can't be empty",
-      "no_extra_decimals_error": "Spending cap can't have more decimals than the token",
-      "no_zero_error": "Spending cap can't be 0",
+      "no_empty_error": "खर्च की सीमा खाली नहीं हो सकती",
+      "no_extra_decimals_error": "खर्च की सीमा में टोकन से अधिक दशमलव नहीं हो सकते",
+      "no_zero_error": "खर्च की सीमा 0 नहीं हो सकती",
       "no_zero_error_decrease_allowance": "'decreaseAllowance' विधि पर 0 खर्च की सीमा का कोई प्रभाव नहीं पड़ता है",
       "no_zero_error_increase_allowance": "'increaseAllowance' विधि पर 0 खर्च की सीमा का कोई प्रभाव नहीं पड़ता है",
       "save": "सेव करें",
@@ -6221,7 +6362,7 @@
     "transferRequest": "ट्रांसफर अनुरोध",
     "nested_transaction_heading": "ट्रांसेक्शन {{index}}",
     "transaction": "ट्रांसेक्शन",
-    "available_balance": "उपलब्ध: ",
+    "available_balance": "उपलब्ध बैलेंस: ",
     "edit_amount_done": "जारी रखें",
     "deposit_edit_amount_done": "फंड जोड़ें",
     "deposit_edit_amount_predict_withdraw": "निकालें",
@@ -6251,7 +6392,7 @@
     "terms_and_conditions": "नियम और शर्त",
     "select_token": "टोकन चुनें",
     "no_tokens_found": "कोई टोकन नहीं मिला",
-    "no_tokens_found_description": "We couldn't find any tokens with this name. Try a different search.",
+    "no_tokens_found_description": "हमें इस नाम का कोई टोकन नहीं मिला। कोई एक अलग सर्च से कोशिश करें।",
     "select_network": "नेटवर्क चुनें",
     "all_networks": "सभी नेटवर्क",
     "num_networks": "{{numNetworks}} नेटवर्क",
@@ -6260,6 +6401,7 @@
     "deselect_all_networks": "सभी को अचयनित करें",
     "see_all": "सभी को देखें",
     "all": "सभी",
+    "more_networks": "+{{count}} और",
     "apply": "लागू करें",
     "slippage": "स्लिपेज (slippage)",
     "slippage_info": "यदि आपके ऑर्डर लगाए जाने और पुष्टि किए जाने के बीच कीमत में बदलाव होता है तो इसे \"स्लिपेज (slippage)\" कहा जाता है। यदि स्लिपेज (slippage) आपके द्वारा यहां निर्धारित सहनशीलता से अधिक हो जाता है तो आपका स्वैप स्वचालित रूप से कैंसिल हो जाएगा।",
@@ -6276,7 +6418,7 @@
     "quote_info_title": "रेट",
     "network_fee_info_title": "नेटवर्क फीस",
     "network_fee_info_content": "नेटवर्क फीस इस बात पर निर्भर करते हैं कि नेटवर्क कितना व्यस्त है और आपका ट्रांसेक्शन कितना जटिल है।",
-    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
+    "network_fee_info_content_sponsored": "यह नेटवर्क फीस MetaMask देता है, इसलिए आप अपने अकाउंट में {{nativeToken}} के बिना भी ट्रांसेक्शन कर सकते हैं।",
     "points": "अनुमानित पॉइंट्स",
     "points_tooltip": "पॉइंट्स",
     "points_tooltip_content_1": "पॉइंट्स वह हैं जिनसे आप ट्रांसेक्शन पूरा करने पर MetaMask रिवार्ड्स कमाते हैं, जैसे जब आप स्वैप, ब्रिज या पर्प्स ट्रेड करते हैं।",
@@ -6290,6 +6432,7 @@
     "select_recipient": "प्राप्तकर्ता चुनें",
     "external_account": "बाहरी अकाउंट",
     "error_banner_description": "यह ट्रेड रूट अभी उपलब्ध नहीं है। राशि, नेटवर्क या टोकन बदलने का प्रयास करें और हम सबसे अच्छा विकल्प ढूँढ लेंगे।",
+    "stock_token_error_banner_description": "यह ट्रेड रूट अभी उपलब्ध नहीं है। अमाउंट, नेटवर्क या टोकन बदलने की कोशिश करें और हम सबसे अच्छा विकल्प ढूंढ लेंगे।",
     "insufficient_funds": "अपर्याप्त फंड",
     "insufficient_gas": "अपर्याप्त गैस",
     "select_amount": "राशि चुनें",
@@ -6300,9 +6443,9 @@
     "title": "ब्रिज",
     "submitting_transaction": "सबमिट किया जा रहा है",
     "fetching_quote": "कोटेशन लाया जा रहा है",
-    "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee.",
+    "fee_disclaimer": "इसमें {{feePercentage}}% MetaMask फीस शामिल है।",
     "no_mm_fee": "कोई MM फीस नहीं",
-    "no_mm_fee_disclaimer": "No MetaMask fee swapping into {{destTokenSymbol}}.",
+    "no_mm_fee_disclaimer": "{{destTokenSymbol}} में स्वैप करने पर कोई MetaMask फीस नहीं।",
     "hardware_wallet_not_supported": "हार्डवेयर वॉलेट अभी तक सपोर्टेड नहीं हैं। जारी रखने के लिए हॉट वॉलेट का उपयोग करें।",
     "hardware_wallet_not_supported_solana": "Solana के लिए हार्डवेयर वॉलेट अभी तक सपोर्टेड नहीं हैं। जारी रखने के लिए हॉट वॉलेट का उपयोग करें।",
     "price_impact_info_title": "कीमत का प्रभाव",
@@ -6315,9 +6458,25 @@
     "approval_needed": "स्वैप के लिए टोकन एप्रूव करता है।",
     "approval_tooltip_title": "सटीक एक्सेस प्रदान करें",
     "approval_tooltip_content": "आप निर्दिष्ट राशि, {{amount}} {{symbol}} तक एक्सेस की अनुमति दे रहे हैं। कॉन्ट्रैक्ट किसी अतिरिक्त फंड को एक्सेस नहीं करेगा।",
-    "minimum_received": "Minimum received",
-    "minimum_received_tooltip_title": "Minimum received",
-    "minimum_received_tooltip_content": "आपके ट्रांसेक्शन के प्रोसेस होने के दौरान प्राइस बदलने पर जो न्यूनतम राशि आपको प्राप्त होगी, वह आपके स्लिपेज (slippage) टॉलरेंस पर आधारित है। यह हमारे लिक्विडिटी प्रदाताओं से एक अनुमान है। अंतिम राशि भिन्न हो सकती है।"
+    "minimum_received": "न्यूनतम प्राप्त किया गया",
+    "minimum_received_tooltip_title": "न्यूनतम प्राप्त किया गया",
+    "minimum_received_tooltip_content": "आपके ट्रांसेक्शन के प्रोसेस होने के दौरान प्राइस बदलने पर जो न्यूनतम राशि आपको प्राप्त होगी, वह आपके स्लिपेज (slippage) टॉलरेंस पर आधारित है। यह हमारे लिक्विडिटी प्रदाताओं से एक अनुमान है। अंतिम राशि भिन्न हो सकती है।",
+    "market_closed": {
+      "title": "मार्केट बंद है",
+      "description": "इस टोकन को सपोर्ट करने वाला मार्केट अभी बंद है। टोकन को कभी भी ऑन-चेन ट्रांसफर किया जा सकता है।",
+      "learn_more": "ज़्यादा जानें",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "पूरा हुआ"
+    },
+    "submit": "सबमिट करें",
+    "default_slippage_description": "अगर प्राइस स्लिपेज परसेंट से ज़्यादा बदल जाता है, तो आपका ट्रांसेक्शन पूरा नहीं होगा।",
+    "cancel": "कैंसिल करें",
+    "confirm": "कन्फर्म करें",
+    "exceeding_upper_slippage_warning": "ज़्यादा स्लिपेज (slippage), इससे स्वैप बिगड़ सकता है",
+    "exceeding_lower_slippage_warning": "कम स्लिपेज (slippage), इससे स्वैप बिगड़ सकता है",
+    "exceeding_lower_slippage_error": "{{value}}% से ज़्यादा वैल्यू डालें",
+    "exceeding_upper_slippage_error": "आप {{value}}% से ज़्यादा वैल्यू नहीं डाल सकते",
+    "custom": "कस्टम"
   },
   "quote_expired_modal": {
     "title": "नये कोटेशन उपलब्ध हैं",
@@ -6391,7 +6550,7 @@
     "title": "वॉलेट रिकवरी",
     "login_with_social": "सोशल अकाउंट्स से लॉग इन करें",
     "setup": "सेट अप करें",
-    "secret_recovery_phrase": "Secret Recovery Phrase {{num}}",
+    "secret_recovery_phrase": "सीक्रेट रिकवरी फ्रेज़ {{num}}",
     "back_up": "बैक अप लें",
     "reveal": "दिखाएं",
     "social_recovery_title": "{{authConnection}} रिकवरी",
@@ -6450,7 +6609,7 @@
       "section_1_title": "मल्टीचेन एकाउंट्स क्या हैं?",
       "section_1_description": "एक अकाउंट, सभी नेटवर्क पर एड्रेस जिन्हें MetaMask सपोर्ट करता है। अब आप Ethereum, Solana और अन्य का उपयोग बिना एकाउंट्स को बदले कर सकते हैं।",
       "section_2_title": "वही एड्रेस, अधिक नेटवर्क",
-      "section_2_description": "We’ve grouped your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
+      "section_2_description": "हमने आपके एकाउट्स को समूहित किया है, इसलिए MetaMask का उपयोग पहले की तरह जारी रखें। आपके फंड सुरक्षित और अपरिवर्तित हैं।",
       "view_accounts_button": "एकाउंट्स देखें",
       "learn_more_button": "ज़्यादा जानें",
       "setting_up_accounts": "आपके एकाउंट्स को सेटअप किया जा रहा है"
@@ -6541,7 +6700,7 @@
       "title": "{{networkName}} एड्रेस",
       "copy_address": "एड्रेस कॉपी करें",
       "description": "पर टोकन और कलेक्टिबल प्राप्त करने के लिए इस एड्रेस का उपयोग करें",
-      "description_prefix": "Use this to receive assets on"
+      "description_prefix": "इसपर एसेट्स प्राप्त करने के लिए इसका उपयोग करें"
     },
     "export_credentials": {
       "export_private_key": "प्राइवेट की (key)",
@@ -6610,23 +6769,85 @@
       "swap_description": "{{chainName}} पर टोकन को {{symbol}} में स्वैप करें",
       "select_method": "विधि चुनें"
     },
+    "password_bottomsheet": {
+      "title": "पासवर्ड दर्ज करें",
+      "description": "कार्ड विवरण देखने के लिए अपना वॉलेट पासवर्ड दर्ज करें।",
+      "description_unfreeze": "अपने कार्ड पर खर्च फिर से शुरू करने के लिए अपना वॉलेट पासवर्ड डालें।",
+      "placeholder": "पासवर्ड",
+      "confirm": "कन्फर्म करें",
+      "cancel": "कैंसिल करें",
+      "error_empty": "कृपया अपना पासवर्ड डालें",
+      "error_incorrect": "गलत पासवर्ड। कृपया फिर से प्रयास करें।"
+    },
+    "choose_your_card": {
+      "title": "अपना कार्ड चुनें",
+      "upgrade_title": "मेटल में अपग्रेड करें",
+      "continue_button": "जारी रखें",
+      "virtual_card": {
+        "name": "ऑरेंज वर्चुअल कार्ड",
+        "price": "मुफ्त",
+        "feature_1": "Apple Pay और Google Pay के लिए वर्चुअल कार्ड",
+        "feature_2": "क्रिप्टो से भुगतान करें (USDC, USDT, WETH और अन्य)",
+        "feature_3": "हर खरीदारी पर 1% USDC कैशबैक"
+      },
+      "metal_card": {
+        "name": "मेटल कार्ड",
+        "price": "$199/साल",
+        "feature_1": "Apple Pay व Google Pay के लिए उकेरा हुआ मेटल कार्ड और वर्चुअल कार्ड",
+        "feature_2": "हर वर्ष पहले $10,000 की खर्च राशि पर 3% कैशबैक, उसके बाद 1%",
+        "feature_3": "कोई विदेशी ट्रांसेक्शन फीस नहीं"
+      }
+    },
+    "review_order": {
+      "title": "अपना ऑर्डर समीक्षा करें",
+      "subtitle": "हम केवल आवासीय पतों पर ही शिपिंग कर सकते हैं।",
+      "shipping_address": "शिपिंग पता",
+      "metal_card_quantity": "1 मेटल कार्ड",
+      "metal_card_price": "$199",
+      "metal_card_total": "प्रति साल $199",
+      "fees": "फीस",
+      "fees_free": "मुफ्त",
+      "renews": "रिन्यू होता है",
+      "renews_annually": "हर साल",
+      "total": "कुल",
+      "pay": "भुगतान करें",
+      "payment_creation_error": "भुगतान बनाना नहीं हो पाया। कृपया फिर से प्रयास करें।"
+    },
+    "order_completed": {
+      "title": "आपका कार्ड ऑर्डर\nकिया गया है",
+      "subtitle": "यह 4 से 6 हफ्तों में पहुँच जाएगा।",
+      "description": "अपना वर्चुअल कार्ड सेटअप करें और इसे अपने डिजिटल वॉलेट में जोड़ें ताकि आप कैशबैक कमाना शुरू कर सकें।",
+      "set_up_card_button": "कार्ड सेट अप करें",
+      "back_to_card_button": "कार्ड पर वापस जाएं"
+    },
+    "recurring_fee_modal": {
+      "title": "आवर्ती शुल्क",
+      "description": "हर वर्ष आपके स्टेबलकॉइन बैलेंस से $199 का आवर्ती शुल्क लिया जाएगा। सुनिश्चित करें कि आपका कार्ड सक्रिय रखने के लिए पर्याप्त फंड मौजूद हों।",
+      "learn_more": "ज़्यादा जानें",
+      "got_it": "समझ गए"
+    },
+    "daimo_pay_modal": {
+      "load_error": "भुगतान पेज लोड करना नहीं हो पाया। कृपया फिर से प्रयास करें।",
+      "timeout_error": "भुगतान सत्यापन का समय समाप्त हो गया। कृपया अपनी ट्रांसेक्शन स्टेटस जांचें।",
+      "payment_bounced_error": "भुगतान नहीं हो पाया। कृपया किसी अन्य भुगतान विधि से फिर से प्रयास करें।",
+      "close": "बंद करें",
+      "try_again": "फिर से प्रयास करें"
+    },
     "card_onboarding": {
       "title": "खर्च करें\nऔर\nकमाएँ",
-      "description": "MetaMask कार्ड आपके क्रिप्टो को खर्च करने और 3% तक कैशबैक पाने का तेज़ और आसान तरीका है।",
-      "apply_now_button": "अभी अप्लाई करें",
+      "description": "MetaMask कार्ड आपके क्रिप्टो को खर्च करने \nऔर 3% तक कैशबैक पाने का तेज़ और \nआसान तरीका है।",
+      "apply_now_button": "अभी सेट अप करें",
       "login_button": "लॉग इन करें",
       "not_now_button": "अभी नहीं",
       "sign_up": {
         "title": "आइए शुरू करें",
-        "description": "Crypto Life द्वारा दिया गया अपना MetaMask कार्ड अकाउंट बनाएँ। यह आपके MetaMask अकाउंट से अलग होगा।",
-        "i_already_have_an_account": "मेरे पास पहले से एक अकाउंट है",
-        "email_label": "ईमेल",
-        "password_label": "पासवर्ड",
-        "password_placeholder": "15+ करैक्टर लॉन्ग होना ज़रूरी है",
-        "confirm_password_label": "पासवर्ड कन्फर्म करें",
+        "description": "अपना MetaMask कार्ड सेट अप करने के लिए Crypto Life (CL) के साथ एक अकाउंट बनाएं।\n MetaMask आपका पर्सनल डेटा नहीं देखता और न ही स्टोर ऐसा करता है।",
+        "i_already_have_an_account": "मेरे पास पहले से ही एक MetaMask कार्ड है",
+        "email_label": "मेल पता",
+        "password_label": "MetaMask कार्ड के लिए नया पासवर्ड",
+        "password_description": "आपके MetaMask ऐप अनलॉक पासवर्ड से अलग है। कम से कम 15 कैरेक्टर का होना चाहिए।",
         "country_label": "निवास देश",
         "country_placeholder": "अपना देश चुनें",
-        "password_mismatch": "पासवर्ड मेल खाने चाहिए",
         "invalid_email": "ईमेल एड्रेस ग़लत है",
         "invalid_password": "पासवर्ड कम से कम 15 अक्षरों का होना चाहिए। उसमें प्रिंट न किए जा सकने वाले करैक्टर या लगातार रिक्त स्थान नहीं होने चाहिए।"
       },
@@ -6635,11 +6856,12 @@
         "description": "हमारे द्वारा {{email}} पर भेजा गया कोड दर्ज करें। यदि आपको यह नहीं दिखता है, तो अपना स्पैम फ़ोल्डर देखें।",
         "didnt_receive_code": "कोड प्राप्त नहीं हुआ? ",
         "resend_verification": "इसे फिर से भेजें",
-        "resend_cooldown": "{{seconds}} सेकंड में फिर से भेज पाएंगे"
+        "resend_cooldown": "{{seconds}} सेकंड में फिर से भेज पाएंगे",
+        "legal_terms": "जारी रखकर, आप लॉगिन सत्यापन और एलर्ट के लिए ईमेल प्राप्त करने के लिए सहमत होते हैं।"
       },
       "set_phone_number": {
-        "title": "अपना फ़ोन नंबर कन्फर्म करें",
-        "description": "अपना फ़ोन नंबर डालें। हम आपको वहाँ एक कन्फर्मेशन कोड भेजेंगे।",
+        "title": "अपना फ़ोन नंबर दर्ज करें",
+        "description": "हम आपको वहाँ एक कन्फर्मेशन कोड भेजेंगे।",
         "phone_number_label": "फ़ोन नंबर दर्ज करें",
         "country_area_code_label": "देश का क्षेत्र कोड",
         "invalid_phone_number": "फ़ोन नंबर ग़लत है",
@@ -6658,6 +6880,7 @@
         "description": "हमारा पार्टनर, Crypto Life, आपके अकाउंट को सुरक्षित रखने के लिए Veriff नाम की सर्विस का इस्तेमाल करता है ",
         "terms_1": "आपकी जानकारी सीधे Veriff और Crypto Life को जाती है। MetaMask इसे कभी नहीं देखता।",
         "terms_2": "एप्रूवल के लिए आपको अपनी ID और एड्रेस प्रूफ की ज़रूरत होगी। इसमें आमतौर पर 5 मिनट लगते हैं।",
+        "terms_2_us": "फ़ेडरल कानून (यूएसए पैट्रियट अधिनियम) के अनुसार, आतंकवाद और मनी लॉन्ड्रिंग को रोकने में मदद के लिए हमें ID और पते के प्रूफ़ के साथ आपकी पहचान सत्यापित करनी होगी। इसमें आमतौर पर 5 मिनट लगते हैं।",
         "verify_button": "आगे",
         "start_verification_error": "वेरिफ़िकेशन शुरू करने में गड़बड़ी हुई। कृपया थोड़ी देर बाद दोबारा कोशिश करें।"
       },
@@ -6702,8 +6925,14 @@
       },
       "kyc_failed": {
         "title": "आप अभी MetaMask कार्ड के लिए योग्य नहीं हैं",
-        "description": "हमारा पार्टनर सेट किए गए क्राइटेरिया के आधार पर एप्रूव करता है। ज़्यादा जानें।",
+        "description": "योग्यता हमारे पार्टनर के नियामक और सत्यापन जांच के आधार पर तय की जाती है।",
         "close_button": "होम स्क्रीन पर वापस लौटें"
+      },
+      "kyc_pending": {
+        "title": "एप्रूवल का इंतज़ार है",
+        "description": "आपके एप्लीकेशन को एप्रूव करने के लिए हमारे पार्टनर को आपकी पहचान वेरिफ़ाई करनी होगी।",
+        "footer_text": "एप्रूवल में आमतौर पर लगभग 12 घंटे लगते हैं।\nफ़ैसला होने पर हम आपको बता देंगे।",
+        "got_it_button": "समझ गए"
       },
       "personal_details": {
         "title": "अपनी जानकारी जोड़ें",
@@ -6713,6 +6942,7 @@
         "date_of_birth_label": "जन्मतिथि",
         "nationality_label": "राष्ट्रीयता",
         "ssn_label": "सोशल सिक्योरिटी नंबर",
+        "ssn_description": "कार्ड जारी करने वाले के लिए ज़रूरी है। कोई क्रेडिट चेक नहीं किया जाएगा।",
         "invalid_ssn": "SSN ग़लत है",
         "invalid_date_of_birth": "जन्मतिथि ग़लत है। आपकी आयु कम से कम 18 वर्ष होनी चाहिए"
       },
@@ -6725,8 +6955,21 @@
         "state_label": "राज्य",
         "zip_code_label": "ज़िप कोड",
         "country_label": "देश",
-        "electronic_consent_1": "मैं ई-साइन एक्ट की सहमति और प्रकटीकरण एवं सभी संचार इलेक्ट्रॉनिक रूप से प्राप्त करने के लिए सहमत हूँ। ",
-        "electronic_consent_2": "डॉक्यूमेंट देखें (PDF)"
+        "electronic_consent_1": "मैं सहमत हूँ ",
+        "electronic_consent_2": "ई-साइन एक्ट कंसेंट और डिस्क्लोज़र",
+        "electronic_consent_3": " और सभी कम्युनिकेशन इलेक्ट्रॉनिक रूप से प्राप्त करने के लिए।",
+        "coinme_terms_consent_1": "मैं सहमत हूँ ",
+        "coinme_terms_consent_2": "Coinme सेवा की शर्तें",
+        "coinme_terms_consent_3": "।",
+        "crb_consent_1": "मैं क्रॉस रिवर बैंक से सहमत हूँ ",
+        "crb_consent_2": "नियम और शर्त",
+        "crb_consent_3": ", ",
+        "crb_consent_4": "अकाउंट ओपनिंग डिस्क्लोज़र",
+        "crb_consent_5": ", ",
+        "crb_consent_6": "गोपनीयता प्रथाओं की सूचना",
+        "crb_consent_7": " और ",
+        "crb_consent_8": "CL गोपनीयता नीति",
+        "crb_consent_9": "।"
       },
       "mailing_address": {
         "title": "डाक पता",
@@ -6734,8 +6977,8 @@
       },
       "complete": {
         "title": "आप तैयार हैं!",
-        "description": "चलिए आपका कार्ड सेट अप करते हैं ताकि आप अपना क्रिप्टो खर्च करना शुरू कर सकें।",
-        "confirm_button": "मेरा कार्ड सेट अप करें"
+        "description": "अपना कार्ड सेटअप पूरा करें ताकि आप अपनी क्रिप्टो का खर्च करना शुरू कर सकें।",
+        "confirm_button": "सेटअप पूरा करें"
       },
       "account_exists": {
         "title": "आपके पास पहले से एक अकाउंट है",
@@ -6772,12 +7015,13 @@
       }
     },
     "card_home": {
-      "title": "Card",
+      "title": "कार्ड",
+      "authentication_error": "आपका सेशन खत्म हो गया है। कृपया फिर से लॉग इन करें।",
       "available_balance": "उपलब्ध बैलेंस",
       "error_title": "डेटा प्राप्त नहीं किया जा सकता",
       "error_description": "ऐसा लगता है कि कोई समस्या आपको इस पेज की सामग्री देखने से रोक रही है। कृपया अपना कनेक्शन जांचें या पेज को रीफ्रेश करके देखें।",
       "try_again": "फिर से कोशिश करें",
-      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to ",
+      "limited_spending_warning": "आपकी वास्तविक खर्च करने की क्षमता सीमित हो सकती है। अपनी सीमा समायोजित करने के लिए, यहाँ जाएँ ",
       "add_funds": "फंड जोड़ें",
       "change_asset": "एसेट बदलें",
       "enable_card_button_label": "कार्ड चालू करें",
@@ -6789,7 +7033,9 @@
       "logout_confirmation_cancel": "कैंसिल करें",
       "logout_confirmation_confirm": "लॉग आउट करें",
       "enable_card_error": "कार्ड चालू नहीं हो पाया। कृपया बाद में फिर से कोशिश करें।",
-      "view_card_details_error": "Unable to load card details. Please try again.",
+      "view_card_details_error": "कार्ड विवरण लोड नहीं हो सके। कृपया फिर से प्रयास करें।",
+      "biometric_verification_required": "कार्ड विवरण देखने के लिए प्रमाणीकरण आवश्यक है।",
+      "unfreeze_auth_required": "अपने कार्ड पर खर्च फिर से शुरू करने के लिए ऑथेंटिकेशन ज़रूरी है।",
       "warnings": {
         "close_spending_limit": {
           "title": "आप अपनी खर्च सीमा के करीब पहुँच चुके हैं",
@@ -6807,7 +7053,7 @@
         },
         "frozen": {
           "title": "आपका कार्ड फ़्रीज़ कर दिया गया है",
-          "description": "कृपया अपने कार्ड को अनफ़्रीज़ करने के लिए सपोर्ट से संपर्क करें"
+          "description": "आपका कार्ड कुछ समय के लिए फ़्रीज़ किया गया है। आप इसे कभी भी अनफ़्रीज़ कर सकते हैं।"
         },
         "blocked": {
           "title": "आपका कार्ड ब्लॉक कर दिया गया है",
@@ -6815,13 +7061,13 @@
         },
         "kyc_pending": {
           "title": "वेरिफिकेशन प्रोग्रेस में है",
-          "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
+          "description": "आपकी पहचान सत्यापन की समीक्षा की जा रही है। यह आम तौर पर 12 घंटे से कम समय लेता है।"
         }
       },
       "messages": {
         "card_provisioning": {
-          "title": "Card being created",
-          "description": "Your card is being created. This may take a few moments."
+          "title": "कार्ड बनाया जा रहा है",
+          "description": "आपका कार्ड बनाया जा रहा है। इसमें कुछ समय लग सकता है।"
         }
       },
       "kyc_status": {
@@ -6845,30 +7091,39 @@
         "ok_button": "ठीक है"
       },
       "manage_card_options": {
-        "view_card_details": "View card details",
-        "hide_card_details": "Hide card details",
-        "view_card_details_description": "Card number, expiration and CVV",
-        "manage_spending_limit": "Manage limit",
+        "view_card_details": "कार्ड विवरण देखें",
+        "hide_card_details": "कार्ड विवरण छिपाएँ",
+        "view_card_details_description": "कार्ड नंबर, समाप्ति तिथि और CVV",
+        "manage_spending_limit": "लिमिट प्रबंधित करें",
         "manage_spending_limit_description_restricted": "सीमित खर्च की सेटिंग चालू है",
         "manage_spending_limit_description_full": "फुल एक्सेस चालू है",
         "manage_card": "कार्ड प्रबंधित करें",
-        "advanced_card_management_description": "See activity, cashback, freeze card, and more",
+        "advanced_card_management_description": "गतिविधि, कैशबैक देखें, कार्ड फ्रीज़ करें और अन्य चीज़ें",
         "travel_title": "MetaMask ट्रैवल",
-        "travel_description": "Book hotels with up to 70% discounts",
-        "card_tos_title": "Terms and conditions"
+        "travel_description": "70% तक की छूट के साथ होटल बुक करें",
+        "card_tos_title": "नियम और शर्त",
+        "order_metal_card": "मेटल कार्ड",
+        "order_metal_card_description": "अपना भौतिक मेटल कार्ड अभी ऑर्डर करें",
+        "freeze_card": "कार्ड फ़्रीज़ करें",
+        "unfreeze_card": "कार्ड अनफ़्रीज़ करें",
+        "freeze_card_description": "अपने कार्ड पर सभी खर्च रोकें",
+        "unfreeze_card_description": "अपने कार्ड पर सभी खर्च फिर से शुरू करें",
+        "freeze_error": "कार्ड का स्टेटस अपडेट नहीं हो पाया। कृपया फिर से कोशिश करें।",
+        "freeze_success": "कार्ड अच्छे से फ्रीज़ हो गया",
+        "unfreeze_success": "कार्ड अच्छे से अनफ्रीज़ हो गया"
       }
     },
     "card_spending_limit": {
       "title_change_token": "टोकन और नेटवर्क बदलें",
       "title_enable_token": "टोकन चालू करें",
       "title_onboarding": "स्पेंडिंग चालू करें",
-      "setup_title": "Set up your card",
-      "setup_description": "Select the token you'd like to use and set a limit for how much you can spend.",
+      "setup_title": "अपना कार्ड सेट अप करें",
+      "setup_description": "उस टोकन का चयन करें जिसे आप उपयोग करना चाहते हैं और तय करें कि आप कितना खर्च कर सकते हैं।",
       "asset_label": "एसेट",
       "limit_label": "सीमित करें",
-      "other_token": "Other",
+      "other_token": "अन्य",
       "full_access_title": "पूर्ण पहुँच",
-      "full_access_description": "Your card can use your funds automatically without asking for approval each time.",
+      "full_access_description": "हर बार एप्रूवल मांगे बिना आपका कार्ड आपके फंड का स्वचालित रूप से उपयोग कर सकता है।",
       "restricted_limit_title": "खर्च करने की सीमा",
       "restricted_limit_description": "आप केवल इसी सीमा तक खर्च कर सकते हैं। इस सीमा को हर बार अपडेट होने पर आपको नेटवर्क शुल्क देना होगा।",
       "edit_limit": "सीमा संपादित करें",
@@ -6945,6 +7200,35 @@
       "didnt_receive_code": "कोड प्राप्त नहीं हुआ? ",
       "resend_verification": "इसे फिर से भेजें",
       "resend_cooldown": "{{seconds}} सेकंड में फिर से भेज पाएंगे"
+    },
+    "push_provisioning": {
+      "add_to_wallet": "{{walletName}} में जोड़ें",
+      "adding_to_wallet": "{{walletName}} में जोड़ें...",
+      "continue_setup": "{{walletName}} सेटअप जारी रखें",
+      "wallet_not_available": "{{walletName}} उपलब्ध नहीं है",
+      "already_in_wallet": "पहले से ही {{walletName}} में है",
+      "success_title": "कार्ड जोड़ा गया!",
+      "success_message": "आपका MetaMask कार्ड {{walletName}} में जोड़ दिया गया है।",
+      "error_title": "कार्ड नहीं जोड़ा जा सका",
+      "error_wallet_not_available": "{{walletName}} इस डिवाइस पर उपलब्ध नहीं है। कृपया पक्का करें कि आपने {{walletName}} सेट अप किया है।",
+      "error_wallet_not_initialized": "{{walletName}} तैयार नहीं हुआ है। कृपया अपना वॉलेट सेट अप करें और फिर से कोशिश करें।",
+      "error_card_already_in_wallet": "यह कार्ड पहले से ही {{walletName}} में जोड़ा जा चुका है।",
+      "error_card_pending": "आपका कार्ड {{walletName}} में सेट अप किया जा रहा है। कृपया कुछ मिनट बाद फिर से देखें।",
+      "error_card_suspended": "{{walletName}} में आपका कार्ड सस्पेंड कर दिया गया है। मदद के लिए कृपया सपोर्ट से संपर्क करें।",
+      "error_card_not_eligible": "यह कार्ड मोबाइल वॉलेट प्रोविज़निंग के लिए एलिजिबल नहीं है।",
+      "error_encryption_failed": "कार्ड डेटा एन्क्रिप्ट नहीं हो पाया। कृपया फिर से कोशिश करें।",
+      "error_invalid_card_data": "कार्ड डेटा ग़लत है। कृपया अपने कार्ड की जानकारी सत्यापित करें और फिर से कोशिश करें।",
+      "error_card_not_found": "कार्ड नहीं मिला। कृपया फिर से कोशिश करें।",
+      "error_card_provider_not_found": "आपके इलाके के लिए कार्ड प्रोवाइडर उपलब्ध नहीं है।",
+      "error_card_id_mismatch": "कार्ड सत्यापन नहीं हो पाया। कृपया फिर से कोशिश करें।",
+      "error_card_not_active": "आपका कार्ड एक्टिव नहीं है। कृपया पहले अपना कार्ड एक्टिवेट करें।",
+      "error_network": "नेटवर्क में गड़बड़ी हुई। कृपया अपना कनेक्शन जांचें और फिर से प्रयास करें।",
+      "error_timeout": "रिक्वेस्ट टाइम आउट हो गई। कृपया फिर से कोशिश करें।",
+      "error_server": "सर्वर में एरर आया। कृपया बाद में फिर से कोशिश करें।",
+      "error_unknown": "कोई अनपेक्षित गड़बड़ी उत्पन्न हुई। कृपया बाद में फिर से प्रयास करें या सपोर्ट से कॉन्टेक्ट करें।",
+      "error_platform_not_supported": "यह प्लेटफ़ॉर्म मोबाइल वॉलेट प्रोविज़निंग को सपोर्ट नहीं करता है।",
+      "try_again": "फिर से प्रयास करें",
+      "cancel": "कैंसिल करें"
     }
   },
   "onboarding_error_fallback": {
@@ -6959,6 +7243,7 @@
   },
   "pay_with_modal": {
     "title": "भुगतान विधि चुनें",
+    "title_receive": "Select receive token",
     "no_gas": "No native balance for gas"
   },
   "connection_removed_modal": {
@@ -7027,7 +7312,10 @@
       "account_already_registered": "यह अकाउंट पहले ही किसी अन्य रिवॉर्ड्स प्रोफ़ाइल के साथ पंजीकृत है। जारी रखने के लिए कृपया अकाउंट बदलें।",
       "request_rejected": "आपने अनुरोध रिजेक्ट कर दिया।",
       "failed_to_claim_reward": "रिवॉर्ड क्लेम नहीं हो पाया। कृपया थोड़ी देर में फिर से प्रयास करें।",
-      "service_not_available": "सेवा इस समय उपलब्ध नहीं है। कृपया थोड़ी देर में फिर से प्रयास करें।"
+      "service_not_available": "सेवा इस समय उपलब्ध नहीं है। कृपया थोड़ी देर में फिर से प्रयास करें।",
+      "invalid_referral_code": "रेफरल कोड ग़लत है। कृपया जांचें और फिर से प्रयास करें।",
+      "already_referred": "आप पहले ही किसी अन्य उपयोगकर्ता द्वारा रेफर किए जा चुके हैं।",
+      "cannot_use_own_referral_code": "आप अपना स्वयं का रेफरल कोड उपयोग नहीं कर सकते।"
     },
     "claim_reward_error": {
       "title": "रिवॉर्ड क्लेम नहीं हो पाया"
@@ -7047,17 +7335,14 @@
       "retry_button": "फिर से प्रयास करें"
     },
     "referral_rewards_title": "रेफरल",
-    "points": "पॉइंट्स",
-    "point": "पॉइंट",
     "level": "लेवल",
-    "to_level_up": "लेवल बढ़ाने के लिए",
     "season_ends": "सीज़न समाप्त होता है",
     "season_ended": "सीज़न समाप्त हुआ",
     "main_title": "पुरस्कार",
     "referral_title": "रेफरल",
     "tab_overview_title": "ओवरव्यू",
+    "tab_snapshots_title": "स्नैपशॉट्स",
     "tab_activity_title": "गतिविधि",
-    "tab_levels_title": "लेवल",
     "referral_stats_earned_from_referrals": "रेफरल से अर्जित",
     "referral_stats_referrals": "रेफरल",
     "loading_activity": "गतिविधि लोड हो रही है…",
@@ -7065,6 +7350,8 @@
     "activity_empty_title": "हाल ही में कोई गतिविधि नहीं।",
     "activity_empty_description": "पॉइंट्स कमाने, स्तर बढ़ाने, और रिवॉर्ड्स अनलॉक करने के लिए MetaMask का उपयोग करें।",
     "activity_empty_link": "कमाने के तरीके देखें",
+    "filter_title": "गतिविधि के प्रकार द्वारा फ़िल्टर करें",
+    "filter_all": "सभी",
     "events": {
       "to": "प्रति",
       "musd_deposit_for": "{{date}} के लिए",
@@ -7084,6 +7371,7 @@
         "stop_loss": "TP/SL",
         "predict": "प्रेडिक्शन",
         "musd_deposit": "mUSD डिपॉज़िट",
+        "apply_referral_bonus": "रेफरल कोड बोनस",
         "uncategorized_event": "अवर्गीकृत इवेंट"
       },
       "date": "तिथि",
@@ -7105,6 +7393,9 @@
       "points_earned": "पॉइंट्स कमाए",
       "no_end_of_season_rewards": "इस सीज़न में भले ही आपको रिवॉर्ड नहीं मिले, लेकिन अगली बार मिल भी सकते हैं।",
       "verifying_rewards": "इससे पहले कि आप रिवॉर्ड क्लेम करें, हम पुष्टि कर रहे हैं कि सब कुछ सही है।"
+    },
+    "season_status": {
+      "points_earned": "पॉइंट्स कमाए"
     },
     "onboarding": {
       "not_supported_region_title": "क्षेत्र सपोर्टेड नहीं है",
@@ -7145,6 +7436,7 @@
       "step4_referral_input_error": "रेफरल कोड ग़लत है",
       "step4_confirm": "पॉइंट्स क्लेम करें",
       "step4_confirm_loading": "पॉइंट्स क्लेम किया जा रहा है...",
+      "step4_bulk_link_checkbox": "इस डिवाइस पर मेरे सभी अकाउंट ऑप्ट-इन करें",
       "step4_linking_accounts": "एकाउंट्स जोड़ा जा रहा है... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "अतिरिक्त एकाउंट्स जोड़े जा रहे हैं...",
       "step4_success_description": "आपने सफलतापूर्वक MetaMask रिवॉर्ड्स के लिए साइन अप कर लिया है!",
@@ -7176,7 +7468,20 @@
       "link_account_error_title": "अकाउंट जोड़ना नहीं हो पाया",
       "link_account_button": "जोड़ें",
       "link_account_failed_error": "अकाउंट जोड़ना नहीं हो पाया",
-      "link_account_unknown_error": "अज्ञात गड़बड़ी हुई"
+      "link_account_unknown_error": "अज्ञात गड़बड़ी हुई",
+      "show_more": "और दिखाएं",
+      "show_less": "कम दिखाएं",
+      "linking_progress": "एकाउंट्स जोड़ा जा रहा है... ({{current}}/{{total}})",
+      "accounts_linked_count": "{{linked}}/{{total}} नामांकन किया गया",
+      "add_all_accounts": "सभी एकाउंट जोड़ें"
+    },
+    "referred_by_code": {
+      "title": "रेफरल कोड",
+      "description_linked": "इनवाइट कोड अब लिंक हो गया है, इसलिए जब आप ट्रेड करेंगे, तो आपको रेफर करने वाले को रिवॉर्ड मिलेगा।",
+      "description_not_linked": "क्या आपने अपने दोस्त द्वारा कोड भेजने से पहले ही साइन अप कर लिया? नीचे अपना कोड दर्ज करें और आप लिंक हो जाएंगे।",
+      "input_placeholder": "रेफरल कोड दर्ज करें",
+      "invalid_code": "रेफरल कोड ग़लत है",
+      "apply_button": "रेफरल कोड लागू करें"
     },
     "optout": {
       "title": "रिवॉर्ड्स प्रगति हटाएँ",
@@ -7195,12 +7500,12 @@
     "dashboard_modal_info": {
       "active_account": {
         "title": "चूकें नहीं",
-        "description": "Add your account to Rewards.",
+        "description": "अपना अकाउंट रिवॉर्ड्स में जोड़ें।",
         "confirm": "अकाउंट जोड़ें"
       },
       "multiple_unlinked_accounts": {
         "title": "चूकें नहीं",
-        "description": "Add your accounts to Rewards.",
+        "description": "अपने अकाउंट रिवॉर्ड्स में जोड़ें।",
         "confirm": "एकाउंट्स जोड़ें"
       },
       "account_not_supported": {
@@ -7211,87 +7516,7 @@
       }
     },
     "ways_to_earn": {
-      "title": "कमाने के तरीके",
-      "supported_networks": "सपोर्टेड नेटवर्क",
-      "swap": {
-        "title": "स्वैप करें",
-        "description": "प्रति $10 पर 8 पॉइंट्स",
-        "sheet": {
-          "title": "टोकन स्वैप करें",
-          "points": "प्रति $10 पर 8 पॉइंट्स",
-          "description": "सपोर्टेड नेटवर्क पर टोकन स्वैप करें और हर डॉलर के ट्रेड पर पॉइंट्स कमाएं।",
-          "cta_label": "एक स्वैप शुरू करें"
-        }
-      },
-      "perps": {
-        "title": "पर्प्स",
-        "description": "प्रति $100 ऑर्डर वैल्यू के लिए 10 पॉइंट",
-        "sheet": {
-          "title": "पर्प्स ट्रेड करें",
-          "points": "प्रति $100 ऑर्डर वैल्यू के लिए 10 पॉइंट",
-          "description": "हर ट्रेड पर पॉइंट्स कमाएँ, जिसमें ओपन और क्लोज़, स्टॉप लॉस और टेक प्रॉफिट ऑर्डर, और मार्जिन एडजस्टमेंट शामिल हैं। ऑर्डर वैल्यू लेवरेज की साइज़ पर आधारित होती है। यदि आपको शुल्क में छूट मिलती है तो पॉइंट्स में भी छूट मिलेगी।",
-          "cta_label": "एक ट्रेड शुरू करें"
-        }
-      },
-      "referrals": {
-        "title": "दोस्तों को रेफर करें",
-        "description": "दोस्तों से हर 50 पर 10 पॉइंट्स",
-        "sheet": {
-          "title": "एक मित्र को रेफर करें",
-          "points": "प्रति 50 पर 10 पॉइंट्स",
-          "cta_label": "एक मित्र को रेफर करें"
-        }
-      },
-      "loyalty": {
-        "title": "लोयल्टी बोनस",
-        "description": "पिछले ट्रेड्स से पॉइंट्स कमाएं",
-        "sheet": {
-          "title": "लोयल्टी बोनस",
-          "points": "प्रति $1250 पर 250 पॉइंट्स",
-          "description": "लॉयल्टी बोनस कमाने के लिए पिछले MetaMask इन-वॉलेट स्वैप या ब्रिज वाले अकाउंट्स जोड़ें। प्रत्येक पात्र अकाउंट 250 पॉइंट्स की वृद्धि पर पॉइंट्स अनलॉक करता है, कुल मिलाकर 50,000 तक। अकाउंट को जोड़ने के तुरंत बाद बोनस दिखाई देते हैं।",
-          "cta_label": "एकाउंट्स जोड़ें"
-        }
-      },
-      "predict": {
-        "title": "प्रेडिक्शंस",
-        "description": "प्रति $10 प्रेडिक्शन पर 20 पॉइंट्स",
-        "sheet": {
-          "title": "प्रेडिक्शंस",
-          "points": "प्रति $10 पर 20 पॉइंट्स",
-          "description": "प्रत्येक $10 के ट्रेड पर पॉइंट्स कमाएं।",
-          "cta_label": "मार्केट ब्राउज़ करें"
-        }
-      },
-      "card": {
-        "title": "MetaMask कार्ड",
-        "description": "हर $1 खर्च पर 1 पॉइंट",
-        "sheet": {
-          "title": "MetaMask कार्ड",
-          "points": "हर $1 खर्च पर 1 पॉइंट",
-          "description": "हर बार जब आप अपने MetaMask कार्ड का उपयोग खरीदारी के लिए करते हैं, तब आप पॉइंट्स कमाएं, साथ ही 1% कैशबैक भी (Metal कार्डधारकों के लिए 3%)।",
-          "cta_label": "कार्ड मैनेज करें"
-        }
-      },
-      "deposit_musd": {
-        "title": "mUSD डिपॉज़िट करें",
-        "description": "डिपॉज़िट किए गए प्रत्येक $100 पर 2 पॉइंट्स",
-        "sheet": {
-          "title": "mUSD डिपॉज़िट करें",
-          "points": "प्रति $100 पर 2 पॉइंट्स",
-          "description": "आपके द्वारा डिपॉज़िट किए गए प्रत्येक $100 mUSD पर पॉइंट्स कमाएं।",
-          "cta_label": "mUSD डिपॉज़िट करें"
-        }
-      },
-      "hold_musd": {
-        "title": "mUSD को होल्ड करें",
-        "description": "होल्ड किए गए प्रत्येक $100 पर 2 पॉइंट्स",
-        "sheet": {
-          "title": "mUSD को होल्ड करें",
-          "points": "प्रति $100 पर 2 पॉइंट्स",
-          "description": "आपके द्वारा होल्ड किए गए प्रत्येक $100 mUSD पर पॉइंट्स कमाएं।",
-          "cta_label": "mUSD खरीदें"
-        }
-      }
+      "title": "कमाने के तरीके"
     },
     "referral": {
       "referral_code": "रेफरल कोड",
@@ -7331,7 +7556,7 @@
       "claim_label": "क्लेम करें",
       "claimed_label": "क्लेम किया गया",
       "reward_claimed": "रिवॉर्ड क्लेम किया गया",
-      "time_left": "बचा है",
+      "time_left": "{{time}} बचा है",
       "expired": "एक्सपायर हो गया"
     },
     "end_of_season_rewards": {
@@ -7345,10 +7570,37 @@
       "redeem_failure_title": "रिडीम नहीं हो पाया",
       "redeem_failure_description": "कृपया बाद में फिर से प्रयास करें।",
       "reward_details": "पुरस्कार विवरण",
-      "select_account_description": "उस अकाउंट का चयन करें जिसमें आप यह पुरस्कार प्राप्त करना चाहते हैं। टोकन दो सप्ताह के भीतर वितरित किए जाएंगे।"
+      "select_account_description": "वह अकाउंट चुनें जहाँ आप यह रिवॉर्ड भेजना चाहते हैं।"
     },
     "animation": {
       "could_not_load": "लोड नहीं हो सका"
+    },
+    "snapshot": {
+      "starts_date": "{{date}} को शुरू होता है",
+      "ends_date": "{{date}} को समाप्त होता है",
+      "results_coming_soon": "रिज़ल्ट जल्द ही आ रहे हैं",
+      "tokens_on_the_way": "टोकन आने वाले हैं",
+      "pill_up_next": "आगे आने वाला है",
+      "pill_live_now": "अब लाइव है",
+      "pill_calculating": "गणना की जा रही है",
+      "pill_results_ready": "रिज़ल्ट तैयार हैं",
+      "pill_complete": "पूरा"
+    },
+    "snapshots_section": {
+      "title": "स्नैपशॉट्स",
+      "error_title": "स्नैपशॉट्स लोड नहीं हो पा रहे हैं",
+      "error_description": "हम स्नैपशॉट्स लोड नहीं कर पाए। कृपया फिर से कोशिश करें।",
+      "retry_button": "फिर से प्रयास करें"
+    },
+    "snapshots_tab": {
+      "active_title": "एक्टिव",
+      "upcoming_title": "आगे आने वाला है",
+      "previous_title": "पिछला",
+      "empty_state": "कोई स्नैपशॉट उपलब्ध नहीं है",
+      "error_title": "स्नैपशॉट्स लोड नहीं हो पा रहे हैं",
+      "error_description": "हम स्नैपशॉट्स लोड नहीं कर पाए। कृपया फिर से कोशिश करें।",
+      "retry_button": "फिर से प्रयास करें",
+      "refreshing": "रिफ्रेश हो रहा है..."
     }
   },
   "time": {
@@ -7357,6 +7609,8 @@
   },
   "transaction_details": {
     "title": {
+      "musd_conversion": "mUSD में कन्वर्ट किया गया",
+      "musd_claim": "mUSD क्लेम किया गया",
       "perps_deposit": "फंडेड पर्प्स अकाउंट",
       "predict_claim": "क्लेम किया गया जीत का ईनाम",
       "predict_deposit": "फ़ंड किया गया प्रेडिक्ट अकाउंट",
@@ -7376,10 +7630,12 @@
       "bridge_approval": "{{approveSymbol}} एप्रूव करें",
       "bridge_approval_loading": "एप्रूव करें",
       "bridge_send": "{{sourceSymbol}} को {{sourceChain}} से ब्रिज करें",
-      "bridge_send_loading": "Bridge send",
+      "bridge_send_loading": "ब्रिज भेजें",
       "bridge_receive": "{{targetChain}} पर {{targetSymbol}} प्राप्त करें",
-      "bridge_receive_loading": "Bridge receive",
+      "bridge_receive_loading": "ब्रिज प्राप्त करें",
       "default": "ट्रांसेक्शन",
+      "musd_convert_send": "{{sourceSymbol}} को {{sourceChain}} से भेजा गया",
+      "musd_claim": "mUSD क्लेम करें",
       "perps_deposit": "फंड जोड़ें",
       "predict_deposit": "फंड जोड़ें",
       "swap": "टोकन स्वैप करें",
@@ -7393,20 +7649,20 @@
       "description": "{{dappName}} के साथ कनेक्शन स्थापित किया जा रहा है..."
     },
     "show_error": {
-      "title": "Connection error",
+      "title": "कनेक्शन में गड़बड़ी",
       "description": "कनेक्शन स्थापित करना नहीं हो पाया। कृपया फिर से प्रयास करें।"
     },
     "show_rejection": {
-      "title": "Approval rejected",
-      "description": "User rejected the request."
+      "title": "एप्रूवल रिजेक्ट हो गया",
+      "description": "यूज़र ने रिक्वेस्ट को रिजेक्ट कर दिया।"
     },
     "show_return_to_app": {
       "title": "सफल",
       "description": "जारी रखने के लिए ऐप पर वापस जाएँ।"
     },
     "show_not_found": {
-      "title": "Connection Not Found",
-      "description": "Please establish a new connection from the app to continue."
+      "title": "कनेक्शन नहीं मिला",
+      "description": "जारी रखने के लिए कृपया ऐप से नया कनेक्शन बनाएं।"
     }
   },
   "network_connection_banner": {
@@ -7419,49 +7675,65 @@
     "updated_to_metamask_default": "Updated to MetaMask default"
   },
   "trending": {
-    "title": "Explore",
-    "trending_tokens": "Trending tokens",
-    "price_change": "Price change",
+    "title": "एक्सप्लोर करें",
+    "trending_tokens": "ट्रेंडिंग टोकन",
+    "price_change": "प्राइस में बदलाव",
     "all_networks": "सभी नेटवर्क",
-    "24h": "24h",
+    "24h": "24 घंटे",
     "time": "समय",
     "24_hours": "24 घंटे",
     "6_hours": "6 घंटे",
-    "1_hour": "1 hour",
-    "5_minutes": "5 minutes",
+    "1_hour": "1 घंटा",
+    "5_minutes": "5 मिनट",
     "networks": "नेटवर्क",
     "sort_by": "इसके अनुसार क्रमबद्ध करें",
     "volume": "वॉल्यूम",
-    "market_cap": "Market cap",
-    "high_to_low": "High to low",
-    "low_to_high": "Low to high",
+    "market_cap": "मार्केट कैप",
+    "high_to_low": "ज़्यादा से कम",
+    "low_to_high": "कम से ज़्यादा",
     "apply": "लागू करें",
-    "search_placeholder": "Search tokens, sites, URLs",
+    "search_placeholder": "टोकन, साइट, URL ढूंढें",
     "cancel": "कैंसिल करें",
     "perps": "पर्प्स",
     "predictions": "प्रेडिक्शंस",
-    "no_results": "No results found",
+    "no_results": "कोई रिज़ल्ट नहीं मिला",
     "sites": "साइट्स",
-    "popular_sites": "Popular sites",
-    "search_sites": "Search sites",
-    "enable_basic_functionality": "Enable basic functionality",
-    "basic_functionality_disabled_title": "Explore is not available",
-    "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
+    "popular_sites": "पॉपुलर साइटें",
+    "search_sites": "साइट ढूंढें",
+    "enable_basic_functionality": "बेसिक फंक्शनलिटी को चालू करें",
+    "basic_functionality_disabled_title": "एक्सप्लोर उपलब्ध नहीं है",
+    "basic_functionality_disabled_description": "बेसिक फंक्शनलिटी बंद होने पर हम ज़रूरी मेटाडेटा नहीं ला सकते।",
     "empty_error_trending_state": {
-      "title": "Trending tokens is not available",
-      "description": "We can't fetch this page right now",
+      "title": "ट्रेडिंग टोकन उपलब्ध नहीं हैं",
+      "description": "हम अभी यह पेज नहीं ला सकते",
       "try_again": "फिर से प्रयास करें"
     },
     "empty_search_result_state": {
       "title": "कोई टोकन नहीं मिला",
-      "description": "We were not able to find this token"
+      "description": "हमें यह टोकन नहीं मिला"
     }
   },
   "ota_update_modal": {
-    "title": "Update available",
-    "description_ios": "A new version of the app is available. Reload to apply the update now.",
-    "description_android": "A new version of the app is available. Close and reopen MetaMask to apply the update.",
+    "title": "अपडेट तैयार है",
+    "description_ios": "हमने कुछ ज़रूरी सुधार किए हैं। MetaMask के लेटेस्ट वर्शन के लिए रीलोड करें।",
+    "description_android": "हमने कुछ ज़रूरी सुधार किए हैं। अपडेट लागू करने के लिए MetaMask को बंद करके फिर से खोलें।",
     "primary_action_reload": "फिर से लोड करें",
     "primary_action_acknowledge": "समझ गए"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "टोकन",
+      "perpetuals": "परपेचुअल्स",
+      "predictions": "प्रेडिक्शंस",
+      "defi": "DeFi",
+      "nfts": "NFTs",
+      "import_nfts": "NFTs इंपोर्ट करें",
+      "import_nfts_description": "Easily add your collectibles",
+      "more_predictions": "More predictions"
+    },
+    "error": {
+      "unable_to_load": "Unable to load {{section}}",
+      "retry": "Retry"
+    }
   }
 }

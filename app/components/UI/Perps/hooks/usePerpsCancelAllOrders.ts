@@ -2,7 +2,10 @@ import { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
-import type { Order, CancelOrdersResult } from '../controllers/types';
+import {
+  type Order,
+  type CancelOrdersResult,
+} from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 

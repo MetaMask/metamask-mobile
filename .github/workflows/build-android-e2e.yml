@@ -59,7 +59,7 @@ jobs:
           setup-simulator: false
           configure-keystores: true
           target: ${{ inputs.keystore_target }} # qa for taget=main and flask for target=flask
-
+          
       - name: Setup project dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -237,8 +237,8 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=4096'
-          METRO_MAX_WORKERS: '4'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          METRO_MAX_WORKERS: '2'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'

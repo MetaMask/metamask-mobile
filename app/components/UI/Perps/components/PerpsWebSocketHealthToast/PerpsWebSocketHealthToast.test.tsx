@@ -3,9 +3,9 @@
  */
 
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import PerpsWebSocketHealthToast from './PerpsWebSocketHealthToast';
-import { WebSocketConnectionState } from '../../controllers/types';
+import { WebSocketConnectionState } from '@metamask/perps-controller';
 import { PerpsWebSocketHealthToastSelectorsIDs } from '../../Perps.testIds';
 
 // Mock dependencies
@@ -248,8 +248,10 @@ describe('PerpsWebSocketHealthToast', () => {
 
       render(<PerpsWebSocketHealthToast />);
 
-      // Fast-forward time
-      jest.advanceTimersByTime(3000);
+      // Fast-forward time (wrap in act so Animated callbacks flush)
+      await act(async () => {
+        jest.advanceTimersByTime(3000);
+      });
 
       expect(mockHide).toHaveBeenCalled();
     });

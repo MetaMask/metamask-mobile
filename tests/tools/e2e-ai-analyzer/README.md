@@ -6,13 +6,25 @@ AI-powered analysis system for E2E tests. Uses an agentic approach to make intel
 
 It is designed to be used in different **modes**, being each mode responsible for a different aspect of the analysis.
 
+### Running locally
+
+You need at least one API key set (see Configuration): `E2E_CLAUDE_API_KEY`, `E2E_OPENAI_API_KEY`, or `E2E_GEMINI_API_KEY`.
+
 ```bash
-# Run with default provider (uses priority order from config)
-node -r esbuild-register tests/tools/e2e-ai-analyzer --pr 12345
+# Analyze a PR (fetches changed files via gh CLI; requires gh auth and network)
+node -r esbuild-register tests/tools/e2e-ai-analyzer --mode select-tags --pr <PR_NUMBER>
+
+# Analyze local changes vs base branch (default: origin/main)
+node -r esbuild-register tests/tools/e2e-ai-analyzer --mode select-tags
+
+# Analyze specific changed files (space-separated; files must have actual changes)
+node -r esbuild-register tests/tools/e2e-ai-analyzer --mode select-tags --changed-files "path/to/file1 path/to/file2"
 
 # Run with a specific provider
 node -r esbuild-register tests/tools/e2e-ai-analyzer --pr 12345 --provider <provider-name>
 ```
+
+For PR analysis, the same command is used in CI (see `.github/scripts/e2e-smart-selection.mjs`). Locally, results are printed to the console; in CI, they are also written to `e2e-ai-analysis.json` and used as workflow outputs.
 
 ### Modes
 

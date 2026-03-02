@@ -15,31 +15,8 @@ import {
   useRampsPaymentMethods,
   type UseRampsPaymentMethodsResult,
 } from './useRampsPaymentMethods';
-
-/**
- * Options for the useRampsController hook.
- */
-export interface UseRampsControllerOptions {
-  /**
-   * Optional region code to use for providers and tokens requests.
-   * If not provided, uses userRegion from state.
-   */
-  region?: string;
-  /**
-   * Optional action type ('buy' or 'sell') for tokens and countries requests.
-   * Defaults to 'buy'.
-   */
-  action?: 'buy' | 'sell';
-  /**
-   * Optional filter options for providers requests.
-   */
-  providerFilters?: {
-    provider?: string | string[];
-    crypto?: string | string[];
-    fiat?: string | string[];
-    payments?: string | string[];
-  };
-}
+import { useRampsQuotes, type UseRampsQuotesResult } from './useRampsQuotes';
+import { useRampsOrders, type UseRampsOrdersResult } from './useRampsOrders';
 
 /**
  * Result returned by the useRampsController hook.
@@ -48,9 +25,6 @@ export interface UseRampsControllerOptions {
 export interface UseRampsControllerResult {
   // User region
   userRegion: UseRampsUserRegionResult['userRegion'];
-  userRegionLoading: UseRampsUserRegionResult['isLoading'];
-  userRegionError: UseRampsUserRegionResult['error'];
-  fetchUserRegion: UseRampsUserRegionResult['fetchUserRegion'];
   setUserRegion: UseRampsUserRegionResult['setUserRegion'];
 
   // Selected provider
@@ -80,13 +54,24 @@ export interface UseRampsControllerResult {
   setSelectedPaymentMethod: UseRampsPaymentMethodsResult['setSelectedPaymentMethod'];
   paymentMethodsLoading: UseRampsPaymentMethodsResult['isLoading'];
   paymentMethodsError: UseRampsPaymentMethodsResult['error'];
+
+  // Quotes
+  getQuotes: UseRampsQuotesResult['getQuotes'];
+  getWidgetUrl: UseRampsQuotesResult['getWidgetUrl'];
+
+  // Orders
+  orders: UseRampsOrdersResult['orders'];
+  getOrderById: UseRampsOrdersResult['getOrderById'];
+  addOrder: UseRampsOrdersResult['addOrder'];
+  removeOrder: UseRampsOrdersResult['removeOrder'];
+  refreshOrder: UseRampsOrdersResult['refreshOrder'];
+  getOrderFromCallback: UseRampsOrdersResult['getOrderFromCallback'];
 }
 
 /**
  * Composition hook that provides access to all RampsController functionality.
  * This hook combines all ramps-related hooks into a single entry point.
  *
- * @param options - Optional configuration for the hook.
  * @returns Combined result from all ramps controller hooks.
  *
  * @example
@@ -94,9 +79,6 @@ export interface UseRampsControllerResult {
  * const {
  *   // User region
  *   userRegion,
- *   userRegionLoading,
- *   userRegionError,
- *   fetchUserRegion,
  *   setUserRegion,
  *
  *   // Providers
@@ -125,19 +107,15 @@ export interface UseRampsControllerResult {
  *   paymentMethodsLoading,
  *   paymentMethodsError,
  *
- * } = useRampsController({ action: 'buy' });
+ *   // Quotes
+ *   getQuotes,
+ *   getWidgetUrl,
+ *
+ * } = useRampsController();
  * ```
  */
-export function useRampsController(
-  options?: UseRampsControllerOptions,
-): UseRampsControllerResult {
-  const {
-    userRegion,
-    isLoading: userRegionLoading,
-    error: userRegionError,
-    fetchUserRegion,
-    setUserRegion,
-  } = useRampsUserRegion();
+export function useRampsController(): UseRampsControllerResult {
+  const { userRegion, setUserRegion } = useRampsUserRegion();
 
   const {
     providers,
@@ -145,7 +123,7 @@ export function useRampsController(
     setSelectedProvider,
     isLoading: providersLoading,
     error: providersError,
-  } = useRampsProviders(options?.region, options?.providerFilters);
+  } = useRampsProviders();
 
   const {
     tokens,
@@ -153,7 +131,7 @@ export function useRampsController(
     setSelectedToken,
     isLoading: tokensLoading,
     error: tokensError,
-  } = useRampsTokens(options?.region, options?.action);
+  } = useRampsTokens();
 
   const {
     countries,
@@ -169,15 +147,21 @@ export function useRampsController(
     error: paymentMethodsError,
   } = useRampsPaymentMethods();
 
+  const { getQuotes, getWidgetUrl } = useRampsQuotes();
+
+  const {
+    orders,
+    getOrderById,
+    addOrder,
+    removeOrder,
+    refreshOrder,
+    getOrderFromCallback,
+  } = useRampsOrders();
+
   return {
-    // User region
     userRegion,
-    userRegionLoading,
-    userRegionError,
-    fetchUserRegion,
     setUserRegion,
 
-    // Selected provider
     selectedProvider,
     setSelectedProvider,
 
@@ -185,24 +169,31 @@ export function useRampsController(
     providersLoading,
     providersError,
 
-    // Tokens
     tokens,
     selectedToken,
     setSelectedToken,
     tokensLoading,
     tokensError,
 
-    // Countries
     countries,
     countriesLoading,
     countriesError,
 
-    // Payment methods
     paymentMethods,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     paymentMethodsLoading,
     paymentMethodsError,
+
+    getQuotes,
+    getWidgetUrl,
+
+    orders,
+    getOrderById,
+    addOrder,
+    removeOrder,
+    refreshOrder,
+    getOrderFromCallback,
   };
 }
 

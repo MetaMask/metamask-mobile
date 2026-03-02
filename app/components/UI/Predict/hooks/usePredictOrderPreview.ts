@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Logger from '../../../../util/Logger';
-import { OrderPreview, PreviewOrderParams } from '../providers/types';
+import { OrderPreview, PreviewOrderParams } from '../types';
 import { usePredictTrading } from './usePredictTrading';
 import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
@@ -29,7 +29,6 @@ export function usePredictOrderPreview(
 
   // Destructure params for stable dependencies
   const {
-    providerId,
     marketId,
     outcomeId,
     outcomeTokenId,
@@ -76,7 +75,6 @@ export function usePredictOrderPreview(
 
     try {
       const p = await previewOrder({
-        providerId,
         marketId,
         outcomeId,
         outcomeTokenId,
@@ -105,7 +103,6 @@ export function usePredictOrderPreview(
             method: 'calculatePreview',
             action: 'order_preview',
             operation: 'order_management',
-            providerId,
             side,
             marketId,
             outcomeId,
@@ -130,7 +127,6 @@ export function usePredictOrderPreview(
   }, [
     size,
     previewOrder,
-    providerId,
     marketId,
     outcomeId,
     outcomeTokenId,
@@ -163,15 +159,7 @@ export function usePredictOrderPreview(
     }, 100);
 
     return () => clearTimeout(debounceTimer);
-  }, [
-    providerId,
-    marketId,
-    outcomeId,
-    outcomeTokenId,
-    side,
-    size,
-    autoRefreshTimeout,
-  ]);
+  }, [marketId, outcomeId, outcomeTokenId, side, size, autoRefreshTimeout]);
 
   return {
     preview,

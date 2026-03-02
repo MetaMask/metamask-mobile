@@ -47,7 +47,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TraceName } from '../../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
@@ -56,9 +56,10 @@ import PerpsOrderBookTable, {
   type UnitDisplay,
 } from '../../components/PerpsOrderBookTable';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  getPerpsDisplaySymbol,
+} from '@metamask/perps-controller';
 import {
   usePerpsMarkets,
   usePerpsNavigation,
@@ -79,7 +80,6 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import {
   calculateAggregationParams,
   calculateGroupingOptions,
@@ -294,9 +294,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!!symbol, !!orderBook],
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.ORDER_BOOK,
-      [PerpsEventProperties.ASSET]: symbol || '',
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.ORDER_BOOK,
+      [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
     },
   });
 
@@ -330,9 +330,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       setIsDepthBandSheetVisible(false);
 
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TAP,
-        [PerpsEventProperties.ASSET]: symbol || '',
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+        [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
       });
     },
     [symbol, track, saveGrouping],
@@ -362,9 +362,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       setUnitDisplay(unit);
 
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TAP,
-        [PerpsEventProperties.ASSET]: symbol || '',
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+        [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
       });
     },
     [symbol, track],
@@ -375,23 +375,23 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     // Geo-restriction check
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.ORDER_BOOK_LONG_BUTTON,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_LONG_BUTTON,
       });
       setIsEligibilityModalVisible(true);
       return;
     }
 
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.TAP,
-      [PerpsEventProperties.ASSET]: symbol || '',
-      [PerpsEventProperties.DIRECTION]: PerpsEventValues.DIRECTION.LONG,
-      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+      [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
+      [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.LONG,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       ...(isButtonColorTestEnabled && {
-        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
       }),
     });
 
@@ -413,23 +413,23 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     // Geo-restriction check
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.ORDER_BOOK_SHORT_BUTTON,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_SHORT_BUTTON,
       });
       setIsEligibilityModalVisible(true);
       return;
     }
 
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.TAP,
-      [PerpsEventProperties.ASSET]: symbol || '',
-      [PerpsEventProperties.DIRECTION]: PerpsEventValues.DIRECTION.SHORT,
-      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+      [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
+      [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.SHORT,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       ...(isButtonColorTestEnabled && {
-        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
       }),
     });
 
@@ -453,10 +453,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     // Geo-restriction check
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.ORDER_BOOK_CLOSE_BUTTON,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_CLOSE_BUTTON,
       });
       setIsEligibilityModalVisible(true);
       return;
@@ -472,10 +472,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     // Geo-restriction check
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.ORDER_BOOK_MODIFY_BUTTON,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_MODIFY_BUTTON,
       });
       setIsEligibilityModalVisible(true);
       return;

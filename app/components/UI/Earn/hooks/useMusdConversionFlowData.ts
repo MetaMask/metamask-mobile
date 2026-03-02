@@ -1,7 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { useSelector } from 'react-redux';
-import { toHex } from '@metamask/controller-utils';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { useMusdConversionEligibility } from './useMusdConversionEligibility';
@@ -14,6 +13,7 @@ import {
 import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
 import { MUSD_CONVERSION_DEFAULT_CHAIN_ID } from '../constants/musd';
 import { toChecksumAddress } from '../../../../util/address';
+import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
 
 export interface MusdConversionFlowData {
   isPopularNetworksFilterActive: boolean;
@@ -102,16 +102,25 @@ export const useMusdConversionFlowData = (): MusdConversionFlowData => {
 
     // If specific chain selected, find token on that chain; otherwise use first token
     const paymentToken = selectedChainId
-      ? conversionTokens.find((token) => token.chainId === selectedChainId)
+      ? conversionTokens.find(
+          (token) =>
+            token.chainId &&
+            safeFormatChainIdToHex(token.chainId) === selectedChainId,
+        )
       : conversionTokens[0];
 
     if (!paymentToken?.chainId || !paymentToken?.address) {
       return null;
     }
 
+    const paymentTokenChainIdHex = safeFormatChainIdToHex(paymentToken.chainId);
+    if (!paymentTokenChainIdHex.startsWith('0x')) {
+      return null;
+    }
+
     return {
       address: toChecksumAddress(paymentToken.address),
-      chainId: toHex(paymentToken.chainId),
+      chainId: paymentTokenChainIdHex as Hex,
     };
   }, [conversionTokens, selectedChainId]);
 

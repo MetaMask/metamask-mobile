@@ -20,7 +20,6 @@ const DeFiPositionsControlBar: React.FC = () => {
     <BaseControlBar
       networkFilterTestId={WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER}
       isDisabled={isDisabled}
-      useEvmSelectionLogic={false}
       customWrapper="none"
     />
   );

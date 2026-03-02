@@ -9,6 +9,10 @@ on:
       platform:
         required: true
         type: string # android, ios, or both
+      skip_version_bump:
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       build_name:
@@ -16,6 +20,7 @@ on:
         type: choice
         options:
           - main-prod
+          - main-beta
           - main-rc
           - main-test
           - main-e2e
@@ -31,18 +36,40 @@ on:
         required: true
         type: choice
         options: [android, ios, both]
+      skip_version_bump:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  # Load config 
+  # Bump version in repo (bitrise.yml, package.json, ios/android) before building.
+  # Skipped when skip_version_bump=true (e.g. nightly builds where Bitrise owns the bump).
+  update-build-version:
+    if: ${{ !inputs.skip_version_bump }}
+    uses: ./.github/workflows/update-latest-build-version.yml
+    permissions:
+      contents: write
+      id-token: write
+    with:
+      base-branch: ${{ github.ref_name }}
+    secrets:
+      PR_TOKEN: ${{ secrets.PR_TOKEN }}
+
+  # Load config
   prepare:
+    needs: [update-build-version]
+    if: ${{ always() && !failure() && !cancelled() }}
     runs-on: ubuntu-latest
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
+      signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
+      signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
+      signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -57,23 +84,42 @@ jobs:
           node -e "
           const yaml = require('js-yaml');
           const fs = require('fs');
-          const config = yaml.load(fs.readFileSync('.github/builds.yml', 'utf8'));
+          const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
           const build = config.builds['${{ inputs.build_name }}'];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          const signing = build.signing;
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
           "
 
   # Build
   build:
-    needs: [prepare]
+    needs: [prepare, update-build-version]
+    if: ${{ always() && !failure() && !cancelled() }}
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
-    # Android uses Cirrus runner with SDK pre-installed; iOS uses GitHub-hosted macOS
-    runs-on: ${{ matrix.platform == 'ios' && 'macos-latest' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: GitHub-hosted macOS
+    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     steps:
+      - name: Validate version-bump commit
+        if: ${{ !inputs.skip_version_bump }}
+        run: |
+          COMMIT_HASH="${{ needs.update-build-version.outputs.commit-hash }}"
+          if [ -z "$COMMIT_HASH" ]; then
+            echo "::error::update-build-version did not produce commit-hash; refusing to build to avoid using pre-bump version numbers."
+            exit 1
+          fi
+          echo "Building at version-bump commit: $COMMIT_HASH"
       - uses: actions/checkout@v4
+        if: ${{ !inputs.skip_version_bump }}
+        with:
+          ref: ${{ needs.update-build-version.outputs.commit-hash }}
+      - uses: actions/checkout@v4
+        if: ${{ inputs.skip_version_bump }}
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -82,12 +128,21 @@ jobs:
 
       - name: Apply build config
         run: |
-          # Load env vars from builds.yml
+          # Load env vars from builds.yml (this step only)
           eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
+          # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
+          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+
+      - name: Validate secrets
+        env:
+          CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
+          SECRETS_JSON: ${{ toJSON(secrets) }}
+        run: node scripts/validate-secrets-from-config.js
 
       - name: Set secrets
         env:
           CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
+          ALL_SECRETS: ${{ toJSON(secrets) }}
         run: node scripts/set-secrets-from-config.js
 
       # Android only: minimal env (SDK is pre-installed on Cirrus runner)
@@ -104,15 +159,26 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # Android qa signing (exp-test-e2e): skip for Expo dev builds (main-dev, flask-dev, qa-dev use debug keystore)
-      - name: Configure Android signing certificates
-        if: matrix.platform == 'android' && inputs.build_name != 'main-dev' && inputs.build_name != 'flask-dev' && inputs.build_name != 'qa-dev'
-        uses: MetaMask/github-tools/.github/actions/configure-keystore@0259e8a920318b02a8860e178d79796eaa08de02
+      # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
+      - name: Configure signing certificates
+        if: needs.prepare.outputs.signing_aws_role != ''
+        uses: ./.github/actions/configure-signing
         with:
-          aws-role-to-assume: 'arn:aws:iam::363762752069:role/metamask-mobile-build-signer-qa'
+          aws-role-to-assume: ${{ needs.prepare.outputs.signing_aws_role }}
           aws-region: 'us-east-2'
-          platform: 'android'
-          target: ${{ startsWith(inputs.build_name, 'flask') && 'flask' || 'qa' }}
+          platform: ${{ matrix.platform }}
+          aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
+          android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
+
+      # iOS: install Ruby, Bundler, and CocoaPods so setup:github-ci has a working Ruby (fixes self-hosted runners)
+      - name: Installing iOS Environment Setup
+        if: matrix.platform == 'ios'
+        timeout-minutes: 15
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        with:
+          platform: ios
+          configure-keystores: false
+          setup-simulator: false
 
       - name: Setup project dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
@@ -129,13 +195,59 @@ jobs:
             fi
 
       - name: Build ${{ matrix.platform }}
-        run: |
-          ./scripts/build.sh ${{ matrix.platform }} ${{ inputs.build_name }}
+        timeout-minutes: 115
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 55
+          max_attempts: 2
+          retry_wait_seconds: 60
+          command: |
+            export NODE_OPTIONS='--max-old-space-size=4096'
+            export METRO_MAX_WORKERS='4'
+            BUILD_NAME="${{ inputs.build_name }}"
+            SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
+            yarn "$SCRIPT_NAME"
 
-      # Expo development builds: upload iOS .app for simulator (Runway-style artifact)
-      - name: Upload iOS Expo development build
-        if: matrix.platform == 'ios' && (inputs.build_name == 'main-dev' || inputs.build_name == 'flask-dev' || inputs.build_name == 'qa-dev')
+      # Rename build artifacts (also zips simulator .app and writes ios_deploy_path / ios_archive_path outputs)
+      - name: Rename ${{ matrix.platform }} artifacts
+        id: rename
+        run: node scripts/rename-artifacts.js ${{ matrix.platform }}
+
+      # Upload build artifacts (only if build succeeded)
+      - name: Upload iOS simulator artifacts
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: expo-dev-ios-${{ inputs.build_name }}
-          path: ios/build/Build/Products/Release-iphonesimulator/
+          name: ios-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_deploy_path }}
+          if-no-files-found: error
+
+      - name: Upload iOS device artifacts
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ inputs.build_name }}
+          path: |
+            ${{ steps.rename.outputs.ios_deploy_path }}
+            ${{ steps.rename.outputs.ios_archive_path }}
+          if-no-files-found: error
+
+      # Dev builds (CONFIGURATION=Debug): APK only — mirrors Bitrise IS_DEV_BUILD behavior
+      - name: Upload Android dev artifacts
+        if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_apk_path }}
+          if-no-files-found: error
+
+      # Release builds: APK + AAB — mirrors Bitrise Deploy APK + Deploy AAB
+      - name: Upload Android release artifacts
+        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.build_name }}
+          path: |
+            ${{ steps.rename.outputs.android_apk_path }}
+            ${{ steps.rename.outputs.android_aab_path }}
+          if-no-files-found: error

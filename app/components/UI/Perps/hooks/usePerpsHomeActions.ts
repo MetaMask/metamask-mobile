@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -8,13 +8,12 @@ import { selectPerpsEligibility } from '../selectors/perpsController';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
-import type { PerpsNavigationParamList } from '../controllers/types';
-import { ensureError } from '../../../../util/errorUtils';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import {
-  PerpsEventValues,
-  PerpsEventProperties,
-} from '../constants/eventNames';
+  PERPS_CONSTANTS,
+  PERPS_EVENT_VALUE,
+  PERPS_EVENT_PROPERTY,
+} from '@metamask/perps-controller';
+import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
@@ -65,7 +64,7 @@ export interface UsePerpsHomeActionsReturn {
 export const usePerpsHomeActions = (
   options?: UsePerpsHomeActionsOptions,
 ): UsePerpsHomeActionsReturn => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const isEligible = useSelector(selectPerpsEligibility);
   const { depositWithConfirmation } = usePerpsTrading();
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
@@ -82,21 +81,21 @@ export const usePerpsHomeActions = (
 
   const handleAddFunds = useCallback(async () => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-      [PerpsEventProperties.BUTTON_CLICKED]:
-        PerpsEventValues.BUTTON_CLICKED.DEPOSIT,
-      [PerpsEventProperties.BUTTON_LOCATION]:
-        buttonLocation || PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        buttonLocation || PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
     });
 
     if (!isEligible) {
       DevLogger.log('[usePerpsHomeActions] User not eligible for deposit');
       // Track geo-block screen viewed
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.DEPOSIT_BUTTON,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.DEPOSIT_BUTTON,
       });
       setIsEligibilityModalVisible(true);
       return;
@@ -122,7 +121,7 @@ export const usePerpsHomeActions = (
         onAddFundsSuccess();
       }
     } catch (err) {
-      const errorObj = ensureError(err);
+      const errorObj = ensureError(err, 'usePerpsHomeActions.handleAddFunds');
       setError(errorObj);
 
       Logger.error(errorObj, {
@@ -151,13 +150,13 @@ export const usePerpsHomeActions = (
   const handleWithdraw = useCallback(async () => {
     // Track withdrawal button click with geo-block status for monitoring (TAT-2337)
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-      [PerpsEventProperties.BUTTON_CLICKED]:
-        PerpsEventValues.BUTTON_CLICKED.WITHDRAW,
-      [PerpsEventProperties.BUTTON_LOCATION]:
-        buttonLocation || PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
-      [PerpsEventProperties.IS_GEO_BLOCKED]: !isEligible,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.WITHDRAW,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        buttonLocation || PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+      [PERPS_EVENT_PROPERTY.IS_GEO_BLOCKED]: !isEligible,
     });
 
     // Note: Withdrawals are intentionally NOT geo-blocked (TAT-2337)
@@ -183,7 +182,7 @@ export const usePerpsHomeActions = (
         onWithdrawSuccess();
       }
     } catch (err) {
-      const errorObj = ensureError(err);
+      const errorObj = ensureError(err, 'usePerpsHomeActions.handleWithdraw');
       setError(errorObj);
 
       Logger.error(errorObj, {

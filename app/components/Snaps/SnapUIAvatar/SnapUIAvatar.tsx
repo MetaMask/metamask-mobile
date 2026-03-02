@@ -5,7 +5,6 @@ import { isEvmAccountType } from '@metamask/keyring-api';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import AvatarAccount from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectAccountGroupsByAddress } from '../../../selectors/multichainAccounts/accounts';
 import { RootState } from '../../../reducers';
 
@@ -34,8 +33,6 @@ export const SnapUIAvatar: React.FunctionComponent<SnapUIAvatarProps> = ({
   );
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
-  const useAccountGroups = useSelector(selectMultichainAccountsState2Enabled);
-
   const accountGroups = useSelector((state: RootState) =>
     selectAccountGroupsByAddress(state, [address]),
   );
@@ -45,8 +42,7 @@ export const SnapUIAvatar: React.FunctionComponent<SnapUIAvatarProps> = ({
   )?.address;
 
   // Display the account group address if it exists as the default.
-  const displayAddress =
-    useAccountGroups && accountGroupAddress ? accountGroupAddress : address;
+  const displayAddress = accountGroupAddress ?? address;
 
   return (
     <AvatarAccount

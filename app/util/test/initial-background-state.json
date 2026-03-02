@@ -461,6 +461,13 @@
     "pendingApprovalCount": 0,
     "approvalFlows": []
   },
+  "AssetsController": {
+    "assetPreferences": {},
+    "assetsBalance": {},
+    "assetsInfo": {},
+    "assetsPrice": {},
+    "customAssets": {}
+  },
   "PermissionController": {
     "subjects": {}
   },
@@ -507,7 +514,15 @@
       "direction": "desc"
     },
     "hip3ConfigVersion": 0,
-    "perpsBalances": {}
+    "perpsBalances": {},
+    "selectedPaymentToken": null,
+    "cachedMarketData": null,
+    "cachedMarketDataTimestamp": 0,
+    "cachedPositions": null,
+    "cachedOrders": null,
+    "cachedAccountState": null,
+    "cachedUserDataTimestamp": 0,
+    "cachedUserDataAddress": null
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -740,10 +755,11 @@
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionReferralDetails": {},
-    "subscriptions": {}
+    "subscriptions": {},
+    "rewardsEnvUrl": null
   },
   "PredictController": {
-    "eligibility": {},
+    "eligibility": { "eligible": false },
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "balances": {},
@@ -752,15 +768,59 @@
     "withdrawTransaction": null,
     "accountMeta": {}
   },
+  "AiDigestController": {
+    "marketInsights": {}
+  },
   "RampsController": {
-    "countries": [],
-    "paymentMethods": [],
     "userRegion": null,
-    "selectedProvider": null,
-    "providers": [],
-    "selectedPaymentMethod": null,
-    "selectedToken": null,
-    "tokens": null,
-    "requests": {}
+    "countries": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "providers": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "tokens": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "paymentMethods": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "nativeProviders": {
+      "transak": {
+        "buyQuote": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        },
+        "isAuthenticated": false,
+        "kycRequirement": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        },
+        "userDetails": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        }
+      }
+    },
+    "requests": {},
+    "orders": []
   }
 }

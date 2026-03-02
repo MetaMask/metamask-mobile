@@ -69,10 +69,10 @@ jest.mock('../../components/PredictActivity/PredictActivity', () => {
 // Mock usePredictActivity hook - external data dependency
 jest.mock('../../hooks/usePredictActivity', () => ({
   usePredictActivity: jest.fn(() => ({
-    activity: [],
+    data: [],
     isLoading: false,
-    isRefreshing: false,
-    loadActivity: jest.fn(),
+    isRefetching: false,
+    refetch: jest.fn(),
   })),
 }));
 
@@ -85,29 +85,25 @@ describe('PredictTransactionsView', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   const createUsePredictActivityValue = (
     overrides: Partial<{
-      activity: unknown[];
+      data: unknown[];
       isLoading: boolean;
-      isRefreshing: boolean;
-      loadActivity: jest.Mock;
+      isRefetching: boolean;
+      refetch: jest.Mock;
     }> = {},
   ) => ({
-    activity: [],
+    data: [],
     isLoading: false,
-    isRefreshing: false,
-    loadActivity: jest.fn(),
+    isRefetching: false,
+    refetch: jest.fn(),
     ...overrides,
   });
 
   it('displays loading indicator when activity data loads', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
-        activity: [],
+        data: [],
         isLoading: true,
       }),
     );
@@ -120,7 +116,7 @@ describe('PredictTransactionsView', () => {
   it('displays empty state message when activity list is empty', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
-        activity: [],
+        data: [],
         isLoading: false,
       }),
     );
@@ -135,7 +131,7 @@ describe('PredictTransactionsView', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
         isLoading: false,
-        activity: [
+        data: [
           {
             id: 'a1',
             title: 'Market A',
@@ -175,7 +171,7 @@ describe('PredictTransactionsView', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
         isLoading: false,
-        activity: [
+        data: [
           {
             id: 'a1',
             title: 'Market A',
@@ -215,7 +211,7 @@ describe('PredictTransactionsView', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
         isLoading: false,
-        activity: [
+        data: [
           {
             id: 'b2',
             title: 'Market B',
@@ -254,7 +250,7 @@ describe('PredictTransactionsView', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
         isLoading: false,
-        activity: [
+        data: [
           {
             id: 'c3',
             title: 'Market C',
@@ -289,7 +285,7 @@ describe('PredictTransactionsView', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
         isLoading: false,
-        activity: [
+        data: [
           {
             id: 'd4',
             title: 'Market D',
@@ -324,7 +320,7 @@ describe('PredictTransactionsView', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
         isLoading: true,
-        activity: [
+        data: [
           {
             id: 'refreshing-item',
             title: 'Market Refresh',
@@ -349,13 +345,13 @@ describe('PredictTransactionsView', () => {
   });
 
   it('passes refreshing state and triggers refresh handler on pull to refresh', async () => {
-    const mockLoadActivity = jest.fn().mockResolvedValue(undefined);
+    const mockRefetch = jest.fn().mockResolvedValue(undefined);
     const mockTimestamp = Math.floor(Date.now() / 1000);
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
-        isRefreshing: true,
-        loadActivity: mockLoadActivity,
-        activity: [
+        isRefetching: true,
+        refetch: mockRefetch,
+        data: [
           {
             id: 'refreshable',
             title: 'Market Refreshable',
@@ -380,6 +376,6 @@ describe('PredictTransactionsView', () => {
       await sectionList.props.onRefresh();
     });
 
-    expect(mockLoadActivity).toHaveBeenCalledWith({ isRefresh: true });
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 });

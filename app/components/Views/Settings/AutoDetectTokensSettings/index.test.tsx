@@ -10,7 +10,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 // Internal dependencies
 import AssetSettings from '.';
 import { TOKEN_DETECTION_TOGGLE } from './index.constants';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 let mockSetUseTokenDetection: jest.Mock;
 
@@ -32,13 +32,20 @@ jest.mock('../../../../core/Engine', () => {
   };
 });
 
-jest.mock('../../../hooks/useMetrics');
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 const mockAddTraitsToUser = jest.fn();
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+(useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
+  createEventBuilder: jest.fn(() => ({
+    addProperties: jest.fn().mockReturnThis(),
+    addSensitiveProperties: jest.fn().mockReturnThis(),
+    removeProperties: jest.fn().mockReturnThis(),
+    removeSensitiveProperties: jest.fn().mockReturnThis(),
+    setSaveDataRecording: jest.fn().mockReturnThis(),
+    build: jest.fn(),
+  })) as ReturnType<typeof useAnalytics>['createEventBuilder'],
   trackEvent: jest.fn(),
-  createEventBuilder: jest.fn(),
   enable: jest.fn(),
   addTraitsToUser: mockAddTraitsToUser,
   createDataDeletionTask: jest.fn(),
@@ -47,7 +54,7 @@ const mockAddTraitsToUser = jest.fn();
   getDeleteRegulationId: jest.fn(),
   isDataRecorded: jest.fn(),
   isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
+  getAnalyticsId: jest.fn(),
 });
 
 describe('AssetSettings', () => {

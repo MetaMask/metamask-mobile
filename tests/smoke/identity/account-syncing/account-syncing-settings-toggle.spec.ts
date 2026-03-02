@@ -1,19 +1,19 @@
-import { loginToApp } from '../../../../e2e/viewHelper';
-import TestHelpers from '../../../../e2e/helpers';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
+import { loginToApp } from '../../../flows/wallet.flow';
+import TestHelpers from '../../../helpers';
+import WalletView from '../../../page-objects/wallet/WalletView';
+import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import { SmokeIdentity } from '../../../../e2e/tags';
+import { SmokeIdentity } from '../../../tags';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
-import BackupAndSyncView from '../../../../e2e/pages/Settings/BackupAndSyncView';
-import CommonView from '../../../../e2e/pages/CommonView';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import SettingsView from '../../../page-objects/Settings/SettingsView';
+import BackupAndSyncView from '../../../page-objects/Settings/BackupAndSyncView';
+import CommonView from '../../../page-objects/CommonView';
 import { createUserStorageController } from '../utils/mocks';
 import {
   USER_STORAGE_GROUPS_FEATURE_KEY,

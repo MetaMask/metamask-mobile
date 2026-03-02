@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   ActivityIndicator,
-  DeviceEventEmitter,
   FlatList,
   InteractionManager,
   RefreshControl,
@@ -69,7 +68,6 @@ import TransactionElement from '../TransactionElement';
 import RetryModal from './RetryModal';
 import TransactionsFooter from './TransactionsFooter';
 import { filterDuplicateOutgoingTransactions } from './utils';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 
 const createStyles = (colors) =>
@@ -190,14 +188,14 @@ class Transactions extends PureComponent {
      */
     tokenChainId: PropTypes.string,
     /**
-     * Whether multichain accounts state 2 is enabled
-     */
-    isMultichainAccountsState2Enabled: PropTypes.bool,
-    /**
      * (optional) Skip automatic scrolling when a transaction is clicked/expanded.
      * Useful in views like Asset Details scrolling inside modals will cause issues (such as closing the stacked tx modal)
      */
     skipScrollOnClick: PropTypes.bool,
+    /**
+     * Location context for analytics tracking (home or asset_details)
+     */
+    location: PropTypes.string,
   };
 
   static defaultProps = {
@@ -247,52 +245,10 @@ class Transactions extends PureComponent {
     this.setState({
       isQRHardwareAccount: isHardwareAccount(this.props.selectedAddress),
     });
-
-    // Listen for scroll to MerklRewards event
-    // Use a debounce mechanism to prevent multiple rapid scrolls
-    this.scrollToMerklRewardsListener = DeviceEventEmitter.addListener(
-      'scrollToMerklRewards',
-      ({ y }) => {
-        if (this.flatList?.current && y !== undefined && this.mounted) {
-          // Clear any pending scroll
-          if (this.scrollTimeout) {
-            clearTimeout(this.scrollTimeout);
-          }
-
-          // Debounce scroll to prevent multiple rapid calls
-          this.scrollTimeout = setTimeout(() => {
-            try {
-              // Check if FlatList is still mounted and ready
-              if (this.flatList?.current && this.mounted) {
-                // Ensure we have a valid offset
-                const scrollOffset = Math.max(0, y);
-                this.flatList.current.scrollToOffset({
-                  offset: scrollOffset,
-                  animated: true,
-                });
-              }
-            } catch (error) {
-              // Log error for debugging but don't crash
-              Logger.error(error, 'Failed to scroll to MerklRewards', { y });
-            }
-          }, 100); // Small delay to ensure FlatList is ready
-        }
-      },
-    );
   };
 
   componentWillUnmount() {
     this.mounted = false;
-    // Remove the scroll listener
-    if (this.scrollToMerklRewardsListener) {
-      this.scrollToMerklRewardsListener.remove();
-      this.scrollToMerklRewardsListener = null;
-    }
-    // Clear any pending scroll timeouts
-    if (this.scrollTimeout) {
-      clearTimeout(this.scrollTimeout);
-      this.scrollTimeout = null;
-    }
   }
 
   updateBlockExplorer = () => {
@@ -414,30 +370,6 @@ class Transactions extends PureComponent {
     const { colors } = this.context || mockTheme;
     const styles = createStyles(colors);
 
-    const shouldShowSwitchNetwork = () => {
-      if (this.props.isMultichainAccountsState2Enabled) {
-        return false;
-      }
-      if (!this.props.tokenChainId || !this.props.chainId) {
-        return false;
-      }
-
-      if (this.isNonEvmChain || this.isTokenNonEvmChain) {
-        return this.props.tokenChainId !== this.props.chainId;
-      }
-
-      return this.props.tokenChainId !== this.props.chainId;
-    };
-
-    if (shouldShowSwitchNetwork()) {
-      return (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.textTransactions}>
-            {strings('wallet.switch_network_to_view_transactions')}
-          </Text>
-        </View>
-      );
-    }
     return (
       <View style={styles.emptyContainer}>
         <TabEmptyState description={strings('wallet.no_transactions')} />
@@ -703,6 +635,7 @@ class Transactions extends PureComponent {
       currentCurrency={this.props.currentCurrency}
       navigation={this.props.navigation}
       txChainId={item.chainId}
+      location={this.props.location}
     />
   );
 
@@ -974,8 +907,6 @@ const mapStateToProps = (state) => ({
   primaryCurrency: selectPrimaryCurrency(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
-  isMultichainAccountsState2Enabled:
-    selectMultichainAccountsState2Enabled(state),
 });
 
 Transactions.contextType = ThemeContext;

@@ -1,8 +1,4 @@
-import {
-  NavigationProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useLayoutEffect } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -21,21 +17,20 @@ import Button, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl, usePerpsOrderFees } from '../../hooks';
-import { PerpsNavigationParamList } from '../../types/navigation';
 import { PerpsOrderTransactionRouteProp } from '../../types/transactionHistory';
 import {
   formatPerpsFiat,
-  formatPositiveFiat,
   formatTransactionDate,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsOrderTransactionView.styles';
 
 const PerpsOrderTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route = useRoute<PerpsOrderTransactionRouteProp>();
   const selectedInternalAccount = useSelector(
     selectSelectedInternalAccountByScope,
@@ -59,7 +54,10 @@ const PerpsOrderTransactionView: React.FC = () => {
   if (!transaction) {
     return (
       <ScreenView>
-        <HeaderCenter includesTopInset onBack={() => navigation.goBack()} />
+        <HeaderCompactStandard
+          includesTopInset
+          onBack={() => navigation.goBack()}
+        />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -96,7 +94,9 @@ const PerpsOrderTransactionView: React.FC = () => {
     },
     {
       label: strings('perps.transactions.order.limit_price'),
-      value: formatPositiveFiat(transaction.order?.limitPrice ?? 0),
+      value: formatPerpsFiat(transaction.order?.limitPrice ?? 0, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      }),
     },
     {
       label: strings('perps.transactions.order.filled'),
@@ -106,26 +106,28 @@ const PerpsOrderTransactionView: React.FC = () => {
 
   const isFilled = transaction.order?.text === 'Filled';
 
-  // Fee breakdown
+  // Fee breakdown - use PRICE_RANGES_UNIVERSAL to show exact values instead of "< $0.01"
+  const formatFee = (fee: number) =>
+    formatPerpsFiat(fee, { ranges: PRICE_RANGES_UNIVERSAL });
 
   const feeRows = [
     {
       label: strings('perps.transactions.order.metamask_fee'),
-      value: formatPositiveFiat(isFilled ? metamaskFee : 0),
+      value: formatFee(isFilled ? metamaskFee : 0),
     },
     {
       label: strings('perps.transactions.order.hyperliquid_fee'),
-      value: formatPositiveFiat(isFilled ? protocolFee : 0),
+      value: formatFee(isFilled ? protocolFee : 0),
     },
     {
       label: strings('perps.transactions.order.total_fee'),
-      value: formatPositiveFiat(isFilled ? totalFee : 0),
+      value: formatFee(isFilled ? totalFee : 0),
     },
   ];
 
   return (
     <ScreenView>
-      <HeaderCenter
+      <HeaderCompactStandard
         includesTopInset
         title={transaction.title}
         onBack={() => navigation.goBack()}

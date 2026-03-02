@@ -16,7 +16,10 @@ import {
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller';
 
-import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confirmations/constants/confirmations';
+import {
+  REDESIGNED_TRANSACTION_TYPES,
+  RELAY_DEPOSIT_TYPES,
+} from '../../../../components/Views/confirmations/constants/confirmations';
 import {
   getSmartTransactionsFeatureFlagsForChain,
   selectShouldUseSmartTransaction,
@@ -131,6 +134,8 @@ export const TransactionControllerInit: ControllerInitFunction<
           isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
           updateTransactions: true,
         },
+        isFirstTimeInteractionEnabled: () =>
+          isFirstTimeInteractionEnabled(preferencesController),
         isEIP7702GasFeeTokensEnabled: async (transactionMeta) => {
           const { chainId, isExternalSign } = transactionMeta;
           const state = getState();
@@ -332,6 +337,12 @@ function isIncomingTransactionsEnabled(
   return preferencesController.state?.privacyMode !== true;
 }
 
+function isFirstTimeInteractionEnabled(
+  preferencesController: PreferencesController,
+): boolean {
+  return preferencesController.state?.securityAlertsEnabled === true;
+}
+
 function getControllers(
   request: ControllerInitRequest<
     TransactionControllerMessenger,
@@ -362,7 +373,7 @@ function beforeSign(
 }
 
 function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {
-  if (hasTransactionType(transaction, [TransactionType.relayDeposit])) {
+  if (hasTransactionType(transaction, RELAY_DEPOSIT_TYPES)) {
     return false;
   }
 

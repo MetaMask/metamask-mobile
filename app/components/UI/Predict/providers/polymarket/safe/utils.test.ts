@@ -1,10 +1,21 @@
 import { Interface } from 'ethers/lib/utils';
 import Engine from '../../../../../../core/Engine';
-import { MATIC_CONTRACTS, POLYGON_MAINNET_CHAIN_ID } from '../constants';
-import { SAFE_FACTORY_ADDRESS, SAFE_MULTISEND_ADDRESS } from './constants';
+import {
+  MATIC_CONTRACTS,
+  POLYGON_MAINNET_CHAIN_ID,
+  POLYMARKET_PROVIDER_ID,
+} from '../constants';
+import {
+  PERMIT2_ADDRESS,
+  SAFE_FACTORY_ADDRESS,
+  SAFE_MULTISEND_ADDRESS,
+  usdcSpenders,
+} from './constants';
 import {
   computeProxyAddress,
+  createPermit2FeeAuthorization,
   createSafeFeeAuthorization,
+  getPermit2Nonce,
   getDeployProxyWalletTypedData,
   encodeCreateProxy,
   getDeployProxyWalletTransaction,
@@ -14,6 +25,7 @@ import {
   aggregateTransaction,
   createAllowancesSafeTransaction,
   hasAllowances,
+  hasPermit2Allowance,
   createClaimSafeTransaction,
   getSafeTransactionCallData,
   getProxyWalletAllowancesTransaction,
@@ -401,6 +413,102 @@ describe('safe utils', () => {
     });
   });
 
+  describe('getPermit2Nonce', () => {
+    it('returns 0 when nonce bitmap call returns 0x', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x');
+
+      const nonce = await getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS });
+
+      expect(nonce).toBe('0');
+    });
+
+    it('returns first available nonce when bitmap is 0x7', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x7');
+
+      const nonce = await getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS });
+
+      expect(nonce).toBe('3');
+    });
+
+    it('returns first available nonce when bitmap is 0x5', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x5');
+
+      const nonce = await getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS });
+
+      expect(nonce).toBe('1');
+    });
+
+    it('throws when nonce bitmap word 0 is fully used', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce(`0x${'f'.repeat(64)}`);
+
+      await expect(
+        getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS }),
+      ).rejects.toThrow(
+        'No available Permit2 nonce found in nonce bitmap word 0',
+      );
+    });
+  });
+
+  describe('hasPermit2Allowance', () => {
+    it('returns true when Permit2 allowance is greater than zero', async () => {
+      mockGetAllowance.mockResolvedValueOnce(1n);
+
+      const result = await hasPermit2Allowance({ address: TEST_SAFE_ADDRESS });
+
+      expect(result).toBe(true);
+      expect(mockGetAllowance).toHaveBeenCalledWith({
+        tokenAddress: MATIC_CONTRACTS.collateral,
+        owner: TEST_SAFE_ADDRESS,
+        spender: PERMIT2_ADDRESS,
+      });
+    });
+
+    it('returns false when Permit2 allowance is zero', async () => {
+      mockGetAllowance.mockResolvedValueOnce(0n);
+
+      const result = await hasPermit2Allowance({ address: TEST_SAFE_ADDRESS });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('createPermit2FeeAuthorization', () => {
+    it('creates safe-permit2 authorization payload', async () => {
+      mockNetworkController();
+      mockQuery.mockReset();
+      mockQuery.mockResolvedValueOnce('0x0');
+      mockSignPersonalMessage.mockResolvedValue(
+        '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
+      );
+
+      const authorization = await createPermit2FeeAuthorization({
+        safeAddress: TEST_SAFE_ADDRESS,
+        signer: buildSigner(),
+        amount: 1_000_000n,
+        spender: TEST_TO_ADDRESS,
+      });
+
+      expect(authorization.type).toBe('safe-permit2');
+      expect(authorization.authorization.permit.permitted.token).toBe(
+        MATIC_CONTRACTS.collateral,
+      );
+      expect(authorization.authorization.permit.permitted.amount).toBe(
+        '1000000',
+      );
+      expect(authorization.authorization.permit.nonce).toBe('0');
+      expect(authorization.authorization.spender).toBe(TEST_TO_ADDRESS);
+      expect(authorization.authorization.signature).toMatch(/^0x[a-f0-9]+$/);
+    });
+  });
+
   describe('getDeployProxyWalletTypedData', () => {
     it('returns correct typed data structure', async () => {
       const typedData = await getDeployProxyWalletTypedData();
@@ -656,6 +764,18 @@ describe('safe utils', () => {
       expect(safeTxn.data).toBeDefined();
       expect(typeof safeTxn.data).toBe('string');
     });
+
+    it('includes extra USDC spenders when provided', () => {
+      const defaultSafeTxn = createAllowancesSafeTransaction();
+      const safeTxnWithExtra = createAllowancesSafeTransaction({
+        extraUsdcSpenders: [PERMIT2_ADDRESS],
+      });
+
+      expect(safeTxnWithExtra.data).toBeDefined();
+      expect(safeTxnWithExtra.data.length).toBeGreaterThan(
+        defaultSafeTxn.data.length,
+      );
+    });
   });
 
   describe('hasAllowances', () => {
@@ -689,12 +809,28 @@ describe('safe utils', () => {
 
       expect(result).toBe(false);
     });
+
+    it('checks allowances for extra USDC spenders', async () => {
+      mockGetAllowance.mockResolvedValue(100n);
+      mockGetIsApprovedForAll.mockResolvedValue(true);
+
+      const result = await hasAllowances({
+        address: TEST_ADDRESS,
+        extraUsdcSpenders: [PERMIT2_ADDRESS],
+      });
+
+      expect(result).toBe(true);
+      expect(mockGetAllowance).toHaveBeenCalledWith(
+        expect.objectContaining({ spender: PERMIT2_ADDRESS }),
+      );
+      expect(mockGetAllowance).toHaveBeenCalledTimes(usdcSpenders.length + 1);
+    });
   });
 
   describe('createClaimSafeTransaction', () => {
     const mockPosition: PredictPosition = {
       id: 'position-1',
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: 'market-1',
       outcomeId: 'outcome-1',
       outcome: 'YES',
@@ -1029,7 +1165,7 @@ describe('safe utils', () => {
   describe('getClaimTransaction', () => {
     const mockPosition: PredictPosition = {
       id: 'position-1',
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: 'market-1',
       outcomeId: 'outcome-1',
       outcome: 'YES',

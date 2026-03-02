@@ -53,6 +53,10 @@ jest.mock('../../hooks/useOTAUpdates', () => ({
   useOTAUpdates: jest.fn(),
 }));
 
+jest.mock('../../UI/Predict/hooks/usePredictToastRegistrations', () => ({
+  usePredictToastRegistrations: jest.fn().mockReturnValue([]),
+}));
+
 jest.mock('expo-sensors', () => ({
   Accelerometer: {
     setUpdateInterval: jest.fn(),

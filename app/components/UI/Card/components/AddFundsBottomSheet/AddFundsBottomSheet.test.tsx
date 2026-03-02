@@ -4,7 +4,8 @@ import AddFundsBottomSheet from './AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
 import { isBridgeAllowed } from '../../../Bridge/utils';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
 import { CardTokenAllowance, AllowanceState } from '../../types';
@@ -35,12 +36,8 @@ jest.mock('../../../Bridge/utils', () => ({
   isBridgeAllowed: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_ADD_FUNDS_DEPOSIT_CLICKED: 'card_add_funds_deposit_clicked',
-    RAMPS_BUTTON_CLICKED: 'ramps_button_clicked',
-  },
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../../../util/networks', () => ({
@@ -100,6 +97,8 @@ const mockButtonClickData: RampsButtonClickData = {
 jest.mock('../../../Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
+
+jest.mock('../../../Ramp/hooks/useRampsUnifiedV2Enabled');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -171,7 +170,7 @@ describe('AddFundsBottomSheet', () => {
 
     (isBridgeAllowed as jest.Mock).mockReturnValue(true);
 
-    (useMetrics as jest.Mock).mockReturnValue({
+    (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
@@ -244,7 +243,7 @@ describe('AddFundsBottomSheet', () => {
     );
     expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: 'Deposit',
+        button_text: 'Fund with cash',
         location: 'CardHome',
         chain_id_destination: '59144',
         ramp_type: 'DEPOSIT',

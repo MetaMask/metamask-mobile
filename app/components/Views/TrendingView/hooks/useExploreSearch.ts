@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
-  SECTIONS_ARRAY,
+  useSectionsArray,
   useSectionsData,
   type SectionId,
 } from '../sections.config';
@@ -37,9 +37,10 @@ export const useExploreSearch = (
   query: string,
   options?: ExploreSearchOptions,
 ): ExploreSearchResult => {
+  const sectionsArray = useSectionsArray();
   const sectionsOrder = useMemo(
-    () => options?.sectionsOrder ?? SECTIONS_ARRAY.map((s) => s.id),
-    [options?.sectionsOrder],
+    () => options?.sectionsOrder ?? sectionsArray.map((s) => s.id),
+    [options?.sectionsOrder, sectionsArray],
   );
   const [debouncedQuery, setDebouncedQuery] = useState(query);
 
@@ -70,7 +71,7 @@ export const useExploreSearch = (
     const shouldShowTopItems = !debouncedQuery.trim();
 
     // Process each section generically
-    SECTIONS_ARRAY.forEach((section) => {
+    sectionsArray.forEach((section) => {
       const sectionData = allSectionsData[section.id];
       // If we're debouncing, show loading state immediately
       // Otherwise, use the actual loading state from the data fetch
@@ -86,7 +87,13 @@ export const useExploreSearch = (
     });
 
     return { data, isLoading, sectionsOrder };
-  }, [debouncedQuery, allSectionsData, isDebouncing, sectionsOrder]);
+  }, [
+    debouncedQuery,
+    allSectionsData,
+    isDebouncing,
+    sectionsOrder,
+    sectionsArray,
+  ]);
 
   return filteredResults;
 };
