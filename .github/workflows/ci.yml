@@ -25,7 +25,7 @@ jobs:
           cache: yarn
       - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
         with:
-          ruby-version: '3.1.6'
+          ruby-version: '3.2.9'
         env:
           BUNDLE_GEMFILE: ios/Gemfile
       - name: Install Yarn dependencies with retry
@@ -502,7 +502,8 @@ jobs:
   sonar-cloud:
     runs-on: ubuntu-latest
     needs: merge-unit-and-component-view-tests
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    # Temporarily skipped until SonarCloud is fixed
+    if: false
     steps:
       - uses: actions/checkout@v3
         with:
@@ -545,7 +546,8 @@ jobs:
   sonar-cloud-quality-gate-status:
     runs-on: ubuntu-latest
     needs: sonar-cloud
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    # Temporarily skipped until SonarCloud is fixed
+    if: false
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -622,7 +624,6 @@ jobs:
         cv-test,
         check-workflows,
         js-bundle-size-check,
-        sonar-cloud-quality-gate-status,
       ]
     outputs:
       ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}

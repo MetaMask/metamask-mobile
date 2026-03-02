@@ -49,6 +49,7 @@ describe('MarketInsightsTrendSourcesBottomSheet', () => {
 
   it('renders article and tweet sources and opens their URLs', () => {
     const onClose = jest.fn();
+    const onSourcePress = jest.fn();
     const articleUrl = 'https://www.coindesk.com/article';
     const tweetUrl = 'https://x.com/adam3us/status/123';
 
@@ -56,6 +57,7 @@ describe('MarketInsightsTrendSourcesBottomSheet', () => {
       <MarketInsightsTrendSourcesBottomSheet
         isVisible
         onClose={onClose}
+        onSourcePress={onSourcePress}
         trendTitle="Developer debates"
         articles={
           [
@@ -85,9 +87,27 @@ describe('MarketInsightsTrendSourcesBottomSheet', () => {
     expect(getByText('@adam3us')).toBeOnTheScreen();
 
     fireEvent.press(getByText('coindesk.com'));
+    expect(onSourcePress).toHaveBeenCalledWith(articleUrl);
     expect(Linking.openURL).toHaveBeenCalledWith(articleUrl);
 
     fireEvent.press(getByText('@adam3us'));
+    expect(onSourcePress).toHaveBeenCalledWith(tweetUrl);
     expect(Linking.openURL).toHaveBeenCalledWith(tweetUrl);
+  });
+
+  it('renders safely when hidden and has no callbacks', () => {
+    const onClose = jest.fn();
+
+    const { queryByText } = renderWithProvider(
+      <MarketInsightsTrendSourcesBottomSheet
+        isVisible={false}
+        onClose={onClose}
+        trendTitle="Hidden"
+        articles={[] as never}
+        tweets={[] as never}
+      />,
+    );
+
+    expect(queryByText('Hidden')).toBeOnTheScreen();
   });
 });

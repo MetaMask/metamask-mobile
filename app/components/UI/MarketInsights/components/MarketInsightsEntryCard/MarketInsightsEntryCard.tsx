@@ -1,8 +1,6 @@
-import React, { useMemo } from 'react';
-import { Pressable } from 'react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Animated, Image, Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import MaskedView from '@react-native-masked-view/masked-view';
-import LinearGradient from 'react-native-linear-gradient';
 import {
   Box,
   Text,
@@ -16,88 +14,86 @@ import {
   BoxAlignItems,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import type { MarketInsightsSource } from '@metamask/ai-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
-import { buildHighlightedSegments } from '../../utils/marketInsightsFormatting';
+import { endTrace, TraceName } from '../../../../../util/trace';
+import { getFaviconUrl } from '../../utils/marketInsightsFormatting';
 
-// Gradient colors for the "Market insights" title
-const TITLE_GRADIENT_COLORS = ['#FFA680', '#BAF24A'];
+const MAX_VISIBLE_SOURCE_LOGOS = 3;
 
-// GradientTitle renders the "Market insights" title with a gradient text effect.
-const GradientTitle: React.FC = () => (
-  <MaskedView
-    maskElement={
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={1}
-      >
-        <Icon
-          name={IconName.Sparkle}
-          size={IconSize.Sm}
-          color={IconColor.IconDefault}
-        />
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {strings('market_insights.title')}
-        </Text>
-        <Icon
-          name={IconName.ArrowRight}
-          size={IconSize.Sm}
-          color={IconColor.IconDefault}
-        />
-      </Box>
-    }
-  >
-    <LinearGradient
-      colors={TITLE_GRADIENT_COLORS}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={1}
-        twClassName="opacity-0"
-      >
-        <Icon name={IconName.Sparkle} size={IconSize.Sm} />
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {strings('market_insights.title')}
-        </Text>
-        <Icon name={IconName.ArrowRight} size={IconSize.Sm} />
-      </Box>
-    </LinearGradient>
-  </MaskedView>
-);
+const SparkleIcon: React.FC = () => {
+  const opacity = useRef(new Animated.Value(0.45)).current;
 
-/**
- * Renders the summary text with trend titles highlighted.
- * Searches the summary for occurrences of trend titles and renders them.
- */
-const HighlightedSummary: React.FC<{
-  summary: string;
-  trendTitles: string[];
-}> = ({ summary, trendTitles }) => {
-  const segments = useMemo(
-    () => buildHighlightedSegments(summary, trendTitles),
-    [summary, trendTitles],
-  );
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.45,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+      ]),
+      { iterations: 3 },
+    );
+
+    animation.start();
+    return () => animation.stop();
+  }, [opacity]);
 
   return (
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-      {segments.map((segment, index) =>
-        segment.highlighted ? (
-          <Text
-            key={`segment-${index}`}
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
-          >
-            {segment.text}
-          </Text>
-        ) : (
-          segment.text
-        ),
-      )}
-    </Text>
+    <Animated.View style={{ opacity }}>
+      <Icon
+        name={IconName.Sparkle}
+        size={IconSize.Lg}
+        color={IconColor.IconDefault}
+      />
+    </Animated.View>
+  );
+};
+
+const SourceLogoGroup: React.FC<{ sources?: MarketInsightsSource[] }> = ({
+  sources,
+}) => {
+  const tw = useTailwind();
+
+  const uniqueSources = useMemo(() => {
+    const seenFaviconUrls = new Set<string>();
+    return (sources ?? []).filter((source) => {
+      const faviconUrl = getFaviconUrl(source.url);
+      if (seenFaviconUrls.has(faviconUrl)) {
+        return false;
+      }
+      seenFaviconUrls.add(faviconUrl);
+      return true;
+    });
+  }, [sources]);
+
+  if (uniqueSources.length === 0) {
+    return null;
+  }
+
+  return (
+    <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center}>
+      {uniqueSources.slice(0, MAX_VISIBLE_SOURCE_LOGOS).map((source, index) => (
+        <Box
+          key={source.name}
+          twClassName={`h-4 w-4 rounded-full border border-muted bg-default overflow-hidden ${
+            index > 0 ? '-ml-1' : ''
+          }`}
+        >
+          <Image
+            source={{ uri: getFaviconUrl(source.url) }}
+            style={tw.style('h-4 w-4 rounded-full')}
+          />
+        </Box>
+      ))}
+    </Box>
   );
 };
 
@@ -109,13 +105,19 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   report,
   timeAgo,
   onPress,
+  caip19Id,
   testID,
 }) => {
   const tw = useTailwind();
-  const trendTitles = useMemo(
-    () => report.trends.map((t) => t.title),
-    [report.trends],
-  );
+
+  useEffect(() => {
+    // End the trace started by the parent (AssetOverviewContent) to measure
+    // how long it takes for the entry card to mount after navigation.
+    endTrace({
+      name: TraceName.MarketInsightsEntryCardLoad,
+      id: caip19Id,
+    });
+  }, [caip19Id]);
 
   return (
     <Pressable
@@ -126,27 +128,39 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
       testID={testID}
     >
       <Box twClassName="mb-3">
-        <GradientTitle />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+        >
+          <SparkleIcon />
+          <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Medium}>
+            {strings('market_insights.title')}
+          </Text>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </Box>
       </Box>
 
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Bold}
-        twClassName="mb-2"
-      >
-        {report.headline}
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {report.summary}
       </Text>
 
-      <HighlightedSummary summary={report.summary} trendTitles={trendTitles} />
+      <Box twClassName="mt-3">
+        <SourceLogoGroup sources={report.sources ?? []} />
+      </Box>
 
       <Text
         variant={TextVariant.BodyXs}
         color={TextColor.TextMuted}
         twClassName="mt-3"
       >
-        {strings('market_insights.updated_ago', { time: timeAgo })}
-        {'  '}
         {strings('market_insights.disclaimer')}
+        {'  •  '}
+        {timeAgo}
       </Text>
     </Pressable>
   );

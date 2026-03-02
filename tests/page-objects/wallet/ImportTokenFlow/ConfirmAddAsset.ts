@@ -1,7 +1,7 @@
 import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText,
-} from '../../../../app/components/Views/AddAsset/ImportTokenView.testIds';
+} from '../../../../app/components/Views/AddAsset/ImportAssetView.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 

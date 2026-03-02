@@ -19,7 +19,7 @@ import { SRP_GUIDE_URL } from '../../../../constants/urls';
 import { QuizStage } from '../types';
 import { QuizContent } from '../QuizContent';
 import stylesheet from './styles';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 
 import {
   SrpQuizGetStartedSelectorsIDs,
@@ -55,7 +55,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const dismissModal = (): void => {
     modalRef.current?.onCloseBottomSheet();
@@ -111,6 +111,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       shouldUpdateNav: true,
       keyringId,
+      skipQuiz: true,
     });
   }, [navigation, trackEvent, createEventBuilder, keyringId]);
 

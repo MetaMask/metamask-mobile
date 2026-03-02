@@ -6,6 +6,17 @@ import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'ethers';
 
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      BridgeController: {
+        trackUnifiedSwapBridgeEvent: jest.fn(),
+      },
+    },
+  },
+}));
+
 // Mock useLatestBalance to control tokenBalance in tests
 jest.mock('../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
