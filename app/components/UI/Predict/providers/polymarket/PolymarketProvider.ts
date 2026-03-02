@@ -977,19 +977,53 @@ export class PolymarketProvider implements PredictProvider {
       signer: Signer;
     },
   ): Promise<OrderPreview> {
-    const { feeCollection } = this.#getFeatureFlags();
+    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
     const basePreview = await previewOrder({ ...params, feeCollection });
+
+    // Determine intended order type from feature flags.
+    // Mirrors the placeOrder conditions: FAK is only used when fees exist,
+    // Permit2 fee collection is active, and FAK orders are enabled.
+    let orderType = OrderType.FOK;
+
+    const couldUseFak =
+      feeCollection.permit2Enabled === true &&
+      Array.isArray(feeCollection.executors) &&
+      feeCollection.executors.length > 0 &&
+      fakOrdersEnabled === true &&
+      basePreview.fees !== undefined &&
+      basePreview.fees.totalFee > 0;
+
+    if (couldUseFak) {
+      try {
+        const safeAddress =
+          this.#accountStateByAddress.get(params.signer.address)?.address ??
+          computeProxyAddress(params.signer.address);
+
+        // TODO: remove this once placeOrder guarantees Permit2 allowance
+        // is set automatically before order submission.
+        const permit2Ready = await hasPermit2Allowance({
+          address: safeAddress,
+        });
+
+        if (permit2Ready) {
+          orderType = OrderType.FAK;
+        }
+      } catch {
+        // Permit2 allowance check is non-essential; default to FOK
+      }
+    }
 
     if (params.signer) {
       if (this.isRateLimited(params.signer.address)) {
         return {
           ...basePreview,
+          orderType,
           rateLimited: true,
         };
       }
     }
 
-    return basePreview;
+    return { ...basePreview, orderType };
   }
 
   public async placeOrder(

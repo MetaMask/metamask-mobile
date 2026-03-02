@@ -1363,6 +1363,10 @@ describe('PolymarketProvider', () => {
   });
 
   describe('previewOrder', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('calls previewOrder utility function with correct parameters', async () => {
       const provider = createProvider();
       const mockSigner = {
@@ -1386,6 +1390,186 @@ describe('PolymarketProvider', () => {
         ...mockParams,
         feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
       });
+    });
+    it('returns FOK orderType by default', async () => {
+      const provider = createProvider();
+      const result = await provider.previewOrder({
+        marketId: 'market-123',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'token-789',
+        side: Side.BUY,
+        size: 100,
+        signer: {
+          address: '0x1234567890123456789012345678901234567890',
+          signTypedMessage: jest.fn(),
+          signPersonalMessage: jest.fn(),
+        },
+      });
+
+      expect(result.orderType).toBe('FOK');
+    });
+
+    it('returns FAK orderType when permit2 allowance is ready and FAK orders are enabled', async () => {
+      mockPreviewOrder.mockResolvedValue({
+        fees: {
+          totalFee: 1,
+          metamaskFee: 0.5,
+          providerFee: 0.5,
+          totalFeePercentage: 1,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+        },
+      });
+      mockHasPermit2Allowance.mockResolvedValue(true);
+      const provider = createProvider({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+        fakOrdersEnabled: true,
+      });
+
+      const result = await provider.previewOrder({
+        marketId: 'market-123',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'token-789',
+        side: Side.BUY,
+        size: 100,
+        signer: {
+          address: '0x1234567890123456789012345678901234567890',
+          signTypedMessage: jest.fn(),
+          signPersonalMessage: jest.fn(),
+        },
+      });
+
+      expect(result.orderType).toBe('FAK');
+    });
+
+    it('returns FOK orderType when permit2 allowance is not ready despite FAK being enabled', async () => {
+      mockPreviewOrder.mockResolvedValue({
+        fees: {
+          totalFee: 1,
+          metamaskFee: 0.5,
+          providerFee: 0.5,
+          totalFeePercentage: 1,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+        },
+      });
+      mockHasPermit2Allowance.mockResolvedValue(false);
+      const provider = createProvider({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+        fakOrdersEnabled: true,
+      });
+
+      const result = await provider.previewOrder({
+        marketId: 'market-123',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'token-789',
+        side: Side.BUY,
+        size: 100,
+        signer: {
+          address: '0x1234567890123456789012345678901234567890',
+          signTypedMessage: jest.fn(),
+          signPersonalMessage: jest.fn(),
+        },
+      });
+
+      expect(result.orderType).toBe('FOK');
+    });
+
+    it('returns FOK orderType when permit2 is enabled but FAK orders are disabled', async () => {
+      const provider = createProvider({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+        fakOrdersEnabled: false,
+      });
+
+      const result = await provider.previewOrder({
+        marketId: 'market-123',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'token-789',
+        side: Side.BUY,
+        size: 100,
+        signer: {
+          address: '0x1234567890123456789012345678901234567890',
+          signTypedMessage: jest.fn(),
+          signPersonalMessage: jest.fn(),
+        },
+      });
+
+      expect(result.orderType).toBe('FOK');
+    });
+
+    it('returns FOK orderType when permit2 allowance check throws', async () => {
+      mockPreviewOrder.mockResolvedValue({
+        fees: {
+          totalFee: 1,
+          metamaskFee: 0.5,
+          providerFee: 0.5,
+          totalFeePercentage: 1,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+        },
+      });
+      mockHasPermit2Allowance.mockRejectedValue(new Error('RPC timeout'));
+      const provider = createProvider({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+        fakOrdersEnabled: true,
+      });
+
+      const result = await provider.previewOrder({
+        marketId: 'market-123',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'token-789',
+        side: Side.BUY,
+        size: 100,
+        signer: {
+          address: '0x1234567890123456789012345678901234567890',
+          signTypedMessage: jest.fn(),
+          signPersonalMessage: jest.fn(),
+        },
+      });
+
+      expect(result.orderType).toBe('FOK');
+    });
+
+    it('returns FOK orderType when fees are absent despite FAK flags being enabled', async () => {
+      mockPreviewOrder.mockResolvedValue({});
+      mockHasPermit2Allowance.mockResolvedValue(true);
+      const provider = createProvider({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+        fakOrdersEnabled: true,
+      });
+
+      const result = await provider.previewOrder({
+        marketId: 'market-123',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'token-789',
+        side: Side.BUY,
+        size: 100,
+        signer: {
+          address: '0x1234567890123456789012345678901234567890',
+          signTypedMessage: jest.fn(),
+          signPersonalMessage: jest.fn(),
+        },
+      });
+
+      expect(result.orderType).toBe('FOK');
+      expect(mockHasPermit2Allowance).not.toHaveBeenCalled();
     });
   });
 
