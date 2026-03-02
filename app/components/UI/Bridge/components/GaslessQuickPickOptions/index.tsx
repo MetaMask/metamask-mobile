@@ -10,9 +10,11 @@ import { useABTest } from '../../../../../hooks';
 import Engine from '../../../../../core/Engine';
 import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import {
+  NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS,
   NUMPAD_QUICK_ACTIONS_AB_KEY,
   NUMPAD_QUICK_ACTIONS_VARIANTS,
   NumpadQuickAction,
+  NumpadQuickActionNoMax,
   NumpadQuickActionsVariant,
 } from './abTestConfig';
 
@@ -34,7 +36,7 @@ export const GaslessQuickPickOptions = ({
     decimals: token?.decimals,
     chainId: token?.chainId,
   });
-  const { variant, variantName, isActive } = useABTest(
+  const { variantName, isActive } = useABTest(
     NUMPAD_QUICK_ACTIONS_AB_KEY,
     NUMPAD_QUICK_ACTIONS_VARIANTS,
   );
@@ -89,14 +91,6 @@ export const GaslessQuickPickOptions = ({
     trackInputAmountChange({ inputValue: '', preset: 'MAX' });
   }, [onMaxPress, trackInputAmountChange]);
 
-  const fallbackQuickActions = useMemo(
-    (): number[] =>
-      selectedVariant === 'treatment' ? [50, 75, 85, 95] : [25, 50, 75, 90],
-    [selectedVariant],
-  );
-
-  const maxAllowedQuickActions = variant as readonly NumpadQuickAction[];
-
   const shouldRenderMaxOption = useShouldRenderMaxOption(
     token,
     tokenBalance?.displayBalance,
@@ -104,9 +98,11 @@ export const GaslessQuickPickOptions = ({
   );
 
   const quickActions = useMemo(
-    (): readonly NumpadQuickAction[] | number[] =>
-      shouldRenderMaxOption ? maxAllowedQuickActions : fallbackQuickActions,
-    [fallbackQuickActions, maxAllowedQuickActions, shouldRenderMaxOption],
+    (): readonly NumpadQuickAction[] | readonly NumpadQuickActionNoMax[] =>
+      shouldRenderMaxOption
+        ? NUMPAD_QUICK_ACTIONS_VARIANTS[selectedVariant]
+        : NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS[selectedVariant],
+    [selectedVariant, shouldRenderMaxOption],
   );
 
   const quickPickOptions = useMemo(
