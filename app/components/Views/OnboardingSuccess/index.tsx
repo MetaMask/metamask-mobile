@@ -87,9 +87,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       />
       <Text
         variant={TextVariant.DisplayMD}
-        style={tw.style(
-          'mt-[25px] mb-4 mx-4 text-center font-["MMSans-Regular"]',
-        )}
+        style={tw.style('mt-[25px] mb-4 mx-4 text-center', {
+          fontFamily: 'MMSans-Regular',
+        })}
       >
         {getTitleString()}
       </Text>
