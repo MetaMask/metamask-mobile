@@ -138,8 +138,13 @@ export const useTokensBuyability = (
  * Wrapper around useTokensBuyability for backwards compatibility.
  */
 export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
-  const { buyabilityByTokenKey, isLoading } = useTokensBuyability([token]);
+  const memoizedTokens = useMemo(() => [token], [token]);
+
+  const { buyabilityByTokenKey, isLoading } =
+    useTokensBuyability(memoizedTokens);
+
   const tokenKey = getTokenBuyabilityKey(token);
+
   return { isBuyable: buyabilityByTokenKey[tokenKey] ?? false, isLoading };
 };
 
