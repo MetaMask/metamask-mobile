@@ -249,6 +249,24 @@ describe('isConnectionRequest', () => {
     expect(isConnectionRequest(req)).toBe(false);
   });
 
+  it.each(['metamask://evil.com', 'ftp://example.com', 'file:///etc/passwd'])(
+    'returns false when dapp.url uses a non-http(s) scheme: %p',
+    (url) => {
+      const req = validRequest();
+      (req.metadata.dapp as Record<string, unknown>).url = url;
+      expect(isConnectionRequest(req)).toBe(false);
+    },
+  );
+
+  it.each(['https://example.com', 'http://localhost:3000'])(
+    'accepts dapp.url with http(s) scheme: %p',
+    (url) => {
+      const req = validRequest();
+      (req.metadata.dapp as Record<string, unknown>).url = url;
+      expect(isConnectionRequest(req)).toBe(true);
+    },
+  );
+
   // ──────────────────────────────────────────
   // metadata.dapp.icon (optional)
   // ──────────────────────────────────────────

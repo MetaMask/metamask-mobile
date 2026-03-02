@@ -105,8 +105,18 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     return false;
   }
 
+  // SECURITY: The try/catch rejects plain strings (e.g. 'metamask') that
+  // aren't parseable URLs. The protocol check additionally blocks custom
+  // schemes like metamask:// that are valid URLs but could collide with
+  // internal origin identifiers. Together these ensure dapp.url can never
+  // match INTERNAL_ORIGINS values used in downstream privilege checks.
+  // Do not relax this without also updating the defense-in-depth check
+  // in ConnectionRegistry.handleConnectDeeplink().
   try {
-    new URL(metadata.dapp.url);
+    const parsed = new URL(metadata.dapp.url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false;
+    }
   } catch {
     return false;
   }
