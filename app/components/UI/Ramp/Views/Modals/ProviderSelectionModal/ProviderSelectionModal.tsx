@@ -17,6 +17,8 @@ import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
+import { selectRampsOrders } from '../../../../../../selectors/rampsController';
+import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -56,7 +58,15 @@ function ProviderSelectionModal() {
     selectedToken,
   } = useRampsController();
 
-  const ordersProviders = useSelector(getOrdersProviders);
+  const legacyOrdersProviders = useSelector(getOrdersProviders);
+  const controllerOrders = useSelector(selectRampsOrders);
+
+  const ordersProviders = useMemo(() => {
+    const v2ProviderIds = completedOrdersFromRampsOrders(controllerOrders).map(
+      (o) => o.providerId,
+    );
+    return Array.from(new Set([...legacyOrdersProviders, ...v2ProviderIds]));
+  }, [legacyOrdersProviders, controllerOrders]);
 
   const hasPaymentModalInStack = useNavigationState((state) =>
     state.routes.some(

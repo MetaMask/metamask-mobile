@@ -468,6 +468,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
         ]
       }
     >
+      $
       2.5 USD
     </Text>
   </View>
@@ -519,6 +520,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
         ]
       }
     >
+      $
       100 USD
     </Text>
   </View>
