@@ -10,7 +10,7 @@ import { useRampsController } from './useRampsController';
 import { createHeadlessBuyNavDetails } from '../Views/HeadlessBuy/HeadlessBuy';
 import { createRampsOrderDetailsNavDetails } from '../Views/OrderDetails/OrderDetails';
 
-interface UseRampsQuickBuyParams {
+interface UseHeadlessRampsParams {
   assetId?: string;
 }
 
@@ -19,15 +19,11 @@ interface OrderStatusUpdate {
   previousStatus: RampsOrderStatus;
 }
 
-interface UseRampsQuickBuyResult {
+interface UseHeadlessRampsResult {
   paymentMethods: PaymentMethod[];
   isLoading: boolean;
   error: string | null;
-  openBuyModal: (params: {
-    assetId: string;
-    paymentMethodId: string;
-    amount: number;
-  }) => void;
+  openBuyModal: (params: { paymentMethodId: string; amount: number }) => void;
   order: OrderStatusUpdate | null;
   goToBuyOrder: (orderId: string) => void;
 }
@@ -39,12 +35,12 @@ interface UseRampsQuickBuyResult {
  * to launch the headless checkout flow, and provides order status updates
  * via the `order` field.
  *
- * @param params - Configuration with optional `assetId` to pre-select.
+ * @param params - Configuration with `assetId` to pre-select.
  * @returns Payment methods, loading state, error, and actions.
  */
-export function useRampsQuickBuy({
+export function useHeadlessRamps({
   assetId,
-}: UseRampsQuickBuyParams = {}): UseRampsQuickBuyResult {
+}: UseHeadlessRampsParams = {}): UseHeadlessRampsResult {
   const navigation = useNavigation();
   const [order, setOrder] = useState<OrderStatusUpdate | null>(null);
 
@@ -69,14 +65,21 @@ export function useRampsQuickBuy({
   const error = tokensError || providersError || paymentMethodsError || null;
 
   const openBuyModal = useCallback(
-    (modalParams: {
-      assetId: string;
-      paymentMethodId: string;
-      amount: number;
-    }) => {
-      navigation.navigate(...createHeadlessBuyNavDetails(modalParams));
+    (modalParams: { paymentMethodId: string; amount: number }) => {
+      if (!assetId) {
+        throw new Error(
+          'useHeadlessRamps: assetId is required to open buy modal',
+        );
+      }
+      navigation.navigate(
+        ...createHeadlessBuyNavDetails({
+          assetId,
+          paymentMethodId: modalParams.paymentMethodId,
+          amount: modalParams.amount,
+        }),
+      );
     },
-    [navigation],
+    [assetId, navigation],
   );
 
   const goToBuyOrder = useCallback(
@@ -117,4 +120,4 @@ export function useRampsQuickBuy({
   };
 }
 
-export default useRampsQuickBuy;
+export default useHeadlessRamps;
