@@ -17,8 +17,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { analytics } from '../../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import withMetricsAwareness from '../../hooks/useMetrics/withMetricsAwareness';
 import TabThumbnail from './TabThumbnail';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -127,6 +126,10 @@ class Tabs extends PureComponent {
      * Sets the current tab used for the animation
      */
     animateCurrentTab: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   thumbnails = {};
@@ -238,10 +241,9 @@ class Tabs extends PureComponent {
   };
 
   trackNewTabEvent = (tabsNumber) => {
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.BROWSER_NEW_TAB,
-      )
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
         .addProperties({
           option_chosen: 'Tabs View Top Bar',
           number_of_tabs: tabsNumber,
@@ -302,4 +304,4 @@ class Tabs extends PureComponent {
 
 Tabs.contextType = ThemeContext;
 
-export default Tabs;
+export default withMetricsAwareness(Tabs);

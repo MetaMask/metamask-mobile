@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import RecurringFeeModal from './RecurringFeeModal';
 import { RecurringFeeModalSelectors } from './RecurringFeeModal.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockTrackEvent = jest.fn();
@@ -15,11 +15,14 @@ const mockCreateEventBuilder = jest.fn(() => ({
 
 const mockOnCloseBottomSheet = jest.fn();
 
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+  MetaMetricsEvents: {
+    CARD_BUTTON_CLICKED: 'Card Button Clicked',
+  },
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({

@@ -16,13 +16,6 @@ import {
   selectSortedAssetsBySelectedAccountGroup,
   selectTronResourcesBySelectedAccountGroup,
 } from './assets-list';
-import I18n from '../../../locales/i18n';
-
-jest.mock('../../../locales/i18n', () => ({
-  __esModule: true,
-  default: { locale: 'en' },
-}));
-const mockI18n = jest.mocked(I18n);
 
 const mockState = ({
   filterNetwork,
@@ -690,10 +683,6 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
 });
 
 describe('selectAsset', () => {
-  beforeEach(() => {
-    mockI18n.locale = 'en';
-  });
-
   it('returns formatted evm native asset based on filter criteria', () => {
     const state = mockState();
     const result = selectAsset(state, {
@@ -984,46 +973,6 @@ describe('selectAsset', () => {
     // Assert - isStaked should be false instead of undefined
     expect(result?.isStaked).toBe(false);
     expect(result?.isStaked).not.toBeUndefined();
-  });
-
-  describe('balanceFiat locale formatting', () => {
-    beforeEach(() => {
-      const actualNumberFormat = Intl.NumberFormat;
-      jest.spyOn(Intl, 'NumberFormat').mockImplementation((locale, options) => {
-        // Mobile (Android & IOS do not support currencyDisplay and are unable to use 'narrowSymbol')
-        // We can remove these mocks once this becomes supported.
-        delete options?.currencyDisplay;
-        return actualNumberFormat(locale, options);
-      });
-    });
-
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
-
-    const enLocaleTestCases = [
-      'en',
-      'en-US',
-      'en-GB',
-      'en-CA',
-      'en-AU',
-      'en-NZ',
-    ];
-    it.each(enLocaleTestCases.map((locale) => [locale]))(
-      'returns $24,000.00, never US$ (locale: %s)',
-      (locale) => {
-        mockI18n.locale = locale;
-        const state = mockState();
-        const result = selectAsset(state, {
-          address: '0x0000000000000000000000000000000000000000',
-          chainId: '0x1',
-          isStaked: false,
-        });
-
-        expect(result?.balanceFiat).toBe('$24,000.00');
-        expect(result?.balanceFiat).not.toContain('US$');
-      },
-    );
   });
 });
 

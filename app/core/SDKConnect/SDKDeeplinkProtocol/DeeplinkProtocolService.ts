@@ -39,16 +39,6 @@ import { INTERNAL_ORIGINS } from '../../../constants/transaction';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 
-/**
- * Service that handles SDK connections using deeplinks as the transport layer (iOS).
- *
- * SECURITY WARNING: All dapp metadata (URL, title, icon) received via deeplink
- * parameters is **self-reported** and unverified. The `originatorInfo` decoded
- * from base64 in deeplink URLs has NO cryptographic authentication. Any iOS app
- * that knows a valid channelId can craft deeplinks to this service.
- *
- * Self-reported values MUST NOT be treated as trusted origin identifiers.
- */
 export default class DeeplinkProtocolService {
   public connections: DappConnections = {};
   public bridgeByClientId: { [clientId: string]: BackgroundBridge } = {};
@@ -101,17 +91,14 @@ export default class DeeplinkProtocolService {
   }
 
   public setupBridge(clientInfo: DappClient) {
-    // WARNING: clientInfo.originatorInfo.url and .title are self-reported
-    // by the dapp via base64-encoded deeplink params — NOT verified.
-    const selfReportedUrl = clientInfo.originatorInfo.url;
-    const selfReportedTitle = clientInfo.originatorInfo.title;
-
     DevLogger.log(
       `DeeplinkProtocolService::setupBridge for id=${
         clientInfo.clientId
       } exists=${!!this.bridgeByClientId[
         clientInfo.clientId
-      ]}} selfReportedUrl=${selfReportedUrl}\n${selfReportedTitle}`,
+      ]}} originatorInfo=${clientInfo.originatorInfo.url}\n${
+        clientInfo.originatorInfo.title
+      }`,
     );
 
     if (this.bridgeByClientId[clientInfo.clientId]) {
@@ -119,8 +106,10 @@ export default class DeeplinkProtocolService {
     }
 
     if (
-      (selfReportedUrl && selfReportedUrl === ORIGIN_METAMASK) ||
-      (selfReportedTitle && selfReportedTitle === ORIGIN_METAMASK)
+      (clientInfo.originatorInfo.url &&
+        clientInfo.originatorInfo.url === ORIGIN_METAMASK) ||
+      (clientInfo.originatorInfo.title &&
+        clientInfo.originatorInfo.title === ORIGIN_METAMASK)
     ) {
       throw new Error('Connections from metamask origin are not allowed');
     }
@@ -545,12 +534,10 @@ export default class DeeplinkProtocolService {
       params: any;
     };
 
-    // Prevent external transactions from using internal origins.
-    // This is an external connection (SDK deeplink protocol), so block any internal origin.
-    // NOTE: params.url is self-reported by the dapp via the deeplink URL and is unverified.
-    const selfReportedRequestUrl = params.url;
+    // Prevent external transactions from using internal origins
+    // This is an external connection (SDK), so block any internal origin
     if (requestObject.method === 'eth_sendTransaction') {
-      if (INTERNAL_ORIGINS.includes(selfReportedRequestUrl)) {
+      if (INTERNAL_ORIGINS.includes(params.url)) {
         throw rpcErrors.invalidParams({
           message: 'External transactions cannot use internal origins',
         });

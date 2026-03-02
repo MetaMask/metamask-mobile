@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
-import { EthAccountType } from '@metamask/keyring-api';
+
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { isTestNet } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
@@ -11,23 +11,14 @@ import I18n from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
-import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
-
-const EMPTY_CACHE = {} as ReturnType<typeof selectERC20TokensByChain>;
-const selectEmptyCache = () => EMPTY_CACHE;
 
 export function useAccountTokens({
   includeNoBalance = false,
-  includeAllTokens = false,
 }: {
   includeNoBalance?: boolean;
-  includeAllTokens?: boolean;
 } = {}): AssetType[] {
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
   const fiatCurrency = useSelector(selectCurrentCurrency);
-  const tokensChainsCache = useSelector(
-    includeAllTokens ? selectERC20TokensByChain : selectEmptyCache,
-  );
 
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
@@ -71,41 +62,8 @@ export function useAccountTokens({
         networkBadgeSource: getNetworkBadgeSource(asset.chainId as Hex),
         balanceInSelectedCurrency,
         standard: TokenStandard.ERC20 as const,
-      } as AssetType;
+      };
     });
-
-    if (includeAllTokens) {
-      let zeroFiat: string;
-      try {
-        zeroFiat = getIntlNumberFormatter(I18n.locale, {
-          style: 'currency',
-          currency: fiatCurrency,
-          minimumFractionDigits: 0,
-        }).format(0);
-      } catch {
-        zeroFiat = `0 ${fiatCurrency}`;
-      }
-
-      const getAssetKey = (chain: string, addr: string) =>
-        `${chain.toLowerCase()}:${addr.toLowerCase()}`;
-
-      const existing = new Set(
-        flatAssets.map((a) =>
-          getAssetKey(a.chainId, 'address' in a ? a.address : a.assetId),
-        ),
-      );
-
-      for (const [chainId, cache] of Object.entries(tokensChainsCache ?? {})) {
-        for (const [address, entry] of Object.entries(cache?.data ?? {})) {
-          if (existing.has(getAssetKey(chainId, address))) {
-            continue;
-          }
-          processedAssets.push(
-            buildNoBalanceAsset(chainId as Hex, address, entry, zeroFiat),
-          );
-        }
-      }
-    }
 
     return processedAssets.sort(
       (a, b) =>
@@ -113,40 +71,5 @@ export function useAccountTokens({
           new BigNumber(a.fiat?.balance || 0),
         ) || 0,
     );
-  }, [
-    assets,
-    includeNoBalance,
-    includeAllTokens,
-    fiatCurrency,
-    tokensChainsCache,
-  ]) as unknown as AssetType[];
-}
-
-function buildNoBalanceAsset(
-  chainId: Hex,
-  address: string,
-  entry: {
-    name?: string;
-    symbol?: string;
-    decimals?: number;
-    iconUrl?: string;
-  },
-  zeroFiat: string,
-): AssetType {
-  return {
-    address,
-    chainId,
-    accountType: EthAccountType.Eoa,
-    name: entry.name ?? '',
-    symbol: entry.symbol ?? '',
-    decimals: entry.decimals ?? 18,
-    image: entry.iconUrl ?? '',
-    logo: entry.iconUrl ?? undefined,
-    balance: '0',
-    balanceInSelectedCurrency: zeroFiat,
-    isETH: false,
-    isNative: false,
-    networkBadgeSource: getNetworkBadgeSource(chainId),
-    standard: TokenStandard.ERC20,
-  };
+  }, [assets, includeNoBalance, fiatCurrency]) as unknown as AssetType[];
 }

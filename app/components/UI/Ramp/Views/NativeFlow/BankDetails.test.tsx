@@ -5,7 +5,6 @@ import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 
 const mockNavigate = jest.fn();
-const mockReplace = jest.fn();
 const mockSetOptions = jest.fn();
 const mockDispatch = jest.fn();
 
@@ -13,7 +12,6 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    replace: mockReplace,
     setOptions: mockSetOptions,
     dispatch: mockDispatch,
   }),
@@ -403,7 +401,7 @@ describe('V2BankDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith('RampAmountInput');
   });
 
-  it('replaces current screen with RAMPS_ORDER_DETAILS when order state is PENDING', () => {
+  it('replaces navigation to ORDER_PROCESSING when order state is PENDING', () => {
     mockOrder = {
       id: 'test-order-id',
       state: FIAT_ORDER_STATES.PENDING,
@@ -416,10 +414,12 @@ describe('V2BankDetails', () => {
 
     renderWithTheme(<V2BankDetails />);
 
-    expect(mockReplace).toHaveBeenCalledWith('RampsOrderDetails', {
-      orderId: 'test-order-id',
-      showCloseButton: true,
-    });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'Navigation/REPLACE',
+        routeName: 'RampOrderProcessing',
+      }),
+    );
   });
 
   it('handles 401 error during confirm payment', async () => {
@@ -589,106 +589,6 @@ describe('V2BankDetails', () => {
       expect(
         getByText('deposit.bank_details.cancel_order_error'),
       ).toBeOnTheScreen();
-    });
-  });
-
-  it('matches snapshot with both buttons disabled while confirm payment loads', async () => {
-    let resolveConfirm!: () => void;
-    mockConfirmPayment.mockReturnValue(
-      new Promise<void>((resolve) => {
-        resolveConfirm = resolve;
-      }),
-    );
-    mockGetOrder.mockResolvedValue({
-      id: 'test-order-id',
-      walletAddress: '0xabc',
-      fiatAmount: '100',
-      cryptoAmount: '0.05',
-      exchangeRate: '2000',
-      totalFeesFiat: '5',
-      fiatCurrency: 'USD',
-      paymentMethod: { id: 'pm-1' },
-      network: { chainId: 'eip155:1' },
-      cryptoCurrency: { assetId: 'asset1', symbol: 'ETH' },
-    });
-
-    mockOrder = {
-      id: 'test-order-id',
-      state: FIAT_ORDER_STATES.CREATED,
-      account: '0xabc',
-      cryptoAmount: '0.05',
-      data: {
-        fiatAmount: '100',
-        fiatCurrency: 'USD',
-        exchangeRate: '2000',
-        totalFeesFiat: '5',
-        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
-        paymentDetails: [
-          {
-            fields: [{ name: 'Amount', value: '$100.00' }],
-          },
-        ],
-      },
-    };
-
-    const { toJSON, getByTestId } = renderWithTheme(<V2BankDetails />);
-
-    await act(async () => {
-      fireEvent.press(getByTestId('main-action-button'));
-      await Promise.resolve();
-    });
-
-    expect(toJSON()).toMatchSnapshot();
-
-    await act(async () => {
-      resolveConfirm();
-    });
-  });
-
-  it('matches snapshot with both buttons disabled while cancel order loads', async () => {
-    let resolveCancel!: () => void;
-    mockCancelOrder.mockReturnValue(
-      new Promise<void>((resolve) => {
-        resolveCancel = resolve;
-      }),
-    );
-    mockGetOrder.mockResolvedValue({
-      id: 'test-order-id',
-      walletAddress: '0xabc',
-    });
-
-    mockOrder = {
-      id: 'test-order-id',
-      state: FIAT_ORDER_STATES.CREATED,
-      account: '0xabc',
-      cryptoAmount: '0.05',
-      data: {
-        fiatAmount: '100',
-        fiatCurrency: 'USD',
-        exchangeRate: '2000',
-        totalFeesFiat: '5',
-        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
-        paymentDetails: [
-          {
-            fields: [{ name: 'Amount', value: '$100.00' }],
-          },
-        ],
-      },
-    };
-
-    const { toJSON, getByText } = renderWithTheme(<V2BankDetails />);
-
-    await act(async () => {
-      fireEvent.press(
-        getByText('deposit.order_processing.cancel_order_button'),
-      );
-      await Promise.resolve();
-    });
-
-    expect(toJSON()).toMatchSnapshot();
-
-    await act(async () => {
-      resolveCancel();
     });
   });
 });

@@ -419,56 +419,8 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                         }
                       >
                         <View
-                          accessibilityLabel="Request payment"
-                          accessibilityRole="button"
-                          accessibilityState={
-                            {
-                              "busy": undefined,
-                              "checked": undefined,
-                              "disabled": false,
-                              "expanded": undefined,
-                              "selected": undefined,
-                            }
-                          }
-                          accessibilityValue={
-                            {
-                              "max": undefined,
-                              "min": undefined,
-                              "now": undefined,
-                              "text": undefined,
-                            }
-                          }
-                          accessible={true}
-                          collapsable={false}
-                          focusable={true}
-                          onBlur={[Function]}
-                          onClick={[Function]}
-                          onFocus={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderColor": "transparent",
-                                "borderRadius": 12,
-                                "borderWidth": 1,
-                                "columnGap": 8,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "minWidth": 80,
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingLeft": 16,
-                                "paddingRight": 16,
-                                "width": "100%",
-                              },
                               {
                                 "transform": [
                                   {
@@ -476,34 +428,166 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                   },
                                 ],
                               },
+                              {
+                                "alignItems": "center",
+                                "justifyContent": "center",
+                              },
                             ]
                           }
-                          testID="request-payment-button"
                         >
-                          <Text
-                            accessibilityRole="text"
-                            ellipsizeMode="clip"
-                            numberOfLines={1}
+                          <View
+                            accessibilityLabel="Request payment"
+                            accessibilityRole="button"
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
                             style={
                               [
                                 {
-                                  "color": "#121314",
-                                  "flexGrow": 0,
-                                  "flexShrink": 1,
-                                  "flexWrap": "wrap",
-                                  "fontFamily": "Geist-Medium",
-                                  "fontSize": 16,
-                                  "fontWeight": 400,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                  "textAlign": "center",
+                                  "alignItems": "center",
+                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "minWidth": 80,
+                                  "opacity": 1,
+                                  "overflow": "hidden",
+                                  "paddingLeft": 16,
+                                  "paddingRight": 16,
+                                  "width": "100%",
                                 },
-                                undefined,
                               ]
                             }
+                            testID="request-payment-button"
                           >
-                            Request payment
-                          </Text>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "bottom": 0,
+                                  "display": "flex",
+                                  "justifyContent": "center",
+                                  "left": 0,
+                                  "opacity": 0,
+                                  "position": "absolute",
+                                  "right": 0,
+                                  "top": 0,
+                                }
+                              }
+                              testID="spinner-container"
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "columnGap": 8,
+                                      "flexDirection": "row",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                                testID="spinner"
+                              >
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "transform": [
+                                          {
+                                            "rotate": "0deg",
+                                          },
+                                        ],
+                                      },
+                                    ]
+                                  }
+                                  testID="spinner-animated-view"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Loading"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="spinner-icon"
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "columnGap": 8,
+                                  "flexDirection": "row",
+                                  "justifyContent": "center",
+                                  "opacity": 1,
+                                }
+                              }
+                              testID="content-container"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Request payment
+                              </Text>
+                            </View>
+                          </View>
                         </View>
                       </View>
                       <View />
@@ -939,56 +1023,8 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                         }
                       >
                         <View
-                          accessibilityLabel="Request payment"
-                          accessibilityRole="button"
-                          accessibilityState={
-                            {
-                              "busy": undefined,
-                              "checked": undefined,
-                              "disabled": false,
-                              "expanded": undefined,
-                              "selected": undefined,
-                            }
-                          }
-                          accessibilityValue={
-                            {
-                              "max": undefined,
-                              "min": undefined,
-                              "now": undefined,
-                              "text": undefined,
-                            }
-                          }
-                          accessible={true}
-                          collapsable={false}
-                          focusable={true}
-                          onBlur={[Function]}
-                          onClick={[Function]}
-                          onFocus={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderColor": "transparent",
-                                "borderRadius": 12,
-                                "borderWidth": 1,
-                                "columnGap": 8,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "minWidth": 80,
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingLeft": 16,
-                                "paddingRight": 16,
-                                "width": "100%",
-                              },
                               {
                                 "transform": [
                                   {
@@ -996,34 +1032,166 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                   },
                                 ],
                               },
+                              {
+                                "alignItems": "center",
+                                "justifyContent": "center",
+                              },
                             ]
                           }
-                          testID="request-payment-button"
                         >
-                          <Text
-                            accessibilityRole="text"
-                            ellipsizeMode="clip"
-                            numberOfLines={1}
+                          <View
+                            accessibilityLabel="Request payment"
+                            accessibilityRole="button"
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
                             style={
                               [
                                 {
-                                  "color": "#121314",
-                                  "flexGrow": 0,
-                                  "flexShrink": 1,
-                                  "flexWrap": "wrap",
-                                  "fontFamily": "Geist-Medium",
-                                  "fontSize": 16,
-                                  "fontWeight": 400,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                  "textAlign": "center",
+                                  "alignItems": "center",
+                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "minWidth": 80,
+                                  "opacity": 1,
+                                  "overflow": "hidden",
+                                  "paddingLeft": 16,
+                                  "paddingRight": 16,
+                                  "width": "100%",
                                 },
-                                undefined,
                               ]
                             }
+                            testID="request-payment-button"
                           >
-                            Request payment
-                          </Text>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "bottom": 0,
+                                  "display": "flex",
+                                  "justifyContent": "center",
+                                  "left": 0,
+                                  "opacity": 0,
+                                  "position": "absolute",
+                                  "right": 0,
+                                  "top": 0,
+                                }
+                              }
+                              testID="spinner-container"
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "columnGap": 8,
+                                      "flexDirection": "row",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                                testID="spinner"
+                              >
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "transform": [
+                                          {
+                                            "rotate": "0deg",
+                                          },
+                                        ],
+                                      },
+                                    ]
+                                  }
+                                  testID="spinner-animated-view"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Loading"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="spinner-icon"
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "columnGap": 8,
+                                  "flexDirection": "row",
+                                  "justifyContent": "center",
+                                  "opacity": 1,
+                                }
+                              }
+                              testID="content-container"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Request payment
+                              </Text>
+                            </View>
+                          </View>
                         </View>
                       </View>
                       <View />
@@ -1459,56 +1627,8 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                         }
                       >
                         <View
-                          accessibilityLabel="Request payment"
-                          accessibilityRole="button"
-                          accessibilityState={
-                            {
-                              "busy": undefined,
-                              "checked": undefined,
-                              "disabled": false,
-                              "expanded": undefined,
-                              "selected": undefined,
-                            }
-                          }
-                          accessibilityValue={
-                            {
-                              "max": undefined,
-                              "min": undefined,
-                              "now": undefined,
-                              "text": undefined,
-                            }
-                          }
-                          accessible={true}
-                          collapsable={false}
-                          focusable={true}
-                          onBlur={[Function]}
-                          onClick={[Function]}
-                          onFocus={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
                           style={
                             [
-                              {
-                                "alignItems": "center",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderColor": "transparent",
-                                "borderRadius": 12,
-                                "borderWidth": 1,
-                                "columnGap": 8,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "minWidth": 80,
-                                "opacity": 1,
-                                "overflow": "hidden",
-                                "paddingLeft": 16,
-                                "paddingRight": 16,
-                                "width": "100%",
-                              },
                               {
                                 "transform": [
                                   {
@@ -1516,34 +1636,166 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                   },
                                 ],
                               },
+                              {
+                                "alignItems": "center",
+                                "justifyContent": "center",
+                              },
                             ]
                           }
-                          testID="request-payment-button"
                         >
-                          <Text
-                            accessibilityRole="text"
-                            ellipsizeMode="clip"
-                            numberOfLines={1}
+                          <View
+                            accessibilityLabel="Request payment"
+                            accessibilityRole="button"
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
                             style={
                               [
                                 {
-                                  "color": "#121314",
-                                  "flexGrow": 0,
-                                  "flexShrink": 1,
-                                  "flexWrap": "wrap",
-                                  "fontFamily": "Geist-Medium",
-                                  "fontSize": 16,
-                                  "fontWeight": 400,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                  "textAlign": "center",
+                                  "alignItems": "center",
+                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "minWidth": 80,
+                                  "opacity": 1,
+                                  "overflow": "hidden",
+                                  "paddingLeft": 16,
+                                  "paddingRight": 16,
+                                  "width": "100%",
                                 },
-                                undefined,
                               ]
                             }
+                            testID="request-payment-button"
                           >
-                            Request payment
-                          </Text>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "bottom": 0,
+                                  "display": "flex",
+                                  "justifyContent": "center",
+                                  "left": 0,
+                                  "opacity": 0,
+                                  "position": "absolute",
+                                  "right": 0,
+                                  "top": 0,
+                                }
+                              }
+                              testID="spinner-container"
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "columnGap": 8,
+                                      "flexDirection": "row",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                                testID="spinner"
+                              >
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "transform": [
+                                          {
+                                            "rotate": "0deg",
+                                          },
+                                        ],
+                                      },
+                                    ]
+                                  }
+                                  testID="spinner-animated-view"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Loading"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 20,
+                                          "width": 20,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                    testID="spinner-icon"
+                                  />
+                                </View>
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "columnGap": 8,
+                                  "flexDirection": "row",
+                                  "justifyContent": "center",
+                                  "opacity": 1,
+                                }
+                              }
+                              testID="content-container"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Request payment
+                              </Text>
+                            </View>
+                          </View>
                         </View>
                       </View>
                       <View />

@@ -1890,47 +1890,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         testID="listitemcolumn"
                                       >
                                         <View
-                                          accessibilityState={
-                                            {
-                                              "busy": undefined,
-                                              "checked": undefined,
-                                              "disabled": false,
-                                              "expanded": undefined,
-                                              "selected": undefined,
-                                            }
-                                          }
-                                          accessibilityValue={
-                                            {
-                                              "max": undefined,
-                                              "min": undefined,
-                                              "now": undefined,
-                                              "text": undefined,
-                                            }
-                                          }
-                                          accessible={true}
-                                          collapsable={false}
-                                          focusable={true}
-                                          onBlur={[Function]}
-                                          onClick={[Function]}
-                                          onFocus={[Function]}
-                                          onResponderGrant={[Function]}
-                                          onResponderMove={[Function]}
-                                          onResponderRelease={[Function]}
-                                          onResponderTerminate={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
                                           style={
                                             [
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "transparent",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "opacity": 1,
-                                                "width": 32,
-                                              },
-                                              undefined,
                                               {
                                                 "transform": [
                                                   {
@@ -1938,24 +1899,74 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                   },
                                                 ],
                                               },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
                                             ]
                                           }
-                                          testID="token-unsupported-info-button"
                                         >
-                                          <SvgMock
-                                            fill="currentColor"
-                                            name="Info"
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 8,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
                                                 },
                                                 undefined,
                                               ]
                                             }
-                                          />
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 24,
+                                                    "width": 24,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
                                         </View>
                                       </View>
                                     </View>
@@ -2190,47 +2201,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         testID="listitemcolumn"
                                       >
                                         <View
-                                          accessibilityState={
-                                            {
-                                              "busy": undefined,
-                                              "checked": undefined,
-                                              "disabled": false,
-                                              "expanded": undefined,
-                                              "selected": undefined,
-                                            }
-                                          }
-                                          accessibilityValue={
-                                            {
-                                              "max": undefined,
-                                              "min": undefined,
-                                              "now": undefined,
-                                              "text": undefined,
-                                            }
-                                          }
-                                          accessible={true}
-                                          collapsable={false}
-                                          focusable={true}
-                                          onBlur={[Function]}
-                                          onClick={[Function]}
-                                          onFocus={[Function]}
-                                          onResponderGrant={[Function]}
-                                          onResponderMove={[Function]}
-                                          onResponderRelease={[Function]}
-                                          onResponderTerminate={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
                                           style={
                                             [
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "transparent",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "opacity": 1,
-                                                "width": 32,
-                                              },
-                                              undefined,
                                               {
                                                 "transform": [
                                                   {
@@ -2238,24 +2210,74 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                   },
                                                 ],
                                               },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
                                             ]
                                           }
-                                          testID="token-unsupported-info-button"
                                         >
-                                          <SvgMock
-                                            fill="currentColor"
-                                            name="Info"
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 8,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
                                                 },
                                                 undefined,
                                               ]
                                             }
-                                          />
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 24,
+                                                    "width": 24,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
                                         </View>
                                       </View>
                                     </View>
@@ -2490,47 +2512,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         testID="listitemcolumn"
                                       >
                                         <View
-                                          accessibilityState={
-                                            {
-                                              "busy": undefined,
-                                              "checked": undefined,
-                                              "disabled": false,
-                                              "expanded": undefined,
-                                              "selected": undefined,
-                                            }
-                                          }
-                                          accessibilityValue={
-                                            {
-                                              "max": undefined,
-                                              "min": undefined,
-                                              "now": undefined,
-                                              "text": undefined,
-                                            }
-                                          }
-                                          accessible={true}
-                                          collapsable={false}
-                                          focusable={true}
-                                          onBlur={[Function]}
-                                          onClick={[Function]}
-                                          onFocus={[Function]}
-                                          onResponderGrant={[Function]}
-                                          onResponderMove={[Function]}
-                                          onResponderRelease={[Function]}
-                                          onResponderTerminate={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
                                           style={
                                             [
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "transparent",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "opacity": 1,
-                                                "width": 32,
-                                              },
-                                              undefined,
                                               {
                                                 "transform": [
                                                   {
@@ -2538,24 +2521,74 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                   },
                                                 ],
                                               },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
                                             ]
                                           }
-                                          testID="token-unsupported-info-button"
                                         >
-                                          <SvgMock
-                                            fill="currentColor"
-                                            name="Info"
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 8,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
                                                 },
                                                 undefined,
                                               ]
                                             }
-                                          />
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 24,
+                                                    "width": 24,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
                                         </View>
                                       </View>
                                     </View>
@@ -2790,47 +2823,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         testID="listitemcolumn"
                                       >
                                         <View
-                                          accessibilityState={
-                                            {
-                                              "busy": undefined,
-                                              "checked": undefined,
-                                              "disabled": false,
-                                              "expanded": undefined,
-                                              "selected": undefined,
-                                            }
-                                          }
-                                          accessibilityValue={
-                                            {
-                                              "max": undefined,
-                                              "min": undefined,
-                                              "now": undefined,
-                                              "text": undefined,
-                                            }
-                                          }
-                                          accessible={true}
-                                          collapsable={false}
-                                          focusable={true}
-                                          onBlur={[Function]}
-                                          onClick={[Function]}
-                                          onFocus={[Function]}
-                                          onResponderGrant={[Function]}
-                                          onResponderMove={[Function]}
-                                          onResponderRelease={[Function]}
-                                          onResponderTerminate={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
                                           style={
                                             [
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "transparent",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "opacity": 1,
-                                                "width": 32,
-                                              },
-                                              undefined,
                                               {
                                                 "transform": [
                                                   {
@@ -2838,24 +2832,74 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                   },
                                                 ],
                                               },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
                                             ]
                                           }
-                                          testID="token-unsupported-info-button"
                                         >
-                                          <SvgMock
-                                            fill="currentColor"
-                                            name="Info"
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 8,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
                                                 },
                                                 undefined,
                                               ]
                                             }
-                                          />
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 24,
+                                                    "width": 24,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
                                         </View>
                                       </View>
                                     </View>
@@ -3090,47 +3134,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         testID="listitemcolumn"
                                       >
                                         <View
-                                          accessibilityState={
-                                            {
-                                              "busy": undefined,
-                                              "checked": undefined,
-                                              "disabled": false,
-                                              "expanded": undefined,
-                                              "selected": undefined,
-                                            }
-                                          }
-                                          accessibilityValue={
-                                            {
-                                              "max": undefined,
-                                              "min": undefined,
-                                              "now": undefined,
-                                              "text": undefined,
-                                            }
-                                          }
-                                          accessible={true}
-                                          collapsable={false}
-                                          focusable={true}
-                                          onBlur={[Function]}
-                                          onClick={[Function]}
-                                          onFocus={[Function]}
-                                          onResponderGrant={[Function]}
-                                          onResponderMove={[Function]}
-                                          onResponderRelease={[Function]}
-                                          onResponderTerminate={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
                                           style={
                                             [
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "transparent",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "opacity": 1,
-                                                "width": 32,
-                                              },
-                                              undefined,
                                               {
                                                 "transform": [
                                                   {
@@ -3138,24 +3143,74 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                   },
                                                 ],
                                               },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
                                             ]
                                           }
-                                          testID="token-unsupported-info-button"
                                         >
-                                          <SvgMock
-                                            fill="currentColor"
-                                            name="Info"
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 8,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
                                                 },
                                                 undefined,
                                               ]
                                             }
-                                          />
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 24,
+                                                    "width": 24,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
                                         </View>
                                       </View>
                                     </View>
@@ -4209,47 +4264,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         testID="listitemcolumn"
                                       >
                                         <View
-                                          accessibilityState={
-                                            {
-                                              "busy": undefined,
-                                              "checked": undefined,
-                                              "disabled": false,
-                                              "expanded": undefined,
-                                              "selected": undefined,
-                                            }
-                                          }
-                                          accessibilityValue={
-                                            {
-                                              "max": undefined,
-                                              "min": undefined,
-                                              "now": undefined,
-                                              "text": undefined,
-                                            }
-                                          }
-                                          accessible={true}
-                                          collapsable={false}
-                                          focusable={true}
-                                          onBlur={[Function]}
-                                          onClick={[Function]}
-                                          onFocus={[Function]}
-                                          onResponderGrant={[Function]}
-                                          onResponderMove={[Function]}
-                                          onResponderRelease={[Function]}
-                                          onResponderTerminate={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
                                           style={
                                             [
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "transparent",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "opacity": 1,
-                                                "width": 32,
-                                              },
-                                              undefined,
                                               {
                                                 "transform": [
                                                   {
@@ -4257,24 +4273,74 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                   },
                                                 ],
                                               },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
                                             ]
                                           }
-                                          testID="token-unsupported-info-button"
                                         >
-                                          <SvgMock
-                                            fill="currentColor"
-                                            name="Info"
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 8,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
                                                 },
                                                 undefined,
                                               ]
                                             }
-                                          />
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 24,
+                                                    "width": 24,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
                                         </View>
                                       </View>
                                     </View>
@@ -4509,47 +4575,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         testID="listitemcolumn"
                                       >
                                         <View
-                                          accessibilityState={
-                                            {
-                                              "busy": undefined,
-                                              "checked": undefined,
-                                              "disabled": false,
-                                              "expanded": undefined,
-                                              "selected": undefined,
-                                            }
-                                          }
-                                          accessibilityValue={
-                                            {
-                                              "max": undefined,
-                                              "min": undefined,
-                                              "now": undefined,
-                                              "text": undefined,
-                                            }
-                                          }
-                                          accessible={true}
-                                          collapsable={false}
-                                          focusable={true}
-                                          onBlur={[Function]}
-                                          onClick={[Function]}
-                                          onFocus={[Function]}
-                                          onResponderGrant={[Function]}
-                                          onResponderMove={[Function]}
-                                          onResponderRelease={[Function]}
-                                          onResponderTerminate={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
                                           style={
                                             [
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "transparent",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "opacity": 1,
-                                                "width": 32,
-                                              },
-                                              undefined,
                                               {
                                                 "transform": [
                                                   {
@@ -4557,24 +4584,74 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                   },
                                                 ],
                                               },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
                                             ]
                                           }
-                                          testID="token-unsupported-info-button"
                                         >
-                                          <SvgMock
-                                            fill="currentColor"
-                                            name="Info"
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 8,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
                                                 },
                                                 undefined,
                                               ]
                                             }
-                                          />
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 24,
+                                                    "width": 24,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
                                         </View>
                                       </View>
                                     </View>
@@ -4809,47 +4886,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         testID="listitemcolumn"
                                       >
                                         <View
-                                          accessibilityState={
-                                            {
-                                              "busy": undefined,
-                                              "checked": undefined,
-                                              "disabled": false,
-                                              "expanded": undefined,
-                                              "selected": undefined,
-                                            }
-                                          }
-                                          accessibilityValue={
-                                            {
-                                              "max": undefined,
-                                              "min": undefined,
-                                              "now": undefined,
-                                              "text": undefined,
-                                            }
-                                          }
-                                          accessible={true}
-                                          collapsable={false}
-                                          focusable={true}
-                                          onBlur={[Function]}
-                                          onClick={[Function]}
-                                          onFocus={[Function]}
-                                          onResponderGrant={[Function]}
-                                          onResponderMove={[Function]}
-                                          onResponderRelease={[Function]}
-                                          onResponderTerminate={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
                                           style={
                                             [
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "transparent",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "opacity": 1,
-                                                "width": 32,
-                                              },
-                                              undefined,
                                               {
                                                 "transform": [
                                                   {
@@ -4857,24 +4895,74 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                   },
                                                 ],
                                               },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
                                             ]
                                           }
-                                          testID="token-unsupported-info-button"
                                         >
-                                          <SvgMock
-                                            fill="currentColor"
-                                            name="Info"
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 8,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
                                                 },
                                                 undefined,
                                               ]
                                             }
-                                          />
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 24,
+                                                    "width": 24,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
                                         </View>
                                       </View>
                                     </View>
@@ -5109,47 +5197,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         testID="listitemcolumn"
                                       >
                                         <View
-                                          accessibilityState={
-                                            {
-                                              "busy": undefined,
-                                              "checked": undefined,
-                                              "disabled": false,
-                                              "expanded": undefined,
-                                              "selected": undefined,
-                                            }
-                                          }
-                                          accessibilityValue={
-                                            {
-                                              "max": undefined,
-                                              "min": undefined,
-                                              "now": undefined,
-                                              "text": undefined,
-                                            }
-                                          }
-                                          accessible={true}
-                                          collapsable={false}
-                                          focusable={true}
-                                          onBlur={[Function]}
-                                          onClick={[Function]}
-                                          onFocus={[Function]}
-                                          onResponderGrant={[Function]}
-                                          onResponderMove={[Function]}
-                                          onResponderRelease={[Function]}
-                                          onResponderTerminate={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
                                           style={
                                             [
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "transparent",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "opacity": 1,
-                                                "width": 32,
-                                              },
-                                              undefined,
                                               {
                                                 "transform": [
                                                   {
@@ -5157,24 +5206,74 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                   },
                                                 ],
                                               },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
                                             ]
                                           }
-                                          testID="token-unsupported-info-button"
                                         >
-                                          <SvgMock
-                                            fill="currentColor"
-                                            name="Info"
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 8,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
                                                 },
                                                 undefined,
                                               ]
                                             }
-                                          />
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 24,
+                                                    "width": 24,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
                                         </View>
                                       </View>
                                     </View>
@@ -5409,47 +5508,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         testID="listitemcolumn"
                                       >
                                         <View
-                                          accessibilityState={
-                                            {
-                                              "busy": undefined,
-                                              "checked": undefined,
-                                              "disabled": false,
-                                              "expanded": undefined,
-                                              "selected": undefined,
-                                            }
-                                          }
-                                          accessibilityValue={
-                                            {
-                                              "max": undefined,
-                                              "min": undefined,
-                                              "now": undefined,
-                                              "text": undefined,
-                                            }
-                                          }
-                                          accessible={true}
-                                          collapsable={false}
-                                          focusable={true}
-                                          onBlur={[Function]}
-                                          onClick={[Function]}
-                                          onFocus={[Function]}
-                                          onResponderGrant={[Function]}
-                                          onResponderMove={[Function]}
-                                          onResponderRelease={[Function]}
-                                          onResponderTerminate={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
                                           style={
                                             [
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "transparent",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "opacity": 1,
-                                                "width": 32,
-                                              },
-                                              undefined,
                                               {
                                                 "transform": [
                                                   {
@@ -5457,24 +5517,74 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                   },
                                                 ],
                                               },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
                                             ]
                                           }
-                                          testID="token-unsupported-info-button"
                                         >
-                                          <SvgMock
-                                            fill="currentColor"
-                                            name="Info"
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 8,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
                                                 },
                                                 undefined,
                                               ]
                                             }
-                                          />
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 24,
+                                                    "width": 24,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
                                         </View>
                                       </View>
                                     </View>

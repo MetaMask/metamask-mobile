@@ -7,6 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  NavigationProp,
   RouteProp,
   StackActions,
   useNavigation,
@@ -50,7 +51,8 @@ import styleSheet from './PredictSellPreview.styles';
 const PredictSellPreview = () => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
-  const { goBack, dispatch } = useNavigation();
+  const { goBack, dispatch } =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
   const { market, position, outcome, entryPoint } = route.params;

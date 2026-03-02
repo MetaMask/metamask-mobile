@@ -1,4 +1,8 @@
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  type NavigationProp,
+  type ParamListBase,
+} from '@react-navigation/native';
 import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -31,7 +35,7 @@ import { PerpsPositionsViewSelectorsIDs } from '../../Perps.testIds';
 
 const PerpsPositionsView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
   const { account } = usePerpsLiveAccount();
 

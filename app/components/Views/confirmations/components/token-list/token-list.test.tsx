@@ -4,7 +4,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 // eslint-disable-next-line import/no-namespace
 import * as AssetSelectionMetrics from '../../hooks/send/metrics/useAssetSelectionMetrics';
 import { TokenList } from './token-list';
-import { AssetType, HighlightedItem } from '../../types/token';
+import { AssetType, HighlightedAssetListItem } from '../../types/token';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSendContext } from '../../context/send-context';
 
@@ -41,11 +41,11 @@ jest.mock('../UI/token', () => {
   };
 });
 
-jest.mock('../UI/highlighted-item', () => {
+jest.mock('../UI/highlighted-asset', () => {
   const { Pressable, Text } = jest.requireActual('react-native');
 
   return {
-    HighlightedItem: ({ item }: { item: HighlightedItem }) => (
+    HighlightedAsset: ({ item }: { item: HighlightedAssetListItem }) => (
       <Pressable
         testID={`highlighted-asset-${item.name}`}
         onPress={() => item.action()}
@@ -106,9 +106,9 @@ const manyTokens: AssetType[] = Array.from({ length: 25 }, (_, i) => ({
 }));
 
 const highlightedAssetActionMock = jest.fn();
-const highlightedAssets: HighlightedItem[] = [
+const highlightedAssets: HighlightedAssetListItem[] = [
   {
-    position: 'in_asset_list',
+    type: 'highlighted_asset',
     icon: 'https://example.com/perps.png',
     name: 'Perps Balance',
     name_description: 'USD',

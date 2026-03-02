@@ -513,23 +513,6 @@ export const POLYMARKET_PRICES_MOCKS = async (mockServer: Mockttp) => {
     });
 };
 
-export const POLYMARKET_FEE_RATE_MOCKS = async (mockServer: Mockttp) => {
-  await mockServer
-    .forGet('/proxy')
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url &&
-          url.includes('clob.polymarket.com/fee-rate') &&
-          url.includes('token_id='),
-      );
-    })
-    .asPriority(PRIORITY.BASE)
-    .thenReply(200, JSON.stringify({ base_fee: 0 }), {
-      'content-type': 'application/json',
-    });
-};
-
 /**
  * Mock for Polymarket CLOB order book API
  * Returns order book data for specific token IDs with correct market mapping
@@ -1304,7 +1287,7 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
           order.taker === '0x0000000000000000000000000000000000000000' &&
           order.expiration === '0' &&
           order.nonce === '0' &&
-          typeof order.feeRateBps === 'string' &&
+          order.feeRateBps === '0' &&
           order.side === 'SELL' &&
           order.signatureType === 2 &&
           typeof order.salt === 'number' &&
@@ -1926,6 +1909,5 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_EVENT_DETAILS_MOCKS(mockServer);
   await POLYMARKET_ORDER_BOOK_MOCKS(mockServer);
   await POLYMARKET_PRICES_MOCKS(mockServer); // Mock for CLOB prices API
-  await POLYMARKET_FEE_RATE_MOCKS(mockServer);
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
 };

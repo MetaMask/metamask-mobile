@@ -6,7 +6,7 @@ import CardWelcome from './CardWelcome';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 // Mocks
 const mockNavigate = jest.fn();
@@ -29,11 +29,15 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+  MetaMetricsEvents: {
+    CARD_VIEWED: 'Card Viewed',
+    CARD_BUTTON_CLICKED: 'Card Button Clicked',
+  },
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({

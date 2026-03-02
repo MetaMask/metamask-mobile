@@ -32,7 +32,7 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../hooks/useMetrics';
 import { CommonActions } from '@react-navigation/native';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
@@ -100,7 +100,7 @@ const ManualBackupStep2 = ({
     return gridWords.filter((word) => word !== '').length === validWords.length;
   }, [route.params?.words, gridWords]);
 
-  const { isEnabled: isMetricsEnabled } = useAnalytics();
+  const { isEnabled: isMetricsEnabled } = useMetrics();
   const goNext = () => {
     if (validateWords()) {
       seedphraseBackedUp();

@@ -69,7 +69,6 @@ import confirmationSVG from './assets/confirmation.svg';
 import connectSVG from './assets/connect.svg';
 import copysuccessSVG from './assets/copy-success.svg';
 import copySVG from './assets/copy.svg';
-import corporatefareSVG from './assets/corporate-fare.svg';
 import creditcheckSVG from './assets/credit-check.svg';
 import currencyfrancSVG from './assets/currency-franc.svg';
 import currencyliraSVG from './assets/currency-lira.svg';
@@ -349,7 +348,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Connect]: connectSVG,
   [IconName.CopySuccess]: copysuccessSVG,
   [IconName.Copy]: copySVG,
-  [IconName.CorporateFare]: corporatefareSVG,
   [IconName.CreditCheck]: creditcheckSVG,
   [IconName.CurrencyFranc]: currencyfrancSVG,
   [IconName.CurrencyLira]: currencyliraSVG,

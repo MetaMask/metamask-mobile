@@ -357,18 +357,6 @@ describe('PerpsTabView', () => {
   });
 
   describe('Hook Integration', () => {
-    it('passes TP/SL and reduce-only filtering options to usePerpsLiveOrders', () => {
-      render(<PerpsTabView />);
-
-      expect(mockUsePerpsLiveOrders).toHaveBeenCalledWith(
-        expect.objectContaining({
-          hideTpSl: true,
-          hideReduceOnly: true,
-          throttleMs: 1000,
-        }),
-      );
-    });
-
     it('should use live account data when component mounts', () => {
       const mockUsePerpsLiveAccount =
         jest.requireMock('../../hooks/stream').usePerpsLiveAccount;

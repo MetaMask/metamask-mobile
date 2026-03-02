@@ -38,6 +38,7 @@ exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
             {
               "backgroundColor": "#ffffff",
               "borderRadius": 16,
+              "flexGrow": 1,
               "height": 32,
               "overflow": "hidden",
               "width": 32,
