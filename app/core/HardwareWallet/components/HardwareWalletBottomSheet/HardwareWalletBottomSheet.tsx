@@ -38,7 +38,6 @@ export interface HardwareWalletBottomSheetProps {
   connectionState: HardwareWalletConnectionState;
   deviceSelection: DeviceSelectionState;
   walletType: HardwareWalletType | null;
-  connectionTips: string[];
 
   retryLastOperation: () => Promise<void>;
   selectDevice: (device: DiscoveredDevice) => void;
@@ -46,7 +45,7 @@ export interface HardwareWalletBottomSheetProps {
   connect: (deviceId: string) => Promise<void>;
 
   /** Callback when sheet is dismissed (handles all cleanup) */
-  onClose?: () => void;
+  onClose: () => void;
   /** Show success state briefly before hiding (ms, 0 to disable) */
   successAutoDismissMs?: number;
   /** Callback when connection succeeds (e.g., to navigate to account selection) */
@@ -72,7 +71,6 @@ export const HardwareWalletBottomSheet: React.FC<
   connectionState,
   deviceSelection,
   walletType,
-  connectionTips,
   retryLastOperation,
   selectDevice,
   rescan,
@@ -117,7 +115,7 @@ export const HardwareWalletBottomSheet: React.FC<
     if (connectionState.status === ConnectionStatus.AwaitingConfirmation) {
       onAwaitingConfirmationCancel?.();
     }
-    onClose?.();
+    onClose();
   }, [connectionState.status, onAwaitingConfirmationCancel, onClose]);
 
   const handleAwaitingConfirmationCancel = useCallback(() => {
@@ -129,7 +127,7 @@ export const HardwareWalletBottomSheet: React.FC<
   }, [retryLastOperation]);
 
   const handleErrorDismiss = useCallback(() => {
-    onClose?.();
+    onClose();
   }, [onClose]);
 
   const handleSuccessDismiss = useCallback(() => {
@@ -158,7 +156,7 @@ export const HardwareWalletBottomSheet: React.FC<
   }, [rescan]);
 
   const handleCancelDeviceSelection = useCallback(() => {
-    onClose?.();
+    onClose();
   }, [onClose]);
 
   // The effective device type — only used when the sheet is visible,
@@ -192,12 +190,7 @@ export const HardwareWalletBottomSheet: React.FC<
 
       case ConnectionStatus.Connecting:
       case ConnectionStatus.Connected:
-        return (
-          <ConnectingContent
-            deviceType={deviceType}
-            connectionTips={connectionTips}
-          />
-        );
+        return <ConnectingContent deviceType={deviceType} />;
 
       case ConnectionStatus.AwaitingApp:
         return (

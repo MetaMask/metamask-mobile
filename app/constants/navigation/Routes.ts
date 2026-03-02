@@ -45,6 +45,7 @@ const Routes = {
       BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
       TOKEN_NOT_AVAILABLE: 'RampTokenNotAvailableModal',
       PROVIDER_SELECTION: 'RampProviderSelectionModal',
+      ERROR_DETAILS: 'RampErrorDetailsModal',
       PROCESSING_INFO: 'RampProcessingInfoModal',
     },
   },
@@ -194,7 +195,6 @@ const Routes = {
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
-    RESET_NOTIFICATIONS: 'ResetNotifications',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     DATA_COLLECTION: 'DataCollection',
@@ -258,6 +258,7 @@ const Routes = {
     NFTS_FULL_VIEW: 'NftFullView',
     TOKENS_FULL_VIEW: 'TokensFullView',
     TRENDING_TOKENS_FULL_VIEW: 'TrendingTokensFullView',
+    RWA_TOKENS_FULL_VIEW: 'RWATokensFullView',
     DEFI_FULL_VIEW: 'DeFiFullView',
   },
   VAULT_RECOVERY: {
@@ -453,6 +454,7 @@ const Routes = {
       PASSWORD: 'CardPasswordModal',
       RECURRING_FEE: 'CardRecurringFeeModal',
       DAIMO_PAY: 'CardDaimoPayModal',
+      VIEW_PIN: 'CardViewPinModal',
     },
   },
   SEND: {

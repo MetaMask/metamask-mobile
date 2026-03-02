@@ -15,33 +15,26 @@ jest.mock('../../../../../util/networks', () => ({
     mockGetNetworkImageSource(params),
 }));
 
-// Mock the TRENDING_NETWORKS_LIST constant
-jest.mock('../../utils/trendingNetworksList', () => {
-  const mockNetworks: ProcessedNetwork[] = [
-    {
-      id: 'eip155:1',
-      name: 'Ethereum Mainnet',
-      caipChainId: 'eip155:1' as CaipChainId,
-      imageSource: {
-        uri: 'https://example.com/ethereum.png',
-      } as ImageSourcePropType,
-      isSelected: false,
-    },
-    {
-      id: 'eip155:137',
-      name: 'Polygon',
-      caipChainId: 'eip155:137' as CaipChainId,
-      imageSource: {
-        uri: 'https://example.com/polygon.png',
-      } as ImageSourcePropType,
-      isSelected: false,
-    },
-  ];
-
-  return {
-    TRENDING_NETWORKS_LIST: mockNetworks,
-  };
-});
+const mockNetworks: ProcessedNetwork[] = [
+  {
+    id: 'eip155:1',
+    name: 'Ethereum Mainnet',
+    caipChainId: 'eip155:1' as CaipChainId,
+    imageSource: {
+      uri: 'https://example.com/ethereum.png',
+    } as ImageSourcePropType,
+    isSelected: false,
+  },
+  {
+    id: 'eip155:137',
+    name: 'Polygon',
+    caipChainId: 'eip155:137' as CaipChainId,
+    imageSource: {
+      uri: 'https://example.com/polygon.png',
+    } as ImageSourcePropType,
+    isSelected: false,
+  },
+];
 
 let storedOnClose: (() => void) | undefined;
 
@@ -278,7 +271,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('renders with default "All networks" selected', () => {
     const { getByText, getByTestId } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        networks={mockNetworks}
+      />,
       { state: mockState },
       false,
     );
@@ -290,7 +287,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('renders all network options', () => {
     const { getByText } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        networks={mockNetworks}
+      />,
       { state: mockState },
       false,
     );
@@ -308,6 +309,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
         isVisible
         onClose={mockOnClose}
         onNetworkSelect={mockOnNetworkSelect}
+        networks={mockNetworks}
       />,
       { state: mockState },
       false,
@@ -329,6 +331,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
         isVisible
         onClose={mockOnClose}
         onNetworkSelect={mockOnNetworkSelect}
+        networks={mockNetworks}
       />,
       { state: mockState },
       false,
@@ -350,6 +353,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
         isVisible
         onClose={mockOnClose}
         onNetworkSelect={mockOnNetworkSelect}
+        networks={mockNetworks}
       />,
       { state: mockState },
       false,
@@ -366,7 +370,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('calls onClose when close button is pressed', () => {
     const { getByTestId } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        networks={mockNetworks}
+      />,
       { state: mockState },
       false,
     );
@@ -380,7 +388,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('calls onClose when sheet is closed via onClose callback', () => {
     renderWithProvider(
-      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        networks={mockNetworks}
+      />,
       { state: mockState },
       false,
     );
@@ -398,6 +410,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
         isVisible
         onClose={mockOnClose}
         selectedNetwork={['eip155:1']}
+        networks={mockNetworks}
       />,
       { state: mockState },
       false,
@@ -409,7 +422,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('displays selection indicator for "All networks" when selected', () => {
     const { getByText, getByTestId } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        networks={mockNetworks}
+      />,
       { state: mockState },
       false,
     );
@@ -420,7 +437,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('renders network avatars with correct props', () => {
     const { getByTestId } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        networks={mockNetworks}
+      />,
       { state: mockState },
       false,
     );
@@ -440,7 +461,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('renders global icon for "All networks" option', () => {
     const { getByTestId } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        networks={mockNetworks}
+      />,
       { state: mockState },
       false,
     );
@@ -453,6 +478,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       <TrendingTokenNetworkBottomSheet
         isVisible={false}
         onClose={mockOnClose}
+        networks={mockNetworks}
       />,
       { state: mockState },
       false,
@@ -466,6 +492,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       <TrendingTokenNetworkBottomSheet
         isVisible={false}
         onClose={mockOnClose}
+        networks={mockNetworks}
       />,
       { state: mockState },
       false,
@@ -474,7 +501,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
     expect(queryByTestId('bottom-sheet')).toBeNull();
 
     rerender(
-      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        networks={mockNetworks}
+      />,
     );
 
     expect(queryByTestId('bottom-sheet')).toBeOnTheScreen();

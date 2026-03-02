@@ -18,7 +18,6 @@ import Cell, {
 import { strings } from '../../../../../../locales/i18n';
 import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { CaipChainId } from '@metamask/utils';
-import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 
 export enum NetworkOption {
   AllNetworks = 'all',
@@ -29,7 +28,8 @@ export interface TrendingTokenNetworkBottomSheetProps {
   onClose: () => void;
   onNetworkSelect?: (chainIds: CaipChainId[] | null) => void;
   selectedNetwork?: CaipChainId[] | null;
-  networks?: ProcessedNetwork[];
+  /** Networks to display in the bottom sheet */
+  networks: ProcessedNetwork[];
 }
 
 const TrendingTokenNetworkBottomSheet: React.FC<
@@ -42,7 +42,6 @@ const TrendingTokenNetworkBottomSheet: React.FC<
   networks,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const availableNetworks = networks ?? TRENDING_NETWORKS_LIST;
 
   // Default to "All networks" if no selection
   const [selectedNetwork, setSelectedNetwork] = useState<
@@ -134,7 +133,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
             <Icon name={IconName.Check} size={IconSize.Md} />
           )}
         </Cell>
-        {availableNetworks.map((network) => {
+        {networks.map((network) => {
           const isSelected = isNetworkSelected(network);
           return (
             <Cell
