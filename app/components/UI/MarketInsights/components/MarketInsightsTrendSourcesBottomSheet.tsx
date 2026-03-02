@@ -100,7 +100,7 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
           >
             <Box twClassName="w-8 h-8 rounded-full overflow-hidden mr-3">
               <Image
-                source={{ uri: getFaviconUrl(article.source) }}
+                source={{ uri: getFaviconUrl(article.url || article.source) }}
                 style={tw.style('w-8 h-8 rounded-full')}
               />
             </Box>
