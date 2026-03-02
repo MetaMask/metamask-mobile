@@ -63,8 +63,10 @@ import {
   ROUNDING_CONFIG,
   SAFE_EXEC_GAS_LIMIT,
 } from './constants';
+import { PERMIT2_ADDRESS } from './safe/constants';
 import {
   computeProxyAddress,
+  createPermit2FeeAuthorization,
   createSafeFeeAuthorization,
   getClaimTransaction,
   getDeployProxyWalletTransaction,
@@ -72,7 +74,9 @@ import {
   getSafeUsdcAmount,
   getWithdrawTransactionCallData,
   hasAllowances,
+  hasPermit2Allowance,
 } from './safe/utils';
+import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   OrderData,
@@ -1157,24 +1161,60 @@ export class PolymarketProvider implements PredictProvider {
         apiKey: signerApiKey,
       });
 
-      let feeAuthorization;
+      const shouldUsePermit2 =
+        fees?.permit2Enabled === true &&
+        Array.isArray(fees.executors) &&
+        fees.executors.length > 0;
+
+      let feeAuthorization:
+        | SafeFeeAuthorization
+        | Permit2FeeAuthorization
+        | undefined;
+      let executor: string | undefined;
+
       if (fees !== undefined && fees.totalFee > 0) {
         const safeAddress = computeProxyAddress(signer.address);
         const feeAmountInUsdc = BigInt(
           parseUnits(fees.totalFee.toString(), 6).toString(),
         );
-        feeAuthorization = await createSafeFeeAuthorization({
-          safeAddress,
-          signer,
-          amount: feeAmountInUsdc,
-          to: fees.collector,
-        });
+
+        if (shouldUsePermit2 && fees.executors) {
+          const permit2Ready = await hasPermit2Allowance({
+            address: safeAddress,
+          });
+
+          if (permit2Ready) {
+            executor =
+              fees.executors[Math.floor(Math.random() * fees.executors.length)];
+            feeAuthorization = await createPermit2FeeAuthorization({
+              safeAddress,
+              signer,
+              amount: feeAmountInUsdc,
+              spender: executor,
+            });
+          } else {
+            feeAuthorization = await createSafeFeeAuthorization({
+              safeAddress,
+              signer,
+              amount: feeAmountInUsdc,
+              to: fees.collector,
+            });
+          }
+        } else {
+          feeAuthorization = await createSafeFeeAuthorization({
+            safeAddress,
+            signer,
+            amount: feeAmountInUsdc,
+            to: fees.collector,
+          });
+        }
       }
 
       const { success, response, error } = await submitClobOrder({
         headers,
         clobOrder,
         feeAuthorization,
+        executor,
       });
 
       if (!success) {
@@ -1467,8 +1507,13 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     if (!accountState.hasAllowances) {
+      const { feeCollection: depositFeeCollection } = this.#getFeatureFlags();
+      const extraUsdcSpenders = depositFeeCollection.permit2Enabled
+        ? [PERMIT2_ADDRESS]
+        : [];
       const allowanceTransaction = await getProxyWalletAllowancesTransaction({
         signer,
+        extraUsdcSpenders,
       });
 
       if (!allowanceTransaction) {
@@ -1540,13 +1585,17 @@ export class PolymarketProvider implements PredictProvider {
       // Check deployment status and allowances
       let isDeployed: boolean;
       let hasAllowancesResult: boolean;
+      const { feeCollection: flagFeeCollection } = this.#getFeatureFlags();
+      const extraUsdcSpenders = flagFeeCollection.permit2Enabled
+        ? [PERMIT2_ADDRESS]
+        : [];
       try {
         [isDeployed, hasAllowancesResult] = await Promise.all([
           isSmartContractAddress(
             address,
             numberToHex(POLYGON_MAINNET_CHAIN_ID),
           ),
-          hasAllowances({ address }),
+          hasAllowances({ address, extraUsdcSpenders }),
         ]);
       } catch (error) {
         throw new Error(
