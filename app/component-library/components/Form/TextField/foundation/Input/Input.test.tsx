@@ -1,43 +1,95 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { fireEvent, render } from '@testing-library/react-native';
 
 // External dependencies.
 import { TextVariant } from '../../../../Texts/Text';
-import { mockTheme } from '../../../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
 // Internal dependencies.
 import Input from './Input';
 import { INPUT_TEST_ID } from './Input.constants';
 
+const renderWithTheme = (ui: React.ReactElement) =>
+  render(<ThemeContext.Provider value={mockTheme}>{ui}</ThemeContext.Provider>);
+
+const getStyleProp = (
+  style: Record<string, unknown> | Record<string, unknown>[] | undefined,
+  key: string,
+): unknown => {
+  if (!style) return undefined;
+  const arr = Array.isArray(style) ? style : [style];
+  for (let i = arr.length - 1; i >= 0; i--) {
+    const val = (arr[i] as Record<string, unknown>)?.[key];
+    if (val !== undefined) return val;
+  }
+  return undefined;
+};
+
 describe('Input', () => {
-  it('should render correctly', () => {
-    const wrapper = shallow(<Input />);
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render Input with the correct TextVariant', () => {
-    const wrapper = shallow(<Input textVariant={TextVariant.HeadingSM} />);
-    const inputComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === INPUT_TEST_ID,
-    );
-    expect(inputComponent.props().style.fontSize).toBe(
-      mockTheme.typography.sHeadingSM.fontSize,
-    );
-  });
-  it('should render the correct disabled state when disabled = true', () => {
-    const wrapper = shallow(<Input isDisabled />);
-    const inputComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === INPUT_TEST_ID,
-    );
-    expect(inputComponent.props().editable).toBe(false);
-    expect(inputComponent.props().style.opacity).toBe(0.5);
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('should not render state styles when isStateStylesDisabled = true', () => {
-    const wrapper = shallow(<Input isStateStylesDisabled />);
-    const inputComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === INPUT_TEST_ID,
+  it('renders input with testID', () => {
+    const { getByTestId } = renderWithTheme(<Input />);
+
+    expect(getByTestId(INPUT_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('applies TextVariant typography when textVariant provided', () => {
+    const { getByTestId } = renderWithTheme(
+      <Input textVariant={TextVariant.HeadingSM} />,
     );
-    expect(inputComponent.props().style.opacity).toBe(1);
+
+    const input = getByTestId(INPUT_TEST_ID);
+    const fontSize = getStyleProp(input.props.style, 'fontSize');
+
+    expect(fontSize).toBe(mockTheme.typography.sHeadingSM.fontSize);
+  });
+
+  it('sets editable false and opacity 0.5 when isDisabled', () => {
+    const { getByTestId } = renderWithTheme(<Input isDisabled />);
+
+    const input = getByTestId(INPUT_TEST_ID);
+
+    expect(input.props.editable).toBe(false);
+    expect(getStyleProp(input.props.style, 'opacity')).toBe(0.5);
+  });
+
+  it('keeps opacity 1 when isStateStylesDisabled', () => {
+    const { getByTestId } = renderWithTheme(<Input isStateStylesDisabled />);
+
+    const input = getByTestId(INPUT_TEST_ID);
+
+    expect(getStyleProp(input.props.style, 'opacity')).toBe(1);
+  });
+
+  it('applies lineHeight 0 when value is empty', () => {
+    const { getByTestId } = renderWithTheme(<Input value="" />);
+
+    const input = getByTestId(INPUT_TEST_ID);
+
+    expect(getStyleProp(input.props.style, 'lineHeight')).toBe(0);
+  });
+
+  it('omits lineHeight when value is non-empty', () => {
+    const { getByTestId } = renderWithTheme(<Input value="hello" />);
+
+    const input = getByTestId(INPUT_TEST_ID);
+
+    expect(getStyleProp(input.props.style, 'lineHeight')).toBeUndefined();
+  });
+
+  it('calls onChangeText when text changes', () => {
+    const onChangeText = jest.fn();
+    const { getByTestId } = renderWithTheme(
+      <Input value="" onChangeText={onChangeText} />,
+    );
+
+    const input = getByTestId(INPUT_TEST_ID);
+    fireEvent.changeText(input, 'a');
+
+    expect(onChangeText).toHaveBeenCalledWith('a');
   });
 });

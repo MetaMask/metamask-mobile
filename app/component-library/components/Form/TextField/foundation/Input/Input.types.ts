@@ -39,4 +39,5 @@ export type InputStyleSheetVars = Pick<
 > & {
   isFocused: boolean;
   textVariant: TextVariant;
+  isPlaceholderVisible: boolean;
 };

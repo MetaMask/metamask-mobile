@@ -19,8 +19,14 @@ import { InputStyleSheetVars } from './Input.types';
  */
 const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
   const { theme, vars } = params;
-  const { style, textVariant, isDisabled, isStateStylesDisabled, isFocused } =
-    vars;
+  const {
+    style,
+    textVariant,
+    isDisabled,
+    isStateStylesDisabled,
+    isFocused,
+    isPlaceholderVisible,
+  } = vars;
 
   const stateObj = isStateStylesDisabled
     ? {
@@ -45,6 +51,7 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,
         letterSpacing: theme.typography[textVariant].letterSpacing,
+        ...(isPlaceholderVisible && { lineHeight: 0 }),
       },
       style,
     ) as TextStyle,

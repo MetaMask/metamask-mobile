@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { TextInput } from 'react-native';
 
 // External dependencies.
@@ -30,11 +30,25 @@ const Input = React.forwardRef<TextInput, InputProps>(
       onBlur,
       onFocus,
       autoFocus = true,
+      value,
+      defaultValue,
+      onChangeText,
       ...props
     },
     ref,
   ) => {
     const [isFocused, setIsFocused] = useState(autoFocus);
+    const [internalValue, setInternalValue] = useState(defaultValue ?? '');
+
+    const isControlled = value !== undefined;
+    const currentValue = isControlled ? (value ?? '') : internalValue;
+    const isPlaceholderVisible = currentValue === '' || currentValue == null;
+
+    useEffect(() => {
+      if (!isControlled) {
+        setInternalValue(defaultValue ?? '');
+      }
+    }, [defaultValue, isControlled]);
 
     const { styles, theme } = useStyles(styleSheet, {
       style,
@@ -42,6 +56,7 @@ const Input = React.forwardRef<TextInput, InputProps>(
       isStateStylesDisabled,
       isDisabled,
       isFocused,
+      isPlaceholderVisible,
     });
 
     const onBlurHandler = useCallback(
@@ -68,11 +83,24 @@ const Input = React.forwardRef<TextInput, InputProps>(
       [isDisabled, setIsFocused, onFocus],
     );
 
+    const onChangeTextHandler = useCallback(
+      (text: string) => {
+        if (!isControlled) {
+          setInternalValue(text);
+        }
+        onChangeText?.(text);
+      },
+      [isControlled, onChangeText],
+    );
+
     return (
       <TextInput
         testID={INPUT_TEST_ID}
         placeholderTextColor={theme.colors.text.alternative}
         {...props}
+        value={isControlled ? value : undefined}
+        defaultValue={isControlled ? undefined : defaultValue}
+        onChangeText={onChangeTextHandler}
         style={styles.base}
         editable={!isDisabled && !isReadonly}
         autoFocus={autoFocus}
