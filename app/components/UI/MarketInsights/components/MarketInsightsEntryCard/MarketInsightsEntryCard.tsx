@@ -12,6 +12,7 @@ import {
   IconColor,
   BoxFlexDirection,
   BoxAlignItems,
+  BoxJustifyContent,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import type { MarketInsightsSource } from '@metamask/ai-controllers';
@@ -118,46 +119,65 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) =>
-        tw.style('mx-4 rounded-2xl bg-muted p-4', pressed && 'opacity-80')
-      }
+      style={({ pressed }) => tw.style('px-4', pressed && 'opacity-80')}
       testID={testID}
     >
-      <Box twClassName="mb-3">
+      <Box gap={2}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={1}
+          justifyContent={BoxJustifyContent.Between}
         >
-          <SparkleIcon />
-          <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Medium}>
-            {strings('market_insights.title')}
-          </Text>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+              {strings('market_insights.title')}
+            </Text>
+            <SparkleIcon />
+          </Box>
           <Icon
             name={IconName.ArrowRight}
-            size={IconSize.Sm}
+            size={IconSize.Md}
             color={IconColor.IconAlternative}
           />
         </Box>
+
+        <Box gap={3}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {report.summary}
+          </Text>
+
+          <SourceLogoGroup sources={report.sources ?? []} />
+
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('market_insights.disclaimer')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {'•'}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {timeAgo}
+            </Text>
+          </Box>
+        </Box>
       </Box>
-
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {report.summary}
-      </Text>
-
-      <Box twClassName="mt-3">
-        <SourceLogoGroup sources={report.sources ?? []} />
-      </Box>
-
-      <Text
-        variant={TextVariant.BodyXs}
-        color={TextColor.TextMuted}
-        twClassName="mt-3"
-      >
-        {strings('market_insights.disclaimer')}
-        {'  •  '}
-        {timeAgo}
-      </Text>
     </Pressable>
   );
 };

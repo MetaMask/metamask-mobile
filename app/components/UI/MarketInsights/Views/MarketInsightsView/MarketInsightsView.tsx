@@ -84,24 +84,32 @@ interface AnimatedSectionProps {
 const TrendSourceIcon: React.FC<{
   source: MarketInsightsSource;
   index: number;
-}> = ({ source, index }) => (
-  <Box
-    twClassName={`w-5 h-5 rounded-full bg-default border border-muted overflow-hidden ${
-      index > 0 ? '-ml-2' : ''
-    }`}
-  >
-    {isXSourceUrl(source.url) ? (
-      <Box twClassName="w-5 h-5 items-center justify-center rounded-full">
-        <Icon name={IconName.X} size={IconSize.Sm} color={IconColor.IconDefault} />
-      </Box>
-    ) : (
-      <Image
-        source={{ uri: getFaviconUrl(source.url) }}
-        style={{ width: 16, height: 16, borderRadius: 8 }}
-      />
-    )}
-  </Box>
-);
+}> = ({ source, index }) => {
+  const tw = useTailwind();
+
+  return (
+    <Box
+      twClassName={`w-5 h-5 rounded-full bg-default border border-muted overflow-hidden ${
+        index > 0 ? '-ml-2' : ''
+      }`}
+    >
+      {isXSourceUrl(source.url) ? (
+        <Box twClassName="w-5 h-5 items-center justify-center rounded-full">
+          <Icon
+            name={IconName.X}
+            size={IconSize.Sm}
+            color={IconColor.IconDefault}
+          />
+        </Box>
+      ) : (
+        <Image
+          source={{ uri: getFaviconUrl(source.url) }}
+          style={tw.style('w-4 h-4 rounded-full')}
+        />
+      )}
+    </Box>
+  );
+};
 
 const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   children,
@@ -371,9 +379,7 @@ const MarketInsightsView: React.FC = () => {
       url: source.url,
     }));
   }, [report?.sources, trendArticleSources]);
-  const trendSourcesPillSources: MarketInsightsSource[] = useMemo(() => {
-    return getUniqueSourcesByFavicon(sourcesSheetItems);
-  }, [sourcesSheetItems]);
+  const trendSourcesPillSources: MarketInsightsSource[] = useMemo(() => getUniqueSourcesByFavicon(sourcesSheetItems), [sourcesSheetItems]);
   const visibleTrendSourceCount = Math.min(
     trendSourcesPillSources.length,
     MAX_VISIBLE_SOURCES,
@@ -696,17 +702,7 @@ const MarketInsightsView: React.FC = () => {
           <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.whatsBeingSaid}>
             <Box twClassName="h-4 border-t-4 border-muted" />
             <Box twClassName="pb-6">
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={2}
-                twClassName="px-4 py-4"
-              >
-                <Icon
-                  name={IconName.X}
-                  size={IconSize.Sm}
-                  color={IconColor.IconDefault}
-                />
+              <Box twClassName="px-4 py-4">
                 <Text
                   variant={TextVariant.HeadingMd}
                   fontWeight={FontWeight.Bold}
@@ -775,7 +771,7 @@ const MarketInsightsView: React.FC = () => {
             </Pressable>
           </Box>
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
             twClassName="pt-3"
           >
@@ -794,7 +790,7 @@ const MarketInsightsView: React.FC = () => {
           </Button>
           <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
               {strings('market_insights.fixed_footer_disclaimer')}
