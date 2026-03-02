@@ -7,7 +7,13 @@ import React, {
   useMemo,
 } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import {
+  Alert,
+  TouchableOpacity,
+  Animated,
+  Dimensions,
+  Platform,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useSelector } from 'react-redux';
 import {
@@ -763,7 +769,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Start}
                 justifyContent={BoxJustifyContent.Start}
-                twClassName="gap-2 mt-2 mb-4 bg-background-alternative rounded-lg p-4"
+                twClassName="gap-2 mt-2 mb-4 bg-background-section rounded-lg p-4"
               >
                 <Checkbox
                   onPress={() => setLearnMore(!learnMore)}
@@ -799,7 +805,10 @@ const ImportFromSecretRecoveryPhrase = ({
 
               <Box
                 flexDirection={BoxFlexDirection.Column}
-                twClassName="w-full gap-y-[18px] mt-auto mb-4"
+                style={tw.style(
+                  'w-full gap-y-[18px] mt-auto',
+                  Platform.OS === 'android' ? 'mb-6' : 'mb-4',
+                )}
               >
                 <Button
                   loading={loading}

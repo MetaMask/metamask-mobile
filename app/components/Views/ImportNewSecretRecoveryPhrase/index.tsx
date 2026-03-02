@@ -6,7 +6,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Button, {
@@ -288,7 +288,10 @@ const ImportNewSecretRecoveryPhrase = () => {
         }}
       />
       <KeyboardAwareScrollView
-        contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
+        contentContainerStyle={tw.style(
+          'flex-grow px-4',
+          Platform.OS === 'android' ? 'pb-0' : 'pb-4',
+        )}
         testID={ImportSRPIDs.CONTAINER}
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
