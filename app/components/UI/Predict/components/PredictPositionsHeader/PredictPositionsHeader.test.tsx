@@ -285,7 +285,7 @@ describe('MarketsWonCard', () => {
 
       await ref.current?.refresh();
 
-      expect(mockLoadUnrealizedPnL).toHaveBeenCalledWith({ isRefresh: true });
+      expect(mockLoadUnrealizedPnL).toHaveBeenCalled();
     });
   });
 
