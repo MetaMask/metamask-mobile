@@ -44,6 +44,8 @@ interface RampStackParamList {
     providerName: string;
     userAgent?: string;
     callbackKey?: string;
+    quickBuyCallbackKey?: string;
+    isQuickBuy?: boolean;
   };
   [key: string]: object | undefined;
 }
@@ -57,6 +59,11 @@ class LimitExceededError extends Error {
 
 interface UseTransakRoutingConfig {
   screenLocation?: string;
+}
+
+interface RouteAfterAuthenticationOptions {
+  isQuickBuy?: boolean;
+  quickBuyCallbackKey?: string;
 }
 
 export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
@@ -346,12 +353,20 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const navigateToWebviewModalCallback = useCallback(
-    ({ paymentUrl }: { paymentUrl: string }) => {
+    ({
+      paymentUrl,
+      options,
+    }: {
+      paymentUrl: string;
+      options?: RouteAfterAuthenticationOptions;
+    }) => {
       const callbackKey = registerCheckoutCallback(handleNavigationStateChange);
       const [routeName, routeParams] = createCheckoutNavDetails({
         url: paymentUrl,
         providerName: 'Transak',
         callbackKey,
+        isQuickBuy: options?.isQuickBuy,
+        quickBuyCallbackKey: options?.quickBuyCallbackKey,
       });
       navigation.reset({
         index: 1,
@@ -395,7 +410,11 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const routeAfterAuthentication = useCallback(
-    async (quote: TransakBuyQuote, depth = 0) => {
+    async (
+      quote: TransakBuyQuote,
+      depth = 0,
+      options?: RouteAfterAuthenticationOptions,
+    ) => {
       try {
         const userDetails = await getUserDetails();
         const previousFormData = {
@@ -466,7 +485,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                   throw new Error('Failed to generate payment URL');
                 }
 
-                navigateToWebviewModalCallback({ paymentUrl });
+                navigateToWebviewModalCallback({ paymentUrl, options });
               }
               return true;
             } catch (error) {
@@ -504,7 +523,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                 await submitPurposeOfUsageForm([
                   'Buying/selling crypto for investments',
                 ]);
-                await routeAfterAuthentication(quote, depth + 1);
+                await routeAfterAuthentication(quote, depth + 1, options);
               } else {
                 Logger.error(
                   new Error(`Submit of purpose depth exceeded: ${depth}`),

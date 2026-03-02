@@ -78,11 +78,13 @@ function getProviderSpecificData(order: FiatOrder) {
 interface OrderContentProps {
   order: FiatOrder;
   showCloseButton?: boolean;
+  isQuickBuy?: boolean;
 }
 
 const OrderContent: React.FC<OrderContentProps> = ({
   order,
   showCloseButton = false,
+  isQuickBuy = false,
 }) => {
   const navigation = useNavigation();
   const providerData = useMemo(() => getProviderSpecificData(order), [order]);
@@ -153,8 +155,13 @@ const OrderContent: React.FC<OrderContentProps> = ({
   const isLoading = !order.amount;
 
   const handleClose = useCallback(() => {
+    if (isQuickBuy) {
+      navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
+      return;
+    }
+
     navigation.goBack();
-  }, [navigation]);
+  }, [navigation, isQuickBuy]);
 
   const providerName = getProviderName(order.provider, order.data);
 

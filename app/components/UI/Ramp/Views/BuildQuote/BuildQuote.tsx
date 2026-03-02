@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -53,9 +53,19 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import {
+  getQuickBuyErrorCallback,
+  removeQuickBuyErrorCallback,
+} from '../../utils/quickBuyCallbackRegistry';
 
 export interface BuildQuoteParams {
   assetId?: string;
+  amount?: string;
+  currency?: string;
+  providerId?: string;
+  paymentMethodId?: string;
+  autoProceed?: boolean;
+  callbackKey?: string;
   nativeFlowError?: string;
 }
 
@@ -89,6 +99,8 @@ export const createBuildQuoteNavDetails = (
 
 const DEFAULT_AMOUNT = 100;
 
+const autoProceedDispatched = new Set<string>();
+
 function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
@@ -102,6 +114,7 @@ function BuildQuote() {
   const [isContinueLoading, setIsContinueLoading] = useState(false);
   const [nativeFlowError, setNativeFlowError] = useState<string | null>(null);
   const params = useParams<BuildQuoteParams>();
+  const isAutoProceed = Boolean(params?.autoProceed);
 
   useEffect(() => {
     if (params?.nativeFlowError) {
@@ -109,6 +122,20 @@ function BuildQuote() {
       navigation.setParams({ nativeFlowError: undefined });
     }
   }, [params?.nativeFlowError, navigation]);
+
+  useEffect(() => {
+    const amountFromIntent = Number(params?.amount);
+    if (
+      !userHasEnteredAmount &&
+      params?.amount &&
+      Number.isFinite(amountFromIntent) &&
+      amountFromIntent > 0
+    ) {
+      setAmount(params.amount);
+      setAmountAsNumber(amountFromIntent);
+      setUserHasEnteredAmount(true);
+    }
+  }, [params?.amount, userHasEnteredAmount]);
 
   useFocusEffect(
     useCallback(() => {
@@ -121,12 +148,83 @@ function BuildQuote() {
 
   const {
     userRegion,
+    providers,
     selectedProvider,
+    setSelectedProvider,
+    paymentMethods,
+    setSelectedPaymentMethod,
     selectedToken,
     getWidgetUrl,
     paymentMethodsLoading,
     selectedPaymentMethod,
+    providersLoading,
   } = useRampsController();
+
+  const hasAppliedRoutingSelectionsRef = useRef(false);
+  useEffect(() => {
+    if (hasAppliedRoutingSelectionsRef.current) {
+      return;
+    }
+
+    const hasProviderIntent = Boolean(params?.providerId);
+    const hasPaymentMethodIntent = Boolean(params?.paymentMethodId);
+    if (!hasProviderIntent && !hasPaymentMethodIntent) {
+      hasAppliedRoutingSelectionsRef.current = true;
+      return;
+    }
+
+    let hasResolvedProviderSelection = !hasProviderIntent;
+    if (hasProviderIntent) {
+      const intendedProvider = providers.find(
+        (provider) => provider.id === params?.providerId,
+      );
+
+      if (!intendedProvider) {
+        hasResolvedProviderSelection = !providersLoading;
+      } else if (selectedProvider?.id === intendedProvider.id) {
+        hasResolvedProviderSelection = true;
+      } else {
+        setSelectedProvider(intendedProvider);
+        return;
+      }
+    }
+
+    let hasResolvedPaymentSelection = !hasPaymentMethodIntent;
+    if (hasPaymentMethodIntent) {
+      const intendedPaymentMethod = paymentMethods.find(
+        (paymentMethod) => paymentMethod.id === params?.paymentMethodId,
+      );
+
+      if (!intendedPaymentMethod) {
+        hasResolvedPaymentSelection = !paymentMethodsLoading;
+      } else {
+        if (selectedPaymentMethod?.id !== intendedPaymentMethod.id) {
+          setSelectedPaymentMethod(intendedPaymentMethod);
+        }
+        hasResolvedPaymentSelection = true;
+      }
+    }
+
+    if (hasResolvedProviderSelection && hasResolvedPaymentSelection) {
+      hasAppliedRoutingSelectionsRef.current = true;
+      navigation.setParams({
+        providerId: undefined,
+        paymentMethodId: undefined,
+      });
+    }
+  }, [
+    params?.providerId,
+    params?.paymentMethodId,
+    paymentMethods,
+    paymentMethodsLoading,
+    providers,
+    providersLoading,
+    navigation,
+    selectedPaymentMethod?.id,
+    selectedProvider?.id,
+    setSelectedPaymentMethod,
+    setSelectedProvider,
+  ]);
 
   const isTokenUnavailable = useMemo(
     () =>
@@ -291,132 +389,164 @@ function BuildQuote() {
     );
   }, [debouncedPollingAmount, navigation]);
 
-  const handleContinuePress = useCallback(async () => {
-    if (!selectedQuote || !selectedProvider) return;
-
-    const quoteAmount =
-      selectedQuote.quote?.amountIn ??
-      (selectedQuote as { amountIn?: number }).amountIn;
-    const quotePaymentMethod =
-      selectedQuote.quote?.paymentMethod ??
-      (selectedQuote as { paymentMethod?: string }).paymentMethod;
-
-    // Validate provider matches (prevents proceeding with wrong-provider quote)
-    if (selectedQuote.provider !== selectedProvider.id) return;
-
-    // Validate amount matches
-    if (quoteAmount !== amountAsNumber) {
-      return;
-    }
-
-    // Validate payment method context matches
-    if (quotePaymentMethod != null) {
-      if (
-        !selectedPaymentMethod ||
-        selectedPaymentMethod.id !== quotePaymentMethod
-      ) {
-        return;
+  const handleContinuePress = useCallback(
+    async (options?: { suppressUiError?: boolean }) => {
+      const suppressUiError = options?.suppressUiError ?? false;
+      if (!selectedQuote || !selectedProvider) {
+        return {
+          success: false,
+          errorMessage: strings('deposit.buildQuote.unexpectedError'),
+        };
       }
-    }
 
-    if (isNativeProvider(selectedQuote)) {
-      setIsContinueLoading(true);
-      try {
-        const hasToken = await transakCheckExistingToken();
+      const quoteAmount =
+        selectedQuote.quote?.amountIn ??
+        (selectedQuote as { amountIn?: number }).amountIn;
+      const quotePaymentMethod =
+        selectedQuote.quote?.paymentMethod ??
+        (selectedQuote as { paymentMethod?: string }).paymentMethod;
 
-        if (hasToken) {
-          const quote = await transakGetBuyQuote(
-            currency,
-            selectedToken?.assetId || '',
-            selectedToken?.chainId || '',
-            selectedPaymentMethod?.id || '',
-            String(amountAsNumber),
-          );
-          if (!quote) {
-            throw new Error(strings('deposit.buildQuote.unexpectedError'));
-          }
-          await transakRouteAfterAuth(quote);
-        } else {
-          navigation.navigate(
-            ...createV2EnterEmailNavDetails({
-              amount: String(amountAsNumber),
-              currency,
-              assetId: selectedToken?.assetId,
-            }),
-          );
+      if (selectedQuote.provider !== selectedProvider.id) {
+        return {
+          success: false,
+          errorMessage: strings('deposit.buildQuote.unexpectedError'),
+        };
+      }
+
+      if (quoteAmount !== amountAsNumber) {
+        return {
+          success: false,
+          errorMessage: strings('deposit.buildQuote.unexpectedError'),
+        };
+      }
+
+      if (quotePaymentMethod != null) {
+        if (
+          !selectedPaymentMethod ||
+          selectedPaymentMethod.id !== quotePaymentMethod
+        ) {
+          return {
+            success: false,
+            errorMessage: strings('deposit.buildQuote.unexpectedError'),
+          };
         }
-      } catch (error) {
-        Logger.error(error as Error, {
-          message: 'Failed to route native provider flow',
-        });
-        setNativeFlowError(
-          parseUserFacingError(
+      }
+
+      if (isNativeProvider(selectedQuote)) {
+        setIsContinueLoading(true);
+        try {
+          const hasToken = await transakCheckExistingToken();
+
+          if (hasToken) {
+            const quote = await transakGetBuyQuote(
+              currency,
+              selectedToken?.assetId || '',
+              selectedToken?.chainId || '',
+              selectedPaymentMethod?.id || '',
+              String(amountAsNumber),
+            );
+            if (!quote) {
+              throw new Error(strings('deposit.buildQuote.unexpectedError'));
+            }
+            await transakRouteAfterAuth(quote);
+          } else {
+            navigation.navigate(
+              ...createV2EnterEmailNavDetails({
+                amount: String(amountAsNumber),
+                currency,
+                assetId: selectedToken?.assetId,
+              }),
+            );
+          }
+          return { success: true };
+        } catch (error) {
+          Logger.error(error as Error, {
+            message: 'Failed to route native provider flow',
+          });
+          const errorMessage = parseUserFacingError(
             error,
             strings('deposit.buildQuote.unexpectedError'),
-          ),
-        );
-      } finally {
-        setIsContinueLoading(false);
+          );
+          if (!suppressUiError) {
+            setNativeFlowError(errorMessage);
+          }
+          return { success: false, errorMessage };
+        } finally {
+          setIsContinueLoading(false);
+        }
       }
-      return;
-    }
 
-    // V2 aggregator: get widget URL via controller and navigate to checkout
-    setIsContinueLoading(true);
-    try {
-      const fetchedWidgetUrl = await getWidgetUrl(selectedQuote);
+      setIsContinueLoading(true);
+      try {
+        const fetchedWidgetUrl = await getWidgetUrl(selectedQuote);
 
-      if (fetchedWidgetUrl) {
-        const providerCode = selectedQuote.provider.startsWith('/providers/')
-          ? selectedQuote.provider.split('/')[2] || selectedQuote.provider
-          : selectedQuote.provider;
-        const chainId = selectedToken?.chainId as CaipChainId | undefined;
-        const network = chainId?.includes(':')
-          ? chainId.split(':')[1] || ''
-          : chainId || '';
+        if (fetchedWidgetUrl) {
+          const providerCode = selectedQuote.provider.startsWith('/providers/')
+            ? selectedQuote.provider.split('/')[2] || selectedQuote.provider
+            : selectedQuote.provider;
+          const chainId = selectedToken?.chainId as CaipChainId | undefined;
+          const network = chainId?.includes(':')
+            ? chainId.split(':')[1] || ''
+            : chainId || '';
 
-        navigation.navigate(
-          ...createCheckoutNavDetails({
-            url: fetchedWidgetUrl,
-            providerName:
-              selectedProvider?.name || getQuoteProviderName(selectedQuote),
-            userAgent: getQuoteBuyUserAgent(selectedQuote),
-            providerCode,
-            providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
-            walletAddress: walletAddress ?? undefined,
-            network,
-            currency,
-            cryptocurrency: selectedToken?.symbol || '',
-          }),
-        );
-      } else {
+          navigation.navigate(
+            ...createCheckoutNavDetails({
+              url: fetchedWidgetUrl,
+              providerName:
+                selectedProvider?.name || getQuoteProviderName(selectedQuote),
+              userAgent: getQuoteBuyUserAgent(selectedQuote),
+              providerCode,
+              providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+              walletAddress: walletAddress ?? undefined,
+              network,
+              currency,
+              cryptocurrency: selectedToken?.symbol || '',
+              isQuickBuy: isAutoProceed,
+            }),
+          );
+          return { success: true };
+        }
+
         Logger.error(
           new Error('No widget URL available for aggregator provider'),
           { provider: selectedQuote.provider },
         );
+        return {
+          success: false,
+          errorMessage: strings('deposit.buildQuote.unexpectedError'),
+        };
+      } catch (error) {
+        Logger.error(error as Error, {
+          provider: selectedQuote.provider,
+          message: 'Failed to fetch widget URL',
+        });
+        return {
+          success: false,
+          errorMessage: parseUserFacingError(
+            error,
+            strings('deposit.buildQuote.unexpectedError'),
+          ),
+        };
+      } finally {
+        setIsContinueLoading(false);
       }
-    } catch (error) {
-      Logger.error(error as Error, {
-        provider: selectedQuote.provider,
-        message: 'Failed to fetch widget URL',
-      });
-    } finally {
-      setIsContinueLoading(false);
-    }
-  }, [
-    selectedQuote,
-    selectedProvider,
-    selectedToken,
-    walletAddress,
-    currency,
-    navigation,
-    getWidgetUrl,
-    amountAsNumber,
-    selectedPaymentMethod,
-    transakCheckExistingToken,
-    transakGetBuyQuote,
-    transakRouteAfterAuth,
-  ]);
+    },
+    [
+      selectedQuote,
+      selectedProvider,
+      selectedToken,
+      walletAddress,
+      currency,
+      navigation,
+      getWidgetUrl,
+      amountAsNumber,
+      selectedPaymentMethod,
+      transakCheckExistingToken,
+      transakGetBuyQuote,
+      transakRouteAfterAuth,
+      isAutoProceed,
+    ],
+  );
 
   const hasAmount = amountAsNumber > 0;
 
@@ -459,6 +589,194 @@ function BuildQuote() {
     selectedQuote !== null &&
     quoteMatchesAmount &&
     quoteMatchesCurrentContext;
+
+  const exitQuickBuyFlow = useCallback(
+    (errorMessage?: string) => {
+      if (params?.callbackKey && errorMessage) {
+        getQuickBuyErrorCallback(params.callbackKey)?.(errorMessage);
+      }
+      if (params?.callbackKey) {
+        removeQuickBuyErrorCallback(params.callbackKey);
+      }
+
+      const navigationWithParent = navigation as typeof navigation & {
+        getParent?: () => {
+          getParent?: () => {
+            canGoBack?: () => boolean;
+            goBack?: () => void;
+          };
+        };
+      };
+      const topLevelNavigation = navigationWithParent
+        .getParent?.()
+        ?.getParent?.();
+      if (topLevelNavigation?.canGoBack?.()) {
+        topLevelNavigation.goBack?.();
+        return;
+      }
+      if (navigation.canGoBack?.()) {
+        navigation.goBack();
+      }
+    },
+    [navigation, params?.callbackKey],
+  );
+
+  const autoProceedAttemptedRef = useRef(false);
+  const autoProceedFailedRef = useRef(false);
+
+  const autoProceedSessionKey = isAutoProceed
+    ? `${params?.assetId ?? ''}|${params?.paymentMethodId ?? ''}|${params?.amount ?? ''}`
+    : '';
+
+  const isAutoProceedAlreadyDispatched =
+    isAutoProceed &&
+    autoProceedSessionKey !== '' &&
+    autoProceedDispatched.has(autoProceedSessionKey);
+
+  useEffect(() => {
+    if (
+      !isAutoProceed ||
+      isAutoProceedAlreadyDispatched ||
+      autoProceedAttemptedRef.current ||
+      autoProceedFailedRef.current
+    ) {
+      return;
+    }
+
+    if (quoteFetchError) {
+      autoProceedFailedRef.current = true;
+      exitQuickBuyFlow(
+        parseUserFacingError(
+          quoteFetchError,
+          strings('deposit.buildQuote.quoteFetchError'),
+        ),
+      );
+      return;
+    }
+
+    if (
+      quoteFetchEnabled &&
+      !selectedQuoteLoading &&
+      quotesResponse &&
+      !canContinue
+    ) {
+      autoProceedFailedRef.current = true;
+      exitQuickBuyFlow(strings('fiat_on_ramp.quote_unavailable'));
+    }
+  }, [
+    isAutoProceed,
+    isAutoProceedAlreadyDispatched,
+    quoteFetchEnabled,
+    quoteFetchError,
+    selectedQuoteLoading,
+    quotesResponse,
+    canContinue,
+    exitQuickBuyFlow,
+  ]);
+
+  useEffect(() => {
+    if (
+      !isAutoProceed ||
+      isAutoProceedAlreadyDispatched ||
+      autoProceedAttemptedRef.current ||
+      autoProceedFailedRef.current ||
+      selectedQuoteLoading ||
+      isContinueLoading
+    ) {
+      return;
+    }
+
+    if (!selectedQuote || !selectedProvider) {
+      return;
+    }
+
+    autoProceedAttemptedRef.current = true;
+    if (autoProceedSessionKey) {
+      autoProceedDispatched.add(autoProceedSessionKey);
+      setTimeout(() => autoProceedDispatched.delete(autoProceedSessionKey), 300000);
+    }
+
+    let isCancelled = false;
+
+    const continueFlow = async () => {
+      const result = await handleContinuePress({ suppressUiError: true });
+      if (isCancelled) {
+        return;
+      }
+
+      if (!result.success) {
+        autoProceedFailedRef.current = true;
+        if (autoProceedSessionKey) {
+          autoProceedDispatched.delete(autoProceedSessionKey);
+        }
+        exitQuickBuyFlow(
+          result.errorMessage || strings('deposit.buildQuote.unexpectedError'),
+        );
+      } else if (params?.callbackKey) {
+        removeQuickBuyErrorCallback(params.callbackKey);
+      }
+    };
+
+    continueFlow().catch((error: unknown) => {
+      Logger.error(error as Error, {
+        message: 'Failed to auto proceed quick buy',
+      });
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    isAutoProceed,
+    isAutoProceedAlreadyDispatched,
+    autoProceedSessionKey,
+    selectedQuote,
+    selectedProvider,
+    selectedQuoteLoading,
+    isContinueLoading,
+    handleContinuePress,
+    exitQuickBuyFlow,
+    params?.callbackKey,
+  ]);
+
+  useEffect(() => {
+    if (!isAutoProceed || isAutoProceedAlreadyDispatched) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      if (!autoProceedAttemptedRef.current && !autoProceedFailedRef.current) {
+        autoProceedFailedRef.current = true;
+        exitQuickBuyFlow(strings('deposit.buildQuote.unexpectedError'));
+      }
+    }, 15000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isAutoProceed, isAutoProceedAlreadyDispatched, exitQuickBuyFlow]);
+
+  const onContinuePress = useCallback(() => {
+    handleContinuePress().catch((error: unknown) => {
+      Logger.error(error as Error, {
+        message: 'Failed to continue from build quote',
+      });
+    });
+  }, [handleContinuePress]);
+
+  if (isAutoProceed) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content style={styles.content}>
+            <View style={styles.centerGroup}>
+              <ActivityIndicator testID="build-quote-auto-proceed-loader" />
+            </View>
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
 
   return (
     <ScreenLayout>
@@ -521,7 +839,7 @@ function BuildQuote() {
                 <Button
                   variant={ButtonVariant.Primary}
                   size={ButtonSize.Lg}
-                  onPress={handleContinuePress}
+                  onPress={onContinuePress}
                   isFullWidth
                   isDisabled={!canContinue}
                   isLoading={selectedQuoteLoading || isContinueLoading}

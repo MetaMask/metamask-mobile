@@ -15,7 +15,11 @@ import { hasTransactionType } from '../../utils/transaction';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
-import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayQuotes,
+} from '../pay/useTransactionPayData';
+import { useTransactionPayFiatQuickBuy } from '../pay/useTransactionPayFiatQuickBuy';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -34,6 +38,9 @@ export function useTransactionConfirm() {
     transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
+  const quickBuyOrderId = fiatPayment?.quickBuyOrderId;
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
 
@@ -41,6 +48,8 @@ export function useTransactionConfirm() {
     useGaslessSupportedSmartTransactions();
 
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
+  const { isQuickBuyLoading, triggerFiatQuickBuy } =
+    useTransactionPayFiatQuickBuy();
 
   const waitForResult =
     !isSmartTransaction && !quotes?.length && !selectedGasFeeToken;
@@ -99,6 +108,18 @@ export function useTransactionConfirm() {
   );
 
   const onConfirm = useCallback(async () => {
+    if (isFiatPaymentSelected && !quickBuyOrderId) {
+      if (isQuickBuyLoading) {
+        return;
+      }
+      try {
+        await triggerFiatQuickBuy();
+      } catch (error) {
+        log('Error confirming fiat payment', error);
+      }
+      return;
+    }
+
     if (!transactionMetadata) {
       return;
     }
@@ -148,11 +169,15 @@ export function useTransactionConfirm() {
     chainId,
     handleGasless7702,
     handleSmartTransaction,
+    isFiatPaymentSelected,
     isFullScreenConfirmation,
     isGaslessSupportedSTX,
     navigation,
     onRequestConfirm,
+    isQuickBuyLoading,
+    quickBuyOrderId,
     selectedGasFeeToken,
+    triggerFiatQuickBuy,
     transactionMetadata,
     tryEnableEvmNetwork,
     type,

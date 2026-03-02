@@ -8,6 +8,7 @@ import { orderStatusToFiatOrderState } from '../../orderProcessor/unifiedOrderPr
 import { useTheme } from '../../../../../util/theme';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
+import { REDIRECTION_URL } from '../../Deposit/constants';
 import {
   addFiatOrder,
   addFiatCustomIdData,
@@ -53,6 +54,10 @@ import {
   getCheckoutCallback,
   removeCheckoutCallback,
 } from '../../utils/checkoutCallbackRegistry';
+import {
+  getQuickBuySuccessCallback,
+  removeQuickBuySuccessCallback,
+} from '../../utils/quickBuyCallbackRegistry';
 
 interface CheckoutParams {
   url: string;
@@ -78,8 +83,15 @@ interface CheckoutParams {
    * The actual callback lives outside navigation state so that route params stay serializable.
    */
   callbackKey?: string;
+  /**
+   * Key into quick-buy callback registry. Used to send orderId back to
+   * confirmation flow after checkout callback resolves.
+   */
+  quickBuyCallbackKey?: string;
   /** Optional callback invoked on every navigation state change (e.g. to intercept redirect URLs). */
   onNavigationStateChange?: (navState: { url: string }) => void;
+  /** When true, dismiss the Ramps modal on order completion instead of showing order details in-flow. */
+  isQuickBuy?: boolean;
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
@@ -230,6 +242,8 @@ const Checkout = () => {
     providerType,
     onNavigationStateChange,
     callbackKey,
+    quickBuyCallbackKey,
+    isQuickBuy,
   } = params ?? {};
 
   const headerTitle = providerName ?? '';
@@ -243,8 +257,11 @@ const Checkout = () => {
       if (callbackKey) {
         removeCheckoutCallback(callbackKey);
       }
+      if (quickBuyCallbackKey) {
+        removeQuickBuySuccessCallback(quickBuyCallbackKey);
+      }
     };
-  }, [callbackKey]);
+  }, [callbackKey, quickBuyCallbackKey]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -292,6 +309,45 @@ const Checkout = () => {
         }
       });
 
+      if (isQuickBuy) {
+        Logger.log('UnifiedCheckout: quick buy order created', {
+          orderId: order.id,
+          providerType,
+        });
+
+        // Return user to confirmation flow instead of showing order details.
+        const navigationWithParents = navigation as typeof navigation & {
+          dangerouslyGetParent?: () => {
+            dangerouslyGetParent?: () => {
+              canGoBack?: () => boolean;
+              goBack?: () => void;
+            };
+            canGoBack?: () => boolean;
+            goBack?: () => void;
+          };
+          canGoBack?: () => boolean;
+          goBack?: () => void;
+        };
+
+        const rootNavigation =
+          navigationWithParents.dangerouslyGetParent?.()?.dangerouslyGetParent?.();
+        if (rootNavigation?.canGoBack?.()) {
+          rootNavigation.goBack?.();
+          return;
+        }
+
+        const parentNavigation = navigationWithParents.dangerouslyGetParent?.();
+        if (parentNavigation?.canGoBack?.()) {
+          parentNavigation.goBack?.();
+          return;
+        }
+
+        if (navigationWithParents.canGoBack?.()) {
+          navigationWithParents.goBack?.();
+        }
+        return;
+      }
+
       if (providerType === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
         // Use reset() instead of pop() + navigate() to avoid a race condition:
         // dangerouslyGetParent()?.pop() removes the ramp modal from the stack
@@ -302,7 +358,7 @@ const Checkout = () => {
           routes: [
             {
               name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-              params: { orderId: order.id, showCloseButton: true },
+              params: { orderId: order.id, showCloseButton: true, isQuickBuy },
             },
           ],
         });
@@ -311,15 +367,18 @@ const Checkout = () => {
         navigation.dangerouslyGetParent()?.pop();
       }
     },
-    [dispatch, dispatchThunk, navigation, providerType],
+    [dispatch, dispatchThunk, navigation, providerType, isQuickBuy],
   );
 
   const handleNavigationStateChange = useCallback(
     async (navState: WebViewNavigation) => {
+      const isRampsCallbackUrl = navState.url.startsWith(callbackBaseUrl);
+      const isNativeCallbackUrl = navState.url.startsWith(REDIRECTION_URL);
+
       if (
         !hasCallbackFlow ||
         isRedirectionHandledRef.current ||
-        !navState.url.startsWith(callbackBaseUrl) ||
+        (!isRampsCallbackUrl && !isNativeCallbackUrl) ||
         navState.loading !== false
       ) {
         return;
@@ -328,6 +387,20 @@ const Checkout = () => {
 
       try {
         const parsedUrl = parseUrl(navState.url);
+        const callbackOrderId =
+          typeof parsedUrl.query?.orderId === 'string'
+            ? parsedUrl.query.orderId
+            : undefined;
+
+        if (isQuickBuy) {
+          Logger.log('UnifiedCheckout: callback URL detected', {
+            orderId: callbackOrderId,
+            callbackUrl: navState.url,
+            isNativeCallbackUrl,
+            isRampsCallbackUrl,
+          });
+        }
+
         if (Object.keys(parsedUrl.query).length === 0) {
           // @ts-expect-error navigation prop mismatch
           navigation.dangerouslyGetParent()?.pop();
@@ -359,6 +432,12 @@ const Checkout = () => {
           throw new Error('Order response did not contain an order ID');
         }
 
+        Logger.log('UnifiedCheckout: order callback resolved', {
+          isQuickBuy,
+          orderId,
+          providerCode,
+        });
+
         const fiatOrder = createInitialFiatOrder({
           providerCode,
           providerName: providerName ?? providerCode,
@@ -370,6 +449,11 @@ const Checkout = () => {
           rampsOrder,
           providerType,
         });
+
+        if (quickBuyCallbackKey && isQuickBuy) {
+          getQuickBuySuccessCallback(quickBuyCallbackKey)?.(fiatOrder.id);
+          removeQuickBuySuccessCallback(quickBuyCallbackKey);
+        }
 
         handleOrderCreated(fiatOrder);
       } catch (navError) {
@@ -393,6 +477,8 @@ const Checkout = () => {
       navigation,
       dispatch,
       handleOrderCreated,
+      isQuickBuy,
+      quickBuyCallbackKey,
     ],
   );
 

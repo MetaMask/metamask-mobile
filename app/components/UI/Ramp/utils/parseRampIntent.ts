@@ -7,6 +7,12 @@ import { toChecksumAddress } from '../../../../util/address';
 export default function parseRampIntent(
   pathParams: Record<string, string | undefined>,
 ): RampIntent | undefined {
+  const autoProceedParam = pathParams.autoProceed;
+  const parsedAutoProceed =
+    autoProceedParam === undefined
+      ? undefined
+      : autoProceedParam === 'true' || autoProceedParam === '1';
+
   // create a rampIntent object if the pathParams contain the necessary fields
   const rampIntentCandidate = {
     address: pathParams.address,
@@ -14,6 +20,10 @@ export default function parseRampIntent(
     assetId: pathParams.assetId,
     amount: pathParams.amount,
     currency: pathParams.currency,
+    providerId: pathParams.providerId,
+    paymentMethodId: pathParams.paymentMethodId,
+    autoProceed: parsedAutoProceed,
+    callbackKey: pathParams.callbackKey,
   };
 
   // return with undefined if the pathParams do not contain necessary fields
@@ -22,7 +32,11 @@ export default function parseRampIntent(
     !rampIntentCandidate.assetId &&
     !rampIntentCandidate.chainId &&
     !rampIntentCandidate.amount &&
-    !rampIntentCandidate.currency
+    !rampIntentCandidate.currency &&
+    !rampIntentCandidate.providerId &&
+    !rampIntentCandidate.paymentMethodId &&
+    rampIntentCandidate.autoProceed === undefined &&
+    !rampIntentCandidate.callbackKey
   ) {
     return undefined;
   }

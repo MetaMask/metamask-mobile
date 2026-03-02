@@ -29,12 +29,14 @@ import {
 } from '../../transactions/custom-amount';
 import {
   useIsTransactionPayLoading,
+  useTransactionPayFiatPayment,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { useTransactionPayAutoFiatSubmission } from '../../../hooks/pay/useTransactionPayAutoFiatSubmission';
 import Text, {
   TextColor,
   TextVariant,
@@ -59,7 +61,6 @@ import Engine from '../../../../../../core/Engine';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -98,6 +99,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       disable: disablePay,
       preferredToken,
     });
+    useTransactionPayAutoFiatSubmission();
     useTransactionPayMetrics();
     useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 
@@ -105,8 +107,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const { hasTokens } = useTransactionPayAvailableTokens();
-    const selectedFiatPaymentMethod =
-      useTransactionPaySelectedFiatPaymentMethod();
+    const fiatPayment = useTransactionPayFiatPayment();
+    const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const transactionMeta = useTransactionMetadataRequest();
     const transactionId = transactionMeta?.id;
     const isResultReady = useIsResultReady({ isKeyboardVisible });
@@ -129,7 +131,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
 
     const handleDone = useCallback(() => {
-      if (selectedFiatPaymentMethod && transactionId) {
+      if (selectedFiatPaymentMethodId && transactionId) {
         Engine.context.TransactionPayController.updateFiatPayment({
           transactionId,
           amount: amountFiat,
@@ -144,7 +146,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, [
       amountFiat,
       onAmountSubmit,
-      selectedFiatPaymentMethod,
+      selectedFiatPaymentMethodId,
       transactionId,
       updateTokenAmount,
     ]);
@@ -203,7 +205,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {isKeyboardVisible && hasTokens && (
             <DepositKeyboard
-              hidePercentageButtons={!!selectedFiatPaymentMethod}
+              hidePercentageButtons={Boolean(selectedFiatPaymentMethodId)}
               alertMessage={alertTitle}
               value={amountFiat}
               onChange={updatePendingAmount}
@@ -236,7 +238,11 @@ export function CustomAmountInfoSkeleton() {
   );
 }
 
-function BuySection() {
+function BuySection({
+  isFiatPaymentSelected = false,
+}: Readonly<{
+  isFiatPaymentSelected?: boolean;
+}>) {
   const transactionMeta = useTransactionMetadataRequest();
   const tokens = useAccountTokens({ includeNoBalance: true });
   const requiredTokens = useTransactionPayRequiredTokens();
@@ -273,6 +279,10 @@ function BuySection() {
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
     message = strings('confirm.custom_amount.buy_predict');
+  }
+
+  if (isFiatPaymentSelected) {
+    return null;
   }
 
   return (

@@ -9439,6 +9439,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/ramps-controller@file:.yalc/@metamask/ramps-controller::locator=metamask%40workspace%3A.":
+  version: 10.0.0
+  resolution: "@metamask/ramps-controller@file:.yalc/@metamask/ramps-controller#.yalc/@metamask/ramps-controller::hash=b4b2b3&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.19.0"
+    "@metamask/messenger": "npm:^0.3.0"
+  checksum: 10/21bb643dfe53c20521981ac9a4f1ec7345d56467bc3abf8b62c591dc1295d6f78a848ccce96fed52e98b70cc4560632a1d9f052f61baa11c4df92c697a877862
+  languageName: node
+  linkType: hard
+
 "@metamask/ramps-controller@npm:^10.0.0":
   version: 10.0.0
   resolution: "@metamask/ramps-controller@npm:10.0.0"
@@ -9526,6 +9537,19 @@ __metadata:
     "@metamask/utils": "npm:^11.9.0"
     uuid: "npm:^8.3.2"
   checksum: 10/5cb0e380d9b68666564f8e34add9a3c4cab1907bc3e0abddf37d1c06a6311f07cc6718baf4091aeab44c2d2cde378bb072e07a713546be3d5c9358fda5d75ab8
+  languageName: node
+  linkType: hard
+
+"@metamask/remote-feature-flag-controller@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "@metamask/remote-feature-flag-controller@npm:4.1.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.19.0"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/utils": "npm:^11.9.0"
+    uuid: "npm:^8.3.2"
+  checksum: 10/30122c316e788adc2abb6875eefef189946e2af469c1b217f8617ade17693666cde896e043fcb2a65874b2e62d4499b05456345dd2425dee6f9ea92f1f2d12e3
   languageName: node
   linkType: hard
 
@@ -10155,9 +10179,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^16.1.0":
+"@metamask/transaction-pay-controller@file:.yalc/@metamask/transaction-pay-controller::locator=metamask%40workspace%3A.":
   version: 16.1.0
-  resolution: "@metamask/transaction-pay-controller@npm:16.1.0"
+  resolution: "@metamask/transaction-pay-controller@file:.yalc/@metamask/transaction-pay-controller#.yalc/@metamask/transaction-pay-controller::hash=e98a9a&locator=metamask%40workspace%3A."
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10171,14 +10195,15 @@ __metadata:
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/network-controller": "npm:^30.0.0"
-    "@metamask/remote-feature-flag-controller": "npm:^4.0.0"
+    "@metamask/ramps-controller": "npm:^10.0.0"
+    "@metamask/remote-feature-flag-controller": "npm:^4.1.0"
     "@metamask/transaction-controller": "npm:^62.19.0"
     "@metamask/utils": "npm:^11.9.0"
     bignumber.js: "npm:^9.1.2"
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/bfba59abf458bd7af18741b7697d2f0aedb3cc6a86c275626d4cbcac4f4b5b6b96ceb28809b7d1316e466e96c913f8cef3b2f1e73f154ea9aa3eb66856e5bc3d
+  checksum: 10/3153c0fa30538a4eacf6156a6b420cf9779a0d200260ae63d0780368e463aee3704f5eaa915ffdd46b866112d0dd164568dfc7773ef5f2ce73d26d28e34ae71c
   languageName: node
   linkType: hard
 
@@ -35444,7 +35469,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^27.1.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^10.0.0"
+    "@metamask/ramps-controller": "file:.yalc/@metamask/ramps-controller"
     "@metamask/react-native-acm": "npm:^1.0.1"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
@@ -35477,7 +35502,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^62.19.0"
-    "@metamask/transaction-pay-controller": "npm:^16.1.0"
+    "@metamask/transaction-pay-controller": "file:.yalc/@metamask/transaction-pay-controller"
     "@metamask/tron-wallet-snap": "npm:^1.21.1"
     "@metamask/utils": "npm:^11.8.1"
     "@myx-trade/sdk": "npm:^0.1.265"

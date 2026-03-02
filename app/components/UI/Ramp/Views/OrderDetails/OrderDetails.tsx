@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -43,6 +43,7 @@ import { processFiatOrder } from '../../index';
 interface RampsOrderDetailsParams {
   orderId: string;
   showCloseButton?: boolean;
+  isQuickBuy?: boolean;
 }
 
 export const createRampsOrderDetailsNavDetails =
@@ -68,6 +69,7 @@ const OrderDetails = () => {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
+  const hasTriggeredInitialRefreshRef = useRef(false);
 
   useEffect(() => {
     navigation.setOptions(
@@ -120,14 +122,18 @@ const OrderDetails = () => {
   );
 
   useEffect(() => {
+    if (hasTriggeredInitialRefreshRef.current) {
+      return;
+    }
+
     if (
       order?.state === FIAT_ORDER_STATES.PENDING ||
       order?.state === FIAT_ORDER_STATES.CREATED
     ) {
+      hasTriggeredInitialRefreshRef.current = true;
       handleOnRefresh();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleOnRefresh, order?.state]);
 
   useInterval(() => handleOnRefresh({ fromInterval: true }), {
     delay:
@@ -209,6 +215,7 @@ const OrderDetails = () => {
             <OrderContent
               order={order}
               showCloseButton={params.showCloseButton}
+              isQuickBuy={params.isQuickBuy}
             />
           </ScreenLayout.Content>
         </ScreenLayout.Body>

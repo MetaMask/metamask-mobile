@@ -46,6 +46,7 @@ export interface V2OtpCodeParams {
   amount?: string;
   currency?: string;
   assetId?: string;
+  quickBuyCallbackKey?: string;
 }
 
 export const createV2OtpCodeNavDetails =
@@ -74,7 +75,14 @@ const ResendButton: FC<{
 const V2OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { email, stateToken, amount, currency, assetId } =
+  const {
+    email,
+    stateToken,
+    amount,
+    currency,
+    assetId,
+    quickBuyCallbackKey,
+  } =
     useParams<V2OtpCodeParams>();
   const trackEvent = useAnalytics();
 
@@ -213,7 +221,10 @@ const V2OtpCode = () => {
               selectedPaymentMethod?.id || '',
               amount,
             );
-            await routeAfterAuthentication(quote);
+            await routeAfterAuthentication(quote, 0, {
+              isQuickBuy: Boolean(quickBuyCallbackKey),
+              quickBuyCallbackKey,
+            });
           } catch (routeError) {
             navigation.navigate(
               Routes.RAMP.AMOUNT_INPUT as never,
@@ -255,6 +266,7 @@ const V2OtpCode = () => {
     transakGetBuyQuote,
     selectedToken?.chainId,
     selectedPaymentMethod?.id,
+    quickBuyCallbackKey,
     routeAfterAuthentication,
   ]);
 

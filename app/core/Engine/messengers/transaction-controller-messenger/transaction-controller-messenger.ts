@@ -42,6 +42,10 @@ import {
   AccountTrackerControllerGetStateAction,
   CurrencyRateControllerActions,
 } from '@metamask/assets-controllers';
+import type {
+  RampsControllerGetOrderAction,
+  RampsServiceGetOrderAction,
+} from '@metamask/ramps-controller';
 import {
   TransactionPayControllerGetStateAction,
   TransactionPayControllerGetStrategyAction,
@@ -75,6 +79,9 @@ export function getTransactionControllerMessenger(
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
       'RemoteFeatureFlagController:getState',
+      'RampsController:getOrder',
+      'RampsController:getQuotes',
+      'TokenRatesController:getState',
     ],
     events: [
       'AccountActivityService:transactionUpdated',
@@ -109,6 +116,8 @@ type InitMessengerActions =
   | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerGetStateAction
   | TransactionPayControllerGetStrategyAction
+  | RampsControllerGetOrderAction
+  | RampsServiceGetOrderAction
   | AnalyticsControllerActions;
 
 type InitMessengerEvents =
@@ -166,6 +175,16 @@ export function getTransactionControllerInitMessenger(
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
       'AnalyticsController:trackEvent',
+
+      // TransactionPayController
+      'BridgeController:fetchQuotes',
+      'GasFeeController:getState',
+      'RampsController:getOrder',
+      'RampsController:getQuotes',
+      'RampsController:setSelectedToken',
+      'TokenBalancesController:getState',
+      'TokenRatesController:getState',
+      'TokensController:getState',
     ],
     events: [
       'BridgeStatusController:stateChange',
