@@ -1,4 +1,7 @@
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  type StackNavigationOptions,
+} from '@react-navigation/stack';
 import React from 'react';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { strings } from '../../../../../locales/i18n';
@@ -13,64 +16,34 @@ import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsM
 import PredictFeed from '../views/PredictFeed';
 import PredictGTMModal from '../components/PredictGTMModal';
 import { Dimensions } from 'react-native';
-import { getPredictMarketHeader } from '../hooks';
-import { PredictMarketHeaderParams } from '../hooks/usePredictMarketHeader';
 
 interface PredictConfirmationRouteParams {
   animationEnabled?: boolean;
-  predictHeader?: PredictMarketHeaderParams;
 }
 
-const getConfirmationTransitionSpec = (disableOpenAnimation: boolean) =>
+const getConfirmationTransitionSpec = (
+  disableOpenAnimation: boolean,
+): StackNavigationOptions['transitionSpec'] =>
   disableOpenAnimation
     ? {
-        open: { animation: 'timing', config: { duration: 0 } },
-        close: { animation: 'timing', config: { duration: 300 } },
+        open: { animation: 'timing' as const, config: { duration: 0 } },
+        close: { animation: 'timing' as const, config: { duration: 300 } },
       }
     : undefined;
 
 const getPredictConfirmationScreenOptions = ({
   route,
-  navigation,
 }: {
   route: {
     params?: PredictConfirmationRouteParams;
   };
-  navigation: {
-    goBack: () => void;
-  };
-}) => {
+}): StackNavigationOptions => {
   const disableOpenAnimation = route.params?.animationEnabled === false;
-  const predictHeader = route.params?.predictHeader;
-
-  if (!predictHeader) {
-    return {
-      headerLeft: () => null,
-      headerShown: true,
-      title: '',
-      transitionSpec: getConfirmationTransitionSpec(disableOpenAnimation),
-    };
-  }
-
-  const overrides = getPredictMarketHeader(predictHeader);
-  const onBackPress = () => navigation.goBack();
 
   return {
-    title: strings('confirm.title.predict_deposit'),
-    headerTitleAlign: overrides.headerTitleAlign ?? 'left',
-    headerTitle: overrides.headerTitle,
-    headerLeft: overrides.headerLeft
-      ? () => overrides.headerLeft?.(onBackPress)
-      : () => null,
-    headerRight: overrides.headerRight
-      ? () => overrides.headerRight?.(onBackPress)
-      : () => null,
-    headerStyle: {
-      shadowColor: 'transparent',
-      elevation: 0,
-      ...overrides.headerStyle,
-    },
+    headerLeft: () => null,
     headerShown: true,
+    title: '',
     transitionSpec: getConfirmationTransitionSpec(disableOpenAnimation),
   };
 };
@@ -136,7 +109,11 @@ const PredictModalStack = () => (
     <ModalStack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
       component={Confirm}
-      options={({ route }) => {
+      options={({
+        route,
+      }: {
+        route: { params?: PredictConfirmationRouteParams };
+      }) => {
         const disableOpenAnimation = route.params?.animationEnabled === false;
 
         return {
@@ -169,7 +146,11 @@ const PredictScreenStack = () => (
     <Stack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
       component={Confirm}
-      options={({ route }) => {
+      options={({
+        route,
+      }: {
+        route: { params?: PredictConfirmationRouteParams };
+      }) => {
         const disableOpenAnimation = route.params?.animationEnabled === false;
 
         return {
@@ -203,7 +184,11 @@ const PredictScreenStack = () => (
     <Stack.Screen
       name={Routes.PREDICT.MODALS.BUY_PREVIEW}
       component={PredictBuyPreview}
-      options={({ route }) => {
+      options={({
+        route,
+      }: {
+        route: { params?: PredictConfirmationRouteParams };
+      }) => {
         const disableOpenAnimation = route.params?.animationEnabled === false;
 
         return {
