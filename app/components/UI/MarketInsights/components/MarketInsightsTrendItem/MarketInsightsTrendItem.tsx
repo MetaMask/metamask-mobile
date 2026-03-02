@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Pressable } from 'react-native';
+import { Image, Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -9,10 +9,18 @@ import {
   FontWeight,
   TextColor,
   TextVariant,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import type { MarketInsightsSource } from '@metamask/ai-controllers';
 import type { MarketInsightsTrendItemProps } from './MarketInsightsTrendItem.types';
-import { getUniqueSourcesByFavicon } from '../../utils/marketInsightsFormatting';
+import {
+  getFaviconUrl,
+  getUniqueSourcesByFavicon,
+  isXSourceUrl,
+} from '../../utils/marketInsightsFormatting';
 
 const MAX_VISIBLE_SOURCE_LOGOS = 3;
 
@@ -62,13 +70,14 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
       </Text>
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {trend.description}
-        {uniqueSources.length > 0 ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="pt-2"
-          >
-            {/* {uniqueSources.map((source, index) => (
+      </Text>
+      {uniqueSources.length > 0 && (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="pt-2"
+        >
+          {uniqueSources.map((source, index) => (
             <Box
               key={`${source.name}-${source.url}`}
               twClassName={`h-4 w-4 rounded-full border border-muted bg-default overflow-hidden ${
@@ -90,10 +99,9 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
                 />
               )}
             </Box>
-          ))} */}
-          </Box>
-        ) : null}
-      </Text>
+          ))}
+        </Box>
+      )}
     </Pressable>
   );
 };

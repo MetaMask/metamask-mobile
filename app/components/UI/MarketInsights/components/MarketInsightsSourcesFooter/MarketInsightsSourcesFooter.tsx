@@ -28,13 +28,14 @@ import type { MarketInsightsSource } from '@metamask/ai-controllers';
 import {
   formatRelativeTime,
   getFaviconUrl,
+  isXSourceUrl,
 } from '../../utils/marketInsightsFormatting';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 
 // Maximum number of source icons to show in the pill before "+N"
 const MAX_VISIBLE_SOURCES = 4;
 
-// SourceIcon renders a small circular favicon for a source.
+// SourceIcon renders a small circular favicon (or X icon) for a source.
 const SourceIcon: React.FC<{
   source: MarketInsightsSource;
   index: number;
@@ -47,10 +48,20 @@ const SourceIcon: React.FC<{
         isStacked && index > 0 ? '-ml-2' : ''
       }`}
     >
-      <Image
-        source={{ uri: getFaviconUrl(source.url) }}
-        style={tw.style('w-5 h-5 rounded-full')}
-      />
+      {isXSourceUrl(source.url) ? (
+        <Box twClassName="w-5 h-5 items-center justify-center rounded-full">
+          <Icon
+            name={IconName.X}
+            size={IconSize.Sm}
+            color={IconColor.IconDefault}
+          />
+        </Box>
+      ) : (
+        <Image
+          source={{ uri: getFaviconUrl(source.url) }}
+          style={tw.style('w-5 h-5 rounded-full')}
+        />
+      )}
     </Box>
   );
 };
@@ -132,11 +143,19 @@ export const MarketInsightsSourcesBottomSheet: React.FC<
                   alignItems={BoxAlignItems.Center}
                   twClassName="pt-1"
                 >
-                  <Box twClassName="w-4 h-4 rounded-full overflow-hidden mr-2">
-                    <Image
-                      source={{ uri: getFaviconUrl(source.url) }}
-                      style={tw.style('w-4 h-4 rounded-full')}
-                    />
+                  <Box twClassName="w-4 h-4 rounded-full overflow-hidden mr-2 items-center justify-center">
+                    {isXSourceUrl(source.url) ? (
+                      <Icon
+                        name={IconName.X}
+                        size={IconSize.Sm}
+                        color={IconColor.IconDefault}
+                      />
+                    ) : (
+                      <Image
+                        source={{ uri: getFaviconUrl(source.url) }}
+                        style={tw.style('w-4 h-4 rounded-full')}
+                      />
+                    )}
                   </Box>
                   <Text
                     variant={TextVariant.BodySm}
@@ -168,11 +187,19 @@ export const MarketInsightsSourcesBottomSheet: React.FC<
                   alignItems={BoxAlignItems.Center}
                   twClassName="pt-1"
                 >
-                  <Box twClassName="w-4 h-4 rounded-full overflow-hidden mr-2">
-                    <Image
-                      source={{ uri: getFaviconUrl(source.url) }}
-                      style={tw.style('w-4 h-4 rounded-full')}
-                    />
+                  <Box twClassName="w-4 h-4 rounded-full overflow-hidden mr-2 items-center justify-center">
+                    {isXSourceUrl(source.url) ? (
+                      <Icon
+                        name={IconName.X}
+                        size={IconSize.Sm}
+                        color={IconColor.IconDefault}
+                      />
+                    ) : (
+                      <Image
+                        source={{ uri: getFaviconUrl(source.url) }}
+                        style={tw.style('w-4 h-4 rounded-full')}
+                      />
+                    )}
                   </Box>
                   <Text
                     variant={TextVariant.BodyXs}

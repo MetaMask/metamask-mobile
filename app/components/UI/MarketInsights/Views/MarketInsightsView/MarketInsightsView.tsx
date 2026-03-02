@@ -63,6 +63,7 @@ import MarketInsightsFeedbackBottomSheet, {
 } from '../../components/MarketInsightsFeedbackBottomSheet';
 import {
   getFaviconUrl,
+  getNormalizedHandle,
   getUniqueSourcesByFavicon,
   isXSourceUrl,
 } from '../../utils/marketInsightsFormatting';
@@ -243,12 +244,12 @@ const MarketInsightsView: React.FC = () => {
     if (!report) return [];
     return report.trends.flatMap((trend) => trend.tweets).slice(0, 4);
   }, [report]);
-  const trendArticleSources: MarketInsightsSourceListItem[] = useMemo(() => {
+  const trendAllSources: MarketInsightsSourceListItem[] = useMemo(() => {
     if (!report) {
       return [];
     }
 
-    return report.trends.flatMap((trend) =>
+    const articleSources = report.trends.flatMap((trend) =>
       trend.articles.map((article) => {
         const sourceSeed = article.url || article.source;
         const normalizedUrl = sourceSeed.includes('://')
@@ -264,10 +265,23 @@ const MarketInsightsView: React.FC = () => {
         };
       }),
     );
+
+    const tweetSources = report.trends.flatMap((trend) =>
+      (trend.tweets ?? []).map((tweet) => ({
+        name: getNormalizedHandle(tweet.author),
+        type: 'social',
+        url: tweet.url,
+        headline: tweet.contentSummary,
+        date: tweet.date,
+      })),
+    );
+
+    return [...articleSources, ...tweetSources];
   }, [report]);
+
   const sourcesSheetItems: MarketInsightsSourceListItem[] = useMemo(() => {
-    if (trendArticleSources.length > 0) {
-      return trendArticleSources;
+    if (trendAllSources.length > 0) {
+      return trendAllSources;
     }
 
     return (report?.sources ?? []).map((source) => ({
@@ -275,7 +289,7 @@ const MarketInsightsView: React.FC = () => {
       type: source.type,
       url: source.url,
     }));
-  }, [report?.sources, trendArticleSources]);
+  }, [report?.sources, trendAllSources]);
   const trendSourcesPillSources: MarketInsightsSource[] = useMemo(
     () => getUniqueSourcesByFavicon(sourcesSheetItems),
     [sourcesSheetItems],
