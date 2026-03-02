@@ -153,7 +153,12 @@ const useLoadCardData = () => {
   const fetchAllData = useCallback(async () => {
     if (isAuthenticated) {
       const fns = fetchRef.current;
-      await fns.fetchDelegationSettings();
+      try {
+        await fns.fetchDelegationSettings();
+      } catch {
+        // Delegation settings uses queryClient.fetchQuery which throws on
+        // error. Catch here so independent sibling fetches still run.
+      }
       await Promise.all([
         fns.fetchExternalWalletDetails(),
         fns.fetchCardDetails(),
