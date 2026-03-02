@@ -1,9 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { PREDICT_CONSTANTS } from '../constants/errors';
-import { ensureError } from '../utils/predictErrorHandler';
+import { useQueries } from '@tanstack/react-query';
+import { predictQueries } from '../queries';
 import {
   PredictPriceHistoryInterval,
   PredictPriceHistoryPoint,
@@ -26,7 +22,10 @@ export interface UsePredictPriceHistoryResult {
 }
 
 /**
- * Hook to fetch and manage price history data for multiple markets
+ * Hook to fetch and manage price history data for multiple markets.
+ *
+ * Internally creates one React Query per marketId so each market is
+ * cached and refetched independently.
  */
 export const usePredictPriceHistory = (
   options: UsePredictPriceHistoryOptions,
@@ -40,169 +39,37 @@ export const usePredictPriceHistory = (
     enabled = true,
   } = options;
 
-  const [priceHistories, setPriceHistories] = useState<
-    PredictPriceHistoryPoint[][]
-  >([]);
-  const [isFetching, setIsFetching] = useState(false);
-  const [errors, setErrors] = useState<(string | null)[]>([]);
+  const queries = useQueries({
+    queries: marketIds.map((marketId) => ({
+      ...predictQueries.priceHistory.options({
+        marketId,
+        interval,
+        fidelity,
+        startTs,
+        endTs,
+      }),
+      enabled: enabled && marketIds.length > 0,
+    })),
+  });
 
-  const isMountedRef = useRef(true);
-  useEffect(
-    () => () => {
-      isMountedRef.current = false;
-    },
-    [],
-  );
+  const priceHistories = queries.map((q) => q.data ?? []);
+  const isFetching = queries.some((q) => q.isFetching);
+  const errors = queries.map((q) => {
+    if (!q.error) return null;
+    return q.error instanceof Error
+      ? q.error.message
+      : 'Failed to fetch price history';
+  });
 
-  useEffect(() => {
-    if (!enabled && isMountedRef.current) {
-      setPriceHistories([]);
-      setErrors([]);
-      setIsFetching(false);
-    }
-  }, [enabled]);
-
-  // Create a stable string representation for the dependency array
-  const marketIdsKey = marketIds?.join(',') ?? '';
-
-  const fetchPriceHistories = useCallback(async () => {
-    if (!enabled) {
-      return;
-    }
-
-    if (!marketIds?.length) {
-      if (isMountedRef.current) {
-        setPriceHistories([]);
-        setErrors([]);
-        setIsFetching(false);
-      }
-      return;
-    }
-
-    if (isMountedRef.current) {
-      setIsFetching(true);
-      setErrors(new Array(marketIds.length).fill(null));
-    }
-
-    try {
-      if (!Engine || !Engine.context) {
-        throw new Error('Engine not initialized');
-      }
-
-      const controller = Engine.context.PredictController;
-      if (!controller) {
-        throw new Error('Predict controller not available');
-      }
-
-      // Fetch all price histories in parallel
-      const promises = marketIds.map(async (marketId, index) => {
-        try {
-          const history = await controller.getPriceHistory({
-            marketId,
-            fidelity,
-            interval,
-            startTs,
-            endTs,
-          });
-          return { index, data: history ?? [], error: null };
-        } catch (err) {
-          const errorMessage =
-            err instanceof Error
-              ? err.message
-              : 'Failed to fetch price history';
-          DevLogger.log(
-            `usePredictPriceHistory: Error fetching price history for market ${marketId}`,
-            err,
-          );
-
-          // Capture exception with price history loading context (single market)
-          Logger.error(ensureError(err), {
-            tags: {
-              feature: PREDICT_CONSTANTS.FEATURE_NAME,
-              component: 'usePredictPriceHistory',
-            },
-            context: {
-              name: 'usePredictPriceHistory',
-              data: {
-                method: 'loadPriceHistory',
-                action: 'price_history_load_single',
-                operation: 'data_fetching',
-                marketId,
-                interval,
-                startTs,
-                endTs,
-                fidelity,
-              },
-            },
-          });
-
-          return { index, data: [], error: errorMessage };
-        }
-      });
-
-      const results = await Promise.all(promises);
-
-      if (isMountedRef.current) {
-        const histories = new Array(marketIds.length).fill([]);
-        const errorList = new Array(marketIds.length).fill(null);
-
-        results.forEach(({ index, data, error }) => {
-          histories[index] = data;
-          errorList[index] = error;
-        });
-
-        setPriceHistories(histories);
-        setErrors(errorList);
-      }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Failed to fetch price histories';
-
-      DevLogger.log('usePredictPriceHistory: Error in batch fetching', err);
-
-      // Capture exception with price history batch loading context
-      Logger.error(ensureError(err), {
-        tags: {
-          feature: PREDICT_CONSTANTS.FEATURE_NAME,
-          component: 'usePredictPriceHistory',
-        },
-        context: {
-          name: 'usePredictPriceHistory',
-          data: {
-            method: 'loadPriceHistory',
-            action: 'price_history_load_batch',
-            operation: 'data_fetching',
-            marketCount: marketIds.length,
-            interval,
-            startTs,
-            endTs,
-            fidelity,
-          },
-        },
-      });
-
-      if (isMountedRef.current) {
-        setErrors(new Array(marketIds.length).fill(errorMessage));
-        setPriceHistories(new Array(marketIds.length).fill([]));
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setIsFetching(false);
-      }
-    }
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, marketIdsKey, fidelity, interval, startTs, endTs]);
-
-  useEffect(() => {
-    fetchPriceHistories();
-  }, [fetchPriceHistories]);
+  const refetch = async () => {
+    await Promise.all(queries.map((q) => q.refetch()));
+  };
 
   return {
-    priceHistories,
+    priceHistories: enabled ? priceHistories : [],
     isFetching,
-    errors,
-    refetch: fetchPriceHistories,
+    errors: enabled ? errors : [],
+    refetch,
   };
 };
 
