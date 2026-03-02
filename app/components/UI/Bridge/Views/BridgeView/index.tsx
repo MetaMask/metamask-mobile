@@ -102,6 +102,8 @@ import { useBridgeViewOnFocus } from '../../hooks/useBridgeViewOnFocus/index.ts'
 import { useRenderQuoteExpireModal } from '../../hooks/useRenderQuoteExpireModal/index.ts';
 import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/index.ts';
 import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
+import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
+import type { RootState } from '../../../../../reducers';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -109,6 +111,13 @@ const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const [isNearBottom, setIsNearBottom] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
+
+  // Inline selector because this is a temporary feature flag
+  // TODO: Remove this once trending tokens feature is prod hardened
+  const isSwapsTrendingTokensEnabled = useSelector(
+    (state: RootState) =>
+      selectRemoteFeatureFlags(state).swapsTrendingTokens === true,
+  );
 
   const { styles } = useStyles(createStyles);
   const dispatch = useDispatch();
@@ -487,7 +496,7 @@ const BridgeView = () => {
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
           scrollEventThrottle={16}
-          onScroll={handleScroll}
+          onScroll={isSwapsTrendingTokensEnabled ? handleScroll : undefined}
         >
           <Box style={styles.inputsContainer}>
             <TokenInputArea
@@ -564,7 +573,7 @@ const BridgeView = () => {
                 />
               </Box>
             ) : null}
-            {contentMode === 'zero' ? (
+            {contentMode === 'zero' && isSwapsTrendingTokensEnabled ? (
               <BridgeTrendingTokensSection isNearBottom={isNearBottom} />
             ) : null}
           </Box>

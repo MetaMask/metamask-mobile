@@ -968,16 +968,33 @@ describe('BridgeView', () => {
     });
 
     it('shows zero mode with trending section and without quote content', () => {
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [],
-          quotesLastFetched: 12,
+      const testState = createBridgeTestState(
+        {
+          bridgeControllerOverrides: {
+            quotesLoadingStatus: RequestStatus.FETCHED,
+            quotes: [],
+            quotesLastFetched: 12,
+          },
+          bridgeReducerOverrides: {
+            sourceAmount: undefined,
+          },
         },
-        bridgeReducerOverrides: {
-          sourceAmount: undefined,
-        },
-      });
+        {
+          ...mockState,
+          engine: {
+            ...mockState.engine,
+            backgroundState: {
+              ...mockState.engine?.backgroundState,
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  swapsTrendingTokens: true,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        } as DeepPartial<RootState>,
+      );
 
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
