@@ -33,7 +33,24 @@ const unifiedBuyV2Mocks = async (mockServer: Mockttp) => {
   await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
 };
 
-const tokenToBuy = 'ETH';
+// Deposit order mock (ramps-deposit-order-status-response) returns USD; UI shows $ + formatFiatValue
+const nativeDepositOrder = {
+  token: 'ETH',
+  tokenAmount: '0.02455',
+  totalFiat: '$100 USD',
+  feesFiat: '$23.33 USD',
+  quoteDisplayAmount: '100 USD',
+  provider: 'Transak (Staging)',
+};
+
+const aggregatorBuyOrder = {
+  token: 'ETH',
+  tokenAmount: '0.00355',
+  totalFiat: '$15 USD',
+  feesFiat: '$3.5 USD',
+  quoteDisplayAmount: '$15.00',
+  provider: 'Transak (Staging)',
+};
 
 const eventsToCheck: EventPayload[] = [];
 
@@ -70,16 +87,122 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await loginToApp();
         await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapUnifiedBuyButton();
-        await device.disableSynchronization();
-        await TokenSelectScreen.tapTokenByName(tokenToBuy);
-        await BuildQuoteView.tapKeypadDeleteButton(1);
-        await BuildQuoteView.enterAmount('15', 'unifiedBuy');
+        await TokenSelectScreen.tapTokenByName(nativeDepositOrder.token);
 
-        await Assertions.expectTextDisplayed('$15.00');
         await BuildQuoteView.tapContinueButton();
 
+        await KYCScreen.tapVerifyIdentityContinueButton();
+        await device.enableSynchronization();
+
+        await KYCScreen.enterEmail('curtis@gmail.com');
+
+        await Assertions.expectElementToBeVisible(KYCScreen.otpScreen, {
+          description: 'OTP code screen is visible before entering code',
+        });
+
+        await KYCScreen.enterOtpCode('000000');
+
+        // Verify order details screen
+        await Assertions.expectElementToBeVisible(OrderDetailsView.container, {
+          elemDescription: 'ramps order confirmation screen',
+        });
+        await Assertions.expectElementToHaveText(
+          OrderDetailsView.tokenAmount,
+          `${nativeDepositOrder.tokenAmount} ${nativeDepositOrder.token}`,
+        );
+
+        for (const text of [
+          nativeDepositOrder.totalFiat,
+          nativeDepositOrder.feesFiat,
+        ]) {
+          await Assertions.expectTextDisplayed(text);
+        }
+
+        await OrderDetailsView.tapCloseButton();
+
+        // Verify order in transfers list
         await TabBarComponent.tapActivity();
         await ActivitiesView.tapOnTransfersTab();
+
+        await Assertions.expectTextDisplayed(
+          `${nativeDepositOrder.tokenAmount} ${nativeDepositOrder.token}`,
+        );
+        await ActivitiesView.tapRampsOrder('deposit', 1);
+
+        for (const text of [
+          `${nativeDepositOrder.tokenAmount} ${nativeDepositOrder.token}`,
+          nativeDepositOrder.totalFiat,
+        ]) {
+          await Assertions.expectTextDisplayed(text);
+        }
+      },
+    );
+  });
+
+  it('Returning User Aggregator Flow: Places ETH BUY order', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+          .withRampsSelectedRegion(selectedRegion)
+          .withMetaMetricsOptIn()
+          .build(),
+        restartDevice: true,
+        testSpecificMock: returningUserUnifiedBuyV2Mocks,
+        endTestfn: async ({ mockServer }) => {
+          const events = await getEventsPayloads(
+            mockServer,
+            expectedEventNames,
+          );
+          eventsToCheck.push(...events);
+        },
+      },
+      async () => {
+        await loginToApp();
+        await WalletView.tapWalletBuyButton();
+        await FundActionMenu.tapUnifiedBuyButton();
+        await device.disableSynchronization();
+        await TokenSelectScreen.tapTokenByName(aggregatorBuyOrder.token);
+        await BuildQuoteView.tapKeypadDeleteButton(1);
+        await BuildQuoteView.tapKeypadDeleteButton(1);
+
+        await BuildQuoteView.enterAmount('5', 'unifiedBuy');
+
+        await BuildQuoteView.tapContinueButton();
+
+        // Verify order details screen
+        await Assertions.expectElementToBeVisible(OrderDetailsView.container, {
+          elemDescription: 'ramps order confirmation screen',
+        });
+        await Assertions.expectElementToHaveText(
+          OrderDetailsView.tokenAmount,
+          `${aggregatorBuyOrder.tokenAmount} ${aggregatorBuyOrder.token}`,
+        );
+
+        for (const text of [
+          aggregatorBuyOrder.totalFiat,
+          aggregatorBuyOrder.feesFiat,
+        ]) {
+          await Assertions.expectTextDisplayed(text);
+        }
+
+        await OrderDetailsView.tapCloseButton();
+
+        // Verify order in transfers list
+        await TabBarComponent.tapActivity();
+        await ActivitiesView.tapOnTransfersTab();
+
+        await Assertions.expectTextDisplayed(
+          `${aggregatorBuyOrder.tokenAmount} ${aggregatorBuyOrder.token}`,
+        );
+        await ActivitiesView.tapRampsOrder('buy', 1);
+
+        for (const text of [
+          `${aggregatorBuyOrder.tokenAmount} ${aggregatorBuyOrder.token}`,
+          aggregatorBuyOrder.totalFiat,
+        ]) {
+          await Assertions.expectTextDisplayed(text);
+        }
       },
     );
   });

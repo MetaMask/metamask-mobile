@@ -8,7 +8,7 @@ export const createBuyOrderResponse = (status: string) => ({
   id: 'mock-order-123',
   isOnlyLink: false,
   success: status === 'COMPLETED',
-  cryptoAmount: '0.00355373',
+  cryptoAmount: '0.00355',
   fiatAmount: 15,
   cryptoCurrency: {
     symbol: 'ETH',

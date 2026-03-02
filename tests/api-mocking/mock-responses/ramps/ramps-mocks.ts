@@ -214,15 +214,15 @@ export const RAMPS_TOKEN_ICON_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
- * Stateful order-status mock.
- * Returns PENDING on the first call, then COMPLETED on every subsequent call.
- * This lets tests observe the pending -> completed transition during order polling.
+ * Buy order-status mock.
+ * Always returns COMPLETED so the order is stored as completed by
+ * getOrderFromCallback, matching how the native deposit flow works
+ * (refreshOrder is called before addOrder there, so the stored order
+ * is already completed when OrderDetails mounts).
  */
 export const BUY_ORDER_STATUS_MOCKS = async (mockServer: Mockttp) => {
   const orderUrlPattern =
     /^https:\/\/on-ramp\.uat-api\.cx\.metamask\.io\/v2\/providers\/[^/]+\/orders\/[^/]+(\?.*)?$/;
-
-  let orderCallCount = 0;
 
   await mockServer
     .forGet('/proxy')
@@ -231,14 +231,10 @@ export const BUY_ORDER_STATUS_MOCKS = async (mockServer: Mockttp) => {
       return orderUrlPattern.test(url);
     })
     .asPriority(999)
-    .thenCallback((_) => {
-      orderCallCount++;
-      const status = orderCallCount <= 1 ? 'PENDING' : 'COMPLETED';
-      return {
-        statusCode: 200,
-        json: createBuyOrderResponse(status),
-      };
-    });
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: createBuyOrderResponse('COMPLETED'),
+    }));
 };
 
 /**
