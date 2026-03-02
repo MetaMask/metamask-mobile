@@ -23,7 +23,7 @@ import Avatar, {
 } from '../../../component-library/components/Avatars/Avatar';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import { selectAccountGroupsByKeyringId } from '../../../selectors/multisrp';
 import { RootState } from '../../../reducers';
@@ -71,7 +71,7 @@ const SRPListItem = ({
   showArrowName = '',
 }: SRPListItemProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [showAccounts, setShowAccounts] = useState(false);
   const accountAvatarType = useSelector(selectAvatarAccountType);
 

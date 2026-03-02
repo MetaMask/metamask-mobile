@@ -7,12 +7,14 @@ import {
   SNAP_ACCOUNT_CUSTOM_NAME_ADD_ACCOUNT_BUTTON,
 } from '../SnapAccountCustomNameApproval.constants';
 import { ApprovalRequest } from '@metamask/approval-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 import SnapAccountCustomNameApproval from '../SnapAccountCustomNameApproval';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../util/test/renderWithProvider';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
+import Engine from '../../../../core/Engine';
 import { RootState } from '../../../../reducers';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -61,6 +63,10 @@ const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
 };
 
 describe('SnapAccountCustomNameApproval', () => {
+  const getNextAvailableAccountNameMock = (
+    Engine.context.AccountsController.getNextAvailableAccountName as jest.Mock
+  ).mockImplementation(() => 'Snap Account 3');
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -167,13 +173,19 @@ describe('SnapAccountCustomNameApproval', () => {
     };
     mockApprovalRequest(mockApprovalRequestData);
 
+    getNextAvailableAccountNameMock.mockReturnValue('Snap Account 3');
+
     const { getByTestId } = renderWithProvider(
       <SnapAccountCustomNameApproval />,
       { state: initialState },
     );
 
+    expect(getNextAvailableAccountNameMock).toHaveBeenCalledWith(
+      KeyringTypes.snap,
+    );
+
     const input = getByTestId(SNAP_ACCOUNT_CUSTOM_NAME_INPUT);
-    expect(input.props.value).toBe('');
+    expect(input.props.value).toBe('Snap Account 3');
   });
 
   it('shows error message and disables "Add Account" button when name is taken', () => {

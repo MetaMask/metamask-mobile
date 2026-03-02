@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -27,9 +27,6 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
   const { approvalRequest } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);
 
-  // Prevents re-navigation for the same approval when pendingApprovals changes.
-  const lastNavigatedApprovalIdRef = useRef<string | null>(null);
-
   const eventSource = useOriginSource({
     origin: approvalRequest?.requestData?.metadata?.origin,
   });
@@ -54,11 +51,6 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
       // Use the SwitchChainApproval component to handle this request instead
       return;
     }
-
-    if (lastNavigatedApprovalIdRef.current === id) {
-      return;
-    }
-    lastNavigatedApprovalIdRef.current = id;
 
     const chainIds = getAllScopesFromPermission(
       requestData.permissions[Caip25EndowmentPermissionName],
@@ -91,8 +83,10 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     trackEvent,
     createEventBuilder,
     eventSource,
-    // Re-run when the queue changes so new approvals are picked up.
-    // The ref guard above prevents re-navigation for the same approval.
+    // Include pendingApprovals to ensure the effect re-runs when the approval queue changes.
+    // This prevents the queue from getting permanently stuck and handles cases where new approvals
+    // are added to the list, ensuring previous approvals that weren't rendered for other reasons
+    // can be processed. Ideally we can identify all cases where approval fail to render and then remove this dependency.
     pendingApprovals,
   ]);
 

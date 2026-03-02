@@ -1,4 +1,32 @@
-import { getFaviconUrl } from './marketInsightsFormatting';
+import {
+  buildHighlightedSegments,
+  getFaviconUrl,
+} from './marketInsightsFormatting';
+
+describe('buildHighlightedSegments', () => {
+  it('ignores empty highlight terms', () => {
+    const result = buildHighlightedSegments('ETF optimism drives momentum', [
+      'ETF optimism',
+      '',
+    ]);
+
+    expect(result).toStrictEqual([
+      { text: 'ETF optimism', highlighted: true },
+      { text: ' drives momentum', highlighted: false },
+    ]);
+  });
+
+  it('returns unhighlighted text when all terms are empty or whitespace', () => {
+    const result = buildHighlightedSegments('ETF optimism drives momentum', [
+      '',
+      '   ',
+    ]);
+
+    expect(result).toStrictEqual([
+      { text: 'ETF optimism drives momentum', highlighted: false },
+    ]);
+  });
+});
 
 describe('getFaviconUrl', () => {
   it('uses hostname when source is a full URL', () => {

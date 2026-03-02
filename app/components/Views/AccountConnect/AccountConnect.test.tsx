@@ -957,7 +957,7 @@ describe('AccountConnect', () => {
           mockMultichainWalletSnapClient.createAccount,
         ).toHaveBeenCalledWith({
           scope: SolScope.Mainnet,
-          accountNameSuggestion: 'Solana Account ',
+          accountNameSuggestion: 'Solana Account 1',
           entropySource: mockKeyringId,
         });
       });

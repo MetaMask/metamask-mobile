@@ -3,15 +3,18 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import KYCPending from './KYCPending';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../../hooks/useMetrics';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+  MetaMetricsEvents: {
+    CARD_VIEWED: 'CARD_VIEWED',
+  },
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -206,7 +209,7 @@ describe('KYCPending Component', () => {
         build: jest.fn().mockReturnValue({ event: 'test' }),
       }),
     });
-    (useAnalytics as jest.Mock).mockReturnValue({
+    (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });

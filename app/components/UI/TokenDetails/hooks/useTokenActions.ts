@@ -10,7 +10,7 @@ import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../util/networks';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../hooks/useMetrics';
 import {
   trackActionButtonClick,
   ActionButtonType,
@@ -132,7 +132,7 @@ export const useTokenActions = ({
   const userAssetsMap = useSelector(selectAssetsBySelectedAccountGroup);
 
   // Metrics
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Navigation hooks
   const { navigateToSendPage } = useSendNavigation();

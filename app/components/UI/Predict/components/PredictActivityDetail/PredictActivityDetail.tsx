@@ -1,4 +1,9 @@
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import {
+  NavigationProp,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import React, { useMemo, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -35,7 +40,8 @@ import { PredictActivityDetailsSelectorsIDs } from '../../Predict.testIds';
 interface PredictActivityDetailProps {}
 
 const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictActivityDetail'>>();
   const { activity } = route.params || {};

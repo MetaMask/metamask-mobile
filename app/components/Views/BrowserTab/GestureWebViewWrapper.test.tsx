@@ -161,15 +161,15 @@ jest.mock('../../../util/theme', () => ({
   }),
 }));
 
-// Mock useAnalytics
+// Mock useMetrics
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+jest.mock('../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),

@@ -132,20 +132,3 @@ export function isTransactionPayWithdraw(
     POST_QUOTE_TRANSACTION_TYPES as unknown as TransactionType[],
   );
 }
-
-/**
- * Returns the matching post-quote transaction type (e.g. "predictWithdraw")
- * for the given transaction metadata. Used to look up override config in
- * the confirmations_pay_post_quote feature flag.
- */
-export function getPostQuoteTransactionType(
-  transactionMeta: TransactionMeta | undefined,
-): string | undefined {
-  if (!transactionMeta) {
-    return undefined;
-  }
-
-  return POST_QUOTE_TRANSACTION_TYPES.find((type) =>
-    hasTransactionType(transactionMeta, [type as unknown as TransactionType]),
-  );
-}

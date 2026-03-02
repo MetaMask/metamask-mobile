@@ -50,13 +50,20 @@ export const goToAccountDetailsV2 = async (account: Account) => {
 
 export const withMultichainAccountDetailsEnabledFixtures = async (
   testFn: () => Promise<void>,
-) =>
-  await withFixtures(
+) => {
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      remoteFeatureMultichainAccountsAccountDetailsV2(false),
+    );
+  };
+  return await withFixtures(
     {
       fixture: new FixtureBuilder()
         .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount()
         .build(),
       restartDevice: true,
+      testSpecificMock,
     },
     async () => {
       await loginToApp();
@@ -64,6 +71,7 @@ export const withMultichainAccountDetailsEnabledFixtures = async (
       await testFn();
     },
   );
+};
 
 export const withMultichainAccountDetailsV2EnabledFixtures = async (
   testFn: () => Promise<void>,

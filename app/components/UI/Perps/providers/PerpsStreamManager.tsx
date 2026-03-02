@@ -16,19 +16,18 @@ import {
   PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
   PerpsMeasurementName,
+  findEvmAccount,
   type PriceUpdate,
   type Position,
   type Order,
   type OrderFill,
   type AccountState,
   type PerpsMarketData,
-  findEvmAccount,
 } from '@metamask/perps-controller';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
 import { getPreloadedData } from '../hooks/stream/hasCachedPerpsData';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 
 /**
  * Gets the EVM account from the selected account group.
@@ -38,7 +37,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 function getEvmAccountFromSelectedAccountGroup() {
   const { AccountTreeController } = Engine.context;
   const accounts = AccountTreeController.getAccountsFromSelectedAccountGroup();
-  return findEvmAccount(accounts as InternalAccount[]);
+  return findEvmAccount(accounts);
 }
 
 // Generic subscription parameters

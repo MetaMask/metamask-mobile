@@ -3,9 +3,8 @@ import { InteractionManager } from 'react-native';
 import { ChainId, toHex } from '@metamask/controller-utils';
 import Engine from '../Engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
-import { MetaMetricsEvents } from '../../core/Analytics';
-import { analytics } from '../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
+import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import {
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -55,7 +54,7 @@ export const wallet_addEthereumChain = async ({
   req,
   res,
   requestUserApproval,
-  analytics: analyticsParams,
+  analytics,
   hooks,
 }) => {
   const {
@@ -117,15 +116,15 @@ export const wallet_addEthereumChain = async ({
     );
     requestData.alerts = alerts;
 
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.NETWORK_REQUESTED,
       )
         .addProperties({
           chain_id: getDecimalChainId(chainId),
           source: 'Custom Network API',
           symbol: ticker,
-          ...analyticsParams,
+          ...analytics,
         })
         .build(),
     );
@@ -143,15 +142,15 @@ export const wallet_addEthereumChain = async ({
         requestData,
       });
     } catch (error) {
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
         )
           .addProperties({
             chain_id: getDecimalChainId(chainId),
             source: 'Custom Network API',
             symbol: ticker,
-            ...analyticsParams,
+            ...analytics,
           })
           .build(),
       );
@@ -201,14 +200,14 @@ export const wallet_addEthereumChain = async ({
       const wasNewRpcAdded =
         rpcResult.index === existingNetworkConfiguration.rpcEndpoints.length;
       if (wasNewRpcAdded) {
-        analytics.trackEvent(
-          AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_ADDED)
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_ADDED)
             .addProperties({
               chain_id: toHex(chainId),
               source: 'Custom Network API',
               symbol: ticker,
               rpc_url_index: rpcResult.index,
-              ...analyticsParams,
+              ...analytics,
             })
             .build(),
         );
@@ -231,20 +230,20 @@ export const wallet_addEthereumChain = async ({
       });
 
       // Track RPC Added event for new networks - first RPC endpoint is at index 0
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_ADDED)
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_ADDED)
           .addProperties({
             chain_id: toHex(chainId),
             source: 'Custom Network API',
             symbol: ticker,
             rpc_url_index: 0,
-            ...analyticsParams,
+            ...analytics,
           })
           .build(),
       );
     }
 
-    analytics.identify(addItemToChainIdList(chainId));
+    MetaMetrics.getInstance().addTraitsToUser(addItemToChainIdList(chainId));
   }
 
   const { networkClientId, url: rpcUrl } =
@@ -262,7 +261,7 @@ export const wallet_addEthereumChain = async ({
       PermissionController,
       SelectedNetworkController,
     },
-    analytics: analyticsParams,
+    analytics,
     origin,
     autoApprove: shouldAddOrUpdateNetwork,
     hooks,

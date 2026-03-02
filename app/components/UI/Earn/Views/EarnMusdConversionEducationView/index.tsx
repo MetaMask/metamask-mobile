@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { View, Image, useColorScheme, Linking } from 'react-native';
 import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
@@ -39,8 +39,6 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../Ramp/types';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import AppConstants from '../../../../../core/AppConstants';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
-import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
@@ -66,9 +64,7 @@ interface EarnMusdConversionEducationViewRouteParams {
 const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
-  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
-
-  const { initiateCustomConversion } = useMusdConversion();
+  const { initiateConversion } = useMusdConversion();
   const { goToBuy } = useRampNavigation();
 
   const { preferredPaymentToken, isDeeplink } =
@@ -172,9 +168,7 @@ const EarnMusdConversionEducationView = () => {
   }, [submitScreenViewedEvent]);
 
   const submitContinuePressedEvent = useCallback(() => {
-    let redirectsTo = isQuickConvertEnabled
-      ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-      : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+    let redirectsTo = EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
     if (deeplinkState?.action === 'navigate_home') {
       redirectsTo = EVENT_LOCATIONS.HOME_SCREEN;
     } else if (deeplinkState?.action === 'buy') {
@@ -194,17 +188,15 @@ const EarnMusdConversionEducationView = () => {
         .build(),
     );
   }, [
-    isQuickConvertEnabled,
-    EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
-    EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
-    EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
-    EVENT_LOCATIONS.HOME_SCREEN,
-    EVENT_LOCATIONS.BUY_SCREEN,
-    deeplinkState?.action,
     trackEvent,
     createEventBuilder,
+    EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+    EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+    EVENT_LOCATIONS.BUY_SCREEN,
+    EVENT_LOCATIONS.HOME_SCREEN,
     BUTTON_TYPES.PRIMARY,
     primaryButtonText,
+    deeplinkState,
   ]);
 
   const submitGoBackPressedEvent = () => {
@@ -252,11 +244,9 @@ const EarnMusdConversionEducationView = () => {
         }
 
         if (deeplinkState.action === 'convert') {
-          await initiateCustomConversion({
+          await initiateConversion({
             preferredPaymentToken: deeplinkState.paymentToken,
             skipEducationCheck: true,
-            navigationOverride:
-              MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
           });
           return;
         }
@@ -264,10 +254,9 @@ const EarnMusdConversionEducationView = () => {
 
       // Proceed to conversion flow if we have the required params (normal flow)
       if (!isDeeplink && preferredPaymentToken) {
-        await initiateCustomConversion({
+        await initiateConversion({
           preferredPaymentToken,
           skipEducationCheck: true,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
         return;
       }
@@ -284,7 +273,7 @@ const EarnMusdConversionEducationView = () => {
     }
   }, [
     dispatch,
-    initiateCustomConversion,
+    initiateConversion,
     preferredPaymentToken,
     submitContinuePressedEvent,
     deeplinkState,

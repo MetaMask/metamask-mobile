@@ -18,9 +18,8 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
 import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { analytics } from '../../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const descriptionArray = [
   strings('accounts.fake_metamask'),
@@ -30,8 +29,8 @@ const descriptionArray = [
 
 const goToLearnMore = () => {
   Linking.openURL(CONNECTING_TO_A_DECEPTIVE_SITE);
-  analytics.trackEvent(
-    AnalyticsEventBuilder.createEventBuilder(
+  MetaMetrics.getInstance().trackEvent(
+    MetricsEventBuilder.createEventBuilder(
       MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
     )
       .addProperties({

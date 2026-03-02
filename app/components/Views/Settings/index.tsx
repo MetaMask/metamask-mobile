@@ -37,7 +37,9 @@ const Settings = () => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const navigation = useNavigation<any>();
 
   const seedphraseBackedUp = useSelector(
     // TODO: Replace "any" with type

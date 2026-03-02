@@ -8,14 +8,6 @@ import {
 
 global.fetch = jest.fn();
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    AuthenticationController: {
-      getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
-    },
-  },
-}));
-
 const mockPopularTokens = [
   createMockPopularToken({ symbol: 'TEST', name: 'Test Token' }),
   createMockPopularToken({
@@ -58,11 +50,7 @@ describe('usePopularTokens', () => {
         expect.stringContaining('/getTokens/popular'),
         expect.objectContaining({
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            // Initial fetch may not have a bearer token
-            Authorization: 'Bearer ',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chainIds: [MOCK_CHAIN_IDS.ethereum],
             includeAssets: [],

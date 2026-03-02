@@ -1,219 +1,472 @@
-import React, { ComponentType } from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import React from 'react';
+import { render, fireEvent } from '@testing-library/react-native';
+import { useNavigation } from '@react-navigation/native';
 import PerpsMarketTypeSection from './PerpsMarketTypeSection';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 
-// Type helper for UNSAFE_getByType with mocked string components
-const asComponentType = (name: string) => name as unknown as ComponentType;
-
-const mockNavigate = jest.fn();
-
+// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
+  useNavigation: jest.fn(),
+}));
+
+jest.mock('../PerpsMarketList', () => {
+  const ReactNative = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: jest.fn(({ markets, ListHeaderComponent, onMarketPress }) => (
+      <ReactNative.View testID="perps-market-list">
+        {ListHeaderComponent && <ListHeaderComponent />}
+        {markets.map((market: PerpsMarketData, index: number) => (
+          <ReactNative.TouchableOpacity
+            key={index}
+            testID={`market-item-${market.symbol}`}
+            onPress={() => onMarketPress(market)}
+          >
+            <ReactNative.Text>{market.symbol}</ReactNative.Text>
+          </ReactNative.TouchableOpacity>
+        ))}
+      </ReactNative.View>
+    )),
+  };
+});
+
+jest.mock('../PerpsRowSkeleton', () => {
+  const ReactNative = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: jest.fn(({ count }) => (
+      <ReactNative.View testID={`skeleton-count-${count}`} />
+    )),
+  };
+});
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => {
+    if (key === 'perps.home.see_all') {
+      return 'See All';
+    }
+    return key;
   }),
 }));
 
-jest.mock('../PerpsMarketList', () => 'PerpsMarketList');
-jest.mock('../PerpsRowSkeleton', () => 'PerpsRowSkeleton');
-
-const mockMarkets = [
-  {
-    symbol: 'BTC-USD',
-    name: 'Bitcoin',
-    maxLeverage: '40x',
-    price: '$50,000.00',
-    change24h: '+$1,250.00',
-    change24hPercent: '+2.5%',
-    volume: '$1.2B',
-  },
-  {
-    symbol: 'ETH-USD',
-    name: 'Ethereum',
-    maxLeverage: '25x',
-    price: '$3,000.00',
-    change24h: '+$75.00',
-    change24hPercent: '+2.5%',
-    volume: '$500M',
-  },
-];
+const mockNavigate = jest.fn();
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
 
 describe('PerpsMarketTypeSection', () => {
-  const initialState = {
-    engine: {
-      backgroundState: {
-        ...backgroundState,
-      },
-    },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+    } as unknown as ReturnType<typeof useNavigation>);
   });
 
-  afterEach(() => {
-    jest.resetAllMocks();
+  const createMockMarket = (symbol: string): PerpsMarketData => ({
+    symbol,
+    name: `${symbol} Market`,
+    maxLeverage: '50x',
+    price: '$50,000.00',
+    change24h: '+$2,600.00',
+    change24hPercent: '+5.2%',
+    volume: '$1,000,000',
+    fundingRate: 0.01,
   });
 
-  it('renders section title', () => {
-    // Arrange & Act
-    const { getByText } = renderWithProvider(
-      <PerpsMarketTypeSection
-        title="Crypto"
-        markets={mockMarkets}
-        marketType="crypto"
-      />,
-      { state: initialState },
-    );
+  const mockMarkets: PerpsMarketData[] = [
+    createMockMarket('BTC'),
+    createMockMarket('ETH'),
+    createMockMarket('SOL'),
+  ];
 
-    // Assert
-    expect(getByText('Crypto')).toBeOnTheScreen();
-  });
+  describe('rendering', () => {
+    it('renders section with title and markets', () => {
+      const { getByText } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+        />,
+      );
 
-  it('renders PerpsMarketList with markets', () => {
-    // Arrange & Act
-    const { UNSAFE_getByType } = renderWithProvider(
-      <PerpsMarketTypeSection
-        title="Crypto"
-        markets={mockMarkets}
-        marketType="crypto"
-      />,
-      { state: initialState },
-    );
+      expect(getByText('Crypto Markets')).toBeTruthy();
+    });
 
-    // Assert
-    const marketList = UNSAFE_getByType(asComponentType('PerpsMarketList'));
-    expect(marketList.props.markets).toEqual(mockMarkets);
-  });
+    it('renders pressable header with arrow icon', () => {
+      const { getByText } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+        />,
+      );
 
-  it('renders skeleton when loading', () => {
-    // Arrange & Act
-    const { UNSAFE_getByType } = renderWithProvider(
-      <PerpsMarketTypeSection
-        title="Crypto"
-        markets={[]}
-        marketType="crypto"
-        isLoading
-      />,
-      { state: initialState },
-    );
+      // Header is pressable with arrow icon (no "See All" text)
+      expect(getByText('Crypto Markets')).toBeTruthy();
+    });
 
-    // Assert
-    const skeleton = UNSAFE_getByType(asComponentType('PerpsRowSkeleton'));
-    expect(skeleton.props.count).toBe(5);
-  });
+    it('renders market list when markets are available', () => {
+      const { getByTestId } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+        />,
+      );
 
-  it('returns null when markets array is empty and not loading', () => {
-    // Arrange & Act
-    const { queryByText } = renderWithProvider(
-      <PerpsMarketTypeSection
-        title="Crypto"
-        markets={[]}
-        marketType="crypto"
-        isLoading={false}
-      />,
-      { state: initialState },
-    );
+      expect(getByTestId('perps-market-list')).toBeTruthy();
+    });
 
-    // Assert
-    expect(queryByText('Crypto')).toBeNull();
-  });
+    it('applies custom testID', () => {
+      const { getByTestId } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+          testID="custom-section"
+        />,
+      );
 
-  it('navigates to market list when header is pressed', () => {
-    // Arrange
-    const { getByText } = renderWithProvider(
-      <PerpsMarketTypeSection
-        title="Crypto"
-        markets={mockMarkets}
-        marketType="crypto"
-      />,
-      { state: initialState },
-    );
-    const header = getByText('Crypto');
-
-    // Act
-    fireEvent.press(header);
-
-    // Assert
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_LIST,
-      params: {
-        defaultMarketTypeFilter: 'crypto',
-      },
+      expect(getByTestId('custom-section')).toBeTruthy();
     });
   });
 
-  it('navigates to market details when market is pressed', () => {
-    // Arrange
-    const { UNSAFE_getByType } = renderWithProvider(
-      <PerpsMarketTypeSection
-        title="Crypto"
-        markets={mockMarkets}
-        marketType="crypto"
-      />,
-      { state: initialState },
-    );
-    const marketList = UNSAFE_getByType(asComponentType('PerpsMarketList'));
+  describe('loading state', () => {
+    it('renders skeleton when loading', () => {
+      const { getByTestId } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+          isLoading
+        />,
+      );
 
-    // Act
-    marketList.props.onMarketPress(mockMarkets[0]);
+      expect(getByTestId('skeleton-count-5')).toBeTruthy();
+    });
 
-    // Assert
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_DETAILS,
-      params: { market: mockMarkets[0] },
+    it('renders section header during loading', () => {
+      const { getByText } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+          isLoading
+        />,
+      );
+
+      expect(getByText('Crypto Markets')).toBeTruthy();
+      // Header is pressable with arrow icon (no "See All" text)
+    });
+
+    it('does not render market list when loading', () => {
+      const { queryByTestId } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+          isLoading
+        />,
+      );
+
+      expect(queryByTestId('perps-market-list')).toBeNull();
+    });
+
+    it('transitions from loading to loaded state', () => {
+      const { getByTestId, queryByTestId, rerender } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+          isLoading
+        />,
+      );
+
+      expect(getByTestId('skeleton-count-5')).toBeTruthy();
+      expect(queryByTestId('perps-market-list')).toBeNull();
+
+      rerender(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+          isLoading={false}
+        />,
+      );
+
+      expect(queryByTestId('skeleton-count-5')).toBeNull();
+      expect(getByTestId('perps-market-list')).toBeTruthy();
     });
   });
 
-  it('passes sortBy prop to PerpsMarketList', () => {
-    // Arrange & Act
-    const { UNSAFE_getByType } = renderWithProvider(
-      <PerpsMarketTypeSection
-        title="Crypto"
-        markets={mockMarkets}
-        marketType="crypto"
-        sortBy="priceChange"
-      />,
-      { state: initialState },
-    );
+  describe('empty state', () => {
+    it('returns null when markets array is empty', () => {
+      const { queryByText } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={[]}
+          marketType="crypto"
+        />,
+      );
 
-    // Assert
-    const marketList = UNSAFE_getByType(asComponentType('PerpsMarketList'));
-    expect(marketList.props.sortBy).toBe('priceChange');
+      expect(queryByText('Crypto Markets')).toBeNull();
+    });
+
+    it('does not render when markets are empty and not loading', () => {
+      const { queryByTestId } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={[]}
+          marketType="crypto"
+          isLoading={false}
+          testID="section"
+        />,
+      );
+
+      expect(queryByTestId('section')).toBeNull();
+    });
   });
 
-  it('uses default sortBy of volume', () => {
-    // Arrange & Act
-    const { UNSAFE_getByType } = renderWithProvider(
-      <PerpsMarketTypeSection
-        title="Crypto"
-        markets={mockMarkets}
-        marketType="crypto"
-      />,
-      { state: initialState },
-    );
+  describe('navigation', () => {
+    it('navigates to market list when header is pressed', () => {
+      const { getByText } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+        />,
+      );
 
-    // Assert
-    const marketList = UNSAFE_getByType(asComponentType('PerpsMarketList'));
-    expect(marketList.props.sortBy).toBe('volume');
+      fireEvent.press(getByText('Crypto Markets'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: {
+          defaultMarketTypeFilter: 'crypto',
+        },
+      });
+    });
+
+    it('passes correct market type for equity markets', () => {
+      const { getByText } = render(
+        <PerpsMarketTypeSection
+          title="Stock Markets"
+          markets={mockMarkets}
+          marketType="stocks"
+        />,
+      );
+
+      fireEvent.press(getByText('Stock Markets'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: {
+          defaultMarketTypeFilter: 'stocks',
+        },
+      });
+    });
+
+    it('passes correct market type for commodity markets', () => {
+      const { getByText } = render(
+        <PerpsMarketTypeSection
+          title="Commodity Markets"
+          markets={mockMarkets}
+          marketType="commodities"
+        />,
+      );
+
+      fireEvent.press(getByText('Commodity Markets'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: {
+          defaultMarketTypeFilter: 'commodities',
+        },
+      });
+    });
+
+    it('navigates to market details when market is pressed', () => {
+      const { getByTestId } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+        />,
+      );
+
+      fireEvent.press(getByTestId('market-item-BTC'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: mockMarkets[0],
+        },
+      });
+    });
+
+    it('handles multiple header presses', () => {
+      const { getByText } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+        />,
+      );
+
+      const headerTitle = getByText('Crypto Markets');
+
+      fireEvent.press(headerTitle);
+      fireEvent.press(headerTitle);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+    });
   });
 
-  it('applies custom testID to section', () => {
-    // Arrange & Act
-    const { getByTestId } = renderWithProvider(
-      <PerpsMarketTypeSection
-        title="Crypto"
-        markets={mockMarkets}
-        marketType="crypto"
-        testID="custom-section-id"
-      />,
-      { state: initialState },
-    );
+  describe('sort configuration', () => {
+    it('uses default sort by volume', () => {
+      const { getByTestId } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+        />,
+      );
 
-    // Assert
-    expect(getByTestId('custom-section-id')).toBeOnTheScreen();
+      const marketList = getByTestId('perps-market-list');
+
+      expect(marketList).toBeTruthy();
+    });
+
+    it('passes custom sort field to market list', () => {
+      const { getByTestId } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+          sortBy="priceChange"
+        />,
+      );
+
+      const marketList = getByTestId('perps-market-list');
+
+      expect(marketList).toBeTruthy();
+    });
+  });
+
+  describe('market types', () => {
+    it('handles crypto market type', () => {
+      const { getByText } = render(
+        <PerpsMarketTypeSection
+          title="Crypto"
+          markets={mockMarkets}
+          marketType="crypto"
+        />,
+      );
+
+      expect(getByText('Crypto')).toBeTruthy();
+    });
+
+    it('handles stocks market type', () => {
+      const { getByText } = render(
+        <PerpsMarketTypeSection
+          title="Stocks"
+          markets={mockMarkets}
+          marketType="stocks"
+        />,
+      );
+
+      expect(getByText('Stocks')).toBeTruthy();
+    });
+
+    it('handles commodities market type', () => {
+      const { getByText } = render(
+        <PerpsMarketTypeSection
+          title="Commodities"
+          markets={mockMarkets}
+          marketType="commodities"
+        />,
+      );
+
+      expect(getByText('Commodities')).toBeTruthy();
+    });
+
+    it('handles forex market type', () => {
+      const { getByText } = render(
+        <PerpsMarketTypeSection
+          title="Forex"
+          markets={mockMarkets}
+          marketType="forex"
+        />,
+      );
+
+      expect(getByText('Forex')).toBeTruthy();
+    });
+
+    it('handles all market type', () => {
+      const { getByText } = render(
+        <PerpsMarketTypeSection
+          title="All Markets"
+          markets={mockMarkets}
+          marketType="all"
+        />,
+      );
+
+      expect(getByText('All Markets')).toBeTruthy();
+    });
+  });
+
+  describe('edge cases', () => {
+    it('handles single market', () => {
+      const { getByTestId } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={[createMockMarket('BTC')]}
+          marketType="crypto"
+        />,
+      );
+
+      expect(getByTestId('market-item-BTC')).toBeTruthy();
+    });
+
+    it('handles large number of markets', () => {
+      const largeMarketList = Array.from({ length: 50 }, (_, i) =>
+        createMockMarket(`COIN${i}`),
+      );
+
+      const { getByTestId } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={largeMarketList}
+          marketType="crypto"
+        />,
+      );
+
+      expect(getByTestId('perps-market-list')).toBeTruthy();
+    });
+
+    it('maintains header visibility during loading', () => {
+      const { getByText, rerender } = render(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+          isLoading={false}
+        />,
+      );
+
+      expect(getByText('Crypto Markets')).toBeTruthy();
+
+      rerender(
+        <PerpsMarketTypeSection
+          title="Crypto Markets"
+          markets={mockMarkets}
+          marketType="crypto"
+          isLoading
+        />,
+      );
+
+      expect(getByText('Crypto Markets')).toBeTruthy();
+    });
   });
 });

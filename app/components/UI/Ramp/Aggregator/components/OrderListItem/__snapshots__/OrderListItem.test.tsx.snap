@@ -226,7 +226,7 @@ exports[`OrderListItem should render correctly 1`] = `
           }
         }
       >
-        12.34567
+        12.34568
          
         ETH
       </Text>
@@ -475,7 +475,7 @@ exports[`OrderListItem should render correctly 2`] = `
           }
         }
       >
-        12.34567
+        12.34568
          
         ETH
       </Text>
@@ -724,7 +724,7 @@ exports[`OrderListItem should render correctly 3`] = `
           }
         }
       >
-        12.34567
+        12.34568
          
         ETH
       </Text>
@@ -973,7 +973,7 @@ exports[`OrderListItem should render correctly 4`] = `
           }
         }
       >
-        12.34567
+        12.34568
          
         ETH
       </Text>
@@ -1222,7 +1222,7 @@ exports[`OrderListItem should render correctly 5`] = `
           }
         }
       >
-        12.34567
+        12.34568
          
         ETH
       </Text>
@@ -1471,7 +1471,7 @@ exports[`OrderListItem should render correctly 6`] = `
           }
         }
       >
-        12.34567
+        12.34568
          
         ETH
       </Text>
@@ -1720,7 +1720,7 @@ exports[`OrderListItem should render correctly 7`] = `
           }
         }
       >
-        12.34567
+        12.34568
          
         ETH
       </Text>

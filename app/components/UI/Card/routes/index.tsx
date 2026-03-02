@@ -28,7 +28,6 @@ import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
-import Cashback from '../Views/Cashback/Cashback';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -172,11 +171,6 @@ const MainRoutes = () => {
       <Stack.Screen
         name={Routes.CARD.ORDER_COMPLETED}
         component={OrderCompleted}
-        options={cardDefaultNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.CASHBACK}
-        component={Cashback}
         options={cardDefaultNavigationOptions}
       />
       <Stack.Screen

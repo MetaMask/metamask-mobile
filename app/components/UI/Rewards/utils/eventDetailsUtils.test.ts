@@ -138,7 +138,6 @@ const KNOWN_ACTIVITY_TYPES: SeasonActivityTypeDto[] = [
   makeActivityType('ONE_TIME_BONUS', 'One-time bonus', 'Gift'),
   makeActivityType('PREDICT', 'Prediction', 'Speedometer'),
   makeActivityType('MUSD_DEPOSIT', 'mUSD deposit', 'Coin'),
-  makeActivityType('BONUS_CODE', 'Bonus code', 'Gift'),
 ];
 
 describe('eventDetailsUtils', () => {
@@ -641,14 +640,6 @@ describe('eventDetailsUtils', () => {
             type: 'PREDICT' as const,
             payload: null,
           };
-        case 'BONUS_CODE':
-          return {
-            ...baseEvent,
-            type: 'BONUS_CODE' as const,
-            payload: payload as (PointsEventDto & {
-              type: 'BONUS_CODE';
-            })['payload'],
-          };
         case 'MUSD_DEPOSIT':
           return {
             ...baseEvent,
@@ -1133,40 +1124,6 @@ describe('eventDetailsUtils', () => {
           title: 'Prediction',
           details: undefined,
           icon: IconName.Speedometer,
-        });
-      });
-    });
-
-    describe('BONUS_CODE events', () => {
-      it('returns correct details for BONUS_CODE event with code in payload', () => {
-        const event = createMockEvent('BONUS_CODE', { code: 'BNS123' });
-
-        const result = getEventDetails(
-          event,
-          KNOWN_ACTIVITY_TYPES,
-          TEST_ADDRESS,
-        );
-
-        expect(result).toEqual({
-          title: 'Bonus code',
-          details: 'BNS123',
-          icon: IconName.Gift,
-        });
-      });
-
-      it('returns undefined details for BONUS_CODE event with null payload', () => {
-        const event = createMockEvent('BONUS_CODE', null);
-
-        const result = getEventDetails(
-          event,
-          KNOWN_ACTIVITY_TYPES,
-          TEST_ADDRESS,
-        );
-
-        expect(result).toEqual({
-          title: 'Bonus code',
-          details: undefined,
-          icon: IconName.Gift,
         });
       });
     });
@@ -1692,18 +1649,6 @@ describe('eventDetailsUtils', () => {
       expect(result).toEqual({ details: undefined });
     });
 
-    it('returns code as details for BONUS_CODE with payload', () => {
-      const result = resolveEventDetails('BONUS_CODE', { code: 'XYZ789' });
-
-      expect(result).toEqual({ details: 'XYZ789' });
-    });
-
-    it('returns undefined details for BONUS_CODE with null payload', () => {
-      const result = resolveEventDetails('BONUS_CODE', null);
-
-      expect(result).toEqual({ details: undefined });
-    });
-
     it('returns null for unknown event types', () => {
       const result = resolveEventDetails('UNKNOWN_TYPE', null);
 
@@ -1737,7 +1682,7 @@ describe('eventDetailsUtils', () => {
       payload: null,
     });
 
-    it('returns uncategorized for custom type not handled by resolveEventDetails', () => {
+    it('uses custom title, description, and icon when activityTypes provides a match', () => {
       const activityTypes: SeasonActivityTypeDto[] = [
         makeCustomActivity('Lock'),
       ];
@@ -1745,10 +1690,24 @@ describe('eventDetailsUtils', () => {
 
       const result = getEventDetails(event, activityTypes, TEST_ADDRESS);
 
-      // Custom types not handled by resolveEventDetails fall through to uncategorized
       expect(result).toEqual({
-        title: 'Uncategorized event',
-        details: undefined,
+        title: 'Custom Title',
+        details: 'Custom description',
+        icon: IconName.Lock,
+      });
+    });
+
+    it('falls back to Star icon when provided invalid icon name', () => {
+      const activityTypes: SeasonActivityTypeDto[] = [
+        makeCustomActivity('NotARealIcon'),
+      ];
+      const event = makeEvent();
+
+      const result = getEventDetails(event, activityTypes, TEST_ADDRESS);
+
+      expect(result).toEqual({
+        title: 'Custom Title',
+        details: 'Custom description',
         icon: IconName.Star,
       });
     });
@@ -1766,6 +1725,57 @@ describe('eventDetailsUtils', () => {
         title: 'Uncategorized event',
         details: undefined,
         icon: IconName.Star,
+      });
+    });
+
+    it('preserves empty description value when provided by activityTypes', () => {
+      const activityTypes: SeasonActivityTypeDto[] = [
+        makeCustomActivity('ArrowDown', ''),
+      ];
+      const event = makeEvent();
+
+      const result = getEventDetails(event, activityTypes, TEST_ADDRESS);
+
+      expect(result).toEqual({
+        title: 'Custom Title',
+        details: '',
+        icon: IconName.ArrowDown,
+      });
+    });
+
+    it('resolves ${...} tokens in description using payload values', () => {
+      const activityTypes: SeasonActivityTypeDto[] = [
+        makeCustomActivity('Lock', 'Tx: ${txHash}'),
+      ];
+      const event: PointsEventDto = {
+        ...makeEvent(),
+        payload: { txHash: '0xabc123' } as unknown as Record<string, string>,
+      };
+
+      const result = getEventDetails(event, activityTypes, TEST_ADDRESS);
+
+      expect(result).toEqual({
+        title: 'Custom Title',
+        details: 'Tx: 0xabc123',
+        icon: IconName.Lock,
+      });
+    });
+
+    it('leaves ${...} tokens intact when payload is null', () => {
+      const activityTypes: SeasonActivityTypeDto[] = [
+        makeCustomActivity('ArrowRight', 'Tx: ${txHash}'),
+      ];
+      const event: PointsEventDto = {
+        ...makeEvent(),
+        payload: null,
+      };
+
+      const result = getEventDetails(event, activityTypes, TEST_ADDRESS);
+
+      expect(result).toEqual({
+        title: 'Custom Title',
+        details: 'Tx: ${txHash}',
+        icon: IconName.ArrowRight,
       });
     });
   });

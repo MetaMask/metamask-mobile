@@ -4,8 +4,7 @@ import AddFundsBottomSheet from './AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
 import { isBridgeAllowed } from '../../../Bridge/utils';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
 import { CardTokenAllowance, AllowanceState } from '../../types';
@@ -36,8 +35,12 @@ jest.mock('../../../Bridge/utils', () => ({
   isBridgeAllowed: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+  MetaMetricsEvents: {
+    CARD_ADD_FUNDS_DEPOSIT_CLICKED: 'card_add_funds_deposit_clicked',
+    RAMPS_BUTTON_CLICKED: 'ramps_button_clicked',
+  },
 }));
 
 jest.mock('../../../../../util/networks', () => ({
@@ -168,7 +171,7 @@ describe('AddFundsBottomSheet', () => {
 
     (isBridgeAllowed as jest.Mock).mockReturnValue(true);
 
-    (useAnalytics as jest.Mock).mockReturnValue({
+    (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });

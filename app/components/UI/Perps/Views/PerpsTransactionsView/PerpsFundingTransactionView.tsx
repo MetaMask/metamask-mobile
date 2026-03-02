@@ -1,4 +1,8 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { BigNumber } from 'bignumber.js';
 import React, { useLayoutEffect } from 'react';
 import { ScrollView, View } from 'react-native';
@@ -20,6 +24,7 @@ import ScreenView from '../../../../Base/ScreenView';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
+import { PerpsNavigationParamList } from '../../types/navigation';
 import {
   PerpsFundingTransactionRouteProp,
   PerpsTransaction,
@@ -33,7 +38,7 @@ import { styleSheet } from './PerpsFundingTransactionView.styles';
 const PerpsFundingTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<PerpsFundingTransactionRouteProp>();
 
   const selectedInternalAccount = useSelector(
