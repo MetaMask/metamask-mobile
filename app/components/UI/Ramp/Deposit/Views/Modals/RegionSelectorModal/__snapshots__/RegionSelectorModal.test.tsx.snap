@@ -674,6 +674,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
                                     }
                                   }
@@ -1431,6 +1432,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
                                     }
                                   }
@@ -2384,6 +2386,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
                                     }
                                   }
@@ -5253,6 +5256,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
                                     }
                                   }
@@ -6438,6 +6442,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
                                     }
                                   }
@@ -7623,6 +7628,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
                                     }
                                   }

@@ -431,6 +431,7 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
                       }
                     }
@@ -654,6 +655,7 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                       multiline={false}
                       numberOfLines={1}
                       onBlur={[Function]}
+                      onChangeText={[Function]}
                       onFocus={[Function]}
                       placeholder="deposit.enter_address.state"
                       placeholderTextColor="#66676a"
@@ -915,6 +917,7 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                       multiline={false}
                       numberOfLines={1}
                       onBlur={[Function]}
+                      onChangeText={[Function]}
                       onFocus={[Function]}
                       placeholder="deposit.enter_address.country"
                       placeholderTextColor="#66676a"
@@ -1536,6 +1539,7 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
                       }
                     }
@@ -1759,6 +1763,7 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                       multiline={false}
                       numberOfLines={1}
                       onBlur={[Function]}
+                      onChangeText={[Function]}
                       onFocus={[Function]}
                       placeholder="deposit.enter_address.state"
                       placeholderTextColor="#66676a"
@@ -2020,6 +2025,7 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                       multiline={false}
                       numberOfLines={1}
                       onBlur={[Function]}
+                      onChangeText={[Function]}
                       onFocus={[Function]}
                       placeholder="deposit.enter_address.country"
                       placeholderTextColor="#66676a"
