@@ -45,6 +45,13 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
 
+      - name: Cache Foundry binaries
+        uses: actions/cache@v4
+        with:
+          path: .metamask/cache
+          key: foundry-${{ runner.os }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            foundry-${{ runner.os }}-
       - name: Setup project
         run: yarn setup:github-ci --no-build-android
 
