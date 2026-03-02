@@ -128,6 +128,16 @@ export const WaysToEarn = () => {
     );
 
     const { title, description, ctaLabel } = getBottomSheetData(wayToEarn);
+
+    if (wayToEarn.type === 'BONUS_CODE') {
+      navigation.navigate(Routes.MODAL.REWARDS_BONUS_CODE_BOTTOM_SHEET, {
+        title,
+        description,
+        ctaLabel,
+      });
+      return;
+    }
+
     navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
       title,
       description,
