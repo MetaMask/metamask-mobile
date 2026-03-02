@@ -11,9 +11,9 @@ import {
 import {
   HardwareWalletStateSetters,
   HardwareWalletRefs,
-} from './HardwareWalletStateManager';
-import { parseErrorByType, createHardwareWalletError } from './errors';
-import DevLogger from '../SDKConnect/utils/DevLogger';
+} from './useHardwareWalletStateManager';
+import { parseErrorByType, createHardwareWalletError } from '../errors';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 /** Options for the {@link useDeviceEventHandlers} hook. */
 interface UseDeviceEventHandlersOptions {
@@ -121,8 +121,6 @@ export const useDeviceEventHandlers = ({
           break;
 
         case DeviceEvent.AppNotOpen:
-          // Get required app from adapter (e.g., 'Ethereum' for Ledger)
-          // payload.appName contains what's currently open (e.g., 'BOLOS', 'Bitcoin')
           updateConnectionState({
             status: ConnectionStatus.AwaitingApp,
             deviceId: refs.adapterRef.current?.getConnectedDeviceId() ?? '',
