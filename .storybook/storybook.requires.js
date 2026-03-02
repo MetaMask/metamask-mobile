@@ -52,6 +52,7 @@ const getStories = () => {
     "./app/component-library/components-temp/HeaderCollapsibleSubpage/HeaderCollapsibleSubpage.stories.tsx": require("../app/component-library/components-temp/HeaderCollapsibleSubpage/HeaderCollapsibleSubpage.stories.tsx"),
     "./app/component-library/components-temp/HeaderCompactSearch/HeaderCompactSearch.stories.tsx": require("../app/component-library/components-temp/HeaderCompactSearch/HeaderCompactSearch.stories.tsx"),
     "./app/component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard.stories.tsx": require("../app/component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard.stories.tsx"),
+    "./app/component-library/components-temp/HeaderRoot/HeaderRoot.stories.tsx": require("../app/component-library/components-temp/HeaderRoot/HeaderRoot.stories.tsx"),
     "./app/component-library/components-temp/HeaderStackedStandard/HeaderStackedStandard.stories.tsx": require("../app/component-library/components-temp/HeaderStackedStandard/HeaderStackedStandard.stories.tsx"),
     "./app/component-library/components-temp/HeaderStackedSubpage/HeaderStackedSubpage.stories.tsx": require("../app/component-library/components-temp/HeaderStackedSubpage/HeaderStackedSubpage.stories.tsx"),
     "./app/component-library/components-temp/HeaderStandardAnimated/HeaderStandardAnimated.stories.tsx": require("../app/component-library/components-temp/HeaderStandardAnimated/HeaderStandardAnimated.stories.tsx"),
