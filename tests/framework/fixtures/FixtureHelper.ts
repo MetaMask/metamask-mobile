@@ -630,6 +630,9 @@ export async function withFixtures(
       // Restore them now so the app can reach fixture/mock servers on launch.
       if (device.getPlatform() === 'android') {
         await restoreAndroidPortForwarding();
+        // Allow adbd to fully stabilize after root + remount + port forwarding
+        // before Detox attempts to launch the app.
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
     }
 
