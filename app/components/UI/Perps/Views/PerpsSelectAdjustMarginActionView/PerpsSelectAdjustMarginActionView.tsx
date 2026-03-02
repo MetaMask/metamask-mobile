@@ -2,6 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import {
   useNavigation,
   useRoute,
+  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import {
@@ -31,7 +32,7 @@ const PerpsSelectAdjustMarginActionView: React.FC<
   position: positionProp,
   onClose: onExternalClose,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<
       RouteProp<PerpsNavigationParamList, 'PerpsSelectAdjustMarginAction'>

@@ -1,4 +1,4 @@
-import { test } from '../../../framework/fixtures/performance';
+import { test } from '../../../framework/fixtures/performance-test.js';
 import TimerHelper from '../../../framework/TimerHelper';
 import WelcomeScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../../wdio/screen-objects/Modals/TermOfUseScreen.js';

@@ -30,8 +30,7 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../util/metrics';
 
 export type LimitType = 'full' | 'restricted';
@@ -114,7 +113,7 @@ const useSpendingLimit = ({
   const dispatch = useDispatch();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { sdk } = useCardSDK();
 
   // Form state

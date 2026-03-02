@@ -28,8 +28,8 @@ jest.mock('@ledgerhq/hw-app-eth', () => ({
   })),
 }));
 
-import { createAdapter } from './factory';
-import { HardwareWalletType, ErrorCode } from '@metamask/hw-wallet-sdk';
+import { createAdapter, requiresBluetooth } from './factory';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapterOptions } from '../types';
 import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
 import { NonHardwareAdapter } from './NonHardwareAdapter';
@@ -66,21 +66,12 @@ describe('createAdapter', () => {
   });
 });
 
-describe('adapter transport properties', () => {
-  const mockOptions: HardwareWalletAdapterOptions = {
-    onDisconnect: jest.fn(),
-    onDeviceEvent: jest.fn(),
-  };
-
-  it('LedgerBluetoothAdapter returns BluetoothDisabled error code for transport', () => {
-    const adapter = createAdapter(HardwareWalletType.Ledger, mockOptions);
-    expect(adapter.getTransportDisabledErrorCode()).toBe(
-      ErrorCode.BluetoothDisabled,
-    );
+describe('requiresBluetooth', () => {
+  it('returns true for Ledger', () => {
+    expect(requiresBluetooth(HardwareWalletType.Ledger)).toBe(true);
   });
 
-  it('NonHardwareAdapter returns null for transport error code', () => {
-    const adapter = createAdapter(null, mockOptions);
-    expect(adapter.getTransportDisabledErrorCode()).toBeNull();
+  it('returns false for null', () => {
+    expect(requiresBluetooth(null)).toBe(false);
   });
 });

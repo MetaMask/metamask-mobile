@@ -33,7 +33,7 @@ const ExploreSearchScreen: React.FC = () => {
         />
       </Box>
 
-      <PerpsConnectionProvider suppressErrorView>
+      <PerpsConnectionProvider>
         <PerpsStreamProvider>
           <ExploreSearchResults searchQuery={searchQuery} />
         </PerpsStreamProvider>

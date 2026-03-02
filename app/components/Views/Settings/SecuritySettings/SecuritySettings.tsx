@@ -1,13 +1,12 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Switch, ScrollView, View, Keyboard, Linking } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import { clearHistory } from '../../../../actions/browser';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
@@ -15,12 +14,14 @@ import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useTheme } from '../../../../util/theme';
 import {
   ClearCookiesSection,
   DeleteMetaMetricsData,
   DeleteWalletData,
+  RememberMeOptionSection,
   ProtectYourWallet,
-  DeviceSecurityToggle,
+  LoginOptionsSettings,
   ChangePassword,
   AutoLock,
   ClearPrivacy,
@@ -60,12 +61,11 @@ import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
-import { useStyles } from '../../../../component-library/hooks/useStyles';
 import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
-  const { styles } = useStyles(createStyles, {});
-
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   return (
     <View style={[styles.setting, first && styles.firstSetting]}>
       <Text variant={TextVariant.HeadingLG} style={styles.heading}>
@@ -77,10 +77,9 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 
 const Settings: React.FC = () => {
   const { trackEvent, isEnabled, createEventBuilder } = useAnalytics();
-  const {
-    styles,
-    theme: { colors, brandColors },
-  } = useStyles(createStyles, {});
+  const theme = useTheme();
+  const { colors } = theme;
+  const styles = createStyles(colors);
   const navigation = useNavigation();
   const params = useParams<SecuritySettingsParams>();
   const dispatch = useDispatch();
@@ -136,6 +135,18 @@ const Settings: React.FC = () => {
 
   const isMainnet = type === MAINNET;
 
+  const updateNavBar = useCallback(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        strings('app_settings.security_title'),
+        navigation,
+        false,
+        colors,
+        null,
+      ),
+    );
+  }, [colors, navigation]);
+
   const handleHintText = useCallback(async () => {
     const currentSeedphraseHints =
       await StorageWrapper.getItem(SEED_PHRASE_HINTS);
@@ -147,9 +158,10 @@ const Settings: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    updateNavBar();
     handleHintText();
     setAnalyticsEnabled(isEnabled());
-  }, [handleHintText, setAnalyticsEnabled, isEnabled]);
+  }, [handleHintText, updateNavBar, setAnalyticsEnabled, isEnabled]);
 
   useEffect(() => {
     const triggerCascadeBasicFunctionalityDisable = async () => {
@@ -317,7 +329,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={brandColors.white}
+              thumbColor={theme.brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />
@@ -353,7 +365,7 @@ const Settings: React.FC = () => {
       colors,
       styles,
       useTransactionSimulations,
-      brandColors.white,
+      theme.brandColors.white,
       createEventBuilder,
       trackEvent,
     ],
@@ -382,103 +394,99 @@ const Settings: React.FC = () => {
   const modalError = disableNotificationsError;
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderCompactStandard
-        title={strings('app_settings.security_title')}
-        onBack={() => navigation.goBack()}
-        includesTopInset
-      />
-      <ScrollView
-        style={styles.content}
-        testID={SECURITY_PRIVACY_VIEW_ID}
-        ref={scrollViewRef}
-      >
-        <View style={styles.inner}>
-          <Heading first>{strings('app_settings.security_heading')}</Heading>
-          <ProtectYourWallet
-            srpBackedup={seedphraseBackedUp}
-            hintText={hintText}
-            toggleHint={toggleHint}
-          />
-          <ChangePassword />
-          <AutoLock />
-          <DeviceSecurityToggle />
-          <BlockaidSettings />
-          <Heading>{strings('app_settings.privacy_heading')}</Heading>
-          <View>
-            <Text
-              variant={TextVariant.BodyLGMedium}
-              color={TextColor.Alternative}
-              style={{ ...styles.subHeading, ...styles.firstSetting }}
-            >
-              {strings('app_settings.general_heading')}
-            </Text>
-            <BasicFunctionalityComponent
-              handleSwitchToggle={toggleBasicFunctionality}
-            />
-          </View>
+    <ScrollView
+      style={styles.wrapper}
+      testID={SECURITY_PRIVACY_VIEW_ID}
+      ref={scrollViewRef}
+    >
+      <View style={styles.inner}>
+        <Heading first>{strings('app_settings.security_heading')}</Heading>
+        <ProtectYourWallet
+          srpBackedup={seedphraseBackedUp}
+          hintText={hintText}
+          toggleHint={toggleHint}
+        />
+        <ChangePassword />
+        <AutoLock />
+        <LoginOptionsSettings />
+        <View style={styles.setting}>
+          <RememberMeOptionSection />
+        </View>
+        <BlockaidSettings />
+        <Heading>{strings('app_settings.privacy_heading')}</Heading>
+        <View>
           <Text
             variant={TextVariant.BodyLGMedium}
             color={TextColor.Alternative}
             style={{ ...styles.subHeading, ...styles.firstSetting }}
           >
-            {strings('app_settings.privacy_browser_subheading')}
+            {strings('app_settings.general_heading')}
           </Text>
-          {!isAccountMenuEnabled && renderSDKSettings()}
-          <ClearPrivacy />
-          {renderClearBrowserHistorySection()}
-          <ClearCookiesSection />
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            color={TextColor.Alternative}
-            style={styles.subHeading}
-          >
-            {strings('app_settings.network_provider')}
-          </Text>
-          <NetworkDetailsCheckSettings />
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            color={TextColor.Alternative}
-            style={styles.subHeading}
-          >
-            {strings('app_settings.transactions_subheading')}
-          </Text>
-          <BatchAccountBalanceSettings />
-          {renderHistoryModal()}
-          {renderUseTransactionSimulations()}
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            color={TextColor.Alternative}
-            style={styles.subHeading}
-          >
-            {strings('app_settings.token_nft_ens_subheading')}
-          </Text>
-          <DisplayNFTMediaSettings />
-          {isMainnet && (
-            <View ref={detectNftComponentRef}>
-              <AutoDetectNFTSettings />
-            </View>
-          )}
-          <IPFSGatewaySettings />
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            color={TextColor.Alternative}
-            style={styles.subHeading}
-          >
-            {strings('app_settings.analytics_subheading')}
-          </Text>
-          <MetaMetricsAndDataCollectionSection />
-          <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
-          <DeleteWalletData />
-          {renderHint()}
+          <BasicFunctionalityComponent
+            handleSwitchToggle={toggleBasicFunctionality}
+          />
         </View>
-      </ScrollView>
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={{ ...styles.subHeading, ...styles.firstSetting }}
+        >
+          {strings('app_settings.privacy_browser_subheading')}
+        </Text>
+        {!isAccountMenuEnabled && renderSDKSettings()}
+        <ClearPrivacy />
+        {renderClearBrowserHistorySection()}
+        <ClearCookiesSection />
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.network_provider')}
+        </Text>
+        <NetworkDetailsCheckSettings />
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.transactions_subheading')}
+        </Text>
+        <BatchAccountBalanceSettings />
+        {renderHistoryModal()}
+        {renderUseTransactionSimulations()}
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.token_nft_ens_subheading')}
+        </Text>
+        <DisplayNFTMediaSettings />
+        {isMainnet && (
+          <View ref={detectNftComponentRef}>
+            <AutoDetectNFTSettings />
+          </View>
+        )}
+        <IPFSGatewaySettings />
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.analytics_subheading')}
+        </Text>
+        <MetaMetricsAndDataCollectionSection />
+        <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
+        <DeleteWalletData />
+        {renderHint()}
+      </View>
       <SwitchLoadingModal
         loading={modalLoading}
         loadingText=""
         error={modalError}
       />
-    </SafeAreaView>
+    </ScrollView>
   );
 };
 

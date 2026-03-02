@@ -117,49 +117,8 @@ exports[`DeveloperOptions renders correctly 1`] = `
               }
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 40,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 40,
-                    },
-                    {
-                      "marginHorizontal": 16,
-                    },
                     {
                       "transform": [
                         {
@@ -167,24 +126,76 @@ exports[`DeveloperOptions renders correctly 1`] = `
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="back-arrow-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 32,
-                        "width": 32,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
                       },
-                      undefined,
+                      {
+                        "marginHorizontal": 16,
+                      },
                     ]
                   }
-                />
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 32,
+                          "width": 32,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
             <View

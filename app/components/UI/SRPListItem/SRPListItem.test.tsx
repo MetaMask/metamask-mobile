@@ -18,10 +18,12 @@ import SRPListItem from './SRPListItem';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
 
 const mockTrackEvent = jest.fn();
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
+jest.mock('../../hooks/useMetrics/useMetrics', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock('../../../core/Engine', () => {
@@ -132,10 +134,7 @@ const getTestId = (selector: string, keyringId: string) =>
 describe('SRPList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    const { useAnalytics } = jest.requireMock(
-      '../../hooks/useAnalytics/useAnalytics',
-    );
-    (useAnalytics as jest.Mock).mockReturnValue({
+    (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
     });

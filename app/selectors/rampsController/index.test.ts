@@ -13,6 +13,8 @@ import {
   selectCountries,
   selectPaymentMethods,
   selectRampsControllerState,
+  selectQuotes,
+  selectWidgetUrl,
   selectTransak,
 } from './index';
 
@@ -46,6 +48,8 @@ const createMockState = (
             PaymentMethod[],
             PaymentMethod | null
           >([], null),
+          quotes: createDefaultResourceState(null),
+          widgetUrl: createDefaultResourceState(null),
           requests: {},
           nativeProviders: {
             transak: {
@@ -251,6 +255,124 @@ describe('RampsController Selectors', () => {
     });
   });
 
+  describe('selectQuotes', () => {
+    it('returns quotes resource state when quotes exist', () => {
+      const mockQuotesResponse = {
+        success: [
+          {
+            provider: 'test-provider',
+            quote: {
+              amountIn: 100,
+              amountOut: 95,
+              paymentMethod: 'debit-card',
+            },
+          },
+        ],
+        sorted: [],
+        error: [],
+        customActions: [],
+      };
+      const mockQuote = mockQuotesResponse.success[0];
+      const state = createMockState({
+        quotes: {
+          data: mockQuotesResponse,
+          selected: mockQuote,
+          isLoading: false,
+          error: null,
+        },
+      });
+
+      const result = selectQuotes(state);
+
+      expect(result).toEqual({
+        data: mockQuotesResponse,
+        selected: mockQuote,
+        isLoading: false,
+        error: null,
+      });
+    });
+
+    it('returns default resource state when quotes is undefined', () => {
+      const state = createMockState({
+        quotes: undefined,
+      });
+
+      const result = selectQuotes(state);
+
+      expect(result).toEqual({
+        data: null,
+        selected: null,
+        isLoading: false,
+        error: null,
+      });
+    });
+
+    it('returns isLoading true when quotes are being fetched', () => {
+      const state = createMockState({
+        quotes: {
+          data: null,
+          selected: null,
+          isLoading: true,
+          error: null,
+        },
+      });
+
+      const result = selectQuotes(state);
+
+      expect(result.isLoading).toBe(true);
+    });
+
+    it('returns error when quotes request failed', () => {
+      const state = createMockState({
+        quotes: {
+          data: null,
+          selected: null,
+          isLoading: false,
+          error: 'Failed to fetch quotes',
+        },
+      });
+
+      const result = selectQuotes(state);
+
+      expect(result.error).toBe('Failed to fetch quotes');
+    });
+  });
+
+  describe('selectWidgetUrl', () => {
+    it('returns widget URL resource state', () => {
+      const mockBuyWidget = {
+        url: 'https://global.transak.com/?apiKey=test',
+        browser: 'APP_BROWSER' as const,
+        orderId: 'order-123',
+      };
+      const state = createMockState({
+        widgetUrl: {
+          data: mockBuyWidget,
+          selected: null,
+          isLoading: false,
+          error: null,
+        },
+      });
+
+      const result = selectWidgetUrl(state);
+      expect(result.data).toEqual(mockBuyWidget);
+    });
+
+    it('returns default resource state when widgetUrl is undefined', () => {
+      const state = createMockState({
+        widgetUrl: undefined,
+      });
+
+      const result = selectWidgetUrl(state);
+      expect(result).toEqual({
+        data: null,
+        selected: null,
+        isLoading: false,
+        error: null,
+      });
+    });
+  });
+
   describe('selectRampsControllerState', () => {
     it('returns RampsController state', () => {
       const state = createMockState();
@@ -312,6 +434,8 @@ describe('RampsController Selectors', () => {
               providers: createDefaultResourceState([], null),
               tokens: createDefaultResourceState(null, null),
               paymentMethods: createDefaultResourceState([], null),
+              quotes: createDefaultResourceState(null),
+              widgetUrl: createDefaultResourceState(null),
               requests: {},
             },
           },

@@ -61,9 +61,5 @@ export const aesCryptoFormButtons: AesCryptoFormButtons = {
 };
 
 export const aesCryptoFormScrollIdentifier: string = 'aes-crypto-form-scroll';
-export const aesCryptoFormSafeArea: string = 'aes-crypto-form-safe-area';
-export const aesCryptoFormHeader: string = 'aes-crypto-form-header';
-export const aesCryptoFormHeaderBackButton: string =
-  'aes-crypto-form-header-back-button';
 export const accountAddress: string = 'account-address';
 export const responseText: string = 'response-text';

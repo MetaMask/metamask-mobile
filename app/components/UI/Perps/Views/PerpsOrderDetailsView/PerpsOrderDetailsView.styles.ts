@@ -58,7 +58,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 10,
+      paddingVertical: 12,
     },
     detailLabel: {
       flex: 1,
@@ -66,6 +66,10 @@ const styleSheet = (params: { theme: Theme }) => {
     detailValue: {
       flex: 1,
       alignItems: 'flex-end',
+    },
+    separator: {
+      height: 1,
+      marginVertical: 4,
     },
     statusContainer: {
       flexDirection: 'row',

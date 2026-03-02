@@ -35,8 +35,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { isNonEvmAddress } from '../../../core/Multichain/utils';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
@@ -60,6 +62,8 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../hooks/useStyles';
 import ErrorBoundary from '../ErrorBoundary';
+import MultichainTransactionsView from '../MultichainTransactionsView';
+import TransactionsView from '../TransactionsView';
 import UnifiedTransactionsView from '../UnifiedTransactionsView/UnifiedTransactionsView';
 
 const createStyles = (params) => {
@@ -85,6 +89,16 @@ const createStyles = (params) => {
       borderRadius: 8,
       maxWidth: '80%',
       paddingHorizontal: 12,
+    },
+    controlButtonDisabled: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.muted,
+      marginRight: 4,
+      borderWidth: 1,
+      borderRadius: 8,
+      maxWidth: '80%',
+      paddingHorizontal: 12,
+      opacity: 0.5,
     },
     networkManagerWrapper: {
       display: 'flex',
@@ -118,7 +132,8 @@ const ActivityView = () => {
   const networkName = useSelector(selectNetworkName);
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
-  const { enabledNetworks, getNetworkInfo } = useCurrentNetworkInfo();
+  const { enabledNetworks, getNetworkInfo, isDisabled } =
+    useCurrentNetworkInfo();
   const { areAllNetworksSelected } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
@@ -236,6 +251,21 @@ const ActivityView = () => {
     chainId: firstEnabledChainId,
   });
 
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+  const showUnifiedActivityList = isMultichainAccountsState2Enabled;
+
+  const renderTransactionsView = () => {
+    if (showUnifiedActivityList) {
+      return <UnifiedTransactionsView chainId={currentChainId} />;
+    }
+    if (selectedAddress && isNonEvmAddress(selectedAddress)) {
+      return <MultichainTransactionsView chainId={currentChainId} />;
+    }
+    return <TransactionsView />;
+  };
+
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
       <Box
@@ -297,14 +327,26 @@ const ActivityView = () => {
                     </View>
                   </>
                 }
-                isDisabled={false}
-                onPress={showFilterControls}
-                endIconName={IconName.ArrowDown}
-                style={styles.controlButton}
-                disabled={false}
+                isDisabled={isDisabled && !isMultichainAccountsState2Enabled}
+                onPress={
+                  isEvmSelected || isMultichainAccountsState2Enabled
+                    ? showFilterControls
+                    : () => null
+                }
+                endIconName={
+                  isEvmSelected || isMultichainAccountsState2Enabled
+                    ? IconName.ArrowDown
+                    : undefined
+                }
+                style={
+                  isDisabled && !isMultichainAccountsState2Enabled
+                    ? styles.controlButtonDisabled
+                    : styles.controlButton
+                }
+                disabled={isDisabled && !isMultichainAccountsState2Enabled}
               />
             </View>
-            <UnifiedTransactionsView chainId={currentChainId} />
+            {renderTransactionsView()}
           </View>
           <View
             key="orders"

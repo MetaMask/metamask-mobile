@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -16,6 +16,7 @@ import {
   getPerpsDisplaySymbol,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsFillTag from '../PerpsFillTag';
@@ -45,7 +46,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleSeeAll = useCallback(() => {

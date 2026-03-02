@@ -1,8 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictMarket as PredictMarketType } from '../../types';
-import { PredictEntryPoint } from '../../types/navigation';
+import {
+  PredictNavigationParamList,
+  PredictEntryPoint,
+} from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -26,7 +29,8 @@ const PredictMarketRowItem = ({
   testID,
   entryPoint: propEntryPoint,
 }: PredictMarketRowItemProps) => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
   const contextEntryPoint = usePredictEntryPoint();
   const entryPoint =

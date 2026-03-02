@@ -56,8 +56,9 @@ import {
   useNavigation,
   useRoute,
   RouteProp,
-  StackActions,
+  ParamListBase,
 } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import {
   TraceName,
   TraceOperation,
@@ -122,7 +123,7 @@ interface OnboardingRouteParams {
 }
 
 const Onboarding = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route =
     useRoute<RouteProp<{ params: OnboardingRouteParams }, 'params'>>();
   const dispatch = useDispatch();
@@ -297,7 +298,7 @@ const Onboarding = () => {
   const onLogin = useCallback(async (): Promise<void> => {
     if (!passwordSet) {
       await Authentication.resetVault();
-      navigation.dispatch(StackActions.replace(Routes.ONBOARDING.HOME_NAV));
+      navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } else {
       await Authentication.lockApp({ navigateToLogin: true });
     }
@@ -635,26 +636,22 @@ const Onboarding = () => {
       try {
         const netState = await netInfoFetch();
         if (!netState.isConnected || netState.isInternetReachable === false) {
-          navigation.dispatch(
-            StackActions.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-              params: {
-                title: strings(`error_sheet.no_internet_connection_title`),
-                description: strings(
-                  `error_sheet.no_internet_connection_description`,
-                ),
-                descriptionAlign: 'left',
-                buttonLabel: strings(
-                  `error_sheet.no_internet_connection_button`,
-                ),
-                primaryButtonLabel: strings(
-                  `error_sheet.no_internet_connection_button`,
-                ),
-                closeOnPrimaryButtonPress: true,
-                type: 'error',
-              },
-            }),
-          );
+          navigation.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+            params: {
+              title: strings(`error_sheet.no_internet_connection_title`),
+              description: strings(
+                `error_sheet.no_internet_connection_description`,
+              ),
+              descriptionAlign: 'left',
+              buttonLabel: strings(`error_sheet.no_internet_connection_button`),
+              primaryButtonLabel: strings(
+                `error_sheet.no_internet_connection_button`,
+              ),
+              closeOnPrimaryButtonPress: true,
+              type: 'error',
+            },
+          });
           return;
         }
       } catch (error) {

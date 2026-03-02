@@ -64,4 +64,10 @@ const styleSheet = (params: { theme: Theme }) =>
     },
   });
 
+export const styles = StyleSheet.create({
+  headerLeft: {
+    marginHorizontal: 16,
+  },
+});
+
 export default styleSheet;

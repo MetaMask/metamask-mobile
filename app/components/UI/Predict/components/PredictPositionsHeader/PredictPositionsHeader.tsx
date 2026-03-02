@@ -185,7 +185,7 @@ const PredictPositionsHeader = forwardRef<
         >
           <SensitiveText
             variant={ComponentTextVariant.BodyMD}
-            color="white"
+            color={ComponentTextColor.Inverse}
             isHidden={privacyMode}
             length={SensitiveTextLength.Medium}
           >

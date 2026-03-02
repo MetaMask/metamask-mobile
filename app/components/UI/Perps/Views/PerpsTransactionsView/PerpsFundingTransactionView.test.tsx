@@ -1,204 +1,401 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
+import Routes from '../../../../../constants/navigation/Routes';
 import PerpsFundingTransactionView from './PerpsFundingTransactionView';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 
-const mockGoBack = jest.fn();
-const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
-
 const mockTransaction = {
-  id: '1',
-  title: 'Funding Payment',
-  timestamp: 1706745600000,
+  id: 'funding-123',
+  type: 'funding' as const,
+  category: 'funding_fee' as const,
+  title: 'Received funding fee',
+  subtitle: 'ETH',
+  timestamp: 1640995200000,
+  asset: 'ETH',
   fundingAmount: {
-    feeNumber: 5.25,
     isPositive: true,
-    rate: '0.0125%',
+    fee: '+$0.000435',
+    feeNumber: 0.000435,
+    rate: '0.00015%',
   },
 };
 
-let mockRouteParams: { transaction?: typeof mockTransaction } = {
-  transaction: mockTransaction,
-};
+// Mock all dependencies properly
+const mockUseNavigation = jest.fn();
+const mockUseRoute = jest.fn();
+const mockUsePerpsNetwork = jest.fn();
+const mockUsePerpsBlockExplorerUrl = jest.fn();
+const mockFormatPerpsFiat = jest.fn();
+const mockFormatTransactionDate = jest.fn();
+const mockGetPerpsTransactionsDetailsNavbar = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    goBack: mockGoBack,
-    navigate: mockNavigate,
-    setOptions: mockSetOptions,
-  }),
-  useRoute: () => ({ params: mockRouteParams }),
+  useNavigation: () => mockUseNavigation(),
+  useRoute: () => mockUseRoute(),
 }));
 
-jest.mock('../../hooks', () => ({
-  usePerpsBlockExplorerUrl: () => ({
-    getExplorerUrl: jest.fn().mockReturnValue('https://example.com/explorer'),
-  }),
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: () => () => ({
-    address: '0x1234567890123456789012345678901234567890',
-    id: 'test-account-id',
-    metadata: { name: 'Test Account' },
-  }),
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: '0x1234567890abcdef1234567890abcdef12345678',
+  })),
+}));
+
+jest.mock('../../hooks', () => ({
+  usePerpsNetwork: () => mockUsePerpsNetwork(),
+  usePerpsBlockExplorerUrl: () => mockUsePerpsBlockExplorerUrl(),
+}));
+
+jest.mock('../../../Navbar', () => ({
+  getPerpsTransactionsDetailsNavbar: () =>
+    mockGetPerpsTransactionsDetailsNavbar(),
 }));
 
 describe('PerpsFundingTransactionView', () => {
-  const initialState = {
-    engine: {
-      backgroundState,
-    },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = { transaction: mockTransaction };
-  });
 
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
-
-  it('renders transaction title in header', () => {
-    // Arrange & Act
-    const { getByText } = renderWithProvider(<PerpsFundingTransactionView />, {
-      state: initialState,
+    // Arrange - Set up default mocks
+    mockUsePerpsNetwork.mockReturnValue('mainnet');
+    mockUsePerpsBlockExplorerUrl.mockReturnValue({
+      getExplorerUrl: jest
+        .fn()
+        .mockImplementation(
+          () =>
+            'https://app.hyperliquid.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
+        ),
+      baseExplorerUrl: 'https://app.hyperliquid.xyz/explorer',
     });
-
-    // Assert
-    expect(getByText('Funding Payment')).toBeOnTheScreen();
-  });
-
-  it('renders date row with formatted date', () => {
-    // Arrange & Act
-    const { getByText } = renderWithProvider(<PerpsFundingTransactionView />, {
-      state: initialState,
+    // Mock useSelector to return a function that returns the account
+    (useSelector as jest.Mock).mockImplementation(() => () => ({
+      address: '0x1234567890abcdef1234567890abcdef12345678',
+    }));
+    mockUseRoute.mockReturnValue({
+      params: { transaction: mockTransaction },
     });
-
-    // Assert
-    expect(getByText('Date')).toBeOnTheScreen();
-  });
-
-  it('renders fee row with amount', () => {
-    // Arrange & Act
-    const { getByText } = renderWithProvider(<PerpsFundingTransactionView />, {
-      state: initialState,
+    mockUseNavigation.mockReturnValue({
+      navigate: jest.fn(),
+      setOptions: jest.fn(),
     });
-
-    // Assert
-    expect(getByText('Fee')).toBeOnTheScreen();
+    mockFormatPerpsFiat.mockImplementation((value) => `$${value}`);
+    mockFormatTransactionDate.mockReturnValue('January 1, 2022');
+    mockGetPerpsTransactionsDetailsNavbar.mockReturnValue({});
   });
 
-  it('renders rate row', () => {
-    // Arrange & Act
-    const { getByText } = renderWithProvider(<PerpsFundingTransactionView />, {
-      state: initialState,
-    });
-
-    // Assert
-    expect(getByText('Rate')).toBeOnTheScreen();
-    expect(getByText('0.0125%')).toBeOnTheScreen();
-  });
-
-  it('renders scroll view with testID', () => {
-    // Arrange & Act
-    const { getByTestId } = renderWithProvider(
-      <PerpsFundingTransactionView />,
-      {
-        state: initialState,
-      },
-    );
+  it('should render funding transaction details correctly', () => {
+    // Act
+    const { getByText, getByTestId } = render(<PerpsFundingTransactionView />);
 
     // Assert
     expect(
       getByTestId(PerpsTransactionSelectorsIDs.FUNDING_TRANSACTION_VIEW),
-    ).toBeOnTheScreen();
+    ).toBeTruthy();
+    expect(getByText('Date')).toBeTruthy();
+    expect(getByText('Fee')).toBeTruthy();
+    expect(getByText('Rate')).toBeTruthy();
+    expect(getByText('+$0.000435')).toBeTruthy();
+    expect(getByText('0.00015%')).toBeTruthy();
   });
 
-  it('renders view on explorer button', () => {
-    // Arrange & Act
-    const { getByTestId } = renderWithProvider(
-      <PerpsFundingTransactionView />,
-      {
-        state: initialState,
-      },
-    );
-
-    // Assert
-    expect(
-      getByTestId(PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  it('navigates to webview when explorer button is pressed', () => {
+  it('should render negative funding fee correctly', () => {
     // Arrange
-    const { getByTestId } = renderWithProvider(
-      <PerpsFundingTransactionView />,
-      {
-        state: initialState,
+    const negativeFundingTransaction = {
+      ...mockTransaction,
+      title: 'Paid funding fee',
+      fundingAmount: {
+        isPositive: false,
+        fee: '-$8.75',
+        feeNumber: -8.75,
+        rate: '0.01%',
       },
-    );
-    const explorerButton = getByTestId(
-      PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON,
-    );
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: negativeFundingTransaction },
+    });
 
     // Act
-    fireEvent.press(explorerButton);
+    const { getByText } = render(<PerpsFundingTransactionView />);
+
+    // Assert
+    expect(getByText('-$8.75')).toBeTruthy();
+  });
+
+  it('should handle small funding amounts correctly', () => {
+    // Arrange
+    const smallFundingTransaction = {
+      ...mockTransaction,
+      fundingAmount: {
+        isPositive: true,
+        fee: '+$0.005',
+        feeNumber: 0.005,
+        rate: '0.001%',
+      },
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: smallFundingTransaction },
+    });
+
+    // Act
+    const { getByText } = render(<PerpsFundingTransactionView />);
+
+    // Assert
+    expect(getByText('+$0.005')).toBeTruthy();
+    expect(getByText('0.001%')).toBeTruthy();
+  });
+
+  it('should handle very small fees with different format', () => {
+    // Arrange
+    const verySmallFundingTransaction = {
+      ...mockTransaction,
+      fundingAmount: {
+        isPositive: true,
+        fee: '+$0.001',
+        feeNumber: 0.001,
+        rate: '0.0001%',
+      },
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: verySmallFundingTransaction },
+    });
+
+    // Act
+    const { getByText } = render(<PerpsFundingTransactionView />);
+
+    // Assert
+    expect(getByText('+$0.001')).toBeTruthy();
+  });
+
+  it('should handle large funding amounts correctly', () => {
+    // Arrange
+    const largeFundingTransaction = {
+      ...mockTransaction,
+      fundingAmount: {
+        isPositive: false,
+        fee: '-$1,250',
+        feeNumber: -1250,
+        rate: '0.1%',
+      },
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: largeFundingTransaction },
+    });
+
+    // Act
+    const { getByText } = render(<PerpsFundingTransactionView />);
+
+    // Assert
+    expect(getByText('-$1,250')).toBeTruthy();
+    expect(getByText('0.1%')).toBeTruthy();
+  });
+
+  it('should navigate to block explorer in browser tab when button is pressed', () => {
+    // Arrange
+    const mockNavigate = jest.fn();
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+      setOptions: jest.fn(),
+    });
+
+    const { getByTestId } = render(<PerpsFundingTransactionView />);
+
+    // Act
+    const blockExplorerButton = getByTestId(
+      PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON,
+    );
+    fireEvent.press(blockExplorerButton);
 
     // Assert
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://example.com/explorer',
+        url: 'https://app.hyperliquid.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
       },
     });
   });
 
-  it('navigates back when back button is pressed', () => {
+  it('should use testnet URL when network is testnet', () => {
     // Arrange
-    const { getByTestId } = renderWithProvider(
-      <PerpsFundingTransactionView />,
-      {
-        state: initialState,
-      },
-    );
-    const backButton = getByTestId('button-icon');
+    const mockNavigate = jest.fn();
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+      setOptions: jest.fn(),
+    });
+
+    mockUsePerpsNetwork.mockReturnValue('testnet');
+    mockUsePerpsBlockExplorerUrl.mockReturnValue({
+      getExplorerUrl: jest
+        .fn()
+        .mockImplementation(
+          () =>
+            'https://app.hyperliquid-testnet.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
+        ),
+      baseExplorerUrl: 'https://app.hyperliquid-testnet.xyz/explorer',
+    });
+
+    const { getByTestId } = render(<PerpsFundingTransactionView />);
 
     // Act
-    fireEvent.press(backButton);
+    const blockExplorerButton = getByTestId(
+      PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON,
+    );
+    fireEvent.press(blockExplorerButton);
 
     // Assert
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-});
-
-describe('PerpsFundingTransactionView with missing transaction', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockRouteParams = {};
-  });
-
-  it('renders not found message when transaction is missing', () => {
-    // Arrange
-    const initialState = {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-        },
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://app.hyperliquid-testnet.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
       },
-    };
+    });
+  });
+
+  it('should not navigate to block explorer when no selected account', () => {
+    // Arrange
+    const mockNavigate = jest.fn();
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+      setOptions: jest.fn(),
+    });
+
+    // Mock useSelector to return null for no account
+    (useSelector as jest.Mock).mockImplementationOnce(() => () => null);
+
+    const { getByTestId } = render(<PerpsFundingTransactionView />);
 
     // Act
-    const { getByText } = renderWithProvider(<PerpsFundingTransactionView />, {
-      state: initialState,
+    const blockExplorerButton = getByTestId(
+      PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON,
+    );
+    fireEvent.press(blockExplorerButton);
+
+    // Assert
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.BROWSER_TAB_HOME,
+      expect.anything(),
+    );
+  });
+
+  it('should render error message when transaction is not found', () => {
+    // Arrange
+    mockUseRoute.mockReturnValue({
+      params: { transaction: null },
     });
+
+    // Act
+    const { getByText } = render(<PerpsFundingTransactionView />);
 
     // Assert
     expect(getByText('Transaction not found')).toBeOnTheScreen();
+  });
+
+  it('should format date correctly', () => {
+    // Act
+    const { getByText } = render(<PerpsFundingTransactionView />);
+
+    // Assert
+    expect(getByText('Date')).toBeTruthy();
+    // The actual date format would depend on the formatTransactionDate utility
+  });
+
+  it('should handle zero funding amounts', () => {
+    // Arrange
+    const zeroFundingTransaction = {
+      ...mockTransaction,
+      fundingAmount: {
+        isPositive: true,
+        fee: '$0.00',
+        feeNumber: 0,
+        rate: '0%',
+      },
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: zeroFundingTransaction },
+    });
+
+    // Act
+    const { getByText } = render(<PerpsFundingTransactionView />);
+
+    // Assert
+    expect(getByText('+$0')).toBeTruthy();
+    expect(getByText('0%')).toBeTruthy();
+  });
+
+  it('should handle missing funding amount data gracefully', () => {
+    // Arrange
+    const transactionWithoutFundingAmount = {
+      ...mockTransaction,
+      fundingAmount: undefined,
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: transactionWithoutFundingAmount },
+    });
+
+    // Act
+    const { getByText } = render(<PerpsFundingTransactionView />);
+
+    // Assert
+    expect(getByText('Date')).toBeTruthy();
+    expect(getByText('Fee')).toBeTruthy();
+    expect(getByText('Rate')).toBeTruthy();
+  });
+
+  it('should set correct navigation options', () => {
+    // Arrange
+    const mockSetOptions = jest.fn();
+    mockUseNavigation.mockReturnValue({
+      setOptions: mockSetOptions,
+    });
+
+    // Act
+    render(<PerpsFundingTransactionView />);
+
+    // Assert
+    expect(mockSetOptions).toHaveBeenCalled();
+  });
+
+  it('should handle different asset types', () => {
+    // Arrange
+    const btcFundingTransaction = {
+      ...mockTransaction,
+      asset: 'BTC',
+      fundingAmount: {
+        isPositive: false,
+        fee: '-$25',
+        feeNumber: -25,
+        rate: '0.005%',
+      },
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: btcFundingTransaction },
+    });
+
+    // Act
+    const { getByText } = render(<PerpsFundingTransactionView />);
+
+    // Assert
+    expect(getByText('-$25')).toBeTruthy();
+    expect(getByText('0.005%')).toBeTruthy();
+  });
+
+  it('should display view on block explorer button', () => {
+    // Act
+    const { getByTestId } = render(<PerpsFundingTransactionView />);
+
+    // Assert
+    const button = getByTestId(
+      PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON,
+    );
+    expect(button).toBeTruthy();
   });
 });

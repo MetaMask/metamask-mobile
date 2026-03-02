@@ -36,6 +36,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { useSelector } from 'react-redux';
@@ -127,6 +128,7 @@ describe('TrendingView', () => {
     (
       overrides: {
         browserTabsCount?: number;
+        multichainEnabled?: boolean;
         basicFunctionalityEnabled?: boolean;
       } = {},
     ) =>
@@ -168,6 +170,9 @@ describe('TrendingView', () => {
       }
       if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
         return [];
+      }
+      if (selector === selectMultichainAccountsState2Enabled) {
+        return overrides.multichainEnabled ?? false;
       }
       if (selector === selectBasicFunctionalityEnabled) {
         return overrides.basicFunctionalityEnabled ?? true;

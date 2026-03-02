@@ -10,15 +10,9 @@ describe('MarketInsightsTrendItem', () => {
       title: 'Macro liquidity supports risk assets',
       description: 'Broad risk-on sentiment is supporting ETH and BTC.',
       articles: [
-        {
-          source: 'Cointelegraph',
-          url: 'https://cointelegraph.com/news/market-update-1',
-        },
-        {
-          source: 'https://cointelegraph.com/news/market-update-2',
-          url: 'https://cointelegraph.com/news/market-update-2',
-        },
-        { source: 'theblock.co', url: 'https://www.theblock.co/post/1234' },
+        { source: 'cointelegraph.com' },
+        { source: 'cointelegraph.com' },
+        { source: 'theblock.co' },
       ],
     };
 
@@ -38,9 +32,7 @@ describe('MarketInsightsTrendItem', () => {
     const trend = {
       title: 'Institutional inflows',
       description: 'Large funds keep adding BTC exposure.',
-      articles: [
-        { source: 'coindesk.com', url: 'https://coindesk.com/news/1' },
-      ],
+      articles: [{ source: 'coindesk.com' }],
     };
 
     const { getByTestId } = renderWithProvider(
@@ -53,29 +45,5 @@ describe('MarketInsightsTrendItem', () => {
 
     fireEvent.press(getByTestId('trend-item'));
     expect(onPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('shows X icon when trend has only tweets and no articles', () => {
-    const trend = {
-      title: 'Developer debates',
-      description: 'Discussions heat up on consensus.',
-      articles: [],
-      tweets: [
-        {
-          author: 'adam3us',
-          contentSummary: 'Minority protections matter.',
-          date: '2026-02-17',
-          url: 'https://x.com/adam3us/status/123',
-        },
-      ],
-    };
-
-    const { getByText, UNSAFE_getAllByType } = renderWithProvider(
-      <MarketInsightsTrendItem trend={trend as never} testID="trend-item" />,
-    );
-
-    expect(getByText(trend.title)).toBeOnTheScreen();
-    const sourceIcons = UNSAFE_getAllByType(Image);
-    expect(sourceIcons).toHaveLength(1);
   });
 });

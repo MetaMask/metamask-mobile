@@ -9,18 +9,6 @@ import {
 import { DepositSDKNoAuth } from '../sdk';
 import Logger from '../../../../../util/Logger';
 
-function getFiatCurrencySymbol(currencyCode: string): string {
-  try {
-    const parts = new Intl.NumberFormat('en', {
-      style: 'currency',
-      currency: currencyCode,
-    }).formatToParts(0);
-    return parts.find((p) => p.type === 'currency')?.value ?? '';
-  } catch {
-    return '';
-  }
-}
-
 const depositOrderStateToFiatOrderState = (
   aggregatorOrderState: DepositOrder['status'],
 ) => {
@@ -48,7 +36,7 @@ const depositOrderStateToFiatOrderState = (
 export const depositOrderToFiatOrder = (
   depositOrder: DepositOrder,
 ): FiatOrder => ({
-  id: depositOrder.providerOrderId || depositOrder.id,
+  id: depositOrder.id,
   provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
   createdAt: depositOrder.createdAt,
   amount: depositOrder.fiatAmount,
@@ -57,8 +45,7 @@ export const depositOrderToFiatOrder = (
   cryptoAmount: depositOrder.cryptoAmount || 0,
   cryptoFee: depositOrder.totalFeesFiat || 0,
   currency: depositOrder.fiatCurrency,
-  currencySymbol: getFiatCurrencySymbol(depositOrder.fiatCurrency),
-  amountInUSD: depositOrder.fiatAmountInUsd?.toString(),
+  currencySymbol: '',
   cryptocurrency: depositOrder.cryptoCurrency?.symbol || '',
   network: depositOrder.network?.chainId || '',
   state: depositOrderStateToFiatOrderState(depositOrder.status),
@@ -78,8 +65,7 @@ export async function processDepositOrder(
   try {
     const sdk = options?.sdk || DepositSDKNoAuth;
 
-    const depositData = order.data as DepositOrder;
-    const updatedOrder = await sdk.getOrder(depositData.id, order.account);
+    const updatedOrder = await sdk.getOrder(order.id, order.account);
     if (!updatedOrder) {
       throw new Error('Deposit order not found');
     }
@@ -87,7 +73,6 @@ export async function processDepositOrder(
     const updatedFiatOrder = depositOrderToFiatOrder(updatedOrder);
     return {
       ...updatedFiatOrder,
-      id: order.id || updatedFiatOrder.id,
       account: order.account,
       lastTimeFetched: Date.now(),
       errorCount: 0,
