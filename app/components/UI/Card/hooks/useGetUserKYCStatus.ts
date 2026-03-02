@@ -20,14 +20,10 @@ interface UseGetUserKYCStatusResult {
 
 /**
  * Hook to fetch user KYC verification status.
- * Only fetches when user is authenticated.
  *
- * @param isAuthenticated - Whether the user is authenticated
  * @returns KYC status data, loading state, error, and fetch function
  */
-const useGetUserKYCStatus = (
-  isAuthenticated: boolean,
-): UseGetUserKYCStatusResult => {
+const useGetUserKYCStatus = (): UseGetUserKYCStatusResult => {
   const { sdk } = useCardSDK();
 
   const { data, isLoading, error, refetch } = useQuery<UserKYCStatus | null>({
@@ -49,8 +45,8 @@ const useGetUserKYCStatus = (
         throw errorMessage;
       }
     },
-    enabled: isAuthenticated && !!sdk,
-    staleTime: 60_000,
+    enabled: false,
+    staleTime: 0,
   });
 
   const fetchKYCStatus = useCallback(async () => {

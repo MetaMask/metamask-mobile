@@ -8,9 +8,6 @@ import {
   CardStatus,
   CardStateWarning,
 } from '../types';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
-import { useSelector } from 'react-redux';
-import { AUTHENTICATED_CACHE_DURATION } from '../constants';
 import { dashboardKeys } from '../queries';
 
 interface CardDetailsResult {
@@ -19,7 +16,6 @@ interface CardDetailsResult {
 }
 
 const useCardDetails = () => {
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const { sdk } = useCardSDK();
 
   const {
@@ -58,8 +54,8 @@ const useCardDetails = () => {
         throw err;
       }
     },
-    enabled: isAuthenticated && !!sdk,
-    staleTime: AUTHENTICATED_CACHE_DURATION,
+    enabled: false,
+    staleTime: 0,
   });
 
   const fetchCardDetails = useCallback(async () => {

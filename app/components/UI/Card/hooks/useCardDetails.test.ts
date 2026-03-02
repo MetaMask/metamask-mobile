@@ -129,8 +129,8 @@ describe('useCardDetails', () => {
 
       const queryConfig = (useQuery as jest.Mock).mock.calls[0][0];
       expect(queryConfig.queryKey).toEqual(dashboardKeys.cardDetails());
-      expect(queryConfig.staleTime).toBe(60000);
-      expect(queryConfig.enabled).toBe(true);
+      expect(queryConfig.staleTime).toBe(0);
+      expect(queryConfig.enabled).toBe(false);
     });
   });
 

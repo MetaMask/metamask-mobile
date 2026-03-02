@@ -76,7 +76,7 @@ describe('useGetUserKYCStatus', () => {
     );
 
     const store = createTestStore();
-    renderHook(() => useGetUserKYCStatus(false), {
+    renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
@@ -93,13 +93,13 @@ describe('useGetUserKYCStatus', () => {
     );
 
     const store = createTestStore();
-    renderHook(() => useGetUserKYCStatus(true), {
+    renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({
-        enabled: true,
+        enabled: false,
       }),
     );
   });
@@ -116,7 +116,7 @@ describe('useGetUserKYCStatus', () => {
     mockQueryReturn.data = kycData;
 
     const store = createTestStore();
-    const { result } = renderHook(() => useGetUserKYCStatus(true), {
+    const { result } = renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
@@ -132,7 +132,7 @@ describe('useGetUserKYCStatus', () => {
     };
 
     const store = createTestStore();
-    const { result } = renderHook(() => useGetUserKYCStatus(true), {
+    const { result } = renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
@@ -147,7 +147,7 @@ describe('useGetUserKYCStatus', () => {
     };
 
     const store = createTestStore();
-    const { result } = renderHook(() => useGetUserKYCStatus(true), {
+    const { result } = renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
@@ -161,7 +161,7 @@ describe('useGetUserKYCStatus', () => {
     );
 
     const store = createTestStore();
-    const { result } = renderHook(() => useGetUserKYCStatus(true), {
+    const { result } = renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
@@ -178,7 +178,7 @@ describe('useGetUserKYCStatus', () => {
     mockRefetch.mockResolvedValue({ data: kycData });
 
     const store = createTestStore();
-    const { result } = renderHook(() => useGetUserKYCStatus(true), {
+    const { result } = renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
@@ -194,7 +194,7 @@ describe('useGetUserKYCStatus', () => {
     mockRefetch.mockResolvedValue({ data: null });
 
     const store = createTestStore();
-    const { result } = renderHook(() => useGetUserKYCStatus(true), {
+    const { result } = renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
@@ -216,7 +216,7 @@ describe('useGetUserKYCStatus', () => {
     });
 
     const store = createTestStore();
-    const { result } = renderHook(() => useGetUserKYCStatus(true), {
+    const { result } = renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
@@ -232,7 +232,7 @@ describe('useGetUserKYCStatus', () => {
     });
 
     const store = createTestStore();
-    renderHook(() => useGetUserKYCStatus(true), {
+    renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
@@ -254,7 +254,7 @@ describe('useGetUserKYCStatus', () => {
     });
 
     const store = createTestStore();
-    renderHook(() => useGetUserKYCStatus(true), {
+    renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
