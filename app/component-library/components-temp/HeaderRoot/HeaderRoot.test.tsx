@@ -111,7 +111,7 @@ describe('HeaderRoot', () => {
 
     it('renders title row when children is null', () => {
       const { getByText } = render(
-        <HeaderRoot title="Title When Children Null" children={null} />,
+        <HeaderRoot title="Title When Children Null">{null}</HeaderRoot>,
       );
 
       expect(getByText('Title When Children Null')).toBeOnTheScreen();
