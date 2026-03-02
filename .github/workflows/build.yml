@@ -174,7 +174,7 @@ jobs:
       - name: Installing iOS Environment Setup
         if: matrix.platform == 'ios'
         timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1.7.0
         with:
           platform: ios
           configure-keystores: false
