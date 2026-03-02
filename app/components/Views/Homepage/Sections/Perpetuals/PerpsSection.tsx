@@ -231,7 +231,6 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
                 position={position}
                 compact
                 compactVariant="position"
-                iconSize={36}
                 tpSlLoading={!tpSlReady}
                 onPress={() => handlePositionPress(position)}
                 testID={`perps-position-row-${position.symbol}`}
@@ -241,7 +240,6 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               <PerpsCard
                 key={order.orderId}
                 order={order}
-                iconSize={36}
                 testID={`perps-order-row-${order.orderId}`}
               />
             ))}
