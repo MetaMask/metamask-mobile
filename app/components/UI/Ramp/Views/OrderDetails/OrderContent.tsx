@@ -26,11 +26,7 @@ import BadgeWrapper, {
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { strings } from '../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../util/date';
-import {
-  renderFiat,
-  getCurrencySymbol,
-  formatFiatValue,
-} from '../../../../../util/number';
+import { renderFiat, formatFiatValue } from '../../../../../util/number';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
 import Button, {
@@ -212,9 +208,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
   const fiatDenomSymbol =
     typeof order.fiatCurrency === 'object' && order.fiatCurrency?.denomSymbol
       ? order.fiatCurrency.denomSymbol
-      : fiatCurrencyCode
-        ? getCurrencySymbol(fiatCurrencyCode)
-        : '';
+      : '';
   const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
 
   const normalizeChainIdForBadge = (chainId: string): string => {
