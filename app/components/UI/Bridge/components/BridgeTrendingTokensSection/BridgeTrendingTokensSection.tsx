@@ -9,10 +9,6 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
-  Icon,
-  IconName,
-  IconColor,
-  IconSize,
 } from '@metamask/design-system-react-native';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import {
@@ -36,6 +32,7 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import type { CaipChainId } from '@metamask/utils';
+import { FilterButton } from '../../../Trending/components/FilterBar/FilterBar';
 
 const TOKEN_CHUNK_SIZE = 12;
 
@@ -44,46 +41,6 @@ type ActiveBottomSheet = 'none' | 'time' | 'network' | 'price_change';
 interface BridgeTrendingTokensSectionProps {
   isNearBottom?: boolean;
 }
-
-const FilterButton = ({
-  testID,
-  onPress,
-  text,
-  twClassName: btnClass,
-}: {
-  testID: string;
-  onPress: () => void;
-  text: string;
-  twClassName?: string;
-}) => {
-  const tw = useTailwind();
-  return (
-    <Pressable
-      testID={testID}
-      onPress={onPress}
-      style={({ pressed }) =>
-        tw.style(
-          'flex-row items-center justify-center gap-1 py-2 px-3 rounded-lg bg-background-muted',
-          btnClass,
-          pressed && 'opacity-20',
-        )
-      }
-    >
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
-      >
-        {text}
-      </Text>
-      <Icon
-        name={IconName.ArrowDown}
-        color={IconColor.IconAlternative}
-        size={IconSize.Xs}
-      />
-    </Pressable>
-  );
-};
 
 const BridgeTrendingTokensSection = ({
   isNearBottom,
@@ -201,19 +158,19 @@ const BridgeTrendingTokensSection = ({
           <FilterButton
             testID={BridgeViewSelectorsIDs.TRENDING_PRICE_FILTER}
             onPress={() => setActiveBottomSheet('price_change')}
-            text={priceChangeButtonText}
+            label={priceChangeButtonText}
             twClassName="flex-1"
           />
           <FilterButton
             testID={BridgeViewSelectorsIDs.TRENDING_NETWORK_FILTER}
             onPress={() => setActiveBottomSheet('network')}
-            text={selectedNetworkName}
+            label={selectedNetworkName}
             twClassName="flex-1"
           />
           <FilterButton
             testID={BridgeViewSelectorsIDs.TRENDING_TIME_FILTER}
             onPress={() => setActiveBottomSheet('time')}
-            text={selectedTimeOption}
+            label={selectedTimeOption}
             twClassName="w-[72px] shrink-0"
           />
         </Box>
