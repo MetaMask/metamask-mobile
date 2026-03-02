@@ -100,7 +100,7 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     metadata.dapp.name.length > 256 ||
     !metadata.dapp.url ||
     typeof metadata.dapp.url !== 'string' ||
-    metadata.dapp.url.length > 2048
+    metadata.dapp.url.length > 1024
   ) {
     return false;
   }
@@ -124,7 +124,7 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
   if (metadata.dapp.icon) {
     if (
       typeof metadata.dapp.icon !== 'string' ||
-      metadata.dapp.icon.length > 2048 // this seems long still
+      metadata.dapp.icon.length > 1024
     ) {
       return false;
     }

@@ -236,10 +236,10 @@ describe('isConnectionRequest', () => {
     expect(isConnectionRequest(req)).toBe(false);
   });
 
-  it('returns false when dapp.url exceeds 2048 characters', () => {
+  it('returns false when dapp.url exceeds 1024 characters', () => {
     const req = validRequest();
     (req.metadata.dapp as Record<string, unknown>).url =
-      `https://example.com/${'x'.repeat(2048)}`;
+      `https://example.com/${'x'.repeat(1024)}`;
     expect(isConnectionRequest(req)).toBe(false);
   });
 
@@ -289,10 +289,10 @@ describe('isConnectionRequest', () => {
     expect(isConnectionRequest(req)).toBe(false);
   });
 
-  it('returns false when dapp.icon exceeds 2048 characters', () => {
+  it('returns false when dapp.icon exceeds 1024 characters', () => {
     const req = validRequest();
     (req.metadata.dapp as Record<string, unknown>).icon =
-      `https://example.com/${'x'.repeat(2048)}`;
+      `https://example.com/${'x'.repeat(1024)}`;
     expect(isConnectionRequest(req)).toBe(false);
   });
 
