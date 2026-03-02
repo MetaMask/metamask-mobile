@@ -45,10 +45,22 @@ jest.mock('../../../../../locales/i18n', () => ({
   },
 }));
 
-const mockHandleNewOrder = jest.fn();
-jest.mock('../Deposit/hooks/useHandleNewOrder', () => ({
-  __esModule: true,
-  default: () => mockHandleNewOrder,
+const mockAddOrder = jest.fn();
+const mockRefreshOrder = jest.fn();
+
+jest.mock('./useRampsOrders', () => ({
+  useRampsOrders: () => ({
+    addOrder: mockAddOrder,
+    refreshOrder: mockRefreshOrder,
+    orders: [],
+    getOrderById: jest.fn(),
+    removeOrder: jest.fn(),
+    getOrderFromCallback: jest.fn(),
+  }),
+}));
+
+jest.mock('../utils/v2OrderToast', () => ({
+  showV2OrderToast: jest.fn(),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -297,9 +309,15 @@ describe('useTransakRouting', () => {
       });
       mockTransakCreateOrder.mockResolvedValue({
         id: 'order-123',
+        providerOrderId: 'order-123',
         walletAddress: '0xabc',
       });
-      mockHandleNewOrder.mockResolvedValue(undefined);
+      mockRefreshOrder.mockResolvedValue({
+        providerOrderId: 'order-123',
+        cryptoCurrency: { symbol: 'ETH' },
+        cryptoAmount: '0.05',
+        status: 'Pending',
+      });
 
       const { result } = renderHook(() => useTransakRouting());
 
