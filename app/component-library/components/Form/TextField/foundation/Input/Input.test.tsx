@@ -65,12 +65,22 @@ describe('Input', () => {
     expect(getStyleProp(input.props.style, 'opacity')).toBe(1);
   });
 
-  it('applies lineHeight 0 when value is empty', () => {
-    const { getByTestId } = renderWithTheme(<Input value="" />);
+  it('applies lineHeight 0 when placeholder is provided and value is empty', () => {
+    const { getByTestId } = renderWithTheme(
+      <Input value="" placeholder="Enter text" />,
+    );
 
     const input = getByTestId(INPUT_TEST_ID);
 
     expect(getStyleProp(input.props.style, 'lineHeight')).toBe(0);
+  });
+
+  it('omits lineHeight when value is empty but no placeholder', () => {
+    const { getByTestId } = renderWithTheme(<Input value="" />);
+
+    const input = getByTestId(INPUT_TEST_ID);
+
+    expect(getStyleProp(input.props.style, 'lineHeight')).toBeUndefined();
   });
 
   it('omits lineHeight when value is non-empty', () => {

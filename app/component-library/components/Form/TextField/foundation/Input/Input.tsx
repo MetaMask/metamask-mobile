@@ -32,6 +32,7 @@ const Input = React.forwardRef<TextInput, InputProps>(
       autoFocus = true,
       value,
       defaultValue,
+      placeholder,
       onChangeText,
       ...props
     },
@@ -42,7 +43,9 @@ const Input = React.forwardRef<TextInput, InputProps>(
 
     const isControlled = value !== undefined;
     const currentValue = isControlled ? (value ?? '') : internalValue;
-    const isPlaceholderVisible = currentValue === '' || currentValue == null;
+    const hasPlaceholder = placeholder != null && placeholder !== '';
+    const isPlaceholderVisible =
+      hasPlaceholder && (currentValue === '' || currentValue == null);
 
     useEffect(() => {
       if (!isControlled) {
@@ -98,8 +101,8 @@ const Input = React.forwardRef<TextInput, InputProps>(
         testID={INPUT_TEST_ID}
         placeholderTextColor={theme.colors.text.alternative}
         {...props}
-        value={isControlled ? value : undefined}
-        defaultValue={isControlled ? undefined : defaultValue}
+        placeholder={placeholder}
+        value={isControlled ? value : internalValue}
         onChangeText={onChangeTextHandler}
         style={styles.base}
         editable={!isDisabled && !isReadonly}
