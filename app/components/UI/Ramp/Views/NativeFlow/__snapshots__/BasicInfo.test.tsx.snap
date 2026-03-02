@@ -162,7 +162,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                         "height": 4,
                       },
                       {
-                        "backgroundColor": "#b7bbc8",
+                        "backgroundColor": "#babbbe",
                       },
                     ],
                     undefined,
@@ -175,7 +175,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Bold",
                   "fontSize": 18,
                   "letterSpacing": 0,
@@ -191,7 +191,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#686e7d",
+                  "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -228,7 +228,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -273,8 +273,8 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#3c4d9d0f",
-                      "borderColor": "#b7bbc866",
+                      "backgroundColor": "#b4b4b528",
+                      "borderColor": "#b4b4b566",
                       "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -305,14 +305,14 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                       onFocus={[Function]}
                       onSubmitEditing={[Function]}
                       placeholder="deposit.basic_info.first_name"
-                      placeholderTextColor="#686e7d"
+                      placeholderTextColor="#66676a"
                       returnKeyType="next"
                       style={
                         {
                           "backgroundColor": "inherit",
                           "borderColor": "transparent",
                           "borderWidth": 1,
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
@@ -345,7 +345,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -390,8 +390,8 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#3c4d9d0f",
-                      "borderColor": "#b7bbc866",
+                      "backgroundColor": "#b4b4b528",
+                      "borderColor": "#b4b4b566",
                       "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -422,14 +422,14 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                       onFocus={[Function]}
                       onSubmitEditing={[Function]}
                       placeholder="deposit.basic_info.last_name"
-                      placeholderTextColor="#686e7d"
+                      placeholderTextColor="#66676a"
                       returnKeyType="next"
                       style={
                         {
                           "backgroundColor": "inherit",
                           "borderColor": "transparent",
                           "borderWidth": 1,
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
@@ -461,7 +461,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -506,8 +506,8 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -539,7 +539,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 18,
                           "letterSpacing": 0,
@@ -571,13 +571,13 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                     onFocus={[Function]}
                     onSubmitEditing={[Function]}
                     placeholder="XXXX XXX XXXX"
-                    placeholderTextColor="#686e7d"
+                    placeholderTextColor="#66676a"
                     style={
                       {
                         "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
@@ -607,7 +607,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -652,8 +652,8 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -673,7 +673,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                   testID="textfield-startacccessory"
                 >
                   <SvgMock
-                    color="#121314"
+                    color="#131416"
                     fill="currentColor"
                     height={20}
                     name="Calendar"
@@ -706,11 +706,11 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                     <TextInput
                       editable={false}
                       placeholder="01/01/2000"
-                      placeholderTextColor="#b7bbc8"
+                      placeholderTextColor="#babbbe"
                       pointerEvents="none"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "flex": 1,
                           "fontSize": 16,
                           "height": "100%",
@@ -748,7 +748,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
           accessible={true}
           style={
             {
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 8,
               "marginVertical": 8,
               "padding": 16,
@@ -773,7 +773,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#686e7d"
+                color="#66676a"
                 fill="currentColor"
                 height={24}
                 name="SecurityKey"
@@ -807,7 +807,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 12,
                     "letterSpacing": 0.25,
@@ -821,7 +821,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 12,
                     "letterSpacing": 0.25,
@@ -847,7 +847,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
@@ -878,7 +878,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
           name="powered-by-transak-logo"
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "height": 24,
             }
           }
@@ -1051,7 +1051,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                         "height": 4,
                       },
                       {
-                        "backgroundColor": "#b7bbc8",
+                        "backgroundColor": "#babbbe",
                       },
                     ],
                     undefined,
@@ -1064,7 +1064,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Bold",
                   "fontSize": 18,
                   "letterSpacing": 0,
@@ -1080,7 +1080,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#686e7d",
+                  "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1117,7 +1117,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -1162,8 +1162,8 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#3c4d9d0f",
-                      "borderColor": "#b7bbc866",
+                      "backgroundColor": "#b4b4b528",
+                      "borderColor": "#b4b4b566",
                       "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -1194,14 +1194,14 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                       onFocus={[Function]}
                       onSubmitEditing={[Function]}
                       placeholder="deposit.basic_info.first_name"
-                      placeholderTextColor="#686e7d"
+                      placeholderTextColor="#66676a"
                       returnKeyType="next"
                       style={
                         {
                           "backgroundColor": "inherit",
                           "borderColor": "transparent",
                           "borderWidth": 1,
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
@@ -1234,7 +1234,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -1279,8 +1279,8 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#3c4d9d0f",
-                      "borderColor": "#b7bbc866",
+                      "backgroundColor": "#b4b4b528",
+                      "borderColor": "#b4b4b566",
                       "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -1311,14 +1311,14 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                       onFocus={[Function]}
                       onSubmitEditing={[Function]}
                       placeholder="deposit.basic_info.last_name"
-                      placeholderTextColor="#686e7d"
+                      placeholderTextColor="#66676a"
                       returnKeyType="next"
                       style={
                         {
                           "backgroundColor": "inherit",
                           "borderColor": "transparent",
                           "borderWidth": 1,
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
@@ -1350,7 +1350,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1395,8 +1395,8 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -1428,7 +1428,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 18,
                           "letterSpacing": 0,
@@ -1442,7 +1442,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 14,
                           "letterSpacing": 0,
@@ -1474,13 +1474,13 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                     onFocus={[Function]}
                     onSubmitEditing={[Function]}
                     placeholder="(XXX) XXX-XXXX"
-                    placeholderTextColor="#686e7d"
+                    placeholderTextColor="#66676a"
                     style={
                       {
                         "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
@@ -1510,7 +1510,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1555,8 +1555,8 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -1576,7 +1576,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                   testID="textfield-startacccessory"
                 >
                   <SvgMock
-                    color="#121314"
+                    color="#131416"
                     fill="currentColor"
                     height={20}
                     name="Calendar"
@@ -1609,11 +1609,11 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                     <TextInput
                       editable={false}
                       placeholder="01/01/2000"
-                      placeholderTextColor="#b7bbc8"
+                      placeholderTextColor="#babbbe"
                       pointerEvents="none"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "flex": 1,
                           "fontSize": 16,
                           "height": "100%",
@@ -1658,7 +1658,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -1673,7 +1673,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                     testID="ssn-info-button"
                   >
                     <SvgMock
-                      color="#686e7d"
+                      color="#66676a"
                       fill="currentColor"
                       height={16}
                       name="Info"
@@ -1721,8 +1721,8 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -1754,7 +1754,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                     onFocus={[Function]}
                     onSubmitEditing={[Function]}
                     placeholder="XXX-XX-XXXX"
-                    placeholderTextColor="#686e7d"
+                    placeholderTextColor="#66676a"
                     returnKeyType="done"
                     secureTextEntry={true}
                     style={
@@ -1762,7 +1762,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                         "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
@@ -1802,7 +1802,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
           accessible={true}
           style={
             {
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 8,
               "marginVertical": 8,
               "padding": 16,
@@ -1827,7 +1827,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#686e7d"
+                color="#66676a"
                 fill="currentColor"
                 height={24}
                 name="SecurityKey"
@@ -1861,7 +1861,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 12,
                     "letterSpacing": 0.25,
@@ -1875,7 +1875,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 12,
                     "letterSpacing": 0.25,
@@ -1901,7 +1901,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
@@ -1932,7 +1932,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
           name="powered-by-transak-logo"
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "height": 24,
             }
           }
@@ -2105,7 +2105,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                         "height": 4,
                       },
                       {
-                        "backgroundColor": "#b7bbc8",
+                        "backgroundColor": "#babbbe",
                       },
                     ],
                     undefined,
@@ -2118,7 +2118,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Bold",
                   "fontSize": 18,
                   "letterSpacing": 0,
@@ -2134,7 +2134,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#686e7d",
+                  "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -2171,7 +2171,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -2216,8 +2216,8 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#3c4d9d0f",
-                      "borderColor": "#b7bbc866",
+                      "backgroundColor": "#b4b4b528",
+                      "borderColor": "#b4b4b566",
                       "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -2248,14 +2248,14 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                       onFocus={[Function]}
                       onSubmitEditing={[Function]}
                       placeholder="deposit.basic_info.first_name"
-                      placeholderTextColor="#686e7d"
+                      placeholderTextColor="#66676a"
                       returnKeyType="next"
                       style={
                         {
                           "backgroundColor": "inherit",
                           "borderColor": "transparent",
                           "borderWidth": 1,
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
@@ -2288,7 +2288,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -2333,8 +2333,8 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#3c4d9d0f",
-                      "borderColor": "#b7bbc866",
+                      "backgroundColor": "#b4b4b528",
+                      "borderColor": "#b4b4b566",
                       "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -2365,14 +2365,14 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                       onFocus={[Function]}
                       onSubmitEditing={[Function]}
                       placeholder="deposit.basic_info.last_name"
-                      placeholderTextColor="#686e7d"
+                      placeholderTextColor="#66676a"
                       returnKeyType="next"
                       style={
                         {
                           "backgroundColor": "inherit",
                           "borderColor": "transparent",
                           "borderWidth": 1,
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
@@ -2404,7 +2404,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2449,8 +2449,8 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -2482,7 +2482,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 18,
                           "letterSpacing": 0,
@@ -2496,7 +2496,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 14,
                           "letterSpacing": 0,
@@ -2528,13 +2528,13 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                     onFocus={[Function]}
                     onSubmitEditing={[Function]}
                     placeholder="XXXX XXX XXXX"
-                    placeholderTextColor="#686e7d"
+                    placeholderTextColor="#66676a"
                     style={
                       {
                         "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
@@ -2564,7 +2564,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2609,8 +2609,8 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 12,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -2630,7 +2630,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                   testID="textfield-startacccessory"
                 >
                   <SvgMock
-                    color="#121314"
+                    color="#131416"
                     fill="currentColor"
                     height={20}
                     name="Calendar"
@@ -2663,11 +2663,11 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                     <TextInput
                       editable={false}
                       placeholder="01/01/2000"
-                      placeholderTextColor="#b7bbc8"
+                      placeholderTextColor="#babbbe"
                       pointerEvents="none"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "flex": 1,
                           "fontSize": 16,
                           "height": "100%",
@@ -2705,7 +2705,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
           accessible={true}
           style={
             {
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 8,
               "marginVertical": 8,
               "padding": 16,
@@ -2730,7 +2730,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
               testID="listitemcolumn"
             >
               <SvgMock
-                color="#686e7d"
+                color="#66676a"
                 fill="currentColor"
                 height={24}
                 name="SecurityKey"
@@ -2764,7 +2764,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 12,
                     "letterSpacing": 0.25,
@@ -2778,7 +2778,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 12,
                     "letterSpacing": 0.25,
@@ -2804,7 +2804,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
@@ -2835,7 +2835,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
           name="powered-by-transak-logo"
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "height": 24,
             }
           }

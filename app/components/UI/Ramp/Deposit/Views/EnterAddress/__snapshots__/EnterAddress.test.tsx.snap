@@ -117,7 +117,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                   style={
                     [
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "height": 24,
                         "width": 24,
                       },
@@ -158,7 +158,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -547,7 +547,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "letterSpacing": 0,
@@ -561,7 +561,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#686e7d",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -587,7 +587,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -632,8 +632,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#3c4d9d0f",
-                                        "borderColor": "#b7bbc866",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "#b4b4b566",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -664,14 +664,14 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 1"
-                                        placeholderTextColor="#686e7d"
+                                        placeholderTextColor="#66676a"
                                         returnKeyType="next"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
@@ -717,7 +717,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -762,8 +762,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#3c4d9d0f",
-                                        "borderColor": "#b7bbc866",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "#b4b4b566",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -794,14 +794,14 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 2 (optional)"
-                                        placeholderTextColor="#686e7d"
+                                        placeholderTextColor="#66676a"
                                         returnKeyType="next"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
@@ -843,7 +843,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -888,8 +888,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "#b7bbc866",
+                                          "backgroundColor": "#b4b4b528",
+                                          "borderColor": "#b4b4b566",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -919,14 +919,14 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="City"
-                                          placeholderTextColor="#686e7d"
+                                          placeholderTextColor="#66676a"
                                           returnKeyType="next"
                                           style={
                                             {
                                               "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -974,7 +974,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -1000,7 +1000,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderColor": "#b7bbc8",
+                                            "borderColor": "#949596",
                                             "borderRadius": 8,
                                             "borderWidth": 1,
                                             "flexDirection": "row",
@@ -1018,15 +1018,15 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           style={
                                             {
                                               "0": {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "flex": 1,
                                                 "fontSize": 16,
                                               },
                                               "1": {
-                                                "color": "#b7bbc8",
+                                                "color": "#babbbe",
                                                 "fontSize": 16,
                                               },
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -1037,7 +1037,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           Select state
                                         </Text>
                                         <SvgMock
-                                          color="#686e7d"
+                                          color="#66676a"
                                           fill="currentColor"
                                           height={16}
                                           name="ArrowDown"
@@ -1095,7 +1095,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -1140,8 +1140,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "#b7bbc866",
+                                          "backgroundColor": "#b4b4b528",
+                                          "borderColor": "#b4b4b566",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -1172,14 +1172,14 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Postal code"
-                                          placeholderTextColor="#686e7d"
+                                          placeholderTextColor="#66676a"
                                           returnKeyType="done"
                                           style={
                                             {
                                               "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -1227,7 +1227,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -1272,8 +1272,8 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "#b7bbc866",
+                                          "backgroundColor": "#b4b4b528",
+                                          "borderColor": "#b4b4b566",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -1296,7 +1296,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -1323,14 +1323,14 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="Country"
-                                          placeholderTextColor="#686e7d"
+                                          placeholderTextColor="#66676a"
                                           returnKeyType="done"
                                           style={
                                             {
                                               "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -1369,7 +1369,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#b4b4b528",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
@@ -1394,7 +1394,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     testID="listitemcolumn"
                                   >
                                     <SvgMock
-                                      color="#686e7d"
+                                      color="#66676a"
                                       fill="currentColor"
                                       height={24}
                                       name="SecurityKey"
@@ -1428,7 +1428,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#686e7d",
+                                          "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
@@ -1442,7 +1442,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#686e7d",
+                                          "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
@@ -1468,7 +1468,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#121314",
+                                    "backgroundColor": "#131416",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -1499,7 +1499,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                 name="powered-by-transak-logo"
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "height": 24,
                                   }
                                 }
@@ -1638,7 +1638,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                   style={
                     [
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "height": 24,
                         "width": 24,
                       },
@@ -1679,7 +1679,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -2068,7 +2068,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "letterSpacing": 0,
@@ -2082,7 +2082,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#686e7d",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -2108,7 +2108,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -2153,8 +2153,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#3c4d9d0f",
-                                        "borderColor": "#b7bbc866",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "#b4b4b566",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -2185,14 +2185,14 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 1"
-                                        placeholderTextColor="#686e7d"
+                                        placeholderTextColor="#66676a"
                                         returnKeyType="next"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
@@ -2223,7 +2223,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -2268,8 +2268,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#3c4d9d0f",
-                                        "borderColor": "#b7bbc866",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "#b4b4b566",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -2300,14 +2300,14 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 2 (optional)"
-                                        placeholderTextColor="#686e7d"
+                                        placeholderTextColor="#66676a"
                                         returnKeyType="next"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
@@ -2349,7 +2349,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -2394,8 +2394,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "#b7bbc866",
+                                          "backgroundColor": "#b4b4b528",
+                                          "borderColor": "#b4b4b566",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -2425,14 +2425,14 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="City"
-                                          placeholderTextColor="#686e7d"
+                                          placeholderTextColor="#66676a"
                                           returnKeyType="next"
                                           style={
                                             {
                                               "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -2465,7 +2465,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -2491,7 +2491,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderColor": "#b7bbc8",
+                                            "borderColor": "#949596",
                                             "borderRadius": 8,
                                             "borderWidth": 1,
                                             "flexDirection": "row",
@@ -2508,7 +2508,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           numberOfLines={1}
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "flex": 1,
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
@@ -2520,7 +2520,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           New York
                                         </Text>
                                         <SvgMock
-                                          color="#686e7d"
+                                          color="#66676a"
                                           fill="currentColor"
                                           height={16}
                                           name="ArrowDown"
@@ -2563,7 +2563,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -2608,8 +2608,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "#b7bbc866",
+                                          "backgroundColor": "#b4b4b528",
+                                          "borderColor": "#b4b4b566",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -2640,14 +2640,14 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Postal code"
-                                          placeholderTextColor="#686e7d"
+                                          placeholderTextColor="#66676a"
                                           returnKeyType="done"
                                           style={
                                             {
                                               "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -2680,7 +2680,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -2725,8 +2725,8 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "#b7bbc866",
+                                          "backgroundColor": "#b4b4b528",
+                                          "borderColor": "#b4b4b566",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -2749,7 +2749,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -2776,14 +2776,14 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="Country"
-                                          placeholderTextColor="#686e7d"
+                                          placeholderTextColor="#66676a"
                                           returnKeyType="done"
                                           style={
                                             {
                                               "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -2822,7 +2822,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#b4b4b528",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
@@ -2847,7 +2847,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     testID="listitemcolumn"
                                   >
                                     <SvgMock
-                                      color="#686e7d"
+                                      color="#66676a"
                                       fill="currentColor"
                                       height={24}
                                       name="SecurityKey"
@@ -2881,7 +2881,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#686e7d",
+                                          "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
@@ -2895,7 +2895,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#686e7d",
+                                          "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
@@ -2921,7 +2921,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#121314",
+                                    "backgroundColor": "#131416",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -2952,7 +2952,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                 name="powered-by-transak-logo"
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "height": 24,
                                   }
                                 }
@@ -3091,7 +3091,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                   style={
                     [
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "height": 24,
                         "width": 24,
                       },
@@ -3132,7 +3132,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -3521,7 +3521,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "letterSpacing": 0,
@@ -3535,7 +3535,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#686e7d",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -3561,7 +3561,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -3606,8 +3606,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#3c4d9d0f",
-                                        "borderColor": "#b7bbc866",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "#b4b4b566",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -3638,14 +3638,14 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 1"
-                                        placeholderTextColor="#686e7d"
+                                        placeholderTextColor="#66676a"
                                         returnKeyType="next"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
@@ -3676,7 +3676,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -3721,8 +3721,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#3c4d9d0f",
-                                        "borderColor": "#b7bbc866",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "#b4b4b566",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -3753,14 +3753,14 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 2 (optional)"
-                                        placeholderTextColor="#686e7d"
+                                        placeholderTextColor="#66676a"
                                         returnKeyType="next"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
@@ -3802,7 +3802,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -3847,8 +3847,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "#b7bbc866",
+                                          "backgroundColor": "#b4b4b528",
+                                          "borderColor": "#b4b4b566",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -3878,14 +3878,14 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="City"
-                                          placeholderTextColor="#686e7d"
+                                          placeholderTextColor="#66676a"
                                           returnKeyType="next"
                                           style={
                                             {
                                               "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -3918,7 +3918,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -3944,7 +3944,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderColor": "#b7bbc8",
+                                            "borderColor": "#949596",
                                             "borderRadius": 8,
                                             "borderWidth": 1,
                                             "flexDirection": "row",
@@ -3962,15 +3962,15 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           style={
                                             {
                                               "0": {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "flex": 1,
                                                 "fontSize": 16,
                                               },
                                               "1": {
-                                                "color": "#b7bbc8",
+                                                "color": "#babbbe",
                                                 "fontSize": 16,
                                               },
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -3981,7 +3981,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           Select state
                                         </Text>
                                         <SvgMock
-                                          color="#686e7d"
+                                          color="#66676a"
                                           fill="currentColor"
                                           height={16}
                                           name="ArrowDown"
@@ -4024,7 +4024,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -4069,8 +4069,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "#b7bbc866",
+                                          "backgroundColor": "#b4b4b528",
+                                          "borderColor": "#b4b4b566",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -4101,14 +4101,14 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Postal code"
-                                          placeholderTextColor="#686e7d"
+                                          placeholderTextColor="#66676a"
                                           returnKeyType="done"
                                           style={
                                             {
                                               "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -4141,7 +4141,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -4186,8 +4186,8 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "#b7bbc866",
+                                          "backgroundColor": "#b4b4b528",
+                                          "borderColor": "#b4b4b566",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -4210,7 +4210,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -4237,14 +4237,14 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="Country"
-                                          placeholderTextColor="#686e7d"
+                                          placeholderTextColor="#66676a"
                                           returnKeyType="done"
                                           style={
                                             {
                                               "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -4283,7 +4283,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#b4b4b528",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
@@ -4308,7 +4308,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     testID="listitemcolumn"
                                   >
                                     <SvgMock
-                                      color="#686e7d"
+                                      color="#66676a"
                                       fill="currentColor"
                                       height={24}
                                       name="SecurityKey"
@@ -4342,7 +4342,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#686e7d",
+                                          "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
@@ -4356,7 +4356,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#686e7d",
+                                          "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
@@ -4382,7 +4382,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#121314",
+                                    "backgroundColor": "#131416",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -4413,7 +4413,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                 name="powered-by-transak-logo"
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "height": 24,
                                   }
                                 }
@@ -4552,7 +4552,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                   style={
                     [
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "height": 24,
                         "width": 24,
                       },
@@ -4593,7 +4593,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -4982,7 +4982,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "letterSpacing": 0,
@@ -4996,7 +4996,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#686e7d",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -5022,7 +5022,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -5067,8 +5067,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#3c4d9d0f",
-                                        "borderColor": "#b7bbc866",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "#b4b4b566",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -5099,14 +5099,14 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 1"
-                                        placeholderTextColor="#686e7d"
+                                        placeholderTextColor="#66676a"
                                         returnKeyType="next"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
@@ -5137,7 +5137,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -5182,8 +5182,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#3c4d9d0f",
-                                        "borderColor": "#b7bbc866",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "#b4b4b566",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -5214,14 +5214,14 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 2 (optional)"
-                                        placeholderTextColor="#686e7d"
+                                        placeholderTextColor="#66676a"
                                         returnKeyType="next"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
@@ -5263,7 +5263,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -5308,8 +5308,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "#b7bbc866",
+                                          "backgroundColor": "#b4b4b528",
+                                          "borderColor": "#b4b4b566",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -5339,14 +5339,14 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="City"
-                                          placeholderTextColor="#686e7d"
+                                          placeholderTextColor="#66676a"
                                           returnKeyType="next"
                                           style={
                                             {
                                               "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -5379,7 +5379,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -5424,8 +5424,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "#b7bbc866",
+                                          "backgroundColor": "#b4b4b528",
+                                          "borderColor": "#b4b4b566",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -5455,14 +5455,14 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="State/Region"
-                                          placeholderTextColor="#686e7d"
+                                          placeholderTextColor="#66676a"
                                           returnKeyType="next"
                                           style={
                                             {
                                               "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -5505,7 +5505,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -5550,8 +5550,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "#b7bbc866",
+                                          "backgroundColor": "#b4b4b528",
+                                          "borderColor": "#b4b4b566",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -5582,14 +5582,14 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Postal code"
-                                          placeholderTextColor="#686e7d"
+                                          placeholderTextColor="#66676a"
                                           returnKeyType="done"
                                           style={
                                             {
                                               "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -5622,7 +5622,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -5667,8 +5667,8 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#3c4d9d0f",
-                                          "borderColor": "#b7bbc866",
+                                          "backgroundColor": "#b4b4b528",
+                                          "borderColor": "#b4b4b566",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
@@ -5691,7 +5691,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -5718,14 +5718,14 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="Country"
-                                          placeholderTextColor="#686e7d"
+                                          placeholderTextColor="#66676a"
                                           returnKeyType="done"
                                           style={
                                             {
                                               "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -5764,7 +5764,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#b4b4b528",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
@@ -5789,7 +5789,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     testID="listitemcolumn"
                                   >
                                     <SvgMock
-                                      color="#686e7d"
+                                      color="#66676a"
                                       fill="currentColor"
                                       height={24}
                                       name="SecurityKey"
@@ -5823,7 +5823,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#686e7d",
+                                          "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
@@ -5837,7 +5837,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#686e7d",
+                                          "color": "#66676a",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 12,
                                           "letterSpacing": 0.25,
@@ -5863,7 +5863,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#121314",
+                                    "backgroundColor": "#131416",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -5894,7 +5894,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                 name="powered-by-transak-logo"
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "height": 24,
                                   }
                                 }
