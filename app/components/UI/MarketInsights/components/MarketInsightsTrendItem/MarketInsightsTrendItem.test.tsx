@@ -10,9 +10,15 @@ describe('MarketInsightsTrendItem', () => {
       title: 'Macro liquidity supports risk assets',
       description: 'Broad risk-on sentiment is supporting ETH and BTC.',
       articles: [
-        { source: 'cointelegraph.com' },
-        { source: 'cointelegraph.com' },
-        { source: 'theblock.co' },
+        {
+          source: 'Cointelegraph',
+          url: 'https://cointelegraph.com/news/market-update-1',
+        },
+        {
+          source: 'https://cointelegraph.com/news/market-update-2',
+          url: 'https://cointelegraph.com/news/market-update-2',
+        },
+        { source: 'theblock.co', url: 'https://www.theblock.co/post/1234' },
       ],
     };
 
@@ -32,7 +38,9 @@ describe('MarketInsightsTrendItem', () => {
     const trend = {
       title: 'Institutional inflows',
       description: 'Large funds keep adding BTC exposure.',
-      articles: [{ source: 'coindesk.com' }],
+      articles: [
+        { source: 'coindesk.com', url: 'https://coindesk.com/news/1' },
+      ],
     };
 
     const { getByTestId } = renderWithProvider(
