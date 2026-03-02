@@ -59,8 +59,9 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
-import { MetaMetricsEvents, MetaMetrics } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../util/analytics/analytics';
 import Checkbox from '../../../component-library/components/Checkbox';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
@@ -513,13 +514,13 @@ class ResetPassword extends PureComponent {
 
       // Track password changed event
       const { biometryChoice } = this.state;
-      const eventBuilder = MetricsEventBuilder.createEventBuilder(
+      const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PASSWORD_CHANGED,
       ).addProperties({
         biometry_type: this.state.biometryType,
         biometrics_enabled: Boolean(biometryChoice),
       });
-      MetaMetrics.getInstance().trackEvent(eventBuilder.build());
+      analytics.trackEvent(eventBuilder.build());
 
       this.setState({ loading: false });
       this.props.navigation.navigate('SecuritySettings');

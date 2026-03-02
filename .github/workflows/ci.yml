@@ -25,7 +25,7 @@ jobs:
           cache: yarn
       - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
         with:
-          ruby-version: '3.1.6'
+          ruby-version: '3.2.9'
         env:
           BUNDLE_GEMFILE: ios/Gemfile
       - name: Install Yarn dependencies with retry
@@ -447,6 +447,53 @@ jobs:
           '["ALL"]'
         }}
     secrets: inherit
+
+  # Fixture validation — ensures committed E2E fixtures match the live app state schema
+  # TODO: Remove continue-on-error once fixture validation is stable
+  validate-e2e-fixtures:
+    name: 'Validate E2E Fixtures'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, ios-tests-ready]
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: validate-e2e-fixtures
+      platform: ios
+      test_suite_tag: 'FixtureValidation'
+      split_number: 1
+      total_splits: 1
+      build_type: 'main'
+      metamask_environment: 'qa'
+    secrets: inherit
+
+  report-fixture-validation:
+    name: 'Report Fixture Validation'
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
+    needs: [validate-e2e-fixtures]
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download fixture validation results
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: test-e2e-validate-e2e-fixtures-junit-results
+          path: fixture-results/
+
+      - name: Report results
+        env:
+          RESULTS_PATH: fixture-results
+          VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node .github/scripts/e2e-report-fixture-validation.mjs
 
   js-bundle-size-check:
     runs-on: ubuntu-latest

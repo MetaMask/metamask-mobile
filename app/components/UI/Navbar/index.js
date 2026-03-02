@@ -1966,6 +1966,7 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
  * @param {string} [options.networkName] - Name of the network
  * @param {Object} [options.networkImageSource] - Image source for the network icon
  * @param {Function} [options.onSettingsPress] - Callback for settings button press
+ * @param {Function} [options.onBackPress] - Callback for back button press
  * @returns {Object} - Navigation options object
  */
 export function getRampsBuildQuoteNavbarOptions(
@@ -1977,6 +1978,7 @@ export function getRampsBuildQuoteNavbarOptions(
     networkName,
     networkImageSource,
     onSettingsPress,
+    onBackPress,
   } = {},
 ) {
   const innerStyles = StyleSheet.create({
@@ -2015,7 +2017,10 @@ export function getRampsBuildQuoteNavbarOptions(
         startAccessory={
           <ButtonIcon
             style={innerStyles.backButton}
-            onPress={() => navigation.goBack()}
+            onPress={() => {
+              onBackPress?.();
+              navigation.goBack();
+            }}
             size={ButtonIconSize.Lg}
             iconName={IconName.ArrowLeft}
             iconColor={IconColor.Default}
@@ -2094,7 +2099,7 @@ export function getRampsOrderDetailsNavbarOptions(
   navigation,
   { title, showBack = true },
   theme,
-  onClose = undefined,
+  onClose,
 ) {
   let startButtonIconProps;
   if (showBack) {
