@@ -30,4 +30,5 @@ export const CardHomeSelectors = {
   ORDER_METAL_CARD_ITEM: 'order-metal-card-item',
   CASHBACK_ITEM: 'cashback-item',
   FREEZE_CARD_TOGGLE: 'freeze-card-toggle',
+  VIEW_PIN_BUTTON: 'view-pin-button',
 };
