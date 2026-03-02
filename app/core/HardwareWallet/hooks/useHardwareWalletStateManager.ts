@@ -6,9 +6,9 @@ import {
   ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
 
-import { selectSelectedInternalAccount } from '../../selectors/accountsController';
-import { getHardwareWalletTypeForAddress } from './helpers';
-import { HardwareWalletAdapter } from './types';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { getHardwareWalletTypeForAddress } from '../helpers';
+import { HardwareWalletAdapter } from '../types';
 
 /** Core state managed by the hardware wallet state manager. */
 interface HardwareWalletManagedState {
