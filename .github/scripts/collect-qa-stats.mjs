@@ -27,6 +27,7 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const WORKFLOW_RUN_ID = process.env.WORKFLOW_RUN_ID;
 
 if (!WORKFLOW_RUN_ID) throw new Error('Missing required WORKFLOW_RUN_ID env var');
+if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
 
 
 // ---------------------------------------------------------------------------
@@ -48,7 +49,7 @@ async function getArtifactList() {
   let page = 1;
 
   while (true) {
-    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${WORKFLOW_RUN_ID}/artifacts?per_page=100&page=${page}`;
+    const url = `https://api.github.com/repos/MetaMask/metamask-mobile/actions/runs/${WORKFLOW_RUN_ID}/artifacts?per_page=100&page=${page}`;
     const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
