@@ -7,14 +7,13 @@ import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
 import { useABTest } from '../../../../../hooks';
-import Engine from '../../../../../core/Engine';
-import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import {
   NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS,
   NUMPAD_QUICK_ACTIONS_AB_KEY,
   NUMPAD_QUICK_ACTIONS_VARIANTS,
   NumpadQuickActionsVariant,
 } from './abTestConfig';
+import { useTrackInputAmountChange } from './useTrackInputAmountChange';
 
 interface GaslessQuickPickOptionsProps {
   token?: BridgeToken;
@@ -34,35 +33,13 @@ export const GaslessQuickPickOptions = ({
     decimals: token?.decimals,
     chainId: token?.chainId,
   });
-  const { variantName, isActive } = useABTest(
+  const { variantName } = useABTest(
     NUMPAD_QUICK_ACTIONS_AB_KEY,
     NUMPAD_QUICK_ACTIONS_VARIANTS,
   );
-
   const selectedVariant: NumpadQuickActionsVariant =
     variantName === 'treatment' ? 'treatment' : 'control';
-
-  const trackInputAmountChange = useCallback(
-    ({ inputValue, preset }: { inputValue: string; preset?: string }) => {
-      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
-        UnifiedSwapBridgeEventName.InputChanged,
-        {
-          input: 'token_amount_source',
-          input_value: inputValue,
-          ...(preset && { input_amount_preset: preset }),
-          ...(isActive && {
-            active_ab_tests: [
-              {
-                key: NUMPAD_QUICK_ACTIONS_AB_KEY,
-                value: variantName,
-              },
-            ],
-          }),
-        },
-      );
-    },
-    [isActive, variantName],
-  );
+  const trackInputAmountChange = useTrackInputAmountChange();
 
   const onQuickOptionPress = useCallback(
     (percentage: number) => () => {
