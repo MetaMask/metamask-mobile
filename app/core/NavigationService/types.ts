@@ -442,6 +442,7 @@ export interface RootStackParamList extends ParamListBase {
   NftFullView: undefined;
   TokensFullView: undefined;
   TrendingTokensFullView: undefined;
+  RWATokensFullView: undefined;
 
   // Vault recovery routes
   RestoreWallet: undefined;

@@ -1,22 +1,22 @@
 import React from 'react';
 import { render, userEvent, fireEvent } from '@testing-library/react-native';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokensFullView, {
   TrendingTokensData,
   TrendingTokensDataProps,
 } from './TrendingTokensFullView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import { useTrendingSearch } from '../../hooks/useTrendingSearch/useTrendingSearch';
 import {
   TimeOption,
   PriceChangeOption,
-} from '../../../UI/Trending/components/TrendingTokensBottomSheet';
-import { TrendingFilterContext } from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
+} from '../../components/TrendingTokensBottomSheet';
+import { TrendingFilterContext } from '../../components/TrendingTokensList/TrendingTokensList';
 
-import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest';
-import type TrendingTokensList from '../../../UI/Trending/components/TrendingTokensList';
-import mockState from '../../../../util/test/initial-root-state';
+import { useTrendingRequest } from '../../hooks/useTrendingRequest/useTrendingRequest';
+import type TrendingTokensList from '../../components/TrendingTokensList';
+import mockState from '../../../../../util/test/initial-root-state';
 
 const TEST_IDS = {
   skeleton: 'trending-tokens-skeleton',
@@ -42,14 +42,14 @@ jest.mock('@react-navigation/native', () => ({
   createNavigatorFactory: () => ({}),
 }));
 
-jest.mock('../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest');
+jest.mock('../../hooks/useTrendingRequest/useTrendingRequest');
 const mockUseTrendingRequest = jest.mocked(useTrendingRequest);
 
-jest.mock('../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch');
+jest.mock('../../hooks/useTrendingSearch/useTrendingSearch');
 const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
 
 jest.mock(
-  '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList',
+  '../../components/TrendingTokensList/TrendingTokensList',
   (): typeof TrendingTokensList => {
     const { View, Text, ScrollView } = jest.requireActual('react-native');
     return ({ trendingTokens, refreshControl }) => (
