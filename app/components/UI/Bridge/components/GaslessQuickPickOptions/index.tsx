@@ -13,7 +13,6 @@ import {
   NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS,
   NUMPAD_QUICK_ACTIONS_AB_KEY,
   NUMPAD_QUICK_ACTIONS_VARIANTS,
-  NumpadQuickAction,
   NumpadQuickActionsVariant,
 } from './abTestConfig';
 
@@ -97,31 +96,29 @@ export const GaslessQuickPickOptions = ({
     isQuoteSponsored,
   );
 
-  const quickActions = useMemo(
-    (): readonly NumpadQuickAction[] =>
-      shouldRenderMaxOption
-        ? NUMPAD_QUICK_ACTIONS_VARIANTS[selectedVariant]
-        : NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS[selectedVariant],
-    [selectedVariant, shouldRenderMaxOption],
-  );
-
-  const quickPickOptions = useMemo(
-    () =>
-      quickActions.map((action) => {
-        if (action === 'MAX') {
-          return {
-            label: 'Max',
-            onPress: handleTrackedMaxPress,
-          };
-        }
-
+  const quickPickOptions = useMemo(() => {
+    const quickActions = shouldRenderMaxOption
+      ? NUMPAD_QUICK_ACTIONS_VARIANTS[selectedVariant]
+      : NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS[selectedVariant];
+    return quickActions.map((action) => {
+      if (action === 'MAX') {
         return {
-          label: `${action}%`,
-          onPress: onQuickOptionPress(action),
+          label: 'Max',
+          onPress: handleTrackedMaxPress,
         };
-      }) satisfies QuickPickButtonOption[],
-    [handleTrackedMaxPress, onQuickOptionPress, quickActions],
-  );
+      }
+
+      return {
+        label: `${action}%`,
+        onPress: onQuickOptionPress(action),
+      };
+    }) satisfies QuickPickButtonOption[];
+  }, [
+    handleTrackedMaxPress,
+    onQuickOptionPress,
+    shouldRenderMaxOption,
+    selectedVariant,
+  ]);
 
   return <QuickPickButtons options={quickPickOptions} show />;
 };
