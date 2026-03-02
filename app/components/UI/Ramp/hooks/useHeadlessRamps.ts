@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type {
-  RampsOrder,
-  RampsOrderStatus,
-  PaymentMethod,
+import {
+  type RampsOrder,
+  type PaymentMethod,
+  RampsOrderStatus as Status,
 } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 import { useRampsController } from './useRampsController';
@@ -12,11 +12,8 @@ import { createRampsOrderDetailsNavDetails } from '../Views/OrderDetails/OrderDe
 
 interface UseHeadlessRampsParams {
   assetId?: string;
-}
-
-interface OrderStatusUpdate {
-  order: RampsOrder;
-  previousStatus: RampsOrderStatus;
+  onOrderSucceeded?: (order: RampsOrder) => void;
+  onOrderFailed?: (order: RampsOrder) => void;
 }
 
 interface UseHeadlessRampsResult {
@@ -24,7 +21,7 @@ interface UseHeadlessRampsResult {
   isLoading: boolean;
   error: string | null;
   openBuyModal: (params: { paymentMethodId: string; amount: number }) => void;
-  order: OrderStatusUpdate | null;
+  order: RampsOrder | null;
   goToBuyOrder: (orderId: string) => void;
 }
 
@@ -40,9 +37,16 @@ interface UseHeadlessRampsResult {
  */
 export function useHeadlessRamps({
   assetId,
+  onOrderSucceeded,
+  onOrderFailed,
 }: UseHeadlessRampsParams = {}): UseHeadlessRampsResult {
   const navigation = useNavigation();
-  const [order, setOrder] = useState<OrderStatusUpdate | null>(null);
+  const [order, setOrder] = useState<RampsOrder | null>(null);
+
+  const onOrderSucceededRef = useRef(onOrderSucceeded);
+  const onOrderFailedRef = useRef(onOrderFailed);
+  onOrderSucceededRef.current = onOrderSucceeded;
+  onOrderFailedRef.current = onOrderFailed;
 
   const {
     setSelectedToken,
@@ -90,11 +94,19 @@ export function useHeadlessRamps({
   );
 
   useEffect(() => {
-    const handler = (event: {
-      order: RampsOrder;
-      previousStatus: RampsOrderStatus;
-    }) => {
-      setOrder(event);
+    const handler = (event: { order: RampsOrder; previousStatus: Status }) => {
+      const { order: updatedOrder } = event;
+      setOrder(updatedOrder);
+
+      if (updatedOrder.status === Status.Completed) {
+        onOrderSucceededRef.current?.(updatedOrder);
+      } else if (
+        updatedOrder.status === Status.Failed ||
+        updatedOrder.status === Status.Cancelled ||
+        updatedOrder.status === Status.IdExpired
+      ) {
+        onOrderFailedRef.current?.(updatedOrder);
+      }
     };
 
     Engine.controllerMessenger.subscribe(
