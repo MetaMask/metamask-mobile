@@ -12,7 +12,7 @@ module.exports = {
   maxWorkers: 1,
   clearMocks: true,
   setupFilesAfterEnv: ['<rootDir>/tests/init.detox.js'],
-  globalSetup: 'detox/runners/jest/globalSetup',
+  globalSetup: '<rootDir>/tests/globalSetup.js',
   globalTeardown: 'detox/runners/jest/globalTeardown',
   reporters: [
     'detox/runners/jest/reporter',

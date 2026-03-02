@@ -77,11 +77,29 @@ export async function installCACertAndroid(
   const certHash = hashOutput.trim();
   const remotePath = `/system/etc/security/cacerts/${certHash}.0`;
 
-  await execAsync(`adb ${deviceFlag} root`);
-  // adbd restarts when gaining root; wait for the device to be ready before
-  // issuing the next command — otherwise remount may fail with "device offline"
-  // and incorrectly fall into the full reboot path.
-  await execAsync(`adb ${deviceFlag} wait-for-device`);
+  // Check if the cert is already installed — avoids `adb root` which restarts
+  // adbd and breaks Detox's WebSocket connection to the running app.
+  try {
+    const { stdout: checkOutput } = await execAsync(
+      `adb ${deviceFlag} shell "ls ${remotePath} 2>/dev/null"`,
+    );
+    if (checkOutput.trim() === remotePath) {
+      logger.info(`CA cert already installed at ${remotePath}, skipping`);
+      return;
+    }
+  } catch {
+    // File doesn't exist — proceed with installation
+  }
+
+  // Only call `adb root` if not already running as root — restarting adbd
+  // after Detox has connected would break its WebSocket handle.
+  const { stdout: whoamiOut } = await execAsync(
+    `adb ${deviceFlag} shell whoami`,
+  );
+  if (whoamiOut.trim() !== 'root') {
+    await execAsync(`adb ${deviceFlag} root`);
+    await execAsync(`adb ${deviceFlag} wait-for-device`);
+  }
 
   const pushCert = async () => {
     await execAsync(`adb ${deviceFlag} push "${certPath}" "${remotePath}"`);
