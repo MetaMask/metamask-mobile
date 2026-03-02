@@ -355,6 +355,12 @@ class PerpsConnectionManagerClass {
       this.cancelGracePeriod();
     }
 
+    // Cancel any pending network-restore retry timer so it doesn't fire after
+    // this app-resume path already recovers the connection. Without this, a
+    // stale timer calls validateAndReconnect with skipPing=true, forcing an
+    // unnecessary disconnect-and-reconnect on a healthy connection.
+    this.cancelNetworkRestoreRetry();
+
     await this.validateAndReconnect('appResume');
   }
 
