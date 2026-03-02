@@ -1,5 +1,5 @@
 import React, { useCallback, useLayoutEffect } from 'react';
-import { Pressable } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button, {
   ButtonSize,
@@ -102,17 +102,15 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     }
 
     return (
-      <Pressable
+      <TouchableOpacity
         onPress={goToDefaultSettings}
         testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
-        style={({ pressed }) =>
-          tw.style('py-2 items-center', pressed && 'opacity-60')
-        }
+        style={tw.style('py-2 items-center')}
       >
         <Text color={TextColor.Info} variant={TextVariant.BodyMDMedium}>
           {strings('onboarding_success.manage_default_settings')}
         </Text>
-      </Pressable>
+      </TouchableOpacity>
     );
   };
 

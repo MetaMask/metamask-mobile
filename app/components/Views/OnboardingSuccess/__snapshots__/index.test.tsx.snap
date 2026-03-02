@@ -166,36 +166,8 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
           Done
         </Text>
       </TouchableOpacity>
-      <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+      <TouchableOpacity
+        onPress={[Function]}
         style={
           {
             "alignItems": "center",
@@ -219,7 +191,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
         >
           Manage default settings
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -391,36 +363,8 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
           Done
         </Text>
       </TouchableOpacity>
-      <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+      <TouchableOpacity
+        onPress={[Function]}
         style={
           {
             "alignItems": "center",
@@ -444,7 +388,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
         >
           Manage default settings
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -616,36 +560,8 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
           Done
         </Text>
       </TouchableOpacity>
-      <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+      <TouchableOpacity
+        onPress={[Function]}
         style={
           {
             "alignItems": "center",
@@ -669,7 +585,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
         >
           Manage default settings
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -841,36 +757,8 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
           Done
         </Text>
       </TouchableOpacity>
-      <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+      <TouchableOpacity
+        onPress={[Function]}
         style={
           {
             "alignItems": "center",
@@ -894,7 +782,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
         >
           Manage default settings
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -1066,36 +954,8 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           Done
         </Text>
       </TouchableOpacity>
-      <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+      <TouchableOpacity
+        onPress={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1119,7 +979,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         >
           Manage default settings
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -1291,36 +1151,8 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           Done
         </Text>
       </TouchableOpacity>
-      <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+      <TouchableOpacity
+        onPress={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1344,7 +1176,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         >
           Manage default settings
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -1516,36 +1348,8 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           Done
         </Text>
       </TouchableOpacity>
-      <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+      <TouchableOpacity
+        onPress={[Function]}
         style={
           {
             "alignItems": "center",
@@ -1569,7 +1373,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         >
           Manage default settings
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   </View>
 </RNCSafeAreaView>
