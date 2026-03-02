@@ -15,9 +15,6 @@ jest.mock('./connection');
 jest.mock('react-native');
 jest.mock('@sentry/react-native');
 jest.mock('../../Permissions');
-jest.mock('../../../constants/transaction', () => ({
-  INTERNAL_ORIGINS: ['metamask', 'MetaMask Mobile', 'https://internal.metamask.io'],
-}));
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),
@@ -577,7 +574,7 @@ describe('ConnectionRegistry', () => {
       // Re-import to pick up the mock
       const {
         ConnectionRegistry: FreshRegistry,
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       } = require('./connection-registry');
 
       const freshRegistry = new FreshRegistry(
@@ -665,7 +662,7 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.save).not.toHaveBeenCalled();
     });
 
-    it('blocks connection requests with an internal origin as dapp url', async () => {
+    it('blocks connection requests whose dapp url hostname matches an internal origin', async () => {
       registry = new ConnectionRegistry(
         RELAY_URL,
         mockKeyManager,
@@ -679,7 +676,7 @@ describe('ConnectionRegistry', () => {
           ...mockConnectionRequest.metadata,
           dapp: {
             ...mockConnectionRequest.metadata.dapp,
-            url: 'https://internal.metamask.io',
+            url: 'https://metamask/',
           },
         },
       };

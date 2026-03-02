@@ -171,12 +171,8 @@ export class ConnectionRegistry {
 
     try {
       const connReq = this.parseConnectionRequest(url);
-      // Prevent external connections from using internal origins
-      // This is an external connection (SDK V2), so block any internal origin
-      if (
-        INTERNAL_ORIGINS.includes(connReq.metadata.dapp.url) ||
-        INTERNAL_ORIGINS.includes(connReq.metadata.dapp.name)
-      ) {
+
+      if (this.matchesInternalOrigin(connReq)) {
         throw rpcErrors.invalidParams({
           message: 'External transactions cannot use internal origins',
         });
@@ -252,6 +248,23 @@ export class ConnectionRegistry {
     }
 
     return connReq;
+  }
+
+  /**
+   * Checks whether the dApp metadata matches any known internal origin.
+   * Compares both the URL hostname and the dApp name (case-insensitive)
+   * against INTERNAL_ORIGINS to prevent external SDK connections from
+   * spoofing internal MetaMask origins.
+   */
+  private matchesInternalOrigin(connReq: ConnectionRequest): boolean {
+    const { url, name } = connReq.metadata.dapp;
+    const hostname = new URL(url).hostname.toLowerCase();
+
+    return INTERNAL_ORIGINS.some((origin) => {
+      if (!origin) return false;
+      const lower = origin.toLowerCase();
+      return hostname === lower || name.toLowerCase() === lower;
+    });
   }
 
   private toConnectionInfo(connReq: ConnectionRequest): ConnectionInfo {

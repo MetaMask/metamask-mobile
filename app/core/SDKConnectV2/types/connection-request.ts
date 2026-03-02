@@ -106,7 +106,10 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
   }
 
   try {
-    new URL(metadata.dapp.url);
+    const parsed = new URL(metadata.dapp.url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false;
+    }
   } catch {
     return false;
   }
