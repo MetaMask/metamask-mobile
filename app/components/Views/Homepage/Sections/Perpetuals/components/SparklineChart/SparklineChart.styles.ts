@@ -4,7 +4,6 @@ const styles = StyleSheet.create({
   container: {
     overflow: 'hidden',
     position: 'relative',
-    marginBottom: 16,
   },
   cover: {
     position: 'absolute',
