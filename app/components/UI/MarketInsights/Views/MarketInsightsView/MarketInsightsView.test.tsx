@@ -322,7 +322,9 @@ describe('MarketInsightsView', () => {
       timeAgo: '',
     });
 
-    const { queryByTestId, rerender } = renderWithProvider(<MarketInsightsView />);
+    const { queryByTestId, rerender } = renderWithProvider(
+      <MarketInsightsView />,
+    );
 
     act(() => {
       jest.advanceTimersByTime(160);
@@ -427,9 +429,7 @@ describe('MarketInsightsView', () => {
     expect(
       getByTestId(MarketInsightsSelectorsIDs.SOURCES_FOOTER),
     ).toBeOnTheScreen();
-    expect(
-      getByText('Was this helpful?'),
-    ).toBeOnTheScreen();
+    expect(getByText('Was this helpful?')).toBeOnTheScreen();
     expect(getByText('AI summary for information only')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TWEET_CARD}-0`));
@@ -721,7 +721,9 @@ describe('MarketInsightsView', () => {
       timeAgo: '5m ago',
     });
 
-    const { getByText, getByTestId } = renderWithProvider(<MarketInsightsView />);
+    const { getByText, getByTestId } = renderWithProvider(
+      <MarketInsightsView />,
+    );
 
     expect(getByText('+1 sources')).toBeOnTheScreen();
 
@@ -730,11 +732,17 @@ describe('MarketInsightsView', () => {
     expect(mockSourcesBottomSheet).toHaveBeenLastCalledWith(
       expect.objectContaining({
         sources: expect.arrayContaining([
-          expect.objectContaining({ url: 'https://www.coindesk.com/article-1' }),
+          expect.objectContaining({
+            url: 'https://www.coindesk.com/article-1',
+          }),
           expect.objectContaining({ url: 'https://www.theblock.co/article-2' }),
           expect.objectContaining({ url: 'https://decrypt.co/article-3' }),
-          expect.objectContaining({ url: 'https://cointelegraph.com/article-4' }),
-          expect.objectContaining({ url: 'https://www.coindesk.com/article-5' }),
+          expect.objectContaining({
+            url: 'https://cointelegraph.com/article-4',
+          }),
+          expect.objectContaining({
+            url: 'https://www.coindesk.com/article-5',
+          }),
         ]),
       }),
     );

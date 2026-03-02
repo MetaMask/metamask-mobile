@@ -22,7 +22,6 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import { strings } from '../../../../../../locales/i18n';
 import type {
   MarketInsightsSourcesFooterProps,
-  MarketInsightsSourceListItem,
   MarketInsightsSourcesBottomSheetProps,
 } from './MarketInsightsSourcesFooter.types';
 import type { MarketInsightsSource } from '@metamask/ai-controllers';
@@ -148,7 +147,10 @@ export const MarketInsightsSourcesBottomSheet: React.FC<
                   </Text>
                   {source.date ? (
                     <>
-                      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
                         {' • '}
                       </Text>
                       <Text

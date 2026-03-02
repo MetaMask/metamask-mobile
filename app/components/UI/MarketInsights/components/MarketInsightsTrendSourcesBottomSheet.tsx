@@ -128,30 +128,41 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
               >
                 <Box twClassName="w-4 h-4 rounded-full overflow-hidden mr-2">
                   <Image
-                    source={{ uri: getFaviconUrl(article.url || article.source) }}
+                    source={{
+                      uri: getFaviconUrl(article.url || article.source),
+                    }}
                     style={tw.style('w-4 h-4 rounded-full')}
                   />
                 </Box>
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextAlternative}
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
                 >
-                  {article.source}
-                </Text>
-                {article.date ? (
-                  <>
-                    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-                      •
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {formatRelativeTime(article.date, { nowLabel: 'now' })}
-                    </Text>
-                  </>
-                ) : null}
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
+                  >
+                    {article.source}
+                  </Text>
+                  {article.date ? (
+                    <>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {'•'}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {formatRelativeTime(article.date, { nowLabel: 'now' })}
+                      </Text>
+                    </>
+                  ) : null}
+                </Box>
               </Box>
             </Box>
           </Pressable>
@@ -202,26 +213,35 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
                     color={IconColor.IconAlternative}
                   />
                 </Box>
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextAlternative}
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
                 >
-                  {getNormalizedHandle(tweet.author)}
-                </Text>
-                {tweet.date ? (
-                  <>
-                    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-                      •
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {formatRelativeTime(tweet.date, { nowLabel: 'now' })}
-                    </Text>
-                  </>
-                ) : null}
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
+                  >
+                    {getNormalizedHandle(tweet.author)}
+                  </Text>
+                  {tweet.date ? (
+                    <>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {'•'}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {formatRelativeTime(tweet.date, { nowLabel: 'now' })}
+                      </Text>
+                    </>
+                  ) : null}
+                </Box>
               </Box>
             </Box>
           </Pressable>

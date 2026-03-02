@@ -51,9 +51,6 @@ export const isXSourceUrl = (source: string): boolean => {
   if (normalized === 'x' || normalized === 'twitter') {
     return true;
   }
-  if (normalized.includes('x.com') || normalized.includes('twitter.com')) {
-    return true;
-  }
 
   try {
     const normalizedSource = trimmedSource.includes('://')
