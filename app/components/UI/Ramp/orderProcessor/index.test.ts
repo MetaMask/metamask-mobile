@@ -111,7 +111,7 @@ describe('processOrder', () => {
     );
     expect(Logger.error).toHaveBeenCalledWith(
       new Error('FiatOrders::ProcessOrder unrecognized provider'),
-      unsupportedProviderOrder,
+      { orderId: unsupportedProviderOrder.id },
     );
   });
 
