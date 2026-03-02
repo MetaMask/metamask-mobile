@@ -3697,22 +3697,30 @@ export class PerpsController extends BaseController<
 
       // Only disconnect the provider if we're initialized (best-effort; may hang if WebSocket is dead)
       if (this.isInitialized && !this.isCurrentlyReinitializing()) {
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
+        const timeoutPromise = new Promise<never>((_resolve, reject) => {
+          timeoutId = setTimeout(
+            () =>
+              reject(
+                new Error(
+                  `Provider disconnect timed out after ${PERPS_CONSTANTS.DisconnectTimeoutMs}ms`,
+                ),
+              ),
+            PERPS_CONSTANTS.DisconnectTimeoutMs,
+          );
+        });
         try {
           const provider = this.getActiveProvider();
-          const disconnectPromise = provider.disconnect();
-          const timeoutPromise = wait(PERPS_CONSTANTS.DisconnectTimeoutMs).then(
-            () => {
-              throw new Error(
-                `Provider disconnect timed out after ${PERPS_CONSTANTS.DisconnectTimeoutMs}ms`,
-              );
-            },
-          );
-          await Promise.race([disconnectPromise, timeoutPromise]);
+          await Promise.race([provider.disconnect(), timeoutPromise]);
         } catch (error) {
           this.#logError(
             ensureError(error, 'PerpsController.disconnect'),
             this.#getErrorContext('disconnect'),
           );
+        } finally {
+          if (timeoutId !== undefined) {
+            clearTimeout(timeoutId);
+          }
         }
       }
 
