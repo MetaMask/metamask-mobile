@@ -107,6 +107,7 @@ import {
   submitClobOrder,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
+import { getEventLeague } from '../../utils/gameParser';
 import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
@@ -240,20 +241,22 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
-      const { liveSportsLeagues } = this.#getFeatureFlags();
       const event = await getMarketDetailsFromGammaApi({
         marketId,
       });
 
-      const liveSportsEnabled = liveSportsLeagues.length > 0;
+      const { liveSportsLeagues } = this.#getFeatureFlags();
+      const eventLeague = getEventLeague(event);
+      const isSportsEvent =
+        eventLeague !== null && liveSportsLeagues.length > 0;
 
-      if (liveSportsEnabled) {
+      if (isSportsEvent) {
         await TeamsCache.getInstance().ensureLeaguesLoaded(
           liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
         );
       }
 
-      const teamLookup = liveSportsEnabled
+      const teamLookup = isSportsEvent
         ? (
             league: (typeof SUPPORTED_SPORTS_LEAGUES)[number],
             abbreviation: string,
@@ -269,7 +272,7 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to parse market details');
       }
 
-      return liveSportsEnabled
+      return isSportsEvent
         ? GameCache.getInstance().overlayOnMarket(parsedMarket)
         : parsedMarket;
     } catch (error) {
