@@ -39,7 +39,7 @@ export interface HardwareWalletBottomSheetProps {
   deviceSelection: DeviceSelectionState;
   walletType: HardwareWalletType | null;
 
-  retryLastOperation: () => Promise<void>;
+  retryEnsureDeviceReady: () => Promise<void>;
   selectDevice: (device: DiscoveredDevice) => void;
   rescan: () => void;
   connect: (deviceId: string) => Promise<void>;
@@ -71,7 +71,7 @@ export const HardwareWalletBottomSheet: React.FC<
   connectionState,
   deviceSelection,
   walletType,
-  retryLastOperation,
+  retryEnsureDeviceReady,
   selectDevice,
   rescan,
   connect,
@@ -123,8 +123,8 @@ export const HardwareWalletBottomSheet: React.FC<
   }, [onAwaitingConfirmationCancel]);
 
   const handleErrorContinue = useCallback(async () => {
-    await retryLastOperation();
-  }, [retryLastOperation]);
+    await retryEnsureDeviceReady();
+  }, [retryEnsureDeviceReady]);
 
   const handleErrorDismiss = useCallback(() => {
     onClose();

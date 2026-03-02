@@ -38,7 +38,7 @@ exports[`ButtonSemantic Rendering renders with Danger severity 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#3c4d9d0f",
+        "backgroundColor": "#b4b4b528",
         "borderRadius": 12,
         "columnGap": 8,
         "flexDirection": "row",
@@ -129,7 +129,7 @@ exports[`ButtonSemantic Rendering renders with Success severity 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#3c4d9d0f",
+        "backgroundColor": "#b4b4b528",
         "borderRadius": 12,
         "columnGap": 8,
         "flexDirection": "row",

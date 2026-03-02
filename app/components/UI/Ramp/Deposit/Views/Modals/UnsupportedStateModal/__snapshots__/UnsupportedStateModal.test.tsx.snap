@@ -334,7 +334,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -384,7 +384,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -449,7 +449,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
@@ -483,7 +483,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -510,7 +510,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -534,7 +534,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -548,7 +548,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -563,7 +563,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#686e7d",
+                                  "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -633,7 +633,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#131416",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,

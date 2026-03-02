@@ -32,7 +32,7 @@ jobs:
 
       - name: Setup iOS Environment
         timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1.7
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1.7.0
         with:
           platform: ios
           setup-simulator: false
