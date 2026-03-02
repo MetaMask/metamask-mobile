@@ -777,7 +777,6 @@ export const parsePolymarketEvents = (
   const parsedMarkets: PredictMarket[] = events.map(
     (event: PolymarketApiEvent) => {
       const tags = Array.isArray(event.tags) ? event.tags : [];
-      const eventLeague = getEventLeague(event);
 
       const markets = sortMarkets(event, sortBy).filter(
         (market: PolymarketApiMarket) => market?.active !== false,
@@ -789,6 +788,8 @@ export const parsePolymarketEvents = (
             return apiTeam ? mapApiTeamToPredictTeam(apiTeam) : undefined;
           }
         : undefined;
+
+      const eventLeague = predictTeamLookup ? getEventLeague(event) : null;
 
       const game =
         eventLeague && predictTeamLookup

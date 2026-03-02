@@ -351,8 +351,10 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
+      const isSportsCategory = params?.category === 'sports';
       const { liveSportsLeagues } = this.#getFeatureFlags();
-      const liveSportsEnabled = liveSportsLeagues.length > 0;
+      const liveSportsEnabled =
+        isSportsCategory && liveSportsLeagues.length > 0;
 
       if (liveSportsEnabled) {
         await TeamsCache.getInstance().ensureLeaguesLoaded(
