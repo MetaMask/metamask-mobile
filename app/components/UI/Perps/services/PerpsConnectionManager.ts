@@ -1,3 +1,8 @@
+import { AppState, type AppStateStatus } from 'react-native';
+import {
+  addEventListener as netInfoAddEventListener,
+  type NetInfoState,
+} from '@react-native-community/netinfo';
 import { setMeasurement } from '@sentry/react-native';
 import BackgroundTimer from 'react-native-background-timer';
 import performance from 'react-native-performance';
@@ -57,6 +62,11 @@ class PerpsConnectionManagerClass {
   private isInGracePeriod = false;
   private pendingReconnectPromise: Promise<void> | null = null;
   private connectionTimeoutRef: ReturnType<typeof setTimeout> | null = null;
+  private appStateSubscription: ReturnType<
+    typeof AppState.addEventListener
+  > | null = null;
+  private netInfoUnsubscribe: (() => void) | null = null;
+  private wasOffline = false;
 
   private constructor() {
     // Private constructor to enforce singleton pattern
@@ -178,13 +188,135 @@ class PerpsConnectionManagerClass {
       this.previousHip3Version = currentHip3Version;
     });
 
+    // Listen for app state changes to reconnect after background
+    if (!this.appStateSubscription) {
+      this.appStateSubscription = AppState.addEventListener(
+        'change',
+        (nextAppState: AppStateStatus) => {
+          this.handleAppStateChange(nextAppState).catch((error) => {
+            Logger.error(
+              ensureError(error, 'PerpsConnectionManager.appStateListener'),
+              {
+                tags: { feature: PERPS_CONSTANTS.FeatureName },
+                context: {
+                  name: 'PerpsConnectionManager.appStateListener',
+                  data: { message: 'Error handling app state change' },
+                },
+              },
+            );
+          });
+        },
+      );
+    }
+
+    // Listen for connectivity changes (WiFi off/on, airplane mode, etc.)
+    if (!this.netInfoUnsubscribe) {
+      this.netInfoUnsubscribe = netInfoAddEventListener(
+        (netState: NetInfoState) => {
+          const isOnline =
+            netState.isInternetReachable ?? netState.isConnected ?? false;
+
+          if (isOnline && this.wasOffline) {
+            DevLogger.log(
+              'PerpsConnectionManager: Network restored - validating connection',
+            );
+            this.validateAndReconnect(
+              'PerpsConnectionManager.netInfoListener',
+            ).catch((error) => {
+              Logger.error(
+                ensureError(error, 'PerpsConnectionManager.netInfoListener'),
+                {
+                  tags: { feature: PERPS_CONSTANTS.FeatureName },
+                  context: {
+                    name: 'PerpsConnectionManager.netInfoListener',
+                    data: {
+                      message: 'Error reconnecting after network restored',
+                    },
+                  },
+                },
+              );
+            });
+          }
+
+          this.wasOffline = !isOnline;
+        },
+      );
+    }
+
     DevLogger.log('PerpsConnectionManager: State monitoring set up');
+  }
+
+  /**
+   * Validate the WebSocket connection and force-reconnect if it is stale.
+   * Shared by both AppState (background→foreground) and NetInfo (offline→online)
+   * recovery paths.
+   *
+   * @param context - Caller identifier for error reporting
+   */
+  private async validateAndReconnect(context: string): Promise<void> {
+    if (this.connectionRefCount <= 0 || this.isConnecting) {
+      return;
+    }
+
+    if (this.isConnected) {
+      try {
+        const provider = Engine.context.PerpsController.getActiveProvider();
+        await provider.ping();
+        DevLogger.log(
+          `PerpsConnectionManager: ${context} - connection healthy`,
+        );
+        return;
+      } catch {
+        DevLogger.log(
+          `PerpsConnectionManager: ${context} - connection stale, triggering reconnection`,
+        );
+        this.isConnected = false;
+        this.isInitialized = false;
+      }
+    }
+
+    await this.reconnectWithNewContext({ force: true });
+    DevLogger.log(
+      `PerpsConnectionManager: ${context} - reconnection successful`,
+    );
+  }
+
+  /**
+   * Handle app state transitions to recover from stale WebSocket connections.
+   * When the app returns from background, the OS may have silently killed the
+   * WebSocket. A health-check ping detects this and triggers reconnection.
+   */
+  private async handleAppStateChange(
+    nextAppState: AppStateStatus,
+  ): Promise<void> {
+    if (nextAppState !== 'active') {
+      return;
+    }
+
+    // Cancel any pending grace period — user is back
+    if (this.isInGracePeriod) {
+      DevLogger.log(
+        'PerpsConnectionManager: App resumed - cancelling grace period',
+      );
+      this.cancelGracePeriod();
+    }
+
+    await this.validateAndReconnect('appResume');
   }
 
   /**
    * Clean up state monitoring
    */
   private cleanupStateMonitoring(): void {
+    if (this.appStateSubscription) {
+      this.appStateSubscription.remove();
+      this.appStateSubscription = null;
+    }
+    if (this.netInfoUnsubscribe) {
+      this.netInfoUnsubscribe();
+      this.netInfoUnsubscribe = null;
+      this.wasOffline = false;
+    }
     if (this.unsubscribeFromStore) {
       this.unsubscribeFromStore();
       this.unsubscribeFromStore = null;
