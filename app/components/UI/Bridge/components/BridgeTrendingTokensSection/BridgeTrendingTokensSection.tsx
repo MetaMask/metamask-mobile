@@ -20,6 +20,10 @@ import {
   TrendingTokenPriceChangeBottomSheet,
   TrendingTokenTimeBottomSheet,
 } from '../../../Trending/components/TrendingTokensBottomSheet';
+import {
+  ALLOWED_BRIDGE_CHAIN_IDS,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import TrendingTokensSkeleton from '../../../Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import TrendingTokenRowItem from '../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { useTrendingFilters } from '../../../Trending/hooks/useTrendingFilters/useTrendingFilters';
@@ -27,6 +31,10 @@ import { useTrendingRequest } from '../../../Trending/hooks/useTrendingRequest/u
 import { sortTrendingTokens } from '../../../Trending/utils/sortTrendingTokens';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
+import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import type { CaipChainId } from '@metamask/utils';
 
 const TOKEN_CHUNK_SIZE = 12;
 
@@ -134,6 +142,27 @@ const BridgeTrendingTokensSection = ({
   }, [isLoading, trendingTokens]);
 
   const hasMore = visibleTokenCount < trendingTokens.length;
+  const bridgeTrendingNetworks = useMemo(
+    () =>
+      ALLOWED_BRIDGE_CHAIN_IDS.map((allowedChainId) => {
+        const caipChainId = formatChainIdToCaip(allowedChainId) as CaipChainId;
+        // Map to network configurations first because network filter dropdown does the same
+        // Fallback to NETWORK_TO_SHORT_NETWORK_NAME_MAP because some bridge chains are not in network configurations
+        const networkName =
+          networkConfigurations[caipChainId]?.name ??
+          NETWORK_TO_SHORT_NETWORK_NAME_MAP[allowedChainId] ??
+          caipChainId;
+
+        return {
+          id: caipChainId,
+          name: networkName,
+          caipChainId,
+          isSelected: false,
+          imageSource: getNetworkImageSource({ chainId: allowedChainId }),
+        } as ProcessedNetwork;
+      }),
+    [networkConfigurations],
+  );
 
   const loadNextChunk = useCallback(() => {
     setVisibleTokenCount((currentCount) =>
@@ -241,6 +270,7 @@ const BridgeTrendingTokensSection = ({
             onClose={closeBottomSheet}
             onNetworkSelect={handleNetworkSelect}
             selectedNetwork={selectedNetwork}
+            networks={bridgeTrendingNetworks}
           />
         )}
         {activeBottomSheet === 'price_change' && (

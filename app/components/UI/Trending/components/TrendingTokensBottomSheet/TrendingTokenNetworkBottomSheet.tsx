@@ -29,6 +29,7 @@ export interface TrendingTokenNetworkBottomSheetProps {
   onClose: () => void;
   onNetworkSelect?: (chainIds: CaipChainId[] | null) => void;
   selectedNetwork?: CaipChainId[] | null;
+  networks?: ProcessedNetwork[];
 }
 
 const TrendingTokenNetworkBottomSheet: React.FC<
@@ -38,9 +39,10 @@ const TrendingTokenNetworkBottomSheet: React.FC<
   onClose,
   onNetworkSelect,
   selectedNetwork: initialSelectedNetwork,
+  networks,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const networks = TRENDING_NETWORKS_LIST;
+  const availableNetworks = networks ?? TRENDING_NETWORKS_LIST;
 
   // Default to "All networks" if no selection
   const [selectedNetwork, setSelectedNetwork] = useState<
@@ -132,7 +134,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
             <Icon name={IconName.Check} size={IconSize.Md} />
           )}
         </Cell>
-        {networks.map((network) => {
+        {availableNetworks.map((network) => {
           const isSelected = isNetworkSelected(network);
           return (
             <Cell
