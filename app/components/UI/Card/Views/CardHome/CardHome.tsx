@@ -1111,7 +1111,7 @@ const CardHome = () => {
     }
     if (!hasLoadedCardHomeView.current && isAuthenticated) {
       hasLoadedCardHomeView.current = true;
-      fetchAllData().then(() => {
+      fetchAllData().finally(() => {
         hasCompletedInitialFetchRef.current = true;
       });
     }

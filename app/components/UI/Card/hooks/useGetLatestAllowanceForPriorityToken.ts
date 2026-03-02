@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
 import { CardTokenAllowance, AllowanceState } from '../types';
@@ -47,6 +47,8 @@ const useGetLatestAllowanceForPriorityToken = (
   priorityToken: CardTokenAllowance | null | undefined,
 ) => {
   const { sdk } = useCardSDK();
+  const sdkRef = useRef(sdk);
+  sdkRef.current = sdk;
 
   const applicable = isAllowanceFetchApplicable(priorityToken);
 
@@ -72,12 +74,13 @@ const useGetLatestAllowanceForPriorityToken = (
       decimals,
     ),
     queryFn: async () => {
-      if (!sdk || !applicable) return null;
+      const currentSdk = sdkRef.current;
+      if (!currentSdk || !applicable) return null;
 
       const cardNetwork = caipChainIdToNetwork[caipChainId];
 
       try {
-        const rawLatestAllowance = await sdk.getLatestAllowanceFromLogs(
+        const rawLatestAllowance = await currentSdk.getLatestAllowanceFromLogs(
           walletAddress,
           tokenAddress,
           delegationContract,
