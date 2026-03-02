@@ -548,6 +548,19 @@ export async function withFixtures(
   let testError: Error | null = null;
 
   try {
+    // Step 0: Install proxy CA cert on the device BEFORE any port forwarding.
+    // On Android, cert installation may trigger a disable-verity + reboot cycle
+    // (API 30+ emulators). By doing this first, any reboot occurs before
+    // adb-reverse entries are created, so there is nothing to restore afterwards.
+    // Subsequent calls are instant — installCACertAndroid returns early when the
+    // cert is already present in /system/etc/security/cacerts/.
+    if (
+      useTransparentProxy &&
+      process.env.BROWSERSTACK_LOCAL?.toLowerCase() !== 'true'
+    ) {
+      await TransparentProxy.prepareCACertOnDevice();
+    }
+
     // Step 1: Start local nodes (Anvil/Ganache)
     if (!disableLocalNodes) {
       localNodes = await handleLocalNodes(localNodeOptions);
