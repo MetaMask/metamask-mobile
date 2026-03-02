@@ -72,10 +72,18 @@ jobs:
           echo "📦 Installing dependencies..."
           yarn install --immutable
 
+      - name: Cache Foundry binaries
+        uses: actions/cache@v4
+        with:
+          path: .metamask/cache
+          key: foundry-${{ runner.os }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            foundry-${{ runner.os }}-
+
       - name: Setup project
         run: |
           echo "🔧 Running setup for GitHub CI..."
-          yarn setup:github-ci --node
+          yarn setup:github-ci
 
       - name: Verify setup completed
         run: |

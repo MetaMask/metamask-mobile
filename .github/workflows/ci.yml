@@ -470,8 +470,15 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn install --immutable
+      - name: Cache Foundry binaries
+        uses: actions/cache@v4
+        with:
+          path: .metamask/cache
+          key: foundry-${{ runner.os }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            foundry-${{ runner.os }}-
       - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --no-build-android --node
+        run: yarn setup:github-ci --no-build-android
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
