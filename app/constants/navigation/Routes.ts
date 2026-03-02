@@ -453,6 +453,7 @@ const Routes = {
       PASSWORD: 'CardPasswordModal',
       RECURRING_FEE: 'CardRecurringFeeModal',
       DAIMO_PAY: 'CardDaimoPayModal',
+      VIEW_PIN: 'CardViewPinModal',
     },
   },
   SEND: {
