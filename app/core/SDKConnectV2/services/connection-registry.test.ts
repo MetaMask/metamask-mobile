@@ -29,9 +29,9 @@ const mockConnectionRequest: ConnectionRequest = {
   sessionRequest: {
     id: '11111111-2222-3333-4444-555555555555',
     publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
-    channel: 'websocket-channel-id',
+    channel: 'handshake:aabbccdd-1122-3344-5566-778899aabbcc',
     mode: 'trusted',
-    expiresAt: 1757410033264,
+    expiresAt: Date.now() + 60_000,
   },
   metadata: {
     dapp: {
@@ -58,7 +58,7 @@ const mockConnectionInfo: ConnectionInfo = {
       platform: 'JavaScript',
     },
   },
-  expiresAt: 1757410033264,
+  expiresAt: Date.now() + 60_000,
 };
 
 // A valid deeplink URL containing the encoded connection request
@@ -574,7 +574,7 @@ describe('ConnectionRegistry', () => {
       // Re-import to pick up the mock
       const {
         ConnectionRegistry: FreshRegistry,
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       } = require('./connection-registry');
 
       const freshRegistry = new FreshRegistry(
@@ -662,7 +662,17 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.save).not.toHaveBeenCalled();
     });
 
-    it('blocks connection requests with `metamask` as origin', async () => {
+    it('blocks connection requests with an internal origin as dapp url (defense-in-depth)', async () => {
+      // isConnectionRequest() normally rejects non-URL dapp.url values,
+      // making this code path unreachable. We bypass that validation here
+      // to verify the defense-in-depth check still works if the upstream
+      // guard is ever relaxed.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const connReqModule = require('../types/connection-request');
+      const spy = jest
+        .spyOn(connReqModule, 'isConnectionRequest')
+        .mockReturnValueOnce(true);
+
       registry = new ConnectionRegistry(
         RELAY_URL,
         mockKeyManager,
@@ -690,9 +700,11 @@ describe('ConnectionRegistry', () => {
       expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
       expect(Connection.create).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
+
+      spy.mockRestore();
     });
 
-    it('blocks connection requests with `metamask` as dapp name', async () => {
+    it('blocks connection requests with an internal origin as dapp name', async () => {
       registry = new ConnectionRegistry(
         RELAY_URL,
         mockKeyManager,
@@ -716,6 +728,10 @@ describe('ConnectionRegistry', () => {
       )}`;
 
       await registry.handleConnectDeeplink(blockedDeeplink);
+
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
     });
   });
 

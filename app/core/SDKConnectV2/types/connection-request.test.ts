@@ -55,7 +55,7 @@ describe('isConnectionRequest', () => {
 
   it('returns false when sessionRequest is missing', () => {
     const req = validRequest();
-    delete (req as Record<string, unknown>).sessionRequest;
+    delete (req as unknown as Record<string, unknown>).sessionRequest;
     expect(isConnectionRequest(req)).toBe(false);
   });
 
@@ -199,7 +199,7 @@ describe('isConnectionRequest', () => {
   // ──────────────────────────────────────────
   it('returns false when metadata is missing', () => {
     const req = validRequest();
-    delete (req as Record<string, unknown>).metadata;
+    delete (req as unknown as Record<string, unknown>).metadata;
     expect(isConnectionRequest(req)).toBe(false);
   });
 
@@ -214,7 +214,7 @@ describe('isConnectionRequest', () => {
   // ──────────────────────────────────────────
   it('returns false when metadata.dapp is missing', () => {
     const req = validRequest();
-    delete (req.metadata as Record<string, unknown>).dapp;
+    delete (req.metadata as unknown as Record<string, unknown>).dapp;
     expect(isConnectionRequest(req)).toBe(false);
   });
 
@@ -248,6 +248,24 @@ describe('isConnectionRequest', () => {
     (req.metadata.dapp as Record<string, unknown>).url = 'not a url';
     expect(isConnectionRequest(req)).toBe(false);
   });
+
+  it.each(['metamask://evil.com', 'ftp://example.com', 'file:///etc/passwd'])(
+    'returns false when dapp.url uses a non-http(s) scheme: %p',
+    (url) => {
+      const req = validRequest();
+      (req.metadata.dapp as Record<string, unknown>).url = url;
+      expect(isConnectionRequest(req)).toBe(false);
+    },
+  );
+
+  it.each(['https://example.com', 'http://localhost:3000'])(
+    'accepts dapp.url with http(s) scheme: %p',
+    (url) => {
+      const req = validRequest();
+      (req.metadata.dapp as Record<string, unknown>).url = url;
+      expect(isConnectionRequest(req)).toBe(true);
+    },
+  );
 
   // ──────────────────────────────────────────
   // metadata.dapp.icon (optional)
@@ -289,7 +307,7 @@ describe('isConnectionRequest', () => {
   // ──────────────────────────────────────────
   it('returns false when metadata.sdk is missing', () => {
     const req = validRequest();
-    delete (req.metadata as Record<string, unknown>).sdk;
+    delete (req.metadata as unknown as Record<string, unknown>).sdk;
     expect(isConnectionRequest(req)).toBe(false);
   });
 
