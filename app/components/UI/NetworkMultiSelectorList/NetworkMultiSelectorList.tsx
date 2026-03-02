@@ -29,7 +29,6 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell/index.ts';
 import Text, {
   TextVariant,
-  TextColor,
 } from '../../../component-library/components/Texts/Text/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
@@ -284,13 +283,17 @@ const NetworkMultiSelectList = ({
                   <TagColored
                     color={TagColor.Success}
                     style={styles.noNetworkFeeContainer}
+                    labelProps={{
+                      variant: TextVariant.BodySM,
+                      style: {
+                        textTransform: 'none',
+                        textAlign: 'center',
+                        bottom: 1,
+                        fontWeight: 'normal',
+                      },
+                    }}
                   >
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Success}
-                    >
-                      {strings('networks.no_network_fee')}
-                    </Text>
+                    {strings('networks.no_network_fee')}
                   </TagColored>
                 </Box>
               ) : (

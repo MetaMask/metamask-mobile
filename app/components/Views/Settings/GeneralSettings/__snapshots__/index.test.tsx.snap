@@ -99,7 +99,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "height": 24,
                   "width": 24,
                 },
@@ -140,7 +140,7 @@ exports[`GeneralSettings should render correctly 1`] = `
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Bold",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -193,7 +193,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 18,
                 "letterSpacing": 0,
@@ -207,7 +207,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -228,7 +228,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             <View
               style={
                 {
-                  "borderColor": "#b7bbc8",
+                  "borderColor": "#949596",
                   "borderRadius": 5,
                   "borderWidth": 2,
                 }
@@ -263,7 +263,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                         style={
                           {
                             "alignSelf": "flex-start",
-                            "color": "#121314",
+                            "color": "#131416",
                             "flex": 1,
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
@@ -281,7 +281,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                         style={
                           [
                             {
-                              "color": "#121314",
+                              "color": "#131416",
                               "fontSize": 24,
                             },
                             {
@@ -321,7 +321,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 18,
                 "letterSpacing": 0,
@@ -335,7 +335,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -386,7 +386,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#b7bbc8",
+                        "borderColor": "#949596",
                         "borderRadius": 99,
                         "borderWidth": 2,
                         "height": 20,
@@ -406,7 +406,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -444,7 +444,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#b7bbc8",
+                        "borderColor": "#949596",
                         "borderRadius": 99,
                         "borderWidth": 2,
                         "height": 20,
@@ -464,7 +464,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -491,7 +491,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 18,
                 "letterSpacing": 0,
@@ -505,7 +505,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -526,7 +526,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             <View
               style={
                 {
-                  "borderColor": "#b7bbc8",
+                  "borderColor": "#949596",
                   "borderRadius": 5,
                   "borderWidth": 2,
                 }
@@ -561,7 +561,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                         style={
                           {
                             "alignSelf": "flex-start",
-                            "color": "#121314",
+                            "color": "#131416",
                             "flex": 1,
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
@@ -579,7 +579,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                         style={
                           [
                             {
-                              "color": "#121314",
+                              "color": "#131416",
                               "fontSize": 24,
                             },
                             {
@@ -619,7 +619,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 18,
                 "letterSpacing": 0,
@@ -633,7 +633,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -654,7 +654,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             <View
               style={
                 {
-                  "borderColor": "#b7bbc8",
+                  "borderColor": "#949596",
                   "borderRadius": 5,
                   "borderWidth": 2,
                 }
@@ -689,7 +689,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                         style={
                           {
                             "alignSelf": "flex-start",
-                            "color": "#121314",
+                            "color": "#131416",
                             "flex": 1,
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
@@ -707,7 +707,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                         style={
                           [
                             {
-                              "color": "#121314",
+                              "color": "#131416",
                               "fontSize": 24,
                             },
                             {
@@ -755,7 +755,7 @@ exports[`GeneralSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
                   "fontSize": 18,
@@ -790,14 +790,14 @@ exports[`GeneralSettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#b7bbc866",
+                        "backgroundColor": "#b4b4b566",
                         "borderRadius": 16,
                       },
                     ],
                   ]
                 }
                 thumbTintColor="#ffffff"
-                tintColor="#b7bbc866"
+                tintColor="#b4b4b566"
                 value={false}
               />
             </View>
@@ -806,7 +806,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -829,7 +829,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 18,
                 "letterSpacing": 0,
@@ -843,7 +843,7 @@ exports[`GeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -899,7 +899,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -942,7 +942,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -985,7 +985,7 @@ exports[`GeneralSettings should render correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,

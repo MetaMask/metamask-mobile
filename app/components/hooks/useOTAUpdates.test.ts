@@ -188,7 +188,7 @@ describe('useOTAUpdates', () => {
     });
   });
 
-  it('reloads app without showing modal when a new update is available and user has not completed onboarding', async () => {
+  it('does not reload or show modal when a new update is available and user has not completed onboarding (applies on next launch)', async () => {
     mockSelectCompletedOnboarding.mockReturnValue(false);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: true,
@@ -212,10 +212,10 @@ describe('useOTAUpdates', () => {
       expect(mockCheckForUpdateAsync).toHaveBeenCalledTimes(1);
       expect(mockFetchUpdateAsync).toHaveBeenCalledTimes(1);
       expect(mockRunAfterInteractions).toHaveBeenCalledTimes(1);
-      expect(mockReloadAsync).toHaveBeenCalledTimes(1);
+      expect(mockReloadAsync).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockLoggerLog).toHaveBeenCalledWith(
-        'OTA Updates: New update available on onboarding, reloading',
+        'OTA Updates: New update available on onboarding, will apply on next launch',
       );
     });
   });

@@ -94,7 +94,6 @@ import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAs
 import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
-import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 import WhatsNewModal from '../../UI/WhatsNewModal';
 import NftOptions from '../../../components/Views/NftOptions';
@@ -135,6 +134,7 @@ import { ShareAddressQR } from '../../Views/MultichainAccounts/sheets/ShareAddre
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
+import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import MultichainAccountsIntroModal from '../../Views/MultichainAccounts/IntroModal';
 import LearnMoreBottomSheet from '../../Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
@@ -497,10 +497,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC}
       component={ConfirmTurnOnBackupAndSyncModal}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.RESET_NOTIFICATIONS}
-      component={ResetNotificationsModal}
     />
     <Stack.Screen
       name={Routes.SHEET.AMBIGUOUS_ADDRESS}
@@ -962,6 +958,26 @@ const AppFlow = () => (
       name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
       component={MultichainAccountGroupDetails}
       options={{
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
+      component={RevealPrivateCredential}
+      options={{
+        headerShown: false,
         animationEnabled: true,
         cardStyleInterpolator: ({ current, layouts }) => ({
           cardStyle: {

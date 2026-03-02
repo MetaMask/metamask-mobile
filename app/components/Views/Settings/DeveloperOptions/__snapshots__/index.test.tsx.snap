@@ -177,7 +177,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                   style={
                     [
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "height": 32,
                         "width": 32,
                       },
@@ -215,7 +215,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 18,
                       "letterSpacing": 0,
@@ -431,7 +431,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#121314",
+                              "color": "#131416",
                               "fontFamily": "Geist-Bold",
                               "fontSize": 24,
                               "letterSpacing": 0,
@@ -446,7 +446,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -468,7 +468,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "stretch",
-                              "backgroundColor": "#3c4d9d0f",
+                              "backgroundColor": "#b4b4b528",
                               "borderColor": "transparent",
                               "borderRadius": 12,
                               "borderWidth": 1,
@@ -485,7 +485,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -500,7 +500,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#121314",
+                              "color": "#131416",
                               "fontFamily": "Geist-Bold",
                               "fontSize": 24,
                               "letterSpacing": 0,
@@ -515,7 +515,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -537,7 +537,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "stretch",
-                              "backgroundColor": "#3c4d9d0f",
+                              "backgroundColor": "#b4b4b528",
                               "borderColor": "transparent",
                               "borderRadius": 12,
                               "borderWidth": 1,
@@ -554,7 +554,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -577,7 +577,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Bold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
@@ -602,7 +602,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#686e7d",
+                                  "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -630,7 +630,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#686e7d",
+                                  "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -646,7 +646,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#121314",
+                              "color": "#131416",
                               "fontFamily": "Geist-Bold",
                               "fontSize": 24,
                               "letterSpacing": 0,
@@ -661,7 +661,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -683,7 +683,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "stretch",
-                              "backgroundColor": "#3c4d9d0f",
+                              "backgroundColor": "#b4b4b528",
                               "borderColor": "transparent",
                               "borderRadius": 12,
                               "borderWidth": 1,
@@ -700,7 +700,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -715,7 +715,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#121314",
+                              "color": "#131416",
                               "fontFamily": "Geist-Bold",
                               "fontSize": 24,
                               "letterSpacing": 0,
@@ -730,7 +730,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -752,7 +752,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "stretch",
-                              "backgroundColor": "#3c4d9d0f",
+                              "backgroundColor": "#b4b4b528",
                               "borderColor": "transparent",
                               "borderRadius": 12,
                               "borderWidth": 1,
@@ -769,7 +769,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -784,7 +784,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#121314",
+                              "color": "#131416",
                               "fontFamily": "Geist-Bold",
                               "fontSize": 24,
                               "letterSpacing": 0,
@@ -799,7 +799,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -821,7 +821,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "stretch",
-                              "backgroundColor": "#3c4d9d0f",
+                              "backgroundColor": "#b4b4b528",
                               "borderColor": "transparent",
                               "borderRadius": 12,
                               "borderWidth": 1,
@@ -838,7 +838,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -865,7 +865,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Bold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
@@ -880,7 +880,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#686e7d",
+                                "color": "#66676a",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -902,7 +902,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
+                                "backgroundColor": "#b4b4b528",
                                 "borderColor": "transparent",
                                 "borderRadius": 12,
                                 "borderWidth": 1,
@@ -919,7 +919,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,

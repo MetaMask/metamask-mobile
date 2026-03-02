@@ -65,7 +65,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write # Required for Setup iOS environment (setup-e2e-env) when it uses OIDC for credentials
+  id-token: write
 
 jobs:
   setup:
@@ -74,12 +74,13 @@ jobs:
     runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || (inputs.platform == 'android' && 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' || 'ubuntu-latest') }}
     permissions:
       contents: read
-      id-token: write # Job-level required for setup-e2e-env (OIDC/credentials) when using Cirrus runners
+      id-token: write
     outputs:
       artifact-name: ${{ steps.set-artifact-name.outputs.artifact-name }}
     steps:
       - name: Log workflow usage
-        run: echo "::notice:: Using workflow: Setup Node Modules (setup-node-modules.yml) — platform=${{ inputs.platform }}, use-tarball=${{ inputs.use-tarball }}"
+        run: |
+          echo "::notice:: Using workflow: Setup Node Modules (setup-node-modules.yml) — platform=${{ inputs.platform }}, use-tarball=${{ inputs.use-tarball }}"
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -88,23 +89,20 @@ jobs:
           fetch-depth: ${{ inputs.fetch-depth }}
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
-      # iOS: MetaMask setup (Node, Ruby, CocoaPods, Xcode). No keystores here—signing is in the build job.
-      - name: Setup iOS environment
-        if: inputs.platform == 'ios'
-        timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
-        with:
-          platform: ios
-          setup-simulator: false
-          configure-keystores: false # Skip OIDC/AWS signing; setup-dependencies only needs Node/Ruby/Pods/Xcode
-
-      # Android or generic: Setup Node (iOS has Node from setup-e2e-env)
-      - name: Setup Node
-        if: inputs.platform != 'ios'
+      # iOS: Only Node + Ruby needed (setup runs gem/bundle install, no pods/Xcode). Full iOS env is in build job.
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: ${{ inputs.platform == 'android' && 'yarn' || '' }}
+          node-version-file: '.nvmrc'
+          cache: ${{ inputs.platform == 'android' && 'yarn' || (inputs.platform == 'ios' && 'yarn') || '' }}
+
+      - name: Setup Ruby (iOS)
+        if: inputs.platform == 'ios'
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
+        with:
+          ruby-version: '3.2.9'
+          working-directory: ios
+          bundler-cache: true
 
       - name: Set artifact name
         id: set-artifact-name
