@@ -9,6 +9,10 @@ on:
       platform:
         required: true
         type: string # android, ios, or both
+      skip_version_bump:
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       build_name:
@@ -32,14 +36,20 @@ on:
         required: true
         type: choice
         options: [android, ios, both]
+      skip_version_bump:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  # Bump version in repo (bitrise.yml, package.json, ios/android) before building
+  # Bump version in repo (bitrise.yml, package.json, ios/android) before building.
+  # Skipped when skip_version_bump=true (e.g. nightly builds where Bitrise owns the bump).
   update-build-version:
+    if: ${{ !inputs.skip_version_bump }}
     uses: ./.github/workflows/update-latest-build-version.yml
     permissions:
       contents: write
@@ -52,6 +62,7 @@ jobs:
   # Load config
   prepare:
     needs: [update-build-version]
+    if: ${{ always() && !failure() && !cancelled() }}
     runs-on: ubuntu-latest
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
@@ -86,6 +97,7 @@ jobs:
   # Build
   build:
     needs: [prepare, update-build-version]
+    if: ${{ always() && !failure() && !cancelled() }}
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
@@ -94,6 +106,7 @@ jobs:
     environment: ${{ needs.prepare.outputs.github_environment }}
     steps:
       - name: Validate version-bump commit
+        if: ${{ !inputs.skip_version_bump }}
         run: |
           COMMIT_HASH="${{ needs.update-build-version.outputs.commit-hash }}"
           if [ -z "$COMMIT_HASH" ]; then
@@ -102,8 +115,11 @@ jobs:
           fi
           echo "Building at version-bump commit: $COMMIT_HASH"
       - uses: actions/checkout@v4
+        if: ${{ !inputs.skip_version_bump }}
         with:
           ref: ${{ needs.update-build-version.outputs.commit-hash }}
+      - uses: actions/checkout@v4
+        if: ${{ inputs.skip_version_bump }}
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -158,12 +174,11 @@ jobs:
       - name: Installing iOS Environment Setup
         if: matrix.platform == 'ios'
         timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1.7
         with:
           platform: ios
           configure-keystores: false
           setup-simulator: false
-          ruby-version: '3.1.6'
 
       - name: Setup project dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
