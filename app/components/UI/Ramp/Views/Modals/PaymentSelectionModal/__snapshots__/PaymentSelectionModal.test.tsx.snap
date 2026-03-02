@@ -348,7 +348,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Bold",
                                 "fontSize": 18,
                                 "letterSpacing": 0,
@@ -464,7 +464,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                           [
                                             {
                                               "alignItems": "center",
-                                              "backgroundColor": "#3c4d9d0f",
+                                              "backgroundColor": "#b4b4b528",
                                               "borderRadius": 22,
                                               "height": 44,
                                               "justifyContent": "center",
@@ -520,7 +520,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
@@ -555,7 +555,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "bottom": 0,
                                       "flexDirection": "row",
                                       "left": 0,
@@ -616,7 +616,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                           [
                                             {
                                               "alignItems": "center",
-                                              "backgroundColor": "#3c4d9d0f",
+                                              "backgroundColor": "#b4b4b528",
                                               "borderRadius": 22,
                                               "height": 44,
                                               "justifyContent": "center",
@@ -632,7 +632,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                           style={
                                             [
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontSize": 24,
                                               },
                                               undefined,
@@ -670,7 +670,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
@@ -726,7 +726,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 14,
                               "letterSpacing": 0,
@@ -1114,7 +1114,7 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Bold",
                                 "fontSize": 18,
                                 "letterSpacing": 0,
@@ -1186,7 +1186,7 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
@@ -1222,7 +1222,7 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 14,
                               "letterSpacing": 0,
@@ -1610,7 +1610,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Bold",
                                 "fontSize": 18,
                                 "letterSpacing": 0,
@@ -1681,7 +1681,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                         pointerEvents="none"
                                         style={
                                           {
-                                            "backgroundColor": "#686e7d",
+                                            "backgroundColor": "#66676a",
                                             "borderRadius": 4,
                                             "bottom": 0,
                                             "left": 0,
@@ -1733,7 +1733,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -1760,7 +1760,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -1817,7 +1817,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -1851,7 +1851,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -1919,7 +1919,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                         pointerEvents="none"
                                         style={
                                           {
-                                            "backgroundColor": "#686e7d",
+                                            "backgroundColor": "#66676a",
                                             "borderRadius": 4,
                                             "bottom": 0,
                                             "left": 0,
@@ -1971,7 +1971,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -1998,7 +1998,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2055,7 +2055,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2089,7 +2089,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2157,7 +2157,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                         pointerEvents="none"
                                         style={
                                           {
-                                            "backgroundColor": "#686e7d",
+                                            "backgroundColor": "#66676a",
                                             "borderRadius": 4,
                                             "bottom": 0,
                                             "left": 0,
@@ -2209,7 +2209,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2236,7 +2236,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2293,7 +2293,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2327,7 +2327,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2395,7 +2395,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                         pointerEvents="none"
                                         style={
                                           {
-                                            "backgroundColor": "#686e7d",
+                                            "backgroundColor": "#66676a",
                                             "borderRadius": 4,
                                             "bottom": 0,
                                             "left": 0,
@@ -2447,7 +2447,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2474,7 +2474,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2531,7 +2531,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2565,7 +2565,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2633,7 +2633,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                         pointerEvents="none"
                                         style={
                                           {
-                                            "backgroundColor": "#686e7d",
+                                            "backgroundColor": "#66676a",
                                             "borderRadius": 4,
                                             "bottom": 0,
                                             "left": 0,
@@ -2685,7 +2685,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2712,7 +2712,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2769,7 +2769,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2803,7 +2803,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2871,7 +2871,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                         pointerEvents="none"
                                         style={
                                           {
-                                            "backgroundColor": "#686e7d",
+                                            "backgroundColor": "#66676a",
                                             "borderRadius": 4,
                                             "bottom": 0,
                                             "left": 0,
@@ -2923,7 +2923,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -2950,7 +2950,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -3007,7 +3007,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -3041,7 +3041,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -3109,7 +3109,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                         pointerEvents="none"
                                         style={
                                           {
-                                            "backgroundColor": "#686e7d",
+                                            "backgroundColor": "#66676a",
                                             "borderRadius": 4,
                                             "bottom": 0,
                                             "left": 0,
@@ -3161,7 +3161,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -3188,7 +3188,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -3245,7 +3245,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -3279,7 +3279,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -3347,7 +3347,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                         pointerEvents="none"
                                         style={
                                           {
-                                            "backgroundColor": "#686e7d",
+                                            "backgroundColor": "#66676a",
                                             "borderRadius": 4,
                                             "bottom": 0,
                                             "left": 0,
@@ -3399,7 +3399,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -3426,7 +3426,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -3483,7 +3483,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -3517,7 +3517,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                           pointerEvents="none"
                                           style={
                                             {
-                                              "backgroundColor": "#686e7d",
+                                              "backgroundColor": "#66676a",
                                               "borderRadius": 4,
                                               "bottom": 0,
                                               "left": 0,
@@ -3898,7 +3898,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Bold",
                                 "fontSize": 18,
                                 "letterSpacing": 0,
@@ -3970,7 +3970,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
@@ -4006,7 +4006,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 14,
                               "letterSpacing": 0,
@@ -4020,7 +4020,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#686e7d",
+                                "color": "#66676a",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 14,
                                 "letterSpacing": 0,
