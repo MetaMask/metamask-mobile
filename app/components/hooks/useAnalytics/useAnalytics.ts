@@ -82,7 +82,8 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  *   trackEvent,
  *   createEventBuilder,
  *   enable,
- *   addTraitsToUser,
+ *   identify,
+ *   addTraitsToUser, // @deprecated — use identify
  *   createDataDeletionTask,
  *   checkDataDeleteStatus,
  *   getDeleteRegulationCreationDate,
@@ -113,6 +114,10 @@ export const useAnalytics = (): UseAnalyticsHook =>
           await analytics.optIn();
         }
       },
+      identify: async (userTraits: AnalyticsUserTraits): Promise<void> => {
+        analytics.identify(userTraits);
+      },
+      /** @deprecated Use {@link identify} instead — will be removed after consumers migrate */
       addTraitsToUser: async (
         userTraits: AnalyticsUserTraits,
       ): Promise<void> => {
