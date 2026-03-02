@@ -20,6 +20,7 @@ import TokenNotAvailableModal from './Views/Modals/TokenNotAvailableModal';
 import ProviderSelectionModal from './Views/Modals/ProviderSelectionModal';
 import ErrorDetailsModal from './Views/Modals/ErrorDetailsModal';
 import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
+import SsnInfoModal from './Deposit/Views/Modals/SsnInfoModal';
 import RampsOrderDetails from './Views/OrderDetails';
 
 const RootStack = createStackNavigator();
@@ -115,6 +116,10 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.PROCESSING_INFO}
       component={ProcessingInfoModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.SSN_INFO}
+      component={SsnInfoModal}
     />
   </ModalsStack.Navigator>
 );

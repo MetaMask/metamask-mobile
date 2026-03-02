@@ -216,8 +216,11 @@ jest.mock('../../hooks/useTransakRouting', () => ({
   }),
 }));
 
-jest.mock('../NativeFlow/EnterEmail', () => ({
-  createV2EnterEmailNavDetails: (params: unknown) => ['RampEnterEmail', params],
+jest.mock('../NativeFlow/VerifyIdentity', () => ({
+  createV2VerifyIdentityNavDetails: (params: unknown) => [
+    'RampVerifyIdentity',
+    params,
+  ],
 }));
 
 jest.mock('react-redux', () => ({
@@ -765,7 +768,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('navigates to enter email for native provider when no existing token', async () => {
+    it('navigates to verify identity for native provider when no existing token', async () => {
       mockTransakCheckExistingToken.mockResolvedValue(false);
 
       const mockNativeQuote = {
@@ -816,7 +819,7 @@ describe('BuildQuote', () => {
 
       expect(mockTransakCheckExistingToken).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(
-        'RampEnterEmail',
+        'RampVerifyIdentity',
         expect.objectContaining({
           amount: '100',
           currency: 'USD',
@@ -1486,7 +1489,7 @@ describe('BuildQuote', () => {
       expect(getByTestId('build-quote-continue-button')).toBeDisabled();
     });
 
-    it('does not navigate to payment selection when amount is zero', () => {
+    it('navigates to payment selection when amount is zero', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       fireEvent.press(getByTestId('keypad-delete-button'));
@@ -1497,7 +1500,13 @@ describe('BuildQuote', () => {
 
       fireEvent.press(getByTestId('payment-method-pill'));
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampPaymentSelectionModal',
+          params: { amount: 0 },
+        }),
+      );
     });
   });
 

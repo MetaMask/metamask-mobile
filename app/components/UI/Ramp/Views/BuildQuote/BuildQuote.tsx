@@ -52,7 +52,7 @@ import BannerAlert from '../../../../../component-library/components/Banners/Ban
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
-import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
+import { createV2VerifyIdentityNavDetails } from '../NativeFlow/VerifyIdentity';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -396,10 +396,6 @@ function BuildQuote() {
   );
 
   const handlePaymentPillPress = useCallback(() => {
-    if (debouncedPollingAmount <= 0) {
-      return;
-    }
-
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED,
@@ -490,7 +486,7 @@ function BuildQuote() {
           await transakRouteAfterAuth(quote);
         } else {
           navigation.navigate(
-            ...createV2EnterEmailNavDetails({
+            ...createV2VerifyIdentityNavDetails({
               amount: String(amountAsNumber),
               currency,
               assetId: selectedToken?.assetId,
