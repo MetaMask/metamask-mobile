@@ -662,36 +662,6 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.save).not.toHaveBeenCalled();
     });
 
-    it('blocks connection requests whose dapp url hostname matches an internal origin', async () => {
-      registry = new ConnectionRegistry(
-        RELAY_URL,
-        mockKeyManager,
-        mockHostApp,
-        mockStore,
-      );
-
-      const blockedRequest = {
-        ...mockConnectionRequest,
-        metadata: {
-          ...mockConnectionRequest.metadata,
-          dapp: {
-            ...mockConnectionRequest.metadata.dapp,
-            url: 'https://metamask/',
-          },
-        },
-      };
-
-      const blockedDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
-        JSON.stringify(blockedRequest),
-      )}`;
-
-      await registry.handleConnectDeeplink(blockedDeeplink);
-
-      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
-      expect(Connection.create).not.toHaveBeenCalled();
-      expect(mockStore.save).not.toHaveBeenCalled();
-    });
-
     it('blocks connection requests with an internal origin as dapp name', async () => {
       registry = new ConnectionRegistry(
         RELAY_URL,

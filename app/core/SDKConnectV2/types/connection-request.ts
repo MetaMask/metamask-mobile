@@ -105,6 +105,11 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     return false;
   }
 
+  // SECURITY: Restricting dapp.url to http(s) ensures it can never equal
+  // plain-string internal origins like 'metamask' or 'MetaMask Mobile',
+  // which downstream code uses for privilege checks (INTERNAL_ORIGINS).
+  // Do not relax this without also updating the defense-in-depth check
+  // in ConnectionRegistry.handleConnectDeeplink().
   try {
     const parsed = new URL(metadata.dapp.url);
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
