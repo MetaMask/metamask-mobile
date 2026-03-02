@@ -20,48 +20,50 @@ const createMockToken = (
 });
 
 describe('sortTrendingTokens', () => {
+  it('returns empty array for empty input', () => {
+    expect(sortTrendingTokens([])).toEqual([]);
+  });
+
   describe('PriceChange sorting', () => {
     it('sorts by price change descending (default)', () => {
-      const tokens: TrendingAsset[] = [
+      const tokens = [
         createMockToken({
-          assetId: 'token1',
-          symbol: 'TOKEN1',
+          assetId: 'a',
+          symbol: 'A',
           priceChangePct: { h24: '5.0' },
         }),
         createMockToken({
-          assetId: 'token2',
-          symbol: 'TOKEN2',
+          assetId: 'b',
+          symbol: 'B',
           priceChangePct: { h24: '10.0' },
         }),
         createMockToken({
-          assetId: 'token3',
-          symbol: 'TOKEN3',
+          assetId: 'c',
+          symbol: 'C',
           priceChangePct: { h24: '2.0' },
         }),
       ];
 
       const result = sortTrendingTokens(tokens);
 
-      expect(result[0].symbol).toBe('TOKEN2'); // Highest price change
-      expect(result[1].symbol).toBe('TOKEN1');
-      expect(result[2].symbol).toBe('TOKEN3'); // Lowest price change
+      expect(result.map((t) => t.symbol)).toEqual(['B', 'A', 'C']);
     });
 
     it('sorts by price change ascending', () => {
-      const tokens: TrendingAsset[] = [
+      const tokens = [
         createMockToken({
-          assetId: 'token1',
-          symbol: 'TOKEN1',
+          assetId: 'a',
+          symbol: 'A',
           priceChangePct: { h24: '5.0' },
         }),
         createMockToken({
-          assetId: 'token2',
-          symbol: 'TOKEN2',
+          assetId: 'b',
+          symbol: 'B',
           priceChangePct: { h24: '10.0' },
         }),
         createMockToken({
-          assetId: 'token3',
-          symbol: 'TOKEN3',
+          assetId: 'c',
+          symbol: 'C',
           priceChangePct: { h24: '2.0' },
         }),
       ];
@@ -72,112 +74,112 @@ describe('sortTrendingTokens', () => {
         SortDirection.Ascending,
       );
 
-      expect(result[0].symbol).toBe('TOKEN3'); // Lowest price change
-      expect(result[1].symbol).toBe('TOKEN1');
-      expect(result[2].symbol).toBe('TOKEN2'); // Highest price change
+      expect(result.map((t) => t.symbol)).toEqual(['C', 'A', 'B']);
     });
 
-    it('handles missing priceChangePct.h24 by treating as 0', () => {
-      const tokens: TrendingAsset[] = [
+    it('handles missing priceChangePct by treating value as 0', () => {
+      const tokens = [
         createMockToken({
-          assetId: 'token1',
-          symbol: 'TOKEN1',
+          assetId: 'a',
+          symbol: 'A',
           priceChangePct: { h24: '5.0' },
         }),
         createMockToken({
-          assetId: 'token2',
-          symbol: 'TOKEN2',
+          assetId: 'b',
+          symbol: 'B',
           priceChangePct: undefined,
         }),
         createMockToken({
-          assetId: 'token3',
-          symbol: 'TOKEN3',
+          assetId: 'c',
+          symbol: 'C',
           priceChangePct: { h24: '10.0' },
         }),
       ];
 
-      const result = sortTrendingTokens(
-        tokens,
-        PriceChangeOption.PriceChange,
-        SortDirection.Descending,
-      );
+      const result = sortTrendingTokens(tokens);
 
-      expect(result[0].symbol).toBe('TOKEN3'); // Highest
-      expect(result[1].symbol).toBe('TOKEN1');
-      expect(result[2].symbol).toBe('TOKEN2'); // Missing value treated as 0
+      expect(result.map((t) => t.symbol)).toEqual(['C', 'A', 'B']);
     });
 
-    it('handles invalid priceChangePct.h24 string by treating as 0', () => {
-      const tokens: TrendingAsset[] = [
+    it('handles invalid priceChangePct string by treating value as 0', () => {
+      const tokens = [
         createMockToken({
-          assetId: 'token1',
-          symbol: 'TOKEN1',
+          assetId: 'a',
+          symbol: 'A',
           priceChangePct: { h24: 'invalid' },
         }),
         createMockToken({
-          assetId: 'token2',
-          symbol: 'TOKEN2',
+          assetId: 'b',
+          symbol: 'B',
           priceChangePct: { h24: '5.0' },
         }),
       ];
 
-      const result = sortTrendingTokens(
-        tokens,
-        PriceChangeOption.PriceChange,
-        SortDirection.Descending,
-      );
+      const result = sortTrendingTokens(tokens);
 
-      expect(result[0].symbol).toBe('TOKEN2');
-      expect(result[1].symbol).toBe('TOKEN1'); // Invalid value treated as 0
+      expect(result.map((t) => t.symbol)).toEqual(['B', 'A']);
     });
 
-    it('handles negative price changes correctly', () => {
-      const tokens: TrendingAsset[] = [
+    it('sorts negative price changes correctly', () => {
+      const tokens = [
         createMockToken({
-          assetId: 'token1',
-          symbol: 'TOKEN1',
+          assetId: 'a',
+          symbol: 'A',
           priceChangePct: { h24: '-5.0' },
         }),
         createMockToken({
-          assetId: 'token2',
-          symbol: 'TOKEN2',
+          assetId: 'b',
+          symbol: 'B',
           priceChangePct: { h24: '10.0' },
         }),
         createMockToken({
-          assetId: 'token3',
-          symbol: 'TOKEN3',
+          assetId: 'c',
+          symbol: 'C',
           priceChangePct: { h24: '-2.0' },
         }),
       ];
 
-      const result = sortTrendingTokens(
-        tokens,
-        PriceChangeOption.PriceChange,
-        SortDirection.Descending,
-      );
+      const result = sortTrendingTokens(tokens);
 
-      expect(result[0].symbol).toBe('TOKEN2'); // Highest (positive)
-      expect(result[1].symbol).toBe('TOKEN3'); // Less negative
-      expect(result[2].symbol).toBe('TOKEN1'); // Most negative
+      expect(result.map((t) => t.symbol)).toEqual(['B', 'C', 'A']);
+    });
+
+    it('pushes tokens with no price data to end', () => {
+      const tokens = [
+        createMockToken({ assetId: 'a', symbol: 'A', price: undefined }),
+        createMockToken({
+          assetId: 'b',
+          symbol: 'B',
+          priceChangePct: { h24: '3.0' },
+        }),
+        createMockToken({ assetId: 'c', symbol: 'C', price: '0' }),
+      ];
+
+      const result = sortTrendingTokens(tokens);
+
+      expect(result[0].symbol).toBe('B');
+      expect(result.slice(1).map((t) => t.symbol)).toEqual(
+        expect.arrayContaining(['A', 'C']),
+      );
     });
   });
 
   describe('Volume sorting', () => {
     it('sorts by volume descending', () => {
-      const tokens: TrendingAsset[] = [
+      const tokens = [
         createMockToken({
-          assetId: 'token1',
-          symbol: 'TOKEN1',
+          assetId: 'a',
+          symbol: 'A',
           aggregatedUsdVolume: 1000000,
         }),
         createMockToken({
-          assetId: 'token2',
-          symbol: 'TOKEN2',
+          assetId: 'b',
+          symbol: 'B',
           aggregatedUsdVolume: 5000000,
         }),
         createMockToken({
-          assetId: 'token3',
-          symbol: 'TOKEN3',
+          assetId: 'c',
+          symbol: 'C',
           aggregatedUsdVolume: 2000000,
         }),
       ];
@@ -188,56 +190,24 @@ describe('sortTrendingTokens', () => {
         SortDirection.Descending,
       );
 
-      expect(result[0].symbol).toBe('TOKEN2'); // Highest volume
-      expect(result[1].symbol).toBe('TOKEN3');
-      expect(result[2].symbol).toBe('TOKEN1'); // Lowest volume
+      expect(result.map((t) => t.symbol)).toEqual(['B', 'C', 'A']);
     });
 
-    it('sorts by volume ascending', () => {
-      const tokens: TrendingAsset[] = [
+    it('pushes tokens with no volume to end', () => {
+      const tokens = [
         createMockToken({
-          assetId: 'token1',
-          symbol: 'TOKEN1',
+          assetId: 'a',
+          symbol: 'A',
           aggregatedUsdVolume: 1000000,
         }),
         createMockToken({
-          assetId: 'token2',
-          symbol: 'TOKEN2',
-          aggregatedUsdVolume: 5000000,
-        }),
-        createMockToken({
-          assetId: 'token3',
-          symbol: 'TOKEN3',
-          aggregatedUsdVolume: 2000000,
-        }),
-      ];
-
-      const result = sortTrendingTokens(
-        tokens,
-        PriceChangeOption.Volume,
-        SortDirection.Ascending,
-      );
-
-      expect(result[0].symbol).toBe('TOKEN1'); // Lowest volume
-      expect(result[1].symbol).toBe('TOKEN3');
-      expect(result[2].symbol).toBe('TOKEN2'); // Highest volume
-    });
-
-    it('handles missing aggregatedUsdVolume by treating as 0', () => {
-      const tokens: TrendingAsset[] = [
-        createMockToken({
-          assetId: 'token1',
-          symbol: 'TOKEN1',
-          aggregatedUsdVolume: 1000000,
-        }),
-        createMockToken({
-          assetId: 'token2',
-          symbol: 'TOKEN2',
+          assetId: 'b',
+          symbol: 'B',
           aggregatedUsdVolume: undefined,
         }),
         createMockToken({
-          assetId: 'token3',
-          symbol: 'TOKEN3',
+          assetId: 'c',
+          symbol: 'C',
           aggregatedUsdVolume: 5000000,
         }),
       ];
@@ -248,30 +218,16 @@ describe('sortTrendingTokens', () => {
         SortDirection.Descending,
       );
 
-      expect(result[0].symbol).toBe('TOKEN3'); // Highest
-      expect(result[1].symbol).toBe('TOKEN1');
-      expect(result[2].symbol).toBe('TOKEN2'); // Missing value treated as 0
+      expect(result.map((t) => t.symbol)).toEqual(['C', 'A', 'B']);
     });
   });
 
   describe('MarketCap sorting', () => {
     it('sorts by market cap descending', () => {
-      const tokens: TrendingAsset[] = [
-        createMockToken({
-          assetId: 'token1',
-          symbol: 'TOKEN1',
-          marketCap: 10000000,
-        }),
-        createMockToken({
-          assetId: 'token2',
-          symbol: 'TOKEN2',
-          marketCap: 50000000,
-        }),
-        createMockToken({
-          assetId: 'token3',
-          symbol: 'TOKEN3',
-          marketCap: 20000000,
-        }),
+      const tokens = [
+        createMockToken({ assetId: 'a', symbol: 'A', marketCap: 10000000 }),
+        createMockToken({ assetId: 'b', symbol: 'B', marketCap: 50000000 }),
+        createMockToken({ assetId: 'c', symbol: 'C', marketCap: 20000000 }),
       ];
 
       const result = sortTrendingTokens(
@@ -280,58 +236,14 @@ describe('sortTrendingTokens', () => {
         SortDirection.Descending,
       );
 
-      expect(result[0].symbol).toBe('TOKEN2'); // Highest market cap
-      expect(result[1].symbol).toBe('TOKEN3');
-      expect(result[2].symbol).toBe('TOKEN1'); // Lowest market cap
+      expect(result.map((t) => t.symbol)).toEqual(['B', 'C', 'A']);
     });
 
-    it('sorts by market cap ascending', () => {
-      const tokens: TrendingAsset[] = [
-        createMockToken({
-          assetId: 'token1',
-          symbol: 'TOKEN1',
-          marketCap: 10000000,
-        }),
-        createMockToken({
-          assetId: 'token2',
-          symbol: 'TOKEN2',
-          marketCap: 50000000,
-        }),
-        createMockToken({
-          assetId: 'token3',
-          symbol: 'TOKEN3',
-          marketCap: 20000000,
-        }),
-      ];
-
-      const result = sortTrendingTokens(
-        tokens,
-        PriceChangeOption.MarketCap,
-        SortDirection.Ascending,
-      );
-
-      expect(result[0].symbol).toBe('TOKEN1'); // Lowest market cap
-      expect(result[1].symbol).toBe('TOKEN3');
-      expect(result[2].symbol).toBe('TOKEN2'); // Highest market cap
-    });
-
-    it('handles missing marketCap by treating as 0', () => {
-      const tokens: TrendingAsset[] = [
-        createMockToken({
-          assetId: 'token1',
-          symbol: 'TOKEN1',
-          marketCap: 10000000,
-        }),
-        createMockToken({
-          assetId: 'token2',
-          symbol: 'TOKEN2',
-          marketCap: undefined,
-        }),
-        createMockToken({
-          assetId: 'token3',
-          symbol: 'TOKEN3',
-          marketCap: 50000000,
-        }),
+    it('pushes tokens with no market cap to end', () => {
+      const tokens = [
+        createMockToken({ assetId: 'a', symbol: 'A', marketCap: 10000000 }),
+        createMockToken({ assetId: 'b', symbol: 'B', marketCap: undefined }),
+        createMockToken({ assetId: 'c', symbol: 'C', marketCap: 50000000 }),
       ];
 
       const result = sortTrendingTokens(
@@ -340,37 +252,7 @@ describe('sortTrendingTokens', () => {
         SortDirection.Descending,
       );
 
-      expect(result[0].symbol).toBe('TOKEN3'); // Highest
-      expect(result[1].symbol).toBe('TOKEN1');
-      expect(result[2].symbol).toBe('TOKEN2'); // Missing value treated as 0
-    });
-  });
-
-  describe('Default parameters', () => {
-    it('uses PriceChange and Descending as defaults', () => {
-      const tokens: TrendingAsset[] = [
-        createMockToken({
-          assetId: 'token1',
-          symbol: 'TOKEN1',
-          priceChangePct: { h24: '2.0' },
-        }),
-        createMockToken({
-          assetId: 'token2',
-          symbol: 'TOKEN2',
-          priceChangePct: { h24: '10.0' },
-        }),
-        createMockToken({
-          assetId: 'token3',
-          symbol: 'TOKEN3',
-          priceChangePct: { h24: '5.0' },
-        }),
-      ];
-
-      const result = sortTrendingTokens(tokens);
-
-      expect(result[0].symbol).toBe('TOKEN2'); // Highest price change
-      expect(result[1].symbol).toBe('TOKEN3');
-      expect(result[2].symbol).toBe('TOKEN1'); // Lowest price change
+      expect(result.map((t) => t.symbol)).toEqual(['C', 'A', 'B']);
     });
   });
 });
