@@ -28,6 +28,8 @@ jest.mock(
 
 jest.mock('../utils/determinePreferredProvider', () => ({
   determinePreferredProvider: jest.fn(),
+  completedOrdersFromFiatOrders: jest.fn(() => []),
+  completedOrdersFromRampsOrders: jest.fn(() => []),
 }));
 
 const emptyOrders: FiatOrder[] = [];
@@ -80,6 +82,7 @@ const createMockStore = (providersState = {}) =>
               error: null,
               ...providersState,
             },
+            orders: [],
           },
         },
       }),
@@ -214,7 +217,7 @@ describe('useRampsProviders', () => {
         typeof determinePreferredProvider
       >;
 
-    it('calls determinePreferredProvider with orders and providers when providers exist and selectedProvider is null', () => {
+    it('calls determinePreferredProvider with completed orders and providers when providers exist and selectedProvider is null', () => {
       const store = createMockStore({ data: mockProviders });
       mockGetOrders.mockReturnValue(emptyOrders);
       mockDeterminePreferredProvider.mockReturnValue(mockProviders[0]);
@@ -224,7 +227,7 @@ describe('useRampsProviders', () => {
       });
 
       expect(mockDeterminePreferredProvider).toHaveBeenCalledWith(
-        emptyOrders,
+        expect.any(Array),
         mockProviders,
       );
     });
