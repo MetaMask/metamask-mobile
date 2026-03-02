@@ -915,7 +915,17 @@ class PerpsConnectionManagerClass {
       this.clearError();
 
       // Stage 2: Force the controller to reinitialize with new context
+      // Disconnect first so the controller resets its isInitialized flag —
+      // without this, init() silently skips when the controller thinks it's
+      // already initialized (even though the underlying WebSocket is dead).
       const reinitStart = performance.now();
+      try {
+        await Engine.context.PerpsController.disconnect();
+      } catch {
+        DevLogger.log(
+          'PerpsConnectionManager: disconnect before reinit failed (continuing)',
+        );
+      }
       await Engine.context.PerpsController.init();
       setMeasurement(
         PerpsMeasurementName.PerpsControllerReinit,
