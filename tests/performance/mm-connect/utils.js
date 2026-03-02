@@ -4,6 +4,9 @@ import path from 'path';
 import fs from 'fs';
 import { expect } from 'appwright';
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
+import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
+import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
+import AppwrightGestures from '../../framework/AppwrightGestures.ts';
 import { login } from '../../framework/utils/Flows.js';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants.ts';
 
@@ -142,6 +145,27 @@ function resolvePlaygroundApkPath() {
       '  3. Set RN_PLAYGROUND_APK_PATH to the APK location\n\n' +
       'See tests/performance/mm-connect/README.md for full setup instructions.',
   );
+}
+
+/**
+ * Wait for the wallet to be visible, then cycle the app twice to ensure all
+ * account groups (including Solana) are created and syncing completes.
+ * Must be called from native context after login.
+ * @param {import('appwright').Device} device - Appwright device
+ */
+export async function ensureAccountGroupsFinishedLoading(device) {
+  await WalletMainScreen.isMainWalletViewVisible();
+  await AppwrightGestures.terminateApp(device);
+  await AppwrightGestures.activateApp(device);
+  await login(device);
+  await WalletMainScreen.isMainWalletViewVisible();
+  await WalletMainScreen.tapIdenticon();
+  await AccountListComponent.isComponentDisplayed();
+  await AccountListComponent.waitForSyncingToComplete();
+  await AppwrightGestures.terminateApp(device);
+  await AppwrightGestures.activateApp(device);
+  await login(device);
+  await WalletMainScreen.isMainWalletViewVisible();
 }
 
 /**

@@ -420,7 +420,6 @@ export interface GetMarketsParams {
   sortDirection?: 'asc' | 'desc';
   offset?: number;
   limit?: number;
-  liveSportsLeagues?: string[];
   customQueryParams?: string;
 }
 
@@ -540,3 +539,5 @@ export interface GetAccountStateParams {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareWithdrawParams {}
+
+export type { PredictFeatureFlags } from './flags';

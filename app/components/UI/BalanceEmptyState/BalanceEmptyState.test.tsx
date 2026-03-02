@@ -30,6 +30,8 @@ jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
   default: () => mockUseRampsUnifiedV1Enabled(),
 }));
 
+jest.mock('../Ramp/hooks/useRampsUnifiedV2Enabled');
+
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockEventBuilder = {
@@ -104,7 +106,7 @@ describe('BalanceEmptyState', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalledWith('ramps_button_clicked');
     expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: 'Add funds',
+        button_text: 'Add funds',
         location: 'BalanceEmptyState',
         chain_id_destination: 1,
         ramp_type: 'BUY',
@@ -127,7 +129,7 @@ describe('BalanceEmptyState', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalledWith('ramps_button_clicked');
     expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: 'Add funds',
+        button_text: 'Add funds',
         location: 'BalanceEmptyState',
         chain_id_destination: 1,
         ramp_type: 'UNIFIED_BUY',
