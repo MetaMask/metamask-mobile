@@ -1143,24 +1143,8 @@ export class PolymarketProvider implements PredictProvider {
 
       const signerApiKey = await this.getApiKey({ address: signer.address });
 
-      const clobOrder = {
-        order: { ...signedOrder, side, salt: parseInt(signedOrder.salt) },
-        owner: signerApiKey.apiKey,
-        orderType: OrderType.FOK,
-      };
-
-      const body = JSON.stringify(clobOrder);
-
-      const headers = await getL2Headers({
-        l2HeaderArgs: {
-          method: 'POST',
-          requestPath: `/order`,
-          body,
-        },
-        address: clobOrder.order.signer ?? '',
-        apiKey: signerApiKey,
-      });
-
+      // Determine fees, permit2, and order type BEFORE building clobOrder
+      // so the HMAC signature covers the correct orderType.
       const { fakOrdersEnabled } = this.#getFeatureFlags();
       const shouldUsePermit2 =
         fees?.permit2Enabled === true &&
@@ -1213,11 +1197,27 @@ export class PolymarketProvider implements PredictProvider {
         }
       }
 
+      const clobOrder = {
+        order: { ...signedOrder, side, salt: parseInt(signedOrder.salt) },
+        owner: signerApiKey.apiKey,
+        orderType: shouldUseFakOrderType ? OrderType.FAK : OrderType.FOK,
+      };
+
+      const body = JSON.stringify(clobOrder);
+
+      const headers = await getL2Headers({
+        l2HeaderArgs: {
+          method: 'POST',
+          requestPath: `/order`,
+          body,
+        },
+        address: clobOrder.order.signer ?? '',
+        apiKey: signerApiKey,
+      });
+
       const { success, response, error } = await submitClobOrder({
         headers,
-        clobOrder: shouldUseFakOrderType
-          ? { ...clobOrder, orderType: OrderType.FAK }
-          : clobOrder,
+        clobOrder,
         feeAuthorization,
         executor,
       });
