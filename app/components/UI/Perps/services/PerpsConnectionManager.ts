@@ -67,6 +67,8 @@ class PerpsConnectionManagerClass {
   > | null = null;
   private netInfoUnsubscribe: (() => void) | null = null;
   private wasOffline = false;
+  private networkRestoreRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private networkRestoreRetryCount = 0;
 
   private constructor() {
     // Private constructor to enforce singleton pattern
@@ -213,32 +215,20 @@ class PerpsConnectionManagerClass {
     if (!this.netInfoUnsubscribe) {
       this.netInfoUnsubscribe = netInfoAddEventListener(
         (netState: NetInfoState) => {
-          const isOnline =
-            netState.isInternetReachable ?? netState.isConnected ?? false;
+          const isOnline = netState.isInternetReachable === true;
 
           if (isOnline && this.wasOffline) {
             DevLogger.log(
               'PerpsConnectionManager: Network restored - validating connection',
             );
-            this.validateAndReconnect(
-              'PerpsConnectionManager.netInfoListener',
-            ).catch((error) => {
-              Logger.error(
-                ensureError(error, 'PerpsConnectionManager.netInfoListener'),
-                {
-                  tags: { feature: PERPS_CONSTANTS.FeatureName },
-                  context: {
-                    name: 'PerpsConnectionManager.netInfoListener',
-                    data: {
-                      message: 'Error reconnecting after network restored',
-                    },
-                  },
-                },
-              );
-            });
+            this.reconnectAfterNetworkRestore();
           }
 
-          this.wasOffline = !isOnline;
+          if (!isOnline) {
+            this.wasOffline = true;
+          } else if (isOnline && this.isConnected) {
+            this.wasOffline = false;
+          }
         },
       );
     }
@@ -252,13 +242,17 @@ class PerpsConnectionManagerClass {
    * recovery paths.
    *
    * @param context - Caller identifier for error reporting
+   * @param skipPing - Skip ping and force reconnect after known network loss
    */
-  private async validateAndReconnect(context: string): Promise<void> {
+  private async validateAndReconnect(
+    context: string,
+    skipPing = false,
+  ): Promise<void> {
     if (this.connectionRefCount <= 0 || this.isConnecting) {
       return;
     }
 
-    if (this.isConnected) {
+    if (this.isConnected && !skipPing) {
       try {
         const provider = Engine.context.PerpsController.getActiveProvider();
         await provider.ping();
@@ -270,15 +264,75 @@ class PerpsConnectionManagerClass {
         DevLogger.log(
           `PerpsConnectionManager: ${context} - connection stale, triggering reconnection`,
         );
-        this.isConnected = false;
-        this.isInitialized = false;
       }
     }
+
+    this.isConnected = false;
+    this.isInitialized = false;
 
     await this.reconnectWithNewContext({ force: true });
     DevLogger.log(
       `PerpsConnectionManager: ${context} - reconnection successful`,
     );
+  }
+
+  /**
+   * Attempt reconnection after network restore with exponential backoff.
+   * WebSocket endpoints may not be reachable immediately even though
+   * NetInfo reports isInternetReachable: true.
+   */
+  private reconnectAfterNetworkRestore(): void {
+    this.cancelNetworkRestoreRetry();
+    this.networkRestoreRetryCount = 0;
+    this.attemptNetworkRestoreReconnect();
+  }
+
+  private attemptNetworkRestoreReconnect(): void {
+    this.validateAndReconnect('PerpsConnectionManager.netInfoListener', true)
+      .then(() => {
+        this.wasOffline = false;
+        this.networkRestoreRetryCount = 0;
+      })
+      .catch((error) => {
+        this.networkRestoreRetryCount++;
+        if (
+          this.networkRestoreRetryCount <
+          PERPS_CONSTANTS.NetworkRestoreMaxRetries
+        ) {
+          const delay =
+            PERPS_CONSTANTS.NetworkRestoreRetryBaseMs *
+            this.networkRestoreRetryCount;
+          DevLogger.log(
+            `PerpsConnectionManager: Network restore retry ${this.networkRestoreRetryCount} in ${delay}ms`,
+          );
+          this.networkRestoreRetryTimer = setTimeout(() => {
+            this.networkRestoreRetryTimer = null;
+            this.attemptNetworkRestoreReconnect();
+          }, delay);
+        } else {
+          Logger.error(
+            ensureError(error, 'PerpsConnectionManager.netInfoListener'),
+            {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
+              context: {
+                name: 'PerpsConnectionManager.netInfoListener',
+                data: {
+                  message:
+                    'Network restore reconnection failed after max retries',
+                },
+              },
+            },
+          );
+        }
+      });
+  }
+
+  private cancelNetworkRestoreRetry(): void {
+    if (this.networkRestoreRetryTimer) {
+      clearTimeout(this.networkRestoreRetryTimer);
+      this.networkRestoreRetryTimer = null;
+    }
+    this.networkRestoreRetryCount = 0;
   }
 
   /**
@@ -317,6 +371,7 @@ class PerpsConnectionManagerClass {
       this.netInfoUnsubscribe = null;
       this.wasOffline = false;
     }
+    this.cancelNetworkRestoreRetry();
     if (this.unsubscribeFromStore) {
       this.unsubscribeFromStore();
       this.unsubscribeFromStore = null;
