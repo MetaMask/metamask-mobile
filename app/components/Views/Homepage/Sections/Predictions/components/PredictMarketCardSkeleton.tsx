@@ -29,7 +29,7 @@ const PredictMarketCardSkeleton: React.FC = () => {
           <View style={tw.style('gap-2')}>
             {/* Outcome 1 */}
             <View style={tw.style('flex-row items-center gap-3')}>
-              <View style={tw.style('w-8 h-8 rounded-lg')} />
+              <View style={tw.style('w-6 h-6 rounded-lg')} />
               <View style={tw.style('flex-1')}>
                 <View style={tw.style('w-[60%] h-4 rounded')} />
               </View>
@@ -38,7 +38,7 @@ const PredictMarketCardSkeleton: React.FC = () => {
 
             {/* Outcome 2 */}
             <View style={tw.style('flex-row items-center gap-3')}>
-              <View style={tw.style('w-8 h-8 rounded-lg')} />
+              <View style={tw.style('w-6 h-6 rounded-lg')} />
               <View style={tw.style('flex-1')}>
                 <View style={tw.style('w-[50%] h-4 rounded')} />
               </View>

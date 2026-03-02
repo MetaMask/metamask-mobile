@@ -68,11 +68,11 @@ const OutcomeRow: React.FC<{
       gap={3}
     >
       {/* Outcome image */}
-      <Box twClassName="w-8 h-8 rounded-lg overflow-hidden bg-background-alternative">
+      <Box twClassName="w-6 h-6 rounded-lg overflow-hidden bg-background-alternative">
         {outcome.image ? (
           <Image
             source={{ uri: outcome.image }}
-            style={tw.style('w-8 h-8')}
+            style={tw.style('w-6 h-6')}
             resizeMode="cover"
           />
         ) : null}
