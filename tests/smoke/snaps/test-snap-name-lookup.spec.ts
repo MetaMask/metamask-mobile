@@ -7,15 +7,40 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletView from '../../page-objects/wallet/WalletView';
 import RedesignedSendView from '../../page-objects/Send/RedesignedSendView';
-import { Assertions } from '../../framework';
+import { Assertions, LocalNode } from '../../framework';
+import BrowserView from '../../page-objects/Browser/BrowserView';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 jest.setTimeout(150_000);
 
 describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
-  it('connects to the Name Lookup Snap', async () => {
+  it('displays the resolved recipient address in the send flow', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId: '0x1',
+                rpcUrl: `http://localhost:${node.getPort() ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              },
+            })
+            .withTokensForAllPopularNetworks([
+              {
+                address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+                symbol: 'USDC',
+                decimals: 6,
+                name: 'USD Coin',
+              },
+            ])
+            .build();
+        },
         restartDevice: true,
         skipReactNativeReload: true,
       },
@@ -25,22 +50,16 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectNameLookupButton');
-      },
-    );
-  });
 
-  it('displays the recipient address in the send flow', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        skipReactNativeReload: true,
-      },
-      async () => {
+        await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapHome();
         await WalletView.tapWalletSendButton();
 
-        await RedesignedSendView.selectEthereumToken();
+        await RedesignedSendView.selectERC20Token();
+        await RedesignedSendView.enterZeroAmount();
+        await RedesignedSendView.pressContinueButton();
         await RedesignedSendView.inputRecipientAddress('metamask.domain');
+        await RedesignedSendView.pressReviewButton();
 
         await Assertions.expectTextDisplayed('0xc0ffe...54979');
       },

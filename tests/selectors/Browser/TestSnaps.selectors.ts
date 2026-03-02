@@ -21,7 +21,7 @@ export const TestSnapViewSelectorWebIDS = {
   connectInteractiveButton: 'connectinteractive-ui',
   connectManageStateButton: 'connectmanage-state',
   connectMultichainProviderButton: 'connectmultichain-provider',
-  connectNameLookupButton: '#connectname-lookup',
+  connectNameLookupButton: 'connectname-lookup',
   connectNetworkAccessButton: 'connectnetwork-access',
   connectEthereumProviderButton: 'connectethereum-provider',
   connectStateButton: 'connectstate',
