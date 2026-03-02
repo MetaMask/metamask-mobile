@@ -470,6 +470,7 @@ export interface OrderPreview {
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
+  orderType?: string;
 }
 
 export type OrderResult = Result<{
