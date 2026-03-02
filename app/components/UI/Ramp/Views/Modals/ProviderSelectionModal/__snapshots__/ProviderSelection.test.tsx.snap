@@ -406,7 +406,7 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "height": 24,
                                       "width": 24,
                                     },
@@ -447,7 +447,7 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -570,7 +570,7 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 18,
                                             "fontWeight": 500,
@@ -591,7 +591,7 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#b4b4b528",
                                     "bottom": 0,
                                     "flexDirection": "row",
                                     "left": 0,
@@ -1024,7 +1024,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "height": 24,
                                       "width": 24,
                                     },
@@ -1065,7 +1065,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -1137,7 +1137,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                   pointerEvents="none"
                                   style={
                                     {
-                                      "backgroundColor": "#686e7d",
+                                      "backgroundColor": "#66676a",
                                       "borderRadius": 4,
                                       "bottom": 0,
                                       "left": 0,
@@ -1193,7 +1193,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                     pointerEvents="none"
                                     style={
                                       {
-                                        "backgroundColor": "#686e7d",
+                                        "backgroundColor": "#66676a",
                                         "borderRadius": 4,
                                         "bottom": 0,
                                         "left": 0,
@@ -1227,7 +1227,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                     pointerEvents="none"
                                     style={
                                       {
-                                        "backgroundColor": "#686e7d",
+                                        "backgroundColor": "#66676a",
                                         "borderRadius": 4,
                                         "bottom": 0,
                                         "left": 0,
@@ -1295,7 +1295,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                   pointerEvents="none"
                                   style={
                                     {
-                                      "backgroundColor": "#686e7d",
+                                      "backgroundColor": "#66676a",
                                       "borderRadius": 4,
                                       "bottom": 0,
                                       "left": 0,
@@ -1351,7 +1351,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                     pointerEvents="none"
                                     style={
                                       {
-                                        "backgroundColor": "#686e7d",
+                                        "backgroundColor": "#66676a",
                                         "borderRadius": 4,
                                         "bottom": 0,
                                         "left": 0,
@@ -1385,7 +1385,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                     pointerEvents="none"
                                     style={
                                       {
-                                        "backgroundColor": "#686e7d",
+                                        "backgroundColor": "#66676a",
                                         "borderRadius": 4,
                                         "bottom": 0,
                                         "left": 0,
@@ -1453,7 +1453,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                   pointerEvents="none"
                                   style={
                                     {
-                                      "backgroundColor": "#686e7d",
+                                      "backgroundColor": "#66676a",
                                       "borderRadius": 4,
                                       "bottom": 0,
                                       "left": 0,
@@ -1509,7 +1509,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                     pointerEvents="none"
                                     style={
                                       {
-                                        "backgroundColor": "#686e7d",
+                                        "backgroundColor": "#66676a",
                                         "borderRadius": 4,
                                         "bottom": 0,
                                         "left": 0,
@@ -1543,7 +1543,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                     pointerEvents="none"
                                     style={
                                       {
-                                        "backgroundColor": "#686e7d",
+                                        "backgroundColor": "#66676a",
                                         "borderRadius": 4,
                                         "bottom": 0,
                                         "left": 0,
@@ -1611,7 +1611,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                   pointerEvents="none"
                                   style={
                                     {
-                                      "backgroundColor": "#686e7d",
+                                      "backgroundColor": "#66676a",
                                       "borderRadius": 4,
                                       "bottom": 0,
                                       "left": 0,
@@ -1667,7 +1667,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                     pointerEvents="none"
                                     style={
                                       {
-                                        "backgroundColor": "#686e7d",
+                                        "backgroundColor": "#66676a",
                                         "borderRadius": 4,
                                         "bottom": 0,
                                         "left": 0,
@@ -1701,7 +1701,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                     pointerEvents="none"
                                     style={
                                       {
-                                        "backgroundColor": "#686e7d",
+                                        "backgroundColor": "#66676a",
                                         "borderRadius": 4,
                                         "bottom": 0,
                                         "left": 0,
@@ -1769,7 +1769,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                   pointerEvents="none"
                                   style={
                                     {
-                                      "backgroundColor": "#686e7d",
+                                      "backgroundColor": "#66676a",
                                       "borderRadius": 4,
                                       "bottom": 0,
                                       "left": 0,
@@ -1825,7 +1825,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                     pointerEvents="none"
                                     style={
                                       {
-                                        "backgroundColor": "#686e7d",
+                                        "backgroundColor": "#66676a",
                                         "borderRadius": 4,
                                         "bottom": 0,
                                         "left": 0,
@@ -1859,7 +1859,7 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                     pointerEvents="none"
                                     style={
                                       {
-                                        "backgroundColor": "#686e7d",
+                                        "backgroundColor": "#66676a",
                                         "borderRadius": 4,
                                         "bottom": 0,
                                         "left": 0,
@@ -2295,7 +2295,7 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "height": 24,
                                       "width": 24,
                                     },
@@ -2336,7 +2336,7 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -2415,7 +2415,7 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 14,
                                   "letterSpacing": 0,
@@ -2530,7 +2530,7 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 18,
                                             "fontWeight": 500,
@@ -2551,7 +2551,7 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#b4b4b528",
                                     "bottom": 0,
                                     "flexDirection": "row",
                                     "left": 0,
@@ -2984,7 +2984,7 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "height": 24,
                                       "width": 24,
                                     },
@@ -3025,7 +3025,7 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -3148,7 +3148,7 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 18,
                                             "fontWeight": 500,
@@ -3169,7 +3169,7 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#b4b4b528",
                                     "bottom": 0,
                                     "flexDirection": "row",
                                     "left": 0,

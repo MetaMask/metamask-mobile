@@ -188,9 +188,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await device.disableSynchronization();
         await TokenSelectScreen.tapTokenByName(aggregatorBuyOrder.token);
         await BuildQuoteView.tapKeypadDeleteButton(1);
-        await BuildQuoteView.tapKeypadDeleteButton(1);
-
-        await BuildQuoteView.enterAmount('5', 'unifiedBuy');
+        await BuildQuoteView.enterAmount('15', 'unifiedBuy');
 
         await BuildQuoteView.tapContinueButton();
 

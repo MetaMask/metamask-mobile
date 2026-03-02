@@ -34,7 +34,7 @@ exports[`AccountApproval renders correctly 1`] = `
       <View
         placeholderStyle={
           {
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#f3f3f4",
           }
         }
         useNativeDriver={true}
@@ -80,7 +80,7 @@ exports[`AccountApproval renders correctly 1`] = `
                   "backgroundColor": "#eee",
                 },
                 {
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#f3f3f4",
                 },
               ]
             }
@@ -109,7 +109,7 @@ exports[`AccountApproval renders correctly 1`] = `
               "fontSize": 15,
             },
             {
-              "color": "#121314",
+              "color": "#131416",
               "marginRight": 5,
             },
             {
@@ -126,7 +126,7 @@ exports[`AccountApproval renders correctly 1`] = `
       <Text
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Bold",
             "fontSize": 14,
             "textAlign": "center",
@@ -160,7 +160,7 @@ exports[`AccountApproval renders correctly 1`] = `
       <Text
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 12,
             "padding": 5,
@@ -177,7 +177,7 @@ exports[`AccountApproval renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
         "fontFamily": "Geist-Bold",
         "fontSize": 18,
         "fontWeight": "700",
@@ -195,7 +195,7 @@ exports[`AccountApproval renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
         "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "fontWeight": "400",
@@ -246,7 +246,7 @@ exports[`AccountApproval renders correctly 1`] = `
             },
             {
               "backgroundColor": "#ffffff",
-              "borderColor": "#686e7d",
+              "borderColor": "#66676a",
               "borderWidth": 1,
             },
             [
@@ -280,7 +280,7 @@ exports[`AccountApproval renders correctly 1`] = `
                 "textAlign": "center",
               },
               {
-                "color": "#686e7d",
+                "color": "#66676a",
               },
               undefined,
             ],

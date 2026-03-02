@@ -1,19 +1,16 @@
 /* eslint-disable no-console */
 import React, { useState } from 'react';
 
-import HeaderCompactSearch from './HeaderCompactSearch';
-import { HeaderCompactSearchVariant } from './HeaderCompactSearch.types';
+import HeaderSearch from './HeaderSearch';
+import { HeaderSearchVariant } from './HeaderSearch.types';
 
-const HeaderCompactSearchMeta = {
-  title: 'Components Temp / HeaderCompactSearch',
-  component: HeaderCompactSearch,
+const HeaderSearchMeta = {
+  title: 'Components Temp / HeaderSearch',
+  component: HeaderSearch,
   argTypes: {
     variant: {
       control: 'select',
-      options: [
-        HeaderCompactSearchVariant.Screen,
-        HeaderCompactSearchVariant.Inline,
-      ],
+      options: [HeaderSearchVariant.Screen, HeaderSearchVariant.Inline],
     },
     twClassName: {
       control: 'text',
@@ -21,13 +18,13 @@ const HeaderCompactSearchMeta = {
   },
 };
 
-export default HeaderCompactSearchMeta;
+export default HeaderSearchMeta;
 
 const ScreenStory = () => {
   const [value, setValue] = useState('');
   return (
-    <HeaderCompactSearch
-      variant={HeaderCompactSearchVariant.Screen}
+    <HeaderSearch
+      variant={HeaderSearchVariant.Screen}
       onPressBackButton={() => console.log('Back pressed')}
       textFieldSearchProps={{
         value,
@@ -46,8 +43,8 @@ export const Screen = {
 const InlineStory = () => {
   const [value, setValue] = useState('');
   return (
-    <HeaderCompactSearch
-      variant={HeaderCompactSearchVariant.Inline}
+    <HeaderSearch
+      variant={HeaderSearchVariant.Inline}
       onPressCancelButton={() => console.log('Cancel pressed')}
       textFieldSearchProps={{
         value,
