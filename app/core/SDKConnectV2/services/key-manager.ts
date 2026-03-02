@@ -5,8 +5,8 @@ export class KeyManager implements IKeyManager {
   generateKeyPair(): KeyPair {
     const privateKey = new PrivateKey();
     return {
-      privateKey: Uint8Array.from(privateKey.secret),
-      publicKey: Uint8Array.from(privateKey.publicKey.compressed),
+      privateKey: new Uint8Array(privateKey.secret),
+      publicKey: privateKey.publicKey.toBytes(true),
     };
   }
 
@@ -15,9 +15,8 @@ export class KeyManager implements IKeyManager {
     theirPublicKey: Uint8Array,
   ): Promise<string> {
     const plaintextBuffer = Buffer.from(plaintext, 'utf8');
-    const theirPublicKeyBuffer = Buffer.from(theirPublicKey);
-    const encryptedBuffer = encrypt(theirPublicKeyBuffer, plaintextBuffer);
-    return encryptedBuffer.toString('base64');
+    const encryptedBuffer = encrypt(theirPublicKey, plaintextBuffer);
+    return Buffer.from(encryptedBuffer).toString('base64');
   }
 
   async decrypt(
@@ -25,8 +24,7 @@ export class KeyManager implements IKeyManager {
     myPrivateKey: Uint8Array,
   ): Promise<string> {
     const encryptedBuffer = Buffer.from(encryptedB64, 'base64');
-    const myPrivateKeyBuffer = Buffer.from(myPrivateKey);
-    const decryptedBuffer = decrypt(myPrivateKeyBuffer, encryptedBuffer);
-    return decryptedBuffer.toString('utf8');
+    const decryptedBuffer = decrypt(myPrivateKey, encryptedBuffer);
+    return Buffer.from(decryptedBuffer).toString('utf8');
   }
 }

@@ -67,6 +67,7 @@ import {
 } from '../../../../constants/urls';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import TagBase from '../../../../component-library/base-components/TagBase';
+import { PopularList } from '../../../../util/networks/customNetworks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -201,6 +202,16 @@ class TransactionDetails extends PureComponent {
       blockExplorer = LINEA_SEPOLIA_BLOCK_EXPLORER;
     } else if (txChainId === CHAIN_IDS.SEPOLIA) {
       blockExplorer = SEPOLIA_BLOCK_EXPLORER;
+    }
+
+    // Check PopularList for additional networks (e.g. Arbitrum, Polygon, BNB)
+    if (blockExplorer === NO_RPC_BLOCK_EXPLORER) {
+      const popularNetwork = PopularList.find(
+        (network) => network.chainId === txChainId,
+      );
+      if (popularNetwork?.rpcPrefs?.blockExplorerUrl) {
+        blockExplorer = popularNetwork.rpcPrefs.blockExplorerUrl;
+      }
     }
 
     // Check for non-EVM chain block explorer

@@ -2911,10 +2911,6 @@
     "enabling_notifications": "Enabling notifications...",
     "updating_notifications": "Updating notifications...",
     "updating_account_settings": "Updating account settings...",
-    "reset_notifications_title": "Reset notifications",
-    "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
-    "reset_notifications": "Reset notifications",
-    "reset_notifications_success": "Notifications storage key deleted/recreated, and notifications history reset.",
     "notifications_dismiss_modal": "Dismiss",
     "select_rpc_url": "Select RPC URL",
     "title": "Settings",
@@ -4838,6 +4834,10 @@
     "quote_unavailable": "Quote unavailable.",
     "providers": "Providers",
     "quotes_displayed_for": "Quotes displayed for {{paymentMethodName}}.",
+    "other_options": "Other options",
+    "previously_used": "Previously used",
+    "best_rate": "Best rate",
+    "most_reliable": "Most reliable",
     "continue": "Continue",
     "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
@@ -4944,7 +4944,12 @@
     },
     "provider_picker_modal": {
       "title": "Choose a provider"
-    }
+    },
+    "contact_provider_support": "Contact {{provider}} support",
+    "got_it": "Got it",
+    "encountered_error": "We've encountered an error",
+    "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
+    "change_provider_button": "Change provider"
   },
   "fiat_on_ramp_aggregator": {
     "buy": "buy",
@@ -6891,11 +6896,15 @@
       "title": "Enter password",
       "description": "Enter your wallet password to view card details.",
       "description_unfreeze": "Enter your wallet password to resume spending on your card.",
+      "description_view_pin": "Enter your wallet password to view your card PIN.",
       "placeholder": "Password",
       "confirm": "Confirm",
       "cancel": "Cancel",
       "error_empty": "Please enter your password",
       "error_incorrect": "Incorrect password. Please try again."
+    },
+    "view_pin_bottomsheet": {
+      "title": "Your Card PIN"
     },
     "choose_your_card": {
       "title": "Choose your card",
@@ -7212,6 +7221,9 @@
         "view_card_details": "View card details",
         "hide_card_details": "Hide card details",
         "view_card_details_description": "Card number, expiration and CVV",
+        "view_pin": "View PIN",
+        "view_pin_description": "View your card PIN securely",
+        "view_pin_error": "Failed to load PIN. Please try again.",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
@@ -7824,6 +7836,7 @@
   "trending": {
     "title": "Explore",
     "trending_tokens": "Trending tokens",
+    "stocks": "Stocks",
     "price_change": "Price change",
     "all_networks": "All networks",
     "24h": "24h",
@@ -7965,8 +7978,7 @@
       "nfts": "NFTs",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
-      "more_predictions": "More predictions",
-      "more_perps": "More perps",
+      "view_more": "View more",
       "positions": {
         "no_tp_sl": "No TP/SL"
       }
