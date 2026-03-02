@@ -75,7 +75,7 @@ exports[`V2VerifyIdentity matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Bold",
                   "fontSize": 24,
                   "fontWeight": "bold",
@@ -91,7 +91,7 @@ exports[`V2VerifyIdentity matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -106,7 +106,7 @@ exports[`V2VerifyIdentity matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -120,7 +120,7 @@ exports[`V2VerifyIdentity matches snapshot 1`] = `
                 onPress={[Function]}
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -137,7 +137,7 @@ exports[`V2VerifyIdentity matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -152,7 +152,7 @@ exports[`V2VerifyIdentity matches snapshot 1`] = `
                 onPress={[Function]}
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -189,7 +189,7 @@ exports[`V2VerifyIdentity matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#babbbe",
+              "color": "#b7bbc8",
               "fontFamily": "Geist-Regular",
               "fontSize": 12,
               "letterSpacing": 0.25,
@@ -204,7 +204,7 @@ exports[`V2VerifyIdentity matches snapshot 1`] = `
             onPress={[Function]}
             style={
               {
-                "color": "#babbbe",
+                "color": "#b7bbc8",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
@@ -221,7 +221,7 @@ exports[`V2VerifyIdentity matches snapshot 1`] = `
             onPress={[Function]}
             style={
               {
-                "color": "#babbbe",
+                "color": "#b7bbc8",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
@@ -246,7 +246,7 @@ exports[`V2VerifyIdentity matches snapshot 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#121314",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
@@ -255,6 +255,7 @@ exports[`V2VerifyIdentity matches snapshot 1`] = `
               "paddingHorizontal": 16,
             }
           }
+          testID="verify-identity-continue-button"
         >
           <Text
             accessibilityRole="text"
@@ -276,7 +277,7 @@ exports[`V2VerifyIdentity matches snapshot 1`] = `
           name="powered-by-transak-logo"
           style={
             {
-              "color": "#66676a",
+              "color": "#686e7d",
               "height": 24,
             }
           }
