@@ -38,7 +38,9 @@ const mockUseTokenAddress = useTokenAddress as jest.MockedFunction<
   typeof useTokenAddress
 >;
 const mockUseIsSendBundleSupported =
-  useIsSendBundleSupported as jest.MockedFunction<typeof useIsSendBundleSupported>;
+  useIsSendBundleSupported as jest.MockedFunction<
+    typeof useIsSendBundleSupported
+  >;
 const mockFormatChainIdToHex = formatChainIdToHex as jest.MockedFunction<
   typeof formatChainIdToHex
 >;
