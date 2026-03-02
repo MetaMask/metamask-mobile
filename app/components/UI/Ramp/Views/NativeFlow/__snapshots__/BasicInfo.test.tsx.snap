@@ -1669,6 +1669,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                     deposit.basic_info.social_security_number
                   </Text>
                   <TouchableOpacity
+                    onPress={[Function]}
                     testID="ssn-info-button"
                   >
                     <SvgMock
