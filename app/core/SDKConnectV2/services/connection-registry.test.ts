@@ -24,48 +24,6 @@ jest.mock('../../../store', () => ({
   },
 }));
 
-// A valid, sample connection request payload for use in tests
-const mockConnectionRequest: ConnectionRequest = {
-  sessionRequest: {
-    id: '11111111-2222-3333-4444-555555555555',
-    publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
-    channel: 'handshake:aabbccdd-1122-3344-5566-778899aabbcc',
-    mode: 'trusted',
-    expiresAt: Date.now() + 60_000,
-  },
-  metadata: {
-    dapp: {
-      name: 'Test DApp',
-      url: 'https://test.dapp',
-    },
-    sdk: {
-      version: '2.0.0',
-      platform: 'JavaScript',
-    },
-  },
-};
-
-// A valid, sample connection request payload for use in tests
-const mockConnectionInfo: ConnectionInfo = {
-  id: '11111111-2222-3333-4444-555555555555',
-  metadata: {
-    dapp: {
-      name: 'Test DApp',
-      url: 'https://test.dapp',
-    },
-    sdk: {
-      version: '2.0.0',
-      platform: 'JavaScript',
-    },
-  },
-  expiresAt: Date.now() + 60_000,
-};
-
-// A valid deeplink URL containing the encoded connection request
-const validDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
-  JSON.stringify(mockConnectionRequest),
-)}`;
-
 // Factory functions for creating mock objects
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createMockConnection = (id: string, overrides: any = {}) => ({
@@ -101,11 +59,53 @@ describe('ConnectionRegistry', () => {
   let mockStore: jest.Mocked<ConnectionStore>;
   let mockKeyManager: jest.Mocked<KeyManager>;
   let mockConnection: jest.Mocked<Connection>;
+  let mockConnectionRequest: ConnectionRequest;
+  let mockConnectionInfo: ConnectionInfo;
+  let validDeeplink: string;
 
   const RELAY_URL = 'wss://test-relay.example.com';
 
   beforeEach(async () => {
     jest.clearAllMocks();
+
+    mockConnectionRequest = {
+      sessionRequest: {
+        id: '11111111-2222-3333-4444-555555555555',
+        publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
+        channel: 'handshake:aabbccdd-1122-3344-5566-778899aabbcc',
+        mode: 'trusted',
+        expiresAt: Date.now() + 600_000,
+      },
+      metadata: {
+        dapp: {
+          name: 'Test DApp',
+          url: 'https://test.dapp',
+        },
+        sdk: {
+          version: '2.0.0',
+          platform: 'JavaScript',
+        },
+      },
+    };
+
+    mockConnectionInfo = {
+      id: '11111111-2222-3333-4444-555555555555',
+      metadata: {
+        dapp: {
+          name: 'Test DApp',
+          url: 'https://test.dapp',
+        },
+        sdk: {
+          version: '2.0.0',
+          platform: 'JavaScript',
+        },
+      },
+      expiresAt: Date.now() + 600_000,
+    };
+
+    validDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+      JSON.stringify(mockConnectionRequest),
+    )}`;
 
     Engine.context.KeyringController.isUnlocked = jest
       .fn()
