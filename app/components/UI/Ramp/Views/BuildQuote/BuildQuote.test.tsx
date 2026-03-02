@@ -220,6 +220,16 @@ jest.mock('../NativeFlow/EnterEmail', () => ({
   createV2EnterEmailNavDetails: (params: unknown) => ['RampEnterEmail', params],
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => 'aggregator'),
+}));
+
+jest.mock('../../../../../reducers/fiatOrders', () => ({
+  getRampRoutingDecision: jest.fn(),
+  UnifiedRampRoutingType: { AGGREGATOR: 'aggregator', DEPOSIT: 'deposit' },
+}));
+
 const renderWithTheme = (component: React.ReactElement) =>
   render(
     <ThemeContext.Provider value={mockTheme}>
@@ -262,7 +272,7 @@ describe('BuildQuote', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('displays initial amount as $100', () => {
