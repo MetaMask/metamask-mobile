@@ -23,8 +23,7 @@ import {
   SHARE_OPTION,
 } from '../../../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import Logger from '../../../../../util/Logger';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
@@ -68,7 +67,7 @@ const Options = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const dispatch = useDispatch();
   const bookmarks = useSelector((state: RootState) => state.bookmarks);
 

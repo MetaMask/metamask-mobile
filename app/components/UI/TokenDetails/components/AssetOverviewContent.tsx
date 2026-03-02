@@ -200,6 +200,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     handlePerpsAction,
   } = usePerpsActions({
     symbol: isPerpsEnabled ? token.symbol : null,
+    fromTokenDetails: true,
     abTestTokenDetailsLayout: isTestActive ? variantName : undefined,
   });
 
