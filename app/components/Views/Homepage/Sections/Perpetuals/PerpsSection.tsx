@@ -10,6 +10,7 @@ import { ScrollView } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 import {
   type PerpsMarketData,
   type Position,
@@ -24,6 +25,7 @@ import {
   usePerpsMarkets,
 } from '../../../../UI/Perps/hooks';
 import { filterAndSortMarkets } from '../../../../UI/Perps/utils/filterAndSortMarkets';
+import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
 import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
 import PerpsPositionCard from '../../../../UI/Perps/components/PerpsPositionCard/PerpsPositionCard';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
@@ -106,6 +108,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const tpSlReady = anyPositionHasTpSl || tpSlSettled;
 
   const { markets, isLoading: marketsLoading } = usePerpsMarkets();
+  const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
 
   const displayPositions = useMemo(
     () => positions.slice(0, MAX_ITEMS),
@@ -123,25 +126,45 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   // When user has no positions/orders, keep skeleton visible until markets
   // load so the section doesn't flash empty while trending tiles are fetched.
   const pendingTrending = !showSkeleton && !hasItems && marketsLoading;
-  const showTrending = !showSkeleton && !hasItems && !marketsLoading;
 
-  const trendingMarkets = useMemo(
-    () =>
-      showTrending && markets.length > 0
-        ? filterAndSortMarkets({
-            marketData: markets,
-            showZeroVolume: false,
-          }).slice(0, MAX_TRENDING_MARKETS)
-        : [],
-    [showTrending, markets],
+  const safeWatchlistSymbols = useMemo(
+    () => watchlistSymbols ?? [],
+    [watchlistSymbols],
   );
 
-  const trendingSymbols = useMemo(
-    () => trendingMarkets.map((m) => m.symbol),
-    [trendingMarkets],
+  const watchlistMarkets = useMemo(() => {
+    if (markets.length === 0 || safeWatchlistSymbols.length === 0) return [];
+    const symbolSet = new Set(safeWatchlistSymbols);
+    return markets.filter((m) => symbolSet.has(m.symbol));
+  }, [markets, safeWatchlistSymbols]);
+
+  const trendingMarkets = useMemo(() => {
+    if (markets.length === 0) return [];
+    const wlSet = new Set(watchlistMarkets.map((m) => m.symbol));
+    return filterAndSortMarkets({
+      marketData: markets,
+      showZeroVolume: false,
+    })
+      .filter((m) => !wlSet.has(m.symbol))
+      .slice(0, Math.max(0, MAX_TRENDING_MARKETS - watchlistMarkets.length));
+  }, [markets, watchlistMarkets]);
+
+  const allCarouselMarkets = useMemo(
+    () => [...watchlistMarkets, ...trendingMarkets],
+    [watchlistMarkets, trendingMarkets],
+  );
+
+  const watchlistSymbolSet = useMemo(
+    () => new Set(watchlistMarkets.map((m) => m.symbol)),
+    [watchlistMarkets],
+  );
+
+  const carouselSymbols = useMemo(
+    () => allCarouselMarkets.map((m) => m.symbol),
+    [allCarouselMarkets],
   );
   const { sparklines, refresh: refreshSparklines } =
-    useHomepageSparklines(trendingSymbols);
+    useHomepageSparklines(carouselSymbols);
 
   useImperativeHandle(
     ref,
@@ -219,7 +242,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
             ))}
           </Box>
         </SectionRow>
-      ) : trendingMarkets.length > 0 ? (
+      ) : allCarouselMarkets.length > 0 ? (
         <FadingScrollContainer>
           {(scrollProps) => (
             <ScrollView
@@ -229,11 +252,12 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               testID="homepage-trending-perps-carousel"
               {...scrollProps}
             >
-              {trendingMarkets.map((market) => (
+              {allCarouselMarkets.map((market) => (
                 <PerpsMarketTileCard
                   key={market.symbol}
                   market={market}
                   sparklineData={sparklines[market.symbol]}
+                  showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
                   onPress={handleTilePress}
                 />
               ))}
