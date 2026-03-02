@@ -49,6 +49,7 @@ import type {
   MarketInsightsTrend,
 } from '@metamask/ai-controllers';
 import { selectMarketInsightsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
+import { endTrace, TraceName } from '../../../../../util/trace';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
@@ -379,7 +380,10 @@ const MarketInsightsView: React.FC = () => {
       url: source.url,
     }));
   }, [report?.sources, trendArticleSources]);
-  const trendSourcesPillSources: MarketInsightsSource[] = useMemo(() => getUniqueSourcesByFavicon(sourcesSheetItems), [sourcesSheetItems]);
+  const trendSourcesPillSources: MarketInsightsSource[] = useMemo(
+    () => getUniqueSourcesByFavicon(sourcesSheetItems),
+    [sourcesSheetItems],
+  );
   const visibleTrendSourceCount = Math.min(
     trendSourcesPillSources.length,
     MAX_VISIBLE_SOURCES,
@@ -554,6 +558,8 @@ const MarketInsightsView: React.FC = () => {
     if (!report || hasTrackedViewRef.current) {
       return;
     }
+
+    endTrace({ name: TraceName.MarketInsightsViewLoad });
 
     const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
       .addProperties({

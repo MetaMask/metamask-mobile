@@ -23,6 +23,7 @@ import {
   getUniqueSourcesByFavicon,
   isXSourceUrl,
 } from '../../utils/marketInsightsFormatting';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 const MAX_VISIBLE_SOURCE_LOGOS = 3;
 
@@ -112,9 +113,19 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   report,
   timeAgo,
   onPress,
+  caip19Id,
   testID,
 }) => {
   const tw = useTailwind();
+
+  useEffect(() => {
+    // End the trace started by the parent (AssetOverviewContent) to measure
+    // how long it takes for the entry card to mount after navigation.
+    endTrace({
+      name: TraceName.MarketInsightsEntryCardLoad,
+      id: caip19Id,
+    });
+  }, [caip19Id]);
 
   return (
     <Pressable

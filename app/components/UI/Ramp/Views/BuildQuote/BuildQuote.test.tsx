@@ -220,6 +220,16 @@ jest.mock('../NativeFlow/EnterEmail', () => ({
   createV2EnterEmailNavDetails: (params: unknown) => ['RampEnterEmail', params],
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => 'aggregator'),
+}));
+
+jest.mock('../../../../../reducers/fiatOrders', () => ({
+  getRampRoutingDecision: jest.fn(),
+  UnifiedRampRoutingType: { AGGREGATOR: 'aggregator', DEPOSIT: 'deposit' },
+}));
+
 const renderWithTheme = (component: React.ReactElement) =>
   render(
     <ThemeContext.Provider value={mockTheme}>
@@ -262,7 +272,7 @@ describe('BuildQuote', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('displays initial amount as $100', () => {
@@ -454,6 +464,30 @@ describe('BuildQuote', () => {
 
     expect(queryByTestId('quick-amounts')).toBeNull();
     expect(getByTestId('build-quote-continue-button')).toBeOnTheScreen();
+  });
+
+  it('displays powered by provider text when selected provider is set', () => {
+    mockSelectedProvider = {
+      id: '/providers/transak',
+      name: 'Transak',
+      environmentType: 'PRODUCTION',
+      description: 'Test Provider',
+      hqAddress: '123 Test St',
+      links: [],
+      logos: { light: '', dark: '', height: 24, width: 79 },
+    };
+
+    const { getByText } = renderWithTheme(<BuildQuote />);
+
+    expect(getByText('fiat_on_ramp.powered_by_provider')).toBeOnTheScreen();
+  });
+
+  it('does not display powered by text when no selected provider is set', () => {
+    mockSelectedProvider = null;
+
+    const { queryByText } = renderWithTheme(<BuildQuote />);
+
+    expect(queryByText('fiat_on_ramp.powered_by_provider')).toBeNull();
   });
 
   it('matches snapshot', () => {
