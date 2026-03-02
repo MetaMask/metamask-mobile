@@ -75,7 +75,7 @@ jobs:
       - name: Setup project
         run: |
           echo "🔧 Running setup for GitHub CI..."
-          yarn setup:github-ci
+          yarn setup:github-ci --node
 
       - name: Verify setup completed
         run: |
