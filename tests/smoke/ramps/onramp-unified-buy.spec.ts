@@ -58,9 +58,9 @@ const returningUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
 const nativeDepositOrder = {
   token: 'ETH',
   tokenAmount: '0.02455',
-  totalFiat: '$100.00',
-  feesFiat: '$23.33',
-  quoteDisplayAmount: '100.00',
+  totalFiat: '$100 USD',
+  feesFiat: '$23.33 USD',
+  quoteDisplayAmount: '100 USD',
   provider: 'Transak (Staging)',
 };
 
@@ -111,14 +111,12 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await loginToApp();
         await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapUnifiedBuyButton();
-        await device.disableSynchronization();
         await TokenSelectScreen.tapTokenByName(nativeDepositOrder.token);
-        // await Assertions.expectTextDisplayed(
-        //   nativeDepositOrder.quoteDisplayAmount,
-        // );
+
         await BuildQuoteView.tapContinueButton();
 
         await KYCScreen.tapVerifyIdentityContinueButton();
+        await device.enableSynchronization();
 
         await KYCScreen.enterEmail('curtis@gmail.com');
 
@@ -144,12 +142,6 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
           await Assertions.expectTextDisplayed(text);
         }
 
-        // await Assertions.expectElementToBeVisible(
-        //   ToastModal.depositCompletedToast(
-        //     nativeDepositOrder.tokenAmount,
-        //     nativeDepositOrder.token,
-        //   ),
-        // );
         await OrderDetailsView.tapCloseButton();
 
         // Verify order in transfers list
@@ -199,9 +191,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await BuildQuoteView.tapKeypadDeleteButton(1);
 
         await BuildQuoteView.enterAmount('5', 'unifiedBuy');
-        // await Assertions.expectTextDisplayed(
-        //   aggregatorBuyOrder.quoteDisplayAmount,
-        // );
+
         await BuildQuoteView.tapContinueButton();
 
         // Verify order details screen
@@ -220,12 +210,6 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
           await Assertions.expectTextDisplayed(text);
         }
 
-        // await Assertions.expectElementToBeVisible(
-        //   ToastModal.purchaseCompletedToast(
-        //     aggregatorBuyOrder.tokenAmount,
-        //     aggregatorBuyOrder.token,
-        //   ),
-        // );
         await OrderDetailsView.tapCloseButton();
 
         // Verify order in transfers list
