@@ -23,7 +23,6 @@ import SoftAssert from '../../framework/SoftAssert';
 import { UnifiedRampRoutingType } from '../../../app/reducers/fiatOrders/types';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-
 const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
 const unifiedBuyV2Mocks = async (mockServer: Mockttp) => {

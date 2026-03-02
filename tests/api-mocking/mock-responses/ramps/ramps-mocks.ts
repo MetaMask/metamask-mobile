@@ -251,9 +251,9 @@ export const DEPOSIT_ORDER_STATUS_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes(
-        'on-ramp.uat-api.cx.metamask.io/providers/transak-native-staging/orders/',
-      );
+      // Matches both the legacy TransakService endpoint (/providers/...) and the
+      // v2 RampsService endpoint (/v2/providers/...) used by refreshOrder.
+      return url.includes('providers/transak-native-staging/orders/');
     })
     .asPriority(1000)
     .thenCallback(() => {
@@ -374,6 +374,24 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .thenCallback(() => ({
       statusCode: 200,
       json: TRANSAK_CREATE_ORDER_RESPONSE,
+    }));
+
+  // GET orders/{id} — TransakService.getOrder() payment-details enrichment
+  // Called after createOrder when an access token is present.
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = getDecodedProxiedURL(request.url);
+      return (
+        url.includes('api-gateway-stg.transak.com/api/v2/orders/') &&
+        !url.includes('user-limit') &&
+        !url.includes('active-orders')
+      );
+    })
+    .asPriority(999)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: { data: { orderId: 'mock-transak-order-123' } },
     }));
 
   // GET translate — getTranslation() (on-ramp.uat-api.cx.metamask.io)

@@ -53,6 +53,16 @@ import ListItemColumn, {
 } from '../../../../../../component-library/components/List/ListItemColumn';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 
+function getOrderTypeSlug(order: DisplayOrder): RampsOrderTypeSlug {
+  if (order.orderType === 'DEPOSIT') {
+    return 'deposit';
+  }
+  if (order.orderType === OrderOrderTypeEnum.Buy || order.orderType === 'BUY') {
+    return 'buy';
+  }
+  return 'sell';
+}
+
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 
 function getStatusColorAndText(

@@ -32,6 +32,7 @@ import {
   useParams,
 } from '../../../../../util/navigation/navUtils';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
+import { VerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 
 export interface V2VerifyIdentityParams {
   amount?: string;
@@ -235,6 +236,7 @@ const V2VerifyIdentity = () => {
             {strings('deposit.verify_identity.agreement_text_part2')}
           </Text>
           <Button
+            testID={VerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
             size={ButtonSize.Lg}
             onPress={handleSubmit}
             label={strings('deposit.verify_identity.button')}

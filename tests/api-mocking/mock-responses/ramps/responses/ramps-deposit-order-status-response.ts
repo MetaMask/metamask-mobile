@@ -6,12 +6,19 @@
  */
 
 export const createDepositOrderResponse = (status: string) => ({
+  provider: '/providers/transak-native-staging',
   providerOrderId: 'mock-transak-order-123',
+  providerOrderLink: '',
   createdAt: Date.now(),
   fiatAmount: 100,
   totalFeesFiat: 23.33,
-  cryptoAmount: 0.02455598,
-  fiatCurrency: 'USD',
+  cryptoAmount: '0.02455',
+  fiatCurrency: {
+    symbol: 'USD',
+    name: 'US Dollar',
+    decimals: 2,
+    denomSymbol: '$',
+  },
   fiatAmountInUsd: 100,
   cryptoCurrency: {
     symbol: 'ETH',
@@ -25,4 +32,11 @@ export const createDepositOrderResponse = (status: string) => ({
   status,
   txHash: status === 'COMPLETED' ? '0xmocktxhash123' : null,
   orderType: 'DEPOSIT',
+  isOnlyLink: false,
+  success: status === 'COMPLETED',
+  canBeUpdated: false,
+  idHasExpired: false,
+  excludeFromPurchases: false,
+  timeDescriptionPending: 'Usually completes in a few minutes',
+  exchangeRate: 4072.34,
 });
