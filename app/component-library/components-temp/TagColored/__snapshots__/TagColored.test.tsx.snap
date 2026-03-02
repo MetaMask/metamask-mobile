@@ -6,7 +6,7 @@ exports[`TagColored renders with default props and matches snapshot 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 4,
       "height": 20,
       "justifyContent": "center",
@@ -19,7 +19,7 @@ exports[`TagColored renders with default props and matches snapshot 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#686e7d",
+        "color": "#66676a",
         "fontFamily": "Geist-Bold",
         "fontSize": 12,
         "fontWeight": "bold",

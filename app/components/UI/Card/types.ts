@@ -465,6 +465,25 @@ export interface CardDetailsTokenResponse {
 }
 
 /**
+ * Request body for generating card PIN token
+ * Used to customize the visual appearance of the PIN image
+ */
+export interface CardPinTokenRequest {
+  customCss?: {
+    backgroundColor?: string;
+    textColor?: string;
+  };
+}
+
+/**
+ * Response from generating card PIN token
+ */
+export interface CardPinTokenResponse {
+  token: string;
+  imageUrl: string;
+}
+
+/**
  * Payment methods supported for orders
  */
 export type OrderPaymentMethod = 'CRYPTO_EXTERNAL_DAIMO';

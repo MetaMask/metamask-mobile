@@ -63,8 +63,10 @@ import {
   ROUNDING_CONFIG,
   SAFE_EXEC_GAS_LIMIT,
 } from './constants';
+import { PERMIT2_ADDRESS } from './safe/constants';
 import {
   computeProxyAddress,
+  createPermit2FeeAuthorization,
   createSafeFeeAuthorization,
   getClaimTransaction,
   getDeployProxyWalletTransaction,
@@ -72,7 +74,9 @@ import {
   getSafeUsdcAmount,
   getWithdrawTransactionCallData,
   hasAllowances,
+  hasPermit2Allowance,
 } from './safe/utils';
+import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   OrderData,
@@ -101,7 +105,7 @@ import {
   roundOrderAmount,
   submitClobOrder,
 } from './utils';
-import { PredictFeeCollection } from '../../types/flags';
+import { PredictFeatureFlags } from '../../types/flags';
 import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
@@ -135,6 +139,7 @@ export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
   readonly name = 'Polymarket';
   readonly chainId = POLYGON_MAINNET_CHAIN_ID;
+  readonly #getFeatureFlags: () => PredictFeatureFlags;
 
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, AccountState> = new Map();
@@ -146,6 +151,14 @@ export class PolymarketProvider implements PredictProvider {
   >();
 
   private static readonly FALLBACK_CATEGORY: PredictCategory = 'trending';
+
+  constructor({
+    getFeatureFlags,
+  }: {
+    getFeatureFlags: () => PredictFeatureFlags;
+  }) {
+    this.#getFeatureFlags = getFeatureFlags;
+  }
 
   /**
    * Generate standard error context for Logger.error calls with searchable tags and context.
@@ -176,16 +189,15 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarketDetails({
     marketId,
-    liveSportsLeagues = [],
   }: {
     marketId: string;
-    liveSportsLeagues?: string[];
   }): Promise<PredictMarket> {
     if (!marketId) {
       throw new Error('marketId is required');
     }
 
     try {
+      const { liveSportsLeagues } = this.#getFeatureFlags();
       const event = await getMarketDetailsFromGammaApi({
         marketId,
       });
@@ -223,25 +235,20 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
-  public async getMarketsByIds(
-    marketIds: string[],
-    liveSportsLeagues: string[] = [],
-  ): Promise<PredictMarket[]> {
+  public async getMarketsByIds(marketIds: string[]): Promise<PredictMarket[]> {
     if (!marketIds || marketIds.length === 0) {
       return [];
     }
 
     try {
       const marketPromises = marketIds.map((marketId) =>
-        this.getMarketDetails({ marketId, liveSportsLeagues }).catch(
-          (error) => {
-            DevLogger.log(
-              `PolymarketProvider: Failed to fetch market ${marketId}`,
-              error,
-            );
-            return null;
-          },
-        ),
+        this.getMarketDetails({ marketId }).catch((error) => {
+          DevLogger.log(
+            `PolymarketProvider: Failed to fetch market ${marketId}`,
+            error,
+          );
+          return null;
+        }),
       );
 
       const results = await Promise.all(marketPromises);
@@ -301,7 +308,7 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const liveSportsLeagues = params?.liveSportsLeagues ?? [];
+      const { liveSportsLeagues } = this.#getFeatureFlags();
       const liveSportsEnabled = liveSportsLeagues.length > 0;
 
       if (liveSportsEnabled) {
@@ -968,10 +975,10 @@ export class PolymarketProvider implements PredictProvider {
   public async previewOrder(
     params: PreviewOrderParams & {
       signer: Signer;
-      feeCollection?: PredictFeeCollection;
     },
   ): Promise<OrderPreview> {
-    const basePreview = await previewOrder(params);
+    const { feeCollection } = this.#getFeatureFlags();
+    const basePreview = await previewOrder({ ...params, feeCollection });
 
     if (params.signer) {
       if (this.isRateLimited(params.signer.address)) {
@@ -1154,24 +1161,60 @@ export class PolymarketProvider implements PredictProvider {
         apiKey: signerApiKey,
       });
 
-      let feeAuthorization;
+      const shouldUsePermit2 =
+        fees?.permit2Enabled === true &&
+        Array.isArray(fees.executors) &&
+        fees.executors.length > 0;
+
+      let feeAuthorization:
+        | SafeFeeAuthorization
+        | Permit2FeeAuthorization
+        | undefined;
+      let executor: string | undefined;
+
       if (fees !== undefined && fees.totalFee > 0) {
         const safeAddress = computeProxyAddress(signer.address);
         const feeAmountInUsdc = BigInt(
           parseUnits(fees.totalFee.toString(), 6).toString(),
         );
-        feeAuthorization = await createSafeFeeAuthorization({
-          safeAddress,
-          signer,
-          amount: feeAmountInUsdc,
-          to: fees.collector,
-        });
+
+        if (shouldUsePermit2 && fees.executors) {
+          const permit2Ready = await hasPermit2Allowance({
+            address: safeAddress,
+          });
+
+          if (permit2Ready) {
+            executor =
+              fees.executors[Math.floor(Math.random() * fees.executors.length)];
+            feeAuthorization = await createPermit2FeeAuthorization({
+              safeAddress,
+              signer,
+              amount: feeAmountInUsdc,
+              spender: executor,
+            });
+          } else {
+            feeAuthorization = await createSafeFeeAuthorization({
+              safeAddress,
+              signer,
+              amount: feeAmountInUsdc,
+              to: fees.collector,
+            });
+          }
+        } else {
+          feeAuthorization = await createSafeFeeAuthorization({
+            safeAddress,
+            signer,
+            amount: feeAmountInUsdc,
+            to: fees.collector,
+          });
+        }
       }
 
       const { success, response, error } = await submitClobOrder({
         headers,
         clobOrder,
         feeAuthorization,
+        executor,
       });
 
       if (!success) {
@@ -1464,8 +1507,13 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     if (!accountState.hasAllowances) {
+      const { feeCollection: depositFeeCollection } = this.#getFeatureFlags();
+      const extraUsdcSpenders = depositFeeCollection.permit2Enabled
+        ? [PERMIT2_ADDRESS]
+        : [];
       const allowanceTransaction = await getProxyWalletAllowancesTransaction({
         signer,
+        extraUsdcSpenders,
       });
 
       if (!allowanceTransaction) {
@@ -1537,13 +1585,17 @@ export class PolymarketProvider implements PredictProvider {
       // Check deployment status and allowances
       let isDeployed: boolean;
       let hasAllowancesResult: boolean;
+      const { feeCollection: flagFeeCollection } = this.#getFeatureFlags();
+      const extraUsdcSpenders = flagFeeCollection.permit2Enabled
+        ? [PERMIT2_ADDRESS]
+        : [];
       try {
         [isDeployed, hasAllowancesResult] = await Promise.all([
           isSmartContractAddress(
             address,
             numberToHex(POLYGON_MAINNET_CHAIN_ID),
           ),
-          hasAllowances({ address }),
+          hasAllowances({ address, extraUsdcSpenders }),
         ]);
       } catch (error) {
         throw new Error(
