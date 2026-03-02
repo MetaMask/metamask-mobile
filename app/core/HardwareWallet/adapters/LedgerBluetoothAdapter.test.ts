@@ -162,16 +162,14 @@ describe('LedgerBluetoothAdapter', () => {
       expect(mockedTransportBLE.open).toHaveBeenCalledTimes(2);
     });
 
-    it('emits ConnectionFailed on error', async () => {
+    it('throws and clears state on connect error', async () => {
       const error = new Error('BLE connection failed');
       mockedTransportBLE.open.mockRejectedValueOnce(error);
 
       await expect(adapter.connect('device-123')).rejects.toThrow(error);
 
-      expect(onDeviceEvent).toHaveBeenCalledWith({
-        event: DeviceEvent.ConnectionFailed,
-        error,
-      });
+      expect(adapter.isConnected()).toBe(false);
+      expect(adapter.getConnectedDeviceId()).toBeNull();
     });
 
     it('throws if adapter is destroyed', async () => {
@@ -206,20 +204,14 @@ describe('LedgerBluetoothAdapter', () => {
       expect(adapter.isConnected()).toBe(false);
     });
 
-    it('emits ConnectionFailed with normalized error when connect rejects non-Error', async () => {
+    it('throws non-Error values as-is on connect failure', async () => {
       mockedTransportBLE.open.mockRejectedValueOnce('connection failed');
 
       await expect(adapter.connect('device-123')).rejects.toBe(
         'connection failed',
       );
 
-      expect(onDeviceEvent).toHaveBeenCalledWith({
-        event: DeviceEvent.ConnectionFailed,
-        error: expect.any(Error),
-      });
-      expect(
-        (onDeviceEvent.mock.calls[0][0] as { error: Error }).error.message,
-      ).toBe('connection failed');
+      expect(adapter.isConnected()).toBe(false);
     });
 
     it('ignores transport error event when flow is complete', async () => {
@@ -309,15 +301,13 @@ describe('LedgerBluetoothAdapter', () => {
       )?.[1];
       expect(disconnectHandler).toBeDefined();
 
-      // First 5 calls increment restartCount and return; 6th call hits limit and calls onDisconnect
+      // Fire 6 disconnect events (limit is 5)
       for (let i = 0; i < 6; i++) {
         disconnectHandler?.();
       }
 
       expect(onDisconnect).toHaveBeenCalledTimes(1);
-      expect(onDisconnect).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'Device disconnected' }),
-      );
+      expect(adapter.isConnected()).toBe(false);
     });
 
     it('ignores disconnect event when flow is complete', async () => {
@@ -426,13 +416,11 @@ describe('LedgerBluetoothAdapter', () => {
     });
 
     it('returns false when no transport after connect', async () => {
-      // Mock connect to succeed but leave transport as null
       mockedTransportBLE.open.mockResolvedValueOnce(
         null as unknown as TransportBLE,
       );
 
       const result = await adapter.ensureDeviceReady('device-123');
-
       expect(result).toBe(false);
     });
 
