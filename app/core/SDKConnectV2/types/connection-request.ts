@@ -140,10 +140,10 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     typeof metadata.sdk !== 'object' ||
     !metadata.sdk.version ||
     typeof metadata.sdk.version !== 'string' ||
-    metadata.sdk.version.length > 256 || // this seems long still
+    metadata.sdk.version.length > 64 ||
     !metadata.sdk.platform ||
     typeof metadata.sdk.platform !== 'string' ||
-    metadata.sdk.platform.length > 256 // this seems long still
+    metadata.sdk.platform.length > 64
   ) {
     return false;
   }

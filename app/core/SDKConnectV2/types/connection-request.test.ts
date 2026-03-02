@@ -317,9 +317,9 @@ describe('isConnectionRequest', () => {
     expect(isConnectionRequest(req)).toBe(false);
   });
 
-  it('returns false when sdk.version exceeds 256 characters', () => {
+  it('returns false when sdk.version exceeds 64 characters', () => {
     const req = validRequest();
-    (req.metadata.sdk as Record<string, unknown>).version = 'v'.repeat(257);
+    (req.metadata.sdk as Record<string, unknown>).version = 'v'.repeat(65);
     expect(isConnectionRequest(req)).toBe(false);
   });
 
@@ -329,9 +329,9 @@ describe('isConnectionRequest', () => {
     expect(isConnectionRequest(req)).toBe(false);
   });
 
-  it('returns false when sdk.platform exceeds 256 characters', () => {
+  it('returns false when sdk.platform exceeds 64 characters', () => {
     const req = validRequest();
-    (req.metadata.sdk as Record<string, unknown>).platform = 'p'.repeat(257);
+    (req.metadata.sdk as Record<string, unknown>).platform = 'p'.repeat(65);
     expect(isConnectionRequest(req)).toBe(false);
   });
 });
