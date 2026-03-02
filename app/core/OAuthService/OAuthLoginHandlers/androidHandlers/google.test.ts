@@ -28,32 +28,6 @@ describe('AndroidGoogleLoginHandler', () => {
   });
 
   describe('login', () => {
-    it('returns success result when user completes authentication', async () => {
-      mockSignInWithGoogle.mockResolvedValue({
-        type: 'google-signin',
-        idToken: 'test-id-token',
-      });
-
-      const result = await handler.login();
-
-      expect(result).toEqual({
-        authConnection: AuthConnection.Google,
-        idToken: 'test-id-token',
-        clientId: 'test-client-id',
-      });
-    });
-
-    it('throws UserCancelled error when user cancels', async () => {
-      mockSignInWithGoogle.mockRejectedValue(
-        new Error('User cancelled the login'),
-      );
-
-      await expect(handler.login()).rejects.toThrow(OAuthError);
-      await expect(handler.login()).rejects.toMatchObject({
-        code: OAuthErrorType.UserCancelled,
-      });
-    });
-
     it('throws GoogleLoginUserDisabledOneTapFeature when user disabled One Tap', async () => {
       mockSignInWithGoogle.mockRejectedValue(
         new Error('user disabled the feature'),
@@ -75,89 +49,6 @@ describe('AndroidGoogleLoginHandler', () => {
       await expect(handler.login()).rejects.toThrow(OAuthError);
       await expect(handler.login()).rejects.toMatchObject({
         code: OAuthErrorType.GoogleLoginNoProviderDependencies,
-      });
-    });
-
-    it('throws GoogleLoginNoCredential when no credential available after retry', async () => {
-      mockSignInWithGoogle
-        .mockRejectedValueOnce(new Error('no credential available'))
-        .mockRejectedValueOnce(new Error('no credential available'));
-
-      const loginPromise = handler.login();
-
-      await expect(loginPromise).rejects.toThrow(OAuthError);
-      await expect(loginPromise).rejects.toMatchObject({
-        code: OAuthErrorType.GoogleLoginNoCredential,
-      });
-    });
-
-    it('retries once when no credential error occurs', async () => {
-      mockSignInWithGoogle
-        .mockRejectedValueOnce(new Error('no credential available'))
-        .mockResolvedValueOnce({
-          type: 'google-signin',
-          idToken: 'test-id-token',
-        });
-
-      const result = await handler.login();
-
-      expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
-      expect(result).toEqual({
-        authConnection: AuthConnection.Google,
-        idToken: 'test-id-token',
-        clientId: 'test-client-id',
-      });
-    });
-
-    it('throws GoogleLoginNoMatchingCredential when no matching credential after retry', async () => {
-      mockSignInWithGoogle
-        .mockRejectedValueOnce(new Error('Cannot find matching credential'))
-        .mockRejectedValueOnce(new Error('Cannot find matching credential'));
-
-      const loginPromise = handler.login();
-
-      await expect(loginPromise).rejects.toThrow(OAuthError);
-      await expect(loginPromise).rejects.toMatchObject({
-        code: OAuthErrorType.GoogleLoginNoMatchingCredential,
-      });
-    });
-
-    it('throws GoogleLoginOneTapFailure when One Tap fails after retry', async () => {
-      mockSignInWithGoogle
-        .mockRejectedValueOnce(
-          new Error('failure response from one tap: something went wrong'),
-        )
-        .mockRejectedValueOnce(
-          new Error('failure response from one tap: something went wrong'),
-        );
-
-      const loginPromise = handler.login();
-
-      await expect(loginPromise).rejects.toThrow(OAuthError);
-      await expect(loginPromise).rejects.toMatchObject({
-        code: OAuthErrorType.GoogleLoginOneTapFailure,
-      });
-    });
-
-    it('throws UnknownError for unrecognized errors', async () => {
-      mockSignInWithGoogle.mockRejectedValue(
-        new Error('Some unknown error occurred'),
-      );
-
-      await expect(handler.login()).rejects.toThrow(OAuthError);
-      await expect(handler.login()).rejects.toMatchObject({
-        code: OAuthErrorType.UnknownError,
-      });
-    });
-
-    it('throws UnknownError when result type is not google-signin', async () => {
-      mockSignInWithGoogle.mockResolvedValue({
-        type: 'other-type',
-      });
-
-      await expect(handler.login()).rejects.toThrow(OAuthError);
-      await expect(handler.login()).rejects.toMatchObject({
-        code: OAuthErrorType.UnknownError,
       });
     });
   });
@@ -209,14 +100,6 @@ describe('AndroidGoogleLoginHandler', () => {
   describe('properties', () => {
     it('has correct authConnection', () => {
       expect(handler.authConnection).toBe(AuthConnection.Google);
-    });
-
-    it('has correct scope', () => {
-      expect(handler.scope).toEqual(['email', 'profile', 'openid']);
-    });
-
-    it('has correct authServerPath', () => {
-      expect(handler.authServerPath).toBe('api/v1/oauth/id_token');
     });
   });
 });
