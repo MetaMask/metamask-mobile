@@ -19,6 +19,7 @@ import {
   TrendingTokenNetworkBottomSheet,
   TrendingTokenPriceChangeBottomSheet,
   TrendingTokenTimeBottomSheet,
+  mapTimeOptionToSortBy,
 } from '../../../Trending/components/TrendingTokensBottomSheet';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
@@ -26,7 +27,7 @@ import {
 } from '@metamask/bridge-controller';
 import TrendingTokensSkeleton from '../../../Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import TrendingTokenRowItem from '../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
-import { useTrendingFilters } from '../../../Trending/hooks/useTrendingFilters/useTrendingFilters';
+import { useTokenListFilters } from '../../../Trending/hooks/useTokenListFilters/useTokenListFilters';
 import { useTrendingRequest } from '../../../Trending/hooks/useTrendingRequest/useTrendingRequest';
 import { sortTrendingTokens } from '../../../Trending/utils/sortTrendingTokens';
 import { strings } from '../../../../../../locales/i18n';
@@ -99,17 +100,21 @@ const BridgeTrendingTokensSection = ({
 
   const {
     selectedTimeOption,
+    setSelectedTimeOption,
     selectedNetwork,
     selectedPriceChangeOption,
     priceChangeSortDirection,
-    sortBy,
     selectedNetworkName,
     priceChangeButtonText,
     filterContext,
     handlePriceChangeSelect,
     handleNetworkSelect,
-    handleTimeSelect,
-  } = useTrendingFilters({ networkConfigurations });
+  } = useTokenListFilters();
+
+  const sortBy = useMemo(
+    () => mapTimeOptionToSortBy(selectedTimeOption),
+    [selectedTimeOption],
+  );
 
   const { results, isLoading } = useTrendingRequest({
     sortBy,
@@ -260,7 +265,9 @@ const BridgeTrendingTokensSection = ({
           <TrendingTokenTimeBottomSheet
             isVisible
             onClose={closeBottomSheet}
-            onTimeSelect={handleTimeSelect}
+            onTimeSelect={(_sortBy, timeOption) =>
+              setSelectedTimeOption(timeOption)
+            }
             selectedTime={selectedTimeOption}
           />
         )}

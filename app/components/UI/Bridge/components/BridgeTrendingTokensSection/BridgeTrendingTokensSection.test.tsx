@@ -2,7 +2,7 @@ import { TrendingAsset } from '@metamask/assets-controllers';
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import BridgeTrendingTokensSection from './BridgeTrendingTokensSection';
-import { useTrendingFilters } from '../../../Trending/hooks/useTrendingFilters/useTrendingFilters';
+import { useTokenListFilters } from '../../../Trending/hooks/useTokenListFilters/useTokenListFilters';
 import { useTrendingRequest } from '../../../Trending/hooks/useTrendingRequest/useTrendingRequest';
 
 jest.mock('react-redux', () => ({
@@ -10,9 +10,9 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock(
-  '../../../Trending/hooks/useTrendingFilters/useTrendingFilters',
+  '../../../Trending/hooks/useTokenListFilters/useTokenListFilters',
   () => ({
-    useTrendingFilters: jest.fn(),
+    useTokenListFilters: jest.fn(),
   }),
 );
 
@@ -56,9 +56,10 @@ jest.mock('../../../Trending/components/TrendingTokensBottomSheet', () => ({
   TrendingTokenTimeBottomSheet: () => null,
   TrendingTokenNetworkBottomSheet: () => null,
   TrendingTokenPriceChangeBottomSheet: () => null,
+  mapTimeOptionToSortBy: jest.fn(() => 'h24_trending'),
 }));
 
-const mockUseTrendingFilters = useTrendingFilters as jest.Mock;
+const mockUseTokenListFilters = useTokenListFilters as jest.Mock;
 const mockUseTrendingRequest = useTrendingRequest as jest.Mock;
 
 const createTrendingTokens = (count: number): TrendingAsset[] =>
@@ -79,12 +80,12 @@ const createTrendingTokens = (count: number): TrendingAsset[] =>
   }));
 
 const setupMocks = (tokens: TrendingAsset[], isLoading = false) => {
-  mockUseTrendingFilters.mockReturnValue({
+  mockUseTokenListFilters.mockReturnValue({
     selectedTimeOption: '24h',
+    setSelectedTimeOption: jest.fn(),
     selectedNetwork: null,
     selectedPriceChangeOption: 'price_change',
     priceChangeSortDirection: 'descending',
-    sortBy: 'h24_trending',
     selectedNetworkName: 'All networks',
     priceChangeButtonText: 'Price change',
     filterContext: {
@@ -95,7 +96,6 @@ const setupMocks = (tokens: TrendingAsset[], isLoading = false) => {
     },
     handlePriceChangeSelect: jest.fn(),
     handleNetworkSelect: jest.fn(),
-    handleTimeSelect: jest.fn(),
   });
   mockUseTrendingRequest.mockReturnValue({
     results: tokens,
