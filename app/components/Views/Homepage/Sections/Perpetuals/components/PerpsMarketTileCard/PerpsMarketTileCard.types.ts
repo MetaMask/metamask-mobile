@@ -13,6 +13,8 @@ export interface PerpsMarketTileCardProps {
   cardHeight?: number;
   /** Skip live price WebSocket subscription (use static market data instead) */
   disableLivePrices?: boolean;
+  /** Show a "Favorite" tag */
+  showFavoriteTag?: boolean;
   /** Test ID for E2E testing */
   testID?: string;
 }
