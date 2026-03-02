@@ -7,7 +7,7 @@ import React, {
   useCallback,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 import Logger from '../../../../util/Logger';
 import { CardSDK } from './CardSDK';
@@ -26,7 +26,7 @@ import {
   setUserCardLocation,
 } from '../../../../core/redux/slices/card';
 import { cardQueries } from '../queries';
-import { CardLocation, UserResponse } from '../types';
+import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { mapCountryToLocation } from '../util/mapCountryToLocation';
 
@@ -85,84 +85,54 @@ export const CardSDKProvider = ({
     }
   }, [cardFeatureFlag, userCardLocation]);
 
-  // Track whether onboardingId existed at initial mount (for resuming incomplete onboarding)
-  const [hasInitialOnboardingId] = useState(() => !!onboardingId);
-
-  // Keep a ref to userCardLocation so the queryFn always sees the latest
-  // value without re-creating the query (which would cause a refetch).
-  const userCardLocationRef = React.useRef<CardLocation>(userCardLocation);
-  userCardLocationRef.current = userCardLocation;
-
-  const { data: registrationData, refetch: refetchRegistration } = useQuery({
-    queryKey: cardQueries.dashboard.keys.registrationStatus(onboardingId ?? ''),
-    queryFn: async () => {
-      if (!sdk || !onboardingId) {
-        throw new Error('SDK or onboardingId not available');
-      }
-      return sdk.getRegistrationStatus(
-        onboardingId,
-        userCardLocationRef.current,
-      );
-    },
-    enabled: !!sdk && !!onboardingId && hasInitialOnboardingId,
-    retry: (failureCount, error) => {
-      const msg = getErrorMessage(error);
-      if (msg?.includes('Invalid onboarding ID')) return false;
-      return failureCount < 2;
-    },
-  });
-
-  // Sync query data to provider state and Redux side effects
-  useEffect(() => {
-    if (!registrationData) return;
-
-    if (registrationData.contactVerificationId) {
-      dispatch(
-        setContactVerificationId(registrationData.contactVerificationId),
-      );
-    }
-    dispatch(
-      setUserCardLocation(
-        mapCountryToLocation(registrationData.countryOfResidence ?? null),
-      ),
-    );
-    setUser(registrationData);
-  }, [registrationData, dispatch]);
-
-  // Handle "Invalid onboarding ID" errors
-  useEffect(() => {
-    if (!registrationData && onboardingId && hasInitialOnboardingId) {
-      const queryState = queryClient.getQueryState(
-        cardQueries.dashboard.keys.registrationStatus(onboardingId),
-      );
-      const msg = getErrorMessage(queryState?.error);
-      if (msg?.includes('Invalid onboarding ID')) {
-        dispatch(resetOnboardingState());
-      }
-    }
-  }, [
-    registrationData,
-    onboardingId,
-    hasInitialOnboardingId,
-    queryClient,
-    dispatch,
-  ]);
-
   const fetchUserData = useCallback(async () => {
-    if (!sdk || !onboardingId) return;
-    const result = await refetchRegistration();
-    if (result.data) {
-      if (result.data.contactVerificationId) {
-        dispatch(setContactVerificationId(result.data.contactVerificationId));
+    if (!sdk || !onboardingId) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const userData = await sdk.getRegistrationStatus(
+        onboardingId,
+        userCardLocation,
+      );
+
+      if (userData.contactVerificationId) {
+        dispatch(setContactVerificationId(userData.contactVerificationId));
       }
       dispatch(
         setUserCardLocation(
-          mapCountryToLocation(result.data.countryOfResidence ?? null),
+          mapCountryToLocation(userData.countryOfResidence ?? null),
         ),
       );
-      setUser(result.data);
+
+      setUser(userData);
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      if (errorMessage?.includes('Invalid onboarding ID')) {
+        dispatch(resetOnboardingState());
+      }
+    } finally {
+      setIsLoading(false);
     }
-  }, [sdk, onboardingId, refetchRegistration, dispatch]);
+  }, [sdk, onboardingId, dispatch, userCardLocation]);
+
+  // Track whether onboardingId existed at initial mount (for resuming incomplete onboarding)
+  const [hasInitialOnboardingId] = useState(() => !!onboardingId);
+
+  // Fetch user data ONLY on initial mount if onboardingId already exists.
+  // This prevents fetching when onboardingId is newly set during email verification,
+  // which could cause race conditions and navigation issues.
+  useEffect(() => {
+    if (!sdk || !onboardingId || !hasInitialOnboardingId) {
+      return;
+    }
+
+    fetchUserData();
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sdk]);
 
   const logoutFromProvider = useCallback(async () => {
     if (!sdk) {
