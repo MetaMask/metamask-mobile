@@ -459,7 +459,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "height": 24,
                                             "width": 24,
                                           },
@@ -521,7 +521,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": 700,
@@ -556,7 +556,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#686e7d",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -571,7 +571,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                     onPress={[Function]}
                                     style={
                                       {
-                                        "color": "#686e7d",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -616,15 +616,15 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                 onChangeText={[Function]}
                                 onSubmitEditing={[Function]}
                                 placeholder="Paste your private key string"
-                                placeholderTextColor="#b7bbc8"
+                                placeholderTextColor="#babbbe"
                                 returnKeyType="next"
                                 style={
                                   [
                                     {
                                       "alignItems": "flex-start",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#f3f3f4",
                                       "borderRadius": 8,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -714,7 +714,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#131416",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
