@@ -27,6 +27,18 @@ class WalletView {
     return Matchers.getElementByID('homepage-container');
   }
 
+  /**
+   * Matcher for the ScrollView inside wallet-screen.
+   * Used as the scrollable container for `Gestures.scrollToElement`.
+   */
+  get walletScrollViewMatcher(): Promise<Detox.NativeMatcher> {
+    return Promise.resolve(
+      by
+        .type('RCTScrollView')
+        .withAncestor(by.id(WalletViewSelectorsIDs.WALLET_CONTAINER)),
+    );
+  }
+
   get earnButton(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
   }
@@ -617,166 +629,71 @@ class WalletView {
   }
 
   /**
-   * Scrolls the homepage until the DeFi section is visible and fully in view (not clipped).
-   * Swipes on the homepage container (content inside ScrollView) so the scroll actually moves.
+   * Scrolls the homepage ScrollView until the DeFi section becomes visible.
+   * Uses Detox's waitFor().whileElement().scroll() pattern which does not
+   * require the scrollable element to pass a visibility threshold.
    */
   async scrollDownToDefiSection(): Promise<void> {
-    const maxSwipes = 8;
-    for (let i = 0; i < maxSwipes; i++) {
-      try {
-        await Assertions.expectElementToBeVisible(this.defiPositionsNew, {
-          timeout: 2000,
-          description: 'DeFi section visible',
-        });
-        // One more swipe so the section is fully in view (avoids "clipped" tap failure)
-        await Gestures.swipe(
-          this.homepageContainer as unknown as DetoxElement,
-          'up',
-          {
-            speed: 'slow',
-            percentage: 0.3,
-            elemDescription: 'center DeFi section in view',
-          },
-        );
-        return;
-      } catch {
-        await Gestures.swipe(
-          this.homepageContainer as unknown as DetoxElement,
-          'up',
-          {
-            speed: 'slow',
-            percentage: 0.6,
-            elemDescription: 'homepage scroll to reveal DeFi section',
-          },
-        );
-      }
-    }
-    await Assertions.expectElementToBeVisible(this.defiPositionsNew, {
-      description: 'DeFi section visible after scroll',
-    });
+    await Gestures.scrollToElement(
+      this.defiPositionsNew,
+      this.walletScrollViewMatcher,
+      {
+        direction: 'down',
+        scrollAmount: 350,
+        elemDescription: 'scroll to DeFi section',
+      },
+    );
   }
 
   /**
-   * Scrolls the homepage until the Perpetuals section is visible and fully in view (not clipped).
-   * Swipes on the homepage container (content inside ScrollView) so the scroll actually moves.
+   * Scrolls the homepage ScrollView until the Perpetuals section becomes visible.
+   * Uses Detox's waitFor().whileElement().scroll() pattern which does not
+   * require the scrollable element to pass a visibility threshold.
    */
   async scrollDownToPerpsSection(): Promise<void> {
-    const maxSwipes = 8;
-    for (let i = 0; i < maxSwipes; i++) {
-      try {
-        await Assertions.expectElementToBeVisible(this.perpsSectionHeader, {
-          timeout: 2000,
-          description: 'Perpetuals section visible',
-        });
-        // One more swipe so the section is fully in view (avoids "clipped" tap failure)
-        await Gestures.swipe(
-          this.homepageContainer as unknown as DetoxElement,
-          'up',
-          {
-            speed: 'slow',
-            percentage: 0.3,
-            elemDescription: 'center Perpetuals section in view',
-          },
-        );
-        return;
-      } catch {
-        await Gestures.swipe(
-          this.homepageContainer as unknown as DetoxElement,
-          'up',
-          {
-            speed: 'slow',
-            percentage: 0.6,
-            elemDescription: 'homepage scroll to reveal Perpetuals section',
-          },
-        );
-      }
-    }
-    await Assertions.expectElementToBeVisible(this.perpsSectionHeader, {
-      description: 'Perpetuals section visible after scroll',
-    });
+    await Gestures.scrollToElement(
+      this.perpsSectionHeader,
+      this.walletScrollViewMatcher,
+      {
+        direction: 'down',
+        scrollAmount: 350,
+        elemDescription: 'scroll to Perpetuals section',
+      },
+    );
   }
 
   /**
-   * Scrolls the homepage until the Predictions section is visible and fully in view (not clipped).
-   * Swipes on the homepage container (content inside ScrollView) so the scroll actually moves.
+   * Scrolls the homepage ScrollView until the Predictions section becomes visible.
+   * Uses Detox's waitFor().whileElement().scroll() pattern which does not
+   * require the scrollable element to pass a visibility threshold.
    */
   async scrollDownToPredictionsSection(): Promise<void> {
-    const maxSwipes = 8;
-    for (let i = 0; i < maxSwipes; i++) {
-      try {
-        await Assertions.expectElementToBeVisible(
-          this.predictionsSectionHeader,
-          {
-            timeout: 2000,
-            description: 'Predictions section visible',
-          },
-        );
-        // One more swipe so the section is fully in view (avoids "clipped" tap failure)
-        await Gestures.swipe(
-          this.homepageContainer as unknown as DetoxElement,
-          'up',
-          {
-            speed: 'slow',
-            percentage: 0.3,
-            elemDescription: 'center Predictions section in view',
-          },
-        );
-        return;
-      } catch {
-        await Gestures.swipe(
-          this.homepageContainer as unknown as DetoxElement,
-          'up',
-          {
-            speed: 'slow',
-            percentage: 0.6,
-            elemDescription: 'homepage scroll to reveal Predictions section',
-          },
-        );
-      }
-    }
-    await Assertions.expectElementToBeVisible(this.predictionsSectionHeader, {
-      description: 'Predictions section visible after scroll',
-    });
+    await Gestures.scrollToElement(
+      this.predictionsSectionHeader,
+      this.walletScrollViewMatcher,
+      {
+        direction: 'down',
+        scrollAmount: 350,
+        elemDescription: 'scroll to Predictions section',
+      },
+    );
   }
 
   /**
-   * Scrolls the homepage until the NFTs section is visible and fully in view (not clipped).
-   * Swipes on the homepage container (content inside ScrollView) so the scroll actually moves.
+   * Scrolls the homepage ScrollView until the NFTs section becomes visible.
+   * Uses Detox's waitFor().whileElement().scroll() pattern which does not
+   * require the scrollable element to pass a visibility threshold.
    */
   async scrollDownToNftsSection(): Promise<void> {
-    const maxSwipes = 8;
-    for (let i = 0; i < maxSwipes; i++) {
-      try {
-        await Assertions.expectElementToBeVisible(this.nftsSectionHeader, {
-          timeout: 2000,
-          description: 'NFTs section visible',
-        });
-        // One more swipe so the section is fully in view (avoids "clipped" tap failure)
-        await Gestures.swipe(
-          this.homepageContainer as unknown as DetoxElement,
-          'up',
-          {
-            speed: 'slow',
-            percentage: 0.3,
-            elemDescription: 'center NFTs section in view',
-          },
-        );
-        return;
-      } catch {
-        await Gestures.swipe(
-          this.homepageContainer as unknown as DetoxElement,
-          'up',
-          {
-            speed: 'slow',
-            percentage: 0.6,
-            elemDescription: 'homepage scroll to reveal NFTs section',
-          },
-        );
-      }
-    }
-    await Assertions.expectElementToBeVisible(this.nftsSectionHeader, {
-      description: 'NFTs section visible after scroll',
-    });
+    await Gestures.scrollToElement(
+      this.nftsSectionHeader,
+      this.walletScrollViewMatcher,
+      {
+        direction: 'down',
+        scrollAmount: 350,
+        elemDescription: 'scroll to NFTs section',
+      },
+    );
   }
 
   async tapOnAvailableBalance(): Promise<void> {
