@@ -86,10 +86,10 @@ jobs:
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
       # iOS: Only Node + Ruby needed (setup runs gem/bundle install, no pods/Xcode). Full iOS env is in build job.
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
           cache: ${{ inputs.platform == 'android' && 'yarn' || (inputs.platform == 'ios' && 'yarn') || '' }}
 
       - name: Setup Ruby (iOS)

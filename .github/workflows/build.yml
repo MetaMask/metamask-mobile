@@ -72,9 +72,10 @@ jobs:
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
       - run: yarn install --immutable
       - run: node scripts/validate-build-config.js
 
@@ -144,10 +145,10 @@ jobs:
           submodules: recursive
 
       # Node first so we can download/extract/verify; no yarn install here (we use the tarball to avoid running install in this job).
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Download node_modules tarball
         uses: actions/download-artifact@v4
