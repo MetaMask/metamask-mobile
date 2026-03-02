@@ -1,9 +1,20 @@
 import { EnterEmailSelectorsIDs } from '../../../app/components/UI/Ramp/Views/NativeFlow/EnterEmail.testIds';
 import { OtpCodeSelectorsIDs } from '../../../app/components/UI/Ramp/Views/NativeFlow/OtpCode.testIds';
+import { VerifyIdentitySelectorsIDs } from '../../../app/components/UI/Ramp/Views/NativeFlow/VerifyIdentity.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 
 class KYCScreen {
+  get verifyIdentityContinueButton(): DetoxElement {
+    return Matchers.getElementByID(VerifyIdentitySelectorsIDs.CONTINUE_BUTTON);
+  }
+
+  async tapVerifyIdentityContinueButton(): Promise<void> {
+    await Gestures.waitAndTap(this.verifyIdentityContinueButton, {
+      elemDescription: 'Verify Identity continue button',
+    });
+  }
+
   get emailInput(): DetoxElement {
     return Matchers.getElementByID(EnterEmailSelectorsIDs.EMAIL_INPUT);
   }

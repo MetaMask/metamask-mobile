@@ -10,10 +10,10 @@ import { createRampsOrderDetailsNavDetails } from '../../../Views/OrderDetails';
 import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import createStyles from './OrdersList.styles';
-// import {
-//   getOrderRowTestId,
-//   type RampsOrderTypeSlug,
-// } from './OrdersList.testIds';
+import {
+  getOrderRowTestId,
+  type RampsOrderTypeSlug,
+} from './OrdersList.testIds';
 import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
 
 import {
@@ -22,13 +22,6 @@ import {
 } from '../../../../../../constants/on-ramp';
 import { getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
-
-// function getOrderTypeSlug(order: FiatOrder): RampsOrderTypeSlug {
-//   if (order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
-//     return 'deposit';
-//   }
-//   return order.orderType === OrderOrderTypeEnum.Buy ? 'buy' : 'sell';
-// }
 import { useTheme } from '../../../../../../util/theme';
 import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
 import {
@@ -52,6 +45,16 @@ import ListItemColumn, {
   WidthType,
 } from '../../../../../../component-library/components/List/ListItemColumn';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
+
+function getOrderTypeSlug(order: DisplayOrder): RampsOrderTypeSlug {
+  if (order.orderType === 'DEPOSIT') {
+    return 'deposit';
+  }
+  if (order.orderType === OrderOrderTypeEnum.Buy || order.orderType === 'BUY') {
+    return 'buy';
+  }
+  return 'sell';
+}
 
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 
@@ -267,8 +270,15 @@ function OrdersList() {
     ],
   );
 
-  const renderItem = ({ item }: { item: DisplayOrder }) => (
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: DisplayOrder;
+    index: number;
+  }) => (
     <TouchableHighlight
+      testID={getOrderRowTestId(getOrderTypeSlug(item), index + 1)}
       accessibilityRole="button"
       accessible
       style={styles.row}
