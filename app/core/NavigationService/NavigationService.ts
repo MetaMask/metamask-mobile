@@ -115,7 +115,12 @@ class NavigationService {
       (globalThis as Record<string, unknown>).__AGENTIC__ = {
         platform: Platform.OS,
         navigate: (name: string, params?: object) =>
-          deferredNav.navigate(name as never, params as never),
+          (
+            deferredNav.navigate as unknown as (
+              name: string,
+              params?: object,
+            ) => void
+          )(name, params),
         getRoute: () => navRef.getCurrentRoute(),
         getState: () => navRef.getState(),
         canGoBack: () => navRef.canGoBack(),
