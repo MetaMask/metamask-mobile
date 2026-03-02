@@ -81,7 +81,6 @@ import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { PredictPayWithRow } from '../../components/PredictPayWithRow';
-import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { usePredictAutoPlaceOrder } from '../../hooks/usePredictAutoPlaceOrder';
 import { usePredictDepositAndOrder } from '../../hooks/usePredictDepositAndOrder';
 
@@ -137,7 +136,6 @@ const PredictBuyPreview = () => {
 
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();
-  const { isPredictBalanceSelected } = usePredictPaymentToken();
   const autoPlaceAmount =
     typeof amount === 'number' && amount > 0 ? amount : undefined;
   const [currentValue, setCurrentValue] = useState(() => autoPlaceAmount ?? 0);
@@ -287,7 +285,6 @@ const PredictBuyPreview = () => {
   const { isAutoPlaceLoading } = usePredictAutoPlaceOrder({
     amount,
     transactionId,
-    isPredictBalanceSelected,
     canPlaceBet,
     preview,
     analyticsProperties,

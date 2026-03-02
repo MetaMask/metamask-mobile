@@ -10,21 +10,14 @@ import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import { selectTransactions } from '../../../../selectors/transactionController';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
-import { PredictMarketHeaderParams } from './usePredictMarketHeader';
 
-const ROUTE = Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS;
-
-interface PredictConfirmationNavigationParams {
-  predictHeader?: PredictMarketHeaderParams;
-}
+const ROUTE = Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER;
 
 export function usePredictConfirmNavigation() {
   const { dispatch } = useNavigation();
   const transactions = useSelector(selectTransactions);
   const [isPendingNavigation, setIsPendingNavigation] = useState(false);
   const [transactionsToRemove, setTransactionsToRemove] = useState<string[]>();
-  const [pendingNavigationParams, setPendingNavigationParams] =
-    useState<PredictConfirmationNavigationParams>();
 
   const pendingTransactions = useMemo(
     () =>
@@ -34,37 +27,28 @@ export function usePredictConfirmNavigation() {
     [transactions],
   );
 
-  const replaceToConfirmation = useCallback(
-    (params?: PredictConfirmationNavigationParams) => {
-      dispatch(
-        StackActions.replace(ROUTE, {
-          loader: ConfirmationLoader.CustomAmount,
-          animationEnabled: false,
-          ...params,
-        }),
-      );
-    },
-    [dispatch],
-  );
+  const replaceToConfirmation = useCallback(() => {
+    dispatch(
+      StackActions.replace(ROUTE, {
+        loader: ConfirmationLoader.CustomAmount,
+        animationEnabled: false,
+      }),
+    );
+  }, [dispatch]);
 
-  const navigateToConfirmation = useCallback(
-    (params?: PredictConfirmationNavigationParams) => {
-      if (pendingTransactions.length && !isPendingNavigation) {
-        setIsPendingNavigation(true);
-        setTransactionsToRemove(pendingTransactions.map((tx) => tx.id));
-        setPendingNavigationParams(params);
-        rejectTransactions(pendingTransactions);
-        return;
-      }
+  const navigateToConfirmation = useCallback(() => {
+    if (pendingTransactions.length && !isPendingNavigation) {
+      setIsPendingNavigation(true);
+      setTransactionsToRemove(pendingTransactions.map((tx) => tx.id));
+      rejectTransactions(pendingTransactions);
+      return;
+    }
 
-      replaceToConfirmation(params);
-    },
-    [isPendingNavigation, pendingTransactions, replaceToConfirmation],
-  );
+    replaceToConfirmation();
+  }, [isPendingNavigation, pendingTransactions, replaceToConfirmation]);
 
   useEffect(() => {
     if (pendingTransactions.length && !isPendingNavigation) {
-      setPendingNavigationParams(undefined);
       return;
     }
 
@@ -75,15 +59,13 @@ export function usePredictConfirmNavigation() {
       return;
     }
 
-    replaceToConfirmation(pendingNavigationParams);
+    replaceToConfirmation();
     setIsPendingNavigation(false);
     setTransactionsToRemove(undefined);
-    setPendingNavigationParams(undefined);
   }, [
     isPendingNavigation,
     pendingTransactions,
     replaceToConfirmation,
-    pendingNavigationParams,
     transactionsToRemove,
   ]);
 

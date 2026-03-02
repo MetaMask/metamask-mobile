@@ -121,15 +121,7 @@ export const usePredictDepositAndOrder = ({
           handleDepositError(err, 'deposit_and_order_initialization');
         });
 
-        navigateToConfirmation({
-          predictHeader: {
-            marketTitle: params.market?.title,
-            outcomeImage: params.outcome?.image,
-            outcomeGroupTitle: params.outcome?.groupItemTitle,
-            outcomeToken: params.outcomeToken,
-            backgroundColor: theme.colors.background.default,
-          },
-        });
+        navigateToConfirmation();
       } catch (err) {
         console.error('Failed to proceed with deposit and order:', err);
         handleDepositError(err, 'deposit_and_order_navigation');
@@ -139,7 +131,6 @@ export const usePredictDepositAndOrder = ({
       depositAndOrderWithConfirmation,
       handleDepositError,
       navigateToConfirmation,
-      theme.colors.background.default,
     ],
   );
 

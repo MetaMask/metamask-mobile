@@ -56,54 +56,12 @@ describe('usePredictConfirmNavigation', () => {
     navigateToConfirmation();
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        {
-          loader: ConfirmationLoader.CustomAmount,
-          animationEnabled: false,
-        },
-      ),
+      StackActions.replace(Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER, {
+        loader: ConfirmationLoader.CustomAmount,
+        animationEnabled: false,
+      }),
     );
     expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('passes predict header params to confirmation route', () => {
-    const { navigateToConfirmation } = runHook().result.current;
-
-    navigateToConfirmation({
-      predictHeader: {
-        marketTitle: 'Market',
-        outcomeImage: 'https://example.com/image.png',
-        outcomeGroupTitle: 'Outcome',
-        outcomeToken: {
-          id: '1',
-          title: 'Yes',
-          price: 0.62,
-        },
-        backgroundColor: '#000000',
-      },
-    });
-
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        {
-          loader: ConfirmationLoader.CustomAmount,
-          animationEnabled: false,
-          predictHeader: {
-            marketTitle: 'Market',
-            outcomeImage: 'https://example.com/image.png',
-            outcomeGroupTitle: 'Outcome',
-            outcomeToken: {
-              id: '1',
-              title: 'Yes',
-              price: 0.62,
-            },
-            backgroundColor: '#000000',
-          },
-        },
-      ),
-    );
   });
 
   it('rejects pending transactions before navigating', async () => {

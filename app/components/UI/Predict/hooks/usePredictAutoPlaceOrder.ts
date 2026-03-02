@@ -5,7 +5,6 @@ import { usePredictOrderDepositTracking } from './usePredictOrderDepositTracking
 interface UsePredictAutoPlaceOrderParams {
   amount?: number;
   transactionId?: string;
-  isPredictBalanceSelected: boolean;
   canPlaceBet: boolean;
   preview?: OrderPreview | null;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
@@ -23,7 +22,6 @@ interface UsePredictAutoPlaceOrderResult {
 export function usePredictAutoPlaceOrder({
   amount,
   transactionId,
-  isPredictBalanceSelected,
   canPlaceBet,
   preview,
   analyticsProperties,
@@ -105,12 +103,7 @@ export function usePredictAutoPlaceOrder({
       return;
     }
 
-    if (
-      !isAutoPlaceDepositConfirmed ||
-      !isPredictBalanceSelected ||
-      !canPlaceBet ||
-      !preview
-    ) {
+    if (!isAutoPlaceDepositConfirmed || !canPlaceBet || !preview) {
       return;
     }
 
@@ -131,7 +124,6 @@ export function usePredictAutoPlaceOrder({
     analyticsProperties,
     canPlaceBet,
     isAutoPlaceDepositConfirmed,
-    isPredictBalanceSelected,
     placeOrder,
     preview,
     shouldAutoPlaceOrder,

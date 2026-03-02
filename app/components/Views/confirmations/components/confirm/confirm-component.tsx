@@ -48,6 +48,8 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.predictWithdraw,
 ];
 
+const TRANSACTION_TYPES_NO_HEADER = [PREDICT_DEPOSIT_AND_ORDER_TYPE];
+
 export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
@@ -119,8 +121,6 @@ export const Confirm = ({
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
   const transaction = useTransactionMetadataRequest();
-  const params = useParams<ConfirmationParams & { predictHeader?: unknown }>();
-  const hasPredictHeader = Boolean(params?.predictHeader);
   const isPredictDepositAndOrder = hasTransactionType(transaction, [
     PREDICT_DEPOSIT_AND_ORDER_TYPE,
   ]);
@@ -139,13 +139,16 @@ export const Confirm = ({
         headerShown: false,
       };
 
-      if (isFullScreenConfirmation || hasPredictHeader) {
+      if (
+        isFullScreenConfirmation &&
+        !hasTransactionType(transaction, TRANSACTION_TYPES_NO_HEADER)
+      ) {
         // If the confirmation is full screen, we need to show the header
         options.headerShown = true;
       }
       navigation.setOptions(options);
     }
-  }, [approvalRequest, hasPredictHeader, isFullScreenConfirmation, navigation]);
+  }, [approvalRequest, isFullScreenConfirmation, navigation, transaction]);
 
   useEffect(() => {
     if (!approvalRequest) {

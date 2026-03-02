@@ -17,6 +17,7 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
+import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../constants/predict';
 
 jest.mock('../../hooks/useConfirmActions');
 
@@ -43,6 +44,9 @@ jest.mock('../../hooks/alerts/useConfirmationAlerts');
 jest.mock('../../hooks/ui/useFullScreenConfirmation');
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
+}));
+jest.mock('../../../../UI/Predict/views/PredictDepositAndOrderInfo', () => ({
+  PredictDepositAndOrderInfo: () => null,
 }));
 
 const mockSetOptions = jest.fn();
@@ -509,6 +513,32 @@ describe('Confirm', () => {
     });
   });
 
+  it('keeps navigation header hidden for predict deposit and order confirmations', () => {
+    jest.mocked(useFullScreenConfirmation).mockReturnValue({
+      isFullScreenConfirmation: true,
+    });
+    const predictDepositAndOrderState = cloneDeep(
+      stakingDepositConfirmationState,
+    );
+    predictDepositAndOrderState.engine.backgroundState.TransactionController.transactions =
+      [
+        {
+          ...predictDepositAndOrderState.engine.backgroundState
+            .TransactionController.transactions[0],
+          type: PREDICT_DEPOSIT_AND_ORDER_TYPE,
+        },
+      ];
+
+    renderWithProvider(<Confirm />, {
+      state: predictDepositAndOrderState,
+    });
+
+    expect(mockSetOptions).toHaveBeenCalledWith({
+      headerShown: false,
+      gestureEnabled: true,
+    });
+  });
+
   it('sets navigation options with header hidden for non-full screen confirmations', () => {
     jest.mocked(useFullScreenConfirmation).mockReturnValue({
       isFullScreenConfirmation: false,
@@ -520,26 +550,6 @@ describe('Confirm', () => {
 
     expect(mockSetOptions).toHaveBeenCalledWith({
       headerShown: false,
-      gestureEnabled: true,
-    });
-  });
-
-  it('keeps navigation header shown when predict header params are present', () => {
-    jest.mocked(useFullScreenConfirmation).mockReturnValue({
-      isFullScreenConfirmation: false,
-    });
-    useParamsMock.mockReturnValue({
-      predictHeader: {
-        marketTitle: 'market',
-      },
-    });
-
-    renderWithProvider(<Confirm />, {
-      state: typedSignV1ConfirmationState,
-    });
-
-    expect(mockSetOptions).toHaveBeenCalledWith({
-      headerShown: true,
       gestureEnabled: true,
     });
   });

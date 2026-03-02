@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
   BoxAlignItems,
@@ -18,8 +12,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { ActivityIndicator, Linking, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
@@ -34,6 +26,7 @@ import PredictFeeSummary from '../../components/PredictFeeSummary';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
+import PredictBuyPreviewHeader from '../../components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
 import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
@@ -59,24 +52,17 @@ import { useTransactionCustomAmount } from '../../../../Views/confirmations/hook
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
-import { getNavbar } from '../../../../Views/confirmations/components/UI/navbar/navbar';
-import { usePredictMarketHeader } from '../../hooks/usePredictMarketHeader';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
-import { useTheme } from '../../../../../util/theme';
-import { StakeNavigationParamsList } from '../../../Stake/types';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
-import { useFullScreenConfirmation } from '../../../../Views/confirmations/hooks/ui/useFullScreenConfirmation';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MINIMUM_BET = 1;
 
 export function PredictDepositAndOrderInfo() {
   const activeOrder = usePredictActiveOrder();
-  const theme = useTheme();
   const tw = useTailwind();
-  const navigation =
-    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const insets = useSafeAreaInsets();
   const { onReject } = useConfirmActions();
-  const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const market = activeOrder?.market;
   const outcome = activeOrder?.outcome;
   const outcomeToken = activeOrder?.outcomeToken;
@@ -86,30 +72,6 @@ export function PredictDepositAndOrderInfo() {
     activeOrder?.amountUsd && activeOrder.amountUsd > 0
       ? activeOrder.amountUsd
       : 0;
-
-  const navbarOverrides = usePredictMarketHeader({
-    marketTitle: market?.title,
-    outcomeImage: outcome?.image,
-    outcomeGroupTitle: outcome?.groupItemTitle,
-    outcomeToken,
-    backgroundColor: theme.colors.background.default,
-  });
-
-  useLayoutEffect(() => {
-    if (!isFullScreenConfirmation) {
-      return;
-    }
-
-    navigation.setOptions(
-      getNavbar({
-        title: strings('confirm.title.predict_deposit'),
-        onReject,
-        addBackButton: true,
-        theme,
-        overrides: navbarOverrides,
-      }),
-    );
-  }, [isFullScreenConfirmation, navigation, navbarOverrides, onReject, theme]);
 
   useClearConfirmationOnBackSwipe();
 
@@ -307,6 +269,11 @@ export function PredictDepositAndOrderInfo() {
   if (!activeOrder || !market || !outcome || !outcomeToken) {
     return null;
   }
+
+  const title = market.title ?? '';
+  const outcomeGroupTitle = outcome.groupItemTitle
+    ? outcome.groupItemTitle
+    : '';
 
   const renderAmount = () => (
     <ScrollView
@@ -518,7 +485,18 @@ export function PredictDepositAndOrderInfo() {
   };
 
   return (
-    <Box twClassName="flex-1 bg-background-default">
+    <Box
+      twClassName="flex-1 bg-background-default"
+      style={{ paddingTop: insets.top }}
+    >
+      <PredictBuyPreviewHeader
+        title={title}
+        outcomeImage={outcome?.image}
+        outcomeGroupTitle={outcomeGroupTitle}
+        outcomeToken={outcomeToken}
+        sharePrice={preview?.sharePrice}
+        onBack={onReject}
+      />
       {renderAmount()}
       {renderFeesSummary()}
       {renderErrorMessage()}

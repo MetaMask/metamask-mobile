@@ -40,7 +40,6 @@ const analyticsProperties = {
 const createParams = () => ({
   amount: 25,
   transactionId: 'tx-1',
-  isPredictBalanceSelected: true,
   canPlaceBet: true,
   preview,
   analyticsProperties,
@@ -85,6 +84,21 @@ describe('usePredictAutoPlaceOrder', () => {
   });
 
   it('places order after deposit confirmation', async () => {
+    const params = createParams();
+    mockTrackingState.isConfirmed = true;
+
+    const { result } = renderHook(() => usePredictAutoPlaceOrder(params));
+
+    await waitFor(() => {
+      expect(params.placeOrder).toHaveBeenCalledWith({
+        analyticsProperties,
+        preview,
+      });
+      expect(result.current.isAutoPlaceLoading).toBe(false);
+    });
+  });
+
+  it('places order after deposit confirmation even when pay token is not predict balance', async () => {
     const params = createParams();
     mockTrackingState.isConfirmed = true;
 
