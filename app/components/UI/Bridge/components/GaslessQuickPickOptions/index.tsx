@@ -37,8 +37,10 @@ export const GaslessQuickPickOptions = ({
     NUMPAD_QUICK_ACTIONS_AB_KEY,
     NUMPAD_QUICK_ACTIONS_VARIANTS,
   );
-  const selectedVariant: NumpadQuickActionsVariant =
-    variantName === 'treatment' ? 'treatment' : 'control';
+  const selectedVariant =
+    variantName === NumpadQuickActionsVariant.Treatment
+      ? NumpadQuickActionsVariant.Treatment
+      : NumpadQuickActionsVariant.Control;
   const trackInputAmountChange = useTrackInputAmountChange();
 
   const onQuickOptionPress = useCallback(
