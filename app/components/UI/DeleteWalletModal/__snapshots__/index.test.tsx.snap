@@ -334,7 +334,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -384,7 +384,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -421,7 +421,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -446,7 +446,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Bold",
                                   "fontSize": 18,
                                   "letterSpacing": 0,
@@ -465,7 +465,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -500,7 +500,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#b7bbc8"
+                                  color="#babbbe"
                                   fill="currentColor"
                                   height={20}
                                   name="FaceId"
@@ -516,7 +516,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -531,7 +531,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -557,7 +557,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#b7bbc8"
+                                  color="#babbbe"
                                   fill="currentColor"
                                   height={20}
                                   name="SecurityKey"
@@ -573,7 +573,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -588,7 +588,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
