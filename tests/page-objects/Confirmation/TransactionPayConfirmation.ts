@@ -46,7 +46,21 @@ class TransactionPayConfirmation {
     });
   }
 
+  get tokenListScrollView(): Promise<Detox.NativeMatcher> {
+    return Matchers.getIdentifier(
+      TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST,
+    );
+  }
+
   async tapPayWithToken(tokenSymbol: string): Promise<void> {
+    const tokenElement = Matchers.getElementByText(
+      tokenSymbol,
+    ) as unknown as DetoxElement;
+    await Gestures.scrollToElement(tokenElement, this.tokenListScrollView, {
+      direction: 'down',
+      scrollAmount: 200,
+      elemDescription: `Pay With Token ${tokenSymbol}`,
+    });
     await Gestures.waitAndTap(Matchers.getElementByText(tokenSymbol), {
       elemDescription: `Pay With Token ${tokenSymbol}`,
     });
