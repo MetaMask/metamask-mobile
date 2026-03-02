@@ -9,6 +9,7 @@ import { APP_PACKAGE_IDS } from '../../framework/Constants.ts';
 import {
   unlockIfLockScreenVisible,
   ensurePlaygroundInstalled,
+  ensureAccountGroupsFinishedLoading,
 } from './utils.js';
 import AppwrightGestures from '../../framework/AppwrightGestures.ts';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
@@ -33,24 +34,6 @@ const NETWORK_DISPLAY_NAMES = {
 const DEFAULT_SCROLL_PARAMS = {
   scrollParams: { percent: 0.2 },
 };
-
-/**
- * Cycle the app to ensure account groups are fully loaded
- * @param {*} device - The device instance that will be used for running the test.
- */
-async function ensureAccountGroupsLoaded(device) {
-  await AppwrightGestures.terminateApp(device);
-  await AppwrightGestures.activateApp(device);
-  await login(device);
-  await WalletMainScreen.isMainWalletViewVisible();
-  await WalletMainScreen.tapIdenticon();
-  await AccountListComponent.isComponentDisplayed();
-  await AccountListComponent.waitForSyncingToComplete();
-  await AppwrightGestures.terminateApp(device);
-  await AppwrightGestures.activateApp(device);
-  await login(device);
-  await WalletMainScreen.isMainWalletViewVisible();
-}
 
 /**
  * After a MetaMask action (approve / sign), wait for the callback deeplink
@@ -90,7 +73,7 @@ test('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Solana, 
   await login(device);
   await WalletMainScreen.isMainWalletViewVisible();
 
-  await ensureAccountGroupsLoaded(device);
+  await ensureAccountGroupsFinishedLoading(device);
   //
   // 2. Switch to the RN playground and select networks
   //

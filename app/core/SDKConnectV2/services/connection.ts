@@ -39,7 +39,14 @@ export class Connection {
     this.bridge = new RPCBridgeAdapter(this.info);
 
     this.client.on('message', async (payload) => {
-      logger.debug('Received message:', this.id, payload);
+      const data =
+        payload && typeof payload === 'object' && 'data' in payload
+          ? (payload.data as Record<string, unknown>)
+          : undefined;
+      logger.debug('Received message:', this.id, {
+        method: data?.method,
+        id: data?.id,
+      });
 
       const isWalletCreateSessionRequest =
         payload &&
@@ -76,7 +83,14 @@ export class Connection {
     });
 
     this.bridge.on('response', (payload) => {
-      logger.debug('Sending message:', this.id, payload);
+      const responseData =
+        'data' in payload
+          ? (payload.data as Record<string, unknown>)
+          : (payload as Record<string, unknown>);
+      logger.debug('Sending message:', this.id, {
+        method: responseData?.method,
+        id: responseData?.id,
+      });
 
       // If the payload includes an id, its a JSON-RPC response, otherwise its a notification
       if ('data' in payload && 'id' in payload.data) {
