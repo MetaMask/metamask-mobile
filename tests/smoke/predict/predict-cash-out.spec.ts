@@ -5,7 +5,10 @@ import { loginToApp } from '../../flows/wallet.flow';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
-import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+  remoteFeatureFlagPredictEnabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
@@ -37,10 +40,10 @@ const positionDetails = {
 };
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(
-    mockServer,
-    remoteFeatureFlagPredictEnabled(true),
-  );
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+    ...remoteFeatureFlagPredictEnabled(true),
+  });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
 };

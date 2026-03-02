@@ -11,6 +11,9 @@ import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
 import PerpsView from '../../page-objects/Perps/PerpsView';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 import { TestSuiteParams } from '../../framework/types';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(RegressionTrade('Perps - ETH limit long fill'), () => {
   it('creates ETH limit long at Mid, shows open order, then fills after -15%', async () => {
@@ -22,7 +25,13 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
           .withPopularNetworks()
           .build(),
         restartDevice: true,
-        testSpecificMock: PERPS_ARBITRUM_MOCKS,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureFlagHomepageSectionsV1Enabled(),
+          );
+          await PERPS_ARBITRUM_MOCKS(mockServer);
+        },
         useCommandQueueServer: true,
       },
       async ({ commandQueueServer }: TestSuiteParams) => {

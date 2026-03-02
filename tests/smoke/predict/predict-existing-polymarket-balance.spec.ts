@@ -8,7 +8,10 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import Assertions from '../../framework/Assertions';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+  remoteFeatureFlagPredictEnabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { POLYMARKET_COMPLETE_MOCKS } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import enContent from '../../../locales/languages/en.json';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
@@ -16,10 +19,10 @@ import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 const EXPECTED_BALANCE_TEXT = '$28.16';
 
 const PredictionExistingPolyMarketBalance = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(
-    mockServer,
-    remoteFeatureFlagPredictEnabled(true),
-  );
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+    ...remoteFeatureFlagPredictEnabled(true),
+  });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
 };
 

@@ -6,6 +6,8 @@ import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { defiPositionsWithData } from '../../../api-mocking/mock-responses/defi-api-mocks';
 import DefiView from '../../../page-objects/wallet/DefiView';
 import DefiPositionView from '../../../page-objects/wallet/DefiPositionView';
@@ -17,6 +19,11 @@ describe(SmokeNetworkAbstractions('View DeFi details'), () => {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureFlagHomepageSectionsV1Enabled(),
+          );
+
           const { urlEndpoint, response } = defiPositionsWithData;
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
