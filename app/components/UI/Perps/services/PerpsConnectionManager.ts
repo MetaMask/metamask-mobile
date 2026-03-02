@@ -727,7 +727,11 @@ class PerpsConnectionManagerClass {
       // Clear previous errors when starting reconnection attempt
       this.clearError();
 
-      // Stage 2: Force the controller to reinitialize with new context
+      // Stage 2: Disconnect controller so init() will run #performInitialization()
+      // (otherwise init() no-ops when controller.isInitialized is still true after connection loss)
+      await Engine.context.PerpsController.disconnect();
+
+      // Stage 3: Force the controller to reinitialize with new context
       const reinitStart = performance.now();
       await Engine.context.PerpsController.init();
       setMeasurement(

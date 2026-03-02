@@ -3663,7 +3663,11 @@ export class PerpsController extends BaseController<
 
   /**
    * Disconnect provider and cleanup subscriptions
-   * Call this when navigating away from Perps screens to prevent battery drain
+   * Call this when navigating away from Perps screens to prevent battery drain.
+   * Also used by PerpsConnectionManager before init() on "Try again" so that
+   * init() actually runs #performInitialization() (full teardown + new providers).
+   * State reset (isInitialized, #initializationPromise) is always done in finally
+   * so reconnection can proceed even if provider.disconnect() hangs or throws.
    */
   async disconnect(): Promise<void> {
     this.#debugLog(
@@ -3673,50 +3677,61 @@ export class PerpsController extends BaseController<
       },
     );
 
-    // Stop preload interval and messenger subscriptions first,
-    // so no background work fires while we tear down providers.
-    if (this.#preloadTimer) {
-      clearInterval(this.#preloadTimer);
-      this.#preloadTimer = null;
-    }
-    if (this.#preloadStateUnsubscribe) {
-      this.#preloadStateUnsubscribe();
-      this.#preloadStateUnsubscribe = null;
-    }
-    if (this.#accountChangeUnsubscribe) {
-      this.#accountChangeUnsubscribe();
-      this.#accountChangeUnsubscribe = null;
-    }
-    this.#previousIsTestnet = null;
-    this.#previousHip3ConfigVersion = null;
-
-    // Only disconnect the provider if we're initialized
-    if (this.isInitialized && !this.isCurrentlyReinitializing()) {
-      try {
-        const provider = this.getActiveProvider();
-        await provider.disconnect();
-      } catch (error) {
-        this.#logError(
-          ensureError(error, 'PerpsController.disconnect'),
-          this.#getErrorContext('disconnect'),
-        );
+    try {
+      // Stop preload interval and messenger subscriptions first,
+      // so no background work fires while we tear down providers.
+      if (this.#preloadTimer) {
+        clearInterval(this.#preloadTimer);
+        this.#preloadTimer = null;
       }
+      if (this.#preloadStateUnsubscribe) {
+        this.#preloadStateUnsubscribe();
+        this.#preloadStateUnsubscribe = null;
+      }
+      if (this.#accountChangeUnsubscribe) {
+        this.#accountChangeUnsubscribe();
+        this.#accountChangeUnsubscribe = null;
+      }
+      this.#previousIsTestnet = null;
+      this.#previousHip3ConfigVersion = null;
+
+      // Only disconnect the provider if we're initialized (best-effort; may hang if WebSocket is dead)
+      if (this.isInitialized && !this.isCurrentlyReinitializing()) {
+        try {
+          const provider = this.getActiveProvider();
+          const disconnectPromise = provider.disconnect();
+          const timeoutPromise = wait(PERPS_CONSTANTS.DisconnectTimeoutMs).then(
+            () => {
+              throw new Error(
+                `Provider disconnect timed out after ${PERPS_CONSTANTS.DisconnectTimeoutMs}ms`,
+              );
+            },
+          );
+          await Promise.race([disconnectPromise, timeoutPromise]);
+        } catch (error) {
+          this.#logError(
+            ensureError(error, 'PerpsController.disconnect'),
+            this.#getErrorContext('disconnect'),
+          );
+        }
+      }
+
+      // Clear stale reference so standalone reads don't route through old provider
+      this.activeProviderInstance = null;
+
+      // Cleanup cached standalone provider (if any) — awaited to prevent races
+      await this.#cleanupStandaloneProvider();
+    } finally {
+      // Note: Feature-flag subscription is NOT cleaned up here.
+      // It is a controller-lifetime concern (set once in the constructor),
+      // not a session-lifetime concern. Unsubscribing here would break
+      // geo-blocking / HIP-3 flag propagation after disconnect → reconnect.
+
+      // Always reset initialization state so init() will run #performInitialization() on next call
+      // (e.g. when user clicks "Try again" after connection loss)
+      this.isInitialized = false;
+      this.#initializationPromise = null;
     }
-
-    // Clear stale reference so standalone reads don't route through old provider
-    this.activeProviderInstance = null;
-
-    // Cleanup cached standalone provider (if any) — awaited to prevent races
-    await this.#cleanupStandaloneProvider();
-
-    // Note: Feature-flag subscription is NOT cleaned up here.
-    // It is a controller-lifetime concern (set once in the constructor),
-    // not a session-lifetime concern. Unsubscribing here would break
-    // geo-blocking / HIP-3 flag propagation after disconnect → reconnect.
-
-    // Reset initialization state to ensure proper reconnection
-    this.isInitialized = false;
-    this.#initializationPromise = null;
   }
 
   /**

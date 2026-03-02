@@ -30,6 +30,8 @@ export const PERPS_CONSTANTS = {
   ReconnectionDelayAndroidMs: 300, // Android-specific reconnection delay for better reliability on slower devices
   ReconnectionDelayIosMs: 100, // iOS-specific reconnection delay for optimal performance
   ReconnectionRetryDelayMs: 5_000, // 5 seconds delay between reconnection attempts
+  /** Max time to wait for provider.disconnect() during teardown; prevents hang when WebSocket is dead */
+  DisconnectTimeoutMs: 5_000,
 
   // Connection manager timing constants
   BalanceUpdateThrottleMs: 15000, // Update at most every 15 seconds to reduce state updates in PerpsConnectionManager
