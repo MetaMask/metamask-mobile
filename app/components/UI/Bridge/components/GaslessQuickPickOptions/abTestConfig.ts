@@ -1,21 +1,21 @@
 export const NUMPAD_QUICK_ACTIONS_AB_KEY =
   'swapsSWAPS4135AbtestNumpadQuickAmounts';
 
-export const NUMPAD_QUICK_ACTIONS_VARIANTS = {
+export type NumpadQuickActionsVariant = 'control' | 'treatment';
+export type NumpadQuickAction = number | 'MAX';
+
+export const NUMPAD_QUICK_ACTIONS_VARIANTS: Record<
+  NumpadQuickActionsVariant,
+  readonly NumpadQuickAction[]
+> = {
   control: [25, 50, 75, 'MAX'],
   treatment: [50, 75, 90, 'MAX'],
-} as const;
+};
 
-export const NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS = {
+export const NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS: Record<
+  NumpadQuickActionsVariant,
+  readonly number[]
+> = {
   control: [25, 50, 75, 90],
   treatment: [50, 75, 85, 95],
-} as const;
-
-export type NumpadQuickActionsVariant =
-  keyof typeof NUMPAD_QUICK_ACTIONS_VARIANTS;
-
-export type NumpadQuickAction =
-  (typeof NUMPAD_QUICK_ACTIONS_VARIANTS)[NumpadQuickActionsVariant][number];
-
-export type NumpadQuickActionNoMax =
-  (typeof NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS)[NumpadQuickActionsVariant][number];
+};

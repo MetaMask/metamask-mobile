@@ -14,7 +14,6 @@ import {
   NUMPAD_QUICK_ACTIONS_AB_KEY,
   NUMPAD_QUICK_ACTIONS_VARIANTS,
   NumpadQuickAction,
-  NumpadQuickActionNoMax,
   NumpadQuickActionsVariant,
 } from './abTestConfig';
 
@@ -41,7 +40,8 @@ export const GaslessQuickPickOptions = ({
     NUMPAD_QUICK_ACTIONS_VARIANTS,
   );
 
-  const selectedVariant = variantName as NumpadQuickActionsVariant;
+  const selectedVariant: NumpadQuickActionsVariant =
+    variantName === 'treatment' ? 'treatment' : 'control';
 
   const trackInputAmountChange = useCallback(
     ({ inputValue, preset }: { inputValue: string; preset?: string }) => {
@@ -98,7 +98,7 @@ export const GaslessQuickPickOptions = ({
   );
 
   const quickActions = useMemo(
-    (): readonly NumpadQuickAction[] | readonly NumpadQuickActionNoMax[] =>
+    (): readonly NumpadQuickAction[] =>
       shouldRenderMaxOption
         ? NUMPAD_QUICK_ACTIONS_VARIANTS[selectedVariant]
         : NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS[selectedVariant],
