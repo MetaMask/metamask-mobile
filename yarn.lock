@@ -9430,14 +9430,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@10.0.0-preview-225638478":
-  version: 10.0.0-preview-225638478
-  resolution: "@metamask-previews/ramps-controller@npm:10.0.0-preview-225638478"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@10.0.0-preview-1d2746c":
+  version: 10.0.0-preview-1d2746c
+  resolution: "@metamask-previews/ramps-controller@npm:10.0.0-preview-1d2746c"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.19.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/dc093dacbe55ee20cbb50cc9b1c9649469b4c115f35db6b0f7a020610742955c6f35ee5e1f74ba079769c481c0210316ffd23e775bd03b1e83798530aaf142cb
+  checksum: 10/20b614385a483bb443c5783742d95383ba3be23b34064bd0ac491fe6023b70e01f134642ea9c872abbd43bf3709d247971d2699051b49a8b0b21b846d32d0f67
   languageName: node
   linkType: hard
 
@@ -35671,6 +35671,7 @@ __metadata:
     prop-types: "npm:15.7.2"
     pump: "npm:3.0.0"
     punycode: "npm:^2.1.1"
+    pusher-js: "npm:^8.4.0"
     qs: "npm:6.14.1"
     query-string: "npm:^6.12.1"
     randomfill: "npm:^1.0.4"
@@ -39561,6 +39562,15 @@ __metadata:
   dependencies:
     bitcoin-ops: "npm:^1.3.0"
   checksum: 10/963fb0b61258e7654d6e3e34e68c8672bc3fdbd154da0a9af0482d2b7b9e9227b11bc17a39f42003f92e996cb552395e903d369347c840381a356964cf553967
+  languageName: node
+  linkType: hard
+
+"pusher-js@npm:^8.4.0":
+  version: 8.4.0
+  resolution: "pusher-js@npm:8.4.0"
+  dependencies:
+    tweetnacl: "npm:^1.0.3"
+  checksum: 10/c0ab712d56a4bdca9b252e9ec577be584896c559a1c62ef801b5f5bd5e08e6fc34980c8b88152c84289470a6870a3cf5dd621ef23c86f81211ae41d5c3f28e47
   languageName: node
   linkType: hard
 
