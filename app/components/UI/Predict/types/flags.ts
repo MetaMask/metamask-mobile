@@ -23,6 +23,12 @@ export interface PredictMarketHighlightsFlag extends VersionGatedFeatureFlag {
   highlights: PredictMarketHighlight[];
 }
 
+export interface PredictFeatureFlags {
+  feeCollection: PredictFeeCollection;
+  liveSportsLeagues: string[];
+  marketHighlightsFlag: PredictMarketHighlightsFlag;
+}
+
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
   queryParams?: string; // Raw query params WITHOUT leading &: "tag_id=149&tag_id=100995&order=volume24hr"
 }
