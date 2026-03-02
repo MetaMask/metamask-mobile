@@ -300,8 +300,8 @@ describe('formatDateOfBirth', () => {
 
   describe('when handling edge cases', () => {
     it('formats very old dates correctly', () => {
-      // Given: very old date (year 1900)
-      const oldDate = new Date('1900-01-01T00:00:00.000Z');
+      // Given: very old date (year 1900) created in local timezone
+      const oldDate = new Date(1900, 0, 1);
       const timestampString = oldDate.getTime().toString();
 
       // When: formatting timestamp
@@ -336,8 +336,8 @@ describe('formatDateOfBirth', () => {
     });
 
     it('formats recent dates correctly', () => {
-      // Given: recent date
-      const recentDate = new Date('2023-12-31T23:59:59.999Z');
+      // Given: date created in local timezone (matching PersonalDetails.tsx parsing)
+      const recentDate = new Date(2023, 11, 31);
       const timestampString = recentDate.getTime().toString();
 
       // When: formatting timestamp
@@ -348,8 +348,9 @@ describe('formatDateOfBirth', () => {
     });
 
     it('handles zero timestamp correctly', () => {
-      // Given: zero timestamp (Unix epoch)
-      const timestampString = '0';
+      // Given: epoch date created in local timezone
+      const epochLocal = new Date(1970, 0, 1);
+      const timestampString = epochLocal.getTime().toString();
 
       // When: formatting timestamp
       const result = formatDateOfBirth(timestampString);
