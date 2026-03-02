@@ -120,24 +120,35 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
       </View>
       <View
         style={
-          {
-            "alignItems": "center",
-            "flexDirection": "column",
-            "justifyContent": "center",
-            "padding": 16,
-            "rowGap": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "justifyContent": "center",
+              "paddingBottom": 16,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "paddingTop": 16,
+              "rowGap": 16,
+            },
+            undefined,
+          ]
         }
         testID="onboarding-sheet"
       >
         <View
           style={
-            {
-              "flexDirection": "column",
-              "gap": 16,
-              "justifyContent": "flex-end",
-              "width": "100%",
-            }
+            [
+              {
+                "display": "flex",
+                "flexDirection": "column",
+                "gap": 16,
+                "justifyContent": "flex-end",
+                "width": "100%",
+              },
+              undefined,
+            ]
           }
         >
           <TouchableOpacity
@@ -155,7 +166,6 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
-                "color": "#ffffff",
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
@@ -167,11 +177,15 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
           >
             <View
               style={
-                {
-                  "alignItems": "center",
-                  "columnGap": 8,
-                  "flexDirection": "row",
-                }
+                [
+                  {
+                    "alignItems": "center",
+                    "columnGap": 8,
+                    "display": "flex",
+                    "flexDirection": "row",
+                  },
+                  undefined,
+                ]
               }
             >
               <SvgMock
@@ -211,7 +225,6 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
-                "color": "#ffffff",
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
@@ -223,11 +236,15 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
           >
             <View
               style={
-                {
-                  "alignItems": "center",
-                  "columnGap": 8,
-                  "flexDirection": "row",
-                }
+                [
+                  {
+                    "alignItems": "center",
+                    "columnGap": 8,
+                    "display": "flex",
+                    "flexDirection": "row",
+                  },
+                  undefined,
+                ]
               }
             >
               <SvgMock
@@ -255,21 +272,31 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
         </View>
         <View
           style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 10,
-              "justifyContent": "center",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": 10,
+                "justifyContent": "center",
+              },
+              undefined,
+            ]
           }
         >
           <View
             style={
-              {
-                "backgroundColor": "#b7bbc866",
-                "flex": 1,
-                "height": 1,
-              }
+              [
+                {
+                  "backgroundColor": "#b7bbc866",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                  "height": 1,
+                },
+                undefined,
+              ]
             }
           />
           <Text
@@ -288,22 +315,32 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
           </Text>
           <View
             style={
-              {
-                "backgroundColor": "#b7bbc866",
-                "flex": 1,
-                "height": 1,
-              }
+              [
+                {
+                  "backgroundColor": "#b7bbc866",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                  "height": 1,
+                },
+                undefined,
+              ]
             }
           />
         </View>
         <View
           style={
-            {
-              "flexDirection": "column",
-              "gap": 16,
-              "justifyContent": "flex-end",
-              "width": "100%",
-            }
+            [
+              {
+                "display": "flex",
+                "flexDirection": "column",
+                "gap": 16,
+                "justifyContent": "flex-end",
+                "width": "100%",
+              },
+              undefined,
+            ]
           }
         >
           <TouchableOpacity
@@ -348,10 +385,14 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
         </View>
         <View
           style={
-            {
-              "alignItems": "center",
-              "marginTop": 24,
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "marginTop": 24,
+              },
+              undefined,
+            ]
           }
         >
           <Text
@@ -534,24 +575,35 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
       </View>
       <View
         style={
-          {
-            "alignItems": "center",
-            "flexDirection": "column",
-            "justifyContent": "center",
-            "padding": 16,
-            "rowGap": 16,
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "justifyContent": "center",
+              "paddingBottom": 16,
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "paddingTop": 16,
+              "rowGap": 16,
+            },
+            undefined,
+          ]
         }
         testID="onboarding-sheet"
       >
         <View
           style={
-            {
-              "flexDirection": "column",
-              "gap": 16,
-              "justifyContent": "flex-end",
-              "width": "100%",
-            }
+            [
+              {
+                "display": "flex",
+                "flexDirection": "column",
+                "gap": 16,
+                "justifyContent": "flex-end",
+                "width": "100%",
+              },
+              undefined,
+            ]
           }
         >
           <TouchableOpacity
@@ -569,7 +621,6 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
-                "color": "#ffffff",
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
@@ -581,11 +632,15 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
           >
             <View
               style={
-                {
-                  "alignItems": "center",
-                  "columnGap": 8,
-                  "flexDirection": "row",
-                }
+                [
+                  {
+                    "alignItems": "center",
+                    "columnGap": 8,
+                    "display": "flex",
+                    "flexDirection": "row",
+                  },
+                  undefined,
+                ]
               }
             >
               <SvgMock
@@ -625,7 +680,6 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
-                "color": "#ffffff",
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
@@ -637,11 +691,15 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
           >
             <View
               style={
-                {
-                  "alignItems": "center",
-                  "columnGap": 8,
-                  "flexDirection": "row",
-                }
+                [
+                  {
+                    "alignItems": "center",
+                    "columnGap": 8,
+                    "display": "flex",
+                    "flexDirection": "row",
+                  },
+                  undefined,
+                ]
               }
             >
               <SvgMock
@@ -669,21 +727,31 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
         </View>
         <View
           style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 10,
-              "justifyContent": "center",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": 10,
+                "justifyContent": "center",
+              },
+              undefined,
+            ]
           }
         >
           <View
             style={
-              {
-                "backgroundColor": "#b7bbc866",
-                "flex": 1,
-                "height": 1,
-              }
+              [
+                {
+                  "backgroundColor": "#b7bbc866",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                  "height": 1,
+                },
+                undefined,
+              ]
             }
           />
           <Text
@@ -702,22 +770,32 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
           </Text>
           <View
             style={
-              {
-                "backgroundColor": "#b7bbc866",
-                "flex": 1,
-                "height": 1,
-              }
+              [
+                {
+                  "backgroundColor": "#b7bbc866",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                  "height": 1,
+                },
+                undefined,
+              ]
             }
           />
         </View>
         <View
           style={
-            {
-              "flexDirection": "column",
-              "gap": 16,
-              "justifyContent": "flex-end",
-              "width": "100%",
-            }
+            [
+              {
+                "display": "flex",
+                "flexDirection": "column",
+                "gap": 16,
+                "justifyContent": "flex-end",
+                "width": "100%",
+              },
+              undefined,
+            ]
           }
         >
           <TouchableOpacity
@@ -762,10 +840,14 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
         </View>
         <View
           style={
-            {
-              "alignItems": "center",
-              "marginTop": 24,
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "marginTop": 24,
+              },
+              undefined,
+            ]
           }
         >
           <Text
