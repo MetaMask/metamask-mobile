@@ -6021,7 +6021,7 @@
       },
       "education": {
         "heading": "GET {{percentage}}% ON\nSTABLECOINS",
-        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus.",
+        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% annual bonus that you can claim daily.",
         "terms_apply": "Terms apply.",
         "primary_button": "Get Started",
         "secondary_button": "Not now"
@@ -6029,7 +6029,7 @@
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
       "boost_title": "Get {{percentage}}% on your stablecoins",
-      "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
+      "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annual bonus that you can claim daily.",
       "powered_by_relay": "Powered by Relay",
       "earn_rewards_when": "Earn rewards when",
       "you_convert_to": "you convert to",
