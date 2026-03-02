@@ -305,6 +305,11 @@ jobs:
           echo "{\"component_view_test_number\": $cv_total}" > cv-test-stats.json
           echo "CV test count: $cv_total"
 
+          mkdir -p tests/coverage-cv-merged
+          for file in ./tests/coverage/coverage-cv-*/coverage-cv-*.json; do
+            [ -f "$file" ] && cp "$file" ./tests/coverage-cv-merged/
+          done
+
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
@@ -322,6 +327,13 @@ jobs:
         with:
           name: unit-test-stats
           path: ./unit-test-stats.json
+          if-no-files-found: error
+      - name: Generate CV test HTML coverage report
+        run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: html-coverage-cv-test
+          path: ./tests/coverage-cv-lcov/
           if-no-files-found: error
       - name: Require clean working directory
         shell: bash
