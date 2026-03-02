@@ -97,6 +97,10 @@ export async function processDepositOrder(
     Logger.error(error as Error, {
       message: 'DepositOrder::Processor error while processing order',
       orderId: order.id,
+      provider: order.provider,
+      orderType: order.orderType,
+      state: order.state,
+      network: order.network,
     });
     return order;
   }
