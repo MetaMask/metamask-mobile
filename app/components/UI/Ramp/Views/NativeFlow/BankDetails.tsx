@@ -3,7 +3,7 @@ import { View, TouchableOpacity, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
 import styleSheet from '../../Deposit/Views/BankDetails/BankDetails.styles';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -42,6 +42,7 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { selectTokens } from '../../../../../selectors/rampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { isHttpUnauthorized } from '../../utils/isHttpUnauthorized';
 
 export interface BankDetailsParams {
   orderId: string;
@@ -115,8 +116,7 @@ const V2BankDetails = () => {
         });
       }
     } catch (refreshError) {
-      const httpError = refreshError as { status?: number };
-      if (httpError.status === 401) {
+      if (isHttpUnauthorized(refreshError)) {
         await handleLogoutError();
         return;
       }
@@ -142,11 +142,11 @@ const V2BankDetails = () => {
       order.state === FIAT_ORDER_STATES.COMPLETED ||
       order.state === FIAT_ORDER_STATES.FAILED
     ) {
-      navigation.dispatch(
-        StackActions.replace(Routes.RAMP.ORDER_PROCESSING, {
-          orderId: order.id,
-        }),
-      );
+      // @ts-expect-error navigation prop mismatch
+      navigation.replace(Routes.RAMP.RAMPS_ORDER_DETAILS, {
+        orderId: order.id,
+        showCloseButton: true,
+      });
     }
   }, [order?.state, navigation, order?.id]);
 
@@ -249,8 +249,7 @@ const V2BankDetails = () => {
 
       await handleOnRefresh();
     } catch (fetchError) {
-      const httpError = fetchError as { status?: number };
-      if (httpError.status === 401) {
+      if (isHttpUnauthorized(fetchError)) {
         await handleLogoutError();
         return;
       }
@@ -287,8 +286,7 @@ const V2BankDetails = () => {
       await transakCancelOrder(order.id);
       await handleOnRefresh();
     } catch (fetchError) {
-      const httpError = fetchError as { status?: number };
-      if (httpError.status === 401) {
+      if (isHttpUnauthorized(fetchError)) {
         await handleLogoutError();
         return;
       }
@@ -467,7 +465,7 @@ const V2BankDetails = () => {
                 label={strings('deposit.order_processing.cancel_order_button')}
                 size={ButtonSize.Lg}
                 loading={isLoadingCancelOrder}
-                disabled={isLoadingConfirmPayment}
+                disabled={isLoadingConfirmPayment || isLoadingCancelOrder}
               />
 
               <Button
@@ -477,7 +475,7 @@ const V2BankDetails = () => {
                 testID="main-action-button"
                 label={strings('deposit.bank_details.button')}
                 size={ButtonSize.Lg}
-                disabled={isLoadingCancelOrder}
+                disabled={isLoadingCancelOrder || isLoadingConfirmPayment}
                 loading={isLoadingConfirmPayment}
               />
             </View>

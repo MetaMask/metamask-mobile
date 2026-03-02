@@ -62,8 +62,12 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   isVisible,
 }) => {
   const tw = useTailwind();
-  const { activity, isLoading, isRefreshing, loadActivity } =
-    usePredictActivity({});
+  const {
+    data: activity = [],
+    isLoading,
+    isRefetching,
+    refetch,
+  } = usePredictActivity();
 
   // Track screen load performance (activity data loaded)
   usePredictMeasurement({
@@ -270,8 +274,10 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
       showsVerticalScrollIndicator={false}
       style={tw.style('flex-1')}
       stickySectionHeadersEnabled
-      refreshing={isRefreshing}
-      onRefresh={() => loadActivity({ isRefresh: true })}
+      refreshing={isRefetching}
+      onRefresh={() => {
+        void refetch();
+      }}
       maxToRenderPerBatch={20}
       initialNumToRender={20}
       windowSize={12}

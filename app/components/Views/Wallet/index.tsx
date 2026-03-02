@@ -17,11 +17,14 @@ import {
   ActivityIndicator,
   DeviceEventEmitter,
   Linking,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
   RefreshControl,
   ScrollView,
   StyleSheet as RNStyleSheet,
   View,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -64,7 +67,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -108,6 +111,7 @@ import {
 } from '../../../util/networks';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { useTheme } from '../../../util/theme';
+import { colorWithOpacity } from '../../../util/colors';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
@@ -205,6 +209,13 @@ const createStyles = ({ colors }: Theme) =>
     },
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
+    },
+    bottomFadeOverlay: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: 40,
     },
   });
 
@@ -625,7 +636,7 @@ const Wallet = ({
   );
 
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
@@ -765,7 +776,7 @@ const Wallet = ({
     return true;
   }, [isEvmSelected, allEnabledNetworks]);
 
-  const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
+  const { isEnabled: getParticipationInMetaMetrics } = useAnalytics();
 
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
@@ -1080,6 +1091,64 @@ const Wallet = ({
   const shouldEnableParentScroll =
     isHomepageRedesignV1Enabled || isHomepageSectionsV1Enabled;
 
+  const [bottomFadeOpacity, setBottomFadeOpacity] = useState(0);
+
+  const scrollContentHeight = useRef(0);
+  const scrollLayoutHeight = useRef(0);
+  const scrollOffsetY = useRef(0);
+
+  const computeFadeOpacity = useCallback(
+    (contentH: number, layoutH: number, offsetY: number) => {
+      const scrollableHeight = contentH - layoutH;
+      if (scrollableHeight <= 0) {
+        setBottomFadeOpacity(0);
+        return;
+      }
+      const distanceFromEnd = scrollableHeight - offsetY;
+      const fadeThreshold = 100;
+      setBottomFadeOpacity(
+        Math.min(1, Math.max(0, distanceFromEnd / fadeThreshold)),
+      );
+    },
+    [],
+  );
+
+  const handleVerticalScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      scrollContentHeight.current = contentSize.height;
+      scrollLayoutHeight.current = layoutMeasurement.height;
+      scrollOffsetY.current = contentOffset.y;
+      computeFadeOpacity(
+        contentSize.height,
+        layoutMeasurement.height,
+        contentOffset.y,
+      );
+    },
+    [computeFadeOpacity],
+  );
+
+  const handleScrollContentSizeChange = useCallback(
+    (_w: number, h: number) => {
+      scrollContentHeight.current = h;
+      computeFadeOpacity(h, scrollLayoutHeight.current, scrollOffsetY.current);
+    },
+    [computeFadeOpacity],
+  );
+
+  const handleScrollLayout = useCallback(
+    (event: { nativeEvent: { layout: { height: number } } }) => {
+      scrollLayoutHeight.current = event.nativeEvent.layout.height;
+      computeFadeOpacity(
+        scrollContentHeight.current,
+        event.nativeEvent.layout.height,
+        scrollOffsetY.current,
+      );
+    },
+    [computeFadeOpacity],
+  );
+
   useEffect(() => {
     if (!selectedInternalAccount) return;
     navigation.setOptions(
@@ -1221,14 +1290,20 @@ const Wallet = ({
           ? (obj.ref.props as { tabLabel?: string })?.tabLabel
           : '';
       if (tabLabel === strings('wallet.tokens')) {
-        trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.WALLET_TOKENS)
+            .addProperties({ action: 'Wallet View', name: 'Tokens' })
+            .build(),
+        );
       } else if (tabLabel === strings('wallet.defi')) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
         );
       } else if (tabLabel === strings('wallet.collectibles')) {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
+          createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES)
+            .addProperties({ action: 'Wallet View', name: 'Collectibles' })
+            .build(),
         );
         detectNfts();
       }
@@ -1359,6 +1434,16 @@ const Wallet = ({
               scrollViewProps={{
                 contentContainerStyle: scrollViewContentStyle,
                 showsVerticalScrollIndicator: false,
+                onScroll: isHomepageSectionsV1Enabled
+                  ? handleVerticalScroll
+                  : undefined,
+                onContentSizeChange: isHomepageSectionsV1Enabled
+                  ? handleScrollContentSizeChange
+                  : undefined,
+                onLayout: isHomepageSectionsV1Enabled
+                  ? handleScrollLayout
+                  : undefined,
+                scrollEventThrottle: 16,
                 refreshControl: shouldEnableParentScroll ? (
                   <RefreshControl
                     colors={[colors.primary.default]}
@@ -1371,6 +1456,21 @@ const Wallet = ({
             >
               {content}
             </ConditionalScrollView>
+            {isHomepageSectionsV1Enabled && bottomFadeOpacity > 0 && (
+              <LinearGradient
+                pointerEvents="none"
+                colors={[
+                  colorWithOpacity(colors.background.default, 0),
+                  colors.background.default,
+                ]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={[
+                  styles.bottomFadeOverlay,
+                  { opacity: bottomFadeOpacity },
+                ]}
+              />
+            )}
           </View>
         ) : (
           renderLoader()

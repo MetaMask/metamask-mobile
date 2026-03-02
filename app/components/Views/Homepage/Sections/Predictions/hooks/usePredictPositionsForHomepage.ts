@@ -44,13 +44,14 @@ export const _clearPositionsCache = (): void => {
  * Lightweight hook for fetching user prediction positions for the homepage.
  *
  * Uses module-level caching to avoid redundant API calls.
- * Returns active (non-claimable) positions only.
  *
- * @param maxPositions - Maximum number of positions to return
+ * @param maxPositions - Maximum number of positions to return (all if omitted)
+ * @param claimable - When true, returns only claimable positions; when false (default), returns only active positions
  * @returns Positions data, loading state, and refresh function
  */
 export const usePredictPositionsForHomepage = (
-  maxPositions = 5,
+  maxPositions?: number,
+  claimable = false,
 ): UsePredictPositionsForHomepageResult => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const userAddress = useSelector(
@@ -64,7 +65,9 @@ export const usePredictPositionsForHomepage = (
   const maxPositionsRef = useRef(maxPositions);
   maxPositionsRef.current = maxPositions;
 
-  const cacheKey = userAddress ? `predict_positions_${userAddress}` : null;
+  const cacheKey = userAddress
+    ? `predict_positions_${userAddress}_${claimable}`
+    : null;
 
   const [state, setState] = useState<{
     positions: PredictPosition[];
@@ -79,7 +82,9 @@ export const usePredictPositionsForHomepage = (
     const cached = positionsCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       return {
-        positions: cached.positions.slice(0, maxPositions),
+        positions: maxPositions
+          ? cached.positions.slice(0, maxPositions)
+          : cached.positions,
         isLoading: false,
         error: null,
       };
@@ -103,7 +108,9 @@ export const usePredictPositionsForHomepage = (
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       if (isMountedRef.current) {
         setState({
-          positions: cached.positions.slice(0, currentMaxPositions),
+          positions: currentMaxPositions
+            ? cached.positions.slice(0, currentMaxPositions)
+            : cached.positions,
           isLoading: false,
           error: null,
         });
@@ -117,7 +124,7 @@ export const usePredictPositionsForHomepage = (
       const controller = Engine.context.PredictController;
       const positionsData = await controller.getPositions({
         address: userAddress,
-        claimable: false, // Only active positions
+        claimable,
       });
 
       // Check if this request is still valid
@@ -136,7 +143,9 @@ export const usePredictPositionsForHomepage = (
       cleanExpiredCache();
 
       setState({
-        positions: validPositions.slice(0, currentMaxPositions),
+        positions: currentMaxPositions
+          ? validPositions.slice(0, currentMaxPositions)
+          : validPositions,
         isLoading: false,
         error: null,
       });
@@ -151,7 +160,7 @@ export const usePredictPositionsForHomepage = (
         error: err instanceof Error ? err.message : 'Failed to fetch positions',
       });
     }
-  }, [isPredictEnabled, cacheKey, userAddress]);
+  }, [isPredictEnabled, cacheKey, userAddress, claimable]);
 
   const refresh = useCallback(async () => {
     // Clear cache and refetch
