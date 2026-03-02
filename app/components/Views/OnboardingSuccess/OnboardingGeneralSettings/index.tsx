@@ -8,16 +8,15 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
-import { useStyles } from '../../../../component-library/hooks';
 import BackupAndSyncToggle from '../../../UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import styleSheet from '../DefaultSettings/index.styles';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const GeneralSettings = () => {
   useOnboardingHeader(strings('default_settings.drawer_general_title'));
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const isBasicFunctionalityEnabled = useSelector(
@@ -56,8 +55,8 @@ const GeneralSettings = () => {
   };
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
-      <ScrollView style={styles.scrollRoot}>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={tw.style('flex-1')}>
+      <ScrollView style={tw.style('flex-1 pt-4 px-4')}>
         <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
         <BackupAndSyncToggle
           trackBackupAndSyncToggleEventOverride={trackBackupAndSyncToggleEvent}
