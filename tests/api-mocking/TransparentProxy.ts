@@ -156,30 +156,11 @@ export default class TransparentProxy implements Resource {
   }
 
   /**
-   * Installs the CA certificate on the device/simulator.
-   * Safe to call BEFORE the app is launched (no app interaction needed).
-   * On Android, this may trigger an emulator reboot if dm-verity needs disabling.
-   */
-  async installCACert(): Promise<void> {
-    const certPem = this.getCACertPem();
-
-    if (FrameworkDetector.isDetox()) {
-      const isAndroid = device.getPlatform() === 'android';
-      if (isAndroid) {
-        const deviceId = (device as { id?: string }).id || '';
-        await installCACertAndroid(deviceId, certPem);
-      } else {
-        const simulatorId = (device as { id?: string }).id || 'booted';
-        await installCACertIOS(simulatorId, certPem);
-      }
-      logger.info('CA certificate installed on device.');
-    }
-  }
-
-  /**
-   * Configures the device/simulator to route traffic through this proxy
-   * and disables Detox synchronization.
-   * Must be called AFTER the app has been launched.
+   * Configures the device/simulator to route traffic through this proxy,
+   * installs the CA certificate, and disables Detox synchronization.
+   * Must be called AFTER the app has been launched — `adb root` (used during
+   * Android cert installation) restarts adbd which would invalidate Detox's
+   * device connection if called before launchApp().
    */
   async configureDevice(): Promise<void> {
     const proxyPort = PortManager.getInstance().getPort(
@@ -188,13 +169,17 @@ export default class TransparentProxy implements Resource {
     if (!proxyPort) {
       throw new Error('Transparent proxy port not allocated by PortManager');
     }
+    const certPem = this.getCACertPem();
 
     if (FrameworkDetector.isDetox()) {
       const isAndroid = device.getPlatform() === 'android';
       if (isAndroid) {
         const deviceId = (device as { id?: string }).id || '';
+        await installCACertAndroid(deviceId, certPem);
         await configureAndroidProxy(deviceId, proxyPort);
       } else {
+        const simulatorId = (device as { id?: string }).id || 'booted';
+        await installCACertIOS(simulatorId, certPem);
         await configureIOSProxy(proxyPort);
       }
 
