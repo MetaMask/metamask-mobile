@@ -1,5 +1,10 @@
 import { useMemo } from 'react';
-import { Hex, isCaipChainId, isCaipAssetType } from '@metamask/utils';
+import {
+  Hex,
+  isCaipChainId,
+  isCaipAssetType,
+  isHexString,
+} from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
 import { useRampTokens } from './useRampTokens';
 import { useRampsTokens } from './useRampsTokens';
@@ -14,7 +19,7 @@ export interface UseTokenBuyabilityResult {
 }
 
 interface UseTokensBuyabilityResult {
-  isBuyableByToken: boolean[];
+  buyabilityByTokenKey: Record<string, boolean>;
   isLoading: boolean;
 }
 
@@ -42,6 +47,27 @@ function buildRampAssetId(token: TokenI): string | undefined {
   }
 }
 
+function getTokenCaipChainId(token: TokenI): string {
+  if (!token.chainId) {
+    return 'unknown-chain';
+  }
+
+  if (isCaipChainId(token.chainId)) {
+    return token.chainId;
+  }
+
+  if (isHexString(token.chainId)) {
+    return toEvmCaipChainId(token.chainId as Hex);
+  }
+
+  return token.chainId;
+}
+
+export function getTokenBuyabilityKey(token: TokenI): string {
+  const caipChainId = getTokenCaipChainId(token);
+  return `${caipChainId}:${token.address.toLowerCase()}`;
+}
+
 function getIsTokenBuyable(
   token: TokenI,
   rampsTokens: BuyabilityTokenSource[] | null,
@@ -50,9 +76,7 @@ function getIsTokenBuyable(
     return false;
   }
 
-  const chainId = isCaipChainId(token.chainId)
-    ? token.chainId
-    : toEvmCaipChainId(token.chainId as Hex);
+  const chainId = getTokenCaipChainId(token);
   const assetId = buildRampAssetId(token);
   const isNative = token.isNative ?? false;
 
@@ -96,12 +120,17 @@ export const useTokensBuyability = (
   const rampsTokens = isV2Enabled
     ? controllerTokens?.allTokens
     : legacyAllTokens;
-  const isBuyableByToken = useMemo(
-    () => tokens.map((token) => getIsTokenBuyable(token, rampsTokens ?? null)),
+  const buyabilityByTokenKey = useMemo(
+    () =>
+      tokens.reduce<Record<string, boolean>>((accumulator, token) => {
+        const tokenKey = getTokenBuyabilityKey(token);
+        accumulator[tokenKey] = getIsTokenBuyable(token, rampsTokens ?? null);
+        return accumulator;
+      }, {}),
     [tokens, rampsTokens],
   );
 
-  return { isBuyableByToken, isLoading };
+  return { buyabilityByTokenKey, isLoading };
 };
 
 /**
@@ -109,8 +138,9 @@ export const useTokensBuyability = (
  * Wrapper around useTokensBuyability for backwards compatibility.
  */
 export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
-  const { isBuyableByToken, isLoading } = useTokensBuyability([token]);
-  return { isBuyable: isBuyableByToken[0] ?? false, isLoading };
+  const { buyabilityByTokenKey, isLoading } = useTokensBuyability([token]);
+  const tokenKey = getTokenBuyabilityKey(token);
+  return { isBuyable: buyabilityByTokenKey[tokenKey] ?? false, isLoading };
 };
 
 export default useTokenBuyability;

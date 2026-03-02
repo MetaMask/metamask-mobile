@@ -83,7 +83,7 @@ describe('useTokenBuyability', () => {
   });
 
   describe('useTokensBuyability', () => {
-    it('maps buyability for multiple tokens in order', () => {
+    it('maps buyability for multiple tokens by token key', () => {
       const firstToken = getMockToken({
         address: '0x6b175474e89094c44da98b954eedeac495271d0f',
       });
@@ -115,7 +115,10 @@ describe('useTokenBuyability', () => {
         tokenBuyabilityModule.useTokensBuyability([firstToken, secondToken]),
       );
 
-      expect(result.current.isBuyableByToken).toEqual([true, false]);
+      expect(result.current.buyabilityByTokenKey).toEqual({
+        [tokenBuyabilityModule.getTokenBuyabilityKey(firstToken)]: true,
+        [tokenBuyabilityModule.getTokenBuyabilityKey(secondToken)]: false,
+      });
     });
 
     it('returns loading from controller tokens when v2 is enabled', () => {
@@ -171,7 +174,9 @@ describe('useTokenBuyability', () => {
         tokenBuyabilityModule.useTokensBuyability([caipToken]),
       );
 
-      expect(result.current.isBuyableByToken).toEqual([true]);
+      expect(result.current.buyabilityByTokenKey).toEqual({
+        [tokenBuyabilityModule.getTokenBuyabilityKey(caipToken)]: true,
+      });
       expect(mockParseRampIntent).not.toHaveBeenCalled();
     });
 
@@ -194,7 +199,9 @@ describe('useTokenBuyability', () => {
         tokenBuyabilityModule.useTokensBuyability([getMockToken()]),
       );
 
-      expect(result.current.isBuyableByToken).toEqual([false]);
+      expect(result.current.buyabilityByTokenKey).toEqual({
+        [tokenBuyabilityModule.getTokenBuyabilityKey(getMockToken())]: false,
+      });
     });
 
     it('returns false for native token when chainId differs', () => {
@@ -214,7 +221,9 @@ describe('useTokenBuyability', () => {
         tokenBuyabilityModule.useTokensBuyability([nativeToken]),
       );
 
-      expect(result.current.isBuyableByToken).toEqual([false]);
+      expect(result.current.buyabilityByTokenKey).toEqual({
+        [tokenBuyabilityModule.getTokenBuyabilityKey(nativeToken)]: false,
+      });
     });
 
     it('returns false for native token when assetId is not slip44', () => {
@@ -235,7 +244,9 @@ describe('useTokenBuyability', () => {
         tokenBuyabilityModule.useTokensBuyability([nativeToken]),
       );
 
-      expect(result.current.isBuyableByToken).toEqual([false]);
+      expect(result.current.buyabilityByTokenKey).toEqual({
+        [tokenBuyabilityModule.getTokenBuyabilityKey(nativeToken)]: false,
+      });
     });
   });
 
@@ -522,8 +533,9 @@ describe('useTokenBuyability', () => {
         tokenBuyabilityModule.useTokensBuyability([token]),
       );
 
+      const tokenKey = tokenBuyabilityModule.getTokenBuyabilityKey(token);
       expect(result.current.isBuyable).toBe(
-        batchResult.current.isBuyableByToken[0] ?? false,
+        batchResult.current.buyabilityByTokenKey[tokenKey] ?? false,
       );
       expect(result.current.isLoading).toBe(batchResult.current.isLoading);
     });

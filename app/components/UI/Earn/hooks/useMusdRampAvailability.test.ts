@@ -2,30 +2,69 @@ import { renderHook } from '@testing-library/react-hooks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useMusdRampAvailability } from './useMusdRampAvailability';
-import { useTokensBuyability } from '../../Ramp/hooks/useTokenBuyability';
-import { MUSD_BUYABLE_CHAIN_IDS } from '../constants/musd';
+import {
+  MUSD_BUYABLE_CHAIN_IDS,
+  MUSD_TOKEN,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+} from '../constants/musd';
+import {
+  getTokenBuyabilityKey,
+  useTokensBuyability,
+} from '../../Ramp/hooks/useTokenBuyability';
+import { TokenI } from '../../Tokens/types';
 
-jest.mock('../../Ramp/hooks/useTokenBuyability');
+jest.mock('../../Ramp/hooks/useTokenBuyability', () => {
+  const actual = jest.requireActual('../../Ramp/hooks/useTokenBuyability');
+  return {
+    ...actual,
+    useTokensBuyability: jest.fn(),
+  };
+});
 
 const mockUseTokensBuyability = useTokensBuyability as jest.MockedFunction<
   typeof useTokensBuyability
 >;
 
 describe('useMusdRampAvailability', () => {
-  const setBuyability = (isBuyableByToken: boolean[]) => {
+  const getMusdToken = (chainId: Hex): TokenI => ({
+    address: MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId],
+    chainId,
+    symbol: MUSD_TOKEN.symbol,
+    name: MUSD_TOKEN.name,
+    decimals: MUSD_TOKEN.decimals,
+    image: '',
+    logo: undefined,
+    balance: '0',
+    isETH: false,
+    isNative: false,
+  });
+
+  const MAINNET_MUSD_KEY = getTokenBuyabilityKey(
+    getMusdToken(CHAIN_IDS.MAINNET as Hex),
+  );
+  const LINEA_MUSD_KEY = getTokenBuyabilityKey(
+    getMusdToken(CHAIN_IDS.LINEA_MAINNET as Hex),
+  );
+
+  const setBuyability = (
+    buyabilityByTokenKey: Record<string, boolean> = {},
+  ) => {
     mockUseTokensBuyability.mockReturnValue({
-      isBuyableByToken,
+      buyabilityByTokenKey,
       isLoading: false,
     });
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    setBuyability([true, true]);
+    setBuyability({
+      [MAINNET_MUSD_KEY]: true,
+      [LINEA_MUSD_KEY]: true,
+    });
   });
 
   it('returns false for all mUSD buyable chains when no tokens are buyable', () => {
-    setBuyability([]);
+    setBuyability({});
 
     const { result } = renderHook(() => useMusdRampAvailability());
 
@@ -36,7 +75,7 @@ describe('useMusdRampAvailability', () => {
   });
 
   it('marks remaining chains as not buyable when buyability results are missing', () => {
-    setBuyability([true]);
+    setBuyability({ [MAINNET_MUSD_KEY]: true });
 
     const { result } = renderHook(() => useMusdRampAvailability());
 
@@ -47,7 +86,10 @@ describe('useMusdRampAvailability', () => {
   });
 
   it('returns true when at least one chain has buyable mUSD', () => {
-    setBuyability([false, true]);
+    setBuyability({
+      [MAINNET_MUSD_KEY]: false,
+      [LINEA_MUSD_KEY]: true,
+    });
 
     const { result } = renderHook(() => useMusdRampAvailability());
 
@@ -55,7 +97,10 @@ describe('useMusdRampAvailability', () => {
   });
 
   it('returns chain-specific buyability when a single chain is selected', () => {
-    setBuyability([true, false]);
+    setBuyability({
+      [MAINNET_MUSD_KEY]: true,
+      [LINEA_MUSD_KEY]: false,
+    });
 
     const { result } = renderHook(() => useMusdRampAvailability());
 
@@ -68,7 +113,10 @@ describe('useMusdRampAvailability', () => {
   });
 
   it('returns false when selected chain is not buyable', () => {
-    setBuyability([true, false]);
+    setBuyability({
+      [MAINNET_MUSD_KEY]: true,
+      [LINEA_MUSD_KEY]: false,
+    });
 
     const { result } = renderHook(() => useMusdRampAvailability());
 
@@ -81,7 +129,10 @@ describe('useMusdRampAvailability', () => {
   });
 
   it('returns false when no chain is selected and popular networks filter is inactive', () => {
-    setBuyability([true, true]);
+    setBuyability({
+      [MAINNET_MUSD_KEY]: true,
+      [LINEA_MUSD_KEY]: true,
+    });
 
     const { result } = renderHook(() => useMusdRampAvailability());
 
@@ -91,7 +142,10 @@ describe('useMusdRampAvailability', () => {
   });
 
   it('returns false for an unknown chain ID', () => {
-    setBuyability([true, true]);
+    setBuyability({
+      [MAINNET_MUSD_KEY]: true,
+      [LINEA_MUSD_KEY]: true,
+    });
 
     const { result } = renderHook(() => useMusdRampAvailability());
 
@@ -104,7 +158,10 @@ describe('useMusdRampAvailability', () => {
   });
 
   it('uses aggregate buyability when popular networks filter is active even with selected chain', () => {
-    setBuyability([false, true]);
+    setBuyability({
+      [MAINNET_MUSD_KEY]: false,
+      [LINEA_MUSD_KEY]: true,
+    });
 
     const { result } = renderHook(() => useMusdRampAvailability());
 

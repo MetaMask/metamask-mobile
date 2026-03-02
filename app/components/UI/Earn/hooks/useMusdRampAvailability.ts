@@ -6,7 +6,10 @@ import {
   MUSD_BUYABLE_CHAIN_IDS,
 } from '../constants/musd';
 import { TokenI } from '../../Tokens/types';
-import { useTokensBuyability } from '../../Ramp/hooks/useTokenBuyability';
+import {
+  getTokenBuyabilityKey,
+  useTokensBuyability,
+} from '../../Ramp/hooks/useTokenBuyability';
 
 export interface MusdRampAvailability {
   isMusdBuyableOnChain: Record<Hex, boolean>;
@@ -57,7 +60,7 @@ export const useMusdRampAvailability = (): MusdRampAvailability => {
     [musdTokensByChain],
   );
 
-  const { isBuyableByToken } = useTokensBuyability(musdTokens);
+  const { buyabilityByTokenKey } = useTokensBuyability(musdTokens);
 
   // Check if mUSD is buyable on a specific chain based on ramp availability
   const isMusdBuyableOnChain = useMemo(() => {
@@ -66,14 +69,17 @@ export const useMusdRampAvailability = (): MusdRampAvailability => {
       buyableByChain[chainId] = false;
     });
 
-    musdTokens.forEach((token, index) => {
+    musdTokens.forEach((token) => {
       if (token.chainId) {
-        buyableByChain[token.chainId as Hex] = Boolean(isBuyableByToken[index]);
+        const tokenKey = getTokenBuyabilityKey(token);
+        buyableByChain[token.chainId as Hex] = Boolean(
+          buyabilityByTokenKey[tokenKey],
+        );
       }
     });
 
     return buyableByChain;
-  }, [isBuyableByToken, musdTokens]);
+  }, [buyabilityByTokenKey, musdTokens]);
 
   // Check if mUSD is buyable on any chain (for "all networks" view)
   const isMusdBuyableOnAnyChain = useMemo(
