@@ -292,6 +292,7 @@ export class RewardsController extends BaseController<
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
   #isSnapshotsEnabled: () => boolean;
+  #reauthPromise: Promise<void> | null = null;
 
   /**
    * Calculate tier status and next tier information
@@ -821,6 +822,96 @@ export class RewardsController extends BaseController<
     this.update((state: RewardsControllerState) => {
       state.activeAccount = accountState;
     });
+  }
+
+  /**
+   * Re-authenticate the account linked to a given subscription.
+   * Resolves the matching InternalAccount and calls performSilentAuth.
+   */
+  async #performReauthForSubscription(subscriptionId: string): Promise<void> {
+    if (this.state.activeAccount?.subscriptionId === subscriptionId) {
+      const account = await this.messenger.call(
+        'AccountsController:getSelectedMultichainAccount',
+      );
+      Logger.log(
+        'RewardsController: Attempting reauth with active account after 403',
+      );
+      await this.performSilentAuth(account, false, false);
+      return;
+    }
+
+    if (this.state.accounts && Object.values(this.state.accounts).length > 0) {
+      const accountForSub = Object.values(this.state.accounts).find(
+        (acc) => acc.subscriptionId === subscriptionId,
+      );
+      if (accountForSub) {
+        const accounts = await this.messenger.call(
+          'AccountsController:listMultichainAccounts',
+        );
+        const intAccountForSub = accounts.find((acc: InternalAccount) => {
+          const accCaipId = this.convertInternalAccountToCaipAccountId(acc);
+          return accCaipId === accountForSub.account;
+        });
+        if (intAccountForSub) {
+          Logger.log(
+            'RewardsController: Attempting reauth with linked account after 403',
+          );
+          await this.performSilentAuth(
+            intAccountForSub as InternalAccount,
+            false,
+            false,
+          );
+          return;
+        }
+      }
+    }
+
+    throw new Error(
+      `No account found for subscription ${subscriptionId} to reauth`,
+    );
+  }
+
+  /**
+   * Wrap an authenticated async call with automatic 403 retry.
+   * On AuthorizationFailedError, coalesces concurrent reauths into a single
+   * performSilentAuth call, then retries the original function once.
+   */
+  async #withAuthRetry<T>(
+    fn: () => Promise<T>,
+    subscriptionId: string,
+  ): Promise<T> {
+    try {
+      return await fn();
+    } catch (error) {
+      if (!(error instanceof AuthorizationFailedError)) throw error;
+
+      if (!this.#reauthPromise) {
+        Logger.log(
+          'RewardsController: 403 detected, initiating reauth for subscription',
+          subscriptionId,
+        );
+        this.#reauthPromise = this.#performReauthForSubscription(
+          subscriptionId,
+        ).finally(() => {
+          this.#reauthPromise = null;
+        });
+      } else {
+        Logger.log(
+          'RewardsController: 403 detected, reauth already in progress for subscription',
+          subscriptionId,
+        );
+      }
+
+      try {
+        await this.#reauthPromise;
+      } catch {
+        this.invalidateSubscriptionCache(subscriptionId);
+        await this.invalidateSubscriptionAndAccounts(subscriptionId);
+        throw error;
+      }
+
+      return await fn();
+    }
   }
 
   /**
@@ -1589,16 +1680,19 @@ export class RewardsController extends BaseController<
 
     // If cursor is provided, always fetch fresh and do not touch cache
     if (params.cursor) {
-      const dto = await this.messenger.call(
-        'RewardsDataService:getPointsEvents',
-        params,
+      const dto = await this.#withAuthRetry(
+        () => this.messenger.call('RewardsDataService:getPointsEvents', params),
+        params.subscriptionId,
       );
       this.triggerBalanceUpdateIfNeeded(dto, params);
       return dto;
     }
 
     if (params.forceFresh) {
-      const dto = await this.getPointsEventsIfChanged(params);
+      const dto = await this.#withAuthRetry(
+        () => this.getPointsEventsIfChanged(params),
+        params.subscriptionId,
+      );
       this.triggerBalanceUpdateIfNeeded(dto, params);
       return dto;
     }
@@ -1625,8 +1719,8 @@ export class RewardsController extends BaseController<
             }
           : undefined;
       },
-      fetchFresh: async () => {
-        try {
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
           Logger.log(
             'RewardsController: Fetching fresh points events data via API call for seasonId & subscriptionId & type & page cursor',
             {
@@ -1639,14 +1733,7 @@ export class RewardsController extends BaseController<
           const pointsEvents = await this.getPointsEventsIfChanged(params);
           this.triggerBalanceUpdateIfNeeded(pointsEvents, params);
           return pointsEvents;
-        } catch (error) {
-          Logger.log(
-            'RewardsController: Failed to get points events:',
-            error instanceof Error ? error.message : String(error),
-          );
-          throw error;
-        }
-      },
+        }, params.subscriptionId),
       writeCache: (key, pointsEventsDto) => {
         this.update((state: RewardsControllerState) => {
           state.pointsEvents[key] =
@@ -1720,11 +1807,14 @@ export class RewardsController extends BaseController<
       'RewardsController: Getting fresh points events last updated for seasonId & subscriptionId',
       params,
     );
-    const result = await this.messenger.call(
-      'RewardsDataService:getPointsEventsLastUpdated',
-      params,
+    return this.#withAuthRetry(
+      () =>
+        this.messenger.call(
+          'RewardsDataService:getPointsEventsLastUpdated',
+          params,
+        ),
+      params.subscriptionId,
     );
-    return result;
   }
 
   /**
@@ -2045,110 +2135,40 @@ export class RewardsController extends BaseController<
         if (!cached) return;
         return { payload: cached, lastFetched: cached.lastFetched };
       },
-      fetchFresh: async () => {
-        try {
-          Logger.log(
-            'RewardsController: Fetching fresh season status data via API call for subscriptionId & seasonId',
-            subscriptionId,
-            seasonId,
-          );
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          try {
+            Logger.log(
+              'RewardsController: Fetching fresh season status data via API call for subscriptionId & seasonId',
+              subscriptionId,
+              seasonId,
+            );
 
-          // Now fetch season status (balance, currentTierId, etc.)
-          const seasonState = await this.messenger.call(
-            'RewardsDataService:getSeasonStatus',
-            seasonId,
-            subscriptionId,
-          );
+            const seasonState = await this.messenger.call(
+              'RewardsDataService:getSeasonStatus',
+              seasonId,
+              subscriptionId,
+            );
 
-          // Combine all data into SeasonStatusDto
-          const seasonStatus = this.convertToSeasonStatusDto(
-            season,
-            seasonState,
-          );
-          return this.#convertSeasonStatusToSubscriptionState(seasonStatus);
-        } catch (error) {
-          if (error instanceof AuthorizationFailedError) {
-            // Attempt to reauth with a valid account.
-            try {
-              if (this.state.activeAccount?.subscriptionId === subscriptionId) {
-                const account = await this.messenger.call(
-                  'AccountsController:getSelectedMultichainAccount',
-                );
-                Logger.log(
-                  'RewardsController: Attempting to reauth with a valid account after 403 error',
-                );
-                await this.performSilentAuth(account, false, false); // try and auth.
-              } else if (
-                this.state.accounts &&
-                Object.values(this.state.accounts).length > 0
-              ) {
-                const accountForSub = Object.values(this.state.accounts).find(
-                  (acc) => acc.subscriptionId === subscriptionId,
-                );
-                if (accountForSub) {
-                  const accounts = await this.messenger.call(
-                    'AccountsController:listMultichainAccounts',
-                  );
-                  const convertInternalAccountToCaipAccountId =
-                    this.convertInternalAccountToCaipAccountId;
-                  const intAccountForSub = accounts.find(
-                    (acc: InternalAccount) => {
-                      const accCaipId =
-                        convertInternalAccountToCaipAccountId(acc);
-                      return accCaipId === accountForSub.account;
-                    },
-                  );
-                  if (intAccountForSub) {
-                    Logger.log(
-                      'RewardsController: Attempting to reauth with any valid account after 403 error',
-                    );
-                    await this.performSilentAuth(
-                      intAccountForSub as InternalAccount,
-                      false,
-                      false,
-                    );
-                  }
-                }
-              }
-              // Now fetch season status (balance, currentTierId, etc.)
-              const seasonState = await this.messenger.call(
-                'RewardsDataService:getSeasonStatus',
-                season.id,
-                subscriptionId,
-              );
-
-              // Combine all data into SeasonStatusDto
-              const seasonStatus = this.convertToSeasonStatusDto(
-                season,
-                seasonState,
-              );
-
-              Logger.log(
-                'RewardsController: Successfully fetched season status after reauth',
-              );
-              return this.#convertSeasonStatusToSubscriptionState(seasonStatus);
-            } catch {
-              Logger.log(
-                'RewardsController: Failed to reauth with a valid account after 403 error',
-                error instanceof Error ? error.message : String(error),
-              );
-              this.invalidateSubscriptionCache(subscriptionId);
-              await this.invalidateSubscriptionAndAccounts(subscriptionId);
+            const seasonStatus = this.convertToSeasonStatusDto(
+              season,
+              seasonState,
+            );
+            return this.#convertSeasonStatusToSubscriptionState(seasonStatus);
+          } catch (error) {
+            if (error instanceof SeasonNotFoundError) {
+              this.update((state: RewardsControllerState) => {
+                state.seasons = {};
+              });
               throw error;
             }
-          } else if (error instanceof SeasonNotFoundError) {
-            this.update((state: RewardsControllerState) => {
-              state.seasons = {};
-            });
+            Logger.log(
+              'RewardsController: Failed to get season status:',
+              error instanceof Error ? error.message : String(error),
+            );
             throw error;
           }
-          Logger.log(
-            'RewardsController: Failed to get season status:',
-            error instanceof Error ? error.message : String(error),
-          );
-          throw error;
-        }
-      },
+        }, subscriptionId),
       writeCache: (key, subscriptionSeasonStatus) => {
         this.update((state: RewardsControllerState) => {
           // Update season status with composite key
@@ -2234,8 +2254,8 @@ export class RewardsController extends BaseController<
         if (!cached) return;
         return { payload: cached, lastFetched: cached.lastFetched };
       },
-      fetchFresh: async () => {
-        try {
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
           Logger.log(
             'RewardsController: Fetching fresh referral details data via API call for',
             { subscriptionId, seasonId },
@@ -2252,14 +2272,7 @@ export class RewardsController extends BaseController<
             referredByCode: referralDetails.referredByCode,
             lastFetched: Date.now(),
           };
-        } catch (error) {
-          Logger.log(
-            'RewardsController: Failed to get referral details:',
-            error instanceof Error ? error.message : String(error),
-          );
-          throw error;
-        }
-      },
+        }, subscriptionId),
       writeCache: (key, payload) => {
         this.update((state: RewardsControllerState) => {
           state.subscriptionReferralDetails[key] = payload;
@@ -2701,9 +2714,13 @@ export class RewardsController extends BaseController<
     }
 
     try {
-      const response = await this.messenger.call(
-        'RewardsDataService:validateBonusCode',
-        code,
+      const response = await this.#withAuthRetry(
+        () =>
+          this.messenger.call(
+            'RewardsDataService:validateBonusCode',
+            code,
+            subscriptionId,
+          ),
         subscriptionId,
       );
       return response.valid;
@@ -3081,8 +3098,8 @@ export class RewardsController extends BaseController<
       }
 
       // Call the opt-out endpoint
-      const result = await this.messenger.call(
-        'RewardsDataService:optOut',
+      const result = await this.#withAuthRetry(
+        () => this.messenger.call('RewardsDataService:optOut', subscriptionId),
         subscriptionId,
       );
 
@@ -3135,8 +3152,8 @@ export class RewardsController extends BaseController<
           lastFetched: cachedActiveBoosts.lastFetched,
         };
       },
-      fetchFresh: async () => {
-        try {
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
           Logger.log(
             'RewardsController: Fetching fresh active boosts data via API call for subscriptionId & seasonId',
             subscriptionId,
@@ -3148,14 +3165,7 @@ export class RewardsController extends BaseController<
             subscriptionId,
           );
           return response.boosts;
-        } catch (error) {
-          Logger.log(
-            'RewardsController: Failed to get active points boosts:',
-            error instanceof Error ? error.message : String(error),
-          );
-          throw error;
-        }
-      },
+        }, subscriptionId),
       writeCache: (key, payload) => {
         this.update((state: RewardsControllerState) => {
           state.activeBoosts[key] = {
@@ -3195,8 +3205,8 @@ export class RewardsController extends BaseController<
           lastFetched: cachedUnlockedRewards.lastFetched,
         };
       },
-      fetchFresh: async () => {
-        try {
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
           Logger.log(
             'RewardsController: Fetching fresh unlocked rewards data via API call for subscriptionId & seasonId',
             subscriptionId,
@@ -3208,14 +3218,7 @@ export class RewardsController extends BaseController<
             subscriptionId,
           )) as RewardDto[];
           return response || [];
-        } catch (error) {
-          Logger.log(
-            'RewardsController: Failed to get unlocked rewards:',
-            error instanceof Error ? error.message : String(error),
-          );
-          throw error;
-        }
-      },
+        }, subscriptionId),
       writeCache: (key, payload) => {
         this.update((state: RewardsControllerState) => {
           state.unlockedRewards[key] = {
@@ -3257,8 +3260,8 @@ export class RewardsController extends BaseController<
           lastFetched: cachedSnapshots.lastFetched,
         };
       },
-      fetchFresh: async () => {
-        try {
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
           Logger.log(
             'RewardsController: Fetching fresh snapshots data via API call for seasonId',
             seasonId,
@@ -3269,14 +3272,7 @@ export class RewardsController extends BaseController<
             subscriptionId,
           )) as SnapshotDto[];
           return response || [];
-        } catch (error) {
-          Logger.log(
-            'RewardsController: Failed to get snapshots:',
-            error instanceof Error ? error.message : String(error),
-          );
-          throw error;
-        }
-      },
+        }, subscriptionId),
       writeCache: (key, payload) => {
         this.update((state: RewardsControllerState) => {
           state.snapshots[key] = {
@@ -3306,11 +3302,15 @@ export class RewardsController extends BaseController<
       throw new Error('Rewards are not enabled');
     }
     try {
-      await this.messenger.call(
-        'RewardsDataService:claimReward',
-        rewardId,
+      await this.#withAuthRetry(
+        () =>
+          this.messenger.call(
+            'RewardsDataService:claimReward',
+            rewardId,
+            subscriptionId,
+            dto,
+          ),
         subscriptionId,
-        dto,
       );
 
       // Invalidate cache for the active subscription
@@ -3349,8 +3349,12 @@ export class RewardsController extends BaseController<
     }
 
     try {
-      const result = await this.messenger.call(
-        'RewardsDataService:getSeasonOneLineaRewardTokens',
+      const result = await this.#withAuthRetry(
+        () =>
+          this.messenger.call(
+            'RewardsDataService:getSeasonOneLineaRewardTokens',
+            subscriptionId,
+          ),
         subscriptionId,
       );
       return result;
@@ -3380,9 +3384,13 @@ export class RewardsController extends BaseController<
     }
 
     try {
-      await this.messenger.call(
-        'RewardsDataService:applyReferralCode',
-        { referralCode },
+      await this.#withAuthRetry(
+        () =>
+          this.messenger.call(
+            'RewardsDataService:applyReferralCode',
+            { referralCode },
+            subscriptionId,
+          ),
         subscriptionId,
       );
 
@@ -3419,9 +3427,13 @@ export class RewardsController extends BaseController<
     }
 
     try {
-      await this.messenger.call(
-        'RewardsDataService:applyBonusCode',
-        { bonusCode },
+      await this.#withAuthRetry(
+        () =>
+          this.messenger.call(
+            'RewardsDataService:applyBonusCode',
+            { bonusCode },
+            subscriptionId,
+          ),
         subscriptionId,
       );
 
