@@ -8,7 +8,7 @@ export const TrendingViewSelectorsIDs = {
   SEARCH_CANCEL_BUTTON: 'explore-search-cancel-button',
   TOKEN_ROW_ITEM_PREFIX: 'trending-token-row-item-',
   PERPS_ROW_ITEM_PREFIX: 'perps-market-row-item-',
-  PREDICTIONS_ROW_ITEM_PREFIX: 'predict-market-list-trending-card-',
+  PREDICTIONS_ROW_ITEM_PREFIX: 'predict-market-row-item-',
   SITE_ROW_ITEM_PREFIX: 'site-row-item-',
   SEARCH_FOOTER_GOOGLE_LINK: 'trending-search-footer-google-link',
   SCROLL_VIEW: AppTrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW,
@@ -22,6 +22,7 @@ export const TrendingViewSelectorsText = {
   // Section titles - must match the actual localized strings from sections.config.tsx
   SECTION_PREDICTIONS: 'Predictions',
   SECTION_TOKENS: 'Trending tokens',
+  SECTION_STOCKS: 'Stocks',
   SECTION_PERPS: 'Perps',
   SECTION_SITES: 'Sites',
 } as const;
@@ -30,6 +31,7 @@ export const TrendingViewSelectorsText = {
 export const SECTION_BACK_BUTTONS: Record<string, string> = {
   [TrendingViewSelectorsText.SECTION_TOKENS]:
     'trending-tokens-header-back-button',
+  [TrendingViewSelectorsText.SECTION_STOCKS]: 'rwa-tokens-header-back-button',
   [TrendingViewSelectorsText.SECTION_PERPS]:
     'perps-market-list-close-button-back-button',
   [TrendingViewSelectorsText.SECTION_SITES]:
@@ -48,6 +50,7 @@ export const DETAILS_BACK_BUTTONS: Record<string, string> = {
 export const SECTION_FULL_VIEW_HEADERS: Record<string, string> = {
   [TrendingViewSelectorsText.SECTION_SITES]: 'sites-full-view-header',
   [TrendingViewSelectorsText.SECTION_TOKENS]: 'trending-tokens-header',
+  [TrendingViewSelectorsText.SECTION_STOCKS]: 'rwa-tokens-header',
   [TrendingViewSelectorsText.SECTION_PERPS]: 'perps-market-list-close-button',
   [TrendingViewSelectorsText.SECTION_PREDICTIONS]: 'back-button', // PredictFeed uses back-button as main identifier
 };

@@ -26,7 +26,7 @@ jobs:
           cache: yarn
       - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
         with:
-          ruby-version: '3.1.6'
+          ruby-version: '3.2.9'
         env:
           BUNDLE_GEMFILE: ios/Gemfile
       - name: Install Yarn dependencies with retry
@@ -536,6 +536,104 @@ jobs:
           '["ALL"]'
         }}
     secrets: inherit
+
+  # Fixture validation — ensures committed E2E fixtures match the live app state schema
+  # TODO: Remove continue-on-error once fixture validation is stable
+  validate-e2e-fixtures:
+    name: 'Validate E2E Fixtures'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, ios-tests-ready]
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: validate-e2e-fixtures
+      platform: ios
+      test_suite_tag: 'FixtureValidation'
+      split_number: 1
+      total_splits: 1
+      build_type: 'main'
+      metamask_environment: 'qa'
+    secrets: inherit
+
+  report-fixture-validation:
+    name: 'Report Fixture Validation'
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
+    needs: [validate-e2e-fixtures]
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download fixture validation results
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: test-e2e-validate-e2e-fixtures-junit-results
+          path: fixture-results/
+
+      - name: Report results
+        env:
+          RESULTS_PATH: fixture-results
+          VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node .github/scripts/e2e-report-fixture-validation.mjs
+
+  js-bundle-size-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --no-build-android
+
+      - name: Generate iOS bundle
+        run: yarn gen-bundle:ios
+        env:
+          NODE_OPTIONS: --max_old_space_size=12288
+
+      - name: Check bundle size
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
+
+      - name: Upload iOS bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-bundle
+          path: ios/main.jsbundle
+
+  ship-js-bundle-size-check:
+    runs-on: ubuntu-latest
+    needs: [js-bundle-size-check]
+    if: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download iOS bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-bundle
+          path: ios/main.jsbundle
+
+      - name: Push bundle size to mobile_bundlesize_stats repo
+        run: ./scripts/push-bundle-size.sh
+        env:
+          GITHUB_ACTOR: metamaskbot
+          GITHUB_TOKEN: ${{ secrets.MOBILE_BUNDLESIZE_TOKEN }}
 
   sonar-cloud:
     runs-on: ubuntu-latest

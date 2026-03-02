@@ -30,8 +30,9 @@ import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset/AddAsset';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
-import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
 import DeFiFullView from '../../Views/DeFiFullView';
+import TrendingTokensFullView from '../../UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
+import RWATokensFullView from '../../UI/Trending/Views/RWATokensFullView/RWATokensFullView';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -61,11 +62,13 @@ import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
 import TokenListRoutes from '../../UI/Ramp/routes';
 
-import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
+import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
+import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
+import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
@@ -80,7 +83,7 @@ import { selectAccountsLength } from '../../../selectors/accountTrackerControlle
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import PermissionsManager from '../../Views/Settings/PermissionsSettings/PermissionsManager';
 import { getDecimalChainId } from '../../../util/networks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../Views/AddAsset/Views/ConfirmAddTokenView/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
@@ -124,6 +127,7 @@ import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
+import BonusCodeBottomSheet from '../../UI/Rewards/components/Tabs/OverviewTab/WaysToEarn/BonusCodeBottomSheet';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
@@ -140,6 +144,22 @@ const styles = StyleSheet.create({
     height: 50,
   },
 });
+
+const slideFromRightAnimation = {
+  animationEnabled: true,
+  cardStyleInterpolator: ({ current, layouts }) => ({
+    cardStyle: {
+      transform: [
+        {
+          translateX: current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [layouts.screen.width, 0],
+          }),
+        },
+      ],
+    },
+  }),
+};
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -213,6 +233,7 @@ const WalletTabStackFlow = () => (
     <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
       component={RevealPrivateCredential}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -239,8 +260,12 @@ const TransactionsHome = () => (
     />
     <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
     <Stack.Screen
-      name={Routes.DEPOSIT.ORDER_DETAILS}
-      component={DepositOrderDetails}
+      name={Routes.RAMP.RAMPS_ORDER_DETAILS}
+      component={RampsOrderDetails}
+    />
+    <Stack.Screen
+      name={Routes.RAMP.BANK_DETAILS_STANDALONE}
+      component={V2BankDetails}
     />
     <Stack.Screen
       name={Routes.RAMP.SEND_TRANSACTION}
@@ -259,6 +284,10 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
       component={RewardsBottomSheetModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_BONUS_CODE_BOTTOM_SHEET}
+      component={BonusCodeBottomSheet}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
@@ -390,13 +419,18 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="SecuritySettings"
         component={SecuritySettings}
-        options={SecuritySettings.navigationOptions}
+        options={{ headerShown: false }}
       />
 
-      <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
+      <Stack.Screen
+        name={Routes.RAMP.SETTINGS}
+        component={RampSettings}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name={Routes.RAMP.ACTIVATION_KEY_FORM}
         component={RampActivationKeyForm}
+        options={{ headerShown: false }}
       />
       {
         /**
@@ -409,14 +443,14 @@ const SettingsFlow = () => {
           <Stack.Screen
             name="AesCryptoTestForm"
             component={AesCryptoTestForm}
-            options={AesCryptoTestForm.navigationOptions}
+            options={{ headerShown: false }}
           />
         )
       }
       <Stack.Screen
         name="ExperimentalSettings"
         component={ExperimentalSettings}
-        options={ExperimentalSettings.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="CompanySettings"
@@ -452,16 +486,17 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
         component={RevealPrivateCredential}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
         component={WalletConnectSessions}
-        options={WalletConnectSessions.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ResetPassword"
         component={ResetPassword}
-        options={ResetPassword.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="WalletRecovery"
@@ -501,7 +536,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.BACKUP_AND_SYNC}
         component={BackupAndSyncSettings}
-        options={BackupAndSyncSettings.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.SETTINGS.REGION_SELECTOR}
@@ -528,7 +563,7 @@ const UnmountOnBlurComponent = (children) => (
 );
 
 const HomeTabs = () => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
@@ -949,91 +984,38 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.WALLET.TOKENS_FULL_VIEW}
         component={TokensFullView}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen
         name={Routes.WALLET.DEFI_FULL_VIEW}
         component={DeFiFullView}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen name="AddAsset" component={AddAsset} />
       <Stack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}
-        options={{
-          headerShown: true,
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
+        options={{ headerShown: true, ...slideFromRightAnimation }}
       />
       <Stack.Screen
         name={Routes.SETTINGS_VIEW}
         component={SettingsFlow}
-        options={{
-          headerShown: false,
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen
         name="Asset"
         component={AssetNavigator}
-        options={{
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
+        options={slideFromRightAnimation}
       />
       <Stack.Screen
         name="TrendingTokensFullView"
         component={TrendingTokensFullView}
-        options={{
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
+        options={slideFromRightAnimation}
+      />
+      <Stack.Screen
+        name="RWATokensFullView"
+        component={RWATokensFullView}
+        options={slideFromRightAnimation}
       />
 
       <Stack.Screen name="Webview" component={Webview} />
@@ -1052,45 +1034,17 @@ const MainNavigator = () => {
       <Stack.Screen
         name="NftDetails"
         component={NftDetailsModeView}
-        options={{
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
+        options={slideFromRightAnimation}
       />
       <Stack.Screen
         name="NftDetailsFullImage"
         component={NftDetailsFullImageModeView}
-        options={{
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
+        options={slideFromRightAnimation}
       />
       <Stack.Screen
         name={Routes.WALLET.NFTS_FULL_VIEW}
         component={NftFullView}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
       <Stack.Screen
@@ -1113,42 +1067,12 @@ const MainNavigator = () => {
       <Stack.Screen
         name="StakeScreens"
         component={StakeScreenStack}
-        options={{
-          headerShown: false,
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen
         name={Routes.EARN.ROOT}
         component={EarnScreenStack}
-        options={{
-          headerShown: false,
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
@@ -1165,21 +1089,7 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PERPS.ROOT}
             component={PerpsScreenStack}
-            options={{
-              animationEnabled: true,
-              cardStyleInterpolator: ({ current, layouts }) => ({
-                cardStyle: {
-                  transform: [
-                    {
-                      translateX: current.progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [layouts.screen.width, 0],
-                      }),
-                    },
-                  ],
-                },
-              }),
-            }}
+            options={slideFromRightAnimation}
           />
           <Stack.Screen
             name={Routes.PERPS.TUTORIAL}
@@ -1228,21 +1138,7 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PREDICT.ROOT}
             component={PredictScreenStack}
-            options={{
-              animationEnabled: true,
-              cardStyleInterpolator: ({ current, layouts }) => ({
-                cardStyle: {
-                  transform: [
-                    {
-                      translateX: current.progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [layouts.screen.width, 0],
-                      }),
-                    },
-                  ],
-                },
-              }),
-            }}
+            options={slideFromRightAnimation}
           />
           <Stack.Screen
             name={Routes.PREDICT.MODALS.ROOT}
@@ -1255,84 +1151,24 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.MARKET_INSIGHTS.VIEW}
           component={MarketInsightsView}
-          options={{
-            headerShown: false,
-            animationEnabled: true,
-            cardStyleInterpolator: ({ current, layouts }) => ({
-              cardStyle: {
-                transform: [
-                  {
-                    translateX: current.progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [layouts.screen.width, 0],
-                    }),
-                  },
-                ],
-              },
-            }),
-          }}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       )}
       <>
         <Stack.Screen
           name={Routes.EXPLORE_SEARCH}
           component={ExploreSearchScreen}
-          options={{
-            headerShown: false,
-            animationEnabled: true,
-            cardStyleInterpolator: ({ current, layouts }) => ({
-              cardStyle: {
-                transform: [
-                  {
-                    translateX: current.progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [layouts.screen.width, 0],
-                    }),
-                  },
-                ],
-              },
-            }),
-          }}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
         />
         <Stack.Screen
           name={Routes.SITES_FULL_VIEW}
           component={SitesFullView}
-          options={{
-            headerShown: false,
-            animationEnabled: true,
-            cardStyleInterpolator: ({ current, layouts }) => ({
-              cardStyle: {
-                transform: [
-                  {
-                    translateX: current.progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [layouts.screen.width, 0],
-                    }),
-                  },
-                ],
-              },
-            }),
-          }}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
         />
         <Stack.Screen
           name={Routes.BROWSER.HOME}
           component={BrowserFlow}
-          options={{
-            headerShown: false,
-            animationEnabled: true,
-            cardStyleInterpolator: ({ current, layouts }) => ({
-              cardStyle: {
-                transform: [
-                  {
-                    translateX: current.progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [layouts.screen.width, 0],
-                    }),
-                  },
-                ],
-              },
-            }),
-          }}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       </>
       <Stack.Screen
@@ -1358,9 +1194,7 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.FEATURE_FLAG_OVERRIDE}
           component={FeatureFlagOverride}
-          options={{
-            headerShown: true,
-          }}
+          options={{ headerShown: false }}
         />
       )}
       <Stack.Screen
@@ -1376,22 +1210,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
-        options={{
-          headerShown: true,
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
+        options={{ headerShown: true, ...slideFromRightAnimation }}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1404,6 +1223,11 @@ const MainNavigator = () => {
         ///: END:ONLY_INCLUDE_IF
       }
       <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
+      <Stack.Screen
+        name={Routes.RAMP.MODALS.PROCESSING_INFO}
+        component={ProcessingInfoModal}
+        options={clearStackNavigatorOptions}
+      />
     </Stack.Navigator>
   );
 };

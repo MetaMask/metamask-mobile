@@ -106,7 +106,7 @@ import {
 } from '../constants/flags';
 import { filterSupportedLeagues } from '../constants/sports';
 import {
-  PredictFeeCollection,
+  PredictFeatureFlags,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
 } from '../types/flags';
@@ -114,6 +114,7 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
+import { unwrapRemoteFeatureFlag } from '../utils/flags';
 
 /**
  * State shape for PredictController
@@ -326,7 +327,9 @@ export class PredictController extends BaseController<
       state: { ...getDefaultPredictControllerState(), ...state },
     });
 
-    this.provider = new PolymarketProvider();
+    this.provider = new PolymarketProvider({
+      getFeatureFlags: () => this.resolveFeatureFlags(),
+    });
 
     this.messenger.subscribe(
       'TransactionController:transactionStatusUpdated',
@@ -409,6 +412,39 @@ export class PredictController extends BaseController<
     };
   }
 
+  private resolveFeatureFlags(): PredictFeatureFlags {
+    const remoteFeatureFlagState = this.messenger.call(
+      'RemoteFeatureFlagController:getState',
+    );
+    const flags = remoteFeatureFlagState.remoteFeatureFlags;
+
+    const liveSportsFlag =
+      unwrapRemoteFeatureFlag<PredictLiveSportsFlag>(flags.predictLiveSports) ??
+      DEFAULT_LIVE_SPORTS_FLAG;
+    const liveSportsLeagues = liveSportsFlag.enabled
+      ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
+      : [];
+
+    const rawMarketHighlightsFlag =
+      unwrapRemoteFeatureFlag<PredictMarketHighlightsFlag>(
+        flags.predictMarketHighlights,
+      );
+    const isHighlightsFlagValid = validatedVersionGatedFeatureFlag(
+      rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
+    );
+    const marketHighlightsFlag =
+      isHighlightsFlagValid && rawMarketHighlightsFlag
+        ? rawMarketHighlightsFlag
+        : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
+
+    const feeCollection =
+      unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
+        flags.predictFeeCollection,
+      ) ?? DEFAULT_FEE_COLLECTION_FLAG;
+
+    return { feeCollection, liveSportsLeagues, marketHighlightsFlag };
+  }
+
   private getEvmAccountAddress(): string {
     const accounts = this.messenger.call(
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
@@ -466,57 +502,28 @@ export class PredictController extends BaseController<
     });
 
     try {
-      const remoteFeatureFlagState = this.messenger.call(
-        'RemoteFeatureFlagController:getState',
-      );
-      const liveSportsFlag =
-        (remoteFeatureFlagState.remoteFeatureFlags
-          .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
-        DEFAULT_LIVE_SPORTS_FLAG;
-      const liveSportsLeagues = liveSportsFlag.enabled
-        ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
-        : [];
+      const featureFlags = this.resolveFeatureFlags();
 
-      const rawMarketHighlightsFlag = remoteFeatureFlagState.remoteFeatureFlags
-        .predictMarketHighlights as unknown as
-        | PredictMarketHighlightsFlag
-        | undefined;
-
-      const isHighlightsFlagValid = validatedVersionGatedFeatureFlag(
-        rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
-      );
-
-      const marketHighlightsFlag: PredictMarketHighlightsFlag =
-        isHighlightsFlagValid && rawMarketHighlightsFlag
-          ? rawMarketHighlightsFlag
-          : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
-
-      const paramsWithLiveSports = { ...params, liveSportsLeagues };
-
-      const allMarkets = await this.provider.getMarkets(paramsWithLiveSports);
+      const allMarkets = await this.provider.getMarkets(params);
 
       let markets = allMarkets.filter(
         (market): market is PredictMarket => market !== undefined,
       );
 
       const isFirstPage = !params.offset || params.offset === 0;
+      const highlights = featureFlags.marketHighlightsFlag.highlights ?? [];
       const shouldFetchHighlights =
-        isHighlightsFlagValid && isFirstPage && params.category && !params.q;
+        highlights.length > 0 && isFirstPage && params.category && !params.q;
 
       if (shouldFetchHighlights) {
         const highlightedMarketIds =
-          (marketHighlightsFlag.highlights ?? []).find(
-            (h) => h.category === params.category,
-          )?.markets ?? [];
+          highlights.find((h) => h.category === params.category)?.markets ?? [];
 
         if (highlightedMarketIds.length > 0) {
           const provider = this.provider;
 
           const fetchedHighlightedMarkets =
-            (await provider.getMarketsByIds?.(
-              highlightedMarketIds,
-              liveSportsLeagues,
-            )) ?? [];
+            (await provider.getMarketsByIds?.(highlightedMarketIds)) ?? [];
 
           const highlightedMarkets = fetchedHighlightedMarkets.filter(
             (market) => market.status === 'open',
@@ -606,21 +613,8 @@ export class PredictController extends BaseController<
 
     try {
       const provider = this.provider;
-
-      const remoteFeatureFlagState = this.messenger.call(
-        'RemoteFeatureFlagController:getState',
-      );
-      const liveSportsFlag =
-        (remoteFeatureFlagState.remoteFeatureFlags
-          .predictLiveSports as unknown as PredictLiveSportsFlag | undefined) ??
-        DEFAULT_LIVE_SPORTS_FLAG;
-      const liveSportsLeagues = liveSportsFlag.enabled
-        ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
-        : [];
-
       const market = await provider.getMarketDetails({
         marketId: resolvedMarketId,
-        liveSportsLeagues,
       });
 
       this.update((state) => {
@@ -1368,18 +1362,9 @@ export class PredictController extends BaseController<
     try {
       const provider = this.provider;
 
-      const remoteFeatureFlagState = this.messenger.call(
-        'RemoteFeatureFlagController:getState',
-      );
-      const feeCollection =
-        (remoteFeatureFlagState.remoteFeatureFlags
-          .predictFeeCollection as unknown as
-          | PredictFeeCollection
-          | undefined) ?? DEFAULT_FEE_COLLECTION_FLAG;
-
       const signer = this.getSigner();
 
-      return provider.previewOrder({ ...params, signer, feeCollection });
+      return provider.previewOrder({ ...params, signer });
     } catch (error) {
       // Log to Sentry with preview context (no sensitive amounts)
       Logger.error(

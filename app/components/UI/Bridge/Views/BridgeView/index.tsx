@@ -136,8 +136,6 @@ const BridgeView = () => {
   // The ref is typed to only expose the blur method we need
   const inputRef = useRef<TokenInputAreaRef>(null);
 
-  const updateQuoteParams = useBridgeQuoteRequest();
-
   // Fetch STX liveness for the source chain
   useRefreshSmartTransactionsLiveness(sourceToken?.chainId);
 
@@ -178,6 +176,11 @@ const BridgeView = () => {
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
+    balance: sourceToken?.balance,
+  });
+
+  const updateQuoteParams = useBridgeQuoteRequest({
+    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
   const {
@@ -374,6 +377,14 @@ const BridgeView = () => {
       );
     }
 
+    // Prevent bottom section from rendering when no active
+    // quotes exist and none are being fetching.
+    // This resolves edge cases when users are redirected back from
+    // Select Quote page due to quotes expiry.
+    if (!activeQuote) {
+      return null;
+    }
+
     // TODO: remove this once controller types are updated
     // @ts-expect-error: controller types are not up to date yet
     const quoteBpsFee = activeQuote?.quote?.feeData?.metabridge?.quoteBpsFee;
@@ -519,7 +530,9 @@ const BridgeView = () => {
             )}
             {shouldDisplayQuoteDetails && (
               <Box style={styles.quoteContainer}>
-                <QuoteDetailsCard />
+                <QuoteDetailsCard
+                  hasInsufficientBalance={hasInsufficientBalance}
+                />
               </Box>
             )}
           </Box>

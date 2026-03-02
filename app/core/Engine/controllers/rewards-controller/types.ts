@@ -5,6 +5,11 @@ import {
 import { CaipAccountId, CaipAssetType } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
+/**
+ * Crockford's Base32 alphabet — excludes I, L, O, U to avoid ambiguity.
+ */
+export const BASE32_REGEX = /^[0-9A-HJKMNP-TV-Z]+$/i;
+
 export interface LoginResponseDto {
   sessionId: string;
   subscription: SubscriptionDto;
@@ -72,6 +77,14 @@ export interface ApplyReferralDto {
    * @example 'ABC123'
    */
   referralCode: string;
+}
+
+export interface ApplyBonusCodeDto {
+  /**
+   * The bonus code to apply
+   * @example 'BNS123'
+   */
+  bonusCode: string;
 }
 
 /**
@@ -443,6 +456,17 @@ export interface MusdDepositEventPayload {
 }
 
 /**
+ * Bonus code event payload
+ */
+export interface BonusCodeEventPayload {
+  /**
+   * Bonus code
+   * @example 'BNS123'
+   */
+  code: string;
+}
+
+/**
  * Base points event interface
  */
 interface BasePointsEventDto {
@@ -516,6 +540,7 @@ export type PointsEventDto = BasePointsEventDto &
         type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';
         payload: null;
       }
+    | { type: 'BONUS_CODE'; payload: BonusCodeEventPayload | null }
     | { type: string; payload: Record<string, string> | null }
   );
 
@@ -1175,6 +1200,8 @@ export type RewardsControllerState = {
    * Uses PointsEstimateHistoryEntryState (plain strings) to satisfy StateConstraint.
    */
   pointsEstimateHistory: PointsEstimateHistoryEntryState[];
+  /** Manually selected rewards API URL override; null means use the build default */
+  rewardsEnvUrl: string | null;
 };
 
 /**
@@ -1410,6 +1437,14 @@ export interface RewardsControllerValidateReferralCodeAction {
 }
 
 /**
+ * Action for validating bonus codes
+ */
+export interface RewardsControllerValidateBonusCodeAction {
+  type: 'RewardsController:validateBonusCode';
+  handler: (code: string, subscriptionId: string) => Promise<boolean>;
+}
+
+/**
  * Action for checking if an account supports opt-in
  */
 export interface RewardsControllerIsOptInSupportedAction {
@@ -1525,12 +1560,40 @@ export interface RewardsControllerResetAllAction {
   handler: () => Promise<void>;
 }
 
+export interface RewardsControllerGetRewardsEnvUrlAction {
+  type: 'RewardsController:getRewardsEnvUrl';
+  handler: () => string;
+}
+
+export interface RewardsControllerCanChangeRewardsEnvUrlAction {
+  type: 'RewardsController:canChangeRewardsEnvUrl';
+  handler: () => boolean;
+}
+
+export interface RewardsControllerSetRewardsEnvUrlAction {
+  type: 'RewardsController:setRewardsEnvUrl';
+  handler: (url: string) => Promise<void>;
+}
+
+export interface RewardsControllerGetDefaultRewardsEnvUrlAction {
+  type: 'RewardsController:getDefaultRewardsEnvUrl';
+  handler: () => string;
+}
+
 /**
  * Action for applying a referral code to an existing subscription
  */
 export interface RewardsControllerApplyReferralCodeAction {
   type: 'RewardsController:applyReferralCode';
   handler: (referralCode: string, subscriptionId: string) => Promise<void>;
+}
+
+/**
+ * Action for applying a bonus code to an existing subscription
+ */
+export interface RewardsControllerApplyBonusCodeAction {
+  type: 'RewardsController:applyBonusCode';
+  handler: (bonusCode: string, subscriptionId: string) => Promise<void>;
 }
 
 /**
@@ -1552,6 +1615,7 @@ export type RewardsControllerActions =
   | RewardsControllerLogoutAction
   | RewardsControllerGetGeoRewardsMetadataAction
   | RewardsControllerValidateReferralCodeAction
+  | RewardsControllerValidateBonusCodeAction
   | RewardsControllerIsOptInSupportedAction
   | RewardsControllerGetActualSubscriptionIdAction
   | RewardsControllerGetFirstSubscriptionIdAction
@@ -1565,7 +1629,12 @@ export type RewardsControllerActions =
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction
-  | RewardsControllerApplyReferralCodeAction;
+  | RewardsControllerApplyReferralCodeAction
+  | RewardsControllerGetRewardsEnvUrlAction
+  | RewardsControllerCanChangeRewardsEnvUrlAction
+  | RewardsControllerSetRewardsEnvUrlAction
+  | RewardsControllerGetDefaultRewardsEnvUrlAction
+  | RewardsControllerApplyBonusCodeAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses
