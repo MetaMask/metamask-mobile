@@ -121,6 +121,9 @@ const OrderDetails = () => {
     } catch (fetchError) {
       Logger.error(fetchError as Error, {
         message: 'FiatOrders::RampsOrderDetails error while refreshing order',
+        orderId: order.providerOrderId,
+        provider: order.provider?.id,
+        status: order.status,
       });
       setError(
         fetchError instanceof Error && fetchError.message
