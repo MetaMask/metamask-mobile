@@ -58,6 +58,7 @@ class BridgeScreen {
     // Tap each digit on the numeric keypad
     const digits = amount.split('');
     AmountScreen.device = this._device;
+    await AppwrightGestures.tap(this.sourceTokenInput);
     for (const digit of digits) {
       const digitButton = await AppwrightSelectors.getElementByText(this._device, digit, true);
       await appwrightExpect(digitButton).toBeVisible({ timeout: 10000 });
