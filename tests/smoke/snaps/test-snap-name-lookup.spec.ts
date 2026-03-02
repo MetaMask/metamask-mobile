@@ -7,10 +7,11 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletView from '../../page-objects/wallet/WalletView';
 import RedesignedSendView from '../../page-objects/Send/RedesignedSendView';
-import { Assertions, LocalNode } from '../../framework';
+import { Assertions, Gestures, LocalNode, Matchers } from '../../framework';
 import BrowserView from '../../page-objects/Browser/BrowserView';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
+import TransactionConfirmView from '../../page-objects/Send/TransactionConfirmView';
 
 jest.setTimeout(150_000);
 
@@ -31,14 +32,6 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
                 ticker: 'ETH',
               },
             })
-            .withTokensForAllPopularNetworks([
-              {
-                address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-                symbol: 'USDC',
-                decimals: 6,
-                name: 'USD Coin',
-              },
-            ])
             .build();
         },
         restartDevice: true,
@@ -55,13 +48,18 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
         await TabBarComponent.tapHome();
         await WalletView.tapWalletSendButton();
 
-        await RedesignedSendView.selectERC20Token();
+        await Gestures.tap(Matchers.getElementByText('Ethereum', 1));
         await RedesignedSendView.enterZeroAmount();
         await RedesignedSendView.pressContinueButton();
         await RedesignedSendView.inputRecipientAddress('metamask.domain');
         await RedesignedSendView.pressReviewButton();
+        await TransactionConfirmView.tapAdvancedDetails();
 
-        await Assertions.expectTextDisplayed('0xc0ffe...54979');
+        await Gestures.tap(Matchers.getElementByText('metamask.domain'));
+
+        await Assertions.expectTextDisplayed(
+          '0xc0ffee254729296a45a3885639ac7e10f9d54979',
+        );
       },
     );
   });
