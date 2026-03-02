@@ -313,15 +313,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     return ErrorCode.BluetoothDisabled;
   }
 
-  getConnectionTips(): string[] {
-    return [
-      'hardware_wallet.connecting.tip_unlock',
-      'hardware_wallet.connecting.tip_open_app',
-      'hardware_wallet.connecting.tip_enable_bluetooth',
-      'hardware_wallet.connecting.tip_dnd_off',
-    ];
-  }
-
   /**
    * Ensure the device is ready for operations.
    *
