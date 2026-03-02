@@ -233,9 +233,11 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
+      - name: Prepare results directory
+        run: mkdir -p tests/results
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
+      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: --max_old_space_size=20480
       - name: Rename coverage report to include shard number
@@ -246,6 +248,11 @@ jobs:
         with:
           name: coverage-unit-${{ matrix.shard }}
           path: ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results-${{ matrix.shard }}
+          path: tests/results/unit-test-results-${{ matrix.shard }}.json
           if-no-files-found: error
       - name: Require clean working directory
         shell: bash
@@ -278,6 +285,7 @@ jobs:
         run: yarn setup:github-ci --node
       - uses: actions/download-artifact@v4
         with:
+          pattern: coverage-*
           path: tests/coverage/
       - name: Gather partial coverage reports into one directory
         shell: bash
@@ -289,6 +297,57 @@ jobs:
         with:
           name: lcov.info
           path: ./tests/merged-coverage/lcov.info
+          if-no-files-found: error
+      - name: Download CV test results (all shards)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: cv-test-results-*
+          path: ./cv-test-results/
+          merge-multiple: false
+      - name: Download unit test results (all shards)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: unit-test-results-*
+          path: ./unit-test-results/
+          merge-multiple: false
+      - name: Aggregate test scenario counts
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+
+          function sumTests(base) {
+            let total = 0;
+            if (!fs.existsSync(base)) return total;
+            for (const dir of fs.readdirSync(base)) {
+              const full = path.join(base, dir);
+              if (!fs.statSync(full).isDirectory()) continue;
+              for (const file of fs.readdirSync(full)) {
+                if (!file.endsWith('.json')) continue;
+                const data = JSON.parse(fs.readFileSync(path.join(full, file), 'utf8'));
+                total += data.numTotalTests ?? 0;
+              }
+            }
+            return total;
+          }
+
+          const cvStats = { component_view_test_number: sumTests('./cv-test-results') };
+          fs.writeFileSync('./cv-test-stats.json', JSON.stringify(cvStats, null, 2));
+          console.log('CV test stats:', cvStats);
+
+          const unitStats = { unit_test_number: sumTests('./unit-test-results') };
+          fs.writeFileSync('./unit-test-stats.json', JSON.stringify(unitStats, null, 2));
+          console.log('Unit test stats:', unitStats);
+          "
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cv-test-stats
+          path: ./cv-test-stats.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-stats
+          path: ./unit-test-stats.json
           if-no-files-found: error
       - name: Require clean working directory
         shell: bash
@@ -343,75 +402,6 @@ jobs:
         with:
           name: cv-test-results-${{ matrix.shard }}
           path: tests/results/cv-test-results-${{ matrix.shard }}.json
-          if-no-files-found: error
-
-  merge-cv-test-coverage:
-    runs-on: ubuntu-latest
-    needs: [component-view-tests]
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: coverage-cv-*
-          path: tests/coverage-cv-test/
-      - name: Download CV test results (all shards)
-        uses: actions/download-artifact@v4
-        with:
-          pattern: cv-test-results-*
-          path: ./cv-test-results/
-          merge-multiple: false
-      - name: Aggregate CV test scenario counts
-        run: |
-          node -e "
-          const fs = require('fs');
-          const path = require('path');
-          const base = './cv-test-results';
-          let total = 0;
-          for (const dir of fs.readdirSync(base)) {
-            const full = path.join(base, dir);
-            if (!fs.statSync(full).isDirectory()) continue;
-            for (const file of fs.readdirSync(full)) {
-              if (!file.endsWith('.json')) continue;
-              const data = JSON.parse(fs.readFileSync(path.join(full, file), 'utf8'));
-              total += data.numTotalTests ?? 0;
-            }
-          }
-          const stats = { component_view_test_number: total };
-          fs.writeFileSync('./cv-test-stats.json', JSON.stringify(stats, null, 2));
-          console.log('CV test stats:', stats);
-          "
-      - uses: actions/upload-artifact@v4
-        with:
-          name: cv-test-stats
-          path: ./cv-test-stats.json
-          if-no-files-found: error
-      - name: Gather CV test shard coverage into one directory
-        shell: bash
-        run: |
-          mkdir -p tests/coverage-cv-test-merged
-          for d in tests/coverage-cv-test/coverage-cv-test-*; do
-            if [ -d "$d" ]; then
-              cp "$d"/*.json tests/coverage-cv-test-merged/ 2>/dev/null || true
-            fi
-          done
-      - name: Generate merged CV test HTML coverage report
-        run: yarn nyc report --temp-dir ./tests/coverage-cv-test-merged --report-dir ./tests/coverage-cv-test-lcov --reporter html
-      - uses: actions/upload-artifact@v4
-        with:
-          name: html-coverage-cv-test
-          path: ./tests/coverage-cv-test-lcov/
           if-no-files-found: error
 
   needs_e2e_build:
@@ -677,7 +667,7 @@ jobs:
         dedupe,
         scripts,
         unit-tests,
-        cv-test,
+        component-view-tests,
         check-workflows,
         js-bundle-size-check,
       ]

@@ -114,11 +114,17 @@ async function downloadArtifact(artifactName) {
 // ---------------------------------------------------------------------------
 
 async function collectComponentViewTestCount() {
-  const artifactName = 'cv-test-stats';
-  const destDir = await downloadArtifact(artifactName);
+  const destDir = await downloadArtifact('cv-test-stats');
   const raw = await readFile(join(destDir, 'cv-test-stats.json'), 'utf8');
   const data = JSON.parse(raw);
   return data.component_view_test_number;
+}
+
+async function collectUnitTestCount() {
+  const destDir = await downloadArtifact('unit-test-stats');
+  const raw = await readFile(join(destDir, 'unit-test-stats.json'), 'utf8');
+  const data = JSON.parse(raw);
+  return data.unit_test_number;
 }
 
 // ---------------------------------------------------------------------------
@@ -132,6 +138,10 @@ async function main() {
     {
       key: 'component_view_tests_count',
       collect: collectComponentViewTestCount,
+    },
+    {
+      key: 'unit_tests_count',
+      collect: collectUnitTestCount,
     },
   ];
 
