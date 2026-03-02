@@ -201,7 +201,7 @@ export class PolymarketProvider implements PredictProvider {
       const { liveSportsLeagues } = this.#getFeatureFlags();
       const eventLeague = getEventLeague(event);
       const isSportsEvent =
-        eventLeague !== null && liveSportsLeagues.length > 0;
+        eventLeague !== null && liveSportsLeagues.includes(eventLeague);
 
       if (isSportsEvent) {
         await TeamsCache.getInstance().ensureLeaguesLoaded(

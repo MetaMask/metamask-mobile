@@ -2557,6 +2557,24 @@ describe('PolymarketProvider', () => {
         provider.getMarketDetails({ marketId: 'market-1' }),
       ).rejects.toThrow('Failed to parse market details');
     });
+
+    it('does not load TeamsCache when detected league is not in enabled leagues list', async () => {
+      mockTeamsCacheInstance.ensureLeaguesLoaded.mockClear();
+      const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+      mockGetEventLeague.mockReturnValue('nba');
+      mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+      mockParsePolymarketEvents.mockReturnValue([mockParsedMarket]);
+
+      await provider.getMarketDetails({ marketId: 'market-1' });
+
+      expect(mockTeamsCacheInstance.ensureLeaguesLoaded).not.toHaveBeenCalled();
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        [mockEvent],
+        expect.objectContaining({
+          teamLookup: undefined,
+        }),
+      );
+    });
   });
 
   describe('getMarketsByIds', () => {
