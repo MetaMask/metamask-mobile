@@ -74,6 +74,7 @@ describe('usePredictPlaceOrder', () => {
   const mockClaim = jest.fn();
   const mockGetBalance = jest.fn();
   const mockDeposit = jest.fn();
+  const mockRefetchBalance = jest.fn();
 
   function createMockOrderPreview(
     overrides?: Partial<OrderPreview>,
@@ -121,7 +122,11 @@ describe('usePredictPlaceOrder', () => {
       deposit: jest.fn(),
       depositAndOrder: jest.fn(),
     });
-    mockUsePredictBalance.mockReturnValue({ data: 1000 } as never);
+    mockRefetchBalance.mockResolvedValue({ data: 1000 });
+    mockUsePredictBalance.mockReturnValue({
+      data: 1000,
+      refetch: mockRefetchBalance,
+    } as never);
     mockUsePredictDeposit.mockReturnValue({
       deposit: mockDeposit,
       isDepositPending: false,
@@ -261,6 +266,10 @@ describe('usePredictPlaceOrder', () => {
 
       act(() => {
         result.current.placeOrder(mockOrderParams);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -593,6 +602,27 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
+      expect(mockDeposit).not.toHaveBeenCalled();
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses refreshed balance to avoid unnecessary deposit retries', async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      mockRefetchBalance.mockResolvedValueOnce({
+        data: SUFFICIENT_BALANCE,
+      });
+      mockUsePredictBalance.mockReturnValue({
+        data: INSUFFICIENT_BALANCE,
+        refetch: mockRefetchBalance,
+      } as never);
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
       expect(mockDeposit).not.toHaveBeenCalled();
       expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
     });

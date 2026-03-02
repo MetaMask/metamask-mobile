@@ -11,6 +11,7 @@ import { PredictMarket } from '../../types';
 import PredictBuyPreview from './PredictBuyPreview';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
+import Engine from '../../../../../core/Engine';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock Engine
@@ -18,6 +19,9 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     PredictController: {
       trackPredictOrderEvent: jest.fn(),
+      setActiveOrder: jest.fn(),
+      clearActiveOrder: jest.fn(),
+      setSelectedPaymentToken: jest.fn(),
     },
   },
 }));
@@ -306,6 +310,33 @@ describe('PredictBuyPreview', () => {
       expect(
         screen.getByText(/By continuing, you accept Polymarket.s terms\./),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('payment token initialization', () => {
+    it('resets selected payment token to predict balance on regular buy preview entry', () => {
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(
+        Engine.context.PredictController.setSelectedPaymentToken,
+      ).toHaveBeenCalledWith(null);
+    });
+
+    it('keeps selected payment token when returning from predict info auto-flow', () => {
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          amount: 25,
+          transactionId: 'deposit-tx-id',
+        },
+      });
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(
+        Engine.context.PredictController.setSelectedPaymentToken,
+      ).not.toHaveBeenCalled();
     });
   });
 

@@ -97,6 +97,7 @@ const PredictBuyPreview = () => {
 
   const { market, outcome, outcomeToken, entryPoint, amount, transactionId } =
     route.params;
+  const shouldPreserveSelectedPaymentToken = Boolean(transactionId);
 
   const analyticsProperties = useMemo(
     () => ({
@@ -236,7 +237,9 @@ const PredictBuyPreview = () => {
       outcome,
       outcomeToken,
     });
-    controller.setSelectedPaymentToken(null);
+    if (!shouldPreserveSelectedPaymentToken) {
+      controller.setSelectedPaymentToken(null);
+    }
 
     controller.trackPredictOrderEvent({
       status: PredictTradeStatus.INITIATED,
