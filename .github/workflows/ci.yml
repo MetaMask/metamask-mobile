@@ -240,24 +240,16 @@ jobs:
       - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: --max_old_space_size=20480
-      - name: Rename coverage report to include shard number
+      - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
+          count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
+          echo "{\"count\": $count}" > ./tests/coverage/count.json
       - uses: actions/upload-artifact@v4
         with:
           name: coverage-unit-${{ matrix.shard }}
-          path: ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
-          if-no-files-found: error
-      - name: Extract test count for this shard
-        shell: bash
-        run: |
-          count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
-          echo "{\"count\": $count}" > tests/results/unit-shard-count-${{ matrix.shard }}.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: unit-shard-count-${{ matrix.shard }}
-          path: tests/results/unit-shard-count-${{ matrix.shard }}.json
+          path: ./tests/coverage/
           if-no-files-found: error
       - name: Require clean working directory
         shell: bash
@@ -292,10 +284,28 @@ jobs:
         with:
           pattern: coverage-*
           path: tests/coverage/
-      - name: Gather partial coverage reports into one directory
+      - name: Aggregate test counts and gather coverage reports
         shell: bash
         run: |
-          mv ./tests/coverage/coverage-*/* ./tests/coverage
+          unit_total=0
+          for file in ./tests/coverage/coverage-unit-*/count.json; do
+            [ -f "$file" ] || continue
+            count=$(jq '.count // 0' "$file")
+            unit_total=$((unit_total + count))
+          done
+          echo "{\"unit_test_number\": $unit_total}" > unit-test-stats.json
+          echo "Unit test count: $unit_total"
+
+          cv_total=0
+          for file in ./tests/coverage/coverage-cv-*/count.json; do
+            [ -f "$file" ] || continue
+            count=$(jq '.count // 0' "$file")
+            cv_total=$((cv_total + count))
+          done
+          echo "{\"component_view_test_number\": $cv_total}" > cv-test-stats.json
+          echo "CV test count: $cv_total"
+
+          find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
       - uses: actions/upload-artifact@v4
@@ -303,36 +313,6 @@ jobs:
           name: lcov.info
           path: ./tests/merged-coverage/lcov.info
           if-no-files-found: error
-      - name: Download CV test shard counts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: cv-shard-count-*
-          path: ./cv-shard-counts/
-          merge-multiple: false
-      - name: Download unit test shard counts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: unit-shard-count-*
-          path: ./unit-shard-counts/
-          merge-multiple: false
-      - name: Aggregate test scenario counts
-        shell: bash
-        run: |
-          cv_total=0
-          for file in ./cv-shard-counts/*/*.json; do
-            count=$(jq '.count // 0' "$file")
-            cv_total=$((cv_total + count))
-          done
-          echo "{\"component_view_test_number\": $cv_total}" > cv-test-stats.json
-          echo "CV test count: $cv_total"
-
-          unit_total=0
-          for file in ./unit-shard-counts/*/*.json; do
-            count=$(jq '.count // 0' "$file")
-            unit_total=$((unit_total + count))
-          done
-          echo "{\"unit_test_number\": $unit_total}" > unit-test-stats.json
-          echo "Unit test count: $unit_total"
       - uses: actions/upload-artifact@v4
         with:
           name: cv-test-stats
@@ -382,24 +362,16 @@ jobs:
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: --max-old-space-size=20480
-      - name: Rename coverage report for this shard
+      - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
+          count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
+          echo "{\"count\": $count}" > ./tests/coverage/count.json
       - uses: actions/upload-artifact@v4
         with:
           name: coverage-cv-${{ matrix.shard }}
           path: ./tests/coverage/
-          if-no-files-found: error
-      - name: Extract test count for this shard
-        shell: bash
-        run: |
-          count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
-          echo "{\"count\": $count}" > tests/results/cv-shard-count-${{ matrix.shard }}.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: cv-shard-count-${{ matrix.shard }}
-          path: tests/results/cv-shard-count-${{ matrix.shard }}.json
           if-no-files-found: error
 
   needs_e2e_build:
