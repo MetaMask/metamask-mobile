@@ -4,7 +4,11 @@ import { LocalNodeType, TestSuiteParams } from '../../framework/types';
 import { Hardfork } from '../../seeder/anvil-manager';
 import { SmokePerps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import {
+  PERPS_ARBITRUM_MOCKS,
+  mockPerpsGeolocation,
+} from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import Assertions from '../../framework/Assertions';
 import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
 import WalletView from '../../page-objects/wallet/WalletView';
@@ -73,6 +77,10 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
             remoteFeatureFlagHomepageSectionsV1Enabled(),
           );
           await PERPS_ARBITRUM_MOCKS(mockServer);
+          await mockPerpsGeolocation(
+            mockServer,
+            RampsRegions[RampsRegionsEnum.SPAIN],
+          );
         },
         useCommandQueueServer: true,
         localNodeOptions: [
