@@ -44,19 +44,29 @@ let _artifactList = null;
 async function getArtifactList() {
   if (_artifactList) return _artifactList;
 
-  const url = `https://api.github.com/repos/MetaMask/metamask-mobile/actions/runs/${WORKFLOW_RUN_ID}/artifacts`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github+json',
-    },
-  });
+  const artifacts = [];
+  let page = 1;
 
-  if (!res.ok) {
-    throw new Error(`Failed to list artifacts: ${res.status} ${res.statusText}`);
+  while (true) {
+    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${WORKFLOW_RUN_ID}/artifacts?per_page=100&page=${page}`;
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github+json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to list artifacts (page ${page}): ${res.status} ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    artifacts.push(...data.artifacts);
+
+    if (data.artifacts.length < 100) break;
+    page++;
   }
 
-  const { artifacts } = await res.json();
   _artifactList = artifacts;
   return _artifactList;
 }
