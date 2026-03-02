@@ -851,14 +851,21 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                   placeholderTextColor="#686e7d"
                                   style={
                                     {
-                                      "backgroundColor": "inherit",
+                                      "0": {
+                                        "backgroundColor": "inherit",
+                                        "height": 46,
+                                      },
+                                      "1": {
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
+                                      },
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
                                     }
@@ -3063,14 +3070,21 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   placeholderTextColor="#686e7d"
                                   style={
                                     {
-                                      "backgroundColor": "inherit",
+                                      "0": {
+                                        "backgroundColor": "inherit",
+                                        "height": 46,
+                                      },
+                                      "1": {
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
+                                      },
+                                      "backgroundColor": "#ffffff",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
                                     }
