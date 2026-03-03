@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Box,
   BoxAlignItems,
@@ -11,6 +17,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  NavigationProp,
+  StackActions,
+  useNavigation,
+} from '@react-navigation/native';
 import { ActivityIndicator, Linking, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -30,15 +41,16 @@ import PredictKeypad, {
 import PredictBuyPreviewHeader from '../../components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
 import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
-import { usePredictDepositAndOrder } from '../../hooks/usePredictDepositAndOrder';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictRewards } from '../../hooks/usePredictRewards';
 import { usePredictTransactionErrorDismissal } from '../../hooks/usePredictTransactionErrorDismissal';
 import { selectPredictActiveOrder } from '../../selectors/predictController';
 import { Side } from '../../types';
+import { PredictNavigationParamList } from '../../types/navigation';
 import { formatCents, formatPrice } from '../../utils/format';
 import { BigNumber } from 'bignumber.js';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   POLYGON_USDCE,
   PREDICT_CURRENCY,
@@ -56,15 +68,19 @@ import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hoo
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { usePreviousValue } from '../../hooks/usePreviousValue';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
+import useApprovalRequest from '../../../../Views/confirmations/hooks/useApprovalRequest';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MINIMUM_BET = 1;
 
 export function PredictDepositAndOrderInfo() {
   const activeOrder = useSelector(selectPredictActiveOrder);
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const { onReject } = useConfirmActions();
+  const { onConfirm: onApprovalConfirm } = useApprovalRequest();
   const market = activeOrder?.market;
   const outcome = activeOrder?.outcome;
   const outcomeToken = activeOrder?.outcomeToken;
@@ -86,7 +102,6 @@ export function PredictDepositAndOrderInfo() {
   });
 
   const { payToken } = useTransactionPayToken();
-  const { isPredictBalanceSelected } = usePredictPaymentToken();
 
   const keypadRef = useRef<PredictKeypadHandles>(null);
 
@@ -103,6 +118,8 @@ export function PredictDepositAndOrderInfo() {
       ? initialInputFocused
       : prefilledAmountUsd <= 0,
   );
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [confirmError, setConfirmError] = useState<string>();
 
   usePredictTransactionErrorDismissal({
     amount: currentValue,
@@ -152,6 +169,48 @@ export function PredictDepositAndOrderInfo() {
   );
 
   const activeTransactionMeta = useTransactionMetadataRequest();
+  const redirectToBuyPreview = useCallback(
+    ({ includeTransactionId }: { includeTransactionId: boolean }) => {
+      if (!market || !outcome || !outcomeToken) {
+        return;
+      }
+
+      navigation.dispatch(
+        StackActions.replace(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+          market,
+          outcome,
+          outcomeToken,
+          ...(currentValue > 0 ? { amount: currentValue } : {}),
+          ...(includeTransactionId && activeTransactionMeta?.id
+            ? { transactionId: activeTransactionMeta.id }
+            : {}),
+          animationEnabled: false,
+        }),
+      );
+    },
+    [
+      activeTransactionMeta?.id,
+      currentValue,
+      market,
+      navigation,
+      outcome,
+      outcomeToken,
+    ],
+  );
+  const handlePaymentTokenSelected = useCallback(
+    (_selectedTokenAddress: string | null, selectedTokenKey: string | null) => {
+      if (selectedTokenKey !== 'predict-balance') {
+        return;
+      }
+
+      redirectToBuyPreview({ includeTransactionId: false });
+      void onReject(undefined, true);
+    },
+    [onReject, redirectToBuyPreview],
+  );
+  const { isPredictBalanceSelected } = usePredictPaymentToken({
+    onTokenSelected: handlePaymentTokenSelected,
+  });
 
   const depositAmount = useMemo(() => {
     if (isPredictBalanceSelected || total <= 0) {
@@ -207,15 +266,41 @@ export function PredictDepositAndOrderInfo() {
 
   const totalWithDepositFee = total + depositFeeUsd;
 
-  const { isConfirming, confirmError, handleConfirm } =
-    usePredictDepositAndOrder({
-      market,
-      outcome,
-      outcomeToken,
-      orderAmountUsd: currentValue,
-      depositTransactionId: activeTransactionMeta?.id,
-      preview,
-    });
+  const handleConfirm = useCallback(async () => {
+    if (isConfirming) {
+      return;
+    }
+
+    setIsConfirming(true);
+    setConfirmError(undefined);
+
+    if (isPredictBalanceSelected) {
+      redirectToBuyPreview({ includeTransactionId: false });
+      setIsConfirming(false);
+      return;
+    }
+
+    try {
+      redirectToBuyPreview({ includeTransactionId: true });
+      await onApprovalConfirm({
+        deleteAfterResult: true,
+        waitForResult: true,
+        handleErrors: false,
+      });
+    } catch (err) {
+      setConfirmError(
+        err instanceof Error
+          ? err.message
+          : strings('predict.deposit.error_description'),
+      );
+      setIsConfirming(false);
+    }
+  }, [
+    isConfirming,
+    isPredictBalanceSelected,
+    onApprovalConfirm,
+    redirectToBuyPreview,
+  ]);
 
   const canPlaceBet = useMemo(
     () =>

@@ -1,5 +1,5 @@
 import { Hex } from '@metamask/utils';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
@@ -7,6 +7,13 @@ import { useTransactionMetadataRequest } from '../../../Views/confirmations/hook
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { selectPredictSelectedPaymentToken } from '../selectors/predictController';
+
+interface UsePredictPaymentTokenParams {
+  onTokenSelected?: (
+    tokenAddress: string | null,
+    tokenKey: string | null,
+  ) => Promise<void> | void;
+}
 
 export interface UsePredictPaymentTokenResult {
   onPaymentTokenChange: (token: AssetType | null) => void;
@@ -18,11 +25,15 @@ export interface UsePredictPaymentTokenResult {
   } | null;
 }
 
-export function usePredictPaymentToken(): UsePredictPaymentTokenResult {
+export function usePredictPaymentToken({
+  onTokenSelected,
+}: UsePredictPaymentTokenParams = {}): UsePredictPaymentTokenResult {
   const { payToken, setPayToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const selectedPaymentToken = useSelector(selectPredictSelectedPaymentToken);
   const isPredictBalanceSelected = selectedPaymentToken === null;
+  const hasInitializedSelectionRef = useRef(false);
+  const previousSelectedTokenKeyRef = useRef<string | null>(null);
 
   const onPaymentTokenChange = useCallback(
     (token: AssetType | null) => {
@@ -74,6 +85,37 @@ export function usePredictPaymentToken(): UsePredictPaymentTokenResult {
     payToken?.address,
     payToken?.chainId,
     setPayToken,
+  ]);
+
+  useEffect(() => {
+    const selectedTokenAddress = selectedPaymentToken?.address ?? null;
+    const selectedTokenKey = isPredictBalanceSelected
+      ? 'predict-balance'
+      : selectedTokenAddress;
+
+    if (!hasInitializedSelectionRef.current) {
+      hasInitializedSelectionRef.current = true;
+      previousSelectedTokenKeyRef.current = selectedTokenKey;
+      return;
+    }
+
+    if (previousSelectedTokenKeyRef.current === selectedTokenKey) {
+      return;
+    }
+
+    previousSelectedTokenKeyRef.current = selectedTokenKey;
+    const callbackResult = onTokenSelected?.(
+      selectedTokenAddress,
+      selectedTokenKey,
+    );
+
+    if (callbackResult) {
+      Promise.resolve(callbackResult).catch(() => undefined);
+    }
+  }, [
+    isPredictBalanceSelected,
+    onTokenSelected,
+    selectedPaymentToken?.address,
   ]);
 
   return {

@@ -117,9 +117,21 @@ jest.mock('../../hooks/usePredictDeposit', () => ({
   }),
 }));
 
-jest.mock('../../hooks/usePredictTokenSelection', () => ({
-  usePredictTokenSelection: () => ({
-    shouldPreserveActiveOrderOnUnmountRef: { current: false },
+const mockTriggerPayWithAnyToken = jest.fn();
+jest.mock('../../hooks/usePredictPayWithAnyToken', () => ({
+  usePredictPayWithAnyToken: () => ({
+    triggerPayWithAnyToken: mockTriggerPayWithAnyToken,
+  }),
+}));
+
+let mockIsPredictBalanceSelected = true;
+let mockSelectedPaymentToken: { address: string; chainId: string } | null =
+  null;
+jest.mock('../../hooks/usePredictPaymentToken', () => ({
+  usePredictPaymentToken: () => ({
+    isPredictBalanceSelected: mockIsPredictBalanceSelected,
+    selectedPaymentToken: mockSelectedPaymentToken,
+    onPaymentTokenChange: jest.fn(),
   }),
 }));
 
@@ -277,6 +289,9 @@ describe('PredictBuyPreview', () => {
     mockAccountOptedIn = null;
     mockEstimatedPoints = null;
     mockRewardsError = false;
+    mockIsPredictBalanceSelected = true;
+    mockSelectedPaymentToken = null;
+    mockTriggerPayWithAnyToken.mockResolvedValue(undefined);
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);

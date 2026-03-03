@@ -83,7 +83,8 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictAutoPlaceOrder } from '../../hooks/usePredictAutoPlaceOrder';
-import { usePredictDepositAndOrder } from '../../hooks/usePredictDepositAndOrder';
+import { usePredictPayWithAnyToken } from '../../hooks/usePredictPayWithAnyToken';
+import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 
 export const MINIMUM_BET = 1; // $1 minimum bet
 
@@ -144,20 +145,82 @@ const PredictBuyPreview = () => {
     autoPlaceAmount ? autoPlaceAmount.toString() : '',
   );
   const [isInputFocused, setIsInputFocused] = useState(() => !autoPlaceAmount);
-  const {
-    shouldPreserveActiveOrderOnUnmountRef,
-    isDepositAndOrderLoading,
-    depositAndOrder,
-  } = usePredictDepositAndOrder({
-    tokenSelectionParams: {
+  const [isPayWithAnyTokenLoading, setIsPayWithAnyTokenLoading] =
+    useState(false);
+  const shouldPreserveActiveOrderOnUnmountRef = useRef(false);
+  const markShouldPreserveActiveOrderOnUnmount = useCallback(() => {
+    shouldPreserveActiveOrderOnUnmountRef.current = true;
+  }, []);
+  const isMountedRef = useRef(true);
+  const { triggerPayWithAnyToken } = usePredictPayWithAnyToken();
+  const triggerPayWithAnyTokenFlow = useCallback(
+    async (params: Parameters<typeof triggerPayWithAnyToken>[0]) => {
+      markShouldPreserveActiveOrderOnUnmount();
+
+      if (isMountedRef.current) {
+        setIsPayWithAnyTokenLoading(true);
+      }
+
+      try {
+        await triggerPayWithAnyToken(params);
+      } finally {
+        if (isMountedRef.current) {
+          setIsPayWithAnyTokenLoading(false);
+        }
+      }
+    },
+    [markShouldPreserveActiveOrderOnUnmount, triggerPayWithAnyToken],
+  );
+
+  const handleTokenSelected = useCallback(
+    async (
+      selectedTokenAddress: string | null,
+      selectedTokenKey: string | null,
+    ) => {
+      if (selectedTokenKey === 'predict-balance' || !selectedTokenAddress) {
+        return;
+      }
+
+      await triggerPayWithAnyTokenFlow({
+        market,
+        outcome,
+        outcomeToken,
+        isInputFocused,
+        ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
+      });
+    },
+    [
+      currentValue,
+      isInputFocused,
+      market,
+      outcome,
+      outcomeToken,
+      triggerPayWithAnyTokenFlow,
+    ],
+  );
+
+  usePredictPaymentToken({
+    onTokenSelected: handleTokenSelected,
+  });
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+    },
+    [],
+  );
+
+  const handleAutoPlaceDepositFailed = async (depositErrorMessage?: string) => {
+    await triggerPayWithAnyTokenFlow({
       market,
       outcome,
       outcomeToken,
       isInputFocused,
       ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
-      analyticsProperties,
-    },
-  });
+      transactionError:
+        depositErrorMessage ?? strings('predict.deposit.error_description'),
+    });
+  };
 
   const { deposit } = usePredictDeposit();
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
@@ -271,19 +334,6 @@ const PredictBuyPreview = () => {
       isCalculating,
     ],
   );
-
-  const handleAutoPlaceDepositFailed = async (depositErrorMessage?: string) => {
-    await depositAndOrder({
-      market,
-      outcome,
-      outcomeToken,
-      isInputFocused,
-      ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
-      analyticsProperties,
-      transactionError:
-        depositErrorMessage ?? strings('predict.deposit.error_description'),
-    });
-  };
 
   const { isAutoPlaceLoading } = usePredictAutoPlaceOrder({
     amount,
@@ -442,7 +492,7 @@ const PredictBuyPreview = () => {
         disabled={!canPlaceBetAction}
         isLoading={isPlacingOrder}
         size={ButtonSizeHero.Lg}
-        style={tw.style('w-full', isDepositAndOrderLoading && 'opacity-50')}
+        style={tw.style('w-full', isPayWithAnyTokenLoading && 'opacity-50')}
       >
         <Text
           variant={TextVariant.BodyMd}
