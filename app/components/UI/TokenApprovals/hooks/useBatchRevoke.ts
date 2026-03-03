@@ -1,6 +1,5 @@
 import { useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import type { Hex } from '@metamask/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -8,6 +7,7 @@ import { selectApprovals } from '../selectors';
 import {
   clearSelection,
   setRevocationStatus,
+  clearRevocationStatuses,
   removeApproval,
 } from '../../../../core/redux/slices/tokenApprovals';
 import { ApprovalItem, ApprovalAssetType } from '../types';
@@ -20,7 +20,7 @@ import {
   getNetworkClientIdForChain,
 } from '../utils/revokeTransaction';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
-import Routes from '../../../../constants/navigation/Routes';
+import { isUserRejection } from '../utils/isUserRejection';
 import type { ChainBatchInfo } from './useBatchRevokeSupport';
 
 function getTransactionType(approval: ApprovalItem) {
@@ -35,7 +35,6 @@ function getTransactionType(approval: ApprovalItem) {
 
 export function useBatchRevoke() {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
   const approvals = useSelector(selectApprovals);
   const address = useSelector(selectSelectedInternalAccountAddress);
   const isProcessingRef = useRef(false);
@@ -90,6 +89,10 @@ export function useBatchRevoke() {
             dispatch(removeApproval(approval.id));
           }, 2000);
         } catch (err) {
+          if (isUserRejection(err)) {
+            dispatch(clearRevocationStatuses(chainApprovals.map((a) => a.id)));
+            return;
+          }
           dispatch(
             setRevocationStatus({
               id: approval.id,
@@ -111,7 +114,8 @@ export function useBatchRevoke() {
       const networkClientId = getNetworkClientIdForChain(chainInfo.chainId);
       if (!networkClientId || !address) return;
 
-      // Mark all approvals in this batch as pending
+      const approvalIds = chainInfo.approvals.map((a) => a.id);
+
       for (const approval of chainInfo.approvals) {
         dispatch(
           setRevocationStatus({
@@ -132,7 +136,7 @@ export function useBatchRevoke() {
           type: getTransactionType(approval),
         }));
 
-        addTransactionBatch({
+        await addTransactionBatch({
           from: address as Hex,
           networkClientId,
           origin: ORIGIN_METAMASK,
@@ -140,14 +144,23 @@ export function useBatchRevoke() {
           requireApproval: true,
         });
 
-        // Navigate to the standard confirmation UI for the batch
-        navigation.navigate(
-          Routes.TOKEN_APPROVALS.ROOT as never,
-          {
-            screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          } as never,
-        );
+        for (const approval of chainInfo.approvals) {
+          dispatch(
+            setRevocationStatus({
+              id: approval.id,
+              status: { status: 'confirmed' },
+            }),
+          );
+
+          setTimeout(() => {
+            dispatch(removeApproval(approval.id));
+          }, 2000);
+        }
       } catch (err) {
+        if (isUserRejection(err)) {
+          dispatch(clearRevocationStatuses(approvalIds));
+          return;
+        }
         for (const approval of chainInfo.approvals) {
           dispatch(
             setRevocationStatus({
@@ -164,7 +177,7 @@ export function useBatchRevoke() {
         }
       }
     },
-    [address, dispatch, navigation],
+    [address, dispatch],
   );
 
   const batchRevoke = useCallback(

@@ -353,7 +353,6 @@ const ApprovalDetailSheet: React.FC = () => {
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           label={strings('token_approvals.revoke')}
-          isDanger
           onPress={handleRevoke}
           style={styles.revokeButton}
           width={ButtonWidthTypes.Full}

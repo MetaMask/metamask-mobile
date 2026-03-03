@@ -4,6 +4,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { addTransaction } from '../../../../util/transaction-controller';
 import {
   setRevocationStatus,
+  clearRevocationStatuses,
   removeApproval,
 } from '../../../../core/redux/slices/tokenApprovals';
 import { ApprovalItem, ApprovalAssetType } from '../types';
@@ -12,6 +13,7 @@ import {
   getNetworkClientIdForChain,
 } from '../utils/revokeTransaction';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { isUserRejection } from '../utils/isUserRejection';
 
 function getTransactionType(approval: ApprovalItem) {
   if (
@@ -78,6 +80,10 @@ export function useRevokeApproval() {
           dispatch(removeApproval(approval.id));
         }, 2000);
       } catch (err) {
+        if (isUserRejection(err)) {
+          dispatch(clearRevocationStatuses([approval.id]));
+          return;
+        }
         dispatch(
           setRevocationStatus({
             id: approval.id,

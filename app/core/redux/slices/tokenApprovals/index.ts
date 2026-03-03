@@ -90,6 +90,11 @@ const tokenApprovalsSlice = createSlice({
     ) => {
       state.revocations[action.payload.id] = action.payload.status;
     },
+    clearRevocationStatuses: (state, action: PayloadAction<string[]>) => {
+      for (const id of action.payload) {
+        delete state.revocations[id];
+      }
+    },
     removeApproval: (state, action: PayloadAction<string>) => {
       state.approvals = state.approvals.filter((a) => a.id !== action.payload);
       state.selectedApprovalIds = state.selectedApprovalIds.filter(
@@ -136,6 +141,7 @@ export const {
   enterSelectionMode,
   exitSelectionMode,
   setRevocationStatus,
+  clearRevocationStatuses,
   removeApproval,
   setHasSeenEducation,
   resetTokenApprovals,
