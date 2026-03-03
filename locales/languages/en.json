@@ -2074,11 +2074,12 @@
     "disclaimer": "AI insights. Not financial advice.",
     "a_closer_look": "A closer look",
     "whats_being_said": "What's being said",
-    "fixed_footer_disclaimer": "AI summary • Not financial advice",
+    "fixed_footer_disclaimer": "AI summary for information only",
     "trade_button": "Trade",
     "sources_count": "+{{count}} sources",
-    "sources_title": "Sources",
+    "sources_title": "News sources",
     "feedback_submitted": "Feedback submitted",
+    "helpful_prompt": "Was this helpful?",
     "feedback": {
       "title": "Feedback",
       "description": "Help improve our AI-generated market insights.",
@@ -3386,7 +3387,7 @@
     ],
     "private_key_explanation": "Save it somewhere safe and secret.",
     "private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
-    "seed_phrase_warning_explanation": 
+    "seed_phrase_warning_explanation":
       "Make sure nobody is looking at your screen. MetaMask Support will never ask for this.",
     "private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
     "reveal_srp_description": "Your Secret Recovery Phrase gives full access to your wallet. Do not share it with anyone.",
@@ -3698,6 +3699,10 @@
     "speedup_tx_title": "Attempt to speed up?",
     "speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
     "nevermind": "Never mind",
+    "cancel_speedup_speedup_title": "Speed up Transaction",
+    "cancel_speedup_cancel_title": "Cancel Transaction",
+    "cancel_speedup_speedup_message": "This network fee will replace the original.",
+    "cancel_speedup_cancel_message": "This transaction will be canceled and this network fee will replace the original.",
     "edit_network_fee": "Edit gas fee",
     "edit_priority": "Edit priority",
     "gas_cancel_fee": "Gas cancellation fee",
@@ -6031,8 +6036,6 @@
       "boost_title": "Get {{percentage}}% on your stablecoins",
       "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
       "powered_by_relay": "Powered by Relay",
-      "earn_rewards_when": "Earn rewards when",
-      "you_convert_to": "you convert to",
       "max": "Max",
       "quick_convert_button": "Convert",
       "cta_body_earn_apy": "Earn {{apy}} yield automatically for holding mUSD.",
@@ -6045,8 +6048,7 @@
         "inline_failed_message": "Conversion failed. Try again.",
         "confirmation": {
           "title": "Convert max"
-        },
-        "failed_to_get_quotes": "Failed to get quotes. Please close this modal and try again."
+        }
       },
       "percentage_boost": "{{percentage}}% boost",
       "rate": "Rate"
@@ -7958,7 +7960,7 @@
       "scanning": "Scanning for devices...",
       "no_devices_found": "No devices found",
       "no_devices_hint": "Make sure your {{device}} is unlocked and Bluetooth is enabled",
-      "tips": "Unlock your {{device}}, open Bluetooth settings, and keep it close to your phone",
+      "tips": "Unlock your {{device}}, enable Bluetooth, and ensure Do Not Disturb is turned off",
       "connect": "Connect",
       "rescan": "Scan Again",
       "unknown_device": "Unknown Device",

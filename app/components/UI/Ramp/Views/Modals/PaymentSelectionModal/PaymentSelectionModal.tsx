@@ -82,6 +82,7 @@ function PaymentSelectionModal() {
 
   const quoteFetchParams = useMemo(
     () =>
+      amount > 0 &&
       walletAddress &&
       assetId &&
       !paymentMethodsLoading &&
@@ -172,6 +173,7 @@ function PaymentSelectionModal() {
           paymentMethod={paymentMethod}
           onPress={() => handlePaymentMethodPress(paymentMethod)}
           isSelected={selectedPaymentMethod?.id === paymentMethod.id}
+          showQuote={amount > 0}
           quote={matchedQuote}
           quoteLoading={quotesLoading}
           quoteError={hasQuoteError}
@@ -183,6 +185,7 @@ function PaymentSelectionModal() {
     [
       handlePaymentMethodPress,
       selectedPaymentMethod,
+      amount,
       quotes,
       quotesLoading,
       currency,
