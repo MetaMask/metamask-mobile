@@ -26,6 +26,7 @@ import type { PerpsMarketTileCardProps } from './PerpsMarketTileCard.types';
 const DEFAULT_CARD_WIDTH = 180;
 const DEFAULT_CARD_HEIGHT = 180;
 const SPARKLINE_HEIGHT = 80;
+const SPARKLINE_STROKE_WIDTH = 2;
 const TOKEN_LOGO_SIZE = 40;
 const SHIMMER_PULSE_DURATION = 900;
 const LIVE_PRICES_THROTTLE_MS = 3000;
@@ -167,6 +168,7 @@ const TileCardInner: React.FC<
           <SparklineChart
             data={sparklineData}
             width={sparklineWidth}
+            strokeWidth={SPARKLINE_STROKE_WIDTH}
             height={SPARKLINE_HEIGHT}
             color={sparklineColor}
             gradientId={`sparkline-${market.symbol}`}

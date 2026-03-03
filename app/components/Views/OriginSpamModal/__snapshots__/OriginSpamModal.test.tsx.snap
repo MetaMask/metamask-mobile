@@ -47,7 +47,7 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
         {
           "color": "#131416",
           "fontFamily": "Geist-Bold",
-          "fontSize": 18,
+          "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -167,7 +167,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
           "flex": 1,
           "flexWrap": "wrap",
           "fontFamily": "Geist-Bold",
-          "fontSize": 18,
+          "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
           "textAlign": "center",

@@ -278,7 +278,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               {
                 "color": "#babbbe",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 18,
+                "fontSize": 20,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -692,7 +692,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               {
                 "color": "#babbbe",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 18,
+                "fontSize": 20,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
