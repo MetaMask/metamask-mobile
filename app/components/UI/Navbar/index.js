@@ -58,6 +58,7 @@ import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { RequestPaymentViewSelectors } from '../ReceiveRequest/RequestPaymentView.testIds';
+import { RampsOrderDetailsSelectorsIDs } from '../Ramp/Views/OrderDetails/OrderDetails.testIds';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 import {
@@ -2109,7 +2110,7 @@ export function getRampsOrderDetailsNavbarOptions(
         navigation.pop();
         onClose?.();
       },
-      testID: 'ramps-order-details-back-navbar-button',
+      testID: RampsOrderDetailsSelectorsIDs.BACK_BUTTON,
     };
   }
 
