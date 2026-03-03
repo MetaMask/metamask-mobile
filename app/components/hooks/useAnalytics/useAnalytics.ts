@@ -83,7 +83,7 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  *   createEventBuilder,
  *   enable,
  *   identify,
- *   addTraitsToUser, // @deprecated — use identify
+ *   addTraitsToUser,
  *   createDataDeletionTask,
  *   checkDataDeleteStatus,
  *   getDeleteRegulationCreationDate,

@@ -4,6 +4,8 @@
  * that can be used across test files for consistency
  */
 
+import type { UseAnalyticsHook } from '../../components/hooks/useAnalytics/useAnalytics.types';
+
 export interface MockAnalytics {
   isEnabled: jest.Mock<boolean, []>;
   trackEvent: jest.Mock<void, [event: unknown]>;
@@ -52,3 +54,55 @@ export function createAnalyticsMockModule(overrides?: Partial<MockAnalytics>) {
     analytics: mockAnalytics,
   };
 }
+
+/**
+ * Creates a fresh `UseAnalyticsHook` mock on every call.
+ *
+ * Always use this factory rather than a shared constant, since
+ * `jest.resetAllMocks()` / `jest.clearAllMocks()` wipe mock implementations
+ * on any shared jest.fn() reference.
+ *
+ * @example
+ * jest.mocked(useAnalytics).mockReturnValue(
+ *   createMockUseAnalyticsHook({ trackEvent: mockTrackEvent }),
+ * );
+ *
+ * @example with beforeEach reset
+ * beforeEach(() => {
+ *   jest.resetAllMocks();
+ *   jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
+ * });
+ */
+export const createMockUseAnalyticsHook = (
+  overrides?: Partial<UseAnalyticsHook>,
+): UseAnalyticsHook => ({
+  trackEvent: jest.fn(),
+  createEventBuilder: jest.fn().mockReturnValue({
+    addProperties: jest.fn().mockReturnThis(),
+    addSensitiveProperties: jest.fn().mockReturnThis(),
+    removeProperties: jest.fn().mockReturnThis(),
+    removeSensitiveProperties: jest.fn().mockReturnThis(),
+    setSaveDataRecording: jest.fn().mockReturnThis(),
+    build: jest.fn().mockReturnValue({
+      name: 'mock-event',
+      properties: {},
+      sensitiveProperties: {},
+      saveDataRecording: false,
+    }),
+  }),
+  isEnabled: jest.fn().mockReturnValue(true),
+  identify: jest.fn().mockResolvedValue(undefined),
+  enable: jest.fn().mockResolvedValue(undefined),
+  addTraitsToUser: jest.fn().mockResolvedValue(undefined),
+  createDataDeletionTask: jest.fn().mockResolvedValue({ status: 'ok' }),
+  checkDataDeleteStatus: jest.fn().mockResolvedValue({
+    deletionRequestDate: undefined,
+    hasCollectedDataSinceDeletionRequest: false,
+    dataDeletionRequestStatus: 'UNKNOWN',
+  }),
+  getDeleteRegulationCreationDate: jest.fn().mockReturnValue('20/04/2024'),
+  getDeleteRegulationId: jest.fn().mockReturnValue('mock-regulation-id'),
+  isDataRecorded: jest.fn().mockReturnValue(true),
+  getAnalyticsId: jest.fn().mockResolvedValue('mock-analytics-id'),
+  ...overrides,
+});
