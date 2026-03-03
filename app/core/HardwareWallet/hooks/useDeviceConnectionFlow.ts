@@ -29,7 +29,7 @@ interface UseDeviceConnectionFlowOptions {
 }
 
 interface UseDeviceConnectionFlowResult {
-  ensureDeviceReady: (targetDeviceId?: string) => Promise<boolean>;
+  ensureDeviceReady: (targetDeviceId?: string | null) => Promise<boolean>;
   connect: (targetDeviceId: string) => Promise<void>;
   retryEnsureDeviceReady: () => Promise<void>;
   closeFlow: () => void;
