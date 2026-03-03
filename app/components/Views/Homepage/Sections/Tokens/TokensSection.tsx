@@ -23,10 +23,7 @@ import RemoveTokenBottomSheet from '../../../../UI/Tokens/TokenList/RemoveTokenB
 import { ScamWarningModal } from '../../../../UI/Tokens/TokenList/ScamWarningModal/ScamWarningModal';
 import { selectTokenListLayoutV2Enabled } from '../../../../../selectors/featureFlagController/tokenListLayout';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import {
-  selectChainId,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
@@ -34,11 +31,7 @@ import { selectSelectedInternalAccountId } from '../../../../../selectors/accoun
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { refreshTokens } from '../../../../UI/Tokens/util/refreshTokens';
-import { removeEvmToken, removeNonEvmToken } from '../../../../UI/Tokens/util';
-import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
-import { getDecimalChainId } from '../../../../../util/networks';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import type { TokenI } from '../../../../UI/Tokens/types';
+import { useRemoveToken } from '../../../../UI/Tokens/hooks/useRemoveToken';
 
 const MAX_TOKENS_DISPLAYED = 5;
 
@@ -49,34 +42,32 @@ const MAX_TOKENS_DISPLAYED = 5;
  */
 const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const isZeroBalanceAccount = useIsZeroBalanceAccount();
   const sortedTokenKeys = useSelector(selectSortedAssetsBySelectedAccountGroup);
   const accountGroupBalance = useSelector(
     selectAccountGroupBalanceForEmptyState,
   );
   const privacyMode = useSelector(selectPrivacyMode);
-  const currentChainId = useSelector(selectChainId);
   const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
   const ListItemComponent = isTokenListV2 ? TokenListItemV2 : TokenListItem;
   const popularTokensListRef = useRef<SectionRefreshHandle>(null);
   const [hasTokensError, setHasTokensError] = useState(false);
 
-  // Token hide/remove state
-  const [removeTokenState, setRemoveTokenState] = useState<
-    { isVisible: true; token: TokenI } | { isVisible: false }
-  >({ isVisible: false });
-  const [showScamWarningModal, setShowScamWarningModal] = useState(false);
+  const {
+    removeTokenState,
+    showRemoveMenu,
+    removeToken,
+    handleClose: handleCloseRemoveTokenBottomSheet,
+    showScamWarningModal,
+    setShowScamWarningModal,
+  } = useRemoveToken();
 
   const evmNetworkConfigurationsByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
   const selectedAccountId = useSelector(selectSelectedInternalAccountId);
-  const selectInternalAccountByScope = useSelector(
-    selectSelectedInternalAccountByScope,
-  );
   const selectedSolanaAccount =
-    selectInternalAccountByScope(SolScope.Mainnet) || null;
+    useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
   const isSolanaSelected = selectedSolanaAccount !== null;
 
   const prevAccountIdRef = useRef(selectedAccountId);
@@ -136,46 +127,6 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     setHasTokensError(false);
     await refresh();
   }, [refresh]);
-
-  const showRemoveMenu = useCallback((token: TokenI) => {
-    setRemoveTokenState({ isVisible: true, token });
-  }, []);
-
-  const removeToken = useCallback(async () => {
-    if (!removeTokenState.isVisible) return;
-
-    const tokenToRemove = removeTokenState.token;
-    setRemoveTokenState({ isVisible: false });
-
-    if (tokenToRemove?.chainId !== undefined) {
-      if (isNonEvmChainId(tokenToRemove.chainId)) {
-        await removeNonEvmToken({
-          tokenAddress: tokenToRemove.address,
-          tokenChainId: tokenToRemove.chainId,
-          selectInternalAccountByScope,
-        });
-      } else {
-        await removeEvmToken({
-          tokenToRemove,
-          currentChainId,
-          trackEvent,
-          strings,
-          getDecimalChainId,
-          createEventBuilder,
-        });
-      }
-    }
-  }, [
-    removeTokenState,
-    currentChainId,
-    trackEvent,
-    createEventBuilder,
-    selectInternalAccountByScope,
-  ]);
-
-  const handleCloseRemoveTokenBottomSheet = useCallback(() => {
-    setRemoveTokenState({ isVisible: false });
-  }, []);
 
   return (
     <Box gap={3}>
