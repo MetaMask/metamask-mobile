@@ -16,7 +16,7 @@ class OrderDetailsView {
     return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT);
   }
   get backButton(): DetoxElement {
-    return Matchers.getElementByID('ramps-order-details-back-navbar-button'); // this is temporary
+    return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.BACK_BUTTON);
   }
 
   async tapCloseButton(): Promise<void> {
