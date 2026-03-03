@@ -20,6 +20,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "isAccountTreeSyncingInProgress": false,
       },
       "AccountsController": {
+        "accountIdByAddress": {},
         "internalAccounts": {
           "accounts": {},
           "selectedAccount": "",
@@ -875,6 +876,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "isAccountTreeSyncingInProgress": false,
       },
       "AccountsController": {
+        "accountIdByAddress": {},
         "internalAccounts": {
           "accounts": {},
           "selectedAccount": "",
