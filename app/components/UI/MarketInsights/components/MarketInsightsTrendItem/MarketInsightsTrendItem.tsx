@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -9,20 +9,11 @@ import {
   FontWeight,
   TextColor,
   TextVariant,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
 } from '@metamask/design-system-react-native';
 import type { MarketInsightsSource } from '@metamask/ai-controllers';
 import type { MarketInsightsTrendItemProps } from './MarketInsightsTrendItem.types';
-import {
-  getFaviconUrl,
-  getUniqueSourcesByFavicon,
-  isXSourceUrl,
-} from '../../utils/marketInsightsFormatting';
-
-const MAX_VISIBLE_SOURCE_LOGOS = 3;
+import { getUniqueSourcesByFavicon } from '../../utils/marketInsightsFormatting';
+import SourceLogoGroup from '../SourceLogoGroup';
 
 const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
   trend,
@@ -49,7 +40,6 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
     return getUniqueSourcesByFavicon([...articleSources, ...tweetSources]);
   }, [trend.articles, trend.tweets]);
 
-  const visibleLogos = uniqueSources.slice(0, MAX_VISIBLE_SOURCE_LOGOS);
   const firstSourceName = uniqueSources[0]?.name;
   const remainingCount = Math.max(0, uniqueSources.length - 1);
 
@@ -72,37 +62,13 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {trend.description}
       </Text>
-      {visibleLogos.length > 0 && (
+      {uniqueSources.length > 0 && (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           twClassName="pt-2 gap-2"
         >
-          <Box flexDirection={BoxFlexDirection.Row}>
-            {visibleLogos.map((source, index) => (
-              <Box
-                key={`${source.name}-${source.url}`}
-                twClassName={`h-4 w-4 rounded-full border border-muted bg-default overflow-hidden ${
-                  index > 0 ? '-ml-1' : ''
-                }`}
-              >
-                {isXSourceUrl(source.url) ? (
-                  <Box twClassName="h-4 w-4 items-center justify-center rounded-full">
-                    <Icon
-                      name={IconName.X}
-                      size={IconSize.Sm}
-                      color={IconColor.IconDefault}
-                    />
-                  </Box>
-                ) : (
-                  <Image
-                    source={{ uri: getFaviconUrl(source.url) }}
-                    style={tw.style('h-4 w-4 rounded-full')}
-                  />
-                )}
-              </Box>
-            ))}
-          </Box>
+          <SourceLogoGroup sources={uniqueSources} />
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {remainingCount > 0
               ? `${firstSourceName} +${remainingCount}`
