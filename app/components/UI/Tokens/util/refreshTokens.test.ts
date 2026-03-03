@@ -131,7 +131,7 @@ describe('refreshTokens', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('logs an error if a timeout occurs', async () => {
+  it('logs if a timeout occurs', async () => {
     jest.useFakeTimers();
 
     try {
