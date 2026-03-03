@@ -182,6 +182,7 @@ const Onboarding = () => {
   const mounted = useRef<boolean>(false);
   const hasCheckedVaultBackup = useRef<boolean>(false);
   const warningCallback = useRef<() => boolean>(() => true);
+  const notificationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const animatedTimingStart = useCallback(
     (animatedRef: Animated.Value, toValue: number): void => {
@@ -202,10 +203,8 @@ const Onboarding = () => {
   }, []);
 
   const showNotification = useCallback((): void => {
-    // show notification
     animatedTimingStart(notificationAnimated, 0);
-    // hide notification
-    setTimeout(() => {
+    notificationTimer.current = setTimeout(() => {
       animatedTimingStart(notificationAnimated, 200);
     }, 4000);
     disableBackPress();
@@ -930,6 +929,9 @@ const Onboarding = () => {
 
     return () => {
       mounted.current = false;
+      if (notificationTimer.current) {
+        clearTimeout(notificationTimer.current);
+      }
       unsetLoading();
       InteractionManager.runAfterInteractions(PreventScreenshot.allow);
     };
