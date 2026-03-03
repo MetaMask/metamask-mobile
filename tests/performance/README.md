@@ -275,6 +275,14 @@ Integration tests for MetaMask Connect:
 - `connection-evm.spec.js` - EVM connection performance
 - `connection-multichain.spec.js` - Multichain connection performance
 - `connection-wagmi.spec.js` - Wagmi integration performance
+- `multichain-rn-connect.spec.js` - Multichain + Solana via the React Native Playground APK
+- `legacy-evm-rn-connect.spec.js` - Legacy EVM connection via the React Native Playground APK
+
+> The RN playground tests require a separate APK built from the
+> [`playground/react-native-playground`](https://github.com/MetaMask/connect-monorepo/tree/main/playground/react-native-playground)
+> directory of the [connect-monorepo](https://github.com/MetaMask/connect-monorepo).
+> The APK must be installed on the emulator before running.
+> See [`tests/performance/mm-connect/README.md`](mm-connect/README.md) for full setup instructions.
 
 ## Performance Tracking System
 

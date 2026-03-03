@@ -16,7 +16,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, TextVariant } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import SectionTitle from '../../components/SectionTitle';
 import ErrorState from '../../components/ErrorState';
@@ -33,12 +33,14 @@ import {
   PredictMarketCardSkeleton,
   PredictPositionRow,
   PredictPositionRowSkeleton,
-  ViewMoreCard,
 } from './components';
+import ViewMoreCard from '../../components/ViewMoreCard';
 import { colorWithOpacity } from '../../../../../util/colors';
 import type { PredictPosition } from '../../../../UI/Predict/types';
 import type { PredictNavigationParamList } from '../../../../UI/Predict/types/navigation';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
+import { PredictClaimButton } from '../../../../UI/Predict/components/PredictActionButtons';
+import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
 import useHomepageSectionViewedEvent, {
   HomepageSectionNames,
 } from '../../hooks/useHomepageSectionViewedEvent';
@@ -46,15 +48,15 @@ import useHomepageSectionViewedEvent, {
 const MAX_MARKETS_DISPLAYED = 5;
 
 // Card dimensions for snap offsets
-const CARD_WIDTH = 280;
+const CARD_WIDTH = 240;
 const GAP = 12;
 const PADDING = 16; // px-4
 
 // Calculate snap offsets: first card at 0, then padding + card + (gap + card) * n
-// +1 for the ViewMoreCard at the end
-const SNAP_OFFSETS = Array.from(
-  { length: MAX_MARKETS_DISPLAYED + 1 },
-  (_, i) => (i === 0 ? 0 : PADDING + CARD_WIDTH + (GAP + CARD_WIDTH) * (i - 1)),
+// ViewMoreCard is excluded — its snap position would exceed max scroll on typical screens,
+// causing the scroll view to snap back and never reach it.
+const SNAP_OFFSETS = Array.from({ length: MAX_MARKETS_DISPLAYED }, (_, i) =>
+  i === 0 ? 0 : PADDING + CARD_WIDTH + (GAP + CARD_WIDTH) * (i - 1),
 );
 
 // Skeleton keys for loading state
@@ -65,6 +67,11 @@ const SKELETON_KEYS = Array.from(
 
 // Fade overlay width
 const FADE_WIDTH = 40;
+
+interface PredictionsSectionProps {
+  sectionIndex: number;
+  totalSectionsLoaded: number;
+}
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -80,11 +87,6 @@ const styles = StyleSheet.create({
   },
 });
 
-interface PredictionsSectionProps {
-  sectionIndex: number;
-  totalSectionsLoaded: number;
-}
-
 /**
  * PredictionsSection - Displays prediction content on the homepage
  *
@@ -98,17 +100,17 @@ const PredictionsSection = forwardRef<
   SectionRefreshHandle,
   PredictionsSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
+  const sectionViewRef = useRef<View>(null);
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const title = strings('homepage.sections.predictions');
+  const { claim } = usePredictClaim();
 
   // Track scroll position for fade effect
   const [fadeOpacity, setFadeOpacity] = useState(1);
-
-  const sectionViewRef = useRef<View>(null);
 
   // Fetch both positions and markets
   const {
@@ -124,6 +126,22 @@ const PredictionsSection = forwardRef<
     error: marketsError,
     refresh: refreshMarkets,
   } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
+
+  const {
+    positions: claimablePositions,
+    isLoading: isLoadingClaimable,
+    refresh: refreshClaimable,
+  } = usePredictPositionsForHomepage(undefined, true);
+
+  const handleClaim = useCallback(async () => {
+    await claim();
+    await refreshClaimable();
+  }, [claim, refreshClaimable]);
+
+  const totalClaimable = claimablePositions.reduce(
+    (sum, p) => sum + (p.currentValue ?? 0),
+    0,
+  );
 
   // Determine if user has positions
   const hasPositions = positions.length > 0;
@@ -164,14 +182,18 @@ const PredictionsSection = forwardRef<
   const hasPositionsRef = useRef(hasPositions);
   hasPositionsRef.current = hasPositions;
 
-  // Refresh: only refresh positions if user has them, always refresh markets
+  // Refresh: only refresh positions if user has them, always refresh markets + claimable
   const refresh = useCallback(async () => {
     if (hasPositionsRef.current) {
-      await Promise.all([refreshPositions(), refreshMarkets()]);
+      await Promise.all([
+        refreshPositions(),
+        refreshMarkets(),
+        refreshClaimable(),
+      ]);
     } else {
-      await refreshMarkets();
+      await Promise.all([refreshMarkets(), refreshClaimable()]);
     }
-  }, [refreshPositions, refreshMarkets]);
+  }, [refreshPositions, refreshMarkets, refreshClaimable]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -263,6 +285,16 @@ const PredictionsSection = forwardRef<
                 />
               ))
             )}
+            {!isLoadingPositions &&
+              !isLoadingClaimable &&
+              totalClaimable > 0 && (
+                <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
+                  <PredictClaimButton
+                    amount={totalClaimable}
+                    onPress={handleClaim}
+                  />
+                </Box>
+              )}
           </Box>
         </Box>
       </View>
@@ -298,7 +330,11 @@ const PredictionsSection = forwardRef<
                 {markets.map((market) => (
                   <PredictMarketCard key={market.id} market={market} />
                 ))}
-                <ViewMoreCard onPress={handleViewAllPredictions} />
+                <ViewMoreCard
+                  onPress={handleViewAllPredictions}
+                  twClassName="w-[180px] flex-1"
+                  textVariant={TextVariant.BodyLg}
+                />
               </>
             )}
           </ScrollView>

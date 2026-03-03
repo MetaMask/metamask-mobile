@@ -139,7 +139,6 @@ describe('Homepage', () => {
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
     expect(screen.getByText('Import NFTs')).toBeOnTheScreen();
-    expect(screen.getByText('Easily add your collectibles')).toBeOnTheScreen();
   });
 
   it('exposes refresh function via ref', () => {

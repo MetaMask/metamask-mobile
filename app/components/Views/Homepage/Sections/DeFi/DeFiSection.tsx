@@ -13,18 +13,25 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
+import ErrorState from '../../components/ErrorState';
 import { SectionRefreshHandle } from '../../types';
 import { useDeFiPositionsForHomepage, DeFiPositionEntry } from './hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import DeFiPositionsListItem from '../../../../UI/DeFiPositions/DeFiPositionsListItem';
 import { selectAssetsDefiPositionsEnabled } from '../../../../../selectors/featureFlagController/assetsDefiPositions';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import useHomepageSectionViewedEvent, {
   HomepageSectionNames,
 } from '../../hooks/useHomepageSectionViewedEvent';
-import Routes from '../../../../../constants/navigation/Routes';
 
 const MAX_POSITIONS_DISPLAYED = 5;
+
+interface DeFiSectionProps {
+  sectionIndex: number;
+  totalSectionsLoaded: number;
+}
 
 /**
  * Skeleton placeholder for loading state - matches DeFi list item layout
@@ -60,11 +67,6 @@ const DeFiPositionsSkeleton = () => {
   );
 };
 
-interface DeFiSectionProps {
-  sectionIndex: number;
-  totalSectionsLoaded: number;
-}
-
 /**
  * DeFiSection - Displays user's DeFi positions on the homepage.
  *
@@ -73,28 +75,31 @@ interface DeFiSectionProps {
  */
 const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
+    const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation();
     const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
     const privacyMode = useSelector(selectPrivacyMode);
     const title = strings('homepage.sections.defi');
-    const sectionViewRef = useRef<View>(null);
 
     const { positions, isLoading, hasError, isEmpty } =
       useDeFiPositionsForHomepage(MAX_POSITIONS_DISPLAYED);
-
-    // The section renders visible content only when DeFi is enabled, data has
-    // loaded, and there are positions. In all other cases pass null so the
-    // event fires immediately (once loading finishes).
-    const willRender = isDeFiEnabled && !isLoading && !hasError && !isEmpty;
 
     const handleViewAllDeFi = useCallback(() => {
       navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW as never);
     }, [navigation]);
 
-    // DeFi positions come from Redux selectors - no async refresh needed
     const refresh = useCallback(async () => {
-      // Data refreshes automatically via DeFiPositionsController
+      const controller = Engine.context.DeFiPositionsController;
+      await controller._executePoll();
     }, []);
+
+    useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+
+    // Always pass sectionViewRef once loading is done so the viewport check
+    // decides when to fire. When the section returns null (empty, no error),
+    // sectionViewRef.current is null and the viewport check returns early —
+    // no premature immediate fire via the null path.
+    const willRender = !isLoading;
 
     useHomepageSectionViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
@@ -106,16 +111,31 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
       itemCount: isEmpty ? 0 : positions.length,
     });
 
-    useImperativeHandle(ref, () => ({ refresh }), [refresh]);
-
     // Don't render if DeFi is disabled
     if (!isDeFiEnabled) {
       return null;
     }
 
-    // Don't render if error or empty (and not loading)
-    if (!isLoading && (hasError || isEmpty)) {
+    // Don't render if empty and not loading (200 with no data)
+    if (!isLoading && isEmpty) {
       return null;
+    }
+
+    // Show retry UI on error
+    if (!isLoading && hasError) {
+      return (
+        <View ref={sectionViewRef}>
+          <Box gap={3}>
+            <SectionTitle title={title} onPress={handleViewAllDeFi} />
+            <ErrorState
+              title={strings('homepage.error.unable_to_load', {
+                section: title.toLowerCase(),
+              })}
+              onRetry={refresh}
+            />
+          </Box>
+        </View>
+      );
     }
 
     return (

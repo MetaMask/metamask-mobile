@@ -331,7 +331,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               "paddingVertical": 16,
                             },
                             {
-                              "borderBottomColor": "#b7bbc866",
+                              "borderBottomColor": "#b4b4b566",
                               "borderBottomWidth": 1,
                             },
                           ]
@@ -352,7 +352,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -382,7 +382,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -398,7 +398,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -461,7 +461,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -491,7 +491,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -509,7 +509,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             small={true}
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -547,7 +547,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -577,7 +577,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -640,7 +640,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   primary={true}
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
@@ -677,7 +677,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -707,7 +707,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -770,7 +770,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   primary={true}
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
@@ -817,7 +817,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -849,7 +849,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -880,7 +880,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                           style={
                             [
                               {
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderRadius": 8,
                                 "borderWidth": 1,
                                 "padding": 16,
@@ -907,7 +907,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -923,7 +923,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -949,7 +949,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -965,7 +965,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -1020,7 +1020,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
@@ -1036,7 +1036,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                     undefined,
                                     undefined,
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                     },
                                     undefined,
                                     undefined,
@@ -1064,7 +1064,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "borderBottomColor": "#b7bbc866",
+                                  "borderBottomColor": "#b4b4b566",
                                   "borderBottomWidth": 1,
                                   "marginVertical": 6,
                                 },
@@ -1090,7 +1090,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -1108,7 +1108,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -1134,7 +1134,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -1152,7 +1152,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -1198,7 +1198,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -1608,7 +1608,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               "paddingVertical": 16,
                             },
                             {
-                              "borderBottomColor": "#b7bbc866",
+                              "borderBottomColor": "#b4b4b566",
                               "borderBottomWidth": 1,
                             },
                           ]
@@ -1629,7 +1629,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -1659,7 +1659,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -1675,7 +1675,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -1738,7 +1738,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -1768,7 +1768,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -1786,7 +1786,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             small={true}
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -1824,7 +1824,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -1854,7 +1854,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -1917,7 +1917,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   primary={true}
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
@@ -1954,7 +1954,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -1984,7 +1984,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -2047,7 +2047,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   primary={true}
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
@@ -2094,7 +2094,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -2126,7 +2126,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -2157,7 +2157,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           style={
                             [
                               {
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderRadius": 8,
                                 "borderWidth": 1,
                                 "padding": 16,
@@ -2184,7 +2184,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -2200,7 +2200,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -2226,7 +2226,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -2242,7 +2242,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -2297,7 +2297,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
@@ -2313,7 +2313,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                     undefined,
                                     undefined,
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                     },
                                     undefined,
                                     undefined,
@@ -2341,7 +2341,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "borderBottomColor": "#b7bbc866",
+                                  "borderBottomColor": "#b4b4b566",
                                   "borderBottomWidth": 1,
                                   "marginVertical": 6,
                                 },
@@ -2367,7 +2367,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -2385,7 +2385,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -2411,7 +2411,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -2429,7 +2429,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -2475,7 +2475,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -2885,7 +2885,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               "paddingVertical": 16,
                             },
                             {
-                              "borderBottomColor": "#b7bbc866",
+                              "borderBottomColor": "#b4b4b566",
                               "borderBottomWidth": 1,
                             },
                           ]
@@ -2906,7 +2906,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -2936,7 +2936,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -2952,7 +2952,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -3015,7 +3015,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -3045,7 +3045,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -3063,7 +3063,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             small={true}
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -3101,7 +3101,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -3131,7 +3131,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -3194,7 +3194,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   primary={true}
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
@@ -3231,7 +3231,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -3261,7 +3261,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -3324,7 +3324,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   primary={true}
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
@@ -3371,7 +3371,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 30,
                                   "marginVertical": 2,
@@ -3403,7 +3403,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 [
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 10,
                                     "marginBottom": 8,
@@ -3434,7 +3434,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           style={
                             [
                               {
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderRadius": 8,
                                 "borderWidth": 1,
                                 "padding": 16,
@@ -3461,7 +3461,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -3477,7 +3477,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -3503,7 +3503,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -3519,7 +3519,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -3574,7 +3574,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
@@ -3590,7 +3590,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                     undefined,
                                     undefined,
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                     },
                                     undefined,
                                     undefined,
@@ -3618,7 +3618,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               [
                                 {
-                                  "borderBottomColor": "#b7bbc866",
+                                  "borderBottomColor": "#b4b4b566",
                                   "borderBottomWidth": 1,
                                   "marginVertical": 6,
                                 },
@@ -3644,7 +3644,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -3662,7 +3662,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -3688,7 +3688,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
@@ -3706,7 +3706,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   undefined,
                                   undefined,
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                   },
                                   undefined,
                                   undefined,
@@ -3752,7 +3752,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,

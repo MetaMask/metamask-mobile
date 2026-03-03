@@ -6,12 +6,21 @@ import { SectionRefreshHandle } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
+const mockExecutePoll = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    DeFiPositionsController: {
+      _executePoll: (...args: unknown[]) => mockExecutePoll(...args),
+    },
+  },
 }));
 
 jest.mock(
@@ -138,7 +147,7 @@ describe('DeFiSection', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('returns null when there is an error and not loading', () => {
+  it('renders error state with retry when there is an error and not loading', () => {
     mockUseDeFiPositionsForHomepage.mockReturnValue({
       positions: [],
       isLoading: false,
@@ -146,11 +155,30 @@ describe('DeFiSection', () => {
       isEmpty: false,
     });
 
-    const { toJSON } = renderWithProvider(
+    renderWithProvider(
       <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(toJSON()).toBeNull();
+    expect(screen.getByText('DeFi')).toBeOnTheScreen();
+    expect(screen.getByText(/unable to load/i)).toBeOnTheScreen();
+    expect(screen.getByText(/retry/i)).toBeOnTheScreen();
+  });
+
+  it('calls _executePoll on retry button press', async () => {
+    mockUseDeFiPositionsForHomepage.mockReturnValue({
+      positions: [],
+      isLoading: false,
+      hasError: true,
+      isEmpty: false,
+    });
+
+    renderWithProvider(<DeFiSection />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByText(/retry/i));
+    });
+
+    expect(mockExecutePoll).toHaveBeenCalled();
   });
 
   it('renders skeleton when loading', () => {
@@ -223,6 +251,6 @@ describe('DeFiSection', () => {
       await ref.current?.refresh();
     });
 
-    // Refresh is a no-op for DeFi (data comes from controller)
+    expect(mockExecutePoll).toHaveBeenCalled();
   });
 });

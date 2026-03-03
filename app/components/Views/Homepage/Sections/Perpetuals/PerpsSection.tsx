@@ -11,10 +11,12 @@ import { ScrollView, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 import {
   type PerpsMarketData,
   type Position,
 } from '@metamask/perps-controller';
+import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
 import FadingScrollContainer from '../../components/FadingScrollContainer';
@@ -25,12 +27,13 @@ import {
   usePerpsMarkets,
 } from '../../../../UI/Perps/hooks';
 import { filterAndSortMarkets } from '../../../../UI/Perps/utils/filterAndSortMarkets';
+import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
 import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
 import PerpsPositionCard from '../../../../UI/Perps/components/PerpsPositionCard/PerpsPositionCard';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import PerpsMarketTileCard from './components/PerpsMarketTileCard';
-import PerpsViewMoreCard from './components/PerpsViewMoreCard';
+import ViewMoreCard from '../../components/ViewMoreCard';
 import { useHomepageSparklines } from './hooks/useHomepageSparklines';
 import { strings } from '../../../../../../locales/i18n';
 import type { SectionRefreshHandle } from '../../types';
@@ -114,6 +117,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const tpSlReady = anyPositionHasTpSl || tpSlSettled;
 
     const { markets, isLoading: marketsLoading } = usePerpsMarkets();
+    const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
 
     const displayPositions = useMemo(
       () => positions.slice(0, MAX_ITEMS),
@@ -133,23 +137,50 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const pendingTrending = !showSkeleton && !hasItems && marketsLoading;
     const showTrending = !showSkeleton && !hasItems && !marketsLoading;
 
-    const trendingMarkets = useMemo(
-      () =>
-        showTrending && markets.length > 0
-          ? filterAndSortMarkets({
-              marketData: markets,
-              showZeroVolume: false,
-            }).slice(0, MAX_TRENDING_MARKETS)
-          : [],
-      [showTrending, markets],
+    const safeWatchlistSymbols = useMemo(
+      () => watchlistSymbols ?? [],
+      [watchlistSymbols],
     );
 
-    const trendingSymbols = useMemo(
-      () => trendingMarkets.map((m) => m.symbol),
-      [trendingMarkets],
+    const watchlistMarkets = useMemo(() => {
+      if (markets.length === 0 || safeWatchlistSymbols.length === 0) return [];
+      const marketBySymbol = new Map(markets.map((m) => [m.symbol, m]));
+      return safeWatchlistSymbols
+        .map((sym) => marketBySymbol.get(sym))
+        .filter((m): m is PerpsMarketDataWithVolumeNumber => m != null);
+    }, [markets, safeWatchlistSymbols]);
+
+    const trendingMarkets = useMemo(() => {
+      if (markets.length === 0) return [];
+      const wlSet = new Set(watchlistMarkets.map((m) => m.symbol));
+      return filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      })
+        .filter((m) => !wlSet.has(m.symbol))
+        .slice(0, Math.max(0, MAX_TRENDING_MARKETS - watchlistMarkets.length));
+    }, [markets, watchlistMarkets]);
+
+    const allCarouselMarkets = useMemo(
+      () =>
+        [...watchlistMarkets, ...trendingMarkets].slice(
+          0,
+          MAX_TRENDING_MARKETS,
+        ),
+      [watchlistMarkets, trendingMarkets],
+    );
+
+    const watchlistSymbolSet = useMemo(
+      () => new Set(watchlistMarkets.map((m) => m.symbol)),
+      [watchlistMarkets],
+    );
+
+    const carouselSymbols = useMemo(
+      () => (showTrending ? allCarouselMarkets.map((m) => m.symbol) : []),
+      [showTrending, allCarouselMarkets],
     );
     const { sparklines, refresh: refreshSparklines } =
-      useHomepageSparklines(trendingSymbols);
+      useHomepageSparklines(carouselSymbols);
 
     useImperativeHandle(
       ref,
@@ -227,7 +258,6 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
                     position={position}
                     compact
                     compactVariant="position"
-                    iconSize={36}
                     tpSlLoading={!tpSlReady}
                     onPress={() => handlePositionPress(position)}
                     testID={`perps-position-row-${position.symbol}`}
@@ -237,13 +267,12 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
                   <PerpsCard
                     key={order.orderId}
                     order={order}
-                    iconSize={36}
                     testID={`perps-order-row-${order.orderId}`}
                   />
                 ))}
               </Box>
             </SectionRow>
-          ) : trendingMarkets.length > 0 ? (
+          ) : allCarouselMarkets.length > 0 ? (
             <FadingScrollContainer>
               {(scrollProps) => (
                 <ScrollView
@@ -253,15 +282,21 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
                   testID="homepage-trending-perps-carousel"
                   {...scrollProps}
                 >
-                  {trendingMarkets.map((market) => (
+                  {allCarouselMarkets.map((market) => (
                     <PerpsMarketTileCard
                       key={market.symbol}
                       market={market}
                       sparklineData={sparklines[market.symbol]}
+                      showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
                       onPress={handleTilePress}
                     />
                   ))}
-                  <PerpsViewMoreCard onPress={handleViewAllPerps} />
+                  <ViewMoreCard
+                    onPress={handleViewAllPerps}
+                    twClassName="w-[180px] h-[140px]"
+                    activeOpacity={0.7}
+                    testID="perps-view-more-card"
+                  />
                 </ScrollView>
               )}
             </FadingScrollContainer>

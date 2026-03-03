@@ -338,6 +338,10 @@ describeForPlatforms('BridgeView', () => {
 
     // Regression for #25256: two USDT tokens on Linea must both appear in search results.
     it('shows two USDT when search API returns two USDT on Linea (#25256)', async () => {
+      jest
+        .spyOn(Engine.context.AuthenticationController, 'getBearerToken')
+        .mockResolvedValue('mock-bearer-token');
+
       const LINEA_CHAIN_ID = 59144;
       const verifiedUsdtAddress = '0xA219439258ca9da29E9Cc4cE5596924745e12B93';
       const otherUsdtAddress = '0x0000000000000000000000000000000000000001';
