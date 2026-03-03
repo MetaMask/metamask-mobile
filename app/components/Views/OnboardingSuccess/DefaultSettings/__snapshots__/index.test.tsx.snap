@@ -26,13 +26,17 @@ exports[`DefaultSettings should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            undefined,
+          ]
         }
       >
         MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.
@@ -40,13 +44,17 @@ exports[`DefaultSettings should render correctly 1`] = `
           accessibilityRole="text"
           onPress={[Function]}
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
            

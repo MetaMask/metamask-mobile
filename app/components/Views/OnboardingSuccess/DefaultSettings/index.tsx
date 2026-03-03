@@ -2,11 +2,12 @@ import React from 'react';
 import { ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
-import Text, {
-  TextVariant,
+import {
+  Box,
+  Text,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import { Box } from '@metamask/design-system-react-native';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
@@ -25,9 +26,9 @@ const DefaultSettings = () => {
   return (
     <ScrollView style={tw.style('flex-1')}>
       <Box twClassName="px-4">
-        <Text variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMd}>
           {strings('default_settings.description')}
-          <Text color={TextColor.Info} onPress={handleLink}>
+          <Text color={TextColor.InfoDefault} onPress={handleLink}>
             {' '}
             {strings('default_settings.learn_more_about_privacy')}
           </Text>
