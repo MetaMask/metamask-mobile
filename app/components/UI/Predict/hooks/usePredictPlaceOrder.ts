@@ -151,15 +151,14 @@ export function usePredictPlaceOrder(
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
       const {
-        preview: { minAmountReceived, side, maxAmountSpent, fees },
+        preview: { minAmountReceived, side, maxAmountSpent },
       } = orderParams;
 
-      const totalAmount = maxAmountSpent + (fees?.totalFee ?? 0);
-
       // Check if user has sufficient balance for the bet amount
-      if (side === Side.BUY && balance < totalAmount) {
+      // maxAmountSpent includes the bet amount plus all fees
+      if (side === Side.BUY && balance < maxAmountSpent) {
         await deposit({
-          amountUsd: totalAmount,
+          amountUsd: maxAmountSpent,
           analyticsProperties: {
             ...orderParams.analyticsProperties,
             marketId: orderParams.preview.marketId,
@@ -188,10 +187,6 @@ export function usePredictPlaceOrder(
 
         queryClient.invalidateQueries({
           queryKey: predictQueries.positions.keys.all(),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.activity.keys.all(),
         });
 
         if (side === Side.BUY) {

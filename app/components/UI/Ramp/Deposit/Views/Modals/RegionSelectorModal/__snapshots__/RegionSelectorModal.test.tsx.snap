@@ -501,47 +501,8 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                 onLayout={[Function]}
                               >
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -549,24 +510,74 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                           },
                                         ],
                                       },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
                                     ]
                                   }
-                                  testID="button-icon"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Close"
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
                                         },
                                         undefined,
                                       ]
                                     }
-                                  />
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -1258,47 +1269,8 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                 onLayout={[Function]}
                               >
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -1306,24 +1278,74 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                           },
                                         ],
                                       },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
                                     ]
                                   }
-                                  testID="button-icon"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Close"
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
                                         },
                                         undefined,
                                       ]
                                     }
-                                  />
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -2211,47 +2233,8 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                 onLayout={[Function]}
                               >
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -2259,24 +2242,74 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                           },
                                         ],
                                       },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
                                     ]
                                   }
-                                  testID="button-icon"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Close"
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
                                         },
                                         undefined,
                                       ]
                                     }
-                                  />
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -3396,47 +3429,8 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                 onLayout={[Function]}
                               >
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -3444,24 +3438,74 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                           },
                                         ],
                                       },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
                                     ]
                                   }
-                                  testID="button-icon"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Close"
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
                                         },
                                         undefined,
                                       ]
                                     }
-                                  />
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -4194,47 +4238,8 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                 onLayout={[Function]}
                               >
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -4242,24 +4247,74 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                           },
                                         ],
                                       },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
                                     ]
                                   }
-                                  testID="button-icon"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Close"
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
                                         },
                                         undefined,
                                       ]
                                     }
-                                  />
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -5080,47 +5135,8 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                 onLayout={[Function]}
                               >
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -5128,24 +5144,74 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                           },
                                         ],
                                       },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
                                     ]
                                   }
-                                  testID="button-icon"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Close"
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
                                         },
                                         undefined,
                                       ]
                                     }
-                                  />
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -6265,47 +6331,8 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                 onLayout={[Function]}
                               >
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -6313,24 +6340,74 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                           },
                                         ],
                                       },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
                                     ]
                                   }
-                                  testID="button-icon"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Close"
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
                                         },
                                         undefined,
                                       ]
                                     }
-                                  />
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -7450,47 +7527,8 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                 onLayout={[Function]}
                               >
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -7498,24 +7536,74 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                           },
                                         ],
                                       },
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                      },
                                     ]
                                   }
-                                  testID="button-icon"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Close"
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 24,
-                                          "width": 24,
+                                          "alignItems": "center",
+                                          "backgroundColor": "transparent",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
                                         },
                                         undefined,
                                       ]
                                     }
-                                  />
+                                    testID="button-icon"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>

@@ -6,7 +6,6 @@ import {
   renderHook,
 } from '@testing-library/react-native';
 import { Alert } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -16,6 +15,7 @@ import {
   useFeatureFlagOverride,
 } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
+import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import {
   FeatureFlagType,
   isMinimumRequiredVersionSupported,
@@ -51,6 +51,11 @@ jest.mock('../../../util/theme', () => ({
     },
     brandColors: { white: '#FFFFFF' },
   })),
+}));
+
+// Mock Navbar
+jest.mock('../../UI/Navbar', () => ({
+  getNavigationOptionsTitle: jest.fn(() => ({})),
 }));
 
 // Mock Tailwind
@@ -156,16 +161,9 @@ const createTestWrapper = (
 
   const Wrapper = ({ children }: { children: ReactNode }) => (
     <Provider store={store}>
-      <SafeAreaProvider
-        initialMetrics={{
-          frame: { x: 0, y: 0, width: 320, height: 640 },
-          insets: { top: 0, left: 0, right: 0, bottom: 0 },
-        }}
-      >
-        <ToastContext.Provider value={mockToastContext}>
-          <FeatureFlagOverrideProvider>{children}</FeatureFlagOverrideProvider>
-        </ToastContext.Provider>
-      </SafeAreaProvider>
+      <ToastContext.Provider value={mockToastContext}>
+        <FeatureFlagOverrideProvider>{children}</FeatureFlagOverrideProvider>
+      </ToastContext.Provider>
     </Provider>
   );
 
@@ -292,7 +290,6 @@ describe('FeatureFlagOverride', () => {
 
     mockNavigation = {
       setOptions: jest.fn(),
-      goBack: jest.fn(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
@@ -334,53 +331,17 @@ describe('FeatureFlagOverride', () => {
       expect(screen.getByText('versionFlag')).toBeTruthy();
     });
 
-    it('renders screen inside SafeAreaView', () => {
+    it('sets navigation options on mount', () => {
       renderWithProviders();
 
-      expect(
-        screen.getByTestId('feature-flag-override-screen'),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders HeaderCompactStandard with title', () => {
-      renderWithProviders();
-
-      expect(
-        screen.getByTestId('feature-flag-override-header'),
-      ).toBeOnTheScreen();
-      expect(screen.getByText('Feature Flag Override')).toBeOnTheScreen();
-    });
-
-    it('renders header back button', () => {
-      renderWithProviders();
-
-      expect(
-        screen.getByTestId('feature-flag-override-header-back'),
-      ).toBeOnTheScreen();
-    });
-
-    it('navigates back when header back button is pressed', () => {
-      renderWithProviders();
-
-      const backButton = screen.getByTestId(
-        'feature-flag-override-header-back',
+      expect(getNavigationOptionsTitle).toHaveBeenCalledWith(
+        'Feature Flag Override',
+        mockNavigation,
+        false,
+        expect.any(Object),
+        null,
       );
-      fireEvent.press(backButton);
-
-      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders stats section and list below inline header', () => {
-      renderWithProviders();
-
-      expect(
-        screen.getByTestId('feature-flag-override-header'),
-      ).toBeOnTheScreen();
-      expect(screen.getByText('Feature Flag Statistics')).toBeOnTheScreen();
-      expect(
-        screen.getByPlaceholderText('Search feature flags...'),
-      ).toBeOnTheScreen();
-      expect(screen.getByText('booleanFlag')).toBeOnTheScreen();
+      expect(mockNavigation.setOptions).toHaveBeenCalled();
     });
   });
 
@@ -815,12 +776,23 @@ describe('FeatureFlagOverride', () => {
 
   describe('A/B Test Flag Handling', () => {
     it('renders text display for A/B test flags in store', () => {
-      renderWithProviders(
+      // Render with an A/B test flag
+      const storeWithAbTest = createMockStore(
         { abTestFlag: { name: 'control', value: { variant: 'A' } } },
         {},
       );
 
-      expect(screen.getByText('abTestFlag')).toBeOnTheScreen();
+      render(
+        <Provider store={storeWithAbTest}>
+          <ToastContext.Provider value={mockToastContext}>
+            <FeatureFlagOverrideProvider>
+              <FeatureFlagOverride />
+            </FeatureFlagOverrideProvider>
+          </ToastContext.Provider>
+        </Provider>,
+      );
+
+      expect(screen.getByText('abTestFlag')).toBeTruthy();
     });
   });
 

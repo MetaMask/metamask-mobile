@@ -755,8 +755,7 @@
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionReferralDetails": {},
-    "subscriptions": {},
-    "rewardsEnvUrl": null
+    "subscriptions": {}
   },
   "PredictController": {
     "eligibility": { "eligible": false },
@@ -797,6 +796,12 @@
       "isLoading": false,
       "error": null
     },
+    "quotes": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
     "nativeProviders": {
       "transak": {
         "buyQuote": {
@@ -819,6 +824,12 @@
           "error": null
         }
       }
+    },
+    "widgetUrl": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
     },
     "requests": {}
   }

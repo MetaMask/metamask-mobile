@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   InteractionManager,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ButtonIcon,
@@ -52,7 +52,7 @@ import {
 import { selectAllTokens } from '../../../selectors/tokensController';
 import { selectTokenMarketDataByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from 'app/reducers';
 import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
@@ -66,6 +66,7 @@ import { usePerpsMarketForAsset } from '../../UI/Perps/hooks/usePerpsMarketForAs
 import PerpsDiscoveryBanner from '../../UI/Perps/components/PerpsDiscoveryBanner';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { isTokenTrustworthyForPerps } from '../../UI/Perps/constants/perpsConfig';
+import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 
 // Inline header styles
 const inlineHeaderStyles = StyleSheet.create({
@@ -157,9 +158,9 @@ const AssetDetails = (props: InnerProps) => {
   const { address, chainId: networkId, asset } = props.route.params;
   const { token } = props;
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { toastRef } = useContext(ToastContext);
   const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);
 

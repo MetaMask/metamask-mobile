@@ -1,6 +1,6 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import SettingsModal from './SettingsModal';
-import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
@@ -110,12 +110,15 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-native-inappbrowser-reborn', () => ({
-  isAvailable: jest.fn(),
-  open: jest.fn(),
-}));
-
-const mockInAppBrowser = InAppBrowser as jest.Mocked<typeof InAppBrowser>;
+jest.mock('react-native', () => {
+  const actualReactNative = jest.requireActual('react-native');
+  return {
+    ...actualReactNative,
+    Linking: {
+      openURL: jest.fn(),
+    },
+  };
+});
 
 let mockSelectedProvider: Provider | null = createMockProvider();
 const mockSetSelectedProvider = jest.fn();
@@ -214,32 +217,13 @@ describe('SettingsModal', () => {
       expect(getByText('Contact support')).toBeOnTheScreen();
     });
 
-    it('opens support URL via InAppBrowser when available', async () => {
-      mockInAppBrowser.isAvailable.mockResolvedValue(true);
-      mockInAppBrowser.open.mockResolvedValue({ type: 'dismiss' });
-
+    it('opens support URL when contact support is pressed', () => {
       const { getByText } = renderWithProvider(SettingsModal);
 
-      await act(async () => {
-        fireEvent.press(getByText('Contact support'));
-      });
+      const contactSupportButton = getByText('Contact support');
+      fireEvent.press(contactSupportButton);
 
-      expect(mockInAppBrowser.open).toHaveBeenCalledWith(MOCK_SUPPORT_URL);
-    });
-
-    it('falls back to SimpleWebview when InAppBrowser is unavailable', async () => {
-      mockInAppBrowser.isAvailable.mockResolvedValue(false);
-
-      const { getByText } = renderWithProvider(SettingsModal);
-
-      await act(async () => {
-        fireEvent.press(getByText('Contact support'));
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'Webview',
-        expect.objectContaining({ screen: 'SimpleWebview' }),
-      );
+      expect(Linking.openURL).toHaveBeenCalledWith(MOCK_SUPPORT_URL);
     });
 
     it('hides contact support when provider has no support URL', () => {

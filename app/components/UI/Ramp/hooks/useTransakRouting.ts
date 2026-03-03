@@ -1,11 +1,14 @@
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import { type TransakBuyQuote } from '@metamask/ramps-controller';
+import {
+  type TransakBuyQuote,
+  TransakOrderIdTransformer,
+} from '@metamask/ramps-controller';
 import { REDIRECTION_URL } from '../Deposit/constants';
 import { depositOrderToFiatOrder } from '../Deposit/orderProcessor';
 import useHandleNewOrder from '../Deposit/hooks/useHandleNewOrder';
@@ -13,13 +16,13 @@ import { generateThemeParameters } from '../Deposit/utils';
 import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
 import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
 import { createCheckoutNavDetails } from '../Views/Checkout';
-import { registerCheckoutCallback } from '../utils/checkoutCallbackRegistry';
 import useAnalytics from './useAnalytics';
 import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTransakController } from './useTransakController';
 import { useRampsUserRegion } from './useRampsUserRegion';
 import { useRampsPaymentMethods } from './useRampsPaymentMethods';
+import { getTransakEnvironment } from '../../../../core/Engine/controllers/ramps-controller/transak-service-init';
 import { selectTokens } from '../../../../selectors/rampsController';
 import useRampAccountAddress from './useRampAccountAddress';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
@@ -43,7 +46,7 @@ interface RampStackParamList {
     url: string;
     providerName: string;
     userAgent?: string;
-    callbackKey?: string;
+    onNavigationStateChange?: (navState: { url: string }) => void;
   };
   [key: string]: object | undefined;
 }
@@ -64,7 +67,6 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   const handleNewOrder = useHandleNewOrder();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
-  const processingOrderIdRef = useRef<string | null>(null);
 
   const {
     logoutFromProvider,
@@ -87,6 +89,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
     selectedToken?.chainId as CaipChainId,
   );
 
+  const transakEnvironment = getTransakEnvironment();
   const fiatCurrency = userRegion?.country?.currency || '';
   const regionIsoCode = userRegion?.regionCode || '';
 
@@ -214,12 +217,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
     ({ orderId }: { orderId: string }) => {
       navigation.reset({
         index: 0,
-        routes: [
-          {
-            name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-            params: { orderId, showCloseButton: true },
-          },
-        ],
+        routes: [{ name: Routes.RAMP.ORDER_PROCESSING, params: { orderId } }],
       });
     },
     [navigation],
@@ -251,88 +249,68 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const handleNavigationStateChange = useCallback(
     async ({ url }: { url: string }) => {
-      if (!url.startsWith(REDIRECTION_URL)) return;
+      if (url.startsWith(REDIRECTION_URL)) {
+        try {
+          const urlObj = new URL(url);
+          const orderId = urlObj.searchParams.get('orderId');
 
-      let orderId: string | null = null;
-      try {
-        const urlObj = new URL(url);
-        orderId = urlObj.searchParams.get('orderId');
-      } catch (e) {
-        Logger.error(
-          e as Error,
-          'useTransakRouting: Error parsing redirect URL',
-        );
-        return;
-      }
+          if (orderId) {
+            try {
+              const transformedOrderId =
+                TransakOrderIdTransformer.transakOrderIdToDepositOrderId(
+                  orderId,
+                  transakEnvironment,
+                );
 
-      if (!orderId || processingOrderIdRef.current === orderId) return;
-      processingOrderIdRef.current = orderId;
+              const order = await getOrder(orderId, walletAddress || '');
 
-      try {
-        const order = await getOrder(orderId, walletAddress || '');
+              if (!order) {
+                throw new Error('Missing order');
+              }
 
-        if (!order) {
-          throw new Error('Missing order');
+              const processedOrder = {
+                ...depositOrderToFiatOrder(
+                  order as Parameters<typeof depositOrderToFiatOrder>[0],
+                ),
+                account: walletAddress || order.walletAddress,
+              };
+
+              await handleNewOrder(processedOrder);
+
+              navigateToOrderProcessingCallback({
+                orderId: transformedOrderId,
+              });
+
+              trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+                ramp_type: 'DEPOSIT',
+                amount_source: Number(order.fiatAmount),
+                amount_destination: Number(order.cryptoAmount),
+                exchange_rate: Number(order.exchangeRate),
+                gas_fee: order.networkFees ? Number(order.networkFees) : 0,
+                processing_fee: order.partnerFees
+                  ? Number(order.partnerFees)
+                  : 0,
+                total_fee: Number(order.totalFeesFiat),
+                payment_method_id: order.paymentMethod.id,
+                country: regionIsoCode,
+                chain_id: order.network?.chainId || '',
+                currency_destination: order.cryptoCurrency.assetId || '',
+                currency_destination_symbol: order.cryptoCurrency.symbol,
+                currency_destination_network: order.network?.name || '',
+                currency_source: order.fiatCurrency,
+              });
+            } catch (error) {
+              throw new Error(
+                parseUserFacingError(
+                  error,
+                  strings('deposit.buildQuote.unexpectedError'),
+                ),
+              );
+            }
+          }
+        } catch (e) {
+          console.error('Error extracting orderId from URL:', e);
         }
-
-        // At runtime, cryptoCurrency and network may be plain strings
-        // instead of the expected objects, depending on the controller version.
-        const rawCryptoCurrency = order.cryptoCurrency as
-          | string
-          | { symbol?: string; assetId?: string };
-        const cryptocurrency =
-          typeof rawCryptoCurrency === 'string'
-            ? rawCryptoCurrency
-            : rawCryptoCurrency?.symbol || '';
-
-        const processedOrder = {
-          ...depositOrderToFiatOrder(
-            order as Parameters<typeof depositOrderToFiatOrder>[0],
-          ),
-          account: walletAddress || order.walletAddress,
-          cryptocurrency,
-        };
-
-        await handleNewOrder(processedOrder);
-
-        navigateToOrderProcessingCallback({
-          orderId: processedOrder.id,
-        });
-
-        const rawNetwork = order.network as
-          | string
-          | { chainId?: string; name?: string; assetId?: string };
-        trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-          ramp_type: 'DEPOSIT',
-          amount_source: Number(order.fiatAmount),
-          amount_destination: Number(order.cryptoAmount),
-          exchange_rate: Number(order.exchangeRate),
-          gas_fee: order.networkFees ? Number(order.networkFees) : 0,
-          processing_fee: order.partnerFees ? Number(order.partnerFees) : 0,
-          total_fee: Number(order.totalFeesFiat),
-          payment_method_id: order.paymentMethod.id,
-          country: regionIsoCode,
-          chain_id:
-            typeof rawNetwork === 'string'
-              ? rawNetwork
-              : rawNetwork?.chainId || '',
-          currency_destination:
-            typeof rawCryptoCurrency === 'string'
-              ? ''
-              : rawCryptoCurrency?.assetId || '',
-          currency_destination_symbol: cryptocurrency,
-          currency_destination_network:
-            typeof rawNetwork === 'string'
-              ? rawNetwork
-              : rawNetwork?.name || '',
-          currency_source: order.fiatCurrency,
-        });
-      } catch (error) {
-        // Reset ref so the user can retry if the redirect URL fires again
-        processingOrderIdRef.current = null;
-        Logger.error(error as Error, {
-          message: 'useTransakRouting: Failed to process order after checkout',
-        });
       }
     },
     [
@@ -342,16 +320,16 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       navigateToOrderProcessingCallback,
       regionIsoCode,
       trackEvent,
+      transakEnvironment,
     ],
   );
 
   const navigateToWebviewModalCallback = useCallback(
     ({ paymentUrl }: { paymentUrl: string }) => {
-      const callbackKey = registerCheckoutCallback(handleNavigationStateChange);
       const [routeName, routeParams] = createCheckoutNavDetails({
         url: paymentUrl,
         providerName: 'Transak',
-        callbackKey,
+        onNavigationStateChange: handleNavigationStateChange,
       });
       navigation.reset({
         index: 1,
@@ -445,7 +423,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                 await handleNewOrder(processedOrder);
 
                 navigateToBankDetailsCallback({
-                  orderId: processedOrder.id,
+                  orderId: order.id,
                   shouldUpdate: false,
                 });
               } else {

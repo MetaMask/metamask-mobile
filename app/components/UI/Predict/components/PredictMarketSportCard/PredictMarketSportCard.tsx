@@ -8,11 +8,14 @@ import {
   IconName,
   IconColor,
 } from '@metamask/design-system-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { PredictMarket as PredictMarketType } from '../../types';
-import { PredictEntryPoint } from '../../types/navigation';
+import {
+  PredictNavigationParamList,
+  PredictEntryPoint,
+} from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictEntryPoint } from '../../contexts';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -48,7 +51,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     ? PredictEventValues.ENTRY_POINT.TRENDING
     : baseEntryPoint;
 
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const game = market.game;
 

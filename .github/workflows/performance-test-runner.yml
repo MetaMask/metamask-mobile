@@ -98,28 +98,12 @@ jobs:
           username: ${{ secrets.BROWSERSTACK_USERNAME }}
           access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
           project-name: ${{ github.repository }}
-
-      - name: Compute BrowserStack Local Identifier
-        id: bs-local-id
-        run: |
-          # Strip any character that is not alphanumeric or a hyphen (covers spaces, /, \, @, etc.)
-          BUILD_TYPE_SAFE=$(printf '%s' "${{ inputs.build_type }}" | tr -c 'a-zA-Z0-9-' '_')
-          DEVICE_SAFE=$(printf '%s' "${{ matrix.device.name }}" | tr -c 'a-zA-Z0-9-' '_')
-          if [ -z "$BUILD_TYPE_SAFE" ]; then
-            echo "❌ Error: inputs.build_type is empty — cannot build a valid BrowserStack Local identifier"
-            exit 1
-          fi
-          if [ -z "$DEVICE_SAFE" ]; then
-            echo "❌ Error: matrix.device.name is empty — cannot build a valid BrowserStack Local identifier"
-            exit 1
-          fi
-          echo "value=${{ github.run_id }}-${BUILD_TYPE_SAFE}-${DEVICE_SAFE}" >> "$GITHUB_OUTPUT"
-
+      
       - name: Setup BrowserStack Local
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
           local-testing: start
-          local-identifier: ${{ steps.bs-local-id.outputs.value }}
+          local-identifier: ${{ github.run_id }}
           # Use same args for all build types. Do not use --include-hosts for mm-connect:
           # bs-local.com requests must be forwarded to localhost; --include-hosts can block them.
           local-args: '--force-local --verbose'
@@ -163,7 +147,7 @@ jobs:
       - name: Run Tests
         env:
           BROWSERSTACK_LOCAL: 'true'
-          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ steps.bs-local-id.outputs.value }}
+          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
         working-directory: '.'
         run: |

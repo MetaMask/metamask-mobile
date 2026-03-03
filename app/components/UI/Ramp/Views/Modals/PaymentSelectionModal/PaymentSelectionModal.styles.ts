@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native';
 
 interface PaymentSelectionModalStyleSheetVars {
   screenHeight: number;
+  screenWidth: number;
 }
 
 const styleSheet = (params: { vars: PaymentSelectionModalStyleSheetVars }) => {
@@ -16,6 +17,15 @@ const styleSheet = (params: { vars: PaymentSelectionModalStyleSheetVars }) => {
     containerOuter: {
       height: screenHeight * 0.4,
       overflow: 'hidden',
+    },
+    containerInner: {
+      flexDirection: 'row',
+      width: '200%',
+      height: '100%',
+    },
+    panel: {
+      width: '50%',
+      height: '100%',
     },
     paymentPanelContent: {
       flex: 1,

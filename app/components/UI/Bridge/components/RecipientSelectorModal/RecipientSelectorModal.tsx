@@ -172,7 +172,6 @@ const RecipientSelectorModal: React.FC = () => {
         selectedExternalAddress={selectedExternalAddress}
         setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
         keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
       />
     </BottomSheet>
   );

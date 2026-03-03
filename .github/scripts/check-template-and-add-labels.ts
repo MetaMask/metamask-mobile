@@ -25,10 +25,6 @@ import { retrievePullRequest } from './shared/pull-request';
 
 const knownBots = ["metamaskbot", "dependabot", "github-actions", "sentry-io", "devin-ai-integration", "runway-github"];
 
-// GitHub App / bot logins that cannot be resolved as User in GraphQL (user(login:) returns null).
-// Issues/PRs from these actors still get full template and label checks; we only skip the org check.
-const loginsExemptFromOrgCheck = ["issuebridge"];
-
 main().catch((error: Error): void => {
   console.error(error);
   process.exit(1);
@@ -80,13 +76,9 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // If author is not part of the MetaMask organisation, add external contributor label.
-  // Skip org check for loginsExemptFromOrgCheck (e.g. issuebridge): GraphQL user(login) does not resolve apps, and we treat them as internal.
-  if (
-    !knownBots.includes(labelable?.author) &&
-    !loginsExemptFromOrgCheck.includes(labelable?.author) &&
-    !(await userBelongsToMetaMaskOrg(octokit, labelable?.author))
-  ) {
+  // If author is not part of the MetaMask organisation
+  if (!knownBots.includes(labelable?.author) && !(await userBelongsToMetaMaskOrg(octokit, labelable?.author))) {
+    // Add external contributor label to the issue
     await addLabelToLabelable(octokit, labelable, externalContributorLabel);
   }
 
