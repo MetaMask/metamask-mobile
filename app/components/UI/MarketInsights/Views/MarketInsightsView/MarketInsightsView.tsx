@@ -49,6 +49,7 @@ import { selectMarketInsightsEnabled } from '../../../../../selectors/featureFla
 import { endTrace, TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import MarketInsightsViewSkeleton from './MarketInsightsViewSkeleton';
+import MarketInsightsViewHeader from './MarketInsightsViewHeader';
 import {
   ToastContext,
   ToastVariants,
@@ -389,30 +390,7 @@ const MarketInsightsView: React.FC = () => {
       twClassName={`flex-1 bg-default pt-[${insets.top}px]`}
       testID={MarketInsightsSelectorsIDs.VIEW_CONTAINER}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="px-1 py-2"
-        testID={MarketInsightsSelectorsIDs.VIEW_HEADER}
-      >
-        <Pressable
-          onPress={handleBackPress}
-          style={tw.style('p-2')}
-          hitSlop={8}
-        >
-          <Icon
-            name={IconName.ArrowLeft}
-            size={IconSize.Md}
-            color={IconColor.IconDefault}
-          />
-        </Pressable>
-        <Box twClassName="flex-1 items-center">
-          <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-            {strings('market_insights.title')}
-          </Text>
-        </Box>
-        <Box twClassName="w-10" />
-      </Box>
+      <MarketInsightsViewHeader onBackPress={handleBackPress} />
 
       <ScrollView
         contentContainerStyle={tw.style(`pb-[${insets.bottom + 16}px]`)}

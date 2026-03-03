@@ -1,21 +1,10 @@
 import React from 'react';
-import { ScrollView, Pressable } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  Text,
-  TextVariant,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
-  BoxFlexDirection,
-  BoxAlignItems,
-  FontWeight,
-} from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { Box } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
+import MarketInsightsViewHeader from './MarketInsightsViewHeader';
 
 interface MarketInsightsViewSkeletonProps {
   insets: { top: number; bottom: number };
@@ -33,25 +22,7 @@ const MarketInsightsViewSkeleton: React.FC<MarketInsightsViewSkeletonProps> = ({
       twClassName={`flex-1 bg-default pt-[${insets.top}px]`}
       testID={MarketInsightsSelectorsIDs.VIEW_SKELETON}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="px-1 py-2"
-      >
-        <Pressable onPress={onBackPress} style={tw.style('p-2')} hitSlop={8}>
-          <Icon
-            name={IconName.ArrowLeft}
-            size={IconSize.Md}
-            color={IconColor.IconDefault}
-          />
-        </Pressable>
-        <Box twClassName="flex-1 items-center">
-          <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-            {strings('market_insights.title')}
-          </Text>
-        </Box>
-        <Box twClassName="w-10" />
-      </Box>
+      <MarketInsightsViewHeader onBackPress={onBackPress} />
 
       <ScrollView
         contentContainerStyle={tw.style(`pb-[${insets.bottom + 16}px]`)}
