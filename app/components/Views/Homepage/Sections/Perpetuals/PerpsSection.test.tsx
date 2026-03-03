@@ -3,8 +3,20 @@ import { screen, fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PerpsSection from './PerpsSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 
 const mockNavigate = jest.fn();
+const mockTrack = jest.fn();
+
+jest.mock('../../../../UI/Perps/hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(() => ({
+    track: mockTrack,
+  })),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -329,6 +341,7 @@ describe('PerpsSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
+      params: { source: 'home_section' },
     });
   });
 
@@ -361,6 +374,7 @@ describe('PerpsSection', () => {
       params: {
         market: fullMarket,
         initialTab: 'position',
+        source: 'section_position',
       },
     });
   });
@@ -380,8 +394,32 @@ describe('PerpsSection', () => {
       params: {
         market: { symbol: 'BTC', maxLeverage: 50 },
         initialTab: 'position',
+        source: 'section_position',
       },
     });
+  });
+
+  it('fires PERPS_UI_INTERACTION event when a position is pressed', () => {
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+
+    renderWithProvider(<PerpsSection />);
+
+    fireEvent.press(screen.getByTestId('perps-position-row-BTC'));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
+      },
+    );
   });
 
   it('limits items to max 5 (positions first, then orders)', () => {
@@ -611,7 +649,7 @@ describe('PerpsSection', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
+        params: { market, source: 'home_section' },
       });
     });
 
@@ -675,6 +713,7 @@ describe('PerpsSection', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'home_section' },
       });
     });
 
