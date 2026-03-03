@@ -921,10 +921,10 @@ export class RewardsController extends BaseController<
 
       try {
         await this.#reauthPromises.get(subscriptionId);
-      } catch {
+      } catch (reauthError) {
         this.invalidateSubscriptionCache(subscriptionId);
         await this.invalidateSubscriptionAndAccounts(subscriptionId);
-        throw error;
+        throw reauthError;
       }
 
       return await fn();
