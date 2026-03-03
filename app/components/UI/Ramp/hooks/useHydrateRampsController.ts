@@ -37,9 +37,13 @@ export function useHydrateRampsController(): void {
     // userRegion is null: ensure init runs so tokens load on app start (backup to Engine init).
     if (!hasTriggeredInitRef.current) {
       hasTriggeredInitRef.current = true;
-      Promise.resolve(RampsController.init()).catch(() => {
-        hasTriggeredInitRef.current = false;
-      });
+      Promise.resolve(RampsController.init())
+        .then(() => {
+          RampsController.startOrderPolling();
+        })
+        .catch(() => {
+          hasTriggeredInitRef.current = false;
+        });
     }
   }, [isV2UnifiedEnabled, userRegion?.regionCode]);
 }

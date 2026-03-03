@@ -1,7 +1,7 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import TokenSelection from './TokenSelection';
+import { TokenSelectionSelectors } from './TokenSelection.testIds';
 import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -284,10 +284,11 @@ describe('TokenSelection Component', () => {
       error: null,
     });
 
-    const { UNSAFE_getByType } = renderWithProvider(TokenSelection);
-    const activityIndicator = UNSAFE_getByType(ActivityIndicator);
+    const { getByTestId } = renderWithProvider(TokenSelection);
 
-    expect(activityIndicator).toBeDefined();
+    expect(
+      getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
+    ).toBeOnTheScreen();
   });
 
   it('displays loading indicator while fetching tokens (V2 enabled)', () => {
@@ -323,10 +324,11 @@ describe('TokenSelection Component', () => {
       getOrderFromCallback: jest.fn(),
     });
 
-    const { UNSAFE_getByType } = renderWithProvider(TokenSelection);
-    const activityIndicator = UNSAFE_getByType(ActivityIndicator);
+    const { getByTestId } = renderWithProvider(TokenSelection);
 
-    expect(activityIndicator).toBeDefined();
+    expect(
+      getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
+    ).toBeOnTheScreen();
   });
 
   it('displays loading when tokens not yet loaded (V2, null tokens and no error)', () => {
@@ -362,10 +364,11 @@ describe('TokenSelection Component', () => {
       getOrderFromCallback: jest.fn(),
     });
 
-    const { UNSAFE_getByType } = renderWithProvider(TokenSelection);
-    const activityIndicator = UNSAFE_getByType(ActivityIndicator);
+    const { getByTestId } = renderWithProvider(TokenSelection);
 
-    expect(activityIndicator).toBeDefined();
+    expect(
+      getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
+    ).toBeOnTheScreen();
   });
 
   it('displays error message when token fetch fails (legacy)', () => {

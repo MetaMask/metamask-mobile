@@ -43,6 +43,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectModal/SelectToken.testIds';
+import { TokenSelectionSelectors } from './TokenSelection.testIds';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 
@@ -350,6 +351,7 @@ function TokenSelection() {
             <ActivityIndicator
               size="large"
               color={theme.colors.primary.default}
+              testID={TokenSelectionSelectors.LOADING_INDICATOR}
             />
           </Box>
         </ScreenLayout.Body>
