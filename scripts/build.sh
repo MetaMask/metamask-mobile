@@ -599,8 +599,12 @@ generateAndroidBinary() {
 
 		# Memory optimization for E2E builds (Keep an eye out if this breaks outside of E2E CI builds)
 		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
-			# Only build for x86_64 for E2E builds
-			reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
+			# CI uses x86_64 emulators only; local macOS (Apple Silicon) also needs arm64-v8a
+			if [ "${CI:-false}" = "true" ] ; then
+				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
+			else
+				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64,arm64-v8a"
+			fi
 			# Enable verbose logging for E2E builds to help diagnose build failures
 			gradleLoggingFlags="--stacktrace --info"
 		fi
@@ -707,6 +711,7 @@ createEnvFile() {
 		"QUICKNODE_MONAD_URL"
 		"QUICKNODE_OPTIMISM_URL"
 		"QUICKNODE_POLYGON_URL"
+		"QUICKNODE_HYPEREVM_URL"
 	)
 
 	# Create .env file and export to GITHUB_ENV

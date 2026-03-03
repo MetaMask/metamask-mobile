@@ -309,7 +309,7 @@ export const useTokenActions = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
-          text: 'Buy',
+          button_text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(chainId),
           ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',

@@ -1,27 +1,155 @@
-import React, { forwardRef, useCallback, useImperativeHandle } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
+import {
+  ScrollView,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  View,
+  StyleSheet,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Box, TextVariant } from '@metamask/design-system-react-native';
+import { useTheme } from '../../../../../util/theme';
 import SectionTitle from '../../components/SectionTitle';
-import SectionRow from '../../components/SectionRow';
+import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  usePredictMarketsForHomepage,
+  usePredictPositionsForHomepage,
+} from './hooks';
+import {
+  PredictMarketCard,
+  PredictMarketCardSkeleton,
+  PredictPositionRow,
+  PredictPositionRowSkeleton,
+} from './components';
+import ViewMoreCard from '../../components/ViewMoreCard';
+import { colorWithOpacity } from '../../../../../util/colors';
+import type { PredictPosition } from '../../../../UI/Predict/types';
+import type { PredictNavigationParamList } from '../../../../UI/Predict/types/navigation';
+import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
+import { PredictClaimButton } from '../../../../UI/Predict/components/PredictActionButtons';
+import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
+
+const MAX_MARKETS_DISPLAYED = 5;
+
+// Card dimensions for snap offsets
+const CARD_WIDTH = 240;
+const GAP = 12;
+const PADDING = 16; // px-4
+
+// Calculate snap offsets: first card at 0, then padding + card + (gap + card) * n
+// ViewMoreCard is excluded — its snap position would exceed max scroll on typical screens,
+// causing the scroll view to snap back and never reach it.
+const SNAP_OFFSETS = Array.from({ length: MAX_MARKETS_DISPLAYED }, (_, i) =>
+  i === 0 ? 0 : PADDING + CARD_WIDTH + (GAP + CARD_WIDTH) * (i - 1),
+);
+
+// Skeleton keys for loading state
+const SKELETON_KEYS = Array.from(
+  { length: MAX_MARKETS_DISPLAYED },
+  (__, i) => `skeleton-${i}`,
+);
+
+// Fade overlay width
+const FADE_WIDTH = 40;
+
+const styles = StyleSheet.create({
+  scrollContainer: {
+    position: 'relative',
+  },
+  fadeOverlay: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: FADE_WIDTH,
+    pointerEvents: 'none',
+  },
+});
 
 /**
- * PredictionsSection - Displays prediction markets on the homepage
+ * PredictionsSection - Displays prediction content on the homepage
  *
- * Only renders when the predict feature flag is enabled.
+ * Unified section that shows:
+ * - User's positions if they have any
+ * - Trending markets if they don't have positions
+ *
+ * Returns null if the Predict feature flag is disabled.
  */
 const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
-  const navigation = useNavigation();
+  const tw = useTailwind();
+  const { colors } = useTheme();
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const title = strings('homepage.sections.predictions');
+  const { claim } = usePredictClaim();
 
+  // Track scroll position for fade effect
+  const [fadeOpacity, setFadeOpacity] = useState(1);
+
+  // Fetch both positions and markets
+  const {
+    positions,
+    isLoading: isLoadingPositions,
+    error: positionsError,
+    refresh: refreshPositions,
+  } = usePredictPositionsForHomepage();
+
+  const {
+    markets,
+    isLoading: isLoadingMarkets,
+    error: marketsError,
+    refresh: refreshMarkets,
+  } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
+
+  const {
+    positions: claimablePositions,
+    isLoading: isLoadingClaimable,
+    refresh: refreshClaimable,
+  } = usePredictPositionsForHomepage(undefined, true);
+
+  const handleClaim = useCallback(async () => {
+    await claim();
+    await refreshClaimable();
+  }, [claim, refreshClaimable]);
+
+  const totalClaimable = claimablePositions.reduce(
+    (sum, p) => sum + (p.currentValue ?? 0),
+    0,
+  );
+
+  // Determine if user has positions
+  const hasPositions = positions.length > 0;
+
+  // Use ref so refresh always reads the latest value without stale closures
+  const hasPositionsRef = useRef(hasPositions);
+  hasPositionsRef.current = hasPositions;
+
+  // Refresh: only refresh positions if user has them, always refresh markets + claimable
   const refresh = useCallback(async () => {
-    // TODO: Implement predictions refresh logic
-  }, []);
+    if (hasPositionsRef.current) {
+      await Promise.all([
+        refreshPositions(),
+        refreshMarkets(),
+        refreshClaimable(),
+      ]);
+    } else {
+      await Promise.all([refreshMarkets(), refreshClaimable()]);
+    }
+  }, [refreshPositions, refreshMarkets, refreshClaimable]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -31,17 +159,153 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     });
   }, [navigation]);
 
-  // Don't render if predict is disabled
+  // Handle scroll to update fade opacity
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      const scrollableWidth = contentSize.width - layoutMeasurement.width;
+
+      // No scrollable content — hide fade
+      if (scrollableWidth <= 0) {
+        setFadeOpacity(0);
+        return;
+      }
+
+      const distanceFromEnd = scrollableWidth - contentOffset.x;
+
+      // Fade out the overlay as we approach the end (within 100px)
+      const fadeThreshold = 100;
+      const newOpacity = Math.min(
+        1,
+        Math.max(0, distanceFromEnd / fadeThreshold),
+      );
+      setFadeOpacity(newOpacity);
+    },
+    [],
+  );
+
+  const handlePositionPress = useCallback(
+    (position: PredictPosition) => {
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: position.marketId,
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+          headerShown: false,
+        },
+      });
+    },
+    [navigation],
+  );
+
+  // Don't render if Predict is disabled
   if (!isPredictEnabled) {
     return null;
   }
 
+  // Show error state when both hooks fail and nothing is loading
+  const hasError =
+    !isLoadingPositions &&
+    !isLoadingMarkets &&
+    !hasPositions &&
+    markets.length === 0 &&
+    (positionsError || marketsError);
+
+  if (hasError) {
+    return (
+      <Box gap={3}>
+        <SectionTitle title={title} onPress={handleViewAllPredictions} />
+        <ErrorState
+          title={strings('homepage.error.unable_to_load', {
+            section: title.toLowerCase(),
+          })}
+          onRetry={refresh}
+        />
+      </Box>
+    );
+  }
+
+  // Render positions if user has any
+  if (hasPositions || isLoadingPositions) {
+    return (
+      <Box gap={3}>
+        <SectionTitle title={title} onPress={handleViewAllPredictions} />
+        <Box>
+          {isLoadingPositions ? (
+            <>
+              <PredictPositionRowSkeleton />
+              <PredictPositionRowSkeleton />
+            </>
+          ) : (
+            positions.map((position) => (
+              <PredictPositionRow
+                key={`${position.outcomeId}:${position.outcomeIndex}`}
+                position={position}
+                onPress={handlePositionPress}
+              />
+            ))
+          )}
+          {!isLoadingPositions && !isLoadingClaimable && totalClaimable > 0 && (
+            <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
+              <PredictClaimButton
+                amount={totalClaimable}
+                onPress={handleClaim}
+              />
+            </Box>
+          )}
+        </Box>
+      </Box>
+    );
+  }
+
+  // Don't render if no markets and not loading (avoids showing ViewMoreCard alone)
+  if (!isLoadingMarkets && markets.length === 0) {
+    return null;
+  }
+
+  // Render trending markets if no positions
   return (
     <Box gap={3}>
       <SectionTitle title={title} onPress={handleViewAllPredictions} />
-      <SectionRow>
-        <>{/* Predictions content will be added here */}</>
-      </SectionRow>
+      <View style={styles.scrollContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={tw.style('px-4 gap-3')}
+          snapToOffsets={SNAP_OFFSETS}
+          decelerationRate="fast"
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+        >
+          {isLoadingMarkets ? (
+            SKELETON_KEYS.map((key) => <PredictMarketCardSkeleton key={key} />)
+          ) : (
+            <>
+              {markets.map((market) => (
+                <PredictMarketCard key={market.id} market={market} />
+              ))}
+              <ViewMoreCard
+                onPress={handleViewAllPredictions}
+                twClassName="w-[180px] flex-1"
+                textVariant={TextVariant.BodyLg}
+              />
+            </>
+          )}
+        </ScrollView>
+        {/* Fade overlay on the right edge */}
+        {fadeOpacity > 0 && (
+          <LinearGradient
+            colors={[
+              colorWithOpacity(colors.background.default, 0),
+              colors.background.default,
+            ]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[styles.fadeOverlay, { opacity: fadeOpacity }]}
+          />
+        )}
+      </View>
     </Box>
   );
 });

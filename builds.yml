@@ -4,14 +4,12 @@
 # Usage:
 #   - CI reads this file to configure builds
 #   - Local dev can override via .js.env (takes precedence)
-#   - LaunchDarkly overrides remote_feature_flags at runtime
 #
 # Structure:
 #   - env: sets environment variables directly (servers, build config, etc.)
 #   - secrets: maps env var names to GitHub Secret names
 #   - signing: (optional) AWS role + secret for code signing (omit for dev/simulator builds)
 #   - code_fencing: features to include via code fencing
-#   - remote_feature_flags: build-time defaults for LaunchDarkly flags (seeded into RemoteFeatureFlagController)
 #
 # GitHub Environment determines actual secret values - builds.yml just maps the names.
 # Signing: AWS Secrets Manager (Account 363762752069) - see Mobile Signer Roles & Secrets doc.
@@ -23,7 +21,7 @@
 # Shared env (non-secret): servers + build flags. Production defaults.
 # Each build merges <<: *public_envs and overrides only what differs (inline in that build).
 _public_envs: &public_envs # Servers (production)
-  PORTFOLIO_API_URL: 'https://portfolio.api.cx.metamask.io'
+  MM_PORTFOLIO_URL: 'https://portfolio.api.cx.metamask.io'
   SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
   DECODING_API_URL: 'https://signature-insights.api.cx.metamask.io/v1'
   AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
@@ -41,6 +39,8 @@ _public_envs: &public_envs # Servers (production)
   MM_PERPS_HIP3_ALLOWLIST_MARKETS: ''
   MM_PERPS_HIP3_BLOCKLIST_MARKETS: ''
   MM_PERPS_HIP3_ENABLED: 'true'
+  # Temporary flag to enable builds with GitHub Actions, remove it when deprecating bitrise
+  BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY: 'true'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
@@ -88,6 +88,8 @@ _secrets: &secrets # Infrastructure
   ANDROID_GOOGLE_SERVER_CLIENT_ID: 'ANDROID_GOOGLE_SERVER_CLIENT_ID'
   # Card/Baanx
   MM_CARD_BAANX_API_CLIENT_KEY: 'MM_CARD_BAANX_API_CLIENT_KEY'
+  # Expo
+  EXPO_PROJECT_ID: 'EXPO_PROJECT_ID'
 
 # Signing config (AWS Secrets Manager) - omit for dev/simulator builds
 # android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)
@@ -154,29 +156,6 @@ _code_fencing_flask: &code_fencing_flask
   - tron
 
 # =============================================================================
-# Remote Feature Flags - Build-time defaults (seeded into RemoteFeatureFlagController)
-# LaunchDarkly will override these at runtime
-# Production (conservative) defaults - override in dev/exp builds as needed
-# =============================================================================
-_remote_feature_flags: &remote_feature_flags # Perps
-  perpsPerpTradingEnabled: false
-  perpsPerpTradingServiceInterruptionBannerEnabled: false
-  perpsPerpGtmOnboardingModalEnabled: false
-  perpsOrderBookEnabled: false
-  perpsFeedbackEnabled: false
-  # Earn/Staking
-  earnPooledStakingEnabled: true
-  earnPooledStakingServiceInterruptionBannerEnabled: false
-  earnStablecoinLendingEnabled: true
-  earnStablecoinLendingServiceInterruptionBannerEnabled: false
-  earnMusdConversionFlowEnabled: false
-  earnMusdCtaEnabled: false
-  earnMusdConversionAssetOverviewCtaEnabled: false
-  earnMusdConversionTokenListItemCtaEnabled: false
-  earnMusdConversionRewardsUiEnabled: false
-  earnMerklCampaignClaiming: false
-
-# =============================================================================
 # Build Configurations
 # =============================================================================
 # Based on client distribution matrix - see docs for full mapping
@@ -197,7 +176,6 @@ builds:
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main
-    remote_feature_flags: *remote_feature_flags
 
   # Beta (production APIs, RC signing; TestFlight / Play Store beta track)
   main-beta:
@@ -209,7 +187,6 @@ builds:
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_beta
-    remote_feature_flags: *remote_feature_flags
 
   # Release candidate
   main-rc:
@@ -221,7 +198,6 @@ builds:
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
     code_fencing: *code_fencing_main
-    remote_feature_flags: *remote_feature_flags
 
   # Test builds (QA)
   main-test:
@@ -231,7 +207,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'main'
-      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       RAMPS_ENVIRONMENT: 'staging'
@@ -242,7 +218,6 @@ builds:
       IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
-    remote_feature_flags: *remote_feature_flags
 
   # E2E test builds (no Sentry)
   main-e2e:
@@ -252,7 +227,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'main'
-      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       RAMPS_ENVIRONMENT: 'staging'
@@ -263,7 +238,6 @@ builds:
       IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
-    remote_feature_flags: *remote_feature_flags
 
   # Experimental builds
   main-exp:
@@ -273,7 +247,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'exp'
       METAMASK_BUILD_TYPE: 'main'
-      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       RAMPS_ENVIRONMENT: 'staging'
@@ -283,19 +257,6 @@ builds:
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
-    remote_feature_flags:
-      <<: *remote_feature_flags
-      # Override for experimental testing
-      perpsPerpTradingEnabled: true
-      perpsPerpGtmOnboardingModalEnabled: true
-      perpsOrderBookEnabled: true
-      perpsFeedbackEnabled: true
-      earnMusdConversionFlowEnabled: true
-      earnMusdCtaEnabled: true
-      earnMusdConversionAssetOverviewCtaEnabled: true
-      earnMusdConversionTokenListItemCtaEnabled: true
-      earnMusdConversionRewardsUiEnabled: true
-      earnMerklCampaignClaiming: true
 
   # Local development / Expo development build (Runway .app for simulator)
   main-dev:
@@ -304,7 +265,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'main'
-      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       RAMPS_ENVIRONMENT: 'staging'
@@ -317,19 +278,6 @@ builds:
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
-    remote_feature_flags:
-      <<: *remote_feature_flags
-      # Override for dev testing
-      perpsPerpTradingEnabled: true
-      perpsPerpGtmOnboardingModalEnabled: true
-      perpsOrderBookEnabled: true
-      perpsFeedbackEnabled: true
-      earnMusdConversionFlowEnabled: true
-      earnMusdCtaEnabled: true
-      earnMusdConversionAssetOverviewCtaEnabled: true
-      earnMusdConversionTokenListItemCtaEnabled: true
-      earnMusdConversionRewardsUiEnabled: true
-      earnMerklCampaignClaiming: true
 
   # ---------------------------------------------------------------------------
   # FLASK BUILDS
@@ -345,7 +293,6 @@ builds:
       METAMASK_BUILD_TYPE: 'flask'
     secrets: *secrets
     code_fencing: *code_fencing_flask
-    remote_feature_flags: *remote_feature_flags
 
   # Flask test builds (QA)
   flask-test:
@@ -355,7 +302,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'flask'
-      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       RAMPS_ENVIRONMENT: 'staging'
@@ -366,7 +313,6 @@ builds:
       IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
-    remote_feature_flags: *remote_feature_flags
 
   # Flask E2E test builds (no Sentry)
   flask-e2e:
@@ -376,7 +322,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'flask'
-      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       RAMPS_ENVIRONMENT: 'staging'
@@ -387,7 +333,6 @@ builds:
       IS_SIM_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
-    remote_feature_flags: *remote_feature_flags
 
   # Flask local development / Expo development build (Runway .app for simulator)
   flask-dev:
@@ -396,7 +341,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'flask'
-      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       RAMPS_ENVIRONMENT: 'staging'
@@ -409,19 +354,6 @@ builds:
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
-    remote_feature_flags:
-      <<: *remote_feature_flags
-      # Override for dev testing
-      perpsPerpTradingEnabled: true
-      perpsPerpGtmOnboardingModalEnabled: true
-      perpsOrderBookEnabled: true
-      perpsFeedbackEnabled: true
-      earnMusdConversionFlowEnabled: true
-      earnMusdCtaEnabled: true
-      earnMusdConversionAssetOverviewCtaEnabled: true
-      earnMusdConversionTokenListItemCtaEnabled: true
-      earnMusdConversionRewardsUiEnabled: true
-      earnMerklCampaignClaiming: true
 
   # ─────────────────────────────────────────────────────────────────────────────
   # QA Builds (legacy - for internal testing)
@@ -450,7 +382,6 @@ builds:
       ANDROID_GOOGLE_SERVER_CLIENT_ID: MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT
       MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
     code_fencing: *code_fencing_main
-    remote_feature_flags: *remote_feature_flags
 
   # QA dev build / Expo development build (Runway .app for simulator)
   qa-dev:
@@ -459,7 +390,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'qa'
-      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       RAMPS_ENVIRONMENT: 'staging'
@@ -485,16 +416,3 @@ builds:
       ANDROID_GOOGLE_SERVER_CLIENT_ID: MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT
       MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
     code_fencing: *code_fencing_main
-    remote_feature_flags:
-      <<: *remote_feature_flags
-      # Override for dev testing
-      perpsPerpTradingEnabled: true
-      perpsPerpGtmOnboardingModalEnabled: true
-      perpsOrderBookEnabled: true
-      perpsFeedbackEnabled: true
-      earnMusdConversionFlowEnabled: true
-      earnMusdCtaEnabled: true
-      earnMusdConversionAssetOverviewCtaEnabled: true
-      earnMusdConversionTokenListItemCtaEnabled: true
-      earnMusdConversionRewardsUiEnabled: true
-      earnMerklCampaignClaiming: true
