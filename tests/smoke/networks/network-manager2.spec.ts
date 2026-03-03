@@ -221,7 +221,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
     );
   });
 
-  it.skip('should preserve existing enabled networks when adding a network via dapp', async () => {
+  it('should preserve existing enabled networks when adding a network via dapp', async () => {
     await withFixtures(
       {
         dapps: [
@@ -286,6 +286,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         await TabBarComponent.tapWallet();
 
         // Verify Ethereum is still the active network (preservation)
+        // Okay this fails because the network manager invokes and updates network, fek
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.ETHEREUM,
         );

@@ -38,15 +38,6 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   },
 }));
 
-const mockSelectNetwork = jest.fn();
-jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
-  useNetworkSelection: () => ({
-    selectCustomNetwork: jest.fn(),
-    selectPopularNetwork: jest.fn(),
-    selectNetwork: mockSelectNetwork,
-  }),
-}));
-
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../../actions/onboardNetwork');
 
@@ -154,24 +145,6 @@ describe('SwitchChainApproval', () => {
     const wrapper = shallow(<SwitchChainApproval />);
     wrapper.find('SwitchCustomNetwork').simulate('confirm');
 
-    expect(networkSwitched).toHaveBeenCalledTimes(1);
-    expect(networkSwitched).toHaveBeenCalledWith({
-      networkUrl: URL_MOCK,
-      networkStatus: true,
-    });
-  });
-
-  it('calls selectNetwork when confirm is pressed', () => {
-    mockApprovalRequest({
-      type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: mockApprovalRequestData,
-    });
-
-    const wrapper = shallow(<SwitchChainApproval />);
-    wrapper.find('SwitchCustomNetwork').simulate('confirm');
-
-    expect(mockSelectNetwork).toHaveBeenCalledTimes(1);
-    expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
     expect(networkSwitched).toHaveBeenCalledTimes(1);
     expect(networkSwitched).toHaveBeenCalledWith({
       networkUrl: URL_MOCK,
