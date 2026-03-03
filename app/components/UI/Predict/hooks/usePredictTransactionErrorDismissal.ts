@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectPredictActiveOrder } from '../selectors/predictController';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
+import { usePreviousValue } from './usePreviousValue';
 
 interface UsePredictTransactionErrorDismissalParams {
   amount: number;
@@ -25,41 +26,25 @@ export function usePredictTransactionErrorDismissal({
     Engine.context.PredictController.setActiveOrder(activeOrderWithoutError);
   }, [activeOrder]);
 
-  const previousPaymentTokenKeyRef = useRef<string | null>(null);
+  const paymentTokenKey = isPredictBalanceSelected
+    ? 'predict-balance'
+    : (selectedPaymentToken?.address?.toLowerCase() ?? null);
+  const previousPaymentTokenKey = usePreviousValue(paymentTokenKey);
+
   useEffect(() => {
-    const currentPaymentTokenKey = isPredictBalanceSelected
-      ? 'predict-balance'
-      : (selectedPaymentToken?.address?.toLowerCase() ?? null);
-
-    if (previousPaymentTokenKeyRef.current === null) {
-      previousPaymentTokenKeyRef.current = currentPaymentTokenKey;
-      return;
+    if (
+      previousPaymentTokenKey !== undefined &&
+      previousPaymentTokenKey !== paymentTokenKey
+    ) {
+      clearTransactionError();
     }
+  }, [clearTransactionError, paymentTokenKey, previousPaymentTokenKey]);
 
-    if (previousPaymentTokenKeyRef.current === currentPaymentTokenKey) {
-      return;
-    }
+  const previousAmount = usePreviousValue(amount);
 
-    previousPaymentTokenKeyRef.current = currentPaymentTokenKey;
-    clearTransactionError();
-  }, [
-    clearTransactionError,
-    isPredictBalanceSelected,
-    selectedPaymentToken?.address,
-  ]);
-
-  const previousAmountRef = useRef<number | null>(null);
   useEffect(() => {
-    if (previousAmountRef.current === null) {
-      previousAmountRef.current = amount;
-      return;
+    if (previousAmount !== undefined && previousAmount !== amount) {
+      clearTransactionError();
     }
-
-    if (previousAmountRef.current === amount) {
-      return;
-    }
-
-    previousAmountRef.current = amount;
-    clearTransactionError();
-  }, [amount, clearTransactionError]);
+  }, [amount, clearTransactionError, previousAmount]);
 }

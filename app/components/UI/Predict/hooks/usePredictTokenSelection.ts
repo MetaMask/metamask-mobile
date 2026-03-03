@@ -16,20 +16,12 @@ export function usePredictTokenSelection({
   const [isDepositAndOrderLoading, setIsDepositAndOrderLoading] =
     useState(false);
 
-  const hasInitializedTokenSelectionRef = useRef(false);
+  const hasInitializedRef = useRef(false);
   const previousSelectedTokenKeyRef = useRef<string | null>(null);
   const shouldPreserveActiveOrderOnUnmountRef = useRef(false);
-  const isMountedRef = useRef(true);
   const markShouldPreserveActiveOrderOnUnmount = useCallback(() => {
     shouldPreserveActiveOrderOnUnmountRef.current = true;
   }, []);
-
-  useEffect(
-    () => () => {
-      isMountedRef.current = false;
-    },
-    [],
-  );
 
   useEffect(() => {
     let isCancelled = false;
@@ -39,8 +31,8 @@ export function usePredictTokenSelection({
       ? 'predict-balance'
       : selectedTokenAddress;
 
-    if (!hasInitializedTokenSelectionRef.current) {
-      hasInitializedTokenSelectionRef.current = true;
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
       previousSelectedTokenKeyRef.current = selectedTokenKey;
       return;
     }
@@ -62,7 +54,7 @@ export function usePredictTokenSelection({
     shouldPreserveActiveOrderOnUnmountRef.current = true;
 
     const executeTokenSelection = async () => {
-      if (!isCancelled && isMountedRef.current) {
+      if (!isCancelled) {
         setIsDepositAndOrderLoading(true);
       }
 
@@ -72,7 +64,7 @@ export function usePredictTokenSelection({
         // Intentionally ignored; caller handles callback-specific failures.
       }
 
-      if (!isCancelled && isMountedRef.current) {
+      if (!isCancelled) {
         setIsDepositAndOrderLoading(false);
       }
     };

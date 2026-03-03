@@ -54,6 +54,7 @@ import { useTransactionMetadataRequest } from '../../../../Views/confirmations/h
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
+import { usePreviousValue } from '../../hooks/usePreviousValue';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -88,8 +89,6 @@ export function PredictDepositAndOrderInfo() {
   const { isPredictBalanceSelected } = usePredictPaymentToken();
 
   const keypadRef = useRef<PredictKeypadHandles>(null);
-  const previousValueRef = useRef(0);
-  const hasAppliedPrefillRef = useRef(false);
 
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();
@@ -104,21 +103,10 @@ export function PredictDepositAndOrderInfo() {
       ? initialInputFocused
       : prefilledAmountUsd <= 0,
   );
-  const [isUserInputChange, setIsUserInputChange] = useState(false);
 
   usePredictTransactionErrorDismissal({
     amount: currentValue,
   });
-
-  useEffect(() => {
-    if (hasAppliedPrefillRef.current || prefilledAmountUsd <= 0) {
-      return;
-    }
-
-    hasAppliedPrefillRef.current = true;
-    setCurrentValue(prefilledAmountUsd);
-    setCurrentValueUSDString(prefilledAmountUsd.toString());
-  }, [prefilledAmountUsd]);
 
   const {
     preview,
@@ -133,25 +121,9 @@ export function PredictDepositAndOrderInfo() {
     autoRefreshTimeout: 1000,
   });
 
-  useEffect(() => {
-    if (!isCalculating) {
-      setIsUserInputChange(false);
-      if (currentValue === 0) {
-        previousValueRef.current = 0;
-      }
-      return;
-    }
-
-    if (
-      currentValue > 0 &&
-      currentValue !== previousValueRef.current &&
-      isCalculating
-    ) {
-      setIsUserInputChange(true);
-    }
-
-    previousValueRef.current = currentValue;
-  }, [currentValue, isCalculating]);
+  const previousValue = usePreviousValue(currentValue);
+  const isUserInputChange =
+    isCalculating && currentValue > 0 && currentValue !== (previousValue ?? 0);
 
   useEffect(
     () => () => {
@@ -160,13 +132,24 @@ export function PredictDepositAndOrderInfo() {
     [],
   );
 
-  const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
-  const isRateLimited = preview?.rateLimited ?? false;
+  const isBelowMinimum = useMemo(
+    () => currentValue > 0 && currentValue < MINIMUM_BET,
+    [currentValue],
+  );
 
-  const toWin = preview?.minAmountReceived ?? 0;
-  const metamaskFee = preview?.fees?.metamaskFee ?? 0;
-  const providerFee = preview?.fees?.providerFee ?? 0;
-  const total = currentValue + providerFee + metamaskFee;
+  const { toWin, metamaskFee, providerFee, total, isRateLimited } = useMemo(
+    () => ({
+      toWin: preview?.minAmountReceived ?? 0,
+      metamaskFee: preview?.fees?.metamaskFee ?? 0,
+      providerFee: preview?.fees?.providerFee ?? 0,
+      total:
+        currentValue +
+        (preview?.fees?.providerFee ?? 0) +
+        (preview?.fees?.metamaskFee ?? 0),
+      isRateLimited: preview?.rateLimited ?? false,
+    }),
+    [currentValue, preview],
+  );
 
   const activeTransactionMeta = useTransactionMetadataRequest();
 
@@ -234,13 +217,23 @@ export function PredictDepositAndOrderInfo() {
       preview,
     });
 
-  const canPlaceBet =
-    currentValue >= MINIMUM_BET &&
-    preview &&
-    !isConfirming &&
-    !isBalanceLoading &&
-    !isRateLimited &&
-    !isPayFeesLoading;
+  const canPlaceBet = useMemo(
+    () =>
+      currentValue >= MINIMUM_BET &&
+      !!preview &&
+      !isConfirming &&
+      !isBalanceLoading &&
+      !isRateLimited &&
+      !isPayFeesLoading,
+    [
+      currentValue,
+      preview,
+      isConfirming,
+      isBalanceLoading,
+      isRateLimited,
+      isPayFeesLoading,
+    ],
+  );
 
   const availableBalanceDisplay = useMemo(
     () =>
@@ -264,17 +257,25 @@ export function PredictDepositAndOrderInfo() {
     previewError ? undefined : (preview?.fees?.totalFee ?? 0),
   );
 
-  const shouldShowRewardsRow =
-    isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null;
+  const shouldShowRewardsRow = useMemo(
+    () =>
+      isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null,
+    [isRewardsEnabled, currentValue, isAccountOptedIntoRewards],
+  );
+
+  const title = useMemo(() => market?.title ?? '', [market?.title]);
+  const outcomeGroupTitle = useMemo(
+    () => outcome?.groupItemTitle ?? '',
+    [outcome?.groupItemTitle],
+  );
+  const errorMessage = useMemo(
+    () => confirmError ?? transactionError ?? previewError,
+    [confirmError, transactionError, previewError],
+  );
 
   if (!activeOrder || !market || !outcome || !outcomeToken) {
     return null;
   }
-
-  const title = market.title ?? '';
-  const outcomeGroupTitle = outcome.groupItemTitle
-    ? outcome.groupItemTitle
-    : '';
 
   const renderAmount = () => (
     <ScrollView
@@ -370,8 +371,6 @@ export function PredictDepositAndOrderInfo() {
 
     return null;
   };
-
-  const errorMessage = confirmError ?? transactionError ?? previewError;
 
   const renderActionButton = () => {
     if (isConfirming) {

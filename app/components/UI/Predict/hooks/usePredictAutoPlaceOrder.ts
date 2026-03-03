@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { OrderPreview, PlaceOrderParams } from '../providers/types';
 import { usePredictOrderDepositTracking } from './usePredictOrderDepositTracking';
+
+type AutoPlacePhase = 'idle' | 'initialized' | 'order_placed' | 'failed';
 
 interface UsePredictAutoPlaceOrderParams {
   amount?: number;
@@ -31,16 +33,14 @@ export function usePredictAutoPlaceOrder({
   setIsInputFocused,
   onDepositFailed,
 }: UsePredictAutoPlaceOrderParams): UsePredictAutoPlaceOrderResult {
-  const shouldAutoPlaceOrder = useMemo(
-    () => typeof amount === 'number' && amount > 0,
-    [amount],
-  );
+  const shouldAutoPlaceOrder = typeof amount === 'number' && amount > 0;
+
   const [isAutoPlaceLoading, setIsAutoPlaceLoading] = useState(
     () => shouldAutoPlaceOrder,
   );
-  const hasInitializedAutoPlaceOrderRef = useRef(false);
-  const hasTriggeredAutoPlaceOrderRef = useRef(false);
-  const hasHandledFailedDepositRef = useRef(false);
+  const [phase, setPhase] = useState<AutoPlacePhase>(
+    shouldAutoPlaceOrder ? 'idle' : 'initialized',
+  );
 
   const {
     isConfirmed: isAutoPlaceDepositConfirmed,
@@ -51,19 +51,21 @@ export function usePredictAutoPlaceOrder({
   });
 
   useEffect(() => {
-    if (
-      typeof amount !== 'number' ||
-      amount <= 0 ||
-      hasInitializedAutoPlaceOrderRef.current
-    ) {
+    if (phase !== 'idle' || typeof amount !== 'number' || amount <= 0) {
       return;
     }
 
-    hasInitializedAutoPlaceOrderRef.current = true;
+    setPhase('initialized');
     setCurrentValue(amount);
     setCurrentValueUSDString(amount.toString());
     setIsInputFocused(false);
-  }, [amount, setCurrentValue, setCurrentValueUSDString, setIsInputFocused]);
+  }, [
+    phase,
+    amount,
+    setCurrentValue,
+    setCurrentValueUSDString,
+    setIsInputFocused,
+  ]);
 
   useEffect(() => {
     if (!shouldAutoPlaceOrder) {
@@ -80,12 +82,12 @@ export function usePredictAutoPlaceOrder({
     if (
       !shouldAutoPlaceOrder ||
       !hasAutoPlaceDepositFailed ||
-      hasHandledFailedDepositRef.current
+      phase === 'failed'
     ) {
       return;
     }
 
-    hasHandledFailedDepositRef.current = true;
+    setPhase('failed');
     setIsAutoPlaceLoading(false);
     const retryResult = onDepositFailed?.(autoPlaceDepositErrorMessage);
     if (retryResult) {
@@ -95,11 +97,12 @@ export function usePredictAutoPlaceOrder({
     autoPlaceDepositErrorMessage,
     hasAutoPlaceDepositFailed,
     onDepositFailed,
+    phase,
     shouldAutoPlaceOrder,
   ]);
 
   useEffect(() => {
-    if (!shouldAutoPlaceOrder || hasTriggeredAutoPlaceOrderRef.current) {
+    if (!shouldAutoPlaceOrder || phase === 'order_placed') {
       return;
     }
 
@@ -107,7 +110,7 @@ export function usePredictAutoPlaceOrder({
       return;
     }
 
-    hasTriggeredAutoPlaceOrderRef.current = true;
+    setPhase('order_placed');
     const executeAutoPlaceOrder = async () => {
       try {
         await placeOrder({
@@ -124,6 +127,7 @@ export function usePredictAutoPlaceOrder({
     analyticsProperties,
     canPlaceBet,
     isAutoPlaceDepositConfirmed,
+    phase,
     placeOrder,
     preview,
     shouldAutoPlaceOrder,

@@ -6,7 +6,6 @@ import {
 import {
   useCallback,
   useContext,
-  useRef,
   useState,
   type MutableRefObject,
 } from 'react';
@@ -92,8 +91,6 @@ export const usePredictDepositAndOrder = ({
   );
   const marketId = market?.id;
   const outcomeId = outcome?.id;
-  const previewRef = useRef(preview);
-  previewRef.current = preview;
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string>();
 
@@ -184,15 +181,14 @@ export const usePredictDepositAndOrder = ({
   ]);
 
   const handleOrderSuccess = useCallback(async () => {
-    const latestPreview = previewRef.current;
-    if (!latestPreview) {
+    if (!preview) {
       setIsConfirming(false);
       return;
     }
 
     try {
       await placeOrder({
-        preview: latestPreview,
+        preview,
         analyticsProperties: {
           marketId,
           outcome: outcomeId,
@@ -209,7 +205,14 @@ export const usePredictDepositAndOrder = ({
       setIsConfirming(false);
       navigation.goBack();
     }
-  }, [marketId, navigation, outcomeId, placeOrder, showOrderPlacedToast]);
+  }, [
+    marketId,
+    navigation,
+    outcomeId,
+    placeOrder,
+    preview,
+    showOrderPlacedToast,
+  ]);
 
   const handleConfirm = useCallback(async () => {
     if (!hasExecutionParams || isConfirming) {

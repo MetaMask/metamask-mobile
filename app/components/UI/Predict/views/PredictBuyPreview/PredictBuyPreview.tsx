@@ -35,6 +35,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useSelector } from 'react-redux';
+import { usePreviousValue } from '../../hooks/usePreviousValue';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -143,8 +144,6 @@ const PredictBuyPreview = () => {
     autoPlaceAmount ? autoPlaceAmount.toString() : '',
   );
   const [isInputFocused, setIsInputFocused] = useState(() => !autoPlaceAmount);
-  const [isUserInputChange, setIsUserInputChange] = useState(false);
-  const previousValueRef = useRef(0);
   const {
     shouldPreserveActiveOrderOnUnmountRef,
     isDepositAndOrderLoading,
@@ -200,30 +199,14 @@ const PredictBuyPreview = () => {
     },
   });
 
-  // Track when user changes input to show skeleton only during user input changes
-  useEffect(() => {
-    if (!isCalculating) {
-      setIsUserInputChange(false);
-      if (currentValue === 0) {
-        previousValueRef.current = 0;
-      }
-      return;
-    }
+  const previousValue = usePreviousValue(currentValue);
+  const isUserInputChange =
+    isCalculating && currentValue > 0 && currentValue !== (previousValue ?? 0);
 
-    if (
-      currentValue > 0 &&
-      currentValue !== previousValueRef.current &&
-      isCalculating
-    ) {
-      setIsUserInputChange(true);
-    }
-
-    previousValueRef.current = currentValue;
-  }, [currentValue, isCalculating]);
-
-  const errorMessage = isOrderNotFilled
-    ? undefined
-    : (previewError ?? placeOrderError);
+  const errorMessage = useMemo(
+    () => (isOrderNotFilled ? undefined : (previewError ?? placeOrderError)),
+    [isOrderNotFilled, previewError, placeOrderError],
+  );
 
   // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
@@ -253,21 +236,41 @@ const PredictBuyPreview = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const toWin = preview?.minAmountReceived ?? 0;
-  const isRateLimited = preview?.rateLimited ?? false;
+  const { toWin, isRateLimited, metamaskFee, providerFee, total } = useMemo(
+    () => ({
+      toWin: preview?.minAmountReceived ?? 0,
+      isRateLimited: preview?.rateLimited ?? false,
+      metamaskFee: preview?.fees?.metamaskFee ?? 0,
+      providerFee: preview?.fees?.providerFee ?? 0,
+      total:
+        currentValue +
+        (preview?.fees?.providerFee ?? 0) +
+        (preview?.fees?.metamaskFee ?? 0),
+    }),
+    [currentValue, preview],
+  );
 
-  const metamaskFee = preview?.fees?.metamaskFee ?? 0;
-  const providerFee = preview?.fees?.providerFee ?? 0;
-  const total = currentValue + providerFee + metamaskFee;
-
-  const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
-  const canPlaceBet =
-    currentValue >= MINIMUM_BET &&
-    !!preview &&
-    !isLoading &&
-    !isBalanceLoading &&
-    !isRateLimited &&
-    !isCalculating;
+  const isBelowMinimum = useMemo(
+    () => currentValue > 0 && currentValue < MINIMUM_BET,
+    [currentValue],
+  );
+  const canPlaceBet = useMemo(
+    () =>
+      currentValue >= MINIMUM_BET &&
+      !!preview &&
+      !isLoading &&
+      !isBalanceLoading &&
+      !isRateLimited &&
+      !isCalculating,
+    [
+      currentValue,
+      preview,
+      isLoading,
+      isBalanceLoading,
+      isRateLimited,
+      isCalculating,
+    ],
+  );
 
   const handleAutoPlaceDepositFailed = async (depositErrorMessage?: string) => {
     await depositAndOrder({
@@ -308,15 +311,19 @@ const PredictBuyPreview = () => {
     isPlacingOrder || previewError ? undefined : (preview?.fees?.totalFee ?? 0),
   );
 
-  // Show rewards row if we have a valid amount
-  // && either active account address is opted in or not opted in but opt-in is supported
-  const shouldShowRewardsRow =
-    isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null;
+  const shouldShowRewardsRow = useMemo(
+    () =>
+      isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null,
+    [isRewardsEnabled, currentValue, isAccountOptedIntoRewards],
+  );
 
-  const title = market.title;
-  const outcomeGroupTitle = outcome.groupItemTitle
-    ? outcome.groupItemTitle
-    : '';
+  const { title, outcomeGroupTitle } = useMemo(
+    () => ({
+      title: market.title,
+      outcomeGroupTitle: outcome.groupItemTitle ? outcome.groupItemTitle : '',
+    }),
+    [market, outcome],
+  );
 
   useEffect(() => {
     if (result?.success) {
