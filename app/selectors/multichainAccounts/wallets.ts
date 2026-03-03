@@ -1,10 +1,9 @@
 import { selectAccountTreeControllerState } from './accountTreeController';
-import { selectMultichainAccountsState1Enabled } from '../featureFlagController/multichainAccounts';
 import { createDeepEqualSelector } from '../util';
 import { AccountWalletType } from '@metamask/account-api';
 
 export const selectWallets = createDeepEqualSelector(
-  [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
+  [selectAccountTreeControllerState],
   (accountTreeState) => {
     if (!accountTreeState?.accountTree?.wallets) {
       return [];
